@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.NotificationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -40,12 +41,10 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
-    // --- STATE: ACTIVE TAB ---
+    // Filters
     val activeSearch = MutableStateFlow("")
     val activeCategory = MutableStateFlow(AppCategory.ALL)
     val activeSort = MutableStateFlow(SortOption.NAME_AZ)
-
-    // --- STATE: LIBRARY TAB ---
     val librarySearch = MutableStateFlow("")
     val libraryCategory = MutableStateFlow(AppCategory.ALL)
     val librarySort = MutableStateFlow(SortOption.NAME_AZ)
@@ -55,29 +54,22 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     private val MAPS_KEYS = listOf("map", "nav", "waze", "gps", "transit", "uber", "cabify")
     private val TIMER_KEYS = listOf("clock", "timer", "alarm", "stopwatch", "calendar", "todo")
 
-    // 1. Base Stream
     private val baseAppsFlow = combine(_installedApps, preferences.allowedPackagesFlow) { apps, allowedSet ->
         apps.map { app -> app.copy(isBridged = allowedSet.contains(app.packageName)) }
     }
 
-    // 2. Active Apps Stream (Filtered by its own state)
     val activeAppsState: StateFlow<List<AppInfo>> = combine(
         baseAppsFlow, activeSearch, activeCategory, activeSort
     ) { apps, query, category, sort ->
-        // First get only enabled apps
-        val enabledApps = apps.filter { it.isBridged }
-        // Then apply filters
-        applyFilters(enabledApps, query, category, sort)
+        applyFilters(apps.filter { it.isBridged }, query, category, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // 3. Library Apps Stream (Filtered by its own state)
     val libraryAppsState: StateFlow<List<AppInfo>> = combine(
         baseAppsFlow, librarySearch, libraryCategory, librarySort
     ) { apps, query, category, sort ->
         applyFilters(apps, query, category, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Shared Logic
     private fun applyFilters(list: List<AppInfo>, query: String, category: AppCategory, sort: SortOption): List<AppInfo> {
         var result = list
         if (query.isNotEmpty()) {
@@ -105,15 +97,39 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // --- PREFERENCE ACTIONS ---
+
     fun toggleApp(packageName: String, isEnabled: Boolean) {
         viewModelScope.launch { preferences.toggleApp(packageName, isEnabled) }
     }
+
     fun getAppConfig(packageName: String) = preferences.getAppConfig(packageName)
+
     fun updateAppConfig(pkg: String, type: NotificationType, enabled: Boolean) {
         viewModelScope.launch { preferences.updateAppConfig(pkg, type, enabled) }
     }
 
-    // --- LOADER ---
+    // --- NEW: ISLAND APPEARANCE BRIDGES ---
+
+    val globalConfigFlow = preferences.globalConfigFlow
+
+    fun getAppIslandConfig(packageName: String) = preferences.getAppIslandConfig(packageName)
+
+    fun updateAppIslandConfig(packageName: String, config: IslandConfig) {
+        viewModelScope.launch { preferences.updateAppIslandConfig(packageName, config) }
+    }
+
+    fun updateGlobalConfig(config: IslandConfig) {
+        viewModelScope.launch { preferences.updateGlobalConfig(config) }
+    }
+    // --------------------------------------
+
+    // UI State Setters
+    fun setCategory(cat: AppCategory) { /* handled by state flows directly in UI for now, but keeping for compatibility */ }
+    fun setSort(option: SortOption) { /* same */ }
+    fun clearSearch() { /* same */ }
+
+    // App Loader
     private suspend fun getLaunchableApps(): List<AppInfo> = withContext(Dispatchers.IO) {
         val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
         val resolveInfos = packageManager.queryIntentActivities(intent, 0)

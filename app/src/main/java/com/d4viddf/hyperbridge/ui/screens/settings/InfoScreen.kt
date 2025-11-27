@@ -33,14 +33,16 @@ import com.d4viddf.hyperbridge.util.toBitmap
 fun InfoScreen(
     onBack: () -> Unit,
     onSetupClick: () -> Unit,
-    onLicensesClick: () -> Unit
+    onLicensesClick: () -> Unit,
+    onBehaviorClick: () -> Unit,
+    onGlobalSettingsClick: () -> Unit,
+    onHistoryClick: () -> Unit // NEW
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val scrollState = rememberScrollState()
 
-    // FIX: Ensure appVersion is strictly a String (not nullable)
-    val appVersion: String = try {
+    val appVersion = try {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0.0"
     } catch (e: Exception) { "1.0.0" }
 
@@ -74,7 +76,7 @@ fun InfoScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- APP HEADER ---
+            // --- HEADER ---
             Spacer(modifier = Modifier.height(16.dp))
 
             if (appIconBitmap != null) {
@@ -113,38 +115,74 @@ fun InfoScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // GROUP 1: CONFIGURATION
+            // --- GROUP 1: CONFIGURATION ---
             SettingsGroupTitle(stringResource(R.string.group_configuration))
             SettingsGroupCard {
+                // System Setup
                 SettingsItem(
                     icon = Icons.Default.SettingsSuggest,
                     title = stringResource(R.string.system_setup),
                     subtitle = stringResource(R.string.system_setup_subtitle),
                     onClick = onSetupClick
                 )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
+
+                // Island Behavior
+                SettingsItem(
+                    icon = Icons.Default.Tune,
+                    title = stringResource(R.string.island_behavior),
+                    subtitle = stringResource(R.string.limit_strategy),
+                    onClick = onBehaviorClick
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
+
+                // Global Appearance
+                SettingsItem(
+                    icon = Icons.Default.Palette,
+                    title = stringResource(R.string.global_settings),
+                    subtitle = stringResource(R.string.island_appearance),
+                    onClick = onGlobalSettingsClick
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // GROUP 2: ABOUT
+            // --- GROUP 2: ABOUT ---
             SettingsGroupTitle(stringResource(R.string.group_about))
             SettingsGroupCard {
+                // Developer
                 SettingsItem(
                     icon = Icons.Default.Person,
                     title = stringResource(R.string.developer),
                     subtitle = stringResource(R.string.developer_subtitle),
                     onClick = { uriHandler.openUri("https://d4viddf.com") }
                 )
+
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
 
+                // Version History (NEW)
+                SettingsItem(
+                    icon = Icons.Default.History,
+                    title = stringResource(R.string.version_history),
+                    subtitle = "0.1.0 - 0.2.0",
+                    onClick = onHistoryClick
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
+
+                // Source Code
                 SettingsItem(
                     icon = Icons.Default.Code,
                     title = stringResource(R.string.source_code),
                     subtitle = stringResource(R.string.source_code_subtitle),
                     onClick = { uriHandler.openUri("https://github.com/D4vidDf/HyperBridge") }
                 )
+
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
 
+                // Licenses
                 SettingsItem(
                     icon = Icons.Default.Description,
                     title = stringResource(R.string.licenses),

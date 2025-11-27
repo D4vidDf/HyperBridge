@@ -18,7 +18,7 @@
     <string name="get_started">Empezar</string>
 
     <string name="how_it_works">Cómo funciona</string>
-    <string name="how_it_works_desc">Selecciona tus apps favoritas (Spotify, Maps, Timer). HyperBridge transforma sus notificaciones en una elegante HyperIsland.</string>
+    <string name="how_it_works_desc">Selecciona tus aplicaciones favoritas (Spotify, Maps, Timer). HyperBridge transforma sus notificaciones en una elegante HyperIsland.</string>
     <string name="early_development">Desarrollo Temprano</string>
     <string name="beta_warning">Nota: Esta app está en Beta. Puedes encontrar errores o información visual incorrecta.</string>
 
@@ -35,24 +35,24 @@
     <string name="allow_notifications">Permitir Notificaciones</string>
 
     <string name="read_data">Leer Datos</string>
-    <string name="perm_listener_desc">Para conectar tus apps, necesitamos leer sus notificaciones (Música, Mapas, Temporizadores).</string>
+    <string name="perm_listener_desc">Para conectar tus aplicaciones, necesitamos leer sus notificaciones (Música, Mapas, Temporizadores).</string>
     <string name="open_settings">Abrir Ajustes</string>
 
     <string name="keep_alive">Mantener Activo</string>
-    <string name="optimization_desc">HyperOS cierra apps en segundo plano. Habilita el Inicio Automático y Sin Restricciones para mantener la isla activa.</string>
+    <string name="optimization_desc">HyperOS cierra aplicaciones en segundo plano. Habilita el Inicio Automático y Sin Restricciones para mantener la isla activa.</string>
     <string name="enable_autostart">1. Activar Inicio Automático</string>
     <string name="set_battery_no_restrictions">2. Batería \'Sin Restricciones\'</string>
 
     <string name="tab_active">Activos</string>
     <string name="tab_library">Biblioteca</string>
     <string name="title_active_bridges">Bridges Activos</string>
-    <string name="title_library">Biblioteca de Apps</string>
-    <string name="search_hint">Buscar apps...</string>
+    <string name="title_library">Biblioteca de aplicaciones</string>
+    <string name="search_hint">Buscar aplicaciones...</string>
     <string name="sort_az">Orden: A-Z</string>
     <string name="sort_za">Orden: Z-A</string>
 
     <string name="no_active_bridges">Sin Bridges Activos</string>
-    <string name="no_active_bridges_desc">Ve a la Biblioteca para habilitar apps.</string>
+    <string name="no_active_bridges_desc">Ve a la Biblioteca para habilitar aplicaciones.</string>
     <string name="no_apps_found">No se encontraron apps</string>
 
     <string name="about">Acerca de</string>
@@ -63,7 +63,7 @@
     <string name="system_setup">Configuración del Sistema</string>
     <string name="system_setup_subtitle">Arreglar permisos y batería</string>
 
-    <string name="group_about">Sobre la app</string>
+    <string name="group_about">Sobre la aplicación</string>
     <string name="developer">Desarrollador</string>
     <string name="developer_subtitle">Visita d4viddf.com</string>
     <string name="source_code">Código Fuente</string>
@@ -72,18 +72,18 @@
     <string name="licenses_subtitle">Software de terceros</string>
     <string name="footer_made_with_love">Hecho con ❤️ en España</string>
 
-    <string name="app_health">Estado de la App</string>
-    <string name="app_health_desc">Asegúrate de que todo esté en verde para que la app funcione correctamente en segundo plano.</string>
+    <string name="app_health">Estado de la aplicación</string>
+    <string name="app_health_desc">Asegúrate de que todo esté en verde para que la aplicación funcione correctamente en segundo plano.</string>
     <string name="req_permissions">Permisos Requeridos</string>
     <string name="notif_access">Acceso a Notificaciones</string>
     <string name="notif_access_desc">Necesario para leer eventos</string>
-    <string name="perm_display_desc">Permiso para mostrar sobre otras apps</string>
+    <string name="perm_display_desc">Permiso para mostrar sobre otras aplicaciones</string>
     <string name="device_optimization">Optimización del Dispositivo</string>
     <string name="xiaomi_autostart">Inicio Automático Xiaomi</string>
     <string name="autostart_desc">Permitir inicio al encender</string>
     <string name="battery_unrestricted">Batería Sin Restricciones</string>
-    <string name="battery_desc">Evita que el sistema cierre la app</string>
-    <string name="recents_note">Nota: Bloquea también la app en el menú de \'Recientes\'.</string>
+    <string name="battery_desc">Evita que el sistema cierre la aplicación</string>
+    <string name="recents_note">Nota: Bloquea también la aplicación en el menú de \'Recientes\'.</string>
     <string name="status_active">Activo</string>
     <string name="action_needed">Acción Requerida</string>
 
@@ -130,12 +130,84 @@
 
     <string name="whats_new_title">Novedades en %s</string>
     <string name="changelog_0_1_0">
-        • <b>Nuevo Diseño :</b> Hyper Bridge ahora usa Material 3 Expressive con nuevas animaciones.\n
-        • <b>Mejoras en HyperIsland:</b> El texto ahora aparece a la derecha y muestra un tick verde para descargas completas.\n
-        • <b>Configuración por aplicación:</b> Ahora puedes personalizar que tipos de notificación se puede mostrar para cada aplicación.\n
-        • <b>Filtros Inteligentes:</b> Hyper Bridge ahora bloquea notificaciones duplicadas y ahorra batería.\n
-        • <b>Nueva Biblioteca:</b> Filtra apps por categoría y orden.\n
-        • <b>Idiomas:</b> Soporte completo para Español.
+        • &lt;b&gt;Nuevo Diseño :&lt;/b&gt; Hyper Bridge ahora usa Material 3 Expressive con nuevas animaciones.\n
+        • &lt;b&gt;Mejoras en HyperIsland:&lt;/b&gt; El texto ahora aparece a la derecha y muestra un tick verde para descargas completas.\n
+        • &lt;b&gt;Configuración por aplicación:&lt;/b&gt; Ahora puedes personalizar que tipos de notificación se puede mostrar para cada aplicación.\n
+        • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Hyper Bridge ahora bloquea notificaciones duplicadas y ahorra batería.\n
+        • &lt;b&gt;Nueva Biblioteca:&lt;/b&gt; Filtra aplicaciones por categoría y orden.\n
+        • &lt;b&gt;Idiomas:&lt;/b&gt; Soporte completo para Español.
     </string>
     <string name="awesome">¡Genial!</string>
+
+    <string name="island_behavior">Comportamiento</string>
+    <string name="limit_strategy">Estrategia de Límite</string>
+    <string name="limit_desc">¿Qué sucede al llegar a 9 islas?</string>
+
+    <string name="mode_fcfs_title">Por Orden de Llegada</string>
+    <string name="mode_fcfs_desc">Mantiene las primeras 9 notificaciones. Las nuevas notificaciones se ignoran hasta que haya espacio.</string>
+
+    <string name="mode_recent_title">Más Reciente (Por defecto)</string>
+    <string name="mode_recent_desc">Las nuevas notificaciones reemplazan a las más antiguas.</string>
+
+    <string name="mode_priority_title">Prioridad Personalizada</string>
+    <string name="mode_priority_desc">Tú decides qué aplicaciones son más importantes.</string>
+
+    <string name="priority_order">Orden de Prioridad</string>
+    <string name="priority_order_desc">Las aplicaciones más arriba tienen mayor prioridad</string>
+    <string name="configure_order">Configurar Orden de aplicaciones</string>
+
+    <string name="move_up">Subir</string>
+    <string name="move_down">Bajar</string>
+
+    <string name="status_download_complete">Descarga Completa</string>
+    <string name="status_downloading">Descargando</string>
+    <string name="status_pending">Pendiente...</string>
+    <string name="status_finished">Finalizado</string>
+    <string name="status_now_playing">Reproduciendo</string>
+    <string name="status_incoming_call">Llamada Entrante</string>
+    <string name="caller_unknown">Desconocido</string>
+
+    <string name="fallback_maps">Mapas</string>
+    <string name="fallback_timer">Temporizador</string>
+
+    <string name="global_settings">Ajustes Globales</string>
+    <string name="island_appearance">Apariencia de Isla</string>
+    <string name="setting_float">Isla Flotante</string>
+    <string name="setting_float_desc">Mostrar notificación emergente</string>
+    <string name="setting_shade">Mostrar en Panel</string>
+    <string name="setting_shade_desc">Mantener en centro de notificaciones</string>
+    <string name="setting_timeout">Duración</string>
+    <string name="seconds_suffix">%ds</string>
+    <string name="use_global_default">Usar valores globales</string>
+    <string name="customize_app">Personalizar</string>
+    <string name="override_settings">Sobrescribir ajustes</string>
+
+    <string-array name="nav_arrival_keywords">
+        <item>llegada</item>
+        <item>llega</item>
+        <item>llegando</item>
+        <item>eta</item>
+        <item>destino</item>
+    </string-array>
+    <string name="hint_options">Opciones</string>
+
+    <string name="version_history">Historial de Versiones</string>
+
+    <string name="title_0_2_0">La Actualización de Información</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;Progreso Avanzado:&lt;/b&gt; Soporte para "Pasos" (ej. 1 de 3) y barras de progreso con iconos en el panel de notificaciones.\n
+        • &lt;b&gt;Sistema de Prioridad:&lt;/b&gt; Nuevos ajustes de "Comportamiento". Elige el orden de aparición de las islas.\n
+        • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Detección mejorada de duplicados.\n
+        • &lt;b&gt;Mejoras Visuales:&lt;/b&gt; Diseño de navegación mejorado.\n
+        • &lt;b&gt;Configuración por Aplicación:&lt;/b&gt; Personaliza la duración y tiempo de muestra por aplicación.
+    </string>
+
+    <string name="title_0_1_0">La Actualización Expresiva</string>
+
+    <string name="priority_edu_title">Nuevo: Controla la Isla</string>
+    <string name="priority_edu_desc">HyperBridge ahora gestiona cómo se comportan múltiples notificaciones cuando se alcanza el límite de 9.\n\n&lt;b&gt;Por Defecto: Más Reciente&lt;/b&gt;\nLas nuevas notificaciones reemplazan a las más antiguas automáticamente.</string>
+    <string name="keep_default">Mantener</string>
+    <string name="configure_now">Configurar</string>
+
+    <string name="badge_new">NUEVO</string>
 </resources>

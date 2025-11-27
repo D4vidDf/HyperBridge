@@ -5,6 +5,7 @@ import android.content.Context
 import android.service.notification.StatusBarNotification
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.HyperIslandData
+import com.d4viddf.hyperbridge.models.IslandConfig
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
@@ -13,13 +14,21 @@ import io.github.d4viddf.hyperisland_kit.models.TextInfo
 
 class ProgressTranslator(context: Context) : BaseTranslator(context) {
 
-    // Lazy load keywords from XML resources
     private val finishKeywords by lazy {
         context.resources.getStringArray(R.array.progress_finish_keywords).toList()
     }
 
-    fun translate(sbn: StatusBarNotification, title: String, picKey: String): HyperIslandData {
+    fun translate(sbn: StatusBarNotification, title: String, picKey: String, config: IslandConfig): HyperIslandData {
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
+
+        // --- CONFIGURATION ---
+        val finalTimeout = config.timeout ?: 5000L
+        val shouldFloat = if (finalTimeout == 0L) false else (config.isFloat ?: true)
+        builder.setEnableFloat(shouldFloat)
+        builder.setTimeout(finalTimeout)
+        builder.setShowNotification(config.isShowShade ?: true)
+        // ---------------------
+
         val extras = sbn.notification.extras
 
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
@@ -27,9 +36,8 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         val indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
         val textContent = (extras.getString(Notification.EXTRA_TEXT) ?: "")
 
-        val percent = if (max > 0) (current * 100) / max else 0
+        val percent = if (max > 0) ((current.toFloat() / max.toFloat()) * 100).toInt() else 0
 
-        // Check localized keywords
         val isTextFinished = finishKeywords.any { textContent.contains(it, ignoreCase = true) }
         val isFinished = percent >= 100 || isTextFinished
 
@@ -38,6 +46,7 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         val greenColor = "#34C759"
         val blueColor = "#007AFF"
 
+        // Resources
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
@@ -48,49 +57,44 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         val actions = extractBridgeActions(sbn)
         val actionKeys = actions.map { it.action.key }
 
-        // Localized Strings
-        val strDownloadComplete = context.getString(R.string.status_download_complete)
-        val strPending = context.getString(R.string.status_pending)
-        val strFinished = context.getString(R.string.status_finished)
-        val strDownloading = context.getString(R.string.status_downloading)
-
         // Expanded Info
         builder.setChatInfo(
             title = title,
-            content = if (isFinished) strDownloadComplete else "${if(indeterminate) strPending else "$percent%"} • $textContent",
+            content = if (isFinished) "Download Complete" else textContent,
             pictureKey = picKey,
             actionKeys = actionKeys
         )
 
-        if (!isFinished) builder.setProgressBar(percent, blueColor)
+        // *** FIX: Correct setProgressBar Signature ***
+        if (!isFinished && !indeterminate) {
+            builder.setProgressBar(
+                progress = percent, // Must be 0-100 Int
+                color = blueColor,
+                picForwardKey = picKey // Icon moves with progress head
+            )
+        }
 
         // Big Island
         if (isFinished) {
             builder.setBigIslandInfo(
                 left = ImageTextInfoLeft(1, PicInfo(1, hiddenKey), TextInfo("", "")),
-                right = ImageTextInfoRight(
-                    1,
-                    PicInfo(1, tickKey),
-                    TextInfo(strFinished, title)
-                )
+                right = ImageTextInfoRight(1, PicInfo(1, tickKey), TextInfo("Finished", title))
             )
             builder.setSmallIslandIcon(tickKey)
         } else {
             builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(
-                    1,
-                    PicInfo(1, picKey),
-                    TextInfo("", "")
-                ),
-                right = ImageTextInfoRight(
-                    1,
-                    PicInfo(1, hiddenKey),
-                    TextInfo(strDownloading, "$percent%")
-                )
+                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
+                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, "$percent%"))
             )
 
             if (!indeterminate) {
-                builder.setBigIslandProgressCircle(picKey, "", percent, blueColor)
+                // *** FIX: Added Title String Argument ***
+                builder.setBigIslandProgressCircle(
+                    picKey,
+                    "", // Title inside circle (Empty)
+                    percent,
+                    blueColor
+                )
                 builder.setSmallIslandCircularProgress(picKey, percent, blueColor)
             } else {
                 builder.setSmallIslandIcon(picKey)

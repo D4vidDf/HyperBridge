@@ -4,8 +4,12 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NotificationType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,33 +22,58 @@ class AppPreferences(private val context: Context) {
         private val ALLOWED_PACKAGES_KEY = stringSetPreferencesKey("allowed_packages")
         private val SETUP_COMPLETE_KEY = booleanPreferencesKey("setup_complete")
         private val LAST_VERSION_CODE_KEY = intPreferencesKey("last_version_code")
+        private val PRIORITY_EDU_KEY = booleanPreferencesKey("priority_edu_shown")
+        private val LIMIT_MODE_KEY = stringPreferencesKey("limit_mode")
+        // This key stores the list of package names in order (comma separated)
+        private val PRIORITY_ORDER_KEY = stringPreferencesKey("priority_app_order")
+        private val GLOBAL_FLOAT_KEY = booleanPreferencesKey("global_float")
+        private val GLOBAL_SHADE_KEY = booleanPreferencesKey("global_shade")
+        private val GLOBAL_TIMEOUT_KEY = longPreferencesKey("global_timeout")
     }
 
-    // --- GLOBAL SETTINGS ---
-    val allowedPackagesFlow: Flow<Set<String>> = context.dataStore.data
-        .map { it[ALLOWED_PACKAGES_KEY] ?: emptySet() }
+    val allowedPackagesFlow: Flow<Set<String>> = context.dataStore.data.map { it[ALLOWED_PACKAGES_KEY] ?: emptySet() }
+    val isSetupComplete: Flow<Boolean> = context.dataStore.data.map { it[SETUP_COMPLETE_KEY] ?: false }
+    val lastSeenVersion: Flow<Int> = context.dataStore.data.map { it[LAST_VERSION_CODE_KEY] ?: 0 }
+    val isPriorityEduShown: Flow<Boolean> = context.dataStore.data.map { it[PRIORITY_EDU_KEY] ?: false }
 
-    val isSetupComplete: Flow<Boolean> = context.dataStore.data
-        .map { it[SETUP_COMPLETE_KEY] ?: false }
-
-    suspend fun setSetupComplete(isComplete: Boolean) {
-        context.dataStore.edit { it[SETUP_COMPLETE_KEY] = isComplete }
-    }
+    suspend fun setSetupComplete(isComplete: Boolean) { context.dataStore.edit { it[SETUP_COMPLETE_KEY] = isComplete } }
+    suspend fun setLastSeenVersion(versionCode: Int) { context.dataStore.edit { it[LAST_VERSION_CODE_KEY] = versionCode } }
+    suspend fun setPriorityEduShown(shown: Boolean) { context.dataStore.edit { it[PRIORITY_EDU_KEY] = shown } }
 
     suspend fun toggleApp(packageName: String, isEnabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            val currentSet = preferences[ALLOWED_PACKAGES_KEY] ?: emptySet()
-            preferences[ALLOWED_PACKAGES_KEY] = if (isEnabled) {
-                currentSet + packageName
-            } else {
-                currentSet - packageName
-            }
+        context.dataStore.edit { prefs ->
+            val current = prefs[ALLOWED_PACKAGES_KEY] ?: emptySet()
+            prefs[ALLOWED_PACKAGES_KEY] = if (isEnabled) current + packageName else current - packageName
         }
     }
 
-    // --- PER-APP CONFIGURATION ---
+    // --- LIMITS ---
+    val limitModeFlow: Flow<IslandLimitMode> = context.dataStore.data
+        .map { prefs ->
+            val name = prefs[LIMIT_MODE_KEY] ?: IslandLimitMode.MOST_RECENT.name
+            try { IslandLimitMode.valueOf(name) } catch(e: Exception) { IslandLimitMode.MOST_RECENT }
+        }
 
-    // Returns the set of enabled types (e.g. "MEDIA", "CALL"). Defaults to ALL if not set.
+    suspend fun setLimitMode(mode: IslandLimitMode) { context.dataStore.edit { it[LIMIT_MODE_KEY] = mode.name } }
+
+    // --- PRIORITY ORDER (The Missing Piece) ---
+    val appPriorityListFlow: Flow<List<String>> = context.dataStore.data
+        .map { prefs ->
+            val savedString = prefs[PRIORITY_ORDER_KEY]
+            if (!savedString.isNullOrEmpty()) {
+                savedString.split(",")
+            } else {
+                emptyList()
+            }
+        }
+
+    suspend fun setAppPriorityOrder(order: List<String>) {
+        context.dataStore.edit {
+            it[PRIORITY_ORDER_KEY] = order.joinToString(",")
+        }
+    }
+
+    // --- CONFIG ---
     fun getAppConfig(packageName: String): Flow<Set<String>> {
         val key = stringSetPreferencesKey("config_$packageName")
         return context.dataStore.data.map { preferences ->
@@ -60,24 +89,41 @@ class AppPreferences(private val context: Context) {
         }
     }
 
-    // Helper for the Service to get config one-shot
-    suspend fun isTypeAllowed(packageName: String, type: NotificationType): Boolean {
-        val key = stringSetPreferencesKey("config_$packageName")
-        var allowed = true
-        context.dataStore.edit { preferences ->
-            // We use edit block here just to access the snapshot safely, or use data.first()
-            // But for performance in service, mapping flow is better.
-            // See Service implementation for the actual usage.
-        }
-        return true // Placeholder, logic handled in Service via Flow
+    val globalConfigFlow: Flow<IslandConfig> = context.dataStore.data.map { prefs ->
+        IslandConfig(
+            isFloat = prefs[GLOBAL_FLOAT_KEY] ?: true,
+            isShowShade = prefs[GLOBAL_SHADE_KEY] ?: true,
+            timeout = prefs[GLOBAL_TIMEOUT_KEY] ?: 5000L
+        )
     }
 
-    // Check saved version
-    val lastSeenVersion: Flow<Int> = context.dataStore.data
-        .map { it[LAST_VERSION_CODE_KEY] ?: 0 }
+    suspend fun updateGlobalConfig(config: IslandConfig) {
+        context.dataStore.edit { prefs ->
+            config.isFloat?.let { prefs[GLOBAL_FLOAT_KEY] = it }
+            config.isShowShade?.let { prefs[GLOBAL_SHADE_KEY] = it }
+            config.timeout?.let { prefs[GLOBAL_TIMEOUT_KEY] = it }
+        }
+    }
 
-    // Update version after showing dialog
-    suspend fun setLastSeenVersion(versionCode: Int) {
-        context.dataStore.edit { it[LAST_VERSION_CODE_KEY] = versionCode }
+    fun getAppIslandConfig(packageName: String): Flow<IslandConfig> {
+        return context.dataStore.data.map { prefs ->
+            IslandConfig(
+                isFloat = prefs[booleanPreferencesKey("config_${packageName}_float")],
+                isShowShade = prefs[booleanPreferencesKey("config_${packageName}_shade")],
+                timeout = prefs[longPreferencesKey("config_${packageName}_timeout")]
+            )
+        }
+    }
+
+    suspend fun updateAppIslandConfig(packageName: String, config: IslandConfig) {
+        context.dataStore.edit { prefs ->
+            val floatKey = booleanPreferencesKey("config_${packageName}_float")
+            val shadeKey = booleanPreferencesKey("config_${packageName}_shade")
+            val timeKey = longPreferencesKey("config_${packageName}_timeout")
+
+            if (config.isFloat != null) prefs[floatKey] = config.isFloat else prefs.remove(floatKey)
+            if (config.isShowShade != null) prefs[shadeKey] = config.isShowShade else prefs.remove(shadeKey)
+            if (config.timeout != null) prefs[timeKey] = config.timeout else prefs.remove(timeKey)
+        }
     }
 }

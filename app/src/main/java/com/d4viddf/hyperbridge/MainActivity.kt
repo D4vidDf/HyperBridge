@@ -24,10 +24,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.ui.components.ChangelogDialog
+import com.d4viddf.hyperbridge.ui.components.PriorityEducationDialog
 import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
 import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.AppPriorityScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.ChangelogHistoryScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.GlobalSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.InfoScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.LicensesScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.PrioritySettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.SetupHealthScreen
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.launch
@@ -48,13 +53,16 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Screen Hierarchy (Depth determines animation direction)
 enum class Screen(val depth: Int) {
     ONBOARDING(0),
     HOME(1),
     INFO(2),
     SETUP(3),
-    LICENSES(3)
+    LICENSES(3),
+    BEHAVIOR(3),
+    GLOBAL_SETTINGS(3),
+    HISTORY(3),
+    APP_PRIORITY(4)
 }
 
 @Composable
@@ -63,72 +71,65 @@ fun MainRootNavigation() {
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
 
-    // 1. App Version Info
-    val packageInfo = remember {
-        try {
-            context.packageManager.getPackageInfo(context.packageName, 0)
-        } catch (e: Exception) { null }
-    }
-
+    // App Version Logic
+    val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null } }
+    @Suppress("DEPRECATION")
     val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
         packageInfo?.longVersionCode?.toInt() ?: 0
     } else {
         packageInfo?.versionCode ?: 0
     }
-    val currentVersionName = packageInfo?.versionName ?: "0.1.0"
+    val currentVersionName = packageInfo?.versionName ?: "0.2.0"
 
-    // 2. DataStore States
+    // Preferences
     val isSetupComplete by preferences.isSetupComplete.collectAsState(initial = null)
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = currentVersionCode)
+    val isPriorityEduShown by preferences.isPriorityEduShown.collectAsState(initial = true) // Start true to avoid flash on fresh install if not needed
 
-    // 3. Navigation State
+    // UI State
     var currentScreen by remember { mutableStateOf<Screen?>(null) }
-
-    // 4. Changelog Logic
     var showChangelog by remember { mutableStateOf(false) }
+    var showPriorityEdu by remember { mutableStateOf(false) }
 
-    // Initial Routing & Changelog Check
-    LaunchedEffect(isSetupComplete, lastSeenVersion) {
-        // Check if Onboarding is needed
+    // Initial Checks
+    LaunchedEffect(isSetupComplete, lastSeenVersion, isPriorityEduShown) {
         if (isSetupComplete == false) {
             currentScreen = Screen.ONBOARDING
         } else if (isSetupComplete == true && currentScreen == null) {
             currentScreen = Screen.HOME
         }
 
-        // Check if Changelog is needed (Only if setup is done AND version increased)
+        // Show Changelog if update detected
         if (isSetupComplete == true && currentVersionCode > lastSeenVersion) {
             showChangelog = true
         }
+        // Show Priority Education if user hasn't seen it (and isn't seeing changelog right now)
+        else if (isSetupComplete == true && !isPriorityEduShown && !showChangelog) {
+            showPriorityEdu = true
+        }
     }
 
-    // 5. Back Navigation Logic
-    // Enabled only when NOT on Home (Exit app) and NOT on Onboarding (Internal handling)
+    // Navigation
     BackHandler(enabled = currentScreen != Screen.HOME && currentScreen != Screen.ONBOARDING) {
         currentScreen = when (currentScreen) {
-            Screen.SETUP, Screen.LICENSES -> Screen.INFO
+            Screen.APP_PRIORITY -> Screen.BEHAVIOR
+            Screen.HISTORY -> Screen.INFO
+            Screen.BEHAVIOR, Screen.SETUP, Screen.LICENSES, Screen.GLOBAL_SETTINGS -> Screen.INFO
             Screen.INFO -> Screen.HOME
             else -> Screen.HOME
         }
     }
 
-    // 6. Render UI
     if (currentScreen == null) {
-        // Loading State
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     } else {
-        // Main Content with Transitions
         AnimatedContent(
             targetState = currentScreen!!,
             transitionSpec = {
                 if (targetState.depth > initialState.depth) {
-                    // Navigate Forward: Slide In from Right, Fade In
                     (slideInHorizontally { width -> width } + fadeIn(tween(400)))
                         .togetherWith(slideOutHorizontally { width -> -width / 3 } + fadeOut(tween(400)))
                 } else {
-                    // Navigate Backward: Slide In from Left, Fade In
                     (slideInHorizontally { width -> -width } + fadeIn(tween(400)))
                         .togetherWith(slideOutHorizontally { width -> width / 3 } + fadeOut(tween(400)))
                 } using SizeTransform(clip = false)
@@ -139,40 +140,59 @@ fun MainRootNavigation() {
                 Screen.ONBOARDING -> OnboardingScreen {
                     scope.launch {
                         preferences.setSetupComplete(true)
-                        // Set version code immediately so they don't see changelog right after onboarding
                         preferences.setLastSeenVersion(currentVersionCode)
+                        preferences.setPriorityEduShown(true) // Mark edu as shown
                         currentScreen = Screen.HOME
                     }
                 }
-                Screen.HOME -> HomeScreen(
-                    onSettingsClick = { currentScreen = Screen.INFO }
-                )
+                Screen.HOME -> HomeScreen(onSettingsClick = { currentScreen = Screen.INFO })
                 Screen.INFO -> InfoScreen(
                     onBack = { currentScreen = Screen.HOME },
                     onSetupClick = { currentScreen = Screen.SETUP },
-                    onLicensesClick = { currentScreen = Screen.LICENSES }
+                    onLicensesClick = { currentScreen = Screen.LICENSES },
+                    onBehaviorClick = { currentScreen = Screen.BEHAVIOR },
+                    onGlobalSettingsClick = { currentScreen = Screen.GLOBAL_SETTINGS },
+                    onHistoryClick = { currentScreen = Screen.HISTORY } // Connect new screen
                 )
-                Screen.SETUP -> SetupHealthScreen(
-                    onBack = { currentScreen = Screen.INFO }
+                Screen.SETUP -> SetupHealthScreen(onBack = { currentScreen = Screen.INFO })
+                Screen.LICENSES -> LicensesScreen(onBack = { currentScreen = Screen.INFO })
+                Screen.BEHAVIOR -> PrioritySettingsScreen(
+                    onBack = { currentScreen = Screen.INFO },
+                    onNavigateToPriorityList = { currentScreen = Screen.APP_PRIORITY }
                 )
-                Screen.LICENSES -> LicensesScreen(
-                    onBack = { currentScreen = Screen.INFO }
-                )
+                Screen.APP_PRIORITY -> AppPriorityScreen(onBack = { currentScreen = Screen.BEHAVIOR })
+                Screen.GLOBAL_SETTINGS -> GlobalSettingsScreen(onBack = { currentScreen = Screen.INFO })
+                Screen.HISTORY -> ChangelogHistoryScreen(onBack = { currentScreen = Screen.INFO })
             }
         }
     }
 
-    // 7. Changelog Modal
+    // MODALS
     if (showChangelog) {
         ChangelogDialog(
             currentVersionName = currentVersionName,
-            // We map the string resource specifically for this version
-            changelogText = stringResource(R.string.changelog_0_1_0),
+            changelogText = stringResource(R.string.changelog_0_2_0),
             onDismiss = {
                 showChangelog = false
                 scope.launch {
                     preferences.setLastSeenVersion(currentVersionCode)
+                    // After closing changelog, check if we need to show Priority Edu
+                    if (!isPriorityEduShown) showPriorityEdu = true
                 }
+            }
+        )
+    }
+
+    if (showPriorityEdu) {
+        PriorityEducationDialog(
+            onDismiss = {
+                showPriorityEdu = false
+                scope.launch { preferences.setPriorityEduShown(true) }
+            },
+            onConfigure = {
+                showPriorityEdu = false
+                scope.launch { preferences.setPriorityEduShown(true) }
+                currentScreen = Screen.BEHAVIOR
             }
         )
     }

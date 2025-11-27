@@ -5,6 +5,7 @@ import android.content.Context
 import android.service.notification.StatusBarNotification
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.HyperIslandData
+import com.d4viddf.hyperbridge.models.IslandConfig
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
@@ -14,7 +15,7 @@ import io.github.d4viddf.hyperisland_kit.models.TimerInfo
 
 class TimerTranslator(context: Context) : BaseTranslator(context) {
 
-    fun translate(sbn: StatusBarNotification, picKey: String): HyperIslandData {
+    fun translate(sbn: StatusBarNotification, picKey: String, config: IslandConfig): HyperIslandData {
         val extras = sbn.notification.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
             ?: context.getString(R.string.fallback_timer)
@@ -25,8 +26,16 @@ class TimerTranslator(context: Context) : BaseTranslator(context) {
         val timerType = if (isCountdown) -1 else 1
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
-        val hiddenKey = "hidden_pixel"
 
+        // --- CONFIG (Commented out) ---
+        val finalTimeout = config.timeout ?: 5000L
+        val shouldFloat = if (finalTimeout == 0L) false else (config.isFloat ?: true)
+        builder.setEnableFloat(shouldFloat)
+        builder.setTimeout(finalTimeout)
+        builder.setShowNotification(config.isShowShade ?: true)
+        // ------------------------------
+
+        val hiddenKey = "hidden_pixel"
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 

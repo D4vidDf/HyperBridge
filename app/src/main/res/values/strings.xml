@@ -139,13 +139,70 @@
     <string name="fallback_stopwatch">Stopwatch</string>
 
     <string name="whats_new_title">What\'s New in %s</string>
-    <string name="changelog_0_1_0">
-        • <b>Major UI Overhaul:</b> New Material 3 Expressive design with smooth animations.\n
-        • <b>Better Island:</b> Text now appears on the right side. Added Green Tick for finished downloads.\n
-        • <b>Per-App Config:</b> Select specific notification types (Music, Maps, Calls) per app.\n
-        • <b>Smart Filters:</b> Blocks duplicate notifications and saves battery.\n
-        • <b>New Library:</b> Filter apps by category and sort order.\n
-        • <b>Localization:</b> Added Spanish support.
-    </string>
     <string name="awesome">Awesome!</string>
+
+
+    <string name="island_behavior">Island Behavior</string>
+    <string name="limit_strategy">Limit Strategy</string>
+    <string name="limit_desc">What happens when you reach 9 islands?</string>
+    <string name="mode_fcfs_title">First Come, First Served</string>
+    <string name="mode_fcfs_desc">Keeps the first 9 apps. New apps are ignored until space opens.</string>
+    <string name="mode_recent_title">Most Recent (Default)</string>
+    <string name="mode_recent_desc">New notifications replace the oldest ones.</string>
+    <string name="mode_priority_title">Custom Priority</string>
+    <string name="mode_priority_desc">Define which types (e.g. Calls) are more important.</string>
+    <string name="priority_order">Priority Order</string>
+    <string name="priority_order_desc">High priority (Top) replaces Low priority (Bottom).</string>
+    <string name="move_up">Move Up</string>
+    <string name="move_down">Move Down</string>
+    <string name="configure_order">Configure apps order</string>
+
+    <string name="global_settings">Global Settings</string>
+    <string name="island_appearance">Island Appearance</string>
+    <string name="setting_float">Show Floating Island</string>
+    <string name="setting_float_desc">Show heads-up notification</string>
+    <string name="setting_shade">Show in Shade</string>
+    <string name="setting_shade_desc">Keep in notification center</string>
+    <string name="setting_timeout">Timeout</string>
+    <string name="seconds_suffix">%ds</string>
+    <string name="use_global_default">Use Global Defaults</string>
+    <string name="customize_app">Customize</string>
+    <string name="override_settings">Override Settings</string>
+
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+    </string-array>
+    <string name="hint_options">Options</string>
+
+    <string name="version_history">Version History</string>
+
+    <string name="title_0_2_0">The Information Update</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;Advanced Progress:&lt;/b&gt; Added support for "Step Progress" (e.g. 1 of 3) and progress bars with icons inside the notification shade.\n
+        • &lt;b&gt;Priority System:&lt;/b&gt; New "Island Behavior" settings. Choose between "Most Recent", "First Come", or a custom "App Priority" list.\n
+        • &lt;b&gt;Smart Filtering:&lt;/b&gt; Improved detection of duplicate notifications and grouped downloads.\n
+        • &lt;b&gt;Visual Improvements:&lt;/b&gt; Fixed layout issues with Navigation instructions.\n
+        • &lt;b&gt;Per-App Config:&lt;/b&gt; Customize Timeout and Floating behavior per app.
+    </string>
+
+    <string name="title_0_1_0">The Expressive Update</string>
+    <string name="changelog_0_1_0">
+        • &lt;b&gt;Major UI Overhaul:&lt;/b&gt; New Material 3 Expressive design with smooth animations.\n
+        • &lt;b&gt;Better Island:&lt;/b&gt; Text now appears on the right side. Added Green Tick for finished downloads.\n
+        • &lt;b&gt;Per-App Config:&lt;/b&gt; Select specific notification types (Music, Maps, Calls) per app.\n
+        • &lt;b&gt;Smart Filters:&lt;/b&gt; Blocks duplicate notifications and saves battery.\n
+        • &lt;b&gt;New Library:&lt;/b&gt; Filter apps by category and sort order.\n
+        • &lt;b&gt;Localization:&lt;/b&gt; Added Spanish support.
+    </string>
+
+    <string name="priority_edu_title">New: Control the Island</string>
+    <string name="priority_edu_desc">HyperBridge can now manage how multiple notifications behave when the 9-island limit is reached.\n\n&lt;b&gt;Default: Most Recent&lt;/b&gt;\nNew notifications replace the oldest ones automatically.</string>
+    <string name="keep_default">Keep Default</string>
+    <string name="configure_now">Configure Now</string>
+
+    <string name="badge_new">NEW</string>
 </resources>

@@ -11,8 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
@@ -24,8 +27,13 @@ fun AppConfigBottomSheet(
     viewModel: AppListViewModel,
     onDismiss: () -> Unit
 ) {
-    // Loads the config for this specific app
-    val config by viewModel.getAppConfig(app.packageName).collectAsState(initial = emptySet())
+    // Load Notification Type Config
+    val typeConfig by viewModel.getAppConfig(app.packageName).collectAsState(initial = emptySet())
+
+    // Load Appearance Configs (App + Global for fallback)
+    val appIslandConfig by viewModel.getAppIslandConfig(app.packageName).collectAsState(initial = IslandConfig())
+    val globalConfig by viewModel.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5000L))
+
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(
@@ -38,7 +46,7 @@ fun AppConfigBottomSheet(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 48.dp) // Extra padding for safe area
+                .padding(bottom = 48.dp)
         ) {
             // --- HEADER ---
             Row(
@@ -58,7 +66,7 @@ fun AppConfigBottomSheet(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Select active notifications",
+                        text = stringResource(R.string.configure),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
@@ -68,45 +76,96 @@ fun AppConfigBottomSheet(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- LIST OF TOGGLES ---
+            // --- SECTION 1: NOTIFICATION TYPES ---
+            Text(
+                text = stringResource(R.string.select_active_notifs),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
             NotificationType.entries.forEach { type ->
-                val isChecked = config.contains(type.name)
+                val isChecked = typeConfig.contains(type.name)
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            viewModel.updateAppConfig(app.packageName, type, !isChecked)
-                        }
+                        .clickable { viewModel.updateAppConfig(app.packageName, type, !isChecked) }
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = type.label,
-                            style = MaterialTheme.typography.titleMedium,
+                            text = stringResource(type.labelRes),
+                            style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-
-                    // Using Switch instead of Checkbox for BottomSheet feels more modern/touch-friendly
                     Switch(
                         checked = isChecked,
-                        onCheckedChange = {
-                            viewModel.updateAppConfig(app.packageName, type, it)
-                        }
+                        onCheckedChange = { viewModel.updateAppConfig(app.packageName, type, it) }
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // --- DONE BUTTON ---
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+            // --- SECTION 2: ISLAND APPEARANCE ---
+            Text(
+                text = stringResource(R.string.island_appearance),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // "Use Global Defaults" Checkbox
+            val isUsingGlobal = appIslandConfig.isFloat == null
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (isUsingGlobal) {
+                            // Enable Custom: Initialize with current global values
+                            viewModel.updateAppIslandConfig(app.packageName, globalConfig)
+                        } else {
+                            // Disable Custom: Reset to null (Inherit)
+                            viewModel.updateAppIslandConfig(app.packageName, IslandConfig(null, null, null))
+                        }
+                    }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Done")
+                Checkbox(checked = isUsingGlobal, onCheckedChange = null)
+                Spacer(Modifier.width(12.dp))
+                Text(stringResource(R.string.use_global_default), style = MaterialTheme.typography.bodyLarge)
+            }
+
+            // Settings Controls (Visible only if Custom)
+            if (!isUsingGlobal) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        IslandSettingsControl(
+                            config = appIslandConfig,
+                            onUpdate = { newConfig ->
+                                viewModel.updateAppIslandConfig(app.packageName, newConfig)
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                Text(stringResource(R.string.done))
             }
         }
     }
