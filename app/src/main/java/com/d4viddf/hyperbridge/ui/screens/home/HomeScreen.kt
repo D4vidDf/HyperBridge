@@ -37,7 +37,8 @@ import com.d4viddf.hyperbridge.ui.components.AppConfigBottomSheet
 @Composable
 fun HomeScreen(
     viewModel: AppListViewModel = viewModel(),
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onNavConfigClick: (String) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -45,6 +46,7 @@ fun HomeScreen(
     val libraryApps by viewModel.libraryAppsState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // State to hold the app being configured
     var configApp by remember { mutableStateOf<com.d4viddf.hyperbridge.ui.AppInfo?>(null) }
 
     Scaffold(
@@ -85,11 +87,21 @@ fun HomeScreen(
         }
     }
 
+    // --- BOTTOM SHEET HANDLER (CRASH FIX) ---
     if (configApp != null) {
+        // Capture the non-null app object locally
+        val safeApp = configApp!!
+
         AppConfigBottomSheet(
-            app = configApp!!,
+            app = safeApp,
             viewModel = viewModel,
-            onDismiss = { configApp = null }
+            onDismiss = { configApp = null },
+            onNavConfigClick = {
+                // 1. Trigger Navigation using the SAFE local variable
+                onNavConfigClick(safeApp.packageName)
+                // 2. Close Sheet
+                configApp = null
+            }
         )
     }
 }

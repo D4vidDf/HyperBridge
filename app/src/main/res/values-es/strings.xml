@@ -47,7 +47,7 @@
     <string name="tab_library">Biblioteca</string>
     <string name="title_active_bridges">Bridges Activos</string>
     <string name="title_library">Biblioteca de aplicaciones</string>
-    <string name="search_hint">Buscar aplicaciones...</string>
+    <string name="search_hint">Buscar aplicaciones…</string>
     <string name="sort_az">Orden: A-Z</string>
     <string name="sort_za">Orden: Z-A</string>
 
@@ -210,4 +210,18 @@
     <string name="configure_now">Configurar</string>
 
     <string name="badge_new">NUEVO</string>
+
+    <string name="custom_design">Diseño Personalizado</string>
+    <string name="nav_layout_title">Diseño de Navegación</string>
+    <string name="nav_layout_desc">Elige dónde aparece la información</string>
+    <string name="left_content">Lado Izquierdo</string>
+    <string name="right_content">Lado Derecho</string>
+
+    <string name="nav_content_instruction">Instrucción</string>
+    <string name="nav_content_distance">Distancia</string>
+    <string name="nav_content_eta">Hora de Llegada</string>
+    <string name="nav_content_distance_eta">Dist. y Hora</string>
+    <string name="nav_content_none">Vacío</string>
+
+    <string name="channel_active_islands">Islas Activas</string>
 </resources>

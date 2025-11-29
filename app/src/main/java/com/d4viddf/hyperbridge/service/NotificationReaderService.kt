@@ -1,12 +1,13 @@
 package com.d4viddf.hyperbridge.service
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.d4viddf.hyperbridge.R
@@ -15,7 +16,11 @@ import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NotificationType
-import com.d4viddf.hyperbridge.service.translators.*
+import com.d4viddf.hyperbridge.service.translators.CallTranslator
+import com.d4viddf.hyperbridge.service.translators.NavTranslator
+import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
+import com.d4viddf.hyperbridge.service.translators.StandardTranslator
+import com.d4viddf.hyperbridge.service.translators.TimerTranslator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,7 +29,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.maxByOrNull
 
 class NotificationReaderService : NotificationListenerService() {
 
@@ -33,12 +37,10 @@ class NotificationReaderService : NotificationListenerService() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
 
-    // State
     private var allowedPackageSet: Set<String> = emptySet()
     private var currentMode = IslandLimitMode.MOST_RECENT
     private var appPriorityList = emptyList<String>()
 
-    // Caches
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val lastUpdateMap = ConcurrentHashMap<String, Long>()
@@ -77,6 +79,7 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.cancel()
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
             if (shouldIgnore(it.packageName)) return
@@ -121,7 +124,6 @@ class NotificationReaderService : NotificationListenerService() {
         }
 
         if (now - lastTime < UPDATE_INTERVAL_MS) return true
-
         lastUpdateMap[key] = now
         return false
     }
@@ -130,8 +132,12 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = sbn.notification
         val extras = notification.extras
 
-        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 || extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
-        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT || notification.category == Notification.CATEGORY_CALL || notification.category == Notification.CATEGORY_NAVIGATION || extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
+        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
+                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT ||
+                notification.category == Notification.CATEGORY_CALL ||
+                notification.category == Notification.CATEGORY_NAVIGATION ||
+                extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
 
         if (hasProgress || isSpecial) return false
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
@@ -152,6 +158,7 @@ class NotificationReaderService : NotificationListenerService() {
         return false
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private suspend fun processAndPost(sbn: StatusBarNotification) {
         try {
             val extras = sbn.notification.extras
@@ -188,15 +195,19 @@ class NotificationReaderService : NotificationListenerService() {
             val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
             val picKey = "pic_${bridgeId}"
 
-            // --- LOAD CONFIGURATION (FIXED) ---
             val appIslandConfig = preferences.getAppIslandConfig(sbn.packageName).first()
             val globalConfig = preferences.globalConfigFlow.first()
             val finalConfig = appIslandConfig.mergeWith(globalConfig)
 
-            // --- PASS CONFIG TO ALL TRANSLATORS ---
             val data: HyperIslandData = when (type) {
                 NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig)
-                NotificationType.NAVIGATION -> navTranslator.translate(sbn, picKey, finalConfig)
+
+                // *** NEW: Fetch Custom Layout for Navigation ***
+                NotificationType.NAVIGATION -> {
+                    val navLayout = preferences.getEffectiveNavLayout(sbn.packageName).first()
+                    navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second)
+                }
+
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig)
                 NotificationType.PROGRESS -> progressTranslator.translate(sbn, title, picKey, finalConfig)
                 else -> standardTranslator.translate(sbn, picKey, finalConfig)
@@ -206,9 +217,7 @@ class NotificationReaderService : NotificationListenerService() {
             val previousIsland = activeIslands[key]
 
             if (isUpdate && previousIsland != null) {
-                if (previousIsland.lastContentHash == newContentHash) {
-                    return
-                }
+                if (previousIsland.lastContentHash == newContentHash) return
             }
 
             postNotification(sbn, bridgeId, data)
@@ -259,6 +268,7 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun postNotification(sbn: StatusBarNotification, bridgeId: Int, data: HyperIslandData) {
         val notificationBuilder = NotificationCompat.Builder(this, ISLAND_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -285,13 +295,16 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun createIslandChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(ISLAND_CHANNEL_ID, "Active Islands", NotificationManager.IMPORTANCE_HIGH).apply {
+        val name = getString(R.string.channel_active_islands)
+        val channel = NotificationChannel(
+            ISLAND_CHANNEL_ID,
+            name,
+            NotificationManager.IMPORTANCE_HIGH).apply {
                 setSound(null, null)
                 enableVibration(false)
             }
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
-        }
+
     }
 
     private fun isAppAllowed(packageName: String): Boolean {

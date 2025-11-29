@@ -102,10 +102,10 @@
 
     <string name="service_active">Active</string>
     <string name="download_complete">Download Complete</string>
-    <string name="pending">Pending...</string>
+    <string name="pending">Pending…</string>
     <string name="finished">Finished</string>
     <string name="downloading">Downloading</string>
-    <string name="waiting">Waiting...</string>
+    <string name="waiting">Waiting…</string>
     <string name="now_playing">Now Playing</string>
     <string name="unknown_caller">Unknown Caller</string>
     <string name="incoming_call">Call</string>
@@ -205,4 +205,18 @@
     <string name="configure_now">Configure Now</string>
 
     <string name="badge_new">NEW</string>
+
+    <string name="custom_design">Custom Design</string>
+    <string name="nav_layout_title">Navigation Layout</string>
+    <string name="nav_layout_desc">Choose where information appears</string>
+    <string name="left_content">Left Side</string>
+    <string name="right_content">Right Side</string>
+
+    <string name="nav_content_instruction">Instruction</string>
+    <string name="nav_content_distance">Distance</string>
+    <string name="nav_content_eta">Arrival Time</string>
+    <string name="nav_content_distance_eta">Dist. &amp; Time</string>
+    <string name="nav_content_none">Empty</string>
+
+    <string name="channel_active_islands">Active Islands</string>
 </resources>

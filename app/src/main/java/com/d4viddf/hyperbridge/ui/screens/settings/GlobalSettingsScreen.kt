@@ -3,6 +3,7 @@ package com.d4viddf.hyperbridge.ui.screens.settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -17,7 +18,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GlobalSettingsScreen(onBack: () -> Unit) {
+fun GlobalSettingsScreen(
+    onBack: () -> Unit,
+    onNavSettingsClick: () -> Unit // New Callback
+    ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
@@ -48,6 +52,17 @@ fun GlobalSettingsScreen(onBack: () -> Unit) {
                         }
                     )
                 }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // NEW: Navigation Layout Card
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+                SettingsItem(
+                    icon = Icons.Default.Navigation,
+                    title = stringResource(R.string.nav_layout_title),
+                    subtitle = stringResource(R.string.nav_layout_desc),
+                    onClick = onNavSettingsClick
+                )
             }
         }
     }

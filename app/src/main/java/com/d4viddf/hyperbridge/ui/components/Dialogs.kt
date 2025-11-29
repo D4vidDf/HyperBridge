@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,12 +27,11 @@ import com.d4viddf.hyperbridge.ui.AppListViewModel
 fun AppConfigBottomSheet(
     app: AppInfo,
     viewModel: AppListViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onNavConfigClick: () -> Unit
 ) {
-    // Load Notification Type Config
     val typeConfig by viewModel.getAppConfig(app.packageName).collectAsState(initial = emptySet())
 
-    // Load Appearance Configs (App + Global for fallback)
     val appIslandConfig by viewModel.getAppIslandConfig(app.packageName).collectAsState(initial = IslandConfig())
     val globalConfig by viewModel.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5000L))
 
@@ -102,6 +103,18 @@ fun AppConfigBottomSheet(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
+
+                    // Edit Button for Navigation
+                    if (type == NotificationType.NAVIGATION) {
+                        IconButton(onClick = onNavConfigClick) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Layout",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
                     Switch(
                         checked = isChecked,
                         onCheckedChange = { viewModel.updateAppConfig(app.packageName, type, it) }
@@ -122,7 +135,6 @@ fun AppConfigBottomSheet(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // "Use Global Defaults" Checkbox
             val isUsingGlobal = appIslandConfig.isFloat == null
 
             Row(
@@ -130,10 +142,8 @@ fun AppConfigBottomSheet(
                     .fillMaxWidth()
                     .clickable {
                         if (isUsingGlobal) {
-                            // Enable Custom: Initialize with current global values
                             viewModel.updateAppIslandConfig(app.packageName, globalConfig)
                         } else {
-                            // Disable Custom: Reset to null (Inherit)
                             viewModel.updateAppIslandConfig(app.packageName, IslandConfig(null, null, null))
                         }
                     }
@@ -145,7 +155,6 @@ fun AppConfigBottomSheet(
                 Text(stringResource(R.string.use_global_default), style = MaterialTheme.typography.bodyLarge)
             }
 
-            // Settings Controls (Visible only if Custom)
             if (!isUsingGlobal) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
