@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+
+    <string name="back">Voltar</string>
+    <string name="next">Avançar</string>
+    <string name="finish">Finalizar</string>
+    <string name="done">Feito</string>
+    <string name="logo_desc">Logo do app</string>
+    <string name="settings">Configurações</string>
+    <string name="info">Info</string>
+    <string name="configure">Configurar</string>
+    <string name="clear">Limpar</string>
+    <string name="sort_order">Ordem</string>
+
+    <string name="welcome_title">Bem-vindo(a) ao\nHyper Bridge</string>
+    <string name="welcome_subtitle">Integre as HyperIslands perfeitamente à sua experiência na HyperOS.</string>
+    <string name="get_started">Começar</string>
+
+    <string name="how_it_works">Como funciona</string>
+    <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Maps, Timer). HyperBridge transforma as notificações em uma elegante HyperIsland.</string>
+    <string name="early_development">Desenvolvimento inicial</string>
+    <string name="beta_warning">Nota: Este app está em Beta. Você pode encontrar erros ou informação visual incorreta.</string>
+
+    <string name="device_compatible">Dispositivo Compatível</string>
+    <string name="unsupported_device">Dispositivo Incompatível</string>
+    <string name="compatible_msg">O seu dispositivo parece estar executando a HyperOS/MIUI. Tudo certo!</string>
+    <string name="incompatible_msg">HyperBridge depende de funções específicas da HyperOS. Sua fabricante não parece ser Xiaomi/POCO/Redmi.</string>
+    <string name="system_detected">✅ Sistema Detectado</string>
+    <string name="app_wont_work">⚠️ O app pode não funcionar</string>
+
+    <string name="show_island">Mostrar Ilha</string>
+    <string name="perm_post_desc">Precisamos da permissão para mostrar a notificação \'Ilha\' na sua tela.</string>
+    <string name="perm_granted">✅ Permissão concedida</string>
+    <string name="allow_notifications">Permitir Notificações</string>
+
+    <string name="read_data">Ler Dados</string>
+    <string name="perm_listener_desc">Para conectar seus aplicativos, precisamos ler suas notificações (Música, Mapas, Temporizadores).</string>
+    <string name="open_settings">Abrir Configurações</string>
+
+    <string name="keep_alive">Manter Ativo</string>
+    <string name="optimization_desc">HyperOS encerra apps em segundo plano. Habilite o Inicio Automático e Sem Restrições para manter a ilha ativa.</string>
+    <string name="enable_autostart">1. Ativar Inicio Automático</string>
+    <string name="set_battery_no_restrictions">2. Bateria \'Sem Restrições\'</string>
+
+    <string name="tab_active">Ativos</string>
+    <string name="tab_library">Biblioteca</string>
+    <string name="title_active_bridges">Bridges Ativos</string>
+    <string name="title_library">Biblioteca de aplicativos</string>
+    <string name="search_hint">Buscar aplicativos...</string>
+    <string name="sort_az">Ordem: A-Z</string>
+    <string name="sort_za">Ordem: Z-A</string>
+
+    <string name="no_active_bridges">Sem Bridges Ativos</string>
+    <string name="no_active_bridges_desc">Vá para a Biblioteca para habilitar aplicativos.</string>
+    <string name="no_apps_found">Nenhum aplicativo encontrado</string>
+
+    <string name="about">Sobre</string>
+    <string name="version_template">Versão %s</string>
+    <string name="developer_credit">por D4vidDf</string>
+
+    <string name="group_configuration">Configuração</string>
+    <string name="system_setup">Configuração do Sistema</string>
+    <string name="system_setup_subtitle">Corrigir permissões e bateria</string>
+
+    <string name="group_about">Sobre o aplicativo</string>
+    <string name="developer">Desenvolvedor</string>
+    <string name="developer_subtitle">Visite d4viddf.com</string>
+    <string name="source_code">Código Fonte</string>
+    <string name="source_code_subtitle">Repositório no GitHub</string>
+    <string name="licenses">Licenças de Código Aberto</string>
+    <string name="licenses_subtitle">Software de terceiros</string>
+    <string name="footer_made_with_love">Feito com ❤️ na Espanha</string>
+
+    <string name="app_health">EStatus do aplicativo</string>
+    <string name="app_health_desc">Certifique-se de que todas as opções estejam verdes para o app funcionar corretamente em segundo plano.</string>
+    <string name="req_permissions">Permissões Necessárias</string>
+    <string name="notif_access">Acesso às notificações</string>
+    <string name="notif_access_desc">Necessário para ler eventos de apps</string>
+    <string name="perm_display_desc">Permissão para exibir sobre outros aplicativos</string>
+    <string name="device_optimization">Otimização do Dispositivo</string>
+    <string name="xiaomi_autostart">Início Automático da Xiaomi</string>
+    <string name="autostart_desc">Permitir que o app abra na inicialização</string>
+    <string name="battery_unrestricted">Bateria Sem Restrições</string>
+    <string name="battery_desc">Evita que o sistema encerre o app</string>
+    <string name="recents_note">Nota: Também bloqueia o app no menu geral de \'Recentes\'.</string>
+    <string name="status_active">Ativo</string>
+    <string name="action_needed">Ação Necessária</string>
+
+    <string name="cat_all">Todas</string>
+    <string name="cat_music">Música</string>
+    <string name="cat_nav">Navegação</string>
+    <string name="cat_timer">Produtividade</string>
+    <string name="cat_other">Outros</string>
+
+    <string name="select_active_notifs">Notificações ativas</string>
+    <string name="type_standard">Mensagem e Geral</string>
+    <string name="type_progress">Downloads e Progresso</string>
+    <string name="type_media">Música e Mídias</string>
+    <string name="type_nav">Mapas e GPS</string>
+    <string name="type_call">Chamadas</string>
+    <string name="type_timer">Temporizadores e Alarmes</string>
+
+    <string name="service_active">Ativo</string>
+    <string name="download_complete">Download Completo</string>
+    <string name="pending">Pendente...</string>
+    <string name="finished">Finalizado</string>
+    <string name="downloading">Baixando</string>
+    <string name="waiting">Aguardando...</string>
+    <string name="now_playing">Reproduzindo</string>
+    <string name="unknown_caller">Desconhecido</string>
+    <string name="incoming_call">Chamada</string>
+    <string name="maps_title">Mapas</string>
+    <string name="timer_title">Temporizador</string>
+    <string name="fallback_stopwatch">Cronômetro</string>
+
+    <string-array name="progress_finish_keywords">
+        <item>baixado</item>
+        <item>completado</item>
+        <item>finalizado</item>
+        <item>instalado</item>
+        <item>feito</item>
+        <item>bem-sucedido</item>
+        <item>sucesso</item>
+        <item>completado</item>
+        <item>finalizado</item>
+        <item>completado</item>
+        <item>finalizado</item>
+    </string-array>
+
+    <string name="whats_new_title">Novidades na %s</string>
+    <string name="version_history">Histórico de Versões</string>
+
+    <string name="title_0_1_0">La Actualización Expresiva</string>
+    <string name="changelog_0_1_0">
+        • &lt;b&gt;Grandes mudanças na IU:&lt;/b&gt; Hyper Bridge agora usa o Material 3 Expressive com novas animações suaves.\n
+        • &lt;b&gt;Melhorias na HyperIsland:&lt;/b&gt; O texto agora aparece na direita e mostra um tick verde para downloads completos.\n
+        • &lt;b&gt;Configuração por aplicativo:&lt;/b&gt; Agora você pode personalizar que tipo de notificação você quer mostrar para cada aplicativo.\n
+        • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Hyper Bridge agora bloqueia notificações duplicadas e economiza bateria.\n
+        • &lt;b&gt;Nova Biblioteca:&lt;/b&gt; Filtra aplicativos por categoria e ordem.\n
+        • &lt;b&gt;Idiomas:&lt;/b&gt; Suporte completo para Espanhol.
+    </string>
+
+    <string name="title_0_2_0">A Atualização da Informação</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;Progresso Avançado:&lt;/b&gt; Suporte para "Passos" (ex.: 1 de 3) e barras de progresso com ícones no painel de notificações.\n
+        • &lt;b&gt;Sistema de Prioridade:&lt;/b&gt; Novos ajustes de "Comportamento". Elege a ordem de aparição das ilhas.\n
+        • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Detecção melhorada de duplicados.\n
+        • &lt;b&gt;Melhorias Visuais:&lt;/b&gt; Corrigido problemas de layout nas instruções de navegação..\n
+        • &lt;b&gt;Configuração por Aplicativo:&lt;/b&gt; Customize o tempo limite e o comportamento de flutuação para cada aplicativo.
+    </string>
+
+    <string name="awesome">Incrível!</string>
+    <string name="island_behavior">Comportamento da Ilha</string>
+    <string name="limit_strategy">Estratégia de Limite</string>
+    <string name="limit_desc">O que acontece quando você chega a 9 ilhas?</string>
+    <string name="mode_fcfs_title">Por Ordem de Chegada</string>
+    <string name="mode_fcfs_desc">Mantém os primeiros 9 aplicativos. Novos aplicativos serão ignorados até haver espaço.</string>
+    <string name="mode_recent_title">Mais Recente (Padrão)</string>
+    <string name="mode_recent_desc">Novas notificações substituem as mais antigas.</string>
+    <string name="mode_priority_title">Prioridade Personalizada</string>
+    <string name="mode_priority_desc">Você define quais tipos de notificações são mais importantes. (ex.: Chamadas)</string>
+    <string name="priority_order">Ordem de Prioridade</string>
+    <string name="priority_order_desc">Alta prioridade (Acima) substitui Baixa prioridade (Abaixo).</string>
+    <string name="configure_order">Configurar ordem de aplicativos</string>
+    <string name="move_up">Mover para cima</string>
+    <string name="move_down">Mover para baixo</string>
+    <string name="status_download_complete">Download completo</string>
+    <string name="status_downloading">Baixando</string>
+    <string name="status_pending">Pendente...</string>
+    <string name="status_finished">Finalizado</string>
+    <string name="status_now_playing">Reproduzindo</string>
+    <string name="status_incoming_call">Recebendo Chamada</string>
+    <string name="caller_unknown">Desconhecido</string>
+    <string name="fallback_maps">Mapas</string>
+    <string name="fallback_timer">Temporizador</string>
+    <string name="global_settings">Configurações Globais</string>
+    <string name="island_appearance">Aparência de Ilha</string>
+    <string name="setting_float">Ilha Flutuante</string>
+    <string name="setting_float_desc">Exibir notificação pop-up</string>
+    <string name="setting_shade">Exibir no painel</string>
+    <string name="setting_shade_desc">Manter no painel de notificações</string>
+    <string name="setting_timeout">Duração</string>
+    <string name="seconds_suffix">%ds</string>
+    <string name="use_global_default">Usar valores globais</string>
+    <string name="customize_app">Personalizar</string>
+    <string name="override_settings">Sobrescrever configurações</string>
+    
+    <string-array name="nav_arrival_keywords">
+        <item>chegada</item>
+        <item>chegar</item>
+        <item>eta</item>
+        <item>chegando</item>
+        <item>destino</item>
+    </string-array>
+
+    <string name="hint_options">Configurações</string>
+    <string name="priority_edu_title">Novo: Controle a Ilha</string>
+    <string name="priority_edu_desc">HyperBridge agora consegue gerenciar como múltiplas notificações se comportam quando o limite de 9 é atingido.\n\n&lt;b&gt;Padrão: Mais Recente&lt;/b&gt;\nNovas notificações substituem as mais antigas automaticamente.</string>
+    <string name="keep_default">Manter o Padrão</string>
+    <string name="configure_now">Configurar Agora</string>
+    <string name="badge_new">NOVO</string>
+</resources>
