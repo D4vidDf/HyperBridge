@@ -43,10 +43,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             HyperBridgeTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     MainRootNavigation()
                 }
             }
@@ -55,16 +52,7 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class Screen(val depth: Int) {
-    ONBOARDING(0),
-    HOME(1),
-    INFO(2),
-    SETUP(3),
-    LICENSES(3),
-    BEHAVIOR(3),
-    GLOBAL_SETTINGS(3),
-    HISTORY(3),
-    NAV_CUSTOMIZATION(4),
-    APP_PRIORITY(4)
+    ONBOARDING(0), HOME(1), INFO(2), SETUP(3), LICENSES(3), BEHAVIOR(3), GLOBAL_SETTINGS(3), HISTORY(3), NAV_CUSTOMIZATION(4), APP_PRIORITY(4)
 }
 
 @Composable
@@ -76,40 +64,45 @@ fun MainRootNavigation() {
     val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null } }
     @Suppress("DEPRECATION")
     val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfo?.longVersionCode?.toInt() ?: 0 else packageInfo?.versionCode ?: 0
-    val currentVersionName = packageInfo?.versionName ?: "0.1.0"
+    val currentVersionName = packageInfo?.versionName ?: "0.2.0"
 
-    val isSetupComplete by preferences.isSetupComplete.collectAsState(initial = null)
+    // 1. COLLECT DATA
+    // Use a separate state to track if data has loaded at least once
+    var isDataLoaded by remember { mutableStateOf(false) }
+
+    val isSetupComplete by preferences.isSetupComplete.collectAsState(initial = false)
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = currentVersionCode)
     val isPriorityEduShown by preferences.isPriorityEduShown.collectAsState(initial = true)
+
+    // Hack: Use a side-effect to know when the first valid emission has happened
+    LaunchedEffect(Unit) {
+        preferences.isSetupComplete.collect { isDataLoaded = true }
+    }
 
     var currentScreen by remember { mutableStateOf<Screen?>(null) }
     var showChangelog by remember { mutableStateOf(false) }
     var showPriorityEdu by remember { mutableStateOf(false) }
-
-    // Track which app is being edited for Nav Layout (null = Global)
     var navConfigPackage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(isSetupComplete, lastSeenVersion, isPriorityEduShown) {
-        if (isSetupComplete == false) {
-            currentScreen = Screen.ONBOARDING
-        } else if (isSetupComplete == true && currentScreen == null) {
-            currentScreen = Screen.HOME
-        }
+    // 2. ROUTING
+    LaunchedEffect(isDataLoaded, isSetupComplete) {
+        if (isDataLoaded) {
+            if (currentScreen == null) {
+                currentScreen = if (isSetupComplete) Screen.HOME else Screen.ONBOARDING
+            }
 
-        if (isSetupComplete == true && currentVersionCode > lastSeenVersion) {
-            showChangelog = true
-        } else if (isSetupComplete == true && !isPriorityEduShown && !showChangelog) {
-            showPriorityEdu = true
+            // Modals check
+            if (isSetupComplete) {
+                if (currentVersionCode > lastSeenVersion) showChangelog = true
+                else if (!isPriorityEduShown && !showChangelog) showPriorityEdu = true
+            }
         }
     }
 
-    // Back Logic
+    // 3. BACK LOGIC
     BackHandler(enabled = currentScreen != Screen.HOME && currentScreen != Screen.ONBOARDING) {
         currentScreen = when (currentScreen) {
-            Screen.NAV_CUSTOMIZATION -> {
-                // If editing specific app, go back to Home. If global, go back to Global Settings.
-                if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS
-            }
+            Screen.NAV_CUSTOMIZATION -> if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS
             Screen.GLOBAL_SETTINGS -> Screen.INFO
             Screen.APP_PRIORITY -> Screen.BEHAVIOR
             Screen.HISTORY -> Screen.INFO
@@ -119,7 +112,8 @@ fun MainRootNavigation() {
         }
     }
 
-    if (currentScreen == null) {
+    // 4. RENDER
+    if (!isDataLoaded || currentScreen == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     } else {
         AnimatedContent(
@@ -144,10 +138,7 @@ fun MainRootNavigation() {
                 }
                 Screen.HOME -> HomeScreen(
                     onSettingsClick = { currentScreen = Screen.INFO },
-                    onNavConfigClick = { pkg ->
-                        navConfigPackage = pkg
-                        currentScreen = Screen.NAV_CUSTOMIZATION
-                    }
+                    onNavConfigClick = { pkg -> navConfigPackage = pkg; currentScreen = Screen.NAV_CUSTOMIZATION }
                 )
                 Screen.INFO -> InfoScreen(
                     onBack = { currentScreen = Screen.HOME },
@@ -157,25 +148,11 @@ fun MainRootNavigation() {
                     onGlobalSettingsClick = { currentScreen = Screen.GLOBAL_SETTINGS },
                     onHistoryClick = { currentScreen = Screen.HISTORY }
                 )
-                Screen.GLOBAL_SETTINGS -> GlobalSettingsScreen(
-                    onBack = { currentScreen = Screen.INFO },
-                    onNavSettingsClick = {
-                        navConfigPackage = null // Global Mode
-                        currentScreen = Screen.NAV_CUSTOMIZATION
-                    }
-                )
-                Screen.NAV_CUSTOMIZATION -> NavCustomizationScreen(
-                    onBack = {
-                        currentScreen = if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS
-                    },
-                    packageName = navConfigPackage
-                )
+                Screen.GLOBAL_SETTINGS -> GlobalSettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavSettingsClick = { navConfigPackage = null; currentScreen = Screen.NAV_CUSTOMIZATION })
+                Screen.NAV_CUSTOMIZATION -> NavCustomizationScreen(onBack = { currentScreen = if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS }, packageName = navConfigPackage)
                 Screen.SETUP -> SetupHealthScreen(onBack = { currentScreen = Screen.INFO })
                 Screen.LICENSES -> LicensesScreen(onBack = { currentScreen = Screen.INFO })
-                Screen.BEHAVIOR -> PrioritySettingsScreen(
-                    onBack = { currentScreen = Screen.INFO },
-                    onNavigateToPriorityList = { currentScreen = Screen.APP_PRIORITY }
-                )
+                Screen.BEHAVIOR -> PrioritySettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavigateToPriorityList = { currentScreen = Screen.APP_PRIORITY })
                 Screen.APP_PRIORITY -> AppPriorityScreen(onBack = { currentScreen = Screen.BEHAVIOR })
                 Screen.HISTORY -> ChangelogHistoryScreen(onBack = { currentScreen = Screen.INFO })
             }
