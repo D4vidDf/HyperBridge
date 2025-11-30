@@ -219,4 +219,26 @@
     <string name="nav_content_none">Empty</string>
 
     <string name="channel_active_islands">Active Islands</string>
+
+    <string name="cd_toggle_app">Toggle %s</string>
+    <string name="cd_configure_app">Configure %s</string>
+    <string name="cd_enable_type">Enable %s notifications</string>
+    <string name="cd_disable_type">Disable %s notifications</string>
+    <string name="cd_nav_edit">Edit navigation layout</string>
+    <string name="cd_app_state_active">Active</string>
+    <string name="cd_app_state_inactive">Inactive</string>
+
+    <string name="cd_move_up">Move item up</string>
+    <string name="cd_move_down">Move item down</string>
+    <string name="cd_drag_handle">Drag handle. Double tap and hold to reorder, or use actions to move.</string>
+    <string name="cd_app_icon">App Icon for %s</string>
+    <string name="cd_nav_preview">Navigation Preview: %1$s on left, %2$s on right</string>
+    <string name="cd_expand_changelog">Expand version details</string>
+    <string name="cd_collapse_changelog">Collapse version details</string>
+    <string name="cd_configuration_group">Configuration Settings</string>
+    <string name="cd_about_group">About Information</string>
+
+    <string name="nav_preview_instruction">Turn Right</string>
+    <string name="nav_preview_distance">200m</string>
+    <string name="nav_preview_time">10:30</string>
 </resources>

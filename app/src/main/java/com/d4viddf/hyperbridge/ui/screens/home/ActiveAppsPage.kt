@@ -64,7 +64,6 @@ fun ActiveAppsPage(
                                 app = app,
                                 onToggle = { viewModel.toggleApp(app.packageName, false) },
                                 onSettingsClick = { onConfig(app) },
-                                isSimple = false
                             )
                             HorizontalDivider(
                                 modifier = Modifier.padding(start = 72.dp),

@@ -62,7 +62,6 @@ fun LibraryPage(
                             app = app,
                             onToggle = { viewModel.toggleApp(app.packageName, it) },
                             onSettingsClick = { onConfig(app) },
-                            isSimple = false
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(start = 72.dp),

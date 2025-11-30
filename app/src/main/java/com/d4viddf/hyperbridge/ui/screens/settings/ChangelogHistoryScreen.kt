@@ -3,65 +3,34 @@ package com.d4viddf.hyperbridge.ui.screens.settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.util.parseBold // Import shared extension
 
-// Data Model
-data class VersionLog(
-    val version: String,
-    val titleRes: Int,
-    val textRes: Int,
-    val isLatest: Boolean = false
-)
+data class VersionLog(val version: String, val titleRes: Int, val textRes: Int, val isLatest: Boolean = false)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogHistoryScreen(onBack: () -> Unit) {
-    // History Data
+    // Define history here (Newest first)
+    // Note: 0.2.0 is latest RELEASED version. 0.3.0 is DEV.
     val history = listOf(
         VersionLog("0.2.0", R.string.title_0_2_0, R.string.changelog_0_2_0, isLatest = true),
         VersionLog("0.1.0", R.string.title_0_1_0, R.string.changelog_0_1_0)
@@ -104,21 +73,25 @@ fun ChangelogItem(log: VersionLog) {
 
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "rotation")
 
-    // Styling based on Latest status
+    // Dynamic Colors
     val cardColor = if (log.isLatest) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
     val contentColor = if (log.isLatest) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
 
+    // Accessibility
+    val expandLabel = if (expanded) stringResource(R.string.cd_collapse_changelog) else stringResource(R.string.cd_expand_changelog)
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClickLabel = expandLabel) { expanded = !expanded },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        onClick = { expanded = !expanded }
+        colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
-            // Header
+            // --- HEADER ---
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Version Number
+                // Version Bubble
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -144,10 +117,10 @@ fun ChangelogItem(log: VersionLog) {
                     modifier = Modifier.weight(1f)
                 )
 
-                // --- CHANGED: TEXT BADGE ---
+                // "NEW" Badge
                 if (log.isLatest) {
                     Surface(
-                        color = MaterialTheme.colorScheme.primary, // Pop color
+                        color = MaterialTheme.colorScheme.primary,
                         shape = RoundedCornerShape(4.dp),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
@@ -160,9 +133,7 @@ fun ChangelogItem(log: VersionLog) {
                         )
                     }
                 }
-                // ---------------------------
 
-                // Arrow
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
@@ -171,13 +142,14 @@ fun ChangelogItem(log: VersionLog) {
                 )
             }
 
-            // Content
+            // --- CONTENT (BOLD PARSER) ---
             AnimatedVisibility(visible = expanded) {
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider(color = contentColor.copy(alpha = 0.2f))
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Fix: Use parseBold()
                     Text(
                         text = stringResource(log.textRes).parseBold(),
                         style = MaterialTheme.typography.bodyMedium,
@@ -186,41 +158,6 @@ fun ChangelogItem(log: VersionLog) {
                     )
                 }
             }
-        }
-    }
-}
-
-/**
- * Robust helper to parse <b>text</b> into Bold SpanStyles using Regex.
- */
-@Composable
-fun String.parseBold(): androidx.compose.ui.text.AnnotatedString {
-    // 1. Fix newline escape characters often found in XML strings
-    val rawText = this.replace("\\n", "\n")
-
-    // 2. Use Regex to find content inside <b> tags
-    val boldRegex = Regex("<b>(.*?)</b>")
-
-    return buildAnnotatedString {
-        var lastIndex = 0
-
-        // Iterate over all matches
-        boldRegex.findAll(rawText).forEach { match ->
-            // Append normal text BEFORE the bold tag
-            append(rawText.substring(lastIndex, match.range.first))
-
-            // Append the BOLD content (Group 1 of the regex)
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(match.groupValues[1])
-            }
-
-            // Move index past this match
-            lastIndex = match.range.last + 1
-        }
-
-        // Append any remaining normal text after the last match
-        if (lastIndex < rawText.length) {
-            append(rawText.substring(lastIndex))
         }
     }
 }

@@ -1,18 +1,11 @@
 package com.d4viddf.hyperbridge.ui.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -20,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.util.parseBold // Import the extension
 
 @Composable
 fun ChangelogDialog(
@@ -48,18 +42,15 @@ fun ChangelogDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 300.dp) // Prevent it from being too tall
+                    .heightIn(max = 300.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // We use a simple text parser here for HTML-like tags if needed,
-                // or just render the raw string. For simplicity, we assume plain text with bullets.
-                // If you want bolding from XML, standard Text doesn't support it easily without parsing.
-                // For now, we render the string resource directly.
-
+                // FIX: Use parseBold() instead of .replace()
                 Text(
-                    text = changelogText.replace("\\n", "\n").replace("<b>", "").replace("</b>", ""),
+                    text = changelogText.parseBold(),
                     style = MaterialTheme.typography.bodyLarge,
-                    lineHeight = 24.sp
+                    lineHeight = 24.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },

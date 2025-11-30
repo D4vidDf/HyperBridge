@@ -42,10 +42,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.hyperbridge.R
@@ -64,7 +70,6 @@ fun NavCustomizationScreen(
     val preferences = remember { AppPreferences(context) }
 
     val globalLayout by preferences.globalNavLayoutFlow.collectAsState(initial = NavContent.DISTANCE_ETA to NavContent.INSTRUCTION)
-
     val appLayout by if (packageName != null) {
         preferences.getAppNavLayout(packageName).collectAsState(initial = null to null)
     } else {
@@ -73,7 +78,6 @@ fun NavCustomizationScreen(
 
     val isGlobalMode = packageName == null
     val isUsingGlobalDefault = !isGlobalMode && appLayout.first == null
-
     val currentLeft = if (isGlobalMode || isUsingGlobalDefault) globalLayout.first else (appLayout.first ?: globalLayout.first)
     val currentRight = if (isGlobalMode || isUsingGlobalDefault) globalLayout.second else (appLayout.second ?: globalLayout.second)
 
@@ -91,7 +95,6 @@ fun NavCustomizationScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
 
-            // PREVIEW
             Text("Preview", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -99,8 +102,12 @@ fun NavCustomizationScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // CONFIGURATION
-            Text(stringResource(R.string.group_configuration), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.group_configuration),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.semantics { heading() }
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
             if (!isGlobalMode) {
@@ -124,7 +131,6 @@ fun NavCustomizationScreen(
             }
 
             val controlsEnabled = isGlobalMode || !isUsingGlobalDefault
-
             if (controlsEnabled) {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(Modifier.padding(16.dp)) {
@@ -158,62 +164,65 @@ fun NavCustomizationScreen(
 
 @Composable
 fun NavPreview(left: NavContent, right: NavContent) {
+    val leftLabel = stringResource(getNavContentLabelRes(left))
+    val rightLabel = stringResource(getNavContentLabelRes(right))
+    val cd = stringResource(R.string.cd_nav_preview, leftLabel, rightLabel)
+
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
         shape = RoundedCornerShape(24.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { contentDescription = cd }
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 32.dp), // Breathing room
+                .padding(vertical = 32.dp),
             contentAlignment = Alignment.Center
         ) {
-            // --- THE ISLAND (Compact Pill) ---
+            // --- UPDATED ISLAND SIZE ---
             Box(
                 modifier = Modifier
-                    .width(280.dp)
-                    .height(46.dp) // FIXED: Same height as camera roughly (Pill shape)
-                    .clip(RoundedCornerShape(50)) // Fully rounded
+                    .width(330.dp) // Increased from 280dp to 340dp to fit Dist+ETA
+                    .height(46.dp)
+                    .clip(RoundedCornerShape(50))
                     .background(Color.Black)
             ) {
-                // --- CAMERA CUTOUT ---
+                // Camera Cutout
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(30.dp) // Camera Size
+                        .size(30.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF1F1F1F))
                 )
 
-                // --- CONTENT ROW ---
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // LEFT ZONE
+                    // LEFT SIDE
                     Row(
                         modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
-                        // Fixed Direction Icon (Always on Left)
                         Icon(
                             imageVector = Icons.Default.TurnRight,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )
-
                         Spacer(Modifier.width(6.dp))
-
-                        // User Configured Text
                         NavContentRenderer(left, Alignment.Start)
                     }
 
-                    // Spacer for Camera
-                    Spacer(modifier = Modifier.width(34.dp))
+                    // SPACER
+                    Spacer(modifier = Modifier.width(32.dp))
 
-                    // RIGHT ZONE
+                    // RIGHT SIDE
                     Box(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.CenterEnd
@@ -228,42 +237,53 @@ fun NavPreview(left: NavContent, right: NavContent) {
 
 @Composable
 fun NavContentRenderer(type: NavContent, align: Alignment.Horizontal) {
-    // Font sizes adjusted for the smaller pill height
+
+    // Fade Logic: Only applies to long text (Instruction)
+    val fadeBrush = if (type == NavContent.INSTRUCTION) {
+        if (align == Alignment.Start) {
+            Brush.horizontalGradient(0.85f to Color.White, 1.0f to Color.Transparent)
+        } else {
+            Brush.horizontalGradient(0.0f to Color.Transparent, 0.15f to Color.White)
+        }
+    } else null
+
+    val textStyle = if (fadeBrush != null) {
+        TextStyle(brush = fadeBrush, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+    } else {
+        TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+    }
+
+    val timeStyle = TextStyle(color = Color.White, fontWeight = FontWeight.Normal, fontSize = 14.sp)
+
     when (type) {
         NavContent.INSTRUCTION -> {
             Text(
-                text = "Turn Right",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                maxLines = 1
+                text = stringResource(R.string.nav_preview_instruction),
+                style = textStyle,
+                maxLines = 1,
+                overflow = TextOverflow.Clip
             )
         }
         NavContent.DISTANCE -> {
             Text(
-                text = "200m",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                text = stringResource(R.string.nav_preview_distance),
+                style = textStyle // Solid White
             )
         }
         NavContent.ETA -> {
-            // FIXED: Time isn't colored green anymore, just white/grey
             Text(
-                text = "10:30",
-                color = Color.White,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp
+                text = stringResource(R.string.nav_preview_time),
+                style = timeStyle // Standard weight
             )
         }
         NavContent.DISTANCE_ETA -> {
-            // Compact layout for double info
+            // Combined Row
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("200m", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(stringResource(R.string.nav_preview_distance), style = textStyle.copy(fontSize = 13.sp))
                 Spacer(Modifier.width(4.dp))
                 Text("•", color = Color.Gray, fontSize = 12.sp)
                 Spacer(Modifier.width(4.dp))
-                Text("10:30", color = Color.LightGray, fontSize = 13.sp)
+                Text(stringResource(R.string.nav_preview_time), style = timeStyle.copy(fontSize = 13.sp))
             }
         }
         NavContent.NONE -> { /* Empty */ }
@@ -295,16 +315,6 @@ fun NavDropdown(label: String, selected: NavContent, onSelect: (NavContent) -> U
                 }
             }
         }
-    }
-}
-
-fun getMockText(type: NavContent): String {
-    return when(type) {
-        NavContent.INSTRUCTION -> "Turn Right"
-        NavContent.DISTANCE -> "200m"
-        NavContent.ETA -> "10:30"
-        NavContent.DISTANCE_ETA -> "200m • 10:30"
-        NavContent.NONE -> ""
     }
 }
 

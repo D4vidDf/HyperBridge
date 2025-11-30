@@ -23,9 +23,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.util.parseBold // Import the shared extension
 import com.d4viddf.hyperbridge.util.toBitmap
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,16 +39,18 @@ fun InfoScreen(
     onLicensesClick: () -> Unit,
     onBehaviorClick: () -> Unit,
     onGlobalSettingsClick: () -> Unit,
-    onHistoryClick: () -> Unit // NEW
+    onHistoryClick: () -> Unit
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val scrollState = rememberScrollState()
 
+    // Safe Version Loading
     val appVersion = try {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0.0"
     } catch (e: Exception) { "1.0.0" }
 
+    // Safe Icon Loading
     val appIconBitmap = remember(context) {
         try { context.packageManager.getApplicationIcon(context.packageName).toBitmap().asImageBitmap() } catch (e: Exception) { null }
     }
@@ -76,7 +81,7 @@ fun InfoScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- HEADER ---
+            // --- APP HEADER ---
             Spacer(modifier = Modifier.height(16.dp))
 
             if (appIconBitmap != null) {
@@ -128,7 +133,7 @@ fun InfoScreen(
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
 
-                // Island Behavior
+                // Island Behavior (Priority)
                 SettingsItem(
                     icon = Icons.Default.Tune,
                     title = stringResource(R.string.island_behavior),
@@ -162,11 +167,11 @@ fun InfoScreen(
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
 
-                // Version History (NEW)
+                // Version History
                 SettingsItem(
                     icon = Icons.Default.History,
                     title = stringResource(R.string.version_history),
-                    subtitle = "0.1.0 - 0.2.0",
+                    subtitle = "0.1.0 - 0.3.0",
                     onClick = onHistoryClick
                 )
 
@@ -192,7 +197,14 @@ fun InfoScreen(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-            Text(stringResource(R.string.footer_made_with_love), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+
+            // FOOTER (With Bold Parser Support)
+            Text(
+                text = stringResource(R.string.footer_made_with_love).parseBold(),
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -204,7 +216,10 @@ fun SettingsGroupTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, start = 4.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp, start = 4.dp)
+            .semantics { heading() }
     )
 }
 
