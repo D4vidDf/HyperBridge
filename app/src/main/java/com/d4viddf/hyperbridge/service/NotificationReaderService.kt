@@ -131,7 +131,9 @@ class NotificationReaderService : NotificationListenerService() {
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
         val notification = sbn.notification
         val extras = notification.extras
+        val pkg = sbn.packageName
 
+        // 1. PRIORITY PASS (Allow Progress/Media/Calls/Nav)
         val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
                 extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
         val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT ||
@@ -140,20 +142,38 @@ class NotificationReaderService : NotificationListenerService() {
                 extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
 
         if (hasProgress || isSpecial) return false
+
+        // 2. Block Group Summaries
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
 
+        // 3. Extract Content
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
 
+        // 4. Empty Check
         if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
 
-        val appName = try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(sbn.packageName, 0)).toString() } catch (e: Exception) { "" }
-        if (title == appName && text.isEmpty() && subText.isEmpty()) return true
-        if (text == sbn.packageName) return true
+        // --- FIX FOR ISSUE #7: Block Package Name Leaks ---
+        // If the Title or Text matches the Package Name (e.g. "com.whatsapp"), it is a placeholder/junk.
+        if (title == pkg || text == pkg) {
+            Log.d(TAG, "Ignored Placeholder (Package Name match): $pkg")
+            return true
+        }
+        // --------------------------------------------------
 
+        // 5. App Name Placeholder Check
+        // (Title == AppName, Text == Empty) -> Usually "WhatsApp checking for messages"
+        val appName = try {
+            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+        } catch (e: Exception) { "" }
+
+        if (title == appName && text.isEmpty() && subText.isEmpty()) return true
+
+        // 6. System Noise
         if (title.contains("running in background", true)) return true
         if (text.contains("tap for more info", true)) return true
+        if (text.contains("displaying over other apps", true)) return true
 
         return false
     }
