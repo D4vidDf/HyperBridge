@@ -10,7 +10,10 @@ import com.d4viddf.hyperbridge.service.NotificationReaderService
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+        // Check for both standard boot and quick boot (some ROMs use quick)
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
+            intent.action == "android.intent.action.QUICKBOOT_POWERON") {
+
             Log.d("HyperBridge", "Boot completed detected.")
 
             // Trick: We toggle the component state to force the Notification Manager
