@@ -224,4 +224,16 @@
     <string name="nav_content_none">Vacío</string>
 
     <string name="channel_active_islands">Islas Activas</string>
+
+    <string name="cd_toggle_app">Alternar %s</string>
+    <string name="cd_configure_app">Configurar %s</string>
+    <string name="cd_enable_type">Activar notificaciones de %s</string>
+    <string name="cd_disable_type">Desactivar notificaciones de %s</string>
+    <string name="cd_nav_edit">Editar diseño de navegación</string>
+    <string name="cd_app_state_active">Activo</string>
+    <string name="cd_app_state_inactive">Inactivo</string>
+
+    <string name="nav_preview_instruction">Girar a la derecha</string>
+    <string name="nav_preview_distance">200m</string>
+    <string name="nav_preview_time">10:30</string>
 </resources>
