@@ -109,8 +109,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch { preferences.updateAppConfig(pkg, type, enabled) }
     }
 
-    // --- NEW: ISLAND APPEARANCE BRIDGES ---
-
+    // --- ISLAND APPEARANCE BRIDGES ---
     val globalConfigFlow = preferences.globalConfigFlow
 
     fun getAppIslandConfig(packageName: String) = preferences.getAppIslandConfig(packageName)
@@ -122,12 +121,25 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     fun updateGlobalConfig(config: IslandConfig) {
         viewModelScope.launch { preferences.updateGlobalConfig(config) }
     }
-    // --------------------------------------
+
+    // --- BLOCKED TERMS (FIX FOR ISSUE #6) ---
+    val globalBlockedTermsFlow = preferences.globalBlockedTermsFlow
+
+    fun setGlobalBlockedTerms(terms: Set<String>) {
+        viewModelScope.launch { preferences.setGlobalBlockedTerms(terms) }
+    }
+
+    fun getAppBlockedTerms(packageName: String) = preferences.getAppBlockedTerms(packageName)
+
+    fun updateAppBlockedTerms(packageName: String, terms: Set<String>) {
+        viewModelScope.launch { preferences.setAppBlockedTerms(packageName, terms) }
+    }
+    // ----------------------------------------
 
     // UI State Setters
-    fun setCategory(cat: AppCategory) { /* handled by state flows directly in UI for now, but keeping for compatibility */ }
-    fun setSort(option: SortOption) { /* same */ }
-    fun clearSearch() { /* same */ }
+    fun setCategory(cat: AppCategory) { }
+    fun setSort(option: SortOption) { }
+    fun clearSearch() { }
 
     // App Loader
     private suspend fun getLaunchableApps(): List<AppInfo> = withContext(Dispatchers.IO) {

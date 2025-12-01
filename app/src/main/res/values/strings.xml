@@ -241,4 +241,23 @@
     <string name="nav_preview_instruction">Turn Right</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
+
+    <string name="blocked_terms">Blocked Terms</string>
+    <string name="blocked_terms_desc">Notifications containing these words will be ignored.</string>
+    <string name="add_blocked_word">Add word (e.g. \'Spoiler\')</string>
+    <string name="add">Add</string>
+    <string name="remove">Remove</string>
+    <string name="tap_to_configure_rules">Tap an app to configure specific block rules.</string>
+    <string name="spoiler_subtitle">Manage spoiler protection and filters</string>
+
+    <string name="active_notifications_title">Notification Types</string>
+    <string name="active_notifications_subtitle">%d active</string>
+    <string name="appearance_use_defaults_desc">Using system defaults for animation speed and floating behavior.</string>
+    <string name="blocked_terms_active_count">%d rules active</string>
+
+    <string name="global_rules">Global Rules</string>
+    <string name="app_specific_rules">App Specific Rules</string>
+    <string name="manage_app_rules_desc">Customize filters for specific applications</string>
+    <string name="blocked_terms_count">%d terms blocked</string>
+    <string name="no_active_rules">No active rules</string>
 </resources>

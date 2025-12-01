@@ -236,4 +236,23 @@
     <string name="nav_preview_instruction">Girar a la derecha</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
+
+    <string name="blocked_terms">Términos Bloqueados</string>
+    <string name="blocked_terms_desc">Se ignorarán las notificaciones que contengan estas palabras.</string>
+    <string name="add_blocked_word">Añadir palabra (ej. \'Spoiler\')</string>
+    <string name="add">Añadir</string>
+    <string name="remove">Eliminar</string>
+    <string name="tap_to_configure_rules">Toca una app para configurar reglas de bloqueo específicas.</string>
+    <string name="spoiler_subtitle">Gestionar protección contra spoilers y filtros</string>
+
+    <string name="active_notifications_title">Tipos de Notificación</string>
+    <string name="active_notifications_subtitle">%d activas</string>
+    <string name="appearance_use_defaults_desc">Usando valores predeterminados del sistema para velocidad y comportamiento flotante.</string>
+    <string name="blocked_terms_active_count">%d reglas activas</string>
+
+    <string name="global_rules">Reglas Globales</string>
+    <string name="app_specific_rules">Reglas por Aplicación</string>
+    <string name="manage_app_rules_desc">Personaliza filtros para aplicaciones específicas</string>
+    <string name="blocked_terms_count">%d términos bloqueados</string>
+    <string name="no_active_rules">Sin reglas activas</string>
 </resources>
