@@ -18,29 +18,29 @@
     <string name="get_started">Começar</string>
 
     <string name="how_it_works">Como funciona</string>
-    <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Maps, Timer). HyperBridge transforma as notificações em uma elegante HyperIsland.</string>
+    <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Mapas, Timer). HyperBridge transforma as notificações em uma elegante HyperIsland.</string>
     <string name="early_development">Desenvolvimento inicial</string>
     <string name="beta_warning">Nota: Este app está em Beta. Você pode encontrar erros ou informação visual incorreta.</string>
 
     <string name="device_compatible">Dispositivo Compatível</string>
     <string name="unsupported_device">Dispositivo Incompatível</string>
-    <string name="compatible_msg">O seu dispositivo parece estar executando a HyperOS/MIUI. Tudo certo!</string>
+    <string name="compatible_msg">Seu dispositivo parece estar executando a HyperOS/MIUI. Tudo certo!</string>
     <string name="incompatible_msg">HyperBridge depende de funções específicas da HyperOS. Sua fabricante não parece ser Xiaomi/POCO/Redmi.</string>
     <string name="system_detected">✅ Sistema Detectado</string>
     <string name="app_wont_work">⚠️ O app pode não funcionar</string>
 
     <string name="show_island">Mostrar Ilha</string>
-    <string name="perm_post_desc">Precisamos da permissão para mostrar a notificação \'Ilha\' na sua tela.</string>
-    <string name="perm_granted">✅ Permissão concedida</string>
+    <string name="perm_post_desc">Precisamos da permissão para mostrar a notificação da \'Ilha\' na sua tela.</string>
+    <string name="perm_granted">✅ Permissão Concedida</string>
     <string name="allow_notifications">Permitir Notificações</string>
 
     <string name="read_data">Ler Dados</string>
-    <string name="perm_listener_desc">Para conectar seus aplicativos, precisamos ler suas notificações (Música, Mapas, Temporizadores).</string>
+    <string name="perm_listener_desc">Para conectar seus aplicativos, precisamos ler suas notificações (Música, Mapas, Timers).</string>
     <string name="open_settings">Abrir Configurações</string>
 
     <string name="keep_alive">Manter Ativo</string>
-    <string name="optimization_desc">HyperOS encerra apps em segundo plano. Habilite o Inicio Automático e Sem Restrições para manter a ilha ativa.</string>
-    <string name="enable_autostart">1. Ativar Inicio Automático</string>
+    <string name="optimization_desc">HyperOS encerra apps em segundo plano. Habilite o Início Automático e Nenhuma Restrição para manter a ilha ativa.</string>
+    <string name="enable_autostart">1. Ativar Início Automático</string>
     <string name="set_battery_no_restrictions">2. Bateria \'Sem Restrições\'</string>
 
     <string name="tab_active">Ativos</string>
@@ -72,7 +72,7 @@
     <string name="licenses_subtitle">Software de terceiros</string>
     <string name="footer_made_with_love">Feito com ❤️ na Espanha</string>
 
-    <string name="app_health">EStatus do aplicativo</string>
+    <string name="app_health">Status do aplicativo</string>
     <string name="app_health_desc">Certifique-se de que todas as opções estejam verdes para o app funcionar corretamente em segundo plano.</string>
     <string name="req_permissions">Permissões Necessárias</string>
     <string name="notif_access">Acesso às notificações</string>
@@ -83,7 +83,7 @@
     <string name="autostart_desc">Permitir que o app abra na inicialização</string>
     <string name="battery_unrestricted">Bateria Sem Restrições</string>
     <string name="battery_desc">Evita que o sistema encerre o app</string>
-    <string name="recents_note">Nota: Também bloqueia o app no menu geral de \'Recentes\'.</string>
+    <string name="recents_note">Nota: Também bloqueie o app na tela de \'Recentes\'.</string>
     <string name="status_active">Ativo</string>
     <string name="action_needed">Ação Necessária</string>
 
@@ -93,13 +93,13 @@
     <string name="cat_timer">Produtividade</string>
     <string name="cat_other">Outros</string>
 
-    <string name="select_active_notifs">Notificações ativas</string>
-    <string name="type_standard">Mensagem e Geral</string>
+    <string name="select_active_notifs">Selecione as notificações para ativar</string>
+    <string name="type_standard">Mensagens e Geral</string>
     <string name="type_progress">Downloads e Progresso</string>
     <string name="type_media">Música e Mídias</string>
     <string name="type_nav">Mapas e GPS</string>
     <string name="type_call">Chamadas</string>
-    <string name="type_timer">Temporizadores e Alarmes</string>
+    <string name="type_timer">Timers e Alarmes</string>
 
     <string name="service_active">Ativo</string>
     <string name="download_complete">Download Completo</string>
@@ -111,23 +111,23 @@
     <string name="unknown_caller">Desconhecido</string>
     <string name="incoming_call">Chamada</string>
     <string name="maps_title">Mapas</string>
-    <string name="timer_title">Temporizador</string>
-    <string name="fallback_stopwatch">Cronômetro</string>
+    <string name="timer_title">Timer</string>
 
     <string-array name="progress_finish_keywords">
         <item>baixado</item>
-        <item>completado</item>
+        <item>concluído</item>
         <item>finalizado</item>
         <item>instalado</item>
         <item>feito</item>
         <item>bem-sucedido</item>
-        <item>sucesso</item>
+        <item>bem-sucedido</item>
         <item>completado</item>
         <item>finalizado</item>
-        <item>completado</item>
-        <item>finalizado</item>
+        <item>bem-sucedido</item>
+        <item>instalado</item>
     </string-array>
 
+    <string name="awesome">Incrível!</string>
     <string name="whats_new_title">Novidades na %s</string>
     <string name="version_history">Histórico de Versões</string>
 
@@ -150,7 +150,6 @@
         • &lt;b&gt;Configuração por Aplicativo:&lt;/b&gt; Customize o tempo limite e o comportamento de flutuação para cada aplicativo.
     </string>
 
-    <string name="awesome">Incrível!</string>
     <string name="island_behavior">Comportamento da Ilha</string>
     <string name="limit_strategy">Estratégia de Limite</string>
     <string name="limit_desc">O que acontece quando você chega a 9 ilhas?</string>
@@ -159,12 +158,13 @@
     <string name="mode_recent_title">Mais Recente (Padrão)</string>
     <string name="mode_recent_desc">Novas notificações substituem as mais antigas.</string>
     <string name="mode_priority_title">Prioridade Personalizada</string>
-    <string name="mode_priority_desc">Você define quais tipos de notificações são mais importantes. (ex.: Chamadas)</string>
+    <string name="mode_priority_desc">Você define quais tipos de notificações são mais importantes (ex.: Chamadas).</string>
     <string name="priority_order">Ordem de Prioridade</string>
     <string name="priority_order_desc">Alta prioridade (Acima) substitui Baixa prioridade (Abaixo).</string>
     <string name="configure_order">Configurar ordem de aplicativos</string>
     <string name="move_up">Mover para cima</string>
     <string name="move_down">Mover para baixo</string>
+    
     <string name="status_download_complete">Download completo</string>
     <string name="status_downloading">Baixando</string>
     <string name="status_pending">Pendente...</string>
@@ -172,8 +172,11 @@
     <string name="status_now_playing">Reproduzindo</string>
     <string name="status_incoming_call">Recebendo Chamada</string>
     <string name="caller_unknown">Desconhecido</string>
+
     <string name="fallback_maps">Mapas</string>
-    <string name="fallback_timer">Temporizador</string>
+    <string name="fallback_timer">Timer</string>
+    <string name="fallback_stopwatch">Cronômetro</string>
+
     <string name="global_settings">Configurações Globais</string>
     <string name="island_appearance">Aparência de Ilha</string>
     <string name="setting_float">Ilha Flutuante</string>
@@ -199,5 +202,42 @@
     <string name="priority_edu_desc">HyperBridge agora consegue gerenciar como múltiplas notificações se comportam quando o limite de 9 é atingido.\n\n&lt;b&gt;Padrão: Mais Recente&lt;/b&gt;\nNovas notificações substituem as mais antigas automaticamente.</string>
     <string name="keep_default">Manter o Padrão</string>
     <string name="configure_now">Configurar Agora</string>
+
     <string name="badge_new">NOVO</string>
+
+    <string name="custom_design">Design Personalizado</string>
+    <string name="nav_layout_title">Layout de Navegação</string>
+    <string name="nav_layout_desc">Escolha onde a informação irá aparecer</string>
+    <string name="left_content">Lado Esquerdo</string>
+    <string name="right_content">Lado Direito</string>
+
+    <string name="nav_content_instruction">Instrução</string>
+    <string name="nav_content_distance">Distância</string>
+    <string name="nav_content_eta">Tempo de Chegada</string>
+    <string name="nav_content_distance_eta">Dist. &amp; Tempo</string>
+    <string name="nav_content_none">Vazio</string>
+
+    <string name="channel_active_islands">Ilhas Ativas</string>
+
+    <string name="cd_toggle_app">Alternar %s</string>
+    <string name="cd_configure_app">Configurar %s</string>
+    <string name="cd_enable_type">Ativa %s notificações</string>
+    <string name="cd_disable_type">Desativa %s notificações</string>
+    <string name="cd_nav_edit">Editar o layout de navegação</string>
+    <string name="cd_app_state_active">Ativo</string>
+    <string name="cd_app_state_inactive">Inativo</string>
+
+    <string name="cd_move_up">Mover item para cima</string>
+    <string name="cd_move_down">Mover item para baixo</string>
+    <string name="cd_drag_handle">Arraste o controle. Toque duas vezes e segure para reordenar, ou use as ações para mover.</string>
+    <string name="cd_app_icon">Ícone do app para %s</string>
+    <string name="cd_nav_preview">Prévia da Navegação: %1$s à esquerda, %2$s à direita</string>
+    <string name="cd_expand_changelog">Expandir detalhes da versão</string>
+    <string name="cd_collapse_changelog">Recolher detalhes da versão</string>
+    <string name="cd_configuration_group">Configurações</string>
+    <string name="cd_about_group">Informação sobre</string>
+
+    <string name="nav_preview_instruction">Vire à direita</string>
+    <string name="nav_preview_distance">200m</string>
+    <string name="nav_preview_time">10:30</string>
 </resources>
