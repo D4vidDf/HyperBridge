@@ -1,0 +1,212 @@
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+
+    <string name="back">뒤로</string>
+    <string name="next">다음</string>
+    <string name="finish">완료</string>
+    <string name="done">완료</string>
+    <string name="logo_desc">앱 로고</string>
+    <string name="settings">설정</string>
+    <string name="info">정보</string>
+    <string name="configure">구성</string>
+    <string name="clear">지우기</string>
+    <string name="sort_order">정렬 순서</string>
+
+    <string name="welcome_title">Hyper Bridge에\n오신 것을 환영합니다</string>
+    <string name="welcome_subtitle">HyperIsland를 HyperOS 경험에 완벽하게 통합하세요.</string>
+    <string name="get_started">시작하기</string>
+
+    <string name="how_it_works">작동 방식</string>
+    <string name="how_it_works_desc">자주 쓰는 앱(Spotify, 지도, 타이머 등)을 선택하세요. HyperBridge가 해당 알림을 세련된 HyperIsland로 변환해 줍니다.</string>
+    <string name="early_development">초기 개발 단계</string>
+    <string name="beta_warning">참고: 이 앱은 베타 버전입니다. 버그나 부정확한 시각 정보가 나타날 수 있습니다.</string>
+
+    <string name="device_compatible">기기 호환성</string>
+    <string name="unsupported_device">지원되지 않는 기기</string>
+    <string name="compatible_msg">기기에서 HyperOS/MIUI가 실행 중인 것으로 감지되었습니다. 준비 완료!</string>
+    <string name="incompatible_msg">HyperBridge는 특정 HyperOS 시스템 기능에 의존합니다. 기기 제조사가 Xiaomi/POCO/Redmi가 아닌 것으로 보입니다.</string>
+    <string name="system_detected">✅ 시스템 감지됨</string>
+    <string name="app_wont_work">⚠️ 앱이 작동하지 않을 수 있음</string>
+
+    <string name="show_island">아일랜드 표시</string>
+    <string name="perm_post_desc">화면에 \'아일랜드\' 알림을 띄우기 위해 권한이 필요합니다.</string>
+    <string name="perm_granted">✅ 권한 허용됨</string>
+    <string name="allow_notifications">알림 허용</string>
+
+    <string name="read_data">데이터 읽기</string>
+    <string name="perm_listener_desc">앱을 연동하려면 알림(음악, 지도, 타이머)을 읽을 수 있어야 합니다.</string>
+    <string name="open_settings">설정 열기</string>
+
+    <string name="keep_alive">앱 유지</string>
+    <string name="optimization_desc">HyperOS는 백그라운드 앱을 강제 종료합니다. 아일랜드를 계속 활성화시키려면 자동 시작 및 제한 없음을 설정해주세요.</string>
+    <string name="enable_autostart">1. 자동 시작 활성화</string>
+    <string name="set_battery_no_restrictions">2. 배터리 \'제한 없음\' 설정</string>
+
+    <string name="tab_active">활성</string>
+    <string name="tab_library">라이브러리</string>
+    <string name="title_active_bridges">활성화된 브릿지</string>
+    <string name="title_library">앱 라이브러리</string>
+    <string name="search_hint">앱 검색...</string>
+    <string name="sort_az">정렬: 가나다순</string>
+    <string name="sort_za">정렬: 가나다 역순</string>
+
+    <string name="no_active_bridges">활성 브릿지 없음</string>
+    <string name="no_active_bridges_desc">라이브러리에서 앱을 활성화하세요.</string>
+    <string name="no_apps_found">앱을 찾을 수 없음</string>
+
+    <string name="about">정보</string>
+    <string name="version_template">버전 %s</string>
+    <string name="developer_credit">D4vidDf 개발</string>
+
+    <string name="group_configuration">구성</string>
+    <string name="system_setup">시스템 설정</string>
+    <string name="system_setup_subtitle">권한 및 배터리 수정</string>
+
+    <string name="group_about">정보</string>
+    <string name="developer">개발자</string>
+    <string name="developer_subtitle">d4viddf.com 방문하기</string>
+    <string name="source_code">소스 코드</string>
+    <string name="source_code_subtitle">GitHub 저장소</string>
+    <string name="licenses">오픈 소스 라이선스</string>
+    <string name="licenses_subtitle">서드파티 소프트웨어</string>
+    <string name="footer_made_with_love">스페인에서 ❤️을 담아서</string>
+
+    <string name="app_health">앱 상태</string>
+    <string name="app_health_desc">앱이 백그라운드에서 올바르게 작동하려면 모든 항목이 녹색이어야 합니다.</string>
+    <string name="req_permissions">필수 권한</string>
+    <string name="notif_access">알림 접근 허용</string>
+    <string name="notif_access_desc">앱 이벤트 읽기에 필요</string>
+    <string name="perm_display_desc">다른 앱 위에 표시 권한</string>
+    <string name="device_optimization">기기 최적화</string>
+    <string name="xiaomi_autostart">Xiaomi 자동 시작</string>
+    <string name="autostart_desc">부팅 시 앱 시작 허용</string>
+    <string name="battery_unrestricted">배터리 제한 없음</string>
+    <string name="battery_desc">시스템이 앱을 종료하지 않도록 방지</string>
+    <string name="recents_note">참고: \'최근 앱\' 목록에서 이 앱을 잠금 설정하세요.</string>
+    <string name="status_active">활성</string>
+    <string name="action_needed">조치 필요</string>
+
+    <string name="cat_all">전체</string>
+    <string name="cat_music">음악</string>
+    <string name="cat_nav">내비게이션</string>
+    <string name="cat_timer">생산성</string>
+    <string name="cat_other">기타</string>
+
+    <string name="select_active_notifs">활성 알림 선택</string>
+    <string name="type_standard">메시지 및 일반</string>
+    <string name="type_progress">다운로드 및 진행 상황</string>
+    <string name="type_media">음악 및 미디어</string>
+    <string name="type_nav">지도 및 GPS</string>
+    <string name="type_call">통화</string>
+    <string name="type_timer">타이머 및 알람</string>
+
+    <string name="service_active">활성</string>
+    <string name="download_complete">다운로드 완료</string>
+    <string name="pending">전송 중...</string>
+    <string name="finished">완료</string>
+    <string name="downloading">다운로드 중</string>
+    <string name="waiting">대기 중...</string>
+    <string name="now_playing">재생 중</string>
+    <string name="unknown_caller">발신자 정보 없음</string>
+    <string name="incoming_call">통화</string>
+    <string name="maps_title">지도</string>
+    <string name="timer_title">타이머</string>
+
+    <string-array name="progress_finish_keywords">
+        <item>downloaded</item>
+        <item>completed</item>
+        <item>finished</item>
+        <item>installed</item>
+        <item>done</item>
+        <item>successful</item>
+        <item>succeeded</item>
+        <item>completado</item>
+        <item>finalizado</item>
+        <item>exitoso</item>
+        <item>instalado</item>
+        <item>완료</item>
+        <item>성공</item>
+    </string-array>
+
+    <string name="status_download_complete">다운로드 완료</string>
+    <string name="status_downloading">다운로드 중</string>
+    <string name="status_pending">대기 중...</string>
+    <string name="status_finished">완료</string>
+    <string name="status_now_playing">재생 중</string>
+    <string name="status_incoming_call">수신 전화</string>
+    <string name="caller_unknown">발신자 정보 없음</string>
+
+    <string name="fallback_maps">지도</string>
+    <string name="fallback_timer">타이머</string>
+    <string name="fallback_stopwatch">스톱워치</string>
+
+    <string name="whats_new_title">%s의 새로운 기능</string>
+    <string name="awesome">좋아요!</string>
+
+
+    <string name="island_behavior">아일랜드 동작</string>
+    <string name="limit_strategy">제한 전략</string>
+    <string name="limit_desc">아일랜드가 9개에 도달하면 어떻게 처리할까요?</string>
+    <string name="mode_fcfs_title">선착순</string>
+    <string name="mode_fcfs_desc">처음 9개의 앱을 유지합니다. 공간이 생길 때까지 새로운 앱은 무시됩니다.</string>
+    <string name="mode_recent_title">최신순 (기본값)</string>
+    <string name="mode_recent_desc">새로운 알림이 가장 오래된 알림을 대체합니다.</string>
+    <string name="mode_priority_title">사용자 지정 우선순위</string>
+    <string name="mode_priority_desc">어떤 유형(예: 통화)이 더 중요한지 정의합니다.</string>
+    <string name="priority_order">우선순위 순서</string>
+    <string name="priority_order_desc">높은 우선순위(위)가 낮은 우선순위(아래)를 대체합니다.</string>
+    <string name="move_up">위로 이동</string>
+    <string name="move_down">아래로 이동</string>
+    <string name="configure_order">앱 순서 구성</string>
+
+    <string name="global_settings">전역 설정</string>
+    <string name="island_appearance">아일랜드 모양</string>
+    <string name="setting_float">플로팅 아일랜드 표시</string>
+    <string name="setting_float_desc">헤드업 알림 표시</string>
+    <string name="setting_shade">알림창에 표시</string>
+    <string name="setting_shade_desc">알림 센터에 유지</string>
+    <string name="setting_timeout">시간 제한</string>
+    <string name="seconds_suffix">%d초</string>
+    <string name="use_global_default">전역 기본값 사용</string>
+    <string name="customize_app">사용자 지정</string>
+    <string name="override_settings">설정 덮어쓰기</string>
+
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+        <item>도착</item>
+        <item>목적지</item>
+    </string-array>
+    <string name="hint_options">옵션</string>
+
+    <string name="version_history">버전 기록</string>
+
+    <string name="title_0_2_0">The Information 업데이트</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;고급 진행률 표시줄:&lt;/b&gt; "단계별 진행"(예: 1/3) 및 알림창 내 아이콘이 포함된 진행률 표시줄 지원이 추가되었습니다.\n
+        • &lt;b&gt;우선순위 시스템:&lt;/b&gt; 새로운 "아일랜드 동작" 설정. "최신순", "선착순", 또는 사용자 지정 "앱 우선순위" 목록 중에서 선택하세요.\n
+        • &lt;b&gt;스마트 필터링:&lt;/b&gt; 중복 알림 및 그룹화된 다운로드 감지 기능이 개선되었습니다.\n
+        • &lt;b&gt;시각적 개선:&lt;/b&gt; 내비게이션 안내의 레이아웃 문제를 수정했습니다.\n
+        • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 시간 제한 및 플로팅 동작을 사용자가 지정할 수 있습니다.
+    </string>
+
+    <string name="title_0_1_0">The Expressive 업데이트</string>
+    <string name="changelog_0_1_0">
+        • &lt;b&gt;주요 UI 개편:&lt;/b&gt; 부드러운 애니메이션이 적용된 새로운 Material 3 Expressive 디자인.\n
+        • &lt;b&gt;향상된 아일랜드:&lt;/b&gt; 이제 텍스트가 오른쪽에 표시됩니다. 완료된 다운로드에 녹색 체크 표시가 추가되었습니다.\n
+        • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 특정 알림 유형(음악, 지도, 통화)을 선택할 수 있습니다.\n
+        • &lt;b&gt;스마트 필터:&lt;/b&gt; 중복 알림을 차단하고 배터리를 절약합니다.\n
+        • &lt;b&gt;새로운 라이브러리:&lt;/b&gt; 카테고리별로 앱을 필터링하고 정렬 순서를 변경할 수 있습니다.\n
+        • &lt;b&gt;현지화:&lt;/b&gt; 스페인어 지원이 추가되었습니다.
+    </string>
+
+    <string name="priority_edu_title">새로운 기능: 아일랜드 제어</string>
+    <string name="priority_edu_desc">이제 HyperBridge가 9개 아일랜드 제한에 도달했을 때 여러 알림의 동작 방식을 관리할 수 있습니다.\n\n&lt;b&gt;기본값: 최신순&lt;/b&gt;\n새로운 알림이 가장 오래된 알림을 자동으로 대체합니다.</string>
+    <string name="keep_default">기본값 유지</string>
+    <string name="configure_now">지금 구성하기</string>
+
+    <string name="badge_new">NEW</string>
+</resources>
