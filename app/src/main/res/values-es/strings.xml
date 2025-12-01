@@ -258,4 +258,21 @@
     <string name="manage_app_rules_desc">Personaliza filtros para aplicaciones específicas</string>
     <string name="blocked_terms_count">%d términos bloqueados</string>
     <string name="no_active_rules">Sin reglas activas</string>
+
+    <string name="setup_health_title">Compatibilidad del Sistema</string>
+    <string name="check_device">Dispositivo: %s</string>
+    <string name="check_os_version">SO: %s</string>
+    <string name="req_hyperos">Requiere HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">Se requiere dispositivo Xiaomi/Redmi/Poco</string>
+    <string name="check_autostart">Inicio Automático</string>
+    <string name="check_autostart_desc">Necesario para que el servicio arranque tras reiniciar.</string>
+    <string name="grant_permission">Conceder</string>
+    <string name="status_ok">Compatible</string>
+    <string name="status_fail">Incompatible</string>
+    <string name="status_unknown">Desconocido</string>
+
+    <string name="warning_cn_rom_title">ROM China Detectada</string>
+    <string name="warning_cn_rom_desc">Tu dispositivo parece ejecutar un firmware chino. Xiaomi modifica drásticamente las notificaciones en estas ROMs. Las funciones podrían ser inestables o no funcionar.</string>
+
+    <string name="system_version">Versión del Sistema</string>
 </resources>
