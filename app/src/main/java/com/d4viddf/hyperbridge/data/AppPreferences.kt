@@ -37,6 +37,9 @@ class AppPreferences(context: Context) {
         private val GLOBAL_TIMEOUT_KEY = longPreferencesKey("global_timeout")
         private val NAV_LEFT_CONTENT_KEY = stringPreferencesKey("nav_left_content")
         private val NAV_RIGHT_CONTENT_KEY = stringPreferencesKey("nav_right_content")
+
+        private val GLOBAL_BLOCKED_TERMS_KEY = stringSetPreferencesKey("global_blocked_terms")
+        // Per-app keys are dynamic: "config_{pkg}_blocked"
     }
 
     // Helper to catch IOExceptions (e.g. during boot or file corruption)
@@ -159,6 +162,35 @@ class AppPreferences(context: Context) {
             val rKey = stringPreferencesKey("config_${packageName}_nav_right")
             if (left != null) prefs[lKey] = left.name else prefs.remove(lKey)
             if (right != null) prefs[rKey] = right.name else prefs.remove(rKey)
+        }
+    }
+
+    // --- BLOCKED TERMS (NEW) ---
+
+    val globalBlockedTermsFlow: Flow<Set<String>> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { it[GLOBAL_BLOCKED_TERMS_KEY] ?: emptySet() }
+
+    suspend fun setGlobalBlockedTerms(terms: Set<String>) {
+        dataStore.edit { it[GLOBAL_BLOCKED_TERMS_KEY] = terms }
+    }
+
+    fun getAppBlockedTerms(packageName: String): Flow<Set<String>> {
+        val key = stringSetPreferencesKey("config_${packageName}_blocked")
+        return dataStore.data
+            .catch { emit(emptyPreferences()) }
+            .map { it[key] ?: emptySet() }
+    }
+
+    suspend fun setAppBlockedTerms(packageName: String, terms: Set<String>) {
+        val key = stringSetPreferencesKey("config_${packageName}_blocked")
+        dataStore.edit { it[key] = terms }
+    }
+
+    // Returns a combined set of Global + App specific terms for the service to check efficiently
+    fun getEffectiveBlockedTerms(packageName: String): Flow<Set<String>> {
+        return combine(globalBlockedTermsFlow, getAppBlockedTerms(packageName)) { global, app ->
+            global + app
         }
     }
 }

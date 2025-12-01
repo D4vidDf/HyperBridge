@@ -4,14 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,14 +21,7 @@ import com.d4viddf.hyperbridge.ui.components.ChangelogDialog
 import com.d4viddf.hyperbridge.ui.components.PriorityEducationDialog
 import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
 import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.AppPriorityScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.ChangelogHistoryScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.GlobalSettingsScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.InfoScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.LicensesScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.NavCustomizationScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.PrioritySettingsScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.SetupHealthScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.*
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.launch
 
@@ -52,7 +39,8 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class Screen(val depth: Int) {
-    ONBOARDING(0), HOME(1), INFO(2), SETUP(3), LICENSES(3), BEHAVIOR(3), GLOBAL_SETTINGS(3), HISTORY(3), NAV_CUSTOMIZATION(4), APP_PRIORITY(4)
+    ONBOARDING(0), HOME(1), INFO(2), SETUP(3), LICENSES(3), BEHAVIOR(3), GLOBAL_SETTINGS(3), HISTORY(3), NAV_CUSTOMIZATION(4), APP_PRIORITY(4), GLOBAL_BLOCKLIST(4),
+    BLOCKLIST_APPS(5)
 }
 
 @Composable
@@ -66,40 +54,41 @@ fun MainRootNavigation() {
     val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfo?.longVersionCode?.toInt() ?: 0 else packageInfo?.versionCode ?: 0
     val currentVersionName = packageInfo?.versionName ?: "0.2.0"
 
-    // 1. COLLECT DATA
-    // Use a separate state to track if data has loaded at least once
-    var isDataLoaded by remember { mutableStateOf(false) }
+    // --- 1. ROBUST DATA COLLECTION ---
+    // We use produceState to initialize as NULL.
+    // This ensures we show the Loading Spinner until the Flow emits its first real value from disk.
+    val isSetupComplete by produceState<Boolean?>(initialValue = null) {
+        preferences.isSetupComplete.collect { value = it }
+    }
 
-    val isSetupComplete by preferences.isSetupComplete.collectAsState(initial = false)
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = currentVersionCode)
     val isPriorityEduShown by preferences.isPriorityEduShown.collectAsState(initial = true)
-
-    // Hack: Use a side-effect to know when the first valid emission has happened
-    LaunchedEffect(Unit) {
-        preferences.isSetupComplete.collect { isDataLoaded = true }
-    }
 
     var currentScreen by remember { mutableStateOf<Screen?>(null) }
     var showChangelog by remember { mutableStateOf(false) }
     var showPriorityEdu by remember { mutableStateOf(false) }
     var navConfigPackage by remember { mutableStateOf<String?>(null) }
 
-    // 2. ROUTING
-    LaunchedEffect(isDataLoaded, isSetupComplete) {
-        if (isDataLoaded) {
+    // --- 2. ROUTING LOGIC ---
+    LaunchedEffect(isSetupComplete) {
+        // Only run logic when we have a valid boolean from disk
+        if (isSetupComplete != null) {
             if (currentScreen == null) {
-                currentScreen = if (isSetupComplete) Screen.HOME else Screen.ONBOARDING
+                // Route based on saved state
+                currentScreen = if (isSetupComplete == true) Screen.HOME else Screen.ONBOARDING
             }
 
-            // Modals check
-            if (isSetupComplete) {
-                if (currentVersionCode > lastSeenVersion) showChangelog = true
-                else if (!isPriorityEduShown && !showChangelog) showPriorityEdu = true
+            // If setup is done, check for modals
+            if (isSetupComplete == true) {
+                if (currentVersionCode > lastSeenVersion) {
+                    showChangelog = true
+                } else if (!isPriorityEduShown && !showChangelog) {
+                    showPriorityEdu = true
+                }
             }
         }
     }
 
-    // 3. BACK LOGIC
     BackHandler(enabled = currentScreen != Screen.HOME && currentScreen != Screen.ONBOARDING) {
         currentScreen = when (currentScreen) {
             Screen.NAV_CUSTOMIZATION -> if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS
@@ -112,9 +101,12 @@ fun MainRootNavigation() {
         }
     }
 
-    // 4. RENDER
-    if (!isDataLoaded || currentScreen == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+    // --- 3. LOADING STATE ---
+    // If setup state is null, or we haven't routed yet -> Show Spinner
+    if (isSetupComplete == null || currentScreen == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
     } else {
         AnimatedContent(
             targetState = currentScreen!!,
@@ -146,7 +138,8 @@ fun MainRootNavigation() {
                     onLicensesClick = { currentScreen = Screen.LICENSES },
                     onBehaviorClick = { currentScreen = Screen.BEHAVIOR },
                     onGlobalSettingsClick = { currentScreen = Screen.GLOBAL_SETTINGS },
-                    onHistoryClick = { currentScreen = Screen.HISTORY }
+                    onHistoryClick = { currentScreen = Screen.HISTORY },
+                    onBlocklistClick = { currentScreen = Screen.GLOBAL_BLOCKLIST }
                 )
                 Screen.GLOBAL_SETTINGS -> GlobalSettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavSettingsClick = { navConfigPackage = null; currentScreen = Screen.NAV_CUSTOMIZATION })
                 Screen.NAV_CUSTOMIZATION -> NavCustomizationScreen(onBack = { currentScreen = if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS }, packageName = navConfigPackage)
@@ -155,6 +148,14 @@ fun MainRootNavigation() {
                 Screen.BEHAVIOR -> PrioritySettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavigateToPriorityList = { currentScreen = Screen.APP_PRIORITY })
                 Screen.APP_PRIORITY -> AppPriorityScreen(onBack = { currentScreen = Screen.BEHAVIOR })
                 Screen.HISTORY -> ChangelogHistoryScreen(onBack = { currentScreen = Screen.INFO })
+                Screen.GLOBAL_BLOCKLIST -> GlobalBlocklistScreen(
+                    onBack = { currentScreen = Screen.INFO },
+                    onNavigateToAppList = { currentScreen = Screen.BLOCKLIST_APPS }
+                )
+
+                Screen.BLOCKLIST_APPS -> BlocklistAppListScreen(
+                    onBack = { currentScreen = Screen.GLOBAL_BLOCKLIST }
+                )
             }
         }
     }

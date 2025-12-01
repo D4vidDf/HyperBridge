@@ -39,7 +39,8 @@ fun InfoScreen(
     onLicensesClick: () -> Unit,
     onBehaviorClick: () -> Unit,
     onGlobalSettingsClick: () -> Unit,
-    onHistoryClick: () -> Unit
+    onHistoryClick: () -> Unit,
+    onBlocklistClick: () -> Unit
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -149,6 +150,15 @@ fun InfoScreen(
                     title = stringResource(R.string.global_settings),
                     subtitle = stringResource(R.string.island_appearance),
                     onClick = onGlobalSettingsClick
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
+
+                SettingsItem(
+                    icon = Icons.Default.Block,
+                    title = stringResource(R.string.blocked_terms),
+                    subtitle = "Manage spoiler protection and filters", // Add string resource
+                    onClick = onBlocklistClick
                 )
             }
 

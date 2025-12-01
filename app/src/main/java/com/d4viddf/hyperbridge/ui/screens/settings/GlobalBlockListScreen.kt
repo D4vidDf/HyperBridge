@@ -1,9 +1,7 @@
 package com.d4viddf.hyperbridge.ui.screens.settings
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,14 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -32,12 +26,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,10 +40,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,9 +54,6 @@ import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.BlocklistEditor
-import com.d4viddf.hyperbridge.ui.components.ExpressiveGroupCard
-import com.d4viddf.hyperbridge.ui.components.ExpressiveSectionTitle
-import com.d4viddf.hyperbridge.ui.components.ExpressiveSettingsItem
 import kotlinx.coroutines.launch
 
 /**
@@ -77,72 +68,71 @@ fun GlobalBlocklistScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val globalBlockedTerms by preferences.globalBlockedTermsFlow.collectAsState(initial = emptySet())
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text(stringResource(R.string.blocked_terms)) },
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
+                    FilledTonalIconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                }
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
         ) {
-            // 1. GLOBAL RULES
-            ExpressiveSectionTitle(stringResource(R.string.global_rules))
+            // 1. GLOBAL RULES TITLE
+            Text(
+                text = stringResource(R.string.global_rules),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp).semantics { heading() }
+            )
 
-            // GLOBAL EDITOR CARD (Custom padding inside card for editor)
+            // GLOBAL EDITOR CARD
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                shape = RoundedCornerShape(24.dp), // Expressive
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                modifier = Modifier.fillMaxWidth()
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                shape = RoundedCornerShape(20.dp)
             ) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    BlocklistEditor(
-                        terms = globalBlockedTerms,
-                        onUpdate = { scope.launch { preferences.setGlobalBlockedTerms(it) } }
-                    )
-                }
+                BlocklistEditor(
+                    terms = globalBlockedTerms,
+                    onUpdate = { scope.launch { preferences.setGlobalBlockedTerms(it) } },
+                    modifier = Modifier.padding(16.dp)
+                )
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // 2. APP RULES
-            ExpressiveSectionTitle(stringResource(R.string.app_specific_rules))
+            // 2. APP RULES TITLE
+            Text(
+                text = stringResource(R.string.app_specific_rules),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp).semantics { heading() }
+            )
 
-            // NAVIGATION ENTRY CARD (Reusing Expressive Component)
-            ExpressiveGroupCard {
-                ExpressiveSettingsItem(
+            // NAVIGATION ENTRY CARD (Fixed design)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SettingsItem(
                     icon = Icons.Default.Apps,
                     title = stringResource(R.string.app_specific_rules),
                     subtitle = stringResource(R.string.manage_app_rules_desc),
                     onClick = onNavigateToAppList
                 )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -158,35 +148,23 @@ fun BlocklistAppListScreen(
 ) {
     val activeApps by viewModel.activeAppsState.collectAsState()
     var selectedApp by remember { mutableStateOf<AppInfo?>(null) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text(stringResource(R.string.app_specific_rules)) },
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
+                    FilledTonalIconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                }
             )
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
+            modifier = Modifier.padding(padding).fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp) // Increased spacing for expressive cards
+            verticalArrangement = Arrangement.spacedBy(8.dp) // Add spacing between cards
         ) {
             items(activeApps, key = { it.packageName }) { app ->
                 AppBlockItem(app = app, viewModel = viewModel) { selectedApp = app }
@@ -210,6 +188,7 @@ fun AppBlockItem(
     viewModel: AppListViewModel,
     onClick: () -> Unit
 ) {
+    // Collect specific rules for this app to show count
     val terms by viewModel.getAppBlockedTerms(app.packageName).collectAsState(initial = emptySet())
     val count = terms.size
 
@@ -219,50 +198,33 @@ fun AppBlockItem(
         stringResource(R.string.no_active_rules)
     }
 
-    val subtitleColor = if (count > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+    val subtitleColor = if (count > 0) MaterialTheme.colorScheme.error else Color.Gray
 
-    // Expressive Card Item
+    // Wrapped in Card for consistent look with Priority List
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp), // Expressive
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (app.icon != null) {
-                Image(
-                    bitmap = app.icon.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Android,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
-                        .padding(8.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Image(
+                bitmap = app.icon.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
+            )
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = app.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
@@ -272,8 +234,7 @@ fun AppBlockItem(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(20.dp)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
         }
     }
@@ -291,7 +252,6 @@ fun AppBlocklistDialog(
         onDismissRequest = onDismiss,
         title = { Text(app.name) },
         text = {
-            // Reusing existing editor component
             BlocklistEditor(
                 terms = blockedTerms,
                 onUpdate = { viewModel.updateAppBlockedTerms(app.packageName, it) }
