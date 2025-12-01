@@ -1,9 +1,15 @@
 package com.d4viddf.hyperbridge.data
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
@@ -15,50 +21,38 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
-// 1. SINGLETON DATASTORE SETUP
-// Using a private extension on Context that we invoke on applicationContext ensures valid singleton behavior.
+// Singleton DataStore
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class AppPreferences(context: Context) {
 
-    // Ensure we always use Application Context to avoid memory leaks and context mismatches
     private val dataStore = context.applicationContext.dataStore
 
     companion object {
-        // Keys
+        // ... (Keys remain the same)
         private val ALLOWED_PACKAGES_KEY = stringSetPreferencesKey("allowed_packages")
         private val SETUP_COMPLETE_KEY = booleanPreferencesKey("setup_complete")
         private val LAST_VERSION_CODE_KEY = intPreferencesKey("last_version_code")
         private val PRIORITY_EDU_KEY = booleanPreferencesKey("priority_edu_shown")
         private val LIMIT_MODE_KEY = stringPreferencesKey("limit_mode")
         private val PRIORITY_ORDER_KEY = stringPreferencesKey("priority_app_order")
+
         private val GLOBAL_FLOAT_KEY = booleanPreferencesKey("global_float")
         private val GLOBAL_SHADE_KEY = booleanPreferencesKey("global_shade")
         private val GLOBAL_TIMEOUT_KEY = longPreferencesKey("global_timeout")
+
         private val NAV_LEFT_CONTENT_KEY = stringPreferencesKey("nav_left_content")
         private val NAV_RIGHT_CONTENT_KEY = stringPreferencesKey("nav_right_content")
-
-        private val GLOBAL_BLOCKED_TERMS_KEY = stringSetPreferencesKey("global_blocked_terms")
-        // Per-app keys are dynamic: "config_{pkg}_blocked"
     }
 
-    // Helper to catch IOExceptions (e.g. during boot or file corruption)
+    // ... (Core Flows remain the same) ...
     private val safeData: Flow<Preferences> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                Log.e("AppPreferences", "Error reading preferences", exception)
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
 
-    // --- CORE ---
     val allowedPackagesFlow: Flow<Set<String>> = safeData.map { it[ALLOWED_PACKAGES_KEY] ?: emptySet() }
-
-    // FIX: Returns FALSE by default (First Install), never null.
     val isSetupComplete: Flow<Boolean> = safeData.map { it[SETUP_COMPLETE_KEY] ?: false }
-
     val lastSeenVersion: Flow<Int> = safeData.map { it[LAST_VERSION_CODE_KEY] ?: 0 }
     val isPriorityEduShown: Flow<Boolean> = safeData.map { it[PRIORITY_EDU_KEY] ?: false }
 
@@ -73,7 +67,7 @@ class AppPreferences(context: Context) {
         }
     }
 
-    // --- LIMITS ---
+    // ... (Limits & Types remain the same) ...
     val limitModeFlow: Flow<IslandLimitMode> = safeData.map {
         try { IslandLimitMode.valueOf(it[LIMIT_MODE_KEY] ?: IslandLimitMode.MOST_RECENT.name) } catch(e: Exception) { IslandLimitMode.MOST_RECENT }
     }
@@ -82,7 +76,6 @@ class AppPreferences(context: Context) {
     suspend fun setLimitMode(mode: IslandLimitMode) { dataStore.edit { it[LIMIT_MODE_KEY] = mode.name } }
     suspend fun setAppPriorityOrder(order: List<String>) { dataStore.edit { it[PRIORITY_ORDER_KEY] = order.joinToString(",") } }
 
-    // --- TYPE CONFIG ---
     fun getAppConfig(packageName: String): Flow<Set<String>> {
         val key = stringSetPreferencesKey("config_$packageName")
         return safeData.map { it[key] ?: NotificationType.entries.map { t -> t.name }.toSet() }
@@ -95,10 +88,28 @@ class AppPreferences(context: Context) {
         }
     }
 
-    // --- ISLAND CONFIG ---
-    val globalConfigFlow: Flow<IslandConfig> = safeData.map {
-        IslandConfig(it[GLOBAL_FLOAT_KEY] ?: true, it[GLOBAL_SHADE_KEY] ?: true, it[GLOBAL_TIMEOUT_KEY] ?: 5000L)
+    // --- ISLAND CONFIG (WITH MIGRATION LOGIC) ---
+
+    // Helper to migrate legacy MS values (e.g. 5000) to Seconds (5)
+    private fun sanitizeTimeout(raw: Long?): Long {
+        val value = raw ?: 5L // Default to 5s
+        return if (value > 60) {
+            // If value > 60, it's definitely legacy Milliseconds (e.g. 5000)
+            value / 1000
+        } else {
+            value
+        }
     }
+
+    val globalConfigFlow: Flow<IslandConfig> = safeData.map {
+        IslandConfig(
+            isFloat = it[GLOBAL_FLOAT_KEY] ?: true,
+            isShowShade = it[GLOBAL_SHADE_KEY] ?: true,
+            // Fix: Apply migration logic
+            timeout = sanitizeTimeout(it[GLOBAL_TIMEOUT_KEY])
+        )
+    }
+
     suspend fun updateGlobalConfig(config: IslandConfig) {
         dataStore.edit {
             config.isFloat?.let { v -> it[GLOBAL_FLOAT_KEY] = v }
@@ -106,27 +117,33 @@ class AppPreferences(context: Context) {
             config.timeout?.let { v -> it[GLOBAL_TIMEOUT_KEY] = v }
         }
     }
+
     fun getAppIslandConfig(packageName: String): Flow<IslandConfig> {
         return safeData.map {
+            val timeout = it[longPreferencesKey("config_${packageName}_timeout")]
+
             IslandConfig(
-                it[booleanPreferencesKey("config_${packageName}_float")],
-                it[booleanPreferencesKey("config_${packageName}_shade")],
-                it[longPreferencesKey("config_${packageName}_timeout")]
+                isFloat = it[booleanPreferencesKey("config_${packageName}_float")],
+                isShowShade = it[booleanPreferencesKey("config_${packageName}_shade")],
+                // Fix: Apply migration logic if override exists
+                timeout = if (timeout != null) sanitizeTimeout(timeout) else null
             )
         }
     }
+
     suspend fun updateAppIslandConfig(packageName: String, config: IslandConfig) {
         dataStore.edit { prefs ->
             val f = booleanPreferencesKey("config_${packageName}_float")
             val s = booleanPreferencesKey("config_${packageName}_shade")
             val t = longPreferencesKey("config_${packageName}_timeout")
+
             if (config.isFloat != null) prefs[f] = config.isFloat else prefs.remove(f)
             if (config.isShowShade != null) prefs[s] = config.isShowShade else prefs.remove(s)
             if (config.timeout != null) prefs[t] = config.timeout else prefs.remove(t)
         }
     }
 
-    // --- NAVIGATION LAYOUT ---
+    // --- NAVIGATION LAYOUT (Existing code) ---
     val globalNavLayoutFlow: Flow<Pair<NavContent, NavContent>> = safeData.map { prefs ->
         val left = try { NavContent.valueOf(prefs[NAV_LEFT_CONTENT_KEY] ?: NavContent.DISTANCE_ETA.name) } catch (e: Exception) { NavContent.DISTANCE_ETA }
         val right = try { NavContent.valueOf(prefs[NAV_RIGHT_CONTENT_KEY] ?: NavContent.INSTRUCTION.name) } catch (e: Exception) { NavContent.INSTRUCTION }
@@ -165,11 +182,10 @@ class AppPreferences(context: Context) {
         }
     }
 
-    // --- BLOCKED TERMS (NEW) ---
+    // --- BLOCKED TERMS (Existing code) ---
+    private val GLOBAL_BLOCKED_TERMS_KEY = stringSetPreferencesKey("global_blocked_terms")
 
-    val globalBlockedTermsFlow: Flow<Set<String>> = dataStore.data
-        .catch { emit(emptyPreferences()) }
-        .map { it[GLOBAL_BLOCKED_TERMS_KEY] ?: emptySet() }
+    val globalBlockedTermsFlow: Flow<Set<String>> = safeData.map { it[GLOBAL_BLOCKED_TERMS_KEY] ?: emptySet() }
 
     suspend fun setGlobalBlockedTerms(terms: Set<String>) {
         dataStore.edit { it[GLOBAL_BLOCKED_TERMS_KEY] = terms }
@@ -177,20 +193,11 @@ class AppPreferences(context: Context) {
 
     fun getAppBlockedTerms(packageName: String): Flow<Set<String>> {
         val key = stringSetPreferencesKey("config_${packageName}_blocked")
-        return dataStore.data
-            .catch { emit(emptyPreferences()) }
-            .map { it[key] ?: emptySet() }
+        return safeData.map { it[key] ?: emptySet() }
     }
 
     suspend fun setAppBlockedTerms(packageName: String, terms: Set<String>) {
         val key = stringSetPreferencesKey("config_${packageName}_blocked")
         dataStore.edit { it[key] = terms }
-    }
-
-    // Returns a combined set of Global + App specific terms for the service to check efficiently
-    fun getEffectiveBlockedTerms(packageName: String): Flow<Set<String>> {
-        return combine(globalBlockedTermsFlow, getAppBlockedTerms(packageName)) { global, app ->
-            global + app
-        }
     }
 }

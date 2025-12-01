@@ -159,12 +159,15 @@
 
     <string name="global_settings">Global Settings</string>
     <string name="island_appearance">Island Appearance</string>
-    <string name="setting_float">Show Floating Island</string>
-    <string name="setting_float_desc">Show heads-up notification</string>
-    <string name="setting_shade">Show in Shade</string>
-    <string name="setting_shade_desc">Keep in notification center</string>
-    <string name="setting_timeout">Timeout</string>
+    <string name="setting_float">Heads-up Popup</string>
+    <string name="setting_float_desc">Show the full notification banner briefly before minimizing to the Island.</string>
+
+    <string name="setting_shade">Notification Panel</string>
+    <string name="setting_shade_desc">Keep the notification visible in the system shade. If disabled, it only appears as an Island.</string>
+
+    <string name="setting_timeout">Auto-Minimize Delay</string>
     <string name="seconds_suffix">%ds</string>
+
     <string name="use_global_default">Use Global Defaults</string>
     <string name="customize_app">Customize</string>
     <string name="override_settings">Override Settings</string>

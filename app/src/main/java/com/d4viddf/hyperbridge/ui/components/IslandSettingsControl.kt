@@ -96,7 +96,7 @@ fun IslandSettingsControl(
                 value = timeoutSec,
                 onValueChange = { seconds ->
                     // FIX: Pass seconds directly as Long (No * 1000 conversion)
-                    onUpdate(config.copy(timeout = seconds.toInt()))
+                    onUpdate(config.copy(timeout = seconds.toLong()))
                 },
                 valueRange = 0f..10f,
                 steps = 9,
