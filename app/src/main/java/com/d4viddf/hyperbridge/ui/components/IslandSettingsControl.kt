@@ -61,50 +61,49 @@ fun IslandSettingsControl(
         )
 
         // 3. TIMEOUT SLIDER
-        Row(
-            modifier = Modifier.padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.AccessTime,
-                null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
+        // FIX: Treat values as SECONDS directly (Default 5s)
+        val timeoutSec = (displayConfig.timeout ?: 5L).toFloat()
+
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            // Header Row
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.AccessTime,
+                    null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(16.dp))
+
                 Text(
                     text = stringResource(R.string.setting_timeout),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
                 )
 
-                val timeoutSec = ((displayConfig.timeout ?: 5000L) / 1000f)
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        // Display "0s" or "5s"
-                        text = stringResource(R.string.seconds_suffix, timeoutSec.roundToInt()),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.width(32.dp) // Fixed width to prevent jitter
-                    )
-                    Slider(
-                        value = timeoutSec,
-                        onValueChange = {
-                            // Update config on slide
-                            onUpdate(config.copy(timeout = (it * 1000).toLong()))
-                        },
-                        // CHANGED: Allow 0s to 10s
-                        valueRange = 0f..10f,
-                        // Steps: 0,1,2,3,4,5,6,7,8,9,10 = 11 positions.
-                        // Steps parameter counts "ticks inside the range".
-                        // 11 positions - 2 (start/end) = 9 steps.
-                        steps = 9,
-                        modifier = Modifier.weight(1f).padding(start = 8.dp)
-                    )
-                }
+                // Value Display (e.g. "5s")
+                Text(
+                    text = stringResource(R.string.seconds_suffix, timeoutSec.roundToInt()),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
             }
+
+            // Full Width Slider
+            Slider(
+                value = timeoutSec,
+                onValueChange = { seconds ->
+                    // FIX: Pass seconds directly as Long (No * 1000 conversion)
+                    onUpdate(config.copy(timeout = seconds.toLong()))
+                },
+                valueRange = 0f..10f,
+                steps = 9,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, start = 40.dp)
+            )
         }
     }
 }

@@ -172,12 +172,15 @@
 
     <string name="global_settings">Ajustes Globales</string>
     <string name="island_appearance">Apariencia de Isla</string>
-    <string name="setting_float">Isla Flotante</string>
-    <string name="setting_float_desc">Mostrar notificación emergente</string>
-    <string name="setting_shade">Mostrar en Panel</string>
-    <string name="setting_shade_desc">Mantener en centro de notificaciones</string>
-    <string name="setting_timeout">Duración</string>
+    <string name="setting_float">Notificación Emergente</string>
+    <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
+
+    <string name="setting_shade">Panel de Notificaciones</string>
+    <string name="setting_shade_desc">Mantiene la notificación en el panel del sistema. Si se desactiva, solo se verá como Isla.</string>
+
+    <string name="setting_timeout">Retardo de Minimización</string>
     <string name="seconds_suffix">%ds</string>
+
     <string name="use_global_default">Usar valores globales</string>
     <string name="customize_app">Personalizar</string>
     <string name="override_settings">Sobrescribir ajustes</string>
