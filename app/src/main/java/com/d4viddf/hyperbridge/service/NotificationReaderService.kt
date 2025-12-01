@@ -17,11 +17,7 @@ import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NotificationType
-import com.d4viddf.hyperbridge.service.translators.CallTranslator
-import com.d4viddf.hyperbridge.service.translators.NavTranslator
-import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
-import com.d4viddf.hyperbridge.service.translators.StandardTranslator
-import com.d4viddf.hyperbridge.service.translators.TimerTranslator
+import com.d4viddf.hyperbridge.service.translators.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,12 +34,10 @@ class NotificationReaderService : NotificationListenerService() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
 
-    // --- STATE ---
     private var allowedPackageSet: Set<String> = emptySet()
     private var currentMode = IslandLimitMode.MOST_RECENT
     private var appPriorityList = emptyList<String>()
 
-    // --- CACHES ---
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val lastUpdateMap = ConcurrentHashMap<String, Long>()
@@ -52,8 +46,6 @@ class NotificationReaderService : NotificationListenerService() {
     private val MAX_ISLANDS = 9
 
     private lateinit var preferences: AppPreferences
-
-    // Translators
     private lateinit var callTranslator: CallTranslator
     private lateinit var navTranslator: NavTranslator
     private lateinit var timerTranslator: TimerTranslator
@@ -62,10 +54,7 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
-
-        // FIX: Use applicationContext to ensure singleton pattern works correctly on boot
         preferences = AppPreferences(applicationContext)
-
         createIslandChannel()
 
         callTranslator = CallTranslator(this)
@@ -74,7 +63,6 @@ class NotificationReaderService : NotificationListenerService() {
         progressTranslator = ProgressTranslator(this)
         standardTranslator = StandardTranslator(this)
 
-        // Start observing settings immediately (Essential for boot persistence)
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
@@ -93,19 +81,13 @@ class NotificationReaderService : NotificationListenerService() {
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
-            // 1. Ignore System/Self
             if (shouldIgnore(it.packageName)) return
 
-            // 2. Smart Junk Filter
+            // FIX: This filter must be strict about "Package Name" titles
             if (isJunkNotification(it)) return
 
-            // 3. User Permission
             if (isAppAllowed(it.packageName)) {
-
-                // 4. Rate Limiter (Bypass if text changes, throttle if only progress)
                 if (shouldSkipUpdate(it)) return
-
-                // 5. Process
                 serviceScope.launch { processAndPost(it) }
             }
         }
@@ -125,39 +107,80 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    // --- FILTERS ---
-
     private fun shouldSkipUpdate(sbn: StatusBarNotification): Boolean {
         val key = sbn.key
         val now = System.currentTimeMillis()
         val lastTime = lastUpdateMap[key] ?: 0L
         val previousIsland = activeIslands[key]
 
+        // Always allow the first update
+        if (previousIsland == null) {
+            lastUpdateMap[key] = now
+            return false
+        }
+
         val extras = sbn.notification.extras
         val currTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
         val currText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
         val currSub = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
 
-        // If text changed, allow immediate update (Priority)
-        if (previousIsland != null) {
-            if (currTitle != previousIsland.title || currText != previousIsland.text || currSub != previousIsland.subText) {
-                lastUpdateMap[key] = now
-                return false
-            }
+        // If text changed, allow update (Priority)
+        if (currTitle != previousIsland.title || currText != previousIsland.text || currSub != previousIsland.subText) {
+            lastUpdateMap[key] = now
+            return false
         }
 
-        // Otherwise throttle
+        // Throttle progress-only updates
         if (now - lastTime < UPDATE_INTERVAL_MS) return true
+
         lastUpdateMap[key] = now
         return false
     }
 
+    /**
+     * REORDERED LOGIC:
+     * 1. Check for Bad Content (Package Name Titles, Empty Text) -> BLOCK
+     * 2. Check for Group Summaries -> BLOCK
+     * 3. Check for Good Types (Progress/Media) -> ALLOW
+     */
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
         val notification = sbn.notification
         val extras = notification.extras
         val pkg = sbn.packageName
 
-        // 1. Priority Categories
+        // --- 1. CONTENT SANITY CHECK (Must be first!) ---
+
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
+        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
+        val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
+
+        // A. Completely Empty
+        if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
+
+        // B. Package Name Leaks (Google App / YouTube Fix)
+        // If title IS the package name, it is junk. Even if it has a progress bar.
+        if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true) || subText.equals(pkg, ignoreCase = true)) {
+            return true
+        }
+        // Also catch "com.google.android..." if it appears as the ONLY text
+        if (title.contains("com.google.android", ignoreCase = true) || text.contains("com.google.android", ignoreCase = true) || subText.contains("com.google.android", ignoreCase = true)) return true
+
+        // C. App Name Placeholders (e.g. Title="WhatsApp", Text="")
+        val appName = try {
+            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+        } catch (e: Exception) { "" }
+
+        if (title == appName && text.isEmpty() && subText.isEmpty()) return true
+
+        // D. System Noise
+        if (title.contains("running in background", true)) return true
+        if (text.contains("tap for more info", true)) return true
+        if (text.contains("displaying over other apps", true)) return true
+
+        // --- 2. GROUP SUMMARIES ---
+        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
+
+        // --- 3. PRIORITY PASS (Only if content is sane) ---
         val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
                 extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
         val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT ||
@@ -165,50 +188,25 @@ class NotificationReaderService : NotificationListenerService() {
                 notification.category == Notification.CATEGORY_NAVIGATION ||
                 extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
 
+        // If it has progress/media AND passed the bad content check, it is good.
         if (hasProgress || isSpecial) return false
-
-        // 2. Block Group Summaries
-        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
-
-        // 3. Empty Check
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
-        val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
-
-        if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
-
-        // 4. Package Name Placeholder Check (Issue #7 Fix)
-        if (title == pkg || text == pkg) return true
-
-        // 5. App Name Placeholder Check
-        val appName = try {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
-        } catch (e: Exception) { "" }
-
-        if (title == appName && text.isEmpty() && subText.isEmpty()) return true
-
-        // 6. System Noise
-        if (title.contains("running in background", true)) return true
-        if (text.contains("tap for more info", true)) return true
-        if (text.contains("displaying over other apps", true)) return true
 
         return false
     }
 
-    // --- PROCESSING ---
-
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private suspend fun processAndPost(sbn: StatusBarNotification) {
         try {
             val extras = sbn.notification.extras
 
-            // 1. Type Detection
             val isCall = sbn.notification.category == Notification.CATEGORY_CALL
-            val isNavigation = sbn.notification.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.contains("maps") || sbn.packageName.contains("waze")
+            val isNavigation = sbn.notification.category == Notification.CATEGORY_NAVIGATION ||
+                    sbn.packageName.contains("maps") || sbn.packageName.contains("waze")
             val progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
             val hasProgress = progressMax > 0 || extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
             val chronometerBase = sbn.notification.`when`
-            val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || sbn.notification.category == Notification.CATEGORY_ALARM) && chronometerBase > 0
+            val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) ||
+                    sbn.notification.category == Notification.CATEGORY_ALARM ||
+                    sbn.notification.category == Notification.CATEGORY_STOPWATCH) && chronometerBase > 0
             val isMedia = extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
 
             val type = when {
@@ -220,11 +218,9 @@ class NotificationReaderService : NotificationListenerService() {
                 else -> NotificationType.STANDARD
             }
 
-            // 2. Config Check
-            val configSet = preferences.getAppConfig(sbn.packageName).first()
-            if (!configSet.contains(type.name)) return
+            val config = preferences.getAppConfig(sbn.packageName).first()
+            if (!config.contains(type.name)) return
 
-            // 3. Limit Check
             val key = sbn.key
             val isUpdate = activeIslands.containsKey(key)
             val bridgeId = sbn.key.hashCode()
@@ -237,27 +233,22 @@ class NotificationReaderService : NotificationListenerService() {
             val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
             val picKey = "pic_${bridgeId}"
 
-            // 4. Load Island Configuration (Float, Timeout, Shade)
             val appIslandConfig = preferences.getAppIslandConfig(sbn.packageName).first()
             val globalConfig = preferences.globalConfigFlow.first()
             val finalConfig = appIslandConfig.mergeWith(globalConfig)
 
-            // 5. Route to Translator
             val data: HyperIslandData = when (type) {
                 NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig)
-
                 NotificationType.NAVIGATION -> {
-                    // Load Navigation Custom Layout (Effective = App Override or Global)
                     val navLayout = preferences.getEffectiveNavLayout(sbn.packageName).first()
                     navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second)
                 }
-
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig)
                 NotificationType.PROGRESS -> progressTranslator.translate(sbn, title, picKey, finalConfig)
                 else -> standardTranslator.translate(sbn, picKey, finalConfig)
             }
 
-            // 6. Deduplication (Content Hash)
+            // Deduplication
             val newContentHash = data.jsonParam.hashCode()
             val previousIsland = activeIslands[key]
 
@@ -265,10 +256,8 @@ class NotificationReaderService : NotificationListenerService() {
                 if (previousIsland.lastContentHash == newContentHash) return
             }
 
-            // 7. Post
             postNotification(sbn, bridgeId, data)
 
-            // 8. Update Cache
             val currTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
             val currText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
             val currSub = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
@@ -315,7 +304,6 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun postNotification(sbn: StatusBarNotification, bridgeId: Int, data: HyperIslandData) {
         val notificationBuilder = NotificationCompat.Builder(this, ISLAND_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
