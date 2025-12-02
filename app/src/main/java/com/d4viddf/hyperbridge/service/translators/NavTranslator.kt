@@ -75,9 +75,17 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
 
         // --- RESOURCES ---
         val hiddenKey = "hidden_pixel"
-        val trackerIcon = resolveIcon(sbn, picKey)
-        builder.addPicture(trackerIcon)
+        val navStartKey = "nav_start_icon"
+        val navEndKey = "nav_end_icon"
+
+        // 1. App Icon (Dynamic)
+        builder.addPicture(resolveIcon(sbn, picKey))
+
+        // 2. Static UI Elements
         builder.addPicture(getTransparentPicture(hiddenKey))
+
+        builder.addPicture(getPictureFromResource(navStartKey, R.drawable.ic_nav_start))
+        builder.addPicture(getPictureFromResource(navEndKey, R.drawable.ic_nav_end))
 
         val actions = extractBridgeActions(sbn)
         val actionKeys = actions.map { it.action.key }
@@ -91,24 +99,24 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
             actionKeys = actionKeys
         )
 
-        // Progress (Shade Only)
+        // Progress (Shade Only) - Now using Static Icons
         if (hasProgress) {
             builder.setProgressBar(
                 progress = percent,
                 color = "#34C759",
-                picForwardKey = picKey
+                picForwardKey = navStartKey,
+                picEndKey = navEndKey
             )
         }
 
         // --- 3. BIG ISLAND CUSTOM LAYOUT ---
 
-        // Helper to map Enum preference to Text Data
         fun getTextInfo(type: NavContent): TextInfo {
             return when (type) {
-                NavContent.INSTRUCTION -> TextInfo(instruction, null) // Centered
-                NavContent.DISTANCE -> TextInfo(distance, null)      // Centered
-                NavContent.ETA -> TextInfo(eta, null)                // Centered
-                NavContent.DISTANCE_ETA -> TextInfo(distance, eta)   // Top/Bottom
+                NavContent.INSTRUCTION -> TextInfo(instruction, null)
+                NavContent.DISTANCE -> TextInfo(distance, null)
+                NavContent.ETA -> TextInfo(eta, null)
+                NavContent.DISTANCE_ETA -> TextInfo(distance, eta)
                 NavContent.NONE -> TextInfo("", "")
             }
         }

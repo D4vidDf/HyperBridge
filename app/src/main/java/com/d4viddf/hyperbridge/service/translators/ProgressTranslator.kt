@@ -70,7 +70,6 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
             builder.setProgressBar(
                 progress = percent, // Must be 0-100 Int
                 color = blueColor,
-                picForwardKey = picKey // Icon moves with progress head
             )
         }
 
