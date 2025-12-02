@@ -1,0 +1,215 @@
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+
+    <string name="back">Назад</string>
+    <string name="next">Далі</string>
+    <string name="finish">Завершити</string>
+    <string name="done">Готово</string>
+    <string name="logo_desc">Логотип застосунку</string>
+    <string name="settings">Налаштування</string>
+    <string name="info">Інформація</string>
+    <string name="configure">Налаштувати</string>
+    <string name="clear">Очистити</string>
+    <string name="sort_order">Порядок сортування</string>
+
+    <string name="welcome_title">Ласкаво просимо до\nHyper Bridge</string>
+    <string name="welcome_subtitle">Легко інтегруйте HyperIslands у вашу систему HyperOS.</string>
+    <string name="get_started">Розпочати</string>
+
+    <string name="how_it_works">Як це працює</string>
+    <string name="how_it_works_desc">Виберіть улюблені застосунки (Spotify, Карти, Таймер). HyperBridge перетворить їхні сповіщення на елегантний HyperIsland.</string>
+    <string name="early_development">Рання розробка</string>
+    <string name="beta_warning">Примітка: Ця програма в бета-версії. Ви можете натрапити на помилки або некоректне візуальне відображення.</string>
+
+    <string name="device_compatible">Сумісний пристрій</string>
+    <string name="unsupported_device">Пристрій не підтримується</string>
+    <string name="compatible_msg">Здається, ваш пристрій працює на HyperOS/MIUI. Все готово до роботи!</string>
+    <string name="incompatible_msg">HyperBridge покладається на специфічні функції системи HyperOS. Здається, виробник вашого пристрою не Xiaomi/POCO/Redmi.</string>
+    <string name="system_detected">✅ Систему виявлено</string>
+    <string name="app_wont_work">⚠️ Застосунок може не працювати</string>
+
+    <string name="show_island">Показати Острів</string>
+    <string name="perm_post_desc">Нам потрібен дозвіл, щоб розмістити \'Острів\' сповіщення на вашому екрані.</string>
+    <string name="perm_granted">✅ Дозвіл надано</string>
+    <string name="allow_notifications">Дозволити сповіщення</string>
+
+    <string name="read_data">Читання даних</string>
+    <string name="perm_listener_desc">Щоб при\'єднати ваші застосунки, нам потрібно читати їхні сповіщення (Музика, Карти, Таймери).</string>
+    <string name="open_settings">Відкрити налаштування</string>
+
+    <string name="keep_alive">Підтримувати роботу</string>
+    <string name="optimization_desc">HyperOS зупиняє фонові програми. Увімкніть Автозапуск та \"Жодних обмежень\", щоб острів залишався активним.</string>
+    <string name="enable_autostart">1. Увімкнути автозапуск</string>
+    <string name="set_battery_no_restrictions">2. Економія енергії: \"Жодних обмежень\"</string>
+
+    <string name="tab_active">Активні</string>
+    <string name="tab_library">Бібліотека</string>
+    <string name="title_active_bridges">Активні мости</string>
+    <string name="title_library">Бібліотека застосунків</string>
+    <string name="search_hint">Пошук застосунків...</string>
+    <string name="sort_az">Сорт: А-Я</string>
+    <string name="sort_za">Сорт: Я-А</string>
+
+    <string name="no_active_bridges">Немає активних мостів</string>
+    <string name="no_active_bridges_desc">Перейдіть до бібліотеки, щоб увімкнути застосунки.</string>
+    <string name="no_apps_found">Застосунків не знайдено</string>
+
+    <string name="about">Про застосунок</string>
+    <string name="version_template">Версія %s</string>
+    <string name="developer_credit">від D4vidDf</string>
+
+    <string name="group_configuration">Конфіґурація</string>
+    <string name="system_setup">Налаштування системи</string>
+    <string name="system_setup_subtitle">Виправити дозволи та батарею</string>
+
+    <string name="group_about">Про застосунок</string>
+    <string name="developer">Розробник</string>
+    <string name="developer_subtitle">Відвідати d4viddf.com</string>
+    <string name="source_code">Початковий код</string>
+    <string name="source_code_subtitle">Репозиторій GitHub</string>
+    <string name="licenses">Ліцензії Open Source</string>
+    <string name="licenses_subtitle">Стороннє програмне забезпечення</string>
+    <string name="footer_made_with_love">Зроблено з ❤️ в Іспанії</string>
+
+    <string name="app_health">Стан застосунку</string>
+    <string name="app_health_desc">Переконайтеся, що всі пункти зелені, щоб застосунок працював коректно у фоновому режимі.</string>
+    <string name="req_permissions">Необхідні дозволи</string>
+    <string name="notif_access">Доступ до сповіщень</string>
+    <string name="notif_access_desc">Потрібно для читання подій застосунків</string>
+    <string name="perm_display_desc">Дозвіл на відображення поверх інших програм</string>
+    <string name="device_optimization">Оптимізація пристрою</string>
+    <string name="xiaomi_autostart">Автозапуск Xiaomi</string>
+    <string name="autostart_desc">Дозволити запуск при завантаженні</string>
+    <string name="battery_unrestricted">Батарея без обмежень</string>
+    <string name="battery_desc">Запобігання зупинці системою</string>
+    <string name="recents_note">Примітка: Також закріпіть застосунок (замочок) у меню огляду \"Нещодавніх\".</string>
+    <string name="status_active">Активно</string>
+    <string name="action_needed">Потрібна дія</string>
+
+    <string name="cat_all">Усі</string>
+    <string name="cat_music">Музика</string>
+    <string name="cat_nav">Навігація</string>
+    <string name="cat_timer">Продуктивність</string>
+    <string name="cat_other">Інше</string>
+
+    <string name="select_active_notifs">Виберіть активні сповіщення</string>
+    <string name="type_standard">Повідомлення та загальне</string>
+    <string name="type_progress">Завантаження та прогрес</string>
+    <string name="type_media">Музика та медіа</string>
+    <string name="type_nav">Карти та GPS</string>
+    <string name="type_call">Дзвінки</string>
+    <string name="type_timer">Таймери та будильники</string>
+
+    <string name="service_active">Активний</string>
+    <string name="download_complete">Завантаження завершено</string>
+    <string name="pending">Очікування...</string>
+    <string name="finished">Завершено</string>
+    <string name="downloading">Завантаження</string>
+    <string name="waiting">Очікування...</string>
+    <string name="now_playing">Зараз грає</string>
+    <string name="unknown_caller">Невідомий абонент</string>
+    <string name="incoming_call">Дзвінок</string>
+    <string name="maps_title">Карти</string>
+    <string name="timer_title">Таймер</string>
+
+    <string-array name="progress_finish_keywords">
+        <item>downloaded</item>
+        <item>completed</item>
+        <item>finished</item>
+        <item>installed</item>
+        <item>done</item>
+        <item>successful</item>
+        <item>succeeded</item>
+        <item>завантажено</item>
+        <item>завершено</item>
+        <item>закінчено</item>
+        <item>встановлено</item>
+        <item>готово</item>
+        <item>успішно</item>
+        <item>вдалося</item>
+    </string-array>
+
+    <string name="status_download_complete">Завантаження завершено</string>
+    <string name="status_downloading">Завантаження</string>
+    <string name="status_pending">Очікування...</string>
+    <string name="status_finished">Завершено</string>
+    <string name="status_now_playing">Зараз грає</string>
+    <string name="status_incoming_call">Вхідний дзвінок</string>
+    <string name="caller_unknown">Невідомий абонент</string>
+
+    <string name="fallback_maps">Карти</string>
+    <string name="fallback_timer">Таймер</string>
+    <string name="fallback_stopwatch">Секундомір</string>
+
+    <string name="whats_new_title">Що нового у %s</string>
+    <string name="awesome">Чудово!</string>
+
+
+    <string name="island_behavior">Поведінка острова</string>
+    <string name="limit_strategy">Досягнення ліміту</string>
+    <string name="limit_desc">Що відбувається, коли досягнуто ліміту у 9 островів?</string>
+    <string name="mode_fcfs_title">Хто перший, той і встиг</string>
+    <string name="mode_fcfs_desc">Зберігає перші 9 програм. Нові ігноруються, поки не звільниться місце.</string>
+    <string name="mode_recent_title">Найновіші (за замовчуванням)</string>
+    <string name="mode_recent_desc">Нові сповіщення замінюють найстаріші.</string>
+    <string name="mode_priority_title">Власний пріоритет</string>
+    <string name="mode_priority_desc">Визначте, які типи (напр. дзвінки) важливіші.</string>
+    <string name="priority_order">Порядок пріоритету</string>
+    <string name="priority_order_desc">Високий пріоритет (зверху) замінює низький пріоритет (знизу).</string>
+    <string name="move_up">Вгору</string>
+    <string name="move_down">Вниз</string>
+    <string name="configure_order">Налаштувати порядок</string>
+
+    <string name="global_settings">Глобальні налаштування</string>
+    <string name="island_appearance">Вигляд острова</string>
+    <string name="setting_float">Показати плаваючий острів</string>
+    <string name="setting_float_desc">Показувати спливаюче сповіщення</string>
+    <string name="setting_shade">Показати в шторці</string>
+    <string name="setting_shade_desc">Залишити в центрі сповіщень</string>
+    <string name="setting_timeout">Тайм-аут</string>
+    <string name="seconds_suffix">%dс</string>
+    <string name="use_global_default">Використовувати глобальні налаштування</string>
+    <string name="customize_app">Налаштувати</string>
+    <string name="override_settings">Перевизначити налаштування</string>
+
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+        <item>прибуття</item>
+        <item>прибути</item>
+        <item>дістатися</item>
+        <item>призначення</item>
+    </string-array>
+    <string name="hint_options">Опції</string>
+
+    <string name="version_history">Історія версій</string>
+
+    <string name="title_0_2_0">Інформаційне оновлення</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;Розширений прогрес:&lt;/b&gt; Додано підтримку \"Покрокового прогресу\" (напр., 1 з 3) та індикаторів прогресу з іконками всередині шторки сповіщень.\n
+        • &lt;b&gt;Система пріоритетів:&lt;/b&gt; Нові налаштування \"Поведінки острова\". Обирайте між \"Найновіші\", \"Хто перший\" або власним списком \"Пріоритету програм\".\n
+        • &lt;b&gt;Розумна фільтрація:&lt;/b&gt; Покращено виявлення дубльованих сповіщень та згрупованих завантажень.\n
+        • &lt;b&gt;Візуальні покращення:&lt;/b&gt; Виправлено проблеми з макетом інструкцій навігації.\n
+        • &lt;b&gt;Налаштування програм:&lt;/b&gt; Налаштовуйте тайм-аут та поведінку плаваючого вікна окремо для кожного застосунку.
+    </string>
+
+    <string name="title_0_1_0">Експресивне оновлення</string>
+    <string name="changelog_0_1_0">
+        • &lt;b&gt;Оновлення інтерфейсу:&lt;/b&gt; Новий дизайн Material 3 Expressive з плавними анімаціями.\n
+        • &lt;b&gt;Кращий острів:&lt;/b&gt; Текст тепер відображається праворуч. Додано зелену галочку для завершених завантажень.\n
+        • &lt;b&gt;Налаштування програм:&lt;/b&gt; Вибір конкретних типів сповіщень (Музика, Карти, Дзвінки) для кожного застосунку.\n
+        • &lt;b&gt;Розумні фільтри:&lt;/b&gt; Блокують дубльовані сповіщення та економлять заряд батареї.\n
+        • &lt;b&gt;Нова бібліотека:&lt;/b&gt; Фільтрація застосунків за категорією та порядком сортування.\n
+        • &lt;b&gt;Локалізація:&lt;/b&gt; Додано підтримку іспанської мови.
+    </string>
+
+    <string name="priority_edu_title">Нове: Керуйте островом</string>
+    <string name="priority_edu_desc">HyperBridge тепер може керувати поведінкою кількох сповіщень при досягненні ліміту в 9 островів.\n\n&lt;b&gt;За замовчуванням: Найновіші&lt;/b&gt;\nНові сповіщення автоматично замінюють найстаріші.</string>
+    <string name="keep_default">Залишити як є</string>
+    <string name="configure_now">Налаштувати зараз</string>
+
+    <string name="badge_new">НОВЕ</string>
+</resources>
