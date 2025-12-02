@@ -52,7 +52,7 @@ fun MainRootNavigation() {
     val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null } }
     @Suppress("DEPRECATION")
     val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfo?.longVersionCode?.toInt() ?: 0 else packageInfo?.versionCode ?: 0
-    val currentVersionName = packageInfo?.versionName ?: "0.2.0"
+    val currentVersionName = packageInfo?.versionName ?: "0.3.0"
 
     // --- 1. ROBUST DATA COLLECTION ---
     // We use produceState to initialize as NULL.
@@ -161,7 +161,7 @@ fun MainRootNavigation() {
     }
 
     if (showChangelog) {
-        ChangelogDialog(currentVersionName = currentVersionName, changelogText = stringResource(R.string.changelog_0_2_0)) {
+        ChangelogDialog(currentVersionName = currentVersionName, changelogText = stringResource(R.string.changelog_0_3_0)) {
             showChangelog = false
             scope.launch {
                 preferences.setLastSeenVersion(currentVersionCode)

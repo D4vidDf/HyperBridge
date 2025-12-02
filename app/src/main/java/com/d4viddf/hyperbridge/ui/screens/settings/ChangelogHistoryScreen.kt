@@ -32,7 +32,8 @@ fun ChangelogHistoryScreen(onBack: () -> Unit) {
     // Define history here (Newest first)
     // Note: 0.2.0 is latest RELEASED version. 0.3.0 is DEV.
     val history = listOf(
-        VersionLog("0.2.0", R.string.title_0_2_0, R.string.changelog_0_2_0, isLatest = true),
+        VersionLog("0.3.0", R.string.title_0_3_0, R.string.changelog_0_3_0, isLatest = true),
+        VersionLog("0.2.0", R.string.title_0_2_0, R.string.changelog_0_2_0),
         VersionLog("0.1.0", R.string.title_0_1_0, R.string.changelog_0_1_0)
     )
 

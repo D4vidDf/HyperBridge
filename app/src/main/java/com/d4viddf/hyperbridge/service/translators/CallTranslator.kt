@@ -3,44 +3,43 @@ package com.d4viddf.hyperbridge.service.translators
 import android.app.Notification
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
-import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.BridgeAction
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
-import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.HyperPicture
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
-import io.github.d4viddf.hyperisland_kit.models.TimerInfo
 
-class CallTranslator(
-    context: Context,
-    repo: ThemeRepository
-) : BaseTranslator(context, repo) {
+class CallTranslator(context: Context) : BaseTranslator(context) {
 
-    private val hangUpKeywords by lazy { context.resources.getStringArray(R.array.call_keywords_hangup).toList() }
-    private val answerKeywords by lazy { context.resources.getStringArray(R.array.call_keywords_answer).toList() }
-    private val speakerKeywords by lazy { context.resources.getStringArray(R.array.call_keywords_speaker).toList() }
+    // Keywords (Loaded from XML)
+    private val hangUpKeywords by lazy {
+        context.resources.getStringArray(R.array.call_keywords_hangup).toList()
+    }
+    private val answerKeywords by lazy {
+        context.resources.getStringArray(R.array.call_keywords_answer).toList()
+    }
+    private val speakerKeywords by lazy {
+        context.resources.getStringArray(R.array.call_keywords_speaker).toList()
+    }
 
-    fun translate(
-        sbn: StatusBarNotification,
-        picKey: String,
-        config: IslandConfig,
-        theme: HyperTheme?
-    ): HyperIslandData {
+    fun translate(sbn: StatusBarNotification, picKey: String, config: IslandConfig): HyperIslandData {
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: "Call"
 
         val isChronometerShown = extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER)
-        val baseTime = sbn.notification.`when`
-        val now = System.currentTimeMillis()
 
         val actions = sbn.notification.actions ?: emptyArray()
         val hasAnswerAction = actions.any { action ->
@@ -51,101 +50,57 @@ class CallTranslator(
         val isIncoming = !isChronometerShown && hasAnswerAction
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
-        builder.setEnableFloat(config.isFloat ?: false)
+
+        val finalTimeout = config.timeout ?: 5000L
+        // Keep calls persistent/floating if active
+        val shouldFloat = if (finalTimeout == 0L) false else (config.isFloat ?: true)
+        builder.setEnableFloat(shouldFloat)
+        builder.setTimeout(finalTimeout)
         builder.setShowNotification(config.isShowShade ?: true)
-        builder.setIslandFirstFloat(config.isFloat ?: false)
 
         val hiddenKey = "hidden_pixel"
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        val bridgeActions = getFilteredCallActions(sbn, isIncoming, theme)
-        val actionKeys = bridgeActions.map { it.action.key }
-
-        val rightText: String
-        var timerInfo: TimerInfo? = null
-
-        if (isIncoming) {
-            rightText = context.getString(R.string.call_incoming)
-        } else {
-            rightText = context.getString(R.string.call_ongoing)
-            if (baseTime > 0) {
-                val duration = if (now > baseTime) now - baseTime else 0L
-                timerInfo = TimerInfo(1, baseTime, duration, now)
-            }
-        }
+        // --- ACTIONS ---
+        val bridgeActions = getFilteredCallActions(sbn, isIncoming)
 
         bridgeActions.forEach {
             builder.addAction(it.action)
             it.actionImage?.let { pic -> builder.addPicture(pic) }
         }
+        val actionKeys = bridgeActions.map { it.action.key }
 
-        builder.setChatInfo(
+        // --- TEXT ---
+        val rightText: String
+
+        if (isIncoming) {
+            rightText = context.getString(R.string.call_incoming)
+        } else {
+            val subText = extras.getString(Notification.EXTRA_TEXT)
+            rightText = if (!subText.isNullOrEmpty() && subText.contains(":")) subText else context.getString(R.string.call_ongoing)
+        }
+
+        builder.setBaseInfo(
             title = title,
             content = rightText,
             pictureKey = picKey,
-            actionKeys = actionKeys,
-            appPkg = sbn.packageName,
-            timer = timerInfo
+            actionKeys = actionKeys
         )
 
-        builder.setSmallIsland(picKey)
+        builder.setBigIslandInfo(
+            left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo(title, "")),
+            right = ImageTextInfoRight(2, PicInfo(1, hiddenKey), TextInfo(rightText, ""))
+        )
 
-        val highlight = resolveColor(theme, sbn.packageName, "#FFFFFF")
-        builder.setIslandConfig(highlightColor = highlight)
-
-        if (isIncoming) {
-            builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(
-                    type = 1,
-                    picInfo = PicInfo(type = 1, pic = picKey),
-                    textInfo = TextInfo(title = title, content = "")
-                ),
-                right = ImageTextInfoRight(
-                    type = 2,
-                    textInfo = TextInfo(title = rightText, content = "")
-                )
-            )
-        } else {
-            if (baseTime > 0) {
-                builder.setBigIslandCountUp(baseTime, picKey)
-            } else {
-                builder.setBigIslandInfo(
-                    left = ImageTextInfoLeft(
-                        type = 1,
-                        picInfo = PicInfo(type = 1, pic = picKey),
-                        textInfo = TextInfo(title = title, content = "")
-                    ),
-                    right = ImageTextInfoRight(
-                        type = 2,
-                        textInfo = TextInfo(title = rightText, content = "")
-                    )
-                )
-            }
-        }
+        builder.setSmallIslandIcon(picKey)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }
 
-    private fun getFilteredCallActions(
-        sbn: StatusBarNotification,
-        isIncoming: Boolean,
-        theme: HyperTheme?
-    ): List<BridgeAction> {
+    private fun getFilteredCallActions(sbn: StatusBarNotification, isIncoming: Boolean): List<BridgeAction> {
         val rawActions = sbn.notification.actions ?: return emptyList()
         val results = mutableListOf<BridgeAction>()
-
-        // [FIX] Resolve Colors from Override -> Global
-        val appOverride = theme?.apps?.get(sbn.packageName)
-        val callOverride = appOverride?.callConfig
-
-        val hangUpColor = callOverride?.declineColor ?: theme?.callConfig?.declineColor ?: "#FF3B30"
-        val answerColor = callOverride?.answerColor ?: theme?.callConfig?.answerColor ?: "#34C759"
-        val neutralColor = "#8E8E93"
-
-        // Load custom icons from theme resources
-        val customAnswerBitmap = getThemeBitmap(theme, "call_answer")
-        val customDeclineBitmap = getThemeBitmap(theme, "call_decline")
 
         var answerIndex = -1
         var hangUpIndex = -1
@@ -159,80 +114,83 @@ class CallTranslator(
         }
 
         val indicesToShow = mutableListOf<Int>()
+
         if (isIncoming) {
+            // 1. Decline (Red), 2. Answer (Green)
             if (hangUpIndex != -1) indicesToShow.add(hangUpIndex)
             if (answerIndex != -1) indicesToShow.add(answerIndex)
         } else {
+            // 1. Speaker (Grey), 2. Hang Up (Red)
             if (speakerIndex != -1) indicesToShow.add(speakerIndex)
             if (hangUpIndex != -1) indicesToShow.add(hangUpIndex)
         }
 
+        // Fallback
         if (indicesToShow.isEmpty()) {
-            if (rawActions.isNotEmpty()) { indicesToShow.add(0); hangUpIndex = 0 }
-            if (rawActions.size > 1) { indicesToShow.add(1); answerIndex = 1 }
+            if (rawActions.isNotEmpty()) indicesToShow.add(0)
+            if (rawActions.size > 1) indicesToShow.add(1)
         }
 
         indicesToShow.take(2).forEach { index ->
             val action = rawActions[index]
+            val title = action.title?.toString() ?: ""
             val uniqueKey = "act_${sbn.key.hashCode()}_$index"
+
+            var hyperPic: HyperPicture? = null
+            var actionIcon: Icon? = null
+
             val isHangUp = index == hangUpIndex
             val isAnswer = index == answerIndex
 
-            val bgColorHex = when {
-                isHangUp -> hangUpColor
-                isAnswer -> answerColor
-                else -> neutralColor
-            }
-            val bgColorInt = try { bgColorHex.toColorInt() } catch(e: Exception) { 0xFF8E8E93.toInt() }
-
-            var originalBitmap: Bitmap? = null
-            if (isAnswer && customAnswerBitmap != null) {
-                originalBitmap = customAnswerBitmap
-            } else if (isHangUp && customDeclineBitmap != null) {
-                originalBitmap = customDeclineBitmap
-            } else {
-                val originalIcon = action.getIcon()
-                if (originalIcon != null) originalBitmap = loadIconBitmap(originalIcon, sbn.packageName)
+            // DETERMINE BACKGROUND COLOR
+            val bgColor = when {
+                isHangUp -> "#FF3B30" // Red
+                isAnswer -> "#34C759" // Green
+                else -> null
             }
 
-            var actionIcon: Icon? = null
-            var hyperPic: HyperPicture? = null
-
-            // [FIX] Resolve shape from Call Override -> Global Call -> Global Icon
-            val actionShapeId = if (theme != null) {
-                when {
-                    isAnswer -> callOverride?.answerShapeId ?: theme.callConfig.answerShapeId
-                    isHangUp -> callOverride?.declineShapeId ?: theme.callConfig.declineShapeId
-                    else -> resolveShape(theme, sbn.packageName) // Fallback for other buttons
-                }
-            } else "circle"
-
-            val padding = resolvePadding(theme, sbn.packageName)
+            // LOAD & TINT ICON
+            val originalIcon = action.getIcon()
+            val originalBitmap = if (originalIcon != null) loadIconBitmap(originalIcon, sbn.packageName) else null
 
             if (originalBitmap != null) {
-                val processedBitmap = if (theme != null) {
-                    applyThemeToActionIcon(originalBitmap, actionShapeId, padding, bgColorInt)
+                // If we have a background color, make the icon WHITE for contrast.
+                // Otherwise, leave it original (usually grey/black).
+                val finalBitmap = if (bgColor != null) {
+                    tintBitmap(originalBitmap, Color.WHITE)
                 } else {
-                    createRoundedIconWithBackground(originalBitmap, bgColorInt, 12)
+                    originalBitmap
                 }
 
                 val picKey = "${uniqueKey}_icon"
-                actionIcon = Icon.createWithBitmap(processedBitmap)
-                hyperPic = HyperPicture(picKey, processedBitmap)
+                actionIcon = Icon.createWithBitmap(finalBitmap)
+                hyperPic = HyperPicture(picKey, finalBitmap)
             }
 
-            val hyperAction = io.github.d4viddf.hyperisland_kit.HyperAction(
+            val hyperAction = HyperAction(
                 key = uniqueKey,
-                title = action.title?.toString() ?: "",
+                title = null, // Title usually hidden if icon is prominent in island style
                 icon = actionIcon,
                 pendingIntent = action.actionIntent,
                 actionIntentType = 1,
-                actionBgColor = bgColorHex,
-                titleColor = "#FFFFFF"
+                false,
+                0,
+                null,
+                bgColor
             )
 
             results.add(BridgeAction(hyperAction, hyperPic))
         }
+
         return results
+    }
+
+    private fun tintBitmap(source: Bitmap, color: Int): Bitmap {
+        val result = Bitmap.createBitmap(source.width, source.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val paint = Paint()
+        paint.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(source, 0f, 0f, paint)
+        return result
     }
 }

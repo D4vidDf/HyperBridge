@@ -275,4 +275,51 @@
     <string name="warning_cn_rom_desc">Tu dispositivo parece ejecutar un firmware chino. Xiaomi modifica drásticamente las notificaciones en estas ROMs. Las funciones podrían ser inestables o no funcionar.</string>
 
     <string name="system_version">Versión del Sistema</string>
+
+    <string name="call_incoming">Llamada Entrante</string>
+    <string name="call_ongoing">Llamada en Curso</string>
+
+    <string-array name="call_keywords_hangup">
+        <item>colgar</item>
+        <item>finalizar</item>
+        <item>rechazar</item>
+        <item>hang</item>
+        <item>end</item>
+        <item>decline</item>
+        <item>reject</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>responder</item>
+        <item>contestar</item>
+        <item>descoger</item>
+        <item>answer</item>
+        <item>accept</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>altavoz</item>
+        <item>audio</item>
+        <item>speaker</item>
+    </string-array>
+
+    <string name="title_0_3_0">La Actualización Global</string>
+    <string name="changelog_0_3_0">
+        <b>Notificación Oculta 👻</b>\n
+        Nueva opción para ocultar notificaciones del panel del sistema manteniendo la Isla activa. ¡Revisa los Ajustes Globales!\n\n
+        <b>Nuevos Idiomas 🌍</b>\n
+        ¡Un agradecimiento especial a la comunidad por estas traducciones!\n
+        • 🇧🇷 Portugués (Brasil)\n
+        • 🇵🇱 Polaco\n
+        • 🇰🇷 Coreano\n\n
+        <b>Personalización de Navegación 🧭</b>\n
+        Ahora puedes elegir qué información aparece a la izquierda y derecha de la Isla de Navegación (Distancia, Hora de llegada, Instrucción).\n\n
+        <b>Protección Anti-Spoilers 🛡️</b>\n
+        Nueva función de "Términos Bloqueados". Define palabras globalmente o por aplicación para evitar que ciertas notificaciones aparezcan en la Isla.\n\n
+        <b>Mejoras en Llamadas 📞</b>\n
+        Mejorada la lógica de detección para soportar más aplicaciones de VoIP y Teléfono.\n\n
+        <b>Correcciones y Mejoras 🛠️</b>\n
+        • Solucionado un error crítico donde la app se quedaba cargando tras reiniciar.\n
+        • Corregido error donde las notificaciones mostraban el nombre del paquete (ej. "com.google...") en lugar del contenido.\n
+        • Rediseñado el panel de Configuración de App.\n
+        • Mejorada la pantalla de Comprobación de Compatibilidad con info detallada.
+    </string>
 </resources>

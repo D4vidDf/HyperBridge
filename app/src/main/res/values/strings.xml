@@ -280,4 +280,44 @@
     <string name="warning_cn_rom_desc">Your device appears to be running a Chinese firmware. Xiaomi modifies notification internals significantly on CN ROMs. Features might be unstable or not work at all.</string>
 
     <string name="system_version">System Version</string>
+
+    <string name="call_incoming">Incoming Call</string>
+    <string name="call_ongoing">Active Call</string>
+
+    <string-array name="call_keywords_hangup">
+        <item>hang</item>
+        <item>end</item>
+        <item>decline</item>
+        <item>reject</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>answer</item>
+        <item>accept</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>speaker</item>
+        <item>audio</item>
+    </string-array>
+
+    <string name="title_0_3_0">The Global Update</string>
+    <string name="changelog_0_3_0">
+        <b>Hidden Notification 👻</b>\n
+        New option to hide notifications from the system panel while keeping the Island active. Check Global Settings!\n\n
+        <b>New Languages 🌍</b>\n
+        Special thanks to our community for these translations:\n
+        • 🇧🇷 Portuguese (Brazil)\n
+        • 🇵🇱 Polish\n
+        • 🇰🇷 Korean\n\n
+        <b>Navigation Customization 🧭</b>\n
+        You can now choose what information appears on the Left and Right sides of the Navigation Island (Distance, ETA, Instruction).\n\n
+        <b>Spoiler Protection 🛡️</b>\n
+        New "Blocked Terms" feature. Define words globally or per-app to prevent specific notifications from showing up on the Island.\n\n
+        <b>Call Improvements 📞</b>\n
+        Improved detection logic to support a wider range of VoIP and Dialer applications.\n\n
+        <b>Fixes &amp; Improvements 🛠️</b>\n
+        • Fixed a critical bug where the app would get stuck loading after a reboot.\n
+        • Fixed notifications sometimes showing raw package names (e.g. "com.google...") instead of content.\n
+        • Redesigned App Configuration sheet for better usability.\n
+        • Improved Compatibility Check screen with detailed device info.
+    </string>
 </resources>
