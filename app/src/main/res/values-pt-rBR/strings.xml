@@ -20,7 +20,7 @@
     <string name="how_it_works">Como funciona</string>
     <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Mapas, Timer). HyperBridge transforma as notificações em uma elegante HyperIsland.</string>
     <string name="early_development">Desenvolvimento inicial</string>
-    <string name="beta_warning">Nota: Este app está em Beta. Você pode encontrar erros ou informação visual incorreta.</string>
+    <string name="beta_warning">Nota: Este app está em Beta. Você pode encontrar bugs ou falhas visuais durante o uso.</string>
 
     <string name="device_compatible">Dispositivo Compatível</string>
     <string name="unsupported_device">Dispositivo Incompatível</string>
@@ -39,7 +39,7 @@
     <string name="open_settings">Abrir Configurações</string>
 
     <string name="keep_alive">Manter Ativo</string>
-    <string name="optimization_desc">HyperOS encerra apps em segundo plano. Habilite o Início Automático e Nenhuma Restrição para manter a ilha ativa.</string>
+    <string name="optimization_desc">A HyperOS encerra apps em segundo plano. Habilite o Início Automático e Nenhuma Restrição para manter a ilha ativa.</string>
     <string name="enable_autostart">1. Ativar Início Automático</string>
     <string name="set_battery_no_restrictions">2. Bateria \'Sem Restrições\'</string>
 
@@ -52,7 +52,7 @@
     <string name="sort_za">Ordem: Z-A</string>
 
     <string name="no_active_bridges">Sem Bridges Ativos</string>
-    <string name="no_active_bridges_desc">Vá para a Biblioteca para habilitar aplicativos.</string>
+    <string name="no_active_bridges_desc">Acesse a Biblioteca para habilitar seus aplicativos.</string>
     <string name="no_apps_found">Nenhum aplicativo encontrado</string>
 
     <string name="about">Sobre</string>
@@ -94,7 +94,7 @@
     <string name="cat_other">Outros</string>
 
     <string name="select_active_notifs">Selecione as notificações para ativar</string>
-    <string name="type_standard">Mensagens e Geral</string>
+    <string name="type_standard">Mensagens e Gerais</string>
     <string name="type_progress">Downloads e Progresso</string>
     <string name="type_media">Música e Mídias</string>
     <string name="type_nav">Mapas e GPS</string>
@@ -134,7 +134,7 @@
     <string name="title_0_1_0">La Actualización Expresiva</string>
     <string name="changelog_0_1_0">
         • &lt;b&gt;Grandes mudanças na IU:&lt;/b&gt; Hyper Bridge agora usa o Material 3 Expressive com novas animações suaves.\n
-        • &lt;b&gt;Melhorias na HyperIsland:&lt;/b&gt; O texto agora aparece na direita e mostra um tick verde para downloads completos.\n
+        • &lt;b&gt;Melhorias na HyperIsland:&lt;/b&gt; O texto agora aparece à direita e mostra um tick verde para downloads completos.\n
         • &lt;b&gt;Configuração por aplicativo:&lt;/b&gt; Agora você pode personalizar que tipo de notificação você quer mostrar para cada aplicativo.\n
         • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Hyper Bridge agora bloqueia notificações duplicadas e economiza bateria.\n
         • &lt;b&gt;Nova Biblioteca:&lt;/b&gt; Filtra aplicativos por categoria e ordem.\n
@@ -144,9 +144,9 @@
     <string name="title_0_2_0">A Atualização da Informação</string>
     <string name="changelog_0_2_0">
         • &lt;b&gt;Progresso Avançado:&lt;/b&gt; Suporte para "Passos" (ex.: 1 de 3) e barras de progresso com ícones no painel de notificações.\n
-        • &lt;b&gt;Sistema de Prioridade:&lt;/b&gt; Novos ajustes de "Comportamento". Elege a ordem de aparição das ilhas.\n
+        • &lt;b&gt;Sistema de Prioridade:&lt;/b&gt; Novos ajustes de "Comportamento". Define a ordem de aparição das ilhas.\n
         • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Detecção melhorada de duplicados.\n
-        • &lt;b&gt;Melhorias Visuais:&lt;/b&gt; Corrigido problemas de layout nas instruções de navegação..\n
+        • &lt;b&gt;Melhorias Visuais:&lt;/b&gt; Corrigido problemas de layout nas instruções de navegação.\n
         • &lt;b&gt;Configuração por Aplicativo:&lt;/b&gt; Customize o tempo limite e o comportamento de flutuação para cada aplicativo.
     </string>
 
@@ -178,8 +178,8 @@
     <string name="fallback_stopwatch">Cronômetro</string>
 
     <string name="global_settings">Configurações Globais</string>
-    <string name="island_appearance">Aparência de Ilha</string>
-    <string name="setting_float">Ilha Flutuante</string>
+    <string name="island_appearance">Aparência da Ilha</string>
+    <string name="setting_float">Notificação Flutuante</string>
     <string name="setting_float_desc">Exibir notificação pop-up</string>
     <string name="setting_shade">Exibir no painel</string>
     <string name="setting_shade_desc">Manter no painel de notificações</string>
@@ -207,7 +207,7 @@
 
     <string name="custom_design">Design Personalizado</string>
     <string name="nav_layout_title">Layout de Navegação</string>
-    <string name="nav_layout_desc">Escolha onde a informação irá aparecer</string>
+    <string name="nav_layout_desc">Escolha onde a informação aparece</string>
     <string name="left_content">Lado Esquerdo</string>
     <string name="right_content">Lado Direito</string>
 
@@ -240,4 +240,80 @@
     <string name="nav_preview_instruction">Vire à direita</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
+
+    <string name="blocked_terms">Termos Bloqueados</string>
+    <string name="blocked_terms_desc">Notificações contendo estas palavras serão ignoradas.</string>
+    <string name="add_blocked_word">Adicionar palavra (ex.: \'Spoiler\')</string>
+    <string name="add">Adicionar</string>
+    <string name="remove">Remover</string>
+    <string name="tap_to_configure_rules">Toque em um app para configurar regras específicas de bloqueio.</string>
+    <string name="spoiler_subtitle">Gerenciar proteção de spoiler e filtros</string>
+
+    <string name="active_notifications_title">Tipos de Notificação</string>
+    <string name="active_notifications_subtitle">%d ativo</string>
+    <string name="appearance_use_defaults_desc">Usando o padrão do sistema para velocidade de animação e comportamento da ilha.</string>
+    <string name="blocked_terms_active_count">%d regras ativas</string>
+
+    <string name="global_rules">Regras Globais</string>
+    <string name="app_specific_rules">Regras Especificas para Apps</string>
+    <string name="manage_app_rules_desc">Customizar filtros para apps específicos</string>
+    <string name="blocked_terms_count">%d termos bloqueados</string>
+    <string name="no_active_rules">Nenhuma regra ativa</string>
+
+    <string name="setup_health_title">Compatibilidade do Sistema</string>
+    <string name="check_device">Dispositivo: %s</string>
+    <string name="check_os_version">SO: %s</string>
+    <string name="req_hyperos">Precisa da HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">Dispositivo da Xiaomi/Redmi/Poco necessário</string>
+    <string name="check_autostart">Início Automático em segundo plano</string>
+    <string name="check_autostart_desc">Necessário para o serviço iniciar após uma reinicialização.</string>
+    <string name="grant_permission">Permitir</string>
+    <string name="status_ok">Compatível</string>
+    <string name="status_fail">Incompatível</string>
+    <string name="status_unknown">Desconhecido</string>
+
+    <string name="warning_cn_rom_title">ROM Chinesa Detectada</string>
+    <string name="warning_cn_rom_desc">Seu dispositivo aparenta estar executando a versão Chinesa. A Xiaomi modifica significativamente o sistema das notificações nas ROMs Chinesas. Algumas funções podem ficar instáveis ou nem mesmo funcionar.</string>
+
+    <string name="system_version">Versão do Sistema</string>
+
+    <string name="call_incoming">Recebendo Chamada</string>
+    <string name="call_ongoing">Chamada Ativa</string>
+
+    <string-array name="call_keywords_hangup">
+        <item>desligar</item>
+        <item>encerrar</item>
+        <item>recusar</item>
+        <item>rejeitar</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>responder</item>
+        <item>aceitar</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>alto-falante</item>
+        <item>áudio</item>
+    </string-array>
+
+    <string name="title_0_3_0">A Atualização Global</string>
+    <string name="changelog_0_3_0">
+        <b>Notificações Ocultas 👻</b>\n
+        Nova opção para ocultar notificações do painel do sistema enquanto mantém a Ilha ativa. Cheque as Configurações Globais!\n\n
+        <b>Novos Idiomas 🌍</b>\n
+        Agradecimentos especiais para a nossa comunidade por essas traduções:\n
+        • 🇧🇷 Português Brasileiro\n
+        • 🇵🇱 Polonês\n
+        • 🇰🇷 Coreano\n\n
+        <b>Customização da Navegação 🧭</b>\n
+        Você agora pode escolher qual informação aparece no lado esquerdo e direito da navegação da Ilha (Distância, Tempo estimado (ETA), Instrução).\n\n
+        <b>Proteção contra Spoiler 🛡️</b>\n
+        Nova função de "Termos Bloqueados". Defina palavras globalmente ou por app para impedir que notificações especificas apareçam na Ilha.\n\n
+        <b>Melhorias em Ligações 📞</b>\n
+        Melhorado a lógica de detecção para dar suporte a uma maior variedade de aplicativos de chamadas.\n\n
+        <b>Correções &amp; Melhorias 🛠️</b>\n
+        • Corrigido um bug crítico no qual o app ficava travado durante o carregamento após uma reinicialização.\n
+        • Corrigido notificações as vezes mostrarem o nome do pacote (ex.: "com.google...") em vez do conteúdo.\n
+        • As configurações do app foram redesenhadas para melhor usabilidade.\n
+        • Melhorado a tela de verificação de compatibilidade com informações detalhadas do aparelho.
+    </string>
 </resources>
