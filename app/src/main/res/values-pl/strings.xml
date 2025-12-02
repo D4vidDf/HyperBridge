@@ -40,7 +40,7 @@
     <string name="keep_alive">Utrzymaj aktywność</string>
     <string name="optimization_desc">HyperOS wyłącza aplikacje działające w tle. Aby wyspa była aktywna, włącz Autostart i zmień ustawienia baterii.</string>
     <string name="enable_autostart">1. Włącz autostart</string>
-    <string name="set_battery_no_restrictions">2. Ustaw "Brak ograniczeń"</string>
+    <string name="set_battery_no_restrictions">2. Ustaw \"Brak ograniczeń\"</string>
 
     <string name="tab_active">Aktywne</string>
     <string name="tab_library">Biblioteka</string>
@@ -51,7 +51,7 @@
     <string name="sort_za">Sortuj: Z-A</string>
 
     <string name="no_active_bridges">Brak aktywnych mostów</string>
-    <string name="no_active_bridges_desc">Przejdź do Biblioteki, aby włączyć aplikacje.</string>
+    <string name="no_active_bridges_desc">Przejdź do Biblioteki, aby włączyć wyspy dla aplikacji.</string>
     <string name="no_apps_found">Nie znaleziono aplikacji</string>
 
     <string name="about">O aplikacji</string>
@@ -68,7 +68,7 @@
     <string name="source_code">Kod źródłowy</string>
     <string name="source_code_subtitle">Repozytorium GitHub</string>
     <string name="licenses">Licencje open source</string>
-    <string name="licenses_subtitle">Oprogramowanie firm trzecich</string>
+    <string name="licenses_subtitle">Oprogramowanie stron trzecich</string>
     <string name="footer_made_with_love">Zrobione z ❤️ w Hiszpanii</string>
 
     <string name="app_health">Stan aplikacji</string>
@@ -83,7 +83,7 @@
     <string name="battery_unrestricted">Brak ograniczeń baterii</string>
     <string name="battery_desc">Zapobiegaj zabijaniu aplikacji przez system</string>
     <string name="recents_note">Uwaga: Zablokuj również aplikację w menu Ostatnio otwartych aplikacji (kłódką).</string>
-    <string name="status_active">Aktywny</string>
+    <string name="status_active">OK</string>
     <string name="action_needed">Wymagane działanie</string>
 
     <string name="cat_all">Wszystkie</string>
@@ -159,12 +159,15 @@
 
     <string name="global_settings">Ustawienia globalne</string>
     <string name="island_appearance">Pojawianie się wysp</string>
-    <string name="setting_float">Pokaż pływającą wyspę</string>
-    <string name="setting_float_desc">Pokaż powiadomienie typu heads-up</string>
-    <string name="setting_shade">Pokaż w panelu powiadomień</string>
-    <string name="setting_shade_desc">Zachowaj wyspę w panelu powiadomień</string>
+    <string name="setting_float">Popup typu heads-up</string>
+    <string name="setting_float_desc">Pokaż powiadomienie, które zostanie potem zminimalizowane do formy wyspy.</string>
+
+    <string name="setting_shade">Panel powiadomień</string>
+    <string name="setting_shade_desc">Zachowaj powiadomienie w Panelu powiadomień. Jeśli opcja jest wyłączona, pojawi się ono tylko jako wyspa.</string>
+
     <string name="setting_timeout">Czas wyświetlania</string>
     <string name="seconds_suffix">%ds</string>
+
     <string name="use_global_default">Użyj ustawień globalnych</string>
     <string name="customize_app">Dostosuj</string>
     <string name="override_settings">Nadpisz ustawienia</string>
@@ -198,4 +201,116 @@
     <string name="configure_now">Skonfiguruj</string>
 
     <string name="badge_new">NOWA</string>
+
+    <string name="custom_design">Custom Design</string>
+    <string name="nav_layout_title">Układ wyspy nawigacji</string>
+    <string name="nav_layout_desc">Wybierz informację, która pojawi się w danej części wyspy</string>
+    <string name="left_content">Lewa strona</string>
+    <string name="right_content">Prawa strona</string>
+
+    <string name="nav_content_instruction">Instrukcja</string>
+    <string name="nav_content_distance">Odległość</string>
+    <string name="nav_content_eta">Czas przybycia</string>
+    <string name="nav_content_distance_eta">Odległość i czas</string>
+    <string name="nav_content_none">Puste</string>
+
+    <string name="channel_active_islands">Aktywne wyspy</string>
+
+    <string name="cd_toggle_app">Przełącz %s</string>
+    <string name="cd_configure_app">Konfiguruj %s</string>
+    <string name="cd_enable_type">Włącz powiadomienia %s</string>
+    <string name="cd_disable_type">Wyłącz powiadomienia %s</string>
+    <string name="cd_nav_edit">Edytuj układ nawigacji</string>
+    <string name="cd_app_state_active">Aktywny</string>
+    <string name="cd_app_state_inactive">Nieaktywny</string>
+
+    <string name="cd_move_up">Przenieś element w górę</string>
+    <string name="cd_move_down">Przenieś element w dół</string>
+    <string name="cd_drag_handle">Uchwyt przeciągania. Dotknij dwa razy i przytrzymaj, aby zmienić kolejność, lub użyj akcji, aby przenieść.</string>
+    <string name="cd_app_icon">Ikona aplikacji dla %s</string>
+    <string name="cd_nav_preview">Podgląd nawigacji: %1$s po lewej, %2$s po prawej</string>
+    <string name="cd_expand_changelog">Rozwiń szczegóły wersji</string>
+    <string name="cd_collapse_changelog">Zwiń szczegóły wersji</string>
+    <string name="cd_configuration_group">Ustawienia konfiguracji</string>
+    <string name="cd_about_group">Informacje o aplikacji</string>
+
+    <string name="nav_preview_instruction">Skręć w prawo</string>
+    <string name="nav_preview_distance">200 m</string>
+    <string name="nav_preview_time">10:30</string>
+
+    <string name="blocked_terms">Blokowane frazy</string>
+    <string name="blocked_terms_desc">Powiadomienia zawierające te słowa będą ignorowane.</string>
+    <string name="add_blocked_word">Dodaj słowo (np. \"Spoiler\")</string>
+    <string name="add">Dodaj</string>
+    <string name="remove">Usuń</string>
+    <string name="tap_to_configure_rules">Dotknij aplikacji, aby skonfigurować konkretne zasady blokowania.</string>
+    <string name="spoiler_subtitle">Zarządzaj ochroną przed spoilerami i filtrami</string>
+
+    <string name="active_notifications_title">Typy powiadomień</string>
+    <string name="active_notifications_subtitle">Aktywne: %d</string>
+    <string name="appearance_use_defaults_desc">Aplikacja będzie używać domyślnych ustawień systemu dot. prędkości animacji i zachowania pływającego powiadomienia.</string>
+    <string name="blocked_terms_active_count">Aktywne reguły: %d</string>
+
+    <string name="global_rules">Reguły globalne</string>
+    <string name="app_specific_rules">Reguły konkretnej aplikacji</string>
+    <string name="manage_app_rules_desc">Dostosuj filtry dla konkretnych aplikacji</string>
+    <string name="blocked_terms_count">Zablokowane frazy: %d</string>
+    <string name="no_active_rules">Brak aktywnych reguł</string>
+
+    <string name="setup_health_title">Kompatybilność systemu</string>
+    <string name="check_device">Urządzenie: %s</string>
+    <string name="check_os_version">OS: %s</string>
+    <string name="req_hyperos">Wymaga HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">Wymagane urządzenie Xiaomi/Redmi/POCO</string>
+    <string name="check_autostart">Autostart w tle</string>
+    <string name="check_autostart_desc">Wymagany, aby usługa uruchomiła się ponownie po restarcie urządzenia.</string>
+    <string name="grant_permission">Przyznaj</string>
+    <string name="status_ok">Kompatybilny</string>
+    <string name="status_fail">Niekompatybilny</string>
+    <string name="status_unknown">Nieznany</string>
+
+    <string name="warning_cn_rom_title">Wykryto ROM China</string>
+    <string name="warning_cn_rom_desc">Twoje urządzenie wydaje się działać na ROM-ie China. Xiaomi znacznie modyfikuje powiadomienia w ROM-ach CN. Funkcje mogą być niestabilne lub w ogóle nie działać.</string>
+
+    <string name="system_version">Wersja systemu</string>
+
+    <string name="call_incoming">Połączenie przychodzące</string>
+    <string name="call_ongoing">Aktywne połączenie</string>
+
+    <string-array name="call_keywords_hangup">
+        <item>zawieś</item>
+        <item>zakończ</item>
+        <item>odrzuć</item>
+        <item>odmów</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>odbierz</item>
+        <item>zaakceptuj</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>głośnik</item>
+        <item>audio</item>
+    </string-array>
+
+    <string name="title_0_3_0">The Global Update</string>
+    <string name="changelog_0_3_0">
+        <b>Ukrywanie powiadomień 👻</b>\n
+        Nowa opcja ukrywania powiadomień z Panelu powiadomień przy zachowaniu ich na wyspie. Sprawdź Ustawienia globalne!\n\n
+        <b>Nowe języki 🌍</b>\n
+        Specjalne podziękowania dla naszej społeczności za tłumaczenia na języki:\n
+        • 🇧🇷 portugalski (Brazylia),\n
+        • 🇵🇱 polski\n
+        • 🇰🇷 koreański.\n\n
+        <b>Dostosowywanie nawigacji 🧭</b>\n
+        Możesz teraz wybrać, jakie informacje pojawią się po lewej i prawej stronie wyspy nawigacji (np. odległość, czas przybycia czy polecenia dot. jazdy).\n\n
+        <b>Ochrona przed spoilerami 🛡️</b>\n
+        Nowa funkcja \"Blokowane frazy\". Zdefiniuj słowa globalnie lub dla poszczególnych aplikacji, aby zapobiec wyświetlaniu określonych powiadomień na wyspie.\n\n
+        <b>Ulepszenia dot. połączeń 📞</b>\n
+        Poprawiono logikę wykrywania powiadomień, aby wspierać większą liczbę aplikacji dialerów i VoIP.\n\n
+        <b>Poprawki i ulepszenia 🛠️</b>\n
+        • Naprawiono krytyczny błąd, który powodował zawieszanie się aplikacji podczas ładowania po restarcie.\n
+        • Naprawiono powiadomienia czasami pokazujące surowe nazwy pakietów (np. "com.google...") zamiast treści.\n
+        • Przeprojektowano arkusz konfiguracji aplikacji dla lepszej użyteczności.\n
+        • Ulepszono ekran sprawdzania kompatybilności z szczegółowymi informacjami o urządzeniu.
+    </string>
 </resources>
