@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -17,7 +16,11 @@ import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NotificationType
-import com.d4viddf.hyperbridge.service.translators.*
+import com.d4viddf.hyperbridge.service.translators.CallTranslator
+import com.d4viddf.hyperbridge.service.translators.NavTranslator
+import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
+import com.d4viddf.hyperbridge.service.translators.StandardTranslator
+import com.d4viddf.hyperbridge.service.translators.TimerTranslator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,10 +37,15 @@ class NotificationReaderService : NotificationListenerService() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
 
+    // --- STATE ---
     private var allowedPackageSet: Set<String> = emptySet()
     private var currentMode = IslandLimitMode.MOST_RECENT
     private var appPriorityList = emptyList<String>()
 
+    // NEW: Cache for Global Blocked Terms (for synchronous check)
+    private var globalBlockedTerms: Set<String> = emptySet()
+
+    // --- CACHES ---
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val lastUpdateMap = ConcurrentHashMap<String, Long>()
@@ -63,9 +71,13 @@ class NotificationReaderService : NotificationListenerService() {
         progressTranslator = ProgressTranslator(this)
         standardTranslator = StandardTranslator(this)
 
+        // Observe settings
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
+
+        // NEW: Observe Global Blocklist
+        serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
     }
 
     override fun onListenerConnected() {
@@ -83,7 +95,7 @@ class NotificationReaderService : NotificationListenerService() {
         sbn?.let {
             if (shouldIgnore(it.packageName)) return
 
-            // FIX: This filter must be strict about "Package Name" titles
+            // Check Global Junk + Blocked Terms
             if (isJunkNotification(it)) return
 
             if (isAppAllowed(it.packageName)) {
@@ -113,7 +125,6 @@ class NotificationReaderService : NotificationListenerService() {
         val lastTime = lastUpdateMap[key] ?: 0L
         val previousIsland = activeIslands[key]
 
-        // Always allow the first update
         if (previousIsland == null) {
             lastUpdateMap[key] = now
             return false
@@ -124,55 +135,47 @@ class NotificationReaderService : NotificationListenerService() {
         val currText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
         val currSub = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
 
-        // If text changed, allow update (Priority)
         if (currTitle != previousIsland.title || currText != previousIsland.text || currSub != previousIsland.subText) {
             lastUpdateMap[key] = now
             return false
         }
 
-        // Throttle progress-only updates
         if (now - lastTime < UPDATE_INTERVAL_MS) return true
 
         lastUpdateMap[key] = now
         return false
     }
 
-    /**
-     * REORDERED LOGIC:
-     * 1. Check for Bad Content (Package Name Titles, Empty Text) -> BLOCK
-     * 2. Check for Group Summaries -> BLOCK
-     * 3. Check for Good Types (Progress/Media) -> ALLOW
-     */
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
         val notification = sbn.notification
         val extras = notification.extras
         val pkg = sbn.packageName
 
-        // --- 1. CONTENT SANITY CHECK (Must be first!) ---
-
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
 
-        // A. Completely Empty
+        // --- 1. CONTENT CHECKS ---
         if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
 
-        // B. Package Name Leaks (Google App / YouTube Fix)
-        // If title IS the package name, it is junk. Even if it has a progress bar.
-        if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true) || subText.equals(pkg, ignoreCase = true)) {
-            return true
+        // Package Name Leaks
+        if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true) || subText.equals(pkg, ignoreCase = true)) return true
+        if (title.contains("com.google.android", ignoreCase = true)) return true
+
+        // *** NEW: GLOBAL BLOCKLIST CHECK ***
+        // If title or text contains any blocked word, ignore it.
+        if (globalBlockedTerms.isNotEmpty()) {
+            val content = "$title $text"
+            if (globalBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
+                return true
+            }
         }
-        // Also catch "com.google.android..." if it appears as the ONLY text
-        if (title.contains("com.google.android", ignoreCase = true) || text.contains("com.google.android", ignoreCase = true) || subText.contains("com.google.android", ignoreCase = true)) return true
 
-        // C. App Name Placeholders (e.g. Title="WhatsApp", Text="")
-        val appName = try {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
-        } catch (e: Exception) { "" }
-
+        // Placeholder Titles
+        val appName = try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" }
         if (title == appName && text.isEmpty() && subText.isEmpty()) return true
 
-        // D. System Noise
+        // System Noise
         if (title.contains("running in background", true)) return true
         if (text.contains("tap for more info", true)) return true
         if (text.contains("displaying over other apps", true)) return true
@@ -180,7 +183,7 @@ class NotificationReaderService : NotificationListenerService() {
         // --- 2. GROUP SUMMARIES ---
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
 
-        // --- 3. PRIORITY PASS (Only if content is sane) ---
+        // --- 3. PRIORITY PASS ---
         val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
                 extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
         val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT ||
@@ -188,15 +191,29 @@ class NotificationReaderService : NotificationListenerService() {
                 notification.category == Notification.CATEGORY_NAVIGATION ||
                 extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
 
-        // If it has progress/media AND passed the bad content check, it is good.
         if (hasProgress || isSpecial) return false
 
         return false
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private suspend fun processAndPost(sbn: StatusBarNotification) {
         try {
             val extras = sbn.notification.extras
+
+            val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
+            val text = extras.getString(Notification.EXTRA_TEXT) ?: ""
+
+            // *** NEW: APP-SPECIFIC BLOCKLIST CHECK ***
+            // We do this here because reading per-app DB settings requires a suspend function
+            val appBlockedTerms = preferences.getAppBlockedTerms(sbn.packageName).first()
+            if (appBlockedTerms.isNotEmpty()) {
+                val content = "$title $text"
+                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
+                    // Log.d(TAG, "Skipping ${sbn.packageName}: Blocked term found")
+                    return
+                }
+            }
 
             val isCall = sbn.notification.category == Notification.CATEGORY_CALL
             val isNavigation = sbn.notification.category == Notification.CATEGORY_NAVIGATION ||
@@ -209,12 +226,13 @@ class NotificationReaderService : NotificationListenerService() {
                     sbn.notification.category == Notification.CATEGORY_STOPWATCH) && chronometerBase > 0
             val isMedia = extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
 
+            // FIX: Media before Progress priority
             val type = when {
                 isCall -> NotificationType.CALL
                 isNavigation -> NotificationType.NAVIGATION
                 isTimer -> NotificationType.TIMER
-                hasProgress -> NotificationType.PROGRESS
                 isMedia -> NotificationType.MEDIA
+                hasProgress -> NotificationType.PROGRESS
                 else -> NotificationType.STANDARD
             }
 
@@ -230,7 +248,6 @@ class NotificationReaderService : NotificationListenerService() {
                 if (activeIslands.size >= MAX_ISLANDS) return
             }
 
-            val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
             val picKey = "pic_${bridgeId}"
 
             val appIslandConfig = preferences.getAppIslandConfig(sbn.packageName).first()
@@ -248,7 +265,6 @@ class NotificationReaderService : NotificationListenerService() {
                 else -> standardTranslator.translate(sbn, picKey, finalConfig)
             }
 
-            // Deduplication
             val newContentHash = data.jsonParam.hashCode()
             val previousIsland = activeIslands[key]
 
@@ -304,6 +320,7 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun postNotification(sbn: StatusBarNotification, bridgeId: Int, data: HyperIslandData) {
         val notificationBuilder = NotificationCompat.Builder(this, ISLAND_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -330,17 +347,15 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun createIslandChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = getString(R.string.channel_active_islands)
-            val channel = NotificationChannel(
-                ISLAND_CHANNEL_ID,
-                name,
-                NotificationManager.IMPORTANCE_HIGH).apply {
-                setSound(null, null)
-                enableVibration(false)
-            }
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        val name = getString(R.string.channel_active_islands)
+        val channel = NotificationChannel(
+            ISLAND_CHANNEL_ID,
+            name,
+            NotificationManager.IMPORTANCE_HIGH).apply {
+            setSound(null, null)
+            enableVibration(false)
         }
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
     private fun isAppAllowed(packageName: String): Boolean {
