@@ -51,7 +51,7 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(getTransparentPicture(hiddenKey))
 
         if (isFinished) {
-            builder.addPicture(getColoredPicture(tickKey, android.R.drawable.checkbox_on_background, greenColor))
+            builder.addPicture(getColoredPicture(tickKey, R.drawable.rounded_check_circle_24, greenColor))
         }
 
         val actions = extractBridgeActions(sbn)
