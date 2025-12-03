@@ -58,7 +58,7 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
                 else { instruction = text; distance = title }
             }
         } else {
-            instruction = if (title.isNotEmpty()) title else text
+            instruction = title.ifEmpty { text }
         }
 
         if (instruction.isEmpty()) instruction = context.getString(R.string.maps_title)
@@ -96,7 +96,8 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
             title = instruction,
             content = shadeContent,
             pictureKey = picKey,
-            actionKeys = actionKeys
+            actionKeys = actionKeys,
+            type = 2
         )
 
         // Progress (Shade Only) - Now using Static Icons
