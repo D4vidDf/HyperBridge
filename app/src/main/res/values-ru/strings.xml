@@ -1,0 +1,342 @@
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+
+    <string name="back">Назад</string>
+    <string name="next">Далее</string>
+    <string name="finish">Завершить</string>
+    <string name="done">Готово</string>
+    <string name="logo_desc">Логотип приложения</string>
+    <string name="settings">Настройки</string>
+    <string name="info">Информация</string>
+    <string name="configure">Настроить</string>
+    <string name="clear">Очистить</string>
+    <string name="sort_order">Порядок сортировки</string>
+
+    <string name="welcome_title">Добро пожаловать в\nHyper Bridge</string>
+    <string name="welcome_subtitle">Легко интегрируйте HyperIslands в вашу систему HyperOS.</string>
+    <string name="get_started">Начать</string>
+
+    <string name="how_it_works">Как это работает</string>
+    <string name="how_it_works_desc">Выберите любимые приложения (Spotify, Карты, Таймер). HyperBridge превратит их уведомления в элегантный HyperIsland.</string>
+    <string name="early_development">Ранняя разработка</string>
+    <string name="beta_warning">Примечание: Это приложение в бета-версии. Вы можете столкнуться с ошибками или некорректным визуальным отображением.</string>
+
+    <string name="device_compatible">Совместимое устройство</string>
+    <string name="unsupported_device">Устройство не поддерживается</string>
+    <string name="compatible_msg">Кажется, ваше устройство работает на HyperOS/MIUI. Всё готово к работе!</string>
+    <string name="incompatible_msg">HyperBridge полагается на специфические функции системы HyperOS. Похоже, производитель вашего устройства не Xiaomi/POCO/Redmi.</string>
+    <string name="system_detected">✅ Система обнаружена</string>
+    <string name="app_wont_work">⚠️ Приложение может не работать</string>
+
+    <string name="show_island">Показать Остров</string>
+    <string name="perm_post_desc">Нам нужно разрешение, чтобы разместить уведомление \'Остров\' на вашем экране.</string>
+    <string name="perm_granted">✅ Разрешение предоставлено</string>
+    <string name="allow_notifications">Разрешить уведомления</string>
+
+    <string name="read_data">Чтение данных</string>
+    <string name="perm_listener_desc">Чтобы подключить ваши приложения, нам нужно читать их уведомления (Музыка, Карты, Таймеры).</string>
+    <string name="open_settings">Открыть настройки</string>
+
+    <string name="keep_alive">Поддерживать работу</string>
+    <string name="optimization_desc">HyperOS останавливает фоновые программы. Включите Автозапуск и «Без ограничений», чтобы Остров оставался активным.</string>
+    <string name="enable_autostart">1. Включить автозапуск</string>
+    <string name="set_battery_no_restrictions">2. Энергосбережение: «Без ограничений»</string>
+
+    <string name="tab_active">Активные</string>
+    <string name="tab_library">Библиотека</string>
+    <string name="title_active_bridges">Активные мосты</string>
+    <string name="title_library">Библиотека приложений</string>
+    <string name="search_hint">Поиск приложений...</string>
+    <string name="sort_az">Сорт: А–Я</string>
+    <string name="sort_za">Сорт: Я–А</string>
+
+    <string name="no_active_bridges">Нет активных мостов</string>
+    <string name="no_active_bridges_desc">Перейдите в Библиотеку, чтобы включить приложения.</string>
+    <string name="no_apps_found">Приложения не найдены</string>
+
+    <string name="about">О приложении</string>
+    <string name="version_template">Версия %s</string>
+    <string name="developer_credit">от D4vidDf</string>
+
+    <string name="group_configuration">Конфигурация</string>
+    <string name="system_setup">Настройки системы</string>
+    <string name="system_setup_subtitle">Исправить разрешения и питание</string>
+
+    <string name="group_about">О приложении</string>
+    <string name="developer">Разработчик</string>
+    <string name="developer_subtitle">Посетить d4viddf.com</string>
+    <string name="source_code">Исходный код</string>
+    <string name="source_code_subtitle">Репозиторий GitHub</string>
+    <string name="licenses">Лицензии Open Source</string>
+    <string name="licenses_subtitle">Стороннее программное обеспечение</string>
+    <string name="footer_made_with_love">Сделано с ❤️ в Испании</string>
+
+    <string name="app_health">Состояние приложения</string>
+    <string name="app_health_desc">Убедитесь, что все пункты зелёные, чтобы приложение корректно работало в фоновом режиме.</string>
+    <string name="req_permissions">Необходимые разрешения</string>
+    <string name="notif_access">Доступ к уведомлениям</string>
+    <string name="notif_access_desc">Необходимо для чтения событий приложений</string>
+    <string name="perm_display_desc">Разрешение на отображение поверх других программ</string>
+    <string name="device_optimization">Оптимизация устройства</string>
+    <string name="xiaomi_autostart">Автозапуск Xiaomi</string>
+    <string name="autostart_desc">Разрешить запуск при включении</string>
+    <string name="battery_unrestricted">Батарея без ограничений</string>
+    <string name="battery_desc">Предотвращает остановку приложения системой</string>
+    <string name="recents_note">Примечание: Также закрепите приложение (замочек) в меню обзора «Недавние».</string>
+    <string name="status_active">Активно</string>
+    <string name="action_needed">Требуется действие</string>
+
+    <string name="cat_all">Все</string>
+    <string name="cat_music">Музыка</string>
+    <string name="cat_nav">Навигация</string>
+    <string name="cat_timer">Продуктивность</string>
+    <string name="cat_other">Другое</string>
+
+    <string name="select_active_notifs">Выберите активные уведомления</string>
+    <string name="type_standard">Сообщения и общее</string>
+    <string name="type_progress">Загрузки и прогресс</string>
+    <string name="type_media">Музыка и медиа</string>
+    <string name="type_nav">Карты и GPS</string>
+    <string name="type_call">Звонки</string>
+    <string name="type_timer">Таймеры и будильники</string>
+
+    <string name="service_active">Активно</string>
+    <string name="download_complete">Загрузка завершена</string>
+    <string name="pending">Ожидание...</string>
+    <string name="finished">Завершено</string>
+    <string name="downloading">Загрузка</string>
+    <string name="waiting">Ожидание...</string>
+    <string name="now_playing">Сейчас играет</string>
+    <string name="unknown_caller">Неизвестный абонент</string>
+    <string name="incoming_call">Звонок</string>
+    <string name="maps_title">Карты</string>
+    <string name="timer_title">Таймер</string>
+
+    <string-array name="progress_finish_keywords">
+        <item>downloaded</item>
+        <item>completed</item>
+        <item>finished</item>
+        <item>installed</item>
+        <item>done</item>
+        <item>successful</item>
+        <item>succeeded</item>
+        <item>загружено</item>
+        <item>завершено</item>
+        <item>закончено</item>
+        <item>установлено</item>
+        <item>готово</item>
+        <item>успешно</item>
+        <item>получилось</item>
+    </string-array>
+
+    <string name="status_download_complete">Загрузка завершена</string>
+    <string name="status_downloading">Загрузка</string>
+    <string name="status_pending">Ожидание...</string>
+    <string name="status_finished">Завершено</string>
+    <string name="status_now_playing">Сейчас играет</string>
+    <string name="status_incoming_call">Входящий звонок</string>
+    <string name="caller_unknown">Неизвестный абонент</string>
+
+    <string name="fallback_maps">Карты</string>
+    <string name="fallback_timer">Таймер</string>
+    <string name="fallback_stopwatch">Секундомер</string>
+
+    <string name="whats_new_title">Что нового в %s</string>
+    <string name="awesome">Отлично!</string>
+
+    <string name="island_behavior">Поведение Острова</string>
+    <string name="limit_strategy">Достижение лимита</string>
+    <string name="limit_desc">Что происходит при достижении лимита в 9 Островов?</string>
+    <string name="mode_fcfs_title">Кто первый, тот и успел</string>
+    <string name="mode_fcfs_desc">Сохраняет первые 9 приложений. Новые игнорируются, пока не освободится место.</string>
+    <string name="mode_recent_title">Самые новые (по умолчанию)</string>
+    <string name="mode_recent_desc">Новые уведомления заменяют самые старые.</string>
+    <string name="mode_priority_title">Собственный приоритет</string>
+    <string name="mode_priority_desc">Определите, какие типы (например, звонки) важнее.</string>
+    <string name="priority_order">Порядок приоритета</string>
+    <string name="priority_order_desc">Высокий приоритет (вверху) заменяет низкий (внизу).</string>
+    <string name="move_up">Вверх</string>
+    <string name="move_down">Вниз</string>
+    <string name="configure_order">Настроить порядок</string>
+
+    <string name="global_settings">Глобальные настройки</string>
+    <string name="island_appearance">Внешний вид Острова</string>
+    <string name="setting_float">Плавающий Остров</string>
+    <string name="setting_float_desc">Показывать всплывающее уведомление.</string>
+    <string name="setting_shade">Показывать в шторке</string>
+    <string name="setting_shade_desc">Оставлять уведомление в центре уведомлений.</string>
+    <string name="setting_timeout">Тайм-аут</string>
+    <string name="seconds_suffix">%dс</string>
+    <string name="use_global_default">Использовать глобальные настройки</string>
+    <string name="customize_app">Настроить</string>
+    <string name="override_settings">Переопределить настройки</string>
+
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+        <item>прибытие</item>
+        <item>прибыть</item>
+        <item>добраться</item>
+        <item>пункт назначения</item>
+    </string-array>
+    <string name="hint_options">Опции</string>
+
+    <string name="version_history">История версий</string>
+
+    <string name="title_0_2_0">Информационное обновление</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;Расширенный прогресс:&lt;/b&gt; Добавлена поддержка «пошагового прогресса» (например, 1 из 3) и индикаторов прогресса с иконками внутри шторки уведомлений.\n
+        • &lt;b&gt;Система приоритетов:&lt;/b&gt; Новые настройки «Поведения Острова». Выбирайте между «Самые новые», «Кто первый» или собственным списком «Приоритет приложений».\n
+        • &lt;b&gt;Умная фильтрация:&lt;/b&gt; Улучшено обнаружение дублированных уведомлений и сгруппированных загрузок.\n
+        • &lt;b&gt;Визуальные улучшения:&lt;/b&gt; Исправлены проблемы с макетом навигационных инструкций.\n
+        • &lt;b&gt;Настройки приложений:&lt;/b&gt; Настраивайте тайм-аут и поведение плавающего окна отдельно для каждого приложения.
+    </string>
+
+    <string name="title_0_1_0">Экспрессивное обновление</string>
+    <string name="changelog_0_1_0">
+        • &lt;b&gt;Обновление интерфейса:&lt;/b&gt; Новый дизайн Material 3 Expressive с плавными анимациями.\n
+        • &lt;b&gt;Лучший Остров:&lt;/b&gt; Текст теперь отображается справа. Добавлена зелёная галочка для завершённых загрузок.\n
+        • &lt;b&gt;Настройки приложений:&lt;/b&gt; Выбор конкретных типов уведомлений (Музыка, Карты, Звонки) для каждого приложения.\n
+        • &lt;b&gt;Умные фильтры:&lt;/b&gt; Блокируют дублированные уведомления и экономят заряд батареи.\n
+        • &lt;b&gt;Новая библиотека:&lt;/b&gt; Фильтрация приложений по категории и порядку сортировки.\n
+        • &lt;b&gt;Локализация:&lt;/b&gt; Добавлена поддержка испанского языка.
+    </string>
+
+    <string name="priority_edu_title">Новое: Управляйте Островом</string>
+    <string name="priority_edu_desc">HyperBridge теперь может управлять поведением нескольких уведомлений при достижении лимита в 9 Островов.\n\n&lt;b&gt;По умолчанию: Самые новые&lt;/b&gt;\nНовые уведомления автоматически заменяют самые старые.</string>
+    <string name="keep_default">Оставить как есть</string>
+    <string name="configure_now">Настроить сейчас</string>
+
+    <string name="badge_new">НОВОЕ</string>
+
+    <string name="custom_design">Пользовательский дизайн</string>
+    <string name="nav_layout_title">Макет навигации</string>
+    <string name="nav_layout_desc">Выберите, где отображать информацию</string>
+    <string name="left_content">Левая сторона</string>
+    <string name="right_content">Правая сторона</string>
+
+    <string name="nav_content_instruction">Инструкция</string>
+    <string name="nav_content_distance">Расстояние</string>
+    <string name="nav_content_eta">Время прибытия</string>
+    <string name="nav_content_distance_eta">Расстояние и время</string>
+    <string name="nav_content_none">Пусто</string>
+
+    <string name="channel_active_islands">Активные Острова</string>
+
+    <string name="cd_toggle_app">Переключить %s</string>
+    <string name="cd_configure_app">Настроить %s</string>
+    <string name="cd_enable_type">Включить уведомления %s</string>
+    <string name="cd_disable_type">Выключить уведомления %s</string>
+    <string name="cd_nav_edit">Редактировать макет навигации</string>
+    <string name="cd_app_state_active">Активно</string>
+    <string name="cd_app_state_inactive">Неактивно</string>
+
+    <string name="cd_move_up">Переместить вверх</string>
+    <string name="cd_move_down">Переместить вниз</string>
+    <string name="cd_drag_handle">Маркер перетаскивания. Дважды нажмите и удерживайте, чтобы изменить порядок, или используйте действия для перемещения.</string>
+    <string name="cd_app_icon">Иконка приложения %s</string>
+    <string name="cd_nav_preview">Предварительный просмотр навигации: %1$s слева, %2$s справа</string>
+    <string name="cd_expand_changelog">Развернуть детали версии</string>
+    <string name="cd_collapse_changelog">Свернуть детали версии</string>
+    <string name="cd_configuration_group">Настройки конфигурации</string>
+    <string name="cd_about_group">Информация о приложении</string>
+
+    <string name="nav_preview_instruction">Поворот направо</string>
+    <string name="nav_preview_distance">200м</string>
+    <string name="nav_preview_time">10:30</string>
+
+    <string name="blocked_terms">Заблокированные слова</string>
+    <string name="blocked_terms_desc">Уведомления, содержащие эти слова, будут игнорироваться.</string>
+    <string name="add_blocked_word">Добавить слово (напр. \'Спойлер\')</string>
+    <string name="add">Добавить</string>
+    <string name="remove">Удалить</string>
+    <string name="tap_to_configure_rules">Нажмите на приложение, чтобы настроить правила блокировки.</string>
+    <string name="spoiler_subtitle">Управление защитой от спойлеров и фильтрами</string>
+
+    <string name="active_notifications_title">Типы уведомлений</string>
+    <string name="active_notifications_subtitle">%d активных</string>
+    <string name="appearance_use_defaults_desc">Используются системные настройки скорости анимации и поведения плавающих окон.</string>
+    <string name="blocked_terms_active_count">%d активных правил</string>
+
+    <string name="global_rules">Глобальные правила</string>
+    <string name="app_specific_rules">Правила для отдельных приложений</string>
+    <string name="manage_app_rules_desc">Настройте фильтры для отдельных приложений</string>
+    <string name="blocked_terms_count">%d заблокированных слов</string>
+    <string name="no_active_rules">Нет активных правил</string>
+
+    <string name="setup_health_title">Совместимость системы</string>
+    <string name="check_device">Устройство: %s</string>
+    <string name="check_os_version">ОС: %s</string>
+    <string name="req_hyperos">Требуется HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">Требуется устройство Xiaomi/Redmi/Poco</string>
+    <string name="check_autostart">Фоновый автозапуск</string>
+    <string name="check_autostart_desc">Необходимо для перезапуска сервиса после перезагрузки.</string>
+    <string name="grant_permission">Предоставить</string>
+    <string name="status_ok">Совместимо</string>
+    <string name="status_fail">Несовместимо</string>
+    <string name="status_unknown">Неизвестно</string>
+
+    <string name="warning_cn_rom_title">Обнаружена китайская прошивка (CN ROM)</string>
+    <string name="warning_cn_rom_desc">Похоже, ваше устройство работает на китайской прошивке, в которой Xiaomi значительно изменяет внутреннюю структуру уведомлений. Функции могут быть нестабильными или вообще не работать.</string>
+
+    <string name="system_version">Версия системы</string>
+
+    <string name="call_incoming">Входящий звонок</string>
+    <string name="call_ongoing">Активный звонок</string>
+
+    <string-array name="call_keywords_hangup">
+        <item>hang</item>
+        <item>end</item>
+        <item>decline</item>
+        <item>reject</item>
+        <item>положить трубку</item>
+        <item>завершить</item>
+        <item>отклонить</item>
+        <item>сбросить</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>answer</item>
+        <item>accept</item>
+        <item>ответить</item>
+        <item>принять</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>speaker</item>
+        <item>audio</item>
+        <item>динамик</item>
+        <item>спикер</item>
+        <item>аудио</item>
+        <item>громкая связь</item>
+    </string-array>
+
+    <string name="title_0_3_0">Глобальное обновление</string>
+    <string name="changelog_0_3_0">
+        <b>Скрытые уведомления 👻<b>\n
+        Новая опция, позволяющая скрывать уведомления из системной панели, сохраняя Остров активным. Проверьте Глобальные настройки!\n\n
+        <b>Новые языки 🌍<b>\n
+        Особая благодарность нашему сообществу за эти переводы:\n
+        • 🇧🇷 Португальский (Бразилия)\n
+        • 🇵🇱 Польский\n
+        • 🇰🇷 Корейский\n
+        • 🇺🇦 Украинский\n\n
+        • 🇷🇺 Русский\n\n\n
+        • 🇩🇪 Немецкий\n\n\n\n
+        <b>Настройки навигации 🧭<b>\n
+        Теперь вы можете выбрать, какая информация будет отображаться слева и справа на Навигационном Острове (Расстояние, Время прибытия, Инструкция).\n\n
+        <b>Защита от спойлеров 🛡️<b>\n
+        Новая функция «Заблокированные слова». Указывайте слова глобально или для отдельных приложений, чтобы предотвратить появление определённых уведомлений на Острове.\n\n
+        <b>Улучшения звонков 📞<b>\n
+        Улучшена логика обнаружения для поддержки большего числа VoIP-приложений и «звонилок».\n\n
+        <b>Исправления и улучшения 🛠️<b>\n
+        • Исправлена критическая ошибка, из-за которой приложение зависало при загрузке после перезапуска.\n
+        • Исправлено отображение имён пакетов (например, «com.google...»)
+          вместо содержимого уведомлений.\n
+        • Обновлён дизайн панели настройки приложений для более удобного использования.\n
+        • Улучшён экран проверки совместимости с подробной информацией об устройстве.
+    </string>
+</resources>
+
+
