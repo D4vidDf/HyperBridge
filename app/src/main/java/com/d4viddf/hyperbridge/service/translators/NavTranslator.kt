@@ -28,25 +28,21 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
 
         val extras = sbn.notification.extras
 
-        // Sanitize inputs (Remove newlines that break layout)
         val title = (extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: "").replace("\n", " ").trim()
         val text = (extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "").replace("\n", " ").trim()
         val subText = (extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: "").replace("\n", " ").trim()
 
-        // 1. Progress
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
         val current = extras.getInt(Notification.EXTRA_PROGRESS, 0)
         val hasProgress = max > 0
         val percent = if (hasProgress) ((current.toFloat() / max.toFloat()) * 100).toInt() else 0
 
-        // 2. Text Analysis
         var instruction = ""
         var distance = ""
         var eta = ""
 
         fun isTimeInfo(s: String): Boolean = timeRegex.containsMatchIn(s) || arrivalKeywords.any { s.contains(it, true) }
 
-        // Find ETA
         if (isTimeInfo(subText)) eta = subText
         if (text.isNotEmpty() && title.isNotEmpty()) {
             if (eta.isEmpty()) {
@@ -65,7 +61,6 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", instruction)
 
-        // --- CONFIG ---
         val finalTimeout = config.timeout ?: 5000L
         val shouldFloat = if (finalTimeout == 0L) false else (config.isFloat ?: true)
 
@@ -78,29 +73,27 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         val navStartKey = "nav_start_icon"
         val navEndKey = "nav_end_icon"
 
-        // 1. App Icon (Dynamic)
         builder.addPicture(resolveIcon(sbn, picKey))
-
-        // 2. Static UI Elements
         builder.addPicture(getTransparentPicture(hiddenKey))
-
         builder.addPicture(getPictureFromResource(navStartKey, R.drawable.ic_nav_start))
         builder.addPicture(getPictureFromResource(navEndKey, R.drawable.ic_nav_end))
 
-        val actions = extractBridgeActions(sbn)
+        // FIX: Use ActionDisplayMode.TEXT to prioritize text labels (Hint Info) over icons
+        val actions = extractBridgeActions(sbn, ActionDisplayMode.TEXT)
         val actionKeys = actions.map { it.action.key }
 
-        // Shade Info (Combined)
         val shadeContent = listOf(distance, eta).filter { it.isNotEmpty() }.joinToString(" • ")
+
+        // --- SHADE INFO ---
         builder.setBaseInfo(
             title = instruction,
             content = shadeContent,
             pictureKey = picKey,
             actionKeys = actionKeys,
-            type = 2
+            // FIX: Type 1 = Standard Template (Supports Text Buttons like "Exit")
+            type = 1
         )
 
-        // Progress (Shade Only) - Now using Static Icons
         if (hasProgress) {
             builder.setProgressBar(
                 progress = percent,
@@ -110,8 +103,7 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
             )
         }
 
-        // --- 3. BIG ISLAND CUSTOM LAYOUT ---
-
+        // --- ISLAND INFO ---
         fun getTextInfo(type: NavContent): TextInfo {
             return when (type) {
                 NavContent.INSTRUCTION -> TextInfo(instruction, null)
@@ -123,13 +115,11 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         }
 
         builder.setBigIslandInfo(
-            // Left Side (Icon + User Configured Text)
             left = ImageTextInfoLeft(
                 1,
                 PicInfo(1, picKey),
                 getTextInfo(leftLayout)
             ),
-            // Right Side (User Configured Text + Transparent Spacer)
             right = ImageTextInfoRight(
                 2,
                 PicInfo(1, hiddenKey),

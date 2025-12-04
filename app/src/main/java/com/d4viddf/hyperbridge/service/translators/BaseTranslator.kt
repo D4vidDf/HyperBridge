@@ -10,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.BridgeAction
@@ -17,6 +18,13 @@ import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
 
 abstract class BaseTranslator(protected val context: Context) {
+
+    // Options for how actions should be rendered
+    enum class ActionDisplayMode {
+        TEXT, // Prioritize Text (Hint Info). Icon only loaded if text missing.
+        ICON, // Prioritize Icon. Text is cleared to show circular button.
+        BOTH  // Show both Text and Icon (if supported by layout).
+    }
 
     protected fun getTransparentPicture(key: String): HyperPicture {
         val conf = Bitmap.Config.ARGB_8888
@@ -74,16 +82,38 @@ abstract class BaseTranslator(protected val context: Context) {
         }
     }
 
-    protected fun extractBridgeActions(sbn: StatusBarNotification): List<BridgeAction> {
+    /**
+     * Extracts actions with configurable display mode.
+     * @param mode Determines if we load icons, show text, or both.
+     */
+    protected fun extractBridgeActions(
+        sbn: StatusBarNotification,
+        mode: ActionDisplayMode = ActionDisplayMode.BOTH
+    ): List<BridgeAction> {
         val bridgeActions = mutableListOf<BridgeAction>()
         val actions = sbn.notification.actions ?: return emptyList()
 
         actions.forEachIndexed { index, androidAction ->
-            if (!androidAction.title.isNullOrEmpty()) {
-                val uniqueKey = "act_${sbn.key.hashCode()}_$index"
-                var actionIcon: Icon? = null
-                var hyperPic: HyperPicture? = null
+            val rawTitle = androidAction.title?.toString() ?: ""
+            val uniqueKey = "act_${sbn.key.hashCode()}_$index"
 
+            var actionIcon: Icon? = null
+            var hyperPic: HyperPicture? = null
+
+            // --- 1. Determine Title ---
+            // If mode is ICON, we clear the text so it renders as a round button.
+            // Otherwise, we keep the text (Hint Info).
+            val finalTitle = if (mode == ActionDisplayMode.ICON) "" else rawTitle
+
+            // --- 2. Determine Icon Loading ---
+            // We load the icon if:
+            // - Mode is ICON or BOTH
+            // - Mode is TEXT but the text is empty (fallback to prevent invisible button)
+            val shouldLoadIcon = (mode == ActionDisplayMode.ICON) ||
+                    (mode == ActionDisplayMode.BOTH) ||
+                    (mode == ActionDisplayMode.TEXT && rawTitle.isEmpty())
+
+            if (shouldLoadIcon) {
                 val originalIcon = androidAction.getIcon()
                 if (originalIcon != null) {
                     val bitmap = loadIconBitmap(originalIcon, sbn.packageName)
@@ -92,23 +122,21 @@ abstract class BaseTranslator(protected val context: Context) {
                         hyperPic = HyperPicture("${uniqueKey}_icon", bitmap)
                     }
                 }
-
-                val hyperAction = HyperAction(
-                    key = uniqueKey,
-                    title = androidAction.title.toString(),
-                    icon = actionIcon,
-                    pendingIntent = androidAction.actionIntent,
-                    actionIntentType = 1
-                )
-
-                bridgeActions.add(BridgeAction(hyperAction, hyperPic))
             }
+
+            val hyperAction = HyperAction(
+                key = uniqueKey,
+                title = finalTitle,
+                icon = actionIcon,
+                pendingIntent = androidAction.actionIntent,
+                actionIntentType = 1
+            )
+
+            bridgeActions.add(BridgeAction(hyperAction, hyperPic))
         }
         return bridgeActions
     }
 
-    // FIX: Made 'protected' so subclasses can use it.
-    // FIX: Accepts 2 arguments to resolve the "Too many arguments" error.
     protected fun loadIconBitmap(icon: Icon, packageName: String): Bitmap? {
         return try {
             val drawable = if (icon.type == Icon.TYPE_RESOURCE) {
@@ -141,8 +169,8 @@ abstract class BaseTranslator(protected val context: Context) {
 
     protected fun Drawable.toBitmap(): Bitmap {
         if (this is BitmapDrawable && this.bitmap != null) return this.bitmap
-        val width = if (intrinsicWidth > 0) intrinsicWidth else 1
-        val height = if (intrinsicHeight > 0) intrinsicHeight else 1
+        val width = if (intrinsicWidth > 0) intrinsicWidth else 96
+        val height = if (intrinsicHeight > 0) intrinsicHeight else 96
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         setBounds(0, 0, canvas.width, canvas.height)
