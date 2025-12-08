@@ -31,7 +31,7 @@
 
     <string name="show_island">Mostrar Isla</string>
     <string name="perm_post_desc">Necesitamos permiso para mostrar la notificación \'Isla\' en tu pantalla.</string>
-    <string name="perm_granted">✅ Permiso Concedido</string>
+    <string name="perm_granted">Permiso Concedido</string>
     <string name="allow_notifications">Permitir Notificaciones</string>
 
     <string name="read_data">Leer Datos</string>
@@ -236,6 +236,16 @@
     <string name="cd_app_state_active">Activo</string>
     <string name="cd_app_state_inactive">Inactivo</string>
 
+    <string name="cd_move_up">Mover hacia arriba</string>
+    <string name="cd_move_down">Mover hacia abajo</string>
+    <string name="cd_drag_handle">Control de arrastre. Toca dos veces y mantén pulsado para reordenar, o usa las acciones para mover.</string>
+    <string name="cd_app_icon">Icono de la aplicación %s</string>
+    <string name="cd_nav_preview">Vista previa de navegación: %1$s a la izquierda, %2$s a la derecha</string>
+    <string name="cd_expand_changelog">Expandir detalles de la versión</string>
+    <string name="cd_collapse_changelog">Contraer detalles de la versión</string>
+    <string name="cd_configuration_group">Ajustes de configuración</string>
+    <string name="cd_about_group">Información de la aplicación</string>
+
     <string name="nav_preview_instruction">Girar a la derecha</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
@@ -309,7 +319,7 @@
         ¡Un agradecimiento especial a la comunidad por estas traducciones!\n
         • 🇧🇷 Portugués (Brasil)\n
         • 🇵🇱 Polaco\n
-        • 🇰🇷 Coreano\n\n
+        • 🇰🇷 Coreano\n
         • 🇺🇦 Ucraniano\n\n
         <b>Personalización de Navegación 🧭</b>\n
         Ahora puedes elegir qué información aparece a la izquierda y derecha de la Isla de Navegación (Distancia, Hora de llegada, Instrucción).\n\n
@@ -322,5 +332,73 @@
         • Corregido error donde las notificaciones mostraban el nombre del paquete (ej. "com.google...") en lugar del contenido.\n
         • Rediseñado el panel de Configuración de App.\n
         • Mejorada la pantalla de Comprobación de Compatibilidad con info detallada.
+    </string>
+
+    <string name="privacy_title">100% Offline y Seguro</string>
+    <string name="privacy_desc">Hyper Bridge procesa todo directamente en el procesador de tu teléfono.\n\nNO requiere acceso a internet, lo que significa que tus notificaciones y datos personales nunca salen de tu dispositivo.</string>
+
+    <string name="language">Idioma</string>
+    <string name="language_desc">Cambiar idioma de la aplicación</string>
+    <string name="system_default">Predeterminado del sistema</string>
+    <string name="save">Guardar</string>
+
+    <string name="backup_restore_title">Copia de seguridad y restauración</string>
+    <string name="backup_section_title">Gestionar datos</string>
+    <string name="backup_options_subtitle">Selecciona los datos a incluir en la operación</string>
+
+    <string name="option_app_settings">Ajustes de la aplicación</string>
+    <string name="option_app_settings_desc">Estado de configuración, tema, modos de comportamiento</string>
+
+    <string name="option_blocklist">Base de datos de bloqueo</string>
+    <string name="option_blocklist_desc">Tus palabras clave bloqueadas y reglas por aplicación</string>
+
+    <string name="option_priorities">Reglas de prioridad</string>
+    <string name="option_priorities_desc">Configuraciones personalizadas de prioridad de notificaciones</string>
+
+    <string name="action_export">Crear copia de seguridad</string>
+    <string name="action_import">Restaurar copia de seguridad</string>
+
+    <string name="export_success">Copia de seguridad guardada correctamente</string>
+    <string name="export_failed">Error al exportar: %s</string>
+    <string name="import_success">Datos restaurados correctamente</string>
+    <string name="import_failed">Error al importar: %s</string>
+    <string name="invalid_backup_file">Archivo de copia de seguridad no válido</string>
+    <string name="db_version_mismatch">Aviso: La copia es de una versión de base de datos distinta</string>
+
+    <string name="autostart_manual_check">El estado no se puede verificar automáticamente.\nPor favor, comprueba manualmente para asegurar que el servicio funciona correctamente.</string>
+
+    <string name="backup_info_title">Información de la Copia</string>
+    <string name="backup_meta_date">Fecha</string>
+    <string name="backup_meta_device">Dispositivo</string>
+    <string name="backup_meta_version">Versión</string>
+    <string name="backup_meta_keys">Elementos Totales</string>
+    <string name="backup_empty_suffix"> (Vacío)</string>
+    <string name="action_restore_selected">Restaurar Datos Seleccionados</string>
+
+    <string name="optimization_title">Optimización del Dispositivo</string>
+    <string name="no_restrictions">Poner "Sin Restricciones"</string>
+
+    <string name="privacy_card_title">Funcionamiento Offline</string>
+    <string name="privacy_card_desc">No requiere conexión a internet.</string>
+
+    <string name="title_0_3_1">Actualización de Copias y Idiomas</string>
+    <string name="changelog_0_3_1">
+        <b>Copia de Seguridad y Restauración 📦</b>\n
+        ¡Nueva función para usuarios avanzados! Exporta de forma segura tu configuración, listas de bloqueo y prioridades a un archivo .hbr y restáuralos cuando quieras.\n\n
+        <b>Nuevos Idiomas 🌍</b>\n
+        Añadido soporte para:\n
+        • 🇩🇪 Alemán\n
+        • 🇷🇺 Ruso\n
+        • 🇺🇦 Ucraniano (Mejorado)\n
+        <i>Además: Nuevo selector de idioma en la app para cambiarlo sin afectar a los ajustes del sistema.</i>\n\n
+        <b>Renovación Visual 🎨</b>\n
+        La aplicación se ha actualizado al diseño <b>Material 3 Expressive</b>. Disfruta de cabeceras más grandes, formas más redondeadas y una experiencia más fluida.\n\n
+        <b>Privacidad y Configuración 🛡️</b>\n
+        • Onboarding mejorado con una página de Privacidad dedicada que aclara la arquitectura offline.\n
+        • Verificaciones de compatibilidad más estrictas para asegurar la mejor experiencia en HyperOS 3.0.\n\n
+        <b>Correcciones 🛠️</b>\n
+        • Solucionado un error crítico donde la configuración se perdía al reiniciar (migración a base de datos).\n
+        • Corregido el botón "Salir" en la isla de Navegación (ahora muestra texto en lugar de un icono).\n
+        • Corregida la carga del icono de la App en Ajustes.\n
     </string>
 </resources>
