@@ -339,6 +339,75 @@
         • Verbesserte Kompatibilitätsprüfung mit detaillierten Geräteinformationen.
     </string>
 
+    <string name="privacy_title">100% Offline &amp; Sicher</string> 
+    <string name="privacy_desc">Hyper Bridge verarbeitet alles direkt auf dem Prozessor Ihres Telefons.\n\nEs benötigt KEINEN Internetzugang, was bedeutet, dass Ihre Benachrichtigungen und persönlichen Daten Ihr Gerät niemals verlassen.</string>
+    
+    <string name="language">Sprache</string>
+    <string name="language_desc">Anwendungssprache ändern</string>
+    <string name="system_default">Systemstandard</string>
+    <string name="save">Speichern</string>
+    
+    <string name="backup_restore_title">Backup &amp; Wiederherstellung</string>
+    <string name="backup_section_title">Datenverwaltung</string>
+    <string name="backup_options_subtitle">Wählen Sie die Daten aus, die in den Vorgang aufgenommen werden sollen</string>
+    
+    <string name="option_app_settings">App-Einstellungen</string>
+    <string name="option_app_settings_desc">Einrichtungsstatus, Theme, Verhaltensmodi</string>
+    
+    <string name="option_blocklist">Blocklisten-Datenbank</string>
+    <string name="option_blocklist_desc">Ihre benutzerdefinierten blockierten Schlüsselwörter und Apps</string>
+    
+    <string name="option_priorities">Prioritätsregeln</string>
+    <string name="option_priorities_desc">Benutzerdefinierte Prioritätskonfigurationen für Benachrichtigungen</string>
+    
+    <string name="action_export">Backup erstellen</string>
+    <string name="action_import">Backup wiederherstellen</string>
+    
+    <string name="export_success">Backup erfolgreich gespeichert</string>
+    <string name="export_failed">Backup fehlgeschlagen: %s</string>
+    <string name="import_success">Daten erfolgreich wiederhergestellt</string>
+    <string name="import_failed">Wiederherstellung fehlgeschlagen: %s</string>
+    <string name="invalid_backup_file">Ungültige HyperBridge-Backupdatei</string>
+    <string name="db_version_mismatch">Warnung: Backup stammt aus einer anderen Datenbankversion</string>
+    
+    <string name="autostart_manual_check">Status kann nicht automatisch überprüft werden.\nBitte prüfen Sie dies manuell, um einen ordnungsgemäßen Betrieb des Dienstes sicherzustellen</string>
+    
+    <string name="backup_info_title">Backup-Informationen</string>
+    <string name="backup_meta_date">Datum</string>
+    <string name="backup_meta_device">Gerät</string>
+    <string name="backup_meta_version">Version</string>
+    <string name="backup_meta_keys">Gesamtanzahl</string>
+    <string name="backup_empty_suffix"> (Leer)</string>
+    <string name="action_restore_selected">Ausgewählte Daten wiederherstellen</string>
+    
+    <string name="optimization_title">Geräteoptimierung</string>
+    <string name="no_restrictions">„Keine Einschränkungen“ festlegen</string>
+    
+    <string name="privacy_card_title">Offline-First</string>
+    <string name="privacy_card_desc">Keine Internetverbindung erforderlich.</string>
+    
+    <string name="title_0_3_1">Sicherung &amp; Polyglott-Update</string>
+    <string name="changelog_0_3_1">
+            <b>Backup & Wiederherstellung 📦</b>\n
+            Neues Feature für Power-User! Exportieren Sie Ihre Einstellungen, Blocklisten und App-Prioritäten sicher in eine .hbr-Datei und stellen Sie sie jederzeit wieder her.\n\n
+            <b>Neue Sprachen 🌍</b>\n
+            Unterstützung hinzugefügt für:\n
+            • 🇩🇪 Deutsch\n
+            • 🇷🇺 Russisch\n
+            • 🇺🇦 Ukrainisch (verbessert)\n
+            <i>Außerdem: Ein neuer Sprachwahlschalter in der App, um die Sprache zu ändern, ohne die Systemeinstellungen anzupassen.</i>\n\n
+            <b>Visuelles Update 🎨</b>\n
+            Die App wurde auf das <b>Material 3 Expressive</b> Design aktualisiert. Genießen Sie größere Überschriften, rundere Formen und ein flüssigeres Nutzererlebnis.\n\n
+            <b>Datenschutz &amp; Einrichtung 🛡️</b>\n
+            • Verbesserter Onboarding-Prozess mit einer eigenen Datenschutzseite, die die Offline-First-Architektur erklärt.\n
+            • Strengere Kompatibilitätsprüfungen für das beste Erlebnis unter HyperOS 3.0.\n\n
+            <b>Fehlerbehebungen 🛠️</b>\n
+            • Kritischer Fehler behoben, bei dem Einstellungen nach dem Neustart des Geräts verloren gingen (in Datenbank migriert).\n
+            • „Beenden“-Taste in der Navigation Island behoben – sie zeigte ein Symbol statt Text an.\n
+            • Fehler beim Laden von App-Icons in den Einstellungen behoben.\n
+    </string>
+
 </resources>
+
 
 
