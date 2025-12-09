@@ -314,4 +314,72 @@
         • Przeprojektowano arkusz konfiguracji aplikacji dla lepszej użyteczności.\n
         • Ulepszono ekran sprawdzania kompatybilności z szczegółowymi informacjami o urządzeniu.
     </string>
+
+    <string name="privacy_title">100% Offline i Bezpieczne</string> 
+    <string name="privacy_desc">Hyper Bridge przetwarza wszystko bezpośrednio na procesorze Twojego telefonu.\n\nAplikacja NIE wymaga dostępu do internetu, co oznacza, że Twoje powiadomienia i dane osobiste nigdy nie opuszczają urządzenia.</string>
+    
+    <string name="language">Język</string>
+    <string name="language_desc">Zmień język aplikacji</string>
+    <string name="system_default">Domyślny systemowy</string>
+    <string name="save">Zapisz</string>
+    
+    <string name="backup_restore_title">Kopia zapasowa i Przywracanie</string>
+    <string name="backup_section_title">Zarządzanie Danymi</string>
+    <string name="backup_options_subtitle">Wybierz dane do uwzględnienia w operacji</string>
+    
+    <string name="option_app_settings">Ustawienia aplikacji</string>
+    <string name="option_app_settings_desc">Status konfiguracji, motyw, tryby działania</string>
+    
+    <string name="option_blocklist">Baza listy blokad</string>
+    <string name="option_blocklist_desc">Twoje zablokowane słowa kluczowe i aplikacje</string>
+    
+    <string name="option_priorities">Zasady Priorytetów</string>
+    <string name="option_priorities_desc">Niestandardowe konfiguracje priorytetów powiadomień</string>
+    
+    <string name="action_export">Utwórz kopię zapasową</string>
+    <string name="action_import">Przywróć kopię zapasową</string>
+    
+    <string name="export_success">Kopia zapasowa została zapisana pomyślnie</string>
+    <string name="export_failed">Błąd eksportu: %s</string>
+    <string name="import_success">Dane zostały pomyślnie przywrócone</string>
+    <string name="import_failed">Błąd importu: %s</string>
+    <string name="invalid_backup_file">Nieprawidłowy plik kopii zapasowej HyperBridge</string>
+    <string name="db_version_mismatch">Ostrzeżenie: Kopia zapasowa pochodzi z innej wersji bazy danych</string>
+    
+    <string name="autostart_manual_check">Nie można automatycznie zweryfikować statusu.\nProszę sprawdzić to ręcznie, aby zapewnić prawidłowe działanie usługi</string>
+    
+    <string name="backup_info_title">Informacje o kopii zapasowej</string>
+    <string name="backup_meta_date">Data</string>
+    <string name="backup_meta_device">Urządzenie</string>
+    <string name="backup_meta_version">Wersja</string>
+    <string name="backup_meta_keys">Łączna liczba elementów</string>
+    <string name="backup_empty_suffix"> (Puste)</string>
+    <string name="action_restore_selected">Przywróć wybrane dane</string>
+    
+    <string name="optimization_title">Optymalizacja urządzenia</string>
+    <string name="no_restrictions">Ustaw „Brak ograniczeń”</string>
+    
+    <string name="privacy_card_title">Najpierw Offline</string>
+    <string name="privacy_card_desc">Połączenie z internetem nie jest wymagane.</string>
+    
+    <string name="title_0_3_1">Aktualizacja: Kopia zapasowa i Wielojęzyczność</string>
+    <string name="changelog_0_3_1">
+            <b>Kopia zapasowa i Przywracanie 📦</b>\n
+            Nowa funkcja dla zaawansowanych użytkowników! Bezpiecznie eksportuj swoje ustawienia, listy blokad i priorytety aplikacji do pliku .hbr i przywracaj je w dowolnym momencie.\n\n
+            <b>Nowe Języki 🌍</b>\n
+            Dodano obsługę:\n
+            • 🇩🇪 Niemieckiego\n
+            • 🇷🇺 Rosyjskiego\n
+            • 🇺🇦 Ukraińskiego (ulepszone)\n
+            <i>Dodatkowo: nowy selektor języka w aplikacji, który pozwala zmienić język bez modyfikowania ustawień systemowych.</i>\n\n
+            <b>Odświeżenie Wizualne 🎨</b>\n
+            Aplikacja została zaktualizowana do stylu <b>Material 3 Expressive</b>. Ciesz się większymi nagłówkami, bardziej zaokrąglonymi kształtami i płynniejszą obsługą.\n\n
+            <b>Prywatność i Konfiguracja 🛡️</b>\n
+            • Ulepszony onboarding z dedykowaną stroną prywatności wyjaśniającą architekturę offline-first.\n
+            • Zaostrzone kontrole kompatybilności dla najlepszej pracy na HyperOS 3.0.\n\n
+            <b>Poprawki 🛠️</b>\n
+            • Naprawiono krytyczny problem powodujący utratę ustawień po ponownym uruchomieniu urządzenia (przeniesiono do bazy danych).\n
+            • Naprawiono przycisk „Wyjście” w Navigation Island – teraz wyświetla tekst, a nie ikonę.\n
+            • Naprawiono ładowanie ikon aplikacji w Ustawieniach.\n
+    </string>
 </resources>
