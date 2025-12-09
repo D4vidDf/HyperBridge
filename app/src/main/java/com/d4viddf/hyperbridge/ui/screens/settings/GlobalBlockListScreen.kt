@@ -2,6 +2,7 @@ package com.d4viddf.hyperbridge.ui.screens.settings
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -26,10 +29,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,12 +45,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -54,6 +57,9 @@ import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.BlocklistEditor
+import com.d4viddf.hyperbridge.ui.components.ExpressiveGroupCard
+import com.d4viddf.hyperbridge.ui.components.ExpressiveSectionTitle
+import com.d4viddf.hyperbridge.ui.components.ExpressiveSettingsItem
 import kotlinx.coroutines.launch
 
 /**
@@ -68,71 +74,72 @@ fun GlobalBlocklistScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val globalBlockedTerms by preferences.globalBlockedTermsFlow.collectAsState(initial = emptySet())
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = { Text(stringResource(R.string.blocked_terms)) },
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onBack) {
+                    FilledTonalIconButton(
+                        onClick = onBack,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
         ) {
-            // 1. GLOBAL RULES TITLE
-            Text(
-                text = stringResource(R.string.global_rules),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp).semantics { heading() }
-            )
+            // 1. GLOBAL RULES
+            ExpressiveSectionTitle(stringResource(R.string.global_rules))
 
-            // GLOBAL EDITOR CARD
+            // GLOBAL EDITOR CARD (Custom padding inside card for editor)
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                shape = RoundedCornerShape(20.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp), // Expressive
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                BlocklistEditor(
-                    terms = globalBlockedTerms,
-                    onUpdate = { scope.launch { preferences.setGlobalBlockedTerms(it) } },
-                    modifier = Modifier.padding(16.dp)
-                )
+                Box(modifier = Modifier.padding(16.dp)) {
+                    BlocklistEditor(
+                        terms = globalBlockedTerms,
+                        onUpdate = { scope.launch { preferences.setGlobalBlockedTerms(it) } }
+                    )
+                }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // 2. APP RULES TITLE
-            Text(
-                text = stringResource(R.string.app_specific_rules),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp).semantics { heading() }
-            )
+            // 2. APP RULES
+            ExpressiveSectionTitle(stringResource(R.string.app_specific_rules))
 
-            // NAVIGATION ENTRY CARD (Fixed design)
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SettingsItem(
+            // NAVIGATION ENTRY CARD (Reusing Expressive Component)
+            ExpressiveGroupCard {
+                ExpressiveSettingsItem(
                     icon = Icons.Default.Apps,
                     title = stringResource(R.string.app_specific_rules),
                     subtitle = stringResource(R.string.manage_app_rules_desc),
                     onClick = onNavigateToAppList
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -148,23 +155,35 @@ fun BlocklistAppListScreen(
 ) {
     val activeApps by viewModel.activeAppsState.collectAsState()
     var selectedApp by remember { mutableStateOf<AppInfo?>(null) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = { Text(stringResource(R.string.app_specific_rules)) },
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onBack) {
+                    FilledTonalIconButton(
+                        onClick = onBack,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp) // Add spacing between cards
+            verticalArrangement = Arrangement.spacedBy(12.dp) // Increased spacing for expressive cards
         ) {
             items(activeApps, key = { it.packageName }) { app ->
                 AppBlockItem(app = app, viewModel = viewModel) { selectedApp = app }
@@ -188,7 +207,6 @@ fun AppBlockItem(
     viewModel: AppListViewModel,
     onClick: () -> Unit
 ) {
-    // Collect specific rules for this app to show count
     val terms by viewModel.getAppBlockedTerms(app.packageName).collectAsState(initial = emptySet())
     val count = terms.size
 
@@ -198,33 +216,38 @@ fun AppBlockItem(
         stringResource(R.string.no_active_rules)
     }
 
-    val subtitleColor = if (count > 0) MaterialTheme.colorScheme.error else Color.Gray
+    val subtitleColor = if (count > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
 
-    // Wrapped in Card for consistent look with Priority List
+    // Expressive Card Item
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-        onClick = onClick
+        shape = RoundedCornerShape(24.dp), // Expressive
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        onClick = onClick,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 bitmap = app.icon.asImageBitmap(),
                 contentDescription = null,
-                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
             )
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = app.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
@@ -234,7 +257,8 @@ fun AppBlockItem(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -252,6 +276,7 @@ fun AppBlocklistDialog(
         onDismissRequest = onDismiss,
         title = { Text(app.name) },
         text = {
+            // Reusing existing editor component
             BlocklistEditor(
                 terms = blockedTerms,
                 onUpdate = { viewModel.updateAppBlockedTerms(app.packageName, it) }

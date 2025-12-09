@@ -1,31 +1,60 @@
 package com.d4viddf.hyperbridge
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.db.AppDatabase
+import com.d4viddf.hyperbridge.data.model.HyperBridgeBackup
 import com.d4viddf.hyperbridge.ui.components.ChangelogDialog
 import com.d4viddf.hyperbridge.ui.components.PriorityEducationDialog
 import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
 import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.*
+import com.d4viddf.hyperbridge.ui.screens.settings.AppPriorityScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.BackupSettingsScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.BlocklistAppListScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.ChangelogHistoryScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.GlobalBlocklistScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.GlobalSettingsScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.ImportPreviewScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.InfoScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.LicensesScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.NavCustomizationScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.PrioritySettingsScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.SetupHealthScreen
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
+import com.d4viddf.hyperbridge.util.BackupManager
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -39,8 +68,9 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class Screen(val depth: Int) {
-    ONBOARDING(0), HOME(1), INFO(2), SETUP(3), LICENSES(3), BEHAVIOR(3), GLOBAL_SETTINGS(3), HISTORY(3), NAV_CUSTOMIZATION(4), APP_PRIORITY(4), GLOBAL_BLOCKLIST(4),
-    BLOCKLIST_APPS(5)
+    ONBOARDING(0), HOME(1), INFO(2), SETUP(3), LICENSES(3), BEHAVIOR(3), GLOBAL_SETTINGS(3), HISTORY(3),
+    BACKUP(3), IMPORT_PREVIEW(4), // Backup Flow
+    NAV_CUSTOMIZATION(4), APP_PRIORITY(4), GLOBAL_BLOCKLIST(4), BLOCKLIST_APPS(5)
 }
 
 @Composable
@@ -49,14 +79,16 @@ fun MainRootNavigation() {
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
 
+    // --- 1. INITIALIZE DB & MANAGER ---
+    val database = remember { AppDatabase.getDatabase(context) }
+    val backupManager = remember { BackupManager(context, preferences, database) }
+
     val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null } }
     @Suppress("DEPRECATION")
-    val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfo?.longVersionCode?.toInt() ?: 0 else packageInfo?.versionCode ?: 0
-    val currentVersionName = packageInfo?.versionName ?: "0.3.0"
+    val currentVersionCode = packageInfo?.longVersionCode?.toInt() ?: 0
+    val currentVersionName = packageInfo?.versionName ?: "0.3.1"
 
-    // --- 1. ROBUST DATA COLLECTION ---
-    // We use produceState to initialize as NULL.
-    // This ensures we show the Loading Spinner until the Flow emits its first real value from disk.
+    // --- 2. ROBUST DATA COLLECTION ---
     val isSetupComplete by produceState<Boolean?>(initialValue = null) {
         preferences.isSetupComplete.collect { value = it }
     }
@@ -69,16 +101,16 @@ fun MainRootNavigation() {
     var showPriorityEdu by remember { mutableStateOf(false) }
     var navConfigPackage by remember { mutableStateOf<String?>(null) }
 
-    // --- 2. ROUTING LOGIC ---
+    // State to hold the parsed backup file before restoring
+    var pendingImportBackup by remember { mutableStateOf<HyperBridgeBackup?>(null) }
+
+    // --- 3. ROUTING LOGIC ---
     LaunchedEffect(isSetupComplete) {
-        // Only run logic when we have a valid boolean from disk
         if (isSetupComplete != null) {
             if (currentScreen == null) {
-                // Route based on saved state
                 currentScreen = if (isSetupComplete == true) Screen.HOME else Screen.ONBOARDING
             }
 
-            // If setup is done, check for modals
             if (isSetupComplete == true) {
                 if (currentVersionCode > lastSeenVersion) {
                     showChangelog = true
@@ -89,8 +121,13 @@ fun MainRootNavigation() {
         }
     }
 
+    // --- 4. BACK HANDLER ---
     BackHandler(enabled = currentScreen != Screen.HOME && currentScreen != Screen.ONBOARDING) {
         currentScreen = when (currentScreen) {
+            Screen.IMPORT_PREVIEW -> Screen.BACKUP
+            Screen.BACKUP -> Screen.INFO
+            Screen.BLOCKLIST_APPS -> Screen.GLOBAL_BLOCKLIST
+            Screen.GLOBAL_BLOCKLIST -> Screen.INFO
             Screen.NAV_CUSTOMIZATION -> if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS
             Screen.GLOBAL_SETTINGS -> Screen.INFO
             Screen.APP_PRIORITY -> Screen.BEHAVIOR
@@ -101,8 +138,7 @@ fun MainRootNavigation() {
         }
     }
 
-    // --- 3. LOADING STATE ---
-    // If setup state is null, or we haven't routed yet -> Show Spinner
+    // --- 5. RENDER SCREENS ---
     if (isSetupComplete == null || currentScreen == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -139,7 +175,8 @@ fun MainRootNavigation() {
                     onBehaviorClick = { currentScreen = Screen.BEHAVIOR },
                     onGlobalSettingsClick = { currentScreen = Screen.GLOBAL_SETTINGS },
                     onHistoryClick = { currentScreen = Screen.HISTORY },
-                    onBlocklistClick = { currentScreen = Screen.GLOBAL_BLOCKLIST }
+                    onBlocklistClick = { currentScreen = Screen.GLOBAL_BLOCKLIST },
+                    onBackupClick = { currentScreen = Screen.BACKUP }
                 )
                 Screen.GLOBAL_SETTINGS -> GlobalSettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavSettingsClick = { navConfigPackage = null; currentScreen = Screen.NAV_CUSTOMIZATION })
                 Screen.NAV_CUSTOMIZATION -> NavCustomizationScreen(onBack = { currentScreen = if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS }, packageName = navConfigPackage)
@@ -148,14 +185,48 @@ fun MainRootNavigation() {
                 Screen.BEHAVIOR -> PrioritySettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavigateToPriorityList = { currentScreen = Screen.APP_PRIORITY })
                 Screen.APP_PRIORITY -> AppPriorityScreen(onBack = { currentScreen = Screen.BEHAVIOR })
                 Screen.HISTORY -> ChangelogHistoryScreen(onBack = { currentScreen = Screen.INFO })
+
                 Screen.GLOBAL_BLOCKLIST -> GlobalBlocklistScreen(
                     onBack = { currentScreen = Screen.INFO },
                     onNavigateToAppList = { currentScreen = Screen.BLOCKLIST_APPS }
                 )
-
                 Screen.BLOCKLIST_APPS -> BlocklistAppListScreen(
                     onBack = { currentScreen = Screen.GLOBAL_BLOCKLIST }
                 )
+
+                // --- BACKUP FLOW ---
+                Screen.BACKUP -> BackupSettingsScreen(
+                    onBack = { currentScreen = Screen.INFO },
+                    backupManager = backupManager,
+                    onBackupFileLoaded = { backup ->
+                        pendingImportBackup = backup
+                        currentScreen = Screen.IMPORT_PREVIEW
+                    }
+                )
+
+                Screen.IMPORT_PREVIEW -> {
+                    if (pendingImportBackup != null) {
+                        ImportPreviewScreen(
+                            backupData = pendingImportBackup!!,
+                            onBack = { currentScreen = Screen.BACKUP },
+                            onConfirmRestore = { selection ->
+                                scope.launch {
+                                    val result = backupManager.restoreBackup(pendingImportBackup!!, selection)
+                                    if (result.isSuccess) {
+                                        Toast.makeText(context, context.getString(R.string.import_success), Toast.LENGTH_LONG).show()
+                                        // Force restart navigation to reflect changes immediately
+                                        currentScreen = Screen.HOME
+                                    } else {
+                                        Toast.makeText(context, context.getString(R.string.import_failed, result.exceptionOrNull()?.message), Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            }
+                        )
+                    } else {
+                        // Fallback logic
+                        LaunchedEffect(Unit) { currentScreen = Screen.BACKUP }
+                    }
+                }
             }
         }
     }

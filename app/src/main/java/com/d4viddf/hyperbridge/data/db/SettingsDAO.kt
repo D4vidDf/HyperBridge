@@ -22,4 +22,10 @@ interface SettingsDao {
 
     @Query("DELETE FROM settings WHERE `key` = :key")
     suspend fun delete(key: String)
+
+    @Query("SELECT * FROM settings")
+    suspend fun getAllSync(): List<AppSetting> // Needed for Export
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(settings: List<AppSetting>) // Needed for Restore
 }

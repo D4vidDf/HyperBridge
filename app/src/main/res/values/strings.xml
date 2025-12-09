@@ -30,7 +30,7 @@
 
     <string name="show_island">Show Island</string>
     <string name="perm_post_desc">We need permission to post the \'Island\' notification on your screen.</string>
-    <string name="perm_granted">✅ Permission Granted</string>
+    <string name="perm_granted">Permission Granted</string>
     <string name="allow_notifications">Allow Notifications</string>
 
     <string name="read_data">Read Data</string>
@@ -320,5 +320,74 @@
         • Fixed notifications sometimes showing raw package names (e.g. "com.google...") instead of content.\n
         • Redesigned App Configuration sheet for better usability.\n
         • Improved Compatibility Check screen with detailed device info.
+    </string>
+</resources>
+
+    <string name="privacy_title">100% Offline &amp; Secure</string>
+    <string name="privacy_desc">Hyper Bridge processes everything directly on your phone\'s processor.\n\nIt does NOT require internet access, meaning your notifications and personal data never leave your device.</string>
+
+    <string name="language">Language</string>
+    <string name="language_desc">Change application language</string>
+    <string name="system_default">System Default</string>
+    <string name="save">Save</string>
+
+    <string name="backup_restore_title">Backup &amp; Restore</string>
+    <string name="backup_section_title">Manage Data</string>
+    <string name="backup_options_subtitle">Select data to include in the operation</string>
+
+    <string name="option_app_settings">App Settings</string>
+    <string name="option_app_settings_desc">Setup status, theme, behavior modes</string>
+
+    <string name="option_blocklist">Blocklist Database</string>
+    <string name="option_blocklist_desc">Your custom blocked keywords and apps</string>
+
+    <string name="option_priorities">Priority Rules</string>
+    <string name="option_priorities_desc">Custom notification priority configurations</string>
+
+    <string name="action_export">Create Backup</string>
+    <string name="action_import">Restore Backup</string>
+
+    <string name="export_success">Backup saved successfully</string>
+    <string name="export_failed">Export failed: %s</string>
+    <string name="import_success">Data restored successfully</string>
+    <string name="import_failed">Import failed: %s</string>
+    <string name="invalid_backup_file">Invalid HyperBridge backup file</string>
+    <string name="db_version_mismatch">Warning: Backup from a different database version</string>
+
+    <string name="autostart_manual_check">Status cannot be verified automatically.\nPlease check this manually to ensure the service works proprely</string>
+
+    <string name="backup_info_title">Backup Information</string>
+    <string name="backup_meta_date">Date</string>
+    <string name="backup_meta_device">Device</string>
+    <string name="backup_meta_version">Version</string>
+    <string name="backup_meta_keys">Total Items</string>
+    <string name="backup_empty_suffix"> (Empty)</string>
+    <string name="action_restore_selected">Restore Selected Data</string>
+
+    <string name="optimization_title">Device Optimization</string>
+    <string name="no_restrictions">Set "No Restrictions"</string>
+
+    <string name="privacy_card_title">Offline First</string>
+    <string name="privacy_card_desc">No internet connection required.</string>
+
+    <string name="title_0_3_1">Backup &amp; Polyglot Update</string>
+    <string name="changelog_0_3_1">
+        <b>Backup &amp; Restore 📦</b>\n
+        New power-user feature! Securely export your settings, blocklists, and app priorities to a .hbr file and restore them anytime.\n\n
+        <b>New Languages 🌍</b>\n
+        Added support for:\n
+        • 🇩🇪 German\n
+        • 🇷🇺 Russian\n
+        • 🇺🇦 Ukrainian (Improved)\n
+        <i>Plus: A new in-app Language Selector to change languages without affecting your system settings.</i>\n\n
+        <b>Visual Refresh 🎨</b>\n
+        The app has been updated with <b>Material 3 Expressive</b> design. Enjoy larger headers, rounder shapes, and a smoother experience.\n\n
+        <b>Privacy &amp; Setup 🛡️</b>\n
+        • Improved Onboarding with a dedicated Privacy page clarifying offline-first architecture.\n
+        • Stricter compatibility checks to ensure the best experience on HyperOS 3.0.\n\n
+        <b>Fixes 🛠️</b>\n
+        • Fixed a critical issue where settings were lost after device reboot (migrated to database).\n
+        • Fixed "Exit" button in Navigation island showing as an icon instead of text.\n
+        • Fixed App Icon loading in Settings.\n
     </string>
 </resources>

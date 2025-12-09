@@ -15,8 +15,8 @@ android {
         applicationId = "com.d4viddf.hyperbridge"
         minSdk = 35
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.3.0"
+        versionCode = 8
+        versionName = "0.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.ui)
+    implementation(libs.androidx.appcompat)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
@@ -67,6 +68,8 @@ dependencies {
     implementation(libs.hyperisland.kit)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 configurations.all {
