@@ -321,7 +321,6 @@
         • Redesigned App Configuration sheet for better usability.\n
         • Improved Compatibility Check screen with detailed device info.
     </string>
-</resources>
 
     <string name="privacy_title">100% Offline &amp; Secure</string>
     <string name="privacy_desc">Hyper Bridge processes everything directly on your phone\'s processor.\n\nIt does NOT require internet access, meaning your notifications and personal data never leave your device.</string>
