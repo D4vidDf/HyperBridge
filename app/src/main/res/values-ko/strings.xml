@@ -332,4 +332,73 @@
                 • 앱 구성 패널 디자인 개선\n
                 • 기기 정보를 포함한 호환성 검사 화면 개선\n
     </string>
+
+    <string name="privacy_title">100% 오프라인 &amp; 보안</string>
+    <string name="privacy_desc">Hyper Bridge는 모든 작업을 휴대폰의 프로세서에서 직접 처리합니다.\n\n인터넷 연결이 필요하지 않으며, 이는 알림과 개인 데이터가 절대 기기를 떠나지 않음을 의미합니다.</string>
+    
+    <string name="language">언어</string>
+    <string name="language_desc">애플리케이션 언어 변경</string>
+    <string name="system_default">시스템 기본값</string>
+    <string name="save">저장</string>
+    
+    <string name="backup_restore_title">백업 &amp; 복원</string>
+    <string name="backup_section_title">데이터 관리</string>
+    <string name="backup_options_subtitle">작업에 포함할 데이터를 선택하세요</string>
+    
+    <string name="option_app_settings">앱 설정</string>
+    <string name="option_app_settings_desc">설정 상태, 테마, 동작 모드</string>
+    
+    <string name="option_blocklist">차단 목록 데이터베이스</string>
+    <string name="option_blocklist_desc">사용자가 지정한 차단된 키워드 및 앱</string>
+    
+    <string name="option_priorities">우선순위 규칙</string>
+    <string name="option_priorities_desc">사용자 지정 알림 우선순위 구성</string>
+    
+    <string name="action_export">백업 생성</string>
+    <string name="action_import">백업 복원</string>
+    
+    <string name="export_success">백업이 성공적으로 저장되었습니다</string>
+    <string name="export_failed">백업 실패: %s</string>
+    <string name="import_success">데이터가 성공적으로 복원되었습니다</string>
+    <string name="import_failed">복원 실패: %s</string>
+    <string name="invalid_backup_file">잘못된 HyperBridge 백업 파일입니다</string>
+    <string name="db_version_mismatch">경고: 다른 데이터베이스 버전에서 생성된 백업입니다</string>
+    
+    <string name="autostart_manual_check">상태를 자동으로 확인할 수 없습니다.\n서비스가 정상적으로 동작하도록 직접 확인해 주세요</string>
+    
+    <string name="backup_info_title">백업 정보</string>
+    <string name="backup_meta_date">날짜</string>
+    <string name="backup_meta_device">기기</string>
+    <string name="backup_meta_version">버전</string>
+    <string name="backup_meta_keys">전체 항목 수</string>
+    <string name="backup_empty_suffix"> (비어 있음)</string>
+    <string name="action_restore_selected">선택한 데이터 복원</string>
+    
+    <string name="optimization_title">기기 최적화</string>
+    <string name="no_restrictions">“제한 없음”으로 설정</string>
+    
+    <string name="privacy_card_title">오프라인 우선</string>
+    <string name="privacy_card_desc">인터넷 연결이 필요 없습니다.</string>
+    
+    <string name="title_0_3_1">백업 &amp; 다국어 업데이트</string>
+    
+    <string name="changelog_0_3_1">
+            &lt;b&gt;백업 &amp; 복원 📦&lt;/b&gt;\n
+            고급 사용자 기능 추가! 설정, 차단 목록, 앱 우선순위를 .hbr 파일로 안전하게 내보내고 언제든지 복원할 수 있습니다.\n\n
+            &lt;b&gt;새로운 언어 🌍&lt;/b&gt;\n
+            다음 언어가 추가되었습니다:\n
+            • 🇩🇪 독일어\n
+            • 🇷🇺 러시아어\n
+            • 🇺🇦 우크라이나어 (개선됨)\n
+            &lt;i&gt;또한: 시스템 언어에 영향을 주지 않고 앱 내에서 바로 변경할 수 있는 새로운 언어 선택기가 추가되었습니다.&lt;/i&gt;\n\n
+            &lt;b&gt;시각적 업데이트 🎨&lt;/b&gt;\n
+            앱이 Material 3 Expressive 디자인으로 새로워졌습니다. 더 큰 헤더, 더 둥근 형태, 더 부드러운 사용자 경험을 제공합니다.\n\n
+            &lt;b&gt;프라이버시 &amp; 설정 🛡️&lt;/b&gt;\n
+            • 오프라인 우선 구조를 설명하는 전용 프라이버시 페이지가 포함된 온보딩 개선.\n
+            • HyperOS 3.0에서 최고의 경험을 제공하기 위한 더욱 엄격한 호환성 검사.\n\n
+            &lt;b&gt;버그 수정 🛠️&lt;/b&gt;\n
+            • 기기 재부팅 후 설정이 사라지는 치명적 오류 수정(데이터베이스로 마이그레이션됨).\n
+            • Navigation Island에서 “종료” 버튼이 아이콘으로 표시되던 문제 수정 — 이제 텍스트로 표시됩니다.\n
+            • 설정에서 앱 아이콘 로딩 문제 수정.\n
+    </string>
 </resources>
