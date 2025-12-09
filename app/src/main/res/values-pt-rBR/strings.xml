@@ -304,6 +304,7 @@
         • 🇧🇷 Português Brasileiro\n
         • 🇵🇱 Polonês\n
         • 🇰🇷 Coreano\n\n
+        • 🇺🇦 Ucraniano\n\n
         <b>Customização da Navegação 🧭</b>\n
         Você agora pode escolher qual informação aparece no lado esquerdo e direito da navegação da Ilha (Distância, Tempo estimado (ETA), Instrução).\n\n
         <b>Proteção contra Spoiler 🛡️</b>\n
@@ -315,5 +316,73 @@
         • Corrigido notificações as vezes mostrarem o nome do pacote (ex.: "com.google...") em vez do conteúdo.\n
         • As configurações do app foram redesenhadas para melhor usabilidade.\n
         • Melhorado a tela de verificação de compatibilidade com informações detalhadas do aparelho.
+    </string>
+
+    <string name="privacy_title">100% Offline e Seguro</string> 
+    <string name="privacy_desc">O Hyper Bridge processa tudo diretamente no processador do seu telefone.\n\nEle NÃO requer acesso à internet, o que significa que suas notificações e dados pessoais nunca deixam o dispositivo.</string>
+    
+    <string name="language">Idioma</string>
+    <string name="language_desc">Alterar o idioma do aplicativo</string>
+    <string name="system_default">Padrão do Sistema</string>
+    <string name="save">Salvar</string>
+    
+    <string name="backup_restore_title">Backup e Restauração</string>
+    <string name="backup_section_title">Gerenciar Dados</string>
+    <string name="backup_options_subtitle">Selecione os dados a serem incluídos na operação</string>
+    
+    <string name="option_app_settings">Configurações do App</string>
+    <string name="option_app_settings_desc">Status de configuração, tema, modos de comportamento</string>
+    
+    <string name="option_blocklist">Banco de Dados da Lista de Bloqueio</string>
+    <string name="option_blocklist_desc">Suas palavras-chave e aplicativos bloqueados</string>
+    
+    <string name="option_priorities">Regras de Prioridade</string>
+    <string name="option_priorities_desc">Configurações personalizadas de prioridade de notificações</string>
+    
+    <string name="action_export">Criar Backup</string>
+    <string name="action_import">Restaurar Backup</string>
+    
+    <string name="export_success">Backup salvo com sucesso</string>
+    <string name="export_failed">Falha ao exportar: %s</string>
+    <string name="import_success">Dados restaurados com sucesso</string>
+    <string name="import_failed">Falha ao importar: %s</string>
+    <string name="invalid_backup_file">Arquivo de backup HyperBridge inválido</string>
+    <string name="db_version_mismatch">Aviso: Backup de uma versão diferente do banco de dados</string>
+    
+    <string name="autostart_manual_check">O status não pode ser verificado automaticamente.\nPor favor, verifique manualmente para garantir que o serviço funcione corretamente</string>
+    
+    <string name="backup_info_title">Informações do Backup</string>
+    <string name="backup_meta_date">Data</string>
+    <string name="backup_meta_device">Dispositivo</string>
+    <string name="backup_meta_version">Versão</string>
+    <string name="backup_meta_keys">Total de Itens</string>
+    <string name="backup_empty_suffix"> (Vazio)</string>
+    <string name="action_restore_selected">Restaurar Dados Selecionados</string>
+    
+    <string name="optimization_title">Otimização do Dispositivo</string>
+    <string name="no_restrictions">Definir como "Sem Restrições"</string>
+    
+    <string name="privacy_card_title">Offline Primeiro</string>
+    <string name="privacy_card_desc">Nenhuma conexão com a internet é necessária.</string>
+    
+    <string name="title_0_3_1">Backup e Atualização Poliglota</string>
+    <string name="changelog_0_3_1">
+            <b>Backup e Restauração 📦</b>\n
+            Novo recurso para usuários avançados! Exporte com segurança suas configurações, listas de bloqueio e prioridades de apps para um arquivo .hbr e restaure quando quiser.\n\n
+            <b>Novos Idiomas 🌍</b>\n
+            Suporte adicionado para:\n
+            • 🇩🇪 Alemão\n
+            • 🇷🇺 Russo\n
+            • 🇺🇦 Ucraniano (melhorado)\n
+            <i>Além disso: um novo Seletor de Idioma dentro do app para trocar o idioma sem alterar as configurações do sistema.</i>\n\n
+            <b>Atualização Visual 🎨</b>\n
+            O app foi atualizado com o design <b>Material 3 Expressive</b>. Aproveite cabeçalhos maiores, formas mais arredondadas e uma experiência mais suave.\n\n
+            <b>Privacidade e Configuração 🛡️</b>\n
+            • Onboarding aprimorado com uma página dedicada à Privacidade explicando a arquitetura offline-first.\n
+            • Verificações de compatibilidade mais rígidas para garantir a melhor experiência no HyperOS 3.0.\n\n
+            <b>Correções 🛠️</b>\n
+            • Corrigido um problema crítico onde as configurações eram perdidas após reiniciar o dispositivo (migrado para banco de dados).\n
+            • Corrigido o botão "Sair" na Navigation Island, que aparecia como ícone em vez de texto.\n
+            • Corrigido o carregamento de ícones de apps nas Configurações.\n
     </string>
 </resources>

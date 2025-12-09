@@ -60,7 +60,7 @@
 
     <string name="group_configuration">Konfiguration</string>
     <string name="system_setup">Systemeinrichtung</string>
-    <string name="system_setup_subtitle">Berechtigungen &amp; Akku optimieren</string>
+    <string name="system_setup_subtitle">Berechtigungen & Akku optimieren</string>
 
     <string name="group_about">Über</string>
     <string name="developer">Entwickler</string>
@@ -93,12 +93,12 @@
     <string name="cat_other">Andere</string>
 
     <string name="select_active_notifs">Aktive Benachrichtigungstypen auswählen</string>
-    <string name="type_standard">Nachrichten &amp; Allgemein</string>
-    <string name="type_progress">Downloads &amp; Fortschritt</string>
-    <string name="type_media">Musik &amp; Medien</string>
-    <string name="type_nav">Karten &amp; GPS</string>
+    <string name="type_standard">Nachrichten & Allgemein</string>
+    <string name="type_progress">Downloads & Fortschritt</string>
+    <string name="type_media">Musik & Medien</string>
+    <string name="type_nav">Karten & GPS</string>
     <string name="type_call">Anrufe</string>
-    <string name="type_timer">Timer &amp; Alarme</string>
+    <string name="type_timer">Timer & Alarme</string>
 
     <string name="service_active">Aktiv</string>
     <string name="download_complete">Download abgeschlossen</string>
@@ -191,7 +191,7 @@
         • &lt;b&gt;Prioritätssystem:&lt;/b&gt; Neue Einstellungen für das Island-Verhalten.\n
         • &lt;b&gt;Intelligente Filter:&lt;/b&gt; Bessere Erkennung doppelter Benachrichtigungen.\n
         • &lt;b&gt;Visuelle Verbesserungen:&lt;/b&gt; Verbesserte Navigation-Layouts.\n
-        • &lt;b&gt;App-Konfiguration:&lt;/b&gt; Timeout &amp; Floating-Verhalten pro App anpassbar.\n
+        • &lt;b&gt;App-Konfiguration:&lt;/b&gt; Timeout & Floating-Verhalten pro App anpassbar.\n
     </string>
 
     <string name="title_0_1_0">Das Expressive Update</string>
@@ -222,7 +222,7 @@
     <string name="nav_content_instruction">Anweisung</string>
     <string name="nav_content_distance">Entfernung</string>
     <string name="nav_content_eta">Ankunftszeit</string>
-    <string name="nav_content_distance_eta">Entfernung &amp; Zeit</string>
+    <string name="nav_content_distance_eta">Entfernung & Zeit</string>
     <string name="nav_content_none">Leer</string>
 
     <string name="channel_active_islands">Aktive Islands</string>
@@ -255,7 +255,7 @@
     <string name="add">Hinzufügen</string>
     <string name="remove">Entfernen</string>
     <string name="tap_to_configure_rules">Tippe auf eine App, um ihre Filterregeln anzupassen.</string>
-    <string name="spoiler_subtitle">Spoiler-Schutz &amp; Filter verwalten</string>
+    <string name="spoiler_subtitle">Spoiler-Schutz & Filter verwalten</string>
 
     <string name="active_notifications_title">Benachrichtigungstypen</string>
     <string name="active_notifications_subtitle">%d aktiv</string>
@@ -332,7 +332,7 @@
         Neue Funktion „Blockierte Begriffe“. Definiere Wörter global oder pro App, um bestimmte Benachrichtigungen zu blockieren.\n\n
         <b>Verbesserte Anrufe 📞</b>\n
         Verbesserte Erkennung für mehr VoIP- und Dialer-Apps.\n\n
-        <b>Fehlerbehebungen &amp; Verbesserungen 🛠️</b>\n
+        <b>Fehlerbehebungen & Verbesserungen 🛠️</b>\n
         • Behoben: App blieb nach Neustart im Ladebildschirm hängen.\n
         • Behebung eines Problems, bei dem Paketnamen (z. B. „com.google…“) statt Inhalt angezeigt wurden.\n
         • Überarbeitetes App-Konfigurationspanel.\n
@@ -344,7 +344,7 @@
     
     <string name="language">Sprache</string>
     <string name="language_desc">Anwendungssprache ändern</string>
-    <string name="system_default">Systemsprache</string>
+    <string name="system_default">Systemstandard</string>
     <string name="save">Speichern</string>
     
     <string name="backup_restore_title">Backup &amp; Wiederherstellung</string>
@@ -383,12 +383,12 @@
     <string name="optimization_title">Geräteoptimierung</string>
     <string name="no_restrictions">„Keine Einschränkungen“ festlegen</string>
     
-    <string name="privacy_card_title">Offline zuerst</string>
+    <string name="privacy_card_title">Offline-First</string>
     <string name="privacy_card_desc">Keine Internetverbindung erforderlich.</string>
     
     <string name="title_0_3_1">Sicherung &amp; Polyglott-Update</string>
     <string name="changelog_0_3_1">
-            <b>Backup &amp; Wiederherstellung 📦</b>\n
+            <b>Backup & Wiederherstellung 📦</b>\n
             Neues Feature für Power-User! Exportieren Sie Ihre Einstellungen, Blocklisten und App-Prioritäten sicher in eine .hbr-Datei und stellen Sie sie jederzeit wieder her.\n\n
             <b>Neue Sprachen 🌍</b>\n
             Unterstützung hinzugefügt für:\n
@@ -408,7 +408,6 @@
     </string>
 
 </resources>
-
 
 
 
