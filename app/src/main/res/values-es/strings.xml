@@ -333,7 +333,6 @@
         • Rediseñado el panel de Configuración de App.\n
         • Mejorada la pantalla de Comprobación de Compatibilidad con info detallada.
     </string>
-</resources>
 
     <string name="privacy_title">100% Offline y Seguro</string>
     <string name="privacy_desc">Hyper Bridge procesa todo directamente en el procesador de tu teléfono.\n\nNO requiere acceso a internet, lo que significa que tus notificaciones y datos personales nunca salen de tu dispositivo.</string>
