@@ -30,26 +30,33 @@
 
 * **Native Visuals:** Transforms notifications into HyperOS system-style islands.
 * **Smart Integration:**
-    * **🎵 Media:** Show album art and "Now Playing" status.
-    * **🧭 Navigation:** Real-time turn-by-turn instructions (Google Maps, Waze) with split layout (Distance Left, Turn Right).
+    * **🎵 Media:** Show album art and "Now Playing" status with visualizer support.
+    * **🧭 Navigation:** Real-time turn-by-turn instructions (Google Maps, Waze). **New:** Customize the split layout (Distance, ETA, or Instruction).
     * **⬇️ Downloads:** Circular progress ring with a satisfying "Green Tick" animation upon completion.
     * **📞 Calls:** Dedicated layout for incoming and active calls with timers.
-* **Per-App Configuration:** Choose exactly which apps trigger the island, customize timeouts, and toggle floating behavior.
-* **Priority System:** Drag-and-drop reordering to decide which app takes precedence when multiple activities are active.
+* **🛡️ Spoiler Protection:** Define blocked terms globally or per-app to prevent specific notifications (e.g., message spoilers) from popping up on the Island.
+* **👻 Ghost Mode:** Option to hide the persistent service notification from the system shade while keeping the Island fully active.
+* **Total Control:** Choose exactly which apps trigger the island, customize timeouts, and toggle floating behavior per app.
 
 ## 🌐 Supported Languages
 
-HyperBridge is fully localized for:
+HyperBridge is fully localized thanks to our amazing community contributors!
 
 * 🇺🇸 **English** (Default)
 * 🇪🇸 **Spanish** (Español)
+* 🇧🇷 **Portuguese** (Português Brasileiro) — Thanks to [@NIICKTCHUNS](https://github.com/NIICKTCHUNS)
+* 🇵🇱 **Polish** (Polski) — Thanks to [@kacskrz](https://github.com/kacskrz)
+* 🇰🇷 **Korean** (한국어) — Thanks to [@alexkoala](https://github.com/alexkoala)
+* 🇺🇦 **Ukrainian** (Українська) — Thanks to [@ItzDFPlayer](https://github.com/ItzDFPlayer)
+
+> **Special Thanks:** A huge shoutout to everyone who contributed translations for this release. You make HyperBridge accessible to the world! ❤️
 
 ## 🛠️ Tech Stack
 
 * **Language:** Kotlin
 * **UI:** Jetpack Compose (Material 3 Expressive)
 * **Architecture:** MVVM
-* **Storage:** DataStore Preferences
+* **Storage:** Room Database (SQLite)
 * **Services:** NotificationListenerService, BroadcastReceiver
 * **Concurrency:** Kotlin Coroutines & Flow
 
