@@ -248,12 +248,15 @@ fun InfoScreen(
 fun LanguageSelectorDialog(onDismiss: () -> Unit) {
     val languages = mapOf(
         stringResource(R.string.system_default) to "",
+        "Deutsch" to "de",
         "English" to "en",
         "Español" to "es",
         "Português (BR)" to "pt-BR",
         "Polski" to "pl",
         "Korean" to "ko",
+        "Русского" to "ru",
         "Українська" to "uk"
+
     )
     val currentAppLocales = AppCompatDelegate.getApplicationLocales()
     val initialTag = if (!currentAppLocales.isEmpty) currentAppLocales.toLanguageTags().split(",")[0] else ""
