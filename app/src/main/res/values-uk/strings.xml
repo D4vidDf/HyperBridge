@@ -351,14 +351,14 @@
     <string name="option_app_settings">Налаштування додатку</string>
     <string name="option_app_settings_desc">Статус налаштування, тема, режими поведінки</string>
     
-    <string name="option_blocklist">База блокліста</string>
+    <string name="option_blocklist">База блоклиста</string>
     <string name="option_blocklist_desc">Ваші користувацькі заблоковані ключові слова та додатки</string>
     
     <string name="option_priorities">Правила Пріоритетів</string>
     <string name="option_priorities_desc">Користувацькі конфігурації пріоритетів сповіщень</string>
     
-    <string name="action_export">Створити резервну копію</string>
-    <string name="action_import">Відновити з резервної копії</string>
+    <string name="action_export">Створити бекап</string>
+    <string name="action_import">Відновити бекап</string>
     
     <string name="export_success">Резервну копію успішно збережено</string>
     <string name="export_failed">Помилка експорту: %s</string>

@@ -344,7 +344,7 @@
     
     <string name="language">Sprache</string>
     <string name="language_desc">Anwendungssprache ändern</string>
-    <string name="system_default">Systemstandard</string>
+    <string name="system_default">Systemsprache</string>
     <string name="save">Speichern</string>
     
     <string name="backup_restore_title">Backup &amp; Wiederherstellung</string>
@@ -383,7 +383,7 @@
     <string name="optimization_title">Geräteoptimierung</string>
     <string name="no_restrictions">„Keine Einschränkungen“ festlegen</string>
     
-    <string name="privacy_card_title">Offline-First</string>
+    <string name="privacy_card_title">Offline zuerst</string>
     <string name="privacy_card_desc">Keine Internetverbindung erforderlich.</string>
     
     <string name="title_0_3_1">Sicherung &amp; Polyglott-Update</string>
@@ -408,6 +408,7 @@
     </string>
 
 </resources>
+
 
 
 
