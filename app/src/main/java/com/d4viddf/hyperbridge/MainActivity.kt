@@ -232,7 +232,7 @@ fun MainRootNavigation() {
     }
 
     if (showChangelog) {
-        ChangelogDialog(currentVersionName = currentVersionName, changelogText = stringResource(R.string.changelog_0_3_0)) {
+        ChangelogDialog(currentVersionName = currentVersionName, changelogText = stringResource(R.string.changelog_0_3_1)) {
             showChangelog = false
             scope.launch {
                 preferences.setLastSeenVersion(currentVersionCode)
