@@ -53,10 +53,9 @@ fun AppListItem(
             )
         },
         leadingContent = {
-            // Mark image as decorative so TalkBack ignores it (text already says name)
             Image(
                 bitmap = app.icon.asImageBitmap(),
-                contentDescription = null,
+                contentDescription = null, // Decorative, text provides name
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
@@ -64,37 +63,44 @@ fun AppListItem(
         },
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // SETTINGS BUTTON
+                // RESTORED: Tune Icon (Only visible when app is active)
+                // This gives the user a visual hint that settings are available.
                 if (app.isBridged && onSettingsClick != null) {
                     IconButton(
                         onClick = onSettingsClick,
-                        // Explicitly say "Configure WhatsApp"
                         modifier = Modifier.semantics { contentDescription = settingsLabel }
                     ) {
                         Icon(
                             Icons.Default.Tune,
-                            contentDescription = null, // Description is on the button
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
 
-                // TOGGLE SWITCH
+                // Toggle Switch
                 Switch(
                     checked = app.isBridged,
                     onCheckedChange = onToggle,
-
                     modifier = Modifier.semantics {
-                        contentDescription = toggleLabel // "Toggle WhatsApp"
+                        contentDescription = toggleLabel
                         stateDescription = if (app.isBridged) activeState else inactiveState
                     }
                 )
             }
         },
-        // The whole row click also toggles, so we label the row too
+        // ROW CLICK LOGIC:
+        // If App is ON -> Open Settings
+        // If App is OFF -> Turn ON (Toggle)
         modifier = Modifier
-            .clickable { onToggle(!app.isBridged) }
-            .semantics { contentDescription = toggleLabel },
+            .clickable {
+                if (app.isBridged) {
+                    onSettingsClick?.invoke()
+                } else {
+                    onToggle(true)
+                }
+            }
+            .semantics { contentDescription = if (app.isBridged) settingsLabel else toggleLabel },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
     )
 }
