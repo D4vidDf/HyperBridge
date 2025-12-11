@@ -254,7 +254,7 @@ fun LanguageSelectorDialog(onDismiss: () -> Unit) {
         "Português (BR)" to "pt-BR",
         "Polski" to "pl",
         "Korean" to "ko",
-        "Русского" to "ru",
+        "Русский" to "ru",
         "Українська" to "uk"
 
     )
