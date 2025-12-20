@@ -2,12 +2,17 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.content.Context
+import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
+import android.util.Log
+import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.NavContent
+import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
@@ -15,8 +20,11 @@ import io.github.d4viddf.hyperisland_kit.models.TextInfo
 
 class NavTranslator(context: Context) : BaseTranslator(context) {
 
+    private val TAG = "HyperBridgeNav"
     private val arrivalKeywords by lazy { context.resources.getStringArray(R.array.nav_arrival_keywords).toList() }
-    private val timeRegex = Regex("\\d{1,2}:\\d{2}")
+
+    private val timeRegex = Regex("(\\d{1,2}:\\d{2})|(\\d+h\\s*\\d+m)", RegexOption.IGNORE_CASE)
+    private val distanceRegex = Regex("^\\d+([,.]\\d+)?\\s*(m|km|ft|mi|yd|yards|miles|meters)", RegexOption.IGNORE_CASE)
 
     fun translate(
         sbn: StatusBarNotification,
@@ -28,9 +36,10 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
 
         val extras = sbn.notification.extras
 
-        val title = (extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: "").replace("\n", " ").trim()
-        val text = (extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "").replace("\n", " ").trim()
-        val subText = (extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: "").replace("\n", " ").trim()
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.replace("\n", " ")?.trim() ?: ""
+        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
+        val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
+        val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
 
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
         val current = extras.getInt(Notification.EXTRA_PROGRESS, 0)
@@ -42,33 +51,82 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         var eta = ""
 
         fun isTimeInfo(s: String): Boolean = timeRegex.containsMatchIn(s) || arrivalKeywords.any { s.contains(it, true) }
+        fun isDistanceInfo(s: String): Boolean = distanceRegex.containsMatchIn(s)
 
-        if (isTimeInfo(subText)) eta = subText
-        if (text.isNotEmpty() && title.isNotEmpty()) {
-            if (eta.isEmpty()) {
-                if (isTimeInfo(text)) { eta = text; instruction = title }
-                else if (isTimeInfo(title)) { eta = title; instruction = text }
+        // --- 1. Extract ETA ---
+        if (isTimeInfo(subText)) {
+            eta = subText
+        } else if (isTimeInfo(text) && !isDistanceInfo(text)) {
+            eta = text
+        }
+
+        // --- 2. Smart Parsing ---
+        val separators = listOf("·", "•", "-")
+        val candidates = listOf(bigText, title, text).filter { it.isNotEmpty() }
+
+        val contentSource = candidates.firstOrNull { str ->
+            separators.any { str.contains(it) } && isDistanceInfo(str)
+        } ?: candidates.firstOrNull { str ->
+            isDistanceInfo(str)
+        } ?: if (title.isNotEmpty()) title else text
+
+        var splitSuccess = false
+
+        for (sep in separators) {
+            if (contentSource.contains(sep)) {
+                val parts = contentSource.split(sep, limit = 2)
+                if (parts.size >= 2) {
+                    val p0 = parts[0].trim()
+                    val p1 = parts[1].trim()
+
+                    if (isDistanceInfo(p0)) {
+                        distance = p0
+                        instruction = p1
+                        splitSuccess = true
+                        break
+                    }
+                }
             }
-            if (instruction.isEmpty()) {
-                if (title.length >= text.length) { instruction = title; distance = text }
-                else { instruction = text; distance = title }
+        }
+
+        if (!splitSuccess && isDistanceInfo(contentSource)) {
+            val match = distanceRegex.find(contentSource)
+            if (match != null && match.range.start == 0) {
+                distance = match.value.trim()
+                instruction = contentSource.substring(match.range.endInclusive + 1).trim()
+                val cleanInstruction = instruction.trimStart { it == '·' || it == '•' || it == '-' || it.isWhitespace() }
+                instruction = cleanInstruction
+                splitSuccess = true
             }
-        } else {
-            instruction = title.ifEmpty { text }
+        }
+
+        if (!splitSuccess) {
+            if (title.isNotEmpty() && text.isNotEmpty()) {
+                if (isDistanceInfo(title)) {
+                    distance = title
+                    instruction = text
+                } else if (isDistanceInfo(text)) {
+                    distance = text
+                    instruction = title
+                } else {
+                    instruction = title
+                }
+            } else {
+                instruction = contentSource
+            }
         }
 
         if (instruction.isEmpty()) instruction = context.getString(R.string.maps_title)
 
+        Log.d(TAG, "NavData -> Inst: '$instruction' | Dist: '$distance' | ETA: '$eta'")
+
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", instruction)
 
-        val finalTimeout = config.timeout ?: 5000L
-        val shouldFloat = if (finalTimeout == 0L) false else (config.isFloat ?: true)
-
-        builder.setEnableFloat(shouldFloat)
+        val finalTimeout = config.timeout ?: 0
+        builder.setEnableFloat(config.isFloat ?: false)
         builder.setTimeout(finalTimeout)
         builder.setShowNotification(config.isShowShade ?: true)
 
-        // --- RESOURCES ---
         val hiddenKey = "hidden_pixel"
         val navStartKey = "nav_start_icon"
         val navEndKey = "nav_end_icon"
@@ -78,20 +136,58 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(getPictureFromResource(navStartKey, R.drawable.ic_nav_start))
         builder.addPicture(getPictureFromResource(navEndKey, R.drawable.ic_nav_end))
 
-        // FIX: Use ActionDisplayMode.TEXT to prioritize text labels (Hint Info) over icons
-        val actions = extractBridgeActions(sbn, ActionDisplayMode.TEXT)
-        val actionKeys = actions.map { it.action.key }
+        // --- ACTION BUTTONS (Manual Processing for Custom Backgrounds) ---
+        val rawActions = sbn.notification.actions ?: emptyArray()
+        val bgGreyTransparent = "#40808080".toColorInt() // ~25% Grey
 
-        val shadeContent = listOf(distance, eta).filter { it.isNotEmpty() }.joinToString(" • ")
+        rawActions.forEachIndexed { index, action ->
+            val uniqueKey = "act_${sbn.key.hashCode()}_$index"
+
+            // 1. Load Original Icon Bitmap
+            val originalIcon = action.getIcon()
+            val originalBitmap = if (originalIcon != null) loadIconBitmap(originalIcon, sbn.packageName) else null
+
+            var actionIcon: Icon? = null
+            var hyperPic: HyperPicture? = null
+
+            // 2. Apply Grey Background & Padding
+            if (originalBitmap != null) {
+                val roundedBitmap = createRoundedIconWithBackground(
+                    source = originalBitmap,
+                    backgroundColor = bgGreyTransparent,
+                    paddingDp = 6
+                )
+                val picKeyAction = "${uniqueKey}_icon"
+
+                actionIcon = Icon.createWithBitmap(roundedBitmap)
+                hyperPic = HyperPicture(picKeyAction, roundedBitmap)
+            }
+
+            // 3. Create Action (No background color, white text)
+            val hyperAction = HyperAction(
+                key = uniqueKey,
+                title = action.title?.toString() ?: "",
+                icon = actionIcon,
+                pendingIntent = action.actionIntent,
+                actionIntentType = 1,
+                actionBgColor = null, // Disable pill background so our circle shows
+                titleColor = "#FFFFFF"
+            )
+
+            // 4. Add to Builder
+            builder.addAction(hyperAction)
+            hyperPic?.let { builder.addPicture(it) }
+        }
 
         // --- SHADE INFO ---
-        builder.setBaseInfo(
+        val finalEta = eta.ifEmpty { " " }
+        val finalDistance = distance.ifEmpty { " " }
+
+        builder.setCoverInfo(
+            picKey = picKey,
             title = instruction,
-            content = shadeContent,
-            pictureKey = picKey,
-            actionKeys = actionKeys,
-            // FIX: Type 1 = Standard Template (Supports Text Buttons like "Exit")
-            type = 1
+            content = finalEta,
+            subContent = finalDistance
         )
 
         if (hasProgress) {
@@ -127,12 +223,7 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
             )
         )
 
-        builder.setSmallIslandIcon(picKey)
-
-        actions.forEach {
-            builder.addAction(it.action)
-            it.actionImage?.let { pic -> builder.addPicture(pic) }
-        }
+        builder.setSmallIsland(picKey)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

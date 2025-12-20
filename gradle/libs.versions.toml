@@ -1,7 +1,7 @@
 [versions]
 agp = "8.13.1"
 datastorePreferences = "1.2.0"
-hyperislandKit = "0.3.3"
+hyperislandKit = "0.4.3"
 kotlin = "2.2.21"
 ksp = "2.1.21-2.0.1"
 coreKtx = "1.17.0"
@@ -17,6 +17,7 @@ roomCompiler = "2.8.4"
 roomRuntime = "2.8.4"
 roomKtx = "2.8.4"
 appcompat = "1.7.1"
+paletteKtx = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,6 +43,7 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomRuntime" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "paletteKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

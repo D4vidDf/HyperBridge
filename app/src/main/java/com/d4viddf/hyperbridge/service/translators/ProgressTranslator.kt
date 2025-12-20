@@ -21,16 +21,11 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
     fun translate(sbn: StatusBarNotification, title: String, picKey: String, config: IslandConfig): HyperIslandData {
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
 
-        // --- CONFIGURATION ---
-        val finalTimeout = config.timeout ?: 5000L
-        val shouldFloat = if (finalTimeout == 0L) false else (config.isFloat ?: true)
-        builder.setEnableFloat(shouldFloat)
-        builder.setTimeout(finalTimeout)
+        builder.setEnableFloat(config.isFloat ?: false)
+        builder.setTimeout(config.timeout ?: 0)
         builder.setShowNotification(config.isShowShade ?: true)
-        // ---------------------
 
         val extras = sbn.notification.extras
-
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
         val current = extras.getInt(Notification.EXTRA_PROGRESS, 0)
         val indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
@@ -46,7 +41,6 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         val greenColor = "#34C759"
         val blueColor = "#007AFF"
 
-        // Resources
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
@@ -54,57 +48,67 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
             builder.addPicture(getColoredPicture(tickKey, R.drawable.rounded_check_circle_24, greenColor))
         }
 
+        // Extract actions (Titles are needed for Text Buttons)
         val actions = extractBridgeActions(sbn)
-        val actionKeys = actions.map { it.action.key }
 
-        // Expanded Info
+        // --- SHADE / BASE INFO ---
         builder.setChatInfo(
             title = title,
             content = if (isFinished) "Download Complete" else textContent,
             pictureKey = picKey,
-            actionKeys = actionKeys
+            // Removed actionKeys here so they don't appear inline
+            appPkg = sbn.packageName
         )
 
-        // *** FIX: Correct setProgressBar Signature ***
+        // --- LINEAR PROGRESS ---
         if (!isFinished && !indeterminate) {
             builder.setProgressBar(
-                progress = percent, // Must be 0-100 Int
-                color = blueColor,
+                progress = percent,
+                color = blueColor
             )
         }
 
-        // Big Island
+        // --- ISLAND LAYOUT ---
         if (isFinished) {
             builder.setBigIslandInfo(
                 left = ImageTextInfoLeft(1, PicInfo(1, hiddenKey), TextInfo("", "")),
                 right = ImageTextInfoRight(1, PicInfo(1, tickKey), TextInfo("Finished", title))
             )
-            builder.setSmallIslandIcon(tickKey)
+            builder.setSmallIsland(tickKey)
         } else {
-            builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
-                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, "$percent%"))
-            )
-
-            if (!indeterminate) {
-                // *** FIX: Added Title String Argument ***
+            if (indeterminate) {
+                builder.setBigIslandInfo(
+                    left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
+                    right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, "Processing..."))
+                )
+                builder.setSmallIsland(picKey)
+            } else {
                 builder.setBigIslandProgressCircle(
                     picKey,
-                    "", // Title inside circle (Empty)
-                    percent,
-                    blueColor,
-                    true,
+                    "$percent%",
+                    progress = percent,
+                    color = blueColor,
+                    true
                 )
-                builder.setSmallIslandCircularProgress(picKey, percent, blueColor, true)
-            } else {
-                builder.setSmallIslandIcon(picKey)
+
+                builder.setSmallIslandCircularProgress(
+                    picKey,
+                    progress = percent,
+                    color = blueColor,
+                    isCCW = true
+                )
             }
         }
 
+        // --- TEXT BUTTONS ---
+        // 1. Add pictures for actions if they exist
         actions.forEach {
-            builder.addAction(it.action)
             it.actionImage?.let { pic -> builder.addPicture(pic) }
         }
+
+        // 2. Set all actions as Text Buttons at once
+        val hyperActions = actions.map { it.action }.toTypedArray()
+        builder.setTextButtons(*hyperActions)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

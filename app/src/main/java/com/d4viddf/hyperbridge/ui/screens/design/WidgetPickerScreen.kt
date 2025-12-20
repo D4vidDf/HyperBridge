@@ -5,113 +5,117 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Intent
 import android.graphics.drawable.Drawable
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
-import com.d4viddf.hyperbridge.R
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-data class WidgetAppGroup(
-    val packageName: String,
-    val appName: String,
-    val appIcon: Drawable?,
-    val widgets: List<AppWidgetProviderInfo>,
-    val isExpanded: Boolean = false
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetPickerScreen(
-    onBack: () -> Unit,
-    onWidgetSelected: (Int) -> Unit
+    viewModel: WidgetPickerViewModel = viewModel(),
+    onWidgetSelected: (Int) -> Unit,
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
+    val groups by viewModel.widgetGroups.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
-    var allGroups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
-    var searchQuery by remember { mutableStateOf("") }
     var pendingWidgetId by remember { mutableStateOf(-1) }
 
-    val bindLauncher = rememberLauncherForActivityResult(
+    LaunchedEffect(Unit) {
+        viewModel.loadWidgets(context)
+    }
+
+    // Permission Handler
+    val bindWidgetLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && pendingWidgetId != -1) {
-            onWidgetSelected(pendingWidgetId)
-        } else if (pendingWidgetId != -1) {
-            WidgetManager.deleteId(context, pendingWidgetId)
-            pendingWidgetId = -1
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            val manager = AppWidgetManager.getInstance(context)
-            val providers = manager.installedProviders
-
-            val grouped = providers.groupBy { it.provider.packageName }
-
-            val uiGroups = grouped.map { (pkg, list) ->
-                val appName = try {
-                    val appInfo = context.packageManager.getApplicationInfo(pkg, 0)
-                    context.packageManager.getApplicationLabel(appInfo).toString()
-                } catch (e: Exception) { pkg }
-
-                val icon = try {
-                    context.packageManager.getApplicationIcon(pkg)
-                } catch (e: Exception) { null }
-
-                WidgetAppGroup(pkg, appName, icon, list)
-            }.sortedBy { it.appName }
-
-            allGroups = uiGroups
-        }
-    }
-
-    val displayedGroups = remember(allGroups, searchQuery) {
-        if (searchQuery.isEmpty()) {
-            allGroups
+        if (result.resultCode == Activity.RESULT_OK) {
+            if (pendingWidgetId != -1) {
+                onWidgetSelected(pendingWidgetId)
+            }
         } else {
-            allGroups.filter {
-                it.appName.contains(searchQuery, ignoreCase = true)
-            }.map {
-                it.copy(isExpanded = true)
+            if (pendingWidgetId != -1) {
+                Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+                pendingWidgetId = -1
+            }
+        }
+    }
+
+    // Function to handle click logic
+    fun handleWidgetClick(provider: AppWidgetProviderInfo) {
+        val newId = WidgetManager.allocateId(context)
+        if (newId == -1) {
+            Toast.makeText(context, "Error allocating ID", Toast.LENGTH_SHORT).show()
+            return
+        }
+        pendingWidgetId = newId
+
+        val isBound = WidgetManager.bindWidget(context, newId, provider.provider)
+        if (isBound) {
+            onWidgetSelected(newId)
+        } else {
+            try {
+                val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newId)
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
+                }
+                bindWidgetLauncher.launch(intent)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Cannot launch bind intent", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -119,192 +123,36 @@ fun WidgetPickerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.widget_picker_title), fontWeight = FontWeight.Bold)
-
-                        // [NEW] Beta Badge
-                        Spacer(Modifier.width(8.dp))
-                        Surface(
-                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                text = "BETA",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-                        },
+                title = { Text("Select Widget") },
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
-        },
-        containerColor = MaterialTheme.colorScheme.surface
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                TextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text(stringResource(R.string.search_apps_placeholder)) },
-                    leadingIcon = { Icon(Icons.Default.Search, stringResource(R.string.search)) },
-                    trailingIcon = if (searchQuery.isNotEmpty()) {
-                        { IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, stringResource(R.string.close)) } }
-                    } else null,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    )
-                )
-            }
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(displayedGroups, key = { it.packageName }) { group ->
-                    var expanded by remember(group.packageName, searchQuery) { mutableStateOf(group.isExpanded) }
-
-                    Box(modifier = Modifier.animateItem()) {
-                        AppGroupItem(
-                            group = group,
-                            isExpanded = expanded,
-                            onToggle = { expanded = !expanded },
-                            onSelectWidget = { provider ->
-                                val widgetId = WidgetManager.allocateId(context)
-                                val allowed = WidgetManager.bindWidget(context, widgetId, provider.provider)
-
-                                if (allowed) {
-                                    onWidgetSelected(widgetId)
-                                } else {
-                                    pendingWidgetId = widgetId
-                                    val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
-                                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-                                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
-                                    }
-                                    bindLauncher.launch(intent)
-                                }
-                            }
-                        )
-                    }
-                }
-            }
         }
-    }
-}
-
-@Composable
-fun AppGroupItem(
-    group: WidgetAppGroup,
-    isExpanded: Boolean,
-    onToggle: () -> Unit,
-    onSelectWidget: (AppWidgetProviderInfo) -> Unit
-) {
-    val numWidget = pluralStringResource(R.plurals.widget_count_fmt, group.widgets.size, group.widgets.size)
-    Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isExpanded) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onToggle)
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (group.appIcon != null) {
-                    Image(
-                        bitmap = group.appIcon.toBitmap().asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp)
-                    )
-                } else {
-                    Icon(Icons.Outlined.Widgets, null, modifier = Modifier.size(40.dp), tint = Color.Gray)
-                }
-
-                Spacer(Modifier.width(16.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = group.appName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = numWidget,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Icon(
-                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+    ) { padding ->
+        if (isLoading) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    expandFrom = Alignment.Top
-                ) + fadeIn(),
-                exit = shrinkVertically(
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    shrinkTowards = Alignment.Top
-                ) + fadeOut()
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                Column {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                items(groups) { group ->
+                    AppWidgetGroupItem(
+                        group = group,
+                        onWidgetClick = { handleWidgetClick(it) }
+                    )
+                    Divider(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
-
-                    group.widgets.forEachIndexed { index, widget ->
-                        if (index > 0) {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-                                modifier = Modifier.padding(horizontal = 32.dp)
-                            )
-                        }
-                        WidgetChildItem(widget, onSelectWidget)
-                    }
-
-                    Spacer(Modifier.height(8.dp))
                 }
             }
         }
@@ -312,68 +160,125 @@ fun AppGroupItem(
 }
 
 @Composable
-fun WidgetChildItem(
+fun AppWidgetGroupItem(
+    group: WidgetAppGroup,
+    onWidgetClick: (AppWidgetProviderInfo) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+        // --- APP HEADER ---
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (group.appIcon != null) {
+                Image(
+                    bitmap = group.appIcon.toBitmap().asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Widgets,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = group.appName,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "(${group.widgets.size})",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // --- WIDGETS SCROLL ROW ---
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(group.widgets) { widget ->
+                WidgetPreviewItem(widget, onWidgetClick)
+            }
+        }
+    }
+}
+
+@Composable
+fun WidgetPreviewItem(
     info: AppWidgetProviderInfo,
     onClick: (AppWidgetProviderInfo) -> Unit
 ) {
     val context = LocalContext.current
-    val label = info.loadLabel(context.packageManager)
-    val dims = "${info.minWidth} × ${info.minHeight}"
 
-    var preview by remember { mutableStateOf<Drawable?>(null) }
-    LaunchedEffect(info) {
-        withContext(Dispatchers.IO) {
-            preview = try {
+    // Async load the preview image to avoid stuttering
+    val previewDrawable by produceState<Drawable?>(initialValue = null, key1 = info) {
+        value = withContext(Dispatchers.IO) {
+            try {
+                // Try fetching the specific preview image
                 info.loadPreviewImage(context, 0) ?: info.loadIcon(context, 0)
-            } catch (e: Exception) { null }
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 
+    val label = info.loadLabel(context.packageManager)
+    val dims = "${info.minWidth} x ${info.minHeight} dp" // Or rough grid size
+
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .width(160.dp) // Fixed width for consistent cards
+            .clip(RoundedCornerShape(12.dp))
             .clickable { onClick(info) }
-            .padding(20.dp),
+            .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.fillMaxWidth().wrapContentHeight()
+        // Preview Box
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier.padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (preview != null) {
-                    Image(
-                        bitmap = preview!!.toBitmap().asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
-                        alignment = Alignment.Center
-                    )
-                } else {
-                    Icon(
-                        Icons.Outlined.Widgets,
-                        null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
+            if (previewDrawable != null) {
+                Image(
+                    bitmap = previewDrawable!!.toBitmap().asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.padding(8.dp).fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                // Loading or Fallback
+                Icon(
+                    imageVector = Icons.Default.Widgets,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                )
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = label,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
-            text = dims,
-            style = MaterialTheme.typography.bodySmall,
+            text = dims, // Optional dimension text
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

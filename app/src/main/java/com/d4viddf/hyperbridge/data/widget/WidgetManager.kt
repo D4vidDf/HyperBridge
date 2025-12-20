@@ -1,114 +1,94 @@
 package com.d4viddf.hyperbridge.data.widget
 
-import android.annotation.SuppressLint
+import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.view.View
 import android.widget.RemoteViews
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 
-@SuppressLint("StaticFieldLeak")
 object WidgetManager {
-
+    // Arbitrary Host ID
     private const val HOST_ID = 1024
+
+    private var appWidgetHost: HyperWidgetHost? = null
     private var appWidgetManager: AppWidgetManager? = null
-    private var appWidgetHost: HyperAppWidgetHost? = null
-    private var context: Context? = null
 
-    private val _widgetUpdates = MutableSharedFlow<Int>(replay = 0, extraBufferCapacity = 10)
-    val widgetUpdates: SharedFlow<Int> = _widgetUpdates.asSharedFlow()
+    // Cache for capturing the RemoteViews
+    private val remoteViewsCache = mutableMapOf<Int, RemoteViews>()
 
-    fun init(ctx: Context) {
-        if (context != null) return
-        context = ctx.applicationContext
-        appWidgetManager = AppWidgetManager.getInstance(context)
-
-        appWidgetHost = HyperAppWidgetHost(context!!, HOST_ID)
-        appWidgetHost?.startListening()
+    fun init(context: Context) {
+        if (appWidgetManager == null) {
+            appWidgetManager = AppWidgetManager.getInstance(context)
+        }
+        if (appWidgetHost == null) {
+            appWidgetHost = HyperWidgetHost(context.applicationContext, HOST_ID)
+            // Essential: Start listening to receive updates
+            appWidgetHost?.startListening()
+        }
     }
 
-    // --- ID MANAGEMENT ---
-
-    fun allocateId(ctx: Context): Int {
-        init(ctx)
-        return appWidgetHost?.allocateAppWidgetId() ?: -1
-    }
-
-    fun deleteId(ctx: Context, widgetId: Int) {
-        init(ctx)
-        appWidgetHost?.deleteAppWidgetId(widgetId)
-    }
-
-    // [FIX] Return Boolean so UI knows if binding succeeded or needs permission intent
-    fun bindWidget(ctx: Context, widgetId: Int, provider: ComponentName): Boolean {
-        init(ctx)
+    fun allocateId(context: Context): Int {
+        init(context)
         return try {
-            appWidgetManager?.bindAppWidgetIdIfAllowed(widgetId, provider) ?: false
+            appWidgetHost?.allocateAppWidgetId() ?: -1
         } catch (e: Exception) {
             e.printStackTrace()
+            -1
+        }
+    }
+
+    /**
+     * Attempts to bind.
+     * Returns TRUE if already bound/allowed.
+     * Returns FALSE if we need to ask permission (launch Intent).
+     */
+    fun bindWidget(context: Context, appWidgetId: Int, provider: ComponentName): Boolean {
+        init(context)
+        return try {
+            // For 3rd party apps, this usually returns FALSE initially
+            // unless the user granted "Always allow" previously.
+            appWidgetManager?.bindAppWidgetIdIfAllowed(appWidgetId, provider) == true
+        } catch (e: Exception) {
             false
         }
     }
 
-    // --- UPDATE NOTIFICATION ---
-
-    fun notifyWidgetUpdated(widgetId: Int) {
-        CoroutineScope(Dispatchers.Main).launch {
-            _widgetUpdates.emit(widgetId)
-        }
-    }
-
-    // --- CORE FUNCTIONS ---
-
-    fun getWidgetInfo(ctx: Context, widgetId: Int): AppWidgetProviderInfo? {
-        init(ctx)
-        return appWidgetManager?.getAppWidgetInfo(widgetId)
-    }
-
-    fun getConfigurationActivity(ctx: Context, widgetId: Int): ComponentName? {
-        init(ctx)
-        return getWidgetInfo(ctx, widgetId)?.configure
-    }
-
-    fun createPreview(ctx: Context, widgetId: Int): AppWidgetHostView? {
-        init(ctx)
-        val info = getWidgetInfo(ctx, widgetId) ?: return null
-        return appWidgetHost?.createView(ctx.applicationContext, widgetId, info)
-    }
-
-    fun getWidgetBitmap(ctx: Context, widgetId: Int, width: Int, height: Int): Bitmap? {
-        init(ctx)
-        val hostView = createPreview(ctx, widgetId) ?: return null
-        val info = getWidgetInfo(ctx, widgetId) ?: return null
-        hostView.setAppWidget(widgetId, info)
-
-        val widthSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
-        val heightSpec = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
-        hostView.measure(widthSpec, heightSpec)
-        hostView.layout(0, 0, hostView.measuredWidth, hostView.measuredHeight)
-
-        try {
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            hostView.draw(canvas)
-            return bitmap
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
+    fun createPreview(context: Context, widgetId: Int): AppWidgetHostView? {
+        init(context)
+        val info = appWidgetManager?.getAppWidgetInfo(widgetId) ?: return null
+        return appWidgetHost?.createView(context, widgetId, info)
     }
 
     fun getLatestRemoteViews(widgetId: Int): RemoteViews? {
-        return HyperAppWidgetHostView.cachedRemoteViews[widgetId]
+        return remoteViewsCache[widgetId]
+    }
+
+    // --- INTERNAL CLASSES ---
+
+    private class HyperWidgetHost(context: Context, hostId: Int) : AppWidgetHost(context, hostId) {
+        override fun onCreateView(
+            context: Context,
+            appWidgetId: Int,
+            appWidget: AppWidgetProviderInfo?
+        ): AppWidgetHostView {
+            return InterceptorHostView(context)
+        }
+    }
+
+    private class InterceptorHostView(context: Context) : AppWidgetHostView(context) {
+        override fun updateAppWidget(remoteViews: RemoteViews?) {
+            super.updateAppWidget(remoteViews)
+            if (remoteViews != null) {
+                // CAPTURE THE VIEW
+                remoteViewsCache[appWidgetId] = remoteViews
+            }
+        }
+    }
+
+    fun getWidgetInfo(context: Context, widgetId: Int): AppWidgetProviderInfo? {
+        init(context)
+        return appWidgetManager?.getAppWidgetInfo(widgetId)
     }
 }

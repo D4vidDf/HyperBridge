@@ -78,10 +78,8 @@ class MediaTranslator(context: Context) : BaseTranslator(context) {
 
         val finalTimeout = config.timeout ?: 0
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setIslandConfig(timeout = finalTimeout)
+        builder.setTimeout(finalTimeout)
         builder.setShowNotification(config.isShowShade ?: true)
-        builder.setIslandFirstFloat(config.isFloat ?: false)
-
 
         // --- RESOURCES ---
         val artKey = "album_art"
@@ -137,9 +135,7 @@ class MediaTranslator(context: Context) : BaseTranslator(context) {
             appPkg = sbn.packageName,
             actionKeys = actionKeys,
             titleColor = onContainerTitleHex,    // High Emphasis
-            titleColorDark = "#ffffff",
-            contentColor = onContainerBodyHex,    // Medium Emphasis
-            contentColorDark = "#ffffff"
+            contentColor = onContainerBodyHex    // Medium Emphasis
         )
 
         // --- Island (Collapsed) ---

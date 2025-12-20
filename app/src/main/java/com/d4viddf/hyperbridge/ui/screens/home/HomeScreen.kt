@@ -1,11 +1,14 @@
 package com.d4viddf.hyperbridge.ui.screens.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.ToggleOn
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ToggleOff
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,8 +33,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.AppConfigBottomSheet
+import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
+import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
+import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,66 +47,114 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNavConfigClick: (String) -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    // --- Navigation State ---
+    // 0 = Design, 1 = Active, 2 = Library
+    var selectedTab by remember { mutableIntStateOf(1) }
 
+    // Overlay States
+    var showWidgetPicker by remember { mutableStateOf(false) }
+    var editingWidgetId by remember { mutableStateOf<Int?>(null) }
+    var configApp by remember { mutableStateOf<AppInfo?>(null) }
+
+    // --- Data State ---
     val activeApps by viewModel.activeAppsState.collectAsState()
     val libraryApps by viewModel.libraryAppsState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // State to hold the app being configured
-    var configApp by remember { mutableStateOf<com.d4viddf.hyperbridge.ui.AppInfo?>(null) }
+    // --- Back Handling ---
+    // We handle back presses for overlays manually to keep the user in the app
+    if (showWidgetPicker) {
+        BackHandler { showWidgetPicker = false }
+    } else if (editingWidgetId != null) {
+        BackHandler { editingWidgetId = null }
+    }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(id = R.string.app_name), fontWeight = FontWeight.Bold)
-                },
-                actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+    // --- Screen Content Switching ---
+    when {
+        // 1. Show Widget Picker Overlay (Custom List of Widgets)
+        showWidgetPicker -> {
+            WidgetPickerScreen(
+                onBack = { showWidgetPicker = false },
+                onWidgetSelected = { newWidgetId ->
+                    showWidgetPicker = false
+                    editingWidgetId = newWidgetId // Proceed to config
+                }
             )
-        },
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = selectedTab == 0, onClick = { selectedTab = 0 },
-                    icon = { Icon(if(selectedTab==0) Icons.Filled.ToggleOn else Icons.Outlined.ToggleOff, null) },
-                    label = { Text(stringResource(R.string.tab_active)) }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1, onClick = { selectedTab = 1 },
-                    icon = { Icon(if(selectedTab==1) Icons.Filled.Apps else Icons.Outlined.Apps, null) },
-                    label = { Text(stringResource(R.string.tab_library)) }
-                )
-            }
         }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            if (selectedTab == 0) {
-                ActiveAppsPage(activeApps, isLoading, viewModel) { configApp = it }
-            } else {
-                LibraryPage(libraryApps, isLoading, viewModel) { configApp = it }
+
+        // 2. Show Widget Configuration Overlay (Preview)
+        editingWidgetId != null -> {
+            WidgetConfigScreen(
+                widgetId = editingWidgetId!!,
+                onBack = { editingWidgetId = null }
+            )
+        }
+
+        // 3. Show Main Tabs
+        else -> {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(stringResource(id = R.string.app_name), fontWeight = FontWeight.Bold)
+                        },
+                        actions = {
+                            IconButton(onClick = onSettingsClick) {
+                                Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                    )
+                },
+                bottomBar = {
+                    NavigationBar {
+                        // Design Tab
+                        NavigationBarItem(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            icon = { Icon(if (selectedTab == 0) Icons.Filled.Brush else Icons.Outlined.Brush, null) },
+                            label = { Text("Design") }
+                        )
+                        // Active Tab
+                        NavigationBarItem(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            icon = { Icon(if (selectedTab == 1) Icons.Filled.ToggleOn else Icons.Outlined.ToggleOff, null) },
+                            label = { Text(stringResource(R.string.tab_active)) }
+                        )
+                        // Library Tab
+                        NavigationBarItem(
+                            selected = selectedTab == 2,
+                            onClick = { selectedTab = 2 },
+                            icon = { Icon(if (selectedTab == 2) Icons.Filled.Apps else Icons.Outlined.Apps, null) },
+                            label = { Text(stringResource(R.string.tab_library)) }
+                        )
+                    }
+                }
+            ) { padding ->
+                Box(modifier = Modifier.padding(padding)) {
+                    when (selectedTab) {
+                        0 -> DesignScreen(
+                            onOpenWidgetConfig = { widgetId -> editingWidgetId = widgetId },
+                            onLaunchPicker = { showWidgetPicker = true } // Trigger the overlay
+                        )
+                        1 -> ActiveAppsPage(activeApps, isLoading, viewModel) { configApp = it }
+                        2 -> LibraryPage(libraryApps, isLoading, viewModel) { configApp = it }
+                    }
+                }
             }
         }
     }
 
-    // --- BOTTOM SHEET HANDLER (CRASH FIX) ---
+    // --- App Config Bottom Sheet (Existing Logic) ---
     if (configApp != null) {
-        // Capture the non-null app object locally
         val safeApp = configApp!!
-
         AppConfigBottomSheet(
             app = safeApp,
             viewModel = viewModel,
             onDismiss = { configApp = null },
             onNavConfigClick = {
-                // 1. Trigger Navigation using the SAFE local variable
                 onNavConfigClick(safeApp.packageName)
-                // 2. Close Sheet
                 configApp = null
             }
         )
