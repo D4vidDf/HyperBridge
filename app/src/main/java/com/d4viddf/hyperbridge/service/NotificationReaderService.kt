@@ -65,7 +65,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var standardTranslator: StandardTranslator
     private lateinit var mediaTranslator: MediaTranslator
     private lateinit var widgetTranslator: WidgetTranslator
-
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onCreate() {
         super.onCreate()
         preferences = AppPreferences(applicationContext)
@@ -88,6 +88,25 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
+
+        // --- LISTEN FOR WIDGET UPDATES (INTERACTIONS) ---
+        serviceScope.launch {
+            WidgetManager.widgetUpdates.collect { updatedId ->
+                Log.d(TAG, "⚡ Widget update detected for ID: $updatedId")
+
+                val savedIds = preferences.savedWidgetIdsFlow.first()
+
+                if (savedIds.contains(updatedId)) {
+                    // Re-render and post
+                    try {
+                        val data = widgetTranslator.translate(updatedId)
+                        postNotification(null, 9000 + updatedId, data)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to update widget", e)
+                    }
+                }
+            }
+        }
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)

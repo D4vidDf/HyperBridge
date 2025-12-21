@@ -37,8 +37,16 @@ import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.AppConfigBottomSheet
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
+import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
+import com.d4viddf.hyperbridge.ui.screens.design.SavedWidgetsListScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
+
+private sealed class DesignRoute {
+    data object Dashboard : DesignRoute()
+    data object WidgetList : DesignRoute()
+    data class AppDetail(val packageName: String, val appName: String) : DesignRoute()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,60 +55,64 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNavConfigClick: (String) -> Unit
 ) {
-    // --- Navigation State ---
-    // 0 = Design, 1 = Active, 2 = Library
     var selectedTab by remember { mutableIntStateOf(1) }
+    var designRoute by remember { mutableStateOf<DesignRoute>(DesignRoute.Dashboard) }
 
     // Overlay States
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
     var configApp by remember { mutableStateOf<AppInfo?>(null) }
 
-    // --- Data State ---
     val activeApps by viewModel.activeAppsState.collectAsState()
     val libraryApps by viewModel.libraryAppsState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
     // --- Back Handling ---
-    // We handle back presses for overlays manually to keep the user in the app
-    if (showWidgetPicker) {
-        BackHandler { showWidgetPicker = false }
-    } else if (editingWidgetId != null) {
-        BackHandler { editingWidgetId = null }
+    if (showWidgetPicker) BackHandler { showWidgetPicker = false }
+    else if (editingWidgetId != null) BackHandler { editingWidgetId = null }
+    else if (selectedTab == 0 && designRoute !is DesignRoute.Dashboard) {
+        // Handle nested design navigation
+        when (designRoute) {
+            is DesignRoute.AppDetail -> BackHandler { designRoute = DesignRoute.WidgetList }
+            is DesignRoute.WidgetList -> BackHandler { designRoute = DesignRoute.Dashboard }
+            else -> {}
+        }
     }
 
-    // --- Screen Content Switching ---
-    when {
-        // 1. Show Widget Picker Overlay (Custom List of Widgets)
-        showWidgetPicker -> {
-            WidgetPickerScreen(
-                onBack = { showWidgetPicker = false },
-                onWidgetSelected = { newWidgetId ->
-                    showWidgetPicker = false
-                    editingWidgetId = newWidgetId // Proceed to config
-                }
-            )
-        }
+    // --- MAIN UI ---
+    // We determine if we are in a "Full Screen" mode (Deep inside Design Tab)
+    // If so, we bypass the Main Scaffold with BottomBar
+    val isFullScreenDesign = selectedTab == 0 && designRoute !is DesignRoute.Dashboard
 
-        // 2. Show Widget Configuration Overlay (Preview)
-        editingWidgetId != null -> {
-            WidgetConfigScreen(
-                widgetId = editingWidgetId!!,
-                onBack = { editingWidgetId = null }
-            )
-        }
-
-        // 3. Show Main Tabs
-        else -> {
+    Box {
+        if (isFullScreenDesign) {
+            // [NEW SCREEN] Render full screen content without Bottom Nav
+            when (val route = designRoute) {
+                DesignRoute.WidgetList -> SavedWidgetsListScreen(
+                    onNavigateToDetail = { pkg, name ->
+                        designRoute = DesignRoute.AppDetail(pkg, name)
+                    },
+                    onLaunchPicker = { showWidgetPicker = true },
+                    onBack = { designRoute = DesignRoute.Dashboard }
+                )
+                is DesignRoute.AppDetail -> SavedAppWidgetsScreen(
+                    packageName = route.packageName,
+                    appName = route.appName,
+                    onBack = { designRoute = DesignRoute.WidgetList },
+                    onEditWidget = { id -> editingWidgetId = id },
+                    onAddMore = { showWidgetPicker = true }
+                )
+                else -> {}
+            }
+        } else {
+            // [MAIN SCREEN] Render standard tabs with Bottom Nav
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = {
-                            Text(stringResource(id = R.string.app_name), fontWeight = FontWeight.Bold)
-                        },
+                        title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold) },
                         actions = {
                             IconButton(onClick = onSettingsClick) {
-                                Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
+                                Icon(Icons.Outlined.Settings, stringResource(R.string.settings))
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -108,21 +120,18 @@ fun HomeScreen(
                 },
                 bottomBar = {
                     NavigationBar {
-                        // Design Tab
                         NavigationBarItem(
                             selected = selectedTab == 0,
                             onClick = { selectedTab = 0 },
                             icon = { Icon(if (selectedTab == 0) Icons.Filled.Brush else Icons.Outlined.Brush, null) },
                             label = { Text("Design") }
                         )
-                        // Active Tab
                         NavigationBarItem(
                             selected = selectedTab == 1,
                             onClick = { selectedTab = 1 },
                             icon = { Icon(if (selectedTab == 1) Icons.Filled.ToggleOn else Icons.Outlined.ToggleOff, null) },
                             label = { Text(stringResource(R.string.tab_active)) }
                         )
-                        // Library Tab
                         NavigationBarItem(
                             selected = selectedTab == 2,
                             onClick = { selectedTab = 2 },
@@ -135,8 +144,8 @@ fun HomeScreen(
                 Box(modifier = Modifier.padding(padding)) {
                     when (selectedTab) {
                         0 -> DesignScreen(
-                            onOpenWidgetConfig = { widgetId -> editingWidgetId = widgetId },
-                            onLaunchPicker = { showWidgetPicker = true } // Trigger the overlay
+                            onNavigateToWidgets = { designRoute = DesignRoute.WidgetList },
+                            onLaunchPicker = { showWidgetPicker = true } // FAB Action
                         )
                         1 -> ActiveAppsPage(activeApps, isLoading, viewModel) { configApp = it }
                         2 -> LibraryPage(libraryApps, isLoading, viewModel) { configApp = it }
@@ -144,19 +153,39 @@ fun HomeScreen(
                 }
             }
         }
-    }
 
-    // --- App Config Bottom Sheet (Existing Logic) ---
-    if (configApp != null) {
-        val safeApp = configApp!!
-        AppConfigBottomSheet(
-            app = safeApp,
-            viewModel = viewModel,
-            onDismiss = { configApp = null },
-            onNavConfigClick = {
-                onNavConfigClick(safeApp.packageName)
-                configApp = null
-            }
-        )
+        // --- OVERLAYS (Cover everything) ---
+
+        // 1. Widget Picker (The "Bottom Sheet" style picker)
+        if (showWidgetPicker) {
+            WidgetPickerScreen(
+                onBack = { showWidgetPicker = false },
+                onWidgetSelected = { newId ->
+                    showWidgetPicker = false
+                    editingWidgetId = newId
+                }
+            )
+        }
+
+        // 2. Widget Config (The Preview Screen)
+        if (editingWidgetId != null) {
+            WidgetConfigScreen(
+                widgetId = editingWidgetId!!,
+                onBack = { editingWidgetId = null }
+            )
+        }
+
+        // 3. App Config Bottom Sheet
+        if (configApp != null) {
+            AppConfigBottomSheet(
+                app = configApp!!,
+                viewModel = viewModel,
+                onDismiss = { configApp = null },
+                onNavConfigClick = {
+                    onNavConfigClick(configApp!!.packageName)
+                    configApp = null
+                }
+            )
+        }
     }
 }
