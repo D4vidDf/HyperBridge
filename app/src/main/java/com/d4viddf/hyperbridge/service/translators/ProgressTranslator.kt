@@ -24,6 +24,7 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setTimeout(config.timeout ?: 0)
         builder.setShowNotification(config.isShowShade ?: true)
+        builder.setIslandFirstFloat(config.isFloat ?: false)
 
         val extras = sbn.notification.extras
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)

@@ -42,11 +42,14 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
         builder.setSmallIsland("default_icon")
         builder.addPicture(getTransparentPicture("default_icon"))
 
-        builder.setEnableFloat(true)
+        builder.setEnableFloat(false)
 
         // 5. Apply User Settings
         builder.setTimeout(config.timeout ?: 5000L)
         builder.setShowNotification(config.isShowShade ?: true)
+        builder.setIslandFirstFloat(config.isFloat ?: false)
+        builder.setReopen(true)
+
 
         return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
     }
