@@ -126,6 +126,8 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setTimeout(finalTimeout)
         builder.setShowNotification(config.isShowShade ?: true)
+        builder.setIslandFirstFloat(config.isFloat ?: false)
+
 
         val hiddenKey = "hidden_pixel"
         val navStartKey = "nav_start_icon"

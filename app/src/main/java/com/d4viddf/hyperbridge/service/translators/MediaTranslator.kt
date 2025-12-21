@@ -80,6 +80,8 @@ class MediaTranslator(context: Context) : BaseTranslator(context) {
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setTimeout(finalTimeout)
         builder.setShowNotification(config.isShowShade ?: true)
+        builder.setIslandFirstFloat(config.isFloat ?: false)
+
 
         // --- RESOURCES ---
         val artKey = "album_art"
