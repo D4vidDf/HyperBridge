@@ -12,6 +12,7 @@ import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.models.WidgetSize
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-// Keep for migration support
 private val Context.legacyDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class AppPreferences(context: Context) {
@@ -31,14 +31,12 @@ class AppPreferences(context: Context) {
     private val legacyDataStore = context.applicationContext.legacyDataStore
 
     init {
-        // --- MIGRATION LOGIC (DataStore -> Room) ---
+        // --- MIGRATION LOGIC ---
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val isMigrated = dao.getSetting(SettingsKeys.MIGRATION_COMPLETE) == "true"
-
                 if (!isMigrated) {
                     val legacyPrefs = legacyDataStore.data.first().asMap()
-
                     if (legacyPrefs.isNotEmpty()) {
                         legacyPrefs.forEach { (key, value) ->
                             val strValue = when (value) {
@@ -160,7 +158,7 @@ class AppPreferences(context: Context) {
         if (config.timeout != null) save(tKey, config.timeout.toString()) else remove(tKey)
     }
 
-    // --- NAVIGATION & BLOCKED TERMS ---
+    // --- NAVIGATION ---
     val globalBlockedTermsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.GLOBAL_BLOCKED_TERMS).map { it.deserializeSet() }
     suspend fun setGlobalBlockedTerms(terms: Set<String>) = save(SettingsKeys.GLOBAL_BLOCKED_TERMS, terms.serialize())
 
@@ -183,6 +181,17 @@ class AppPreferences(context: Context) {
     suspend fun setGlobalNavLayout(left: NavContent, right: NavContent) {
         save(SettingsKeys.NAV_LEFT, left.name)
         save(SettingsKeys.NAV_RIGHT, right.name)
+    }
+
+    fun getAppNavLayout(packageName: String): Flow<Pair<NavContent?, NavContent?>> {
+        return combine(
+            dao.getSettingFlow("config_${packageName}_nav_left"),
+            dao.getSettingFlow("config_${packageName}_nav_right")
+        ) { l, r ->
+            val left = l?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
+            val right = r?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
+            left to right
+        }
     }
 
     fun getEffectiveNavLayout(packageName: String): Flow<Pair<NavContent, NavContent>> {
@@ -219,32 +228,36 @@ class AppPreferences(context: Context) {
 
     /**
      * Gets configuration specific to a single Widget ID.
-     * Uses dynamic keys: "widget_{id}_attribute"
+     * Returns the clean WidgetConfig class.
      */
-    fun getWidgetConfigFlow(id: Int): Flow<IslandConfig> {
+    fun getWidgetConfigFlow(id: Int): Flow<WidgetConfig> {
+        // [FIX] 'combine' only supports up to 5 args nicely. For 6+, it returns an Array<T>.
         return combine(
             dao.getSettingFlow("widget_${id}_shown"),
             dao.getSettingFlow("widget_${id}_timeout"),
             dao.getSettingFlow("widget_${id}_size"),
-            dao.getSettingFlow("widget_${id}_mode")
-        ) { shown, timeout, sizeStr, modeStr ->
+            dao.getSettingFlow("widget_${id}_mode"),
+            dao.getSettingFlow("widget_${id}_auto_update"),
+            dao.getSettingFlow("widget_${id}_update_interval")
+        ) { args: Array<String?> ->
+            // Manually unpack the array
+            val shown = args[0]
+            val timeout = args[1]
+            val sizeStr = args[2]
+            val modeStr = args[3]
+            val autoStr = args[4]
+            val intervalStr = args[5]
 
-            // Default Size: MEDIUM
-            val sizeEnum = try {
-                WidgetSize.valueOf(sizeStr ?: WidgetSize.MEDIUM.name)
-            } catch (e: Exception) { WidgetSize.MEDIUM }
+            val sizeEnum = try { WidgetSize.valueOf(sizeStr ?: WidgetSize.MEDIUM.name) } catch (e: Exception) { WidgetSize.MEDIUM }
+            val modeEnum = try { WidgetRenderMode.valueOf(modeStr ?: WidgetRenderMode.INTERACTIVE.name) } catch (e: Exception) { WidgetRenderMode.INTERACTIVE }
 
-            // Default Mode: INTERACTIVE
-            val modeEnum = try {
-                WidgetRenderMode.valueOf(modeStr ?: WidgetRenderMode.INTERACTIVE.name)
-            } catch (e: Exception) { WidgetRenderMode.INTERACTIVE }
-
-            IslandConfig(
-                isFloat = true,
-                isShowShade = shown?.toBoolean() ?: false,
-                timeout = timeout?.toLongOrNull() ?: 5000L,
-                widgetSize = sizeEnum,
-                renderMode = modeEnum
+            WidgetConfig(
+                isShowShade = shown.toBoolean(true),
+                timeout = timeout.toLong(5000L),
+                size = sizeEnum,
+                renderMode = modeEnum,
+                autoUpdate = autoStr.toBoolean(false),
+                updateIntervalMinutes = intervalStr.toInt(15)
             )
         }
     }
@@ -254,50 +267,32 @@ class AppPreferences(context: Context) {
      */
     suspend fun saveWidgetConfig(
         id: Int,
-        isShowShade: Boolean,
-        timeout: Long,
-        size: WidgetSize,
-        renderMode: WidgetRenderMode
+        config: WidgetConfig
     ) {
-        // 1. Add ID to the master list if not present
         val currentStr = dao.getSetting(WIDGET_IDS_DB_KEY) ?: ""
         val currentIds = currentStr.split(",").filter { it.isNotEmpty() }.toMutableSet()
         currentIds.add(id.toString())
         save(WIDGET_IDS_DB_KEY, currentIds.joinToString(","))
 
-        // 2. Save individual attributes with ID prefix
-        save("widget_${id}_shown", isShowShade.toString())
-        save("widget_${id}_timeout", timeout.toString())
-        save("widget_${id}_size", size.name)
-        save("widget_${id}_mode", renderMode.name)
+        save("widget_${id}_shown", config.isShowShade.toString())
+        save("widget_${id}_timeout", config.timeout.toString())
+        save("widget_${id}_size", config.size.name)
+        save("widget_${id}_mode", config.renderMode.name)
+        save("widget_${id}_auto_update", config.autoUpdate.toString())
+        save("widget_${id}_update_interval", config.updateIntervalMinutes.toString())
     }
 
-    /**
-     * Removes a widget ID and cleans up its specific settings.
-     */
     suspend fun removeWidgetId(id: Int) {
-        // 1. Remove ID from master list
         val currentStr = dao.getSetting(WIDGET_IDS_DB_KEY) ?: ""
         val currentIds = currentStr.split(",").filter { it.isNotEmpty() }.toMutableList()
         currentIds.remove(id.toString())
         save(WIDGET_IDS_DB_KEY, currentIds.joinToString(","))
 
-        // 2. Delete specific attribute rows
         dao.delete("widget_${id}_shown")
         dao.delete("widget_${id}_timeout")
         dao.delete("widget_${id}_size")
         dao.delete("widget_${id}_mode")
-    }
-
-
-    fun getAppNavLayout(packageName: String): Flow<Pair<NavContent?, NavContent?>> {
-        return combine(
-            dao.getSettingFlow("config_${packageName}_nav_left"),
-            dao.getSettingFlow("config_${packageName}_nav_right")
-        ) { l, r ->
-            val left = l?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
-            val right = r?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
-            left to right
-        }
+        dao.delete("widget_${id}_auto_update")
+        dao.delete("widget_${id}_update_interval")
     }
 }

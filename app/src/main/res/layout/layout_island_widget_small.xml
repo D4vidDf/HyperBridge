@@ -3,5 +3,4 @@
     android:id="@+id/widget_insertion_point"
     android:layout_width="match_parent"
     android:layout_height="100dp"
-    android:background="@android:color/transparent"
-    android:layout_gravity="center_horizontal"/>
+    android:background="@android:color/transparent"/>

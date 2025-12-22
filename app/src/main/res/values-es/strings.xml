@@ -401,4 +401,45 @@
         • Corregido el botón "Salir" en la isla de Navegación (ahora muestra texto en lugar de un icono).\n
         • Corregida la carga del icono de la App en Ajustes.\n
     </string>
+
+
+    <string name="close">Cerrar</string>
+    <string name="widget_updated_toast">Widget actualizado</string>
+    <string name="widget_settings_error">No se puede editar la configuración de este widget</string>
+
+    <string name="widget_picker_title">Añadir widget</string>
+    <string name="search_apps_placeholder">Buscar aplicaciones...</string>
+    <string name="widget_count_fmt">%d widgets</string>
+
+    <string name="widget_config_title">Configurar widget</string>
+    <string name="widget_settings_button">Ajustes del widget</string>
+
+    <string name="config_tab_appearance">Apariencia</string>
+    <string name="config_tab_behavior">Comportamiento</string>
+
+    <string name="config_render_mode_label">Modo de renderizado</string>
+    <string name="config_container_size_label">Tamaño del contenedor</string>
+
+    <string name="config_shade_title">Mostrar en cortina</string>
+    <string name="config_shade_desc">Visible en el panel de notificaciones</string>
+
+    <string name="config_timeout_title">Cierre automático</string>
+    <string name="config_timeout_desc">Cerrar isla tras un retraso</string>
+    <string name="config_timeout_fmt">%d segundos</string>
+
+    <string name="config_refresh_title">Actualización automática</string>
+    <string name="config_refresh_desc">Actualizar instantánea periódicamente</string>
+    <string name="config_refresh_fmt">Cada %d minutos</string>
+    <string name="config_refresh_warning">Una mayor frecuencia consume más batería.</string>
+
+    <string name="render_interactive_label">Interactivo</string>
+    <string name="render_interactive_desc">Botones funcionales. Ideal para Música, Controles.</string>
+    <string name="render_snapshot_label">Instantánea</string>
+    <string name="render_snapshot_desc">Arregla listas vacías. Ideal para Calendario, Gmail.</string>
+
+    <string name="size_original">Original</string>
+    <string name="size_small">Pequeño (100dp)</string>
+    <string name="size_medium">Mediano (180dp)</string>
+    <string name="size_large">Grande (280dp)</string>
+    <string name="size_xlarge">Extra Grande (380dp)</string>
 </resources>
