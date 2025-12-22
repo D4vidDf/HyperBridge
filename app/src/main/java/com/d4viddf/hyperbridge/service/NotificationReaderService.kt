@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -11,6 +12,7 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.d4viddf.hyperbridge.MainActivity
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
@@ -52,6 +54,9 @@ class NotificationReaderService : NotificationListenerService() {
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val lastUpdateMap = ConcurrentHashMap<String, Long>()
 
+    // Cache app labels to avoid heavy PackageManager calls
+    private val appLabelCache = ConcurrentHashMap<String, String>()
+
     private val UPDATE_INTERVAL_MS = 200L
     private val MAX_ISLANDS = 9
 
@@ -65,16 +70,14 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var standardTranslator: StandardTranslator
     private lateinit var mediaTranslator: MediaTranslator
     private lateinit var widgetTranslator: WidgetTranslator
+
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onCreate() {
         super.onCreate()
         preferences = AppPreferences(applicationContext)
         createIslandChannel()
 
-        // Initialize Widget Host Manager
-        WidgetManager.init(this)
-
-        // Initialize Translators
+        // [FIX 1] Initialize Translators BEFORE WidgetManager to prevent lateinit crash
         callTranslator = CallTranslator(this)
         navTranslator = NavTranslator(this)
         timerTranslator = TimerTranslator(this)
@@ -83,26 +86,29 @@ class NotificationReaderService : NotificationListenerService() {
         mediaTranslator = MediaTranslator(this)
         widgetTranslator = WidgetTranslator(this)
 
+        // [FIX 1] Initialize Widget Host Manager AFTER translators are ready
+        WidgetManager.init(this)
+
         // Observe settings changes
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
 
-        // --- LISTEN FOR WIDGET UPDATES (INTERACTIONS) ---
+        // [WIDGET LISTENER]
         serviceScope.launch {
             WidgetManager.widgetUpdates.collect { updatedId ->
-                Log.d(TAG, "⚡ Widget update detected for ID: $updatedId")
-
+                // Only react if this widget is actually saved in our config
                 val savedIds = preferences.savedWidgetIdsFlow.first()
-
                 if (savedIds.contains(updatedId)) {
-                    // Re-render and post
-                    try {
-                        val data = widgetTranslator.translate(updatedId)
-                        postNotification(null, 9000 + updatedId, data)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to update widget", e)
+                    // Launch on Main for View rendering if needed
+                    launch(Dispatchers.Main) {
+                        try {
+                            val data = widgetTranslator.translate(updatedId)
+                            postNotification(null, 9000 + updatedId, data)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to update widget", e)
+                        }
                     }
                 }
             }
@@ -111,28 +117,20 @@ class NotificationReaderService : NotificationListenerService() {
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // --- 1. Handle Widget Test / Launch ---
         if (intent?.action == "ACTION_TEST_WIDGET") {
             val widgetId = intent.getIntExtra("WIDGET_ID", -1)
             if (widgetId != -1) {
-                // Launch coroutine to handle translation off-thread (rendering bitmap can be heavy)
                 serviceScope.launch(Dispatchers.Main) {
                     try {
-                        Log.d(TAG, "🚀 Processing Widget Translation for ID: $widgetId")
-                        // Use the WidgetTranslator directly
                         val data = widgetTranslator.translate(widgetId)
-
-                        // Post with a unique ID range (9000+) to avoid conflicts with system notifications
                         postNotification(null, 9000 + widgetId, data)
-                        Log.d(TAG, "✅ Widget Posted Successfully")
                     } catch (e: Exception) {
                         Log.e(TAG, "💥 Failed to post widget notification", e)
                     }
                 }
             }
         }
-
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY // Recommended for services
     }
 
     override fun onListenerConnected() {
@@ -148,16 +146,14 @@ class NotificationReaderService : NotificationListenerService() {
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
-            // 1. Check if we should even process this app
             if (shouldIgnore(it.packageName)) return
 
-            // 2. Check if the user has enabled this specific app
-            if (isAppAllowed(it.packageName)) {
-
-                // 3. Filter Junk (System noise, placeholders)
-                if (isJunkNotification(it)) return
-
-                serviceScope.launch { processAndPost(it) }
+            // [FIX 2] Move heavy logic (Junk check / App Labels) inside IO scope
+            serviceScope.launch {
+                if (isAppAllowed(it.packageName)) {
+                    if (isJunkNotification(it)) return@launch
+                    processAndPost(it)
+                }
             }
         }
     }
@@ -322,11 +318,8 @@ class NotificationReaderService : NotificationListenerService() {
      */
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun postNotification(sbn: StatusBarNotification?, bridgeId: Int, data: HyperIslandData) {
-        // Log the payload for debugging
-        Log.d(TAG, "Posting Notification ID: $bridgeId")
-
         val notificationBuilder = NotificationCompat.Builder(this, ISLAND_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Ensure this icon exists
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.service_active))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -334,8 +327,20 @@ class NotificationReaderService : NotificationListenerService() {
             .setOnlyAlertOnce(true)
             .addExtras(data.resources)
 
-        // Only set content intent if we have a source notification (SBN)
-        sbn?.notification?.contentIntent?.let { notificationBuilder.setContentIntent(it) }
+        // [FIX 3] Handle Click Intent
+        if (sbn != null) {
+            // Standard Notification: Use the original intent
+            sbn.notification.contentIntent?.let { notificationBuilder.setContentIntent(it) }
+        } else {
+            // Widget: Create a generic intent to open the app or config
+            val intent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            notificationBuilder.setContentIntent(pendingIntent)
+        }
 
         val notification = notificationBuilder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
@@ -348,33 +353,6 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    private fun shouldSkipUpdate(sbn: StatusBarNotification): Boolean {
-        val key = sbn.key
-        val now = System.currentTimeMillis()
-        val lastTime = lastUpdateMap[key] ?: 0L
-        val previousIsland = activeIslands[key]
-
-        if (previousIsland == null) {
-            lastUpdateMap[key] = now
-            return false
-        }
-
-        val extras = sbn.notification.extras
-        val currTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-        val currText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
-        val currSub = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
-
-        if (currTitle != previousIsland.title || currText != previousIsland.text || currSub != previousIsland.subText) {
-            lastUpdateMap[key] = now
-            return false
-        }
-
-        if (now - lastTime < UPDATE_INTERVAL_MS) return true
-
-        lastUpdateMap[key] = now
-        return false
-    }
-
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
         val notification = sbn.notification
         val extras = notification.extras
@@ -385,7 +363,7 @@ class NotificationReaderService : NotificationListenerService() {
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
 
         if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
-        if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)) return true
+        if (title.contains(pkg, ignoreCase = true) || text.contains(pkg, ignoreCase = true)) return true
         if (title.contains("com.google.android", ignoreCase = true)) return true
 
         if (globalBlockedTerms.isNotEmpty()) {
@@ -395,7 +373,10 @@ class NotificationReaderService : NotificationListenerService() {
             }
         }
 
-        if (title == try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" } && text.isEmpty()) return true
+        // [FIX 2] Optimized App Label check using Cache
+        val appName = getCachedAppLabel(pkg)
+        if (title == appName && text.isEmpty()) return true
+
         if (title.contains("running in background", true)) return true
         if (text.contains("tap for more info", true)) return true
         if (text.contains("displaying over other apps", true)) return true
@@ -412,6 +393,17 @@ class NotificationReaderService : NotificationListenerService() {
         if (hasProgress || isSpecial) return false
 
         return false
+    }
+
+    private fun getCachedAppLabel(pkg: String): String {
+        return appLabelCache.getOrPut(pkg) {
+            try {
+                val info = packageManager.getApplicationInfo(pkg, 0)
+                packageManager.getApplicationLabel(info).toString()
+            } catch (e: Exception) {
+                ""
+            }
+        }
     }
 
     private fun shouldIgnore(packageName: String): Boolean {

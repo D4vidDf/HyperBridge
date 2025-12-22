@@ -4,18 +4,7 @@ import android.content.Intent
 import android.view.View
 import android.widget.FrameLayout
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,22 +13,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -99,24 +74,32 @@ fun SavedAppWidgetsScreen(
             modifier = Modifier.padding(padding).fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(filteredIds) { widgetId ->
-                FullSavedWidgetRow(
-                    widgetId = widgetId,
-                    onLaunch = {
-                        val intent = Intent(context, NotificationReaderService::class.java).apply {
-                            action = "ACTION_TEST_WIDGET"
-                            putExtra("WIDGET_ID", widgetId)
-                        }
-                        context.startService(intent)
-                    },
-                    onEdit = { onEditWidget(widgetId) },
-                    onDelete = {
-                        scope.launch { preferences.removeWidgetId(widgetId) }
+            if (filteredIds.isEmpty()) {
+                item {
+                    Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        Text("No widgets for this app.", color = MaterialTheme.colorScheme.outline)
                     }
-                )
+                }
+            } else {
+                items(filteredIds) { widgetId ->
+                    FullSavedWidgetRow(
+                        widgetId = widgetId,
+                        onLaunch = {
+                            val intent = Intent(context, NotificationReaderService::class.java).apply {
+                                action = "ACTION_TEST_WIDGET"
+                                putExtra("WIDGET_ID", widgetId)
+                            }
+                            context.startService(intent)
+                        },
+                        onEdit = { onEditWidget(widgetId) },
+                        onDelete = {
+                            scope.launch { preferences.removeWidgetId(widgetId) }
+                        }
+                    )
+                }
+                // Spacer for FAB
+                item { Spacer(Modifier.height(80.dp)) }
             }
-            // Spacer for FAB
-            item { Spacer(Modifier.height(80.dp)) }
         }
     }
 }
@@ -134,8 +117,8 @@ fun FullSavedWidgetRow(
     // Load PER-WIDGET configuration
     val config by preferences.getWidgetConfigFlow(widgetId).collectAsState(initial = null)
 
-    // Determine height based on saved size
-    val cardHeight = when(config?.widgetSize) {
+    // [FIX] Use config.size instead of config.widgetSize
+    val cardHeight = when(config?.size) {
         WidgetSize.SMALL -> 140.dp
         WidgetSize.MEDIUM -> 220.dp
         WidgetSize.LARGE -> 320.dp
@@ -143,8 +126,8 @@ fun FullSavedWidgetRow(
         else -> 220.dp
     }
 
-    // Determine view height for AndroidView measure spec
-    val viewHeightDp = when(config?.widgetSize) {
+    // [FIX] Use config.size instead of config.widgetSize
+    val viewHeightDp = when(config?.size) {
         WidgetSize.SMALL -> 100
         WidgetSize.MEDIUM -> 180
         WidgetSize.LARGE -> 280

@@ -21,17 +21,15 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
     private val preferences = AppPreferences(context)
 
     suspend fun translate(widgetId: Int): HyperIslandData {
-        // [FIX] Fetch config for THIS SPECIFIC widgetId, not the global flow
+        // Fetch config for THIS SPECIFIC widgetId
         val config = preferences.getWidgetConfigFlow(widgetId).first()
 
-        val targetSize = config.widgetSize ?: WidgetSize.MEDIUM
-        val renderMode = config.renderMode ?: WidgetRenderMode.INTERACTIVE
+        val targetSize = config.size
+        val renderMode = config.renderMode
         val title = "Widget Active"
         val builder = HyperIslandNotification.Builder(context, "widget_channel", title)
 
-        // --- BRANCHING LOGIC ---
         if (renderMode == WidgetRenderMode.SNAPSHOT) {
-            // === METHOD A: SNAPSHOT (Fixes Lists) ===
             val density = context.resources.displayMetrics.density
             val widthPx = (350 * density).toInt()
 
@@ -57,7 +55,6 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
             }
 
         } else {
-            // === METHOD B: INTERACTIVE (Original/Layouts) ===
             val remoteViews = WidgetManager.getLatestRemoteViews(widgetId)
 
             if (remoteViews != null) {
@@ -77,10 +74,11 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(getTransparentPicture("default_icon"))
 
         builder.setEnableFloat(false)
-        builder.setTimeout(config.timeout ?: 5000L)
-        builder.setShowNotification(config.isShowShade ?: true)
-        builder.setIslandFirstFloat(true)
+        builder.setTimeout(config.timeout?:0)
+        builder.setShowNotification(config.isShowShade)
+        builder.setIslandFirstFloat(false)
         builder.setReopen(true)
+        builder.setHideDeco(true)
 
         return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
     }

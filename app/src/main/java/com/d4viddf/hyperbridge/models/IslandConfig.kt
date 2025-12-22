@@ -4,8 +4,7 @@ data class IslandConfig(
     val isFloat: Boolean? = null,
     val isShowShade: Boolean? = null,
     val timeout: Long? = null,
-    val widgetSize: WidgetSize? = WidgetSize.MEDIUM,
-    val renderMode: WidgetRenderMode? = WidgetRenderMode.INTERACTIVE
+
 ) {
     // Merges this config (App) with a default config (Global)
     fun mergeWith(global: IslandConfig): IslandConfig {

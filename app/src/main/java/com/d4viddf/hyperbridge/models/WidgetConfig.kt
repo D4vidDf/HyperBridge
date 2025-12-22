@@ -7,7 +7,7 @@ data class WidgetConfig(
 
     // Behavior
     val isShowShade: Boolean = true,
-    val timeout: Int = 0,
+    val timeout: Long? = 5000L,
 
     // Automation
     val autoUpdate: Boolean = false,

@@ -389,4 +389,45 @@
         • Fixed "Exit" button in Navigation island showing as an icon instead of text.\n
         • Fixed App Icon loading in Settings.\n
     </string>
+
+    <string name="close">Close</string>
+    <string name="search">Search</string>
+    <string name="widget_updated_toast">Widget updated</string>
+    <string name="widget_settings_error">Cannot edit this widget settings</string>
+
+    <string name="widget_picker_title">Add Widget</string>
+    <string name="search_apps_placeholder">Search apps...</string>
+    <string name="widget_count_fmt">%d widgets</string>
+
+    <string name="widget_config_title">Configure Widget</string>
+    <string name="widget_settings_button">Widget Settings</string>
+
+    <string name="config_tab_appearance">Appearance</string>
+    <string name="config_tab_behavior">Behavior</string>
+
+    <string name="config_render_mode_label">Render Mode</string>
+    <string name="config_container_size_label">Container Size</string>
+
+    <string name="config_shade_title">Show in Shade</string>
+    <string name="config_shade_desc">Visible in notification panel</string>
+
+    <string name="config_timeout_title">Auto Close</string>
+    <string name="config_timeout_desc">Close island after delay</string>
+    <string name="config_timeout_fmt">%d seconds</string>
+
+    <string name="config_refresh_title">Auto Refresh</string>
+    <string name="config_refresh_desc">Update snapshot periodically</string>
+    <string name="config_refresh_fmt">Every %d minutes</string>
+    <string name="config_refresh_warning">Higher frequency uses more battery.</string>
+
+    <string name="render_interactive_label">Interactive</string>
+    <string name="render_interactive_desc">Buttons work. Best for Music, Controls.</string>
+    <string name="render_snapshot_label">Snapshot</string>
+    <string name="render_snapshot_desc">Fixes empty lists. Best for Calendar, Gmail.</string>
+
+    <string name="size_original">Original</string>
+    <string name="size_small">Small (100dp)</string>
+    <string name="size_medium">Medium (180dp)</string>
+    <string name="size_large">Large (280dp)</string>
+    <string name="size_xlarge">Extra Large (380dp)</string>
 </resources>

@@ -1,9 +1,7 @@
 package com.d4viddf.hyperbridge.ui.screens.design
 
 import android.appwidget.AppWidgetManager
-import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -12,13 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// Represents one App (e.g., "Spotify") containing multiple widgets
-data class WidgetAppGroup(
-    val packageName: String,
-    val appName: String,
-    val appIcon: Drawable?,
-    val widgets: List<AppWidgetProviderInfo>
-)
 
 class WidgetPickerViewModel : ViewModel() {
 
