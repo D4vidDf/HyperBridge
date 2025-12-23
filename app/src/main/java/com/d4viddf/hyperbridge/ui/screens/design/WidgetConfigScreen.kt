@@ -100,7 +100,6 @@ import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.models.WidgetSize
-import com.d4viddf.hyperbridge.service.NotificationReaderService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -159,10 +158,10 @@ fun WidgetConfigScreen(
         config.timeout?.let {
             if (it <= 0) {
                 isTimeoutEnabled = false
-                timeoutSeconds = 5f
+                timeoutSeconds = 0f
             } else {
                 isTimeoutEnabled = true
-                timeoutSeconds = config.timeout.toFloat() / 1000f
+                timeoutSeconds = config.timeout.toFloat()
             }
         }
 
@@ -377,7 +376,7 @@ fun WidgetConfigScreen(
                                         updateIntervalMinutes = updateInterval.roundToInt()
                                     )
                                     appPreferences.saveWidgetConfig(widgetId, finalConfig)
-                                    val intent = Intent(context, NotificationReaderService::class.java).apply {
+                                    val intent = Intent(context, com.d4viddf.hyperbridge.service.WidgetOverlayService::class.java).apply {
                                         action = "ACTION_TEST_WIDGET"
                                         putExtra("WIDGET_ID", widgetId)
                                     }
@@ -585,7 +584,7 @@ fun BehaviorSettings(
                         Slider(
                             value = updateInterval,
                             onValueChange = onUpdateIntervalChange,
-                            valueRange = 5f..60f,
+                            valueRange = 0f..60f,
                             steps = 10
                         )
                         Text(

@@ -20,6 +20,8 @@ import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.WidgetConfig
+import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.service.translators.CallTranslator
 import com.d4viddf.hyperbridge.service.translators.MediaTranslator
 import com.d4viddf.hyperbridge.service.translators.NavTranslator
@@ -39,11 +41,14 @@ import java.util.concurrent.ConcurrentHashMap
 class NotificationReaderService : NotificationListenerService() {
 
     private val TAG = "HyperBridgeDebug"
-    private val ISLAND_CHANNEL_ID = "hyper_bridge_island_channel"
+
+    // --- CHANNELS ---
+    private val NOTIFICATION_CHANNEL_ID = "hyper_bridge_notification_channel"
+    private val WIDGET_CHANNEL_ID = "hyper_bridge_widget_channel"
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
 
-    // --- STATE ---
+    // --- STATE & CONFIG ---
     private var allowedPackageSet: Set<String> = emptySet()
     private var currentMode = IslandLimitMode.MOST_RECENT
     private var appPriorityList = emptyList<String>()
@@ -54,11 +59,17 @@ class NotificationReaderService : NotificationListenerService() {
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val lastUpdateMap = ConcurrentHashMap<String, Long>()
 
-    // Cache app labels to avoid heavy PackageManager calls
+    // Widget Specific Caches
+    private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
+
+    // [NEW] Track dismissed widgets to prevent them from reappearing automatically
+    private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
+
     private val appLabelCache = ConcurrentHashMap<String, String>()
 
-    private val UPDATE_INTERVAL_MS = 200L
+    private val NOTIF_UPDATE_INTERVAL_MS = 200L
     private val MAX_ISLANDS = 9
+    private val WIDGET_ID_BASE = 9000
 
     private lateinit var preferences: AppPreferences
 
@@ -75,9 +86,8 @@ class NotificationReaderService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         preferences = AppPreferences(applicationContext)
-        createIslandChannel()
+        createChannels()
 
-        // [FIX 1] Initialize Translators BEFORE WidgetManager to prevent lateinit crash
         callTranslator = CallTranslator(this)
         navTranslator = NavTranslator(this)
         timerTranslator = TimerTranslator(this)
@@ -86,28 +96,29 @@ class NotificationReaderService : NotificationListenerService() {
         mediaTranslator = MediaTranslator(this)
         widgetTranslator = WidgetTranslator(this)
 
-        // [FIX 1] Initialize Widget Host Manager AFTER translators are ready
         WidgetManager.init(this)
 
-        // Observe settings changes
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
 
-        // [WIDGET LISTENER]
+        // --- WIDGET LISTENER ---
         serviceScope.launch {
             WidgetManager.widgetUpdates.collect { updatedId ->
-                // Only react if this widget is actually saved in our config
+                // 1. Check if user explicitly dismissed this widget
+                if (dismissedWidgetIds.contains(updatedId)) {
+                    Log.d(TAG, "Skipping update for dismissed widget: $updatedId")
+                    return@collect
+                }
+
                 val savedIds = preferences.savedWidgetIdsFlow.first()
                 if (savedIds.contains(updatedId)) {
-                    // Launch on Main for View rendering if needed
-                    launch(Dispatchers.Main) {
-                        try {
-                            val data = widgetTranslator.translate(updatedId)
-                            postNotification(null, 9000 + updatedId, data)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to update widget", e)
+                    val config = preferences.getWidgetConfigFlow(updatedId).first()
+
+                    if (shouldProcessWidgetUpdate(updatedId, config)) {
+                        launch(Dispatchers.Main) {
+                            processSingleWidget(updatedId, config)
                         }
                     }
                 }
@@ -120,46 +131,83 @@ class NotificationReaderService : NotificationListenerService() {
         if (intent?.action == "ACTION_TEST_WIDGET") {
             val widgetId = intent.getIntExtra("WIDGET_ID", -1)
             if (widgetId != -1) {
+                // [NEW] User manually requested this widget -> Un-dismiss it
+                dismissedWidgetIds.remove(widgetId)
+
                 serviceScope.launch(Dispatchers.Main) {
-                    try {
-                        val data = widgetTranslator.translate(widgetId)
-                        postNotification(null, 9000 + widgetId, data)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "💥 Failed to post widget notification", e)
-                    }
+                    val config = preferences.getWidgetConfigFlow(widgetId).first()
+                    processSingleWidget(widgetId, config)
                 }
             }
         }
-        return START_STICKY // Recommended for services
+        return START_STICKY
     }
 
-    override fun onListenerConnected() {
-        super.onListenerConnected()
-        Log.i(TAG, "HyperBridge Service Connected & Listening")
-    }
+    // =========================================================================
+    //  WIDGET LOGIC
+    // =========================================================================
 
-    override fun onDestroy() {
-        super.onDestroy()
-        serviceScope.cancel()
+    private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
+        val now = System.currentTimeMillis()
+        val lastTime = widgetUpdateDebouncer[widgetId] ?: 0L
+        val throttleTime = if (config.renderMode == WidgetRenderMode.SNAPSHOT) 1500L else 200L
+
+        if (now - lastTime < throttleTime) return false
+
+        widgetUpdateDebouncer[widgetId] = now
+        return true
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    override fun onNotificationPosted(sbn: StatusBarNotification?) {
-        sbn?.let {
-            if (shouldIgnore(it.packageName)) return
-
-            // [FIX 2] Move heavy logic (Junk check / App Labels) inside IO scope
-            serviceScope.launch {
-                if (isAppAllowed(it.packageName)) {
-                    if (isJunkNotification(it)) return@launch
-                    processAndPost(it)
-                }
-            }
+    private suspend fun processSingleWidget(widgetId: Int, config: WidgetConfig) {
+        try {
+            val data = widgetTranslator.translate(widgetId)
+            postWidgetNotification(WIDGET_ID_BASE + widgetId, data)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to process widget $widgetId", e)
         }
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun postWidgetNotification(notificationId: Int, data: HyperIslandData) {
+        val builder = NotificationCompat.Builder(this, WIDGET_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Widget Overlay")
+            .setContentText("Active")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .addExtras(data.resources)
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        builder.setContentIntent(pendingIntent)
+
+        val notification = builder.build()
+        notification.extras.putString("miui.focus.param", data.jsonParam)
+
+        NotificationManagerCompat.from(this).notify(notificationId, notification)
+    }
+
+    // =========================================================================
+    //  NOTIFICATION REMOVAL LOGIC
+    // =========================================================================
+
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         sbn?.let {
+            // [NEW] Check if the removed notification was a Widget
+            if (it.id >= WIDGET_ID_BASE) {
+                val widgetId = it.id - WIDGET_ID_BASE
+                Log.d(TAG, "Widget Dismissed: $widgetId")
+                dismissedWidgetIds.add(widgetId)
+                return
+            }
+
+            // Standard Notification Removal Logic
             val key = it.key
             if (activeTranslations.containsKey(key)) {
                 val hyperId = activeTranslations[key] ?: return
@@ -173,70 +221,57 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     // =========================================================================
-    //  CORE LOGIC (Standard Notifications)
+    //  STANDARD NOTIFICATION LOGIC (Unchanged)
     // =========================================================================
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private suspend fun processAndPost(sbn: StatusBarNotification) {
+    override fun onNotificationPosted(sbn: StatusBarNotification?) {
+        sbn?.let {
+            if (shouldIgnore(it.packageName)) return
+
+            serviceScope.launch {
+                if (isAppAllowed(it.packageName)) {
+                    if (isJunkNotification(it)) return@launch
+                    processStandardNotification(it)
+                }
+            }
+        }
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private suspend fun processStandardNotification(sbn: StatusBarNotification) {
+        if (shouldSkipUpdate(sbn)) return
+
         try {
             val extras = sbn.notification.extras
             val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
             val text = extras.getString(Notification.EXTRA_TEXT) ?: ""
 
-            // --- App-Specific Blocklist Check ---
             val appBlockedTerms = preferences.getAppBlockedTerms(sbn.packageName).first()
             if (appBlockedTerms.isNotEmpty()) {
                 val content = "$title $text"
-                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
-                    return
-                }
+                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) return
             }
 
-            // --- Type Detection ---
-            val template = extras.getString(Notification.EXTRA_TEMPLATE) ?: ""
-
-            val isCall = sbn.notification.category == Notification.CATEGORY_CALL ||
-                    template == "android.app.Notification\$CallStyle"
-            val isNavigation = sbn.notification.category == Notification.CATEGORY_NAVIGATION ||
-                    sbn.packageName.contains("maps") || sbn.packageName.contains("waze")
-            val progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
-            val hasProgress = progressMax > 0 || extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
-            val chronometerBase = sbn.notification.`when`
-            val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) ||
-                    sbn.notification.category == Notification.CATEGORY_ALARM ||
-                    sbn.notification.category == Notification.CATEGORY_STOPWATCH) && chronometerBase > 0
-            val isMedia = template.contains("MediaStyle") == true ||
-                    sbn.notification.category == Notification.CATEGORY_TRANSPORT
-
-            val type = when {
-                isCall -> NotificationType.CALL
-                isNavigation -> NotificationType.NAVIGATION
-                isTimer -> NotificationType.TIMER
-                isMedia -> NotificationType.MEDIA
-                hasProgress -> NotificationType.PROGRESS
-                else -> NotificationType.STANDARD
-            }
+            val type = detectNotificationType(sbn)
 
             val config = preferences.getAppConfig(sbn.packageName).first()
             if (!config.contains(type.name)) return
 
-            // --- Island Management ---
             val key = sbn.key
             val isUpdate = activeIslands.containsKey(key)
-            val bridgeId = sbn.key.hashCode()
-
             if (!isUpdate && activeIslands.size >= MAX_ISLANDS) {
                 handleLimitReached(type, sbn.packageName)
                 if (activeIslands.size >= MAX_ISLANDS) return
             }
 
-            // --- Configuration Merge ---
             val appIslandConfig = preferences.getAppIslandConfig(sbn.packageName).first()
             val globalConfig = preferences.globalConfigFlow.first()
             val finalConfig = appIslandConfig.mergeWith(globalConfig)
 
-            // --- Translation ---
+            val bridgeId = sbn.key.hashCode()
             val picKey = "pic_${bridgeId}"
+
             val data: HyperIslandData = when (type) {
                 NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig)
                 NotificationType.NAVIGATION -> {
@@ -249,42 +284,103 @@ class NotificationReaderService : NotificationListenerService() {
                 else -> standardTranslator.translate(sbn, picKey, finalConfig)
             }
 
-            // --- Deduplication ---
             val newContentHash = data.jsonParam.hashCode()
             val previousIsland = activeIslands[key]
-            if (isUpdate && previousIsland != null) {
-                if (previousIsland.lastContentHash == newContentHash) {
-                    return
-                }
+            if (isUpdate && previousIsland != null && previousIsland.lastContentHash == newContentHash) {
+                return
             }
 
-            // --- Post to System ---
-            postNotification(sbn, bridgeId, data)
-
-            // --- Cache State ---
-            val currTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-            val currText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
-            val currSub = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
+            postStandardNotification(sbn, bridgeId, data)
 
             activeIslands[key] = ActiveIsland(
-                id = bridgeId,
-                type = type,
-                postTime = System.currentTimeMillis(),
-                packageName = sbn.packageName,
-                title = currTitle,
-                text = currText,
-                subText = currSub,
+                id = bridgeId, type = type, postTime = System.currentTimeMillis(),
+                packageName = sbn.packageName, title = title, text = text, subText = "",
                 lastContentHash = newContentHash
             )
 
         } catch (e: Exception) {
-            Log.e(TAG, "💥 Error processing notification", e)
+            Log.e(TAG, "💥 Error processing standard notification", e)
         }
     }
 
+    private fun detectNotificationType(sbn: StatusBarNotification): NotificationType {
+        val n = sbn.notification
+        val extras = n.extras
+        val template = extras.getString(Notification.EXTRA_TEMPLATE) ?: ""
+        val isCall = n.category == Notification.CATEGORY_CALL || template == "android.app.Notification\$CallStyle"
+        val isNav = n.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.let { it.contains("maps") || it.contains("waze") }
+        val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || n.category == Notification.CATEGORY_ALARM) && n.`when` > 0
+        val isMedia = template.contains("MediaStyle") || n.category == Notification.CATEGORY_TRANSPORT
+        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0
+
+        return when {
+            isCall -> NotificationType.CALL
+            isNav -> NotificationType.NAVIGATION
+            isTimer -> NotificationType.TIMER
+            isMedia -> NotificationType.MEDIA
+            hasProgress -> NotificationType.PROGRESS
+            else -> NotificationType.STANDARD
+        }
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun postStandardNotification(sbn: StatusBarNotification, bridgeId: Int, data: HyperIslandData) {
+        val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText("Active Island")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .addExtras(data.resources)
+
+        sbn.notification.contentIntent?.let { builder.setContentIntent(it) }
+
+        val notification = builder.build()
+        notification.extras.putString("miui.focus.param", data.jsonParam)
+
+        NotificationManagerCompat.from(this).notify(bridgeId, notification)
+        activeTranslations[sbn.key] = bridgeId
+    }
+
     // =========================================================================
-    //  HELPERS
+    //  HELPERS & SETUP
     // =========================================================================
+
+    private fun createChannels() {
+        val manager = getSystemService(NotificationManager::class.java)
+
+        val notifChannel = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            getString(R.string.channel_active_islands),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            setSound(null, null)
+            enableVibration(false)
+            setShowBadge(false)
+        }
+        manager.createNotificationChannel(notifChannel)
+
+        val widgetChannel = NotificationChannel(
+            WIDGET_CHANNEL_ID,
+            "Widgets Overlay",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            setSound(null, null)
+            enableVibration(false)
+            setShowBadge(false)
+        }
+        manager.createNotificationChannel(widgetChannel)
+    }
+
+    private fun shouldSkipUpdate(sbn: StatusBarNotification): Boolean {
+        val key = sbn.key
+        val now = System.currentTimeMillis()
+        val lastTime = lastUpdateMap[key] ?: 0L
+        if (now - lastTime < NOTIF_UPDATE_INTERVAL_MS) return true
+        lastUpdateMap[key] = now
+        return false
+    }
 
     private fun handleLimitReached(newType: NotificationType, newPkg: String) {
         when (currentMode) {
@@ -296,102 +392,14 @@ class NotificationReaderService : NotificationListenerService() {
                     activeIslands.remove(it.key)
                 }
             }
-            IslandLimitMode.PRIORITY -> {
-                val newPriority = appPriorityList.indexOf(newPkg).takeIf { it != -1 } ?: 9999
-                val lowestActiveEntry = activeIslands.maxByOrNull { entry ->
-                    appPriorityList.indexOf(entry.value.packageName).takeIf { it != -1 } ?: 9999
-                }
-                if (lowestActiveEntry != null) {
-                    val lowestPriority = appPriorityList.indexOf(lowestActiveEntry.value.packageName).takeIf { it != -1 } ?: 9999
-                    if (newPriority < lowestPriority) {
-                        NotificationManagerCompat.from(this).cancel(lowestActiveEntry.value.id)
-                        activeIslands.remove(lowestActiveEntry.key)
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Posts the notification to the System.
-     * @param sbn Nullable because Widgets don't have a StatusBarNotification.
-     */
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private fun postNotification(sbn: StatusBarNotification?, bridgeId: Int, data: HyperIslandData) {
-        val notificationBuilder = NotificationCompat.Builder(this, ISLAND_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Ensure this icon exists
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.service_active))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .addExtras(data.resources)
-
-        // [FIX 3] Handle Click Intent
-        if (sbn != null) {
-            // Standard Notification: Use the original intent
-            sbn.notification.contentIntent?.let { notificationBuilder.setContentIntent(it) }
-        } else {
-            // Widget: Create a generic intent to open the app or config
-            val intent = Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            val pendingIntent = PendingIntent.getActivity(
-                this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            )
-            notificationBuilder.setContentIntent(pendingIntent)
-        }
-
-        val notification = notificationBuilder.build()
-        notification.extras.putString("miui.focus.param", data.jsonParam)
-
-        NotificationManagerCompat.from(this).notify(bridgeId, notification)
-
-        // Track ID for removal later (Only for actual notifications)
-        if (sbn != null) {
-            activeTranslations[sbn.key] = bridgeId
+            IslandLimitMode.PRIORITY -> {}
         }
     }
 
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
-        val notification = sbn.notification
-        val extras = notification.extras
-        val pkg = sbn.packageName
-
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
-        val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
-
-        if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
-        if (title.contains(pkg, ignoreCase = true) || text.contains(pkg, ignoreCase = true)) return true
-        if (title.contains("com.google.android", ignoreCase = true)) return true
-
-        if (globalBlockedTerms.isNotEmpty()) {
-            val content = "$title $text"
-            if (globalBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
-                return true
-            }
-        }
-
-        // [FIX 2] Optimized App Label check using Cache
-        val appName = getCachedAppLabel(pkg)
-        if (title == appName && text.isEmpty()) return true
-
-        if (title.contains("running in background", true)) return true
-        if (text.contains("tap for more info", true)) return true
-        if (text.contains("displaying over other apps", true)) return true
-
-        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
-
-        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
-                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
-        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT ||
-                notification.category == Notification.CATEGORY_CALL ||
-                notification.category == Notification.CATEGORY_NAVIGATION ||
-                extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
-
-        if (hasProgress || isSpecial) return false
-
+        val title = sbn.notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
+        val appName = getCachedAppLabel(sbn.packageName)
+        if (title == appName && sbn.notification.extras.getCharSequence(Notification.EXTRA_TEXT).isNullOrEmpty()) return true
         return false
     }
 
@@ -400,32 +408,22 @@ class NotificationReaderService : NotificationListenerService() {
             try {
                 val info = packageManager.getApplicationInfo(pkg, 0)
                 packageManager.getApplicationLabel(info).toString()
-            } catch (e: Exception) {
-                ""
-            }
+            } catch (e: Exception) { "" }
         }
     }
 
     private fun shouldIgnore(packageName: String): Boolean {
-        return packageName == this.packageName ||
-                packageName == "android" ||
-                packageName == "com.android.systemui" ||
-                packageName.contains("miui.notification")
+        return packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
     }
 
-    private fun createIslandChannel() {
-        val name = getString(R.string.channel_active_islands)
-        val channel = NotificationChannel(
-            ISLAND_CHANNEL_ID,
-            name,
-            NotificationManager.IMPORTANCE_HIGH).apply {
-            setSound(null, null)
-            enableVibration(false)
-        }
-        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+    private fun isAppAllowed(packageName: String): Boolean = allowedPackageSet.contains(packageName)
+
+    override fun onListenerConnected() {
+        Log.i(TAG, "HyperBridge Service Connected")
     }
 
-    private fun isAppAllowed(packageName: String): Boolean {
-        return allowedPackageSet.contains(packageName)
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
     }
 }

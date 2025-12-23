@@ -9,7 +9,6 @@
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.BIND_APPWIDGET" />
 
     <queries>
         <intent>
@@ -58,7 +57,11 @@
         </intent-filter>
         </service>
 
-
+        <service
+            android:name=".service.WidgetOverlayService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
     </application>
 
 </manifest>

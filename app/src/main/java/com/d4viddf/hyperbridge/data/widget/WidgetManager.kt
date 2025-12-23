@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.data.widget
 
+import android.annotation.SuppressLint
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
+@SuppressLint("StaticFieldLeak")
 object WidgetManager {
 
     private const val HOST_ID = 1024
