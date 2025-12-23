@@ -398,7 +398,7 @@
     <string name="widget_picker_title">Add Widget</string>
     <string name="search_apps_placeholder">Search apps...</string>
     <plurals name="widget_count_fmt">
-        <item quantity="other">%d widgets</item>
+        <item quantity="many">%d widgets</item>
         <item quantity="one">%d widget</item>
     </plurals>
 
@@ -417,14 +417,14 @@
     <string name="config_timeout_title">Auto Close</string>
     <string name="config_timeout_desc">Close island after delay</string>
     <plurals name="config_timeout_fmt">
-        <item quantity="other">%d seconds</item>
+        <item quantity="many">%d seconds</item>
         <item quantity="one">%d second</item>
     </plurals>
 
     <string name="config_refresh_title">Auto Refresh</string>
     <string name="config_refresh_desc">Update snapshot periodically</string>
 ¡    <plurals name="config_refresh_fmt">
-        <item quantity="other">Every %d minutes</item>
+        <item quantity="many">Every %d minutes</item>
         <item quantity="one">Every minute</item>
     </plurals>
     <string name="config_refresh_warning">Higher frequency uses more battery.</string>

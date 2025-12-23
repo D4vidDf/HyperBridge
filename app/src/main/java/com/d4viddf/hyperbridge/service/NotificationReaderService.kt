@@ -397,9 +397,53 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
-        val title = sbn.notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-        val appName = getCachedAppLabel(sbn.packageName)
-        if (title == appName && sbn.notification.extras.getCharSequence(Notification.EXTRA_TEXT).isNullOrEmpty()) return true
+        val notification = sbn.notification
+        val extras = notification.extras
+        val pkg = sbn.packageName
+
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
+        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
+        val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
+
+        // --- 3. PRIORITY PASS ---
+        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
+                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT ||
+                notification.category == Notification.CATEGORY_CALL ||
+                notification.category == Notification.CATEGORY_NAVIGATION ||
+                extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
+
+        if (hasProgress || isSpecial) return false
+        // --- 1. CONTENT CHECKS ---
+        if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
+
+        // Package Name Leaks
+        if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true) || subText.equals(pkg, ignoreCase = true)) return true
+        if (title.contains("com.google.android", ignoreCase = true)) return true
+
+        // *** NEW: GLOBAL BLOCKLIST CHECK ***
+        // If title or text contains any blocked word, ignore it.
+        if (globalBlockedTerms.isNotEmpty()) {
+            val content = "$title $text"
+            if (globalBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
+                return true
+            }
+        }
+
+        // Placeholder Titles
+        val appName = try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" }
+        if (title == appName && text.isEmpty() && subText.isEmpty()) return true
+
+        // System Noise
+        if (title.contains("running in background", true)) return true
+        if (text.contains("tap for more info", true)) return true
+        if (text.contains("displaying over other apps", true)) return true
+
+        // --- 2. GROUP SUMMARIES ---
+        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
+
+
+
         return false
     }
 

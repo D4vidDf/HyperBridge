@@ -91,6 +91,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -549,7 +550,7 @@ fun BehaviorSettings(
         AnimatedVisibility(visible = isTimeoutEnabled) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    stringResource(R.string.config_timeout_fmt, timeoutSeconds),
+                    pluralStringResource(R.plurals.config_timeout_fmt, timeoutSeconds, timeoutSeconds),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -557,7 +558,7 @@ fun BehaviorSettings(
                 Slider(
                     value = timeoutSeconds.toFloat(),
                     onValueChange = onTimeoutChange,
-                    valueRange = 2f..30f,
+                    valueRange = 1f..30f,
                     steps = 28
                 )
             }
@@ -578,7 +579,7 @@ fun BehaviorSettings(
                 AnimatedVisibility(visible = autoUpdateEnabled) {
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         Text(
-                            stringResource(R.string.config_refresh_fmt, updateInterval.roundToInt()),
+                            pluralStringResource(R.plurals.config_refresh_fmt, updateInterval.roundToInt(),updateInterval.roundToInt()),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary

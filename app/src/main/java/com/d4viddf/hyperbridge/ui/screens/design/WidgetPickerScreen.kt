@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -209,6 +210,7 @@ fun AppGroupItem(
     onToggle: () -> Unit,
     onSelectWidget: (AppWidgetProviderInfo) -> Unit
 ) {
+    val numWidget = pluralStringResource(R.plurals.widget_count_fmt, group.widgets.size, group.widgets.size)
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
@@ -243,7 +245,7 @@ fun AppGroupItem(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = stringResource(R.string.widget_count_fmt, group.widgets.size),
+                        text = numWidget,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
