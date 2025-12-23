@@ -30,7 +30,7 @@ class TimerTranslator(context: Context) : BaseTranslator(context) {
         // --- CONFIG (Commented out) ---
         val finalTimeout = config.timeout ?: 5000L
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setTimeout(finalTimeout)
+        builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 

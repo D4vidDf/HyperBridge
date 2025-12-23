@@ -75,7 +75,7 @@ fun AppConfigBottomSheet(
     // Data Loading
     val typeConfig by viewModel.getAppConfig(app.packageName).collectAsState(initial = emptySet())
     val appIslandConfig by viewModel.getAppIslandConfig(app.packageName).collectAsState(initial = IslandConfig())
-    val globalConfig by viewModel.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5000L))
+    val globalConfig by viewModel.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5))
     val blockedTerms by viewModel.getAppBlockedTerms(app.packageName).collectAsState(initial = emptySet())
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

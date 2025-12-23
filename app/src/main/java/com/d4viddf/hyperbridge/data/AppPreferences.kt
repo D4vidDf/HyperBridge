@@ -125,7 +125,7 @@ class AppPreferences(context: Context) {
         dao.getSettingFlow(SettingsKeys.GLOBAL_SHADE),
         dao.getSettingFlow(SettingsKeys.GLOBAL_TIMEOUT)
     ) { f, s, t ->
-        IslandConfig(f.toBoolean(true), s.toBoolean(true), sanitizeTimeout(t?.toLongOrNull()))
+        IslandConfig(f.toBoolean(true), s.toBoolean(true), t?.toIntOrNull())
     }
 
     suspend fun updateGlobalConfig(config: IslandConfig) {
@@ -143,7 +143,7 @@ class AppPreferences(context: Context) {
             IslandConfig(
                 f?.toBoolean(),
                 s?.toBoolean(),
-                if (t != null) sanitizeTimeout(t.toLong()) else null
+                t?.toIntOrNull()
             )
         }
     }
@@ -253,7 +253,7 @@ class AppPreferences(context: Context) {
 
             WidgetConfig(
                 isShowShade = shown.toBoolean(true),
-                timeout = timeout.toLong(5000L),
+                timeout = timeout.toInt(5),
                 size = sizeEnum,
                 renderMode = modeEnum,
                 autoUpdate = autoStr.toBoolean(false),

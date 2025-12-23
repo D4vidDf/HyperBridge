@@ -39,7 +39,7 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
         // If timeout is 0, we force float to false to prevent stuck heads-up
 
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setTimeout(finalTimeout)
+        builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 

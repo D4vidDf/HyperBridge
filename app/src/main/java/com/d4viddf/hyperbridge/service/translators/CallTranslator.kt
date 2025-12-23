@@ -54,7 +54,7 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
 
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setTimeout(config.timeout ?: 0)
+        builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 

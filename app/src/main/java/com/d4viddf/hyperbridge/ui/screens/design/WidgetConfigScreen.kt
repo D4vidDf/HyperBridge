@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.design
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
@@ -104,6 +105,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WidgetConfigScreen(
@@ -128,7 +130,7 @@ fun WidgetConfigScreen(
     // Behavior
     var isShowShade by remember { mutableStateOf(true) }
     var isTimeoutEnabled by remember { mutableStateOf(false) }
-    var timeoutSeconds by remember { mutableFloatStateOf(5f) }
+    var timeoutSeconds by remember { mutableIntStateOf(5) }
 
     // Auto Update
     var autoUpdateEnabled by remember { mutableStateOf(false) }
@@ -158,10 +160,10 @@ fun WidgetConfigScreen(
         config.timeout?.let {
             if (it <= 0) {
                 isTimeoutEnabled = false
-                timeoutSeconds = 0f
+                timeoutSeconds = 0
             } else {
                 isTimeoutEnabled = true
-                timeoutSeconds = config.timeout.toFloat()
+                timeoutSeconds = config.timeout
             }
         }
 
@@ -345,7 +347,7 @@ fun WidgetConfigScreen(
                                     isTimeoutEnabled = isTimeoutEnabled,
                                     onTimeoutEnabledChange = { isTimeoutEnabled = it },
                                     timeoutSeconds = timeoutSeconds,
-                                    onTimeoutChange = { timeoutSeconds = it },
+                                    onTimeoutChange = { timeoutSeconds = it.toInt() },
                                     renderMode = renderMode,
                                     autoUpdateEnabled = autoUpdateEnabled,
                                     onAutoUpdateChange = { autoUpdateEnabled = it },
@@ -366,7 +368,7 @@ fun WidgetConfigScreen(
                         FloatingToolbarDefaults.StandardFloatingActionButton(
                             onClick = {
                                 scope.launch {
-                                    val finalTimeout = if (isTimeoutEnabled) (timeoutSeconds * 1000).toLong() else 0L
+                                    val finalTimeout = if (isTimeoutEnabled) timeoutSeconds else 0
                                     val finalConfig = WidgetConfig(
                                         size = selectedSize,
                                         renderMode = renderMode,
@@ -517,7 +519,7 @@ fun BehaviorSettings(
     onShowShadeChange: (Boolean) -> Unit,
     isTimeoutEnabled: Boolean,
     onTimeoutEnabledChange: (Boolean) -> Unit,
-    timeoutSeconds: Float,
+    timeoutSeconds: Int,
     onTimeoutChange: (Float) -> Unit,
     renderMode: WidgetRenderMode,
     autoUpdateEnabled: Boolean,
@@ -547,13 +549,13 @@ fun BehaviorSettings(
         AnimatedVisibility(visible = isTimeoutEnabled) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    stringResource(R.string.config_timeout_fmt, timeoutSeconds.roundToInt()),
+                    stringResource(R.string.config_timeout_fmt, timeoutSeconds),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Slider(
-                    value = timeoutSeconds,
+                    value = timeoutSeconds.toFloat(),
                     onValueChange = onTimeoutChange,
                     valueRange = 2f..30f,
                     steps = 28

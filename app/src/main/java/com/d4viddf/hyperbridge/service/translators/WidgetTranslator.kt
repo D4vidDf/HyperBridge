@@ -71,10 +71,9 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
 
         builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = "default_icon")))
         builder.setSmallIsland("default_icon")
+        builder.setIslandConfig(timeout = config.timeout , dismissible = false)
         builder.addPicture(getTransparentPicture("default_icon"))
-
         builder.setEnableFloat(false)
-        builder.setTimeout(config.timeout?:0)
         builder.setShowNotification(config.isShowShade)
         builder.setIslandFirstFloat(false)
         builder.setReopen(true)

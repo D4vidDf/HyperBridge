@@ -78,7 +78,7 @@ class MediaTranslator(context: Context) : BaseTranslator(context) {
 
         val finalTimeout = config.timeout ?: 0
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setTimeout(finalTimeout)
+        builder.setIslandConfig(timeout = finalTimeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 

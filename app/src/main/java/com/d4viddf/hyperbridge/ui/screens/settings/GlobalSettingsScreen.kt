@@ -26,7 +26,7 @@ fun GlobalSettingsScreen(
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
 
-    val globalConfig by preferences.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5000L))
+    val globalConfig by preferences.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5))
 
     Scaffold(
         topBar = {
