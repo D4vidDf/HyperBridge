@@ -329,7 +329,7 @@
         Mejorada la lógica de detección para soportar más aplicaciones de VoIP y Teléfono.\n\n
         <b>Correcciones y Mejoras 🛠️</b>\n
         • Solucionado un error crítico donde la app se quedaba cargando tras reiniciar.\n
-        • Corregido error donde las notificaciones mostraban el nombre del paquete (ej. "com.google...") en lugar del contenido.\n
+        • Corregido error donde las notificaciones mostraban el nombre del paquete (ej. "com.google…") en lugar del contenido.\n
         • Rediseñado el panel de Configuración de App.\n
         • Mejorada la pantalla de Comprobación de Compatibilidad con info detallada.
     </string>
@@ -408,8 +408,11 @@
     <string name="widget_settings_error">No se puede editar la configuración de este widget</string>
 
     <string name="widget_picker_title">Añadir widget</string>
-    <string name="search_apps_placeholder">Buscar aplicaciones...</string>
-    <string name="widget_count_fmt">%d widgets</string>
+    <string name="search_apps_placeholder">Buscar aplicaciones…</string>
+    <plurals name="widget_count_fmt">
+        <item quantity="many">%d widgets</item>
+        <item quantity="one">%d widget</item>
+    </plurals>
 
     <string name="widget_config_title">Configurar widget</string>
     <string name="widget_settings_button">Ajustes del widget</string>
@@ -425,11 +428,17 @@
 
     <string name="config_timeout_title">Cierre automático</string>
     <string name="config_timeout_desc">Cerrar isla tras un retraso</string>
-    <string name="config_timeout_fmt">%d segundos</string>
+    <plurals name="config_timeout_fmt">
+        <item quantity="many">%d segundos</item>
+        <item quantity="one">%d segundo</item>
+    </plurals>
 
     <string name="config_refresh_title">Actualización automática</string>
     <string name="config_refresh_desc">Actualizar instantánea periódicamente</string>
-    <string name="config_refresh_fmt">Cada %d minutos</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="many">Cada %d minutos</item>
+        <item quantity="one">Cada minuto</item>
+    </plurals>
     <string name="config_refresh_warning">Una mayor frecuencia consume más batería.</string>
 
     <string name="render_interactive_label">Interactivo</string>
