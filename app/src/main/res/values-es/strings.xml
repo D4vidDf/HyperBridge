@@ -410,6 +410,7 @@
     <string name="widget_picker_title">Añadir widget</string>
     <string name="search_apps_placeholder">Buscar aplicaciones…</string>
     <plurals name="widget_count_fmt">
+        <item quantity="other">%d widgets</item>
         <item quantity="many">%d widgets</item>
         <item quantity="one">%d widget</item>
     </plurals>
@@ -429,6 +430,7 @@
     <string name="config_timeout_title">Cierre automático</string>
     <string name="config_timeout_desc">Cerrar isla tras un retraso</string>
     <plurals name="config_timeout_fmt">
+        <item quantity="other">%d segundos</item>
         <item quantity="many">%d segundos</item>
         <item quantity="one">%d segundo</item>
     </plurals>
@@ -436,6 +438,7 @@
     <string name="config_refresh_title">Actualización automática</string>
     <string name="config_refresh_desc">Actualizar instantánea periódicamente</string>
     <plurals name="config_refresh_fmt">
+        <item quantity="other">Cada %d minutos</item>
         <item quantity="many">Cada %d minutos</item>
         <item quantity="one">Cada minuto</item>
     </plurals>
