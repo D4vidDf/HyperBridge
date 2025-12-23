@@ -16,10 +16,10 @@
     <string name="welcome_subtitle">Bezproblemowo integruj wyspę HyperIsland z HyperOS.</string>
     <string name="get_started">Rozpocznij</string>
 
-    <string name="how_it_works">Jak to działa</string>
-    <string name="how_it_works_desc">Wybierz swoje ulubione aplikacje (np. Spotify, Mapy czy Timer), a HyperBridge przekształci ich powiadomienia w elegancką wyspę HyperIsland.</string>
+    <string name="how_it_works">Jak to działa?</string>
+    <string name="how_it_works_desc">Wybierz swoje ulubione aplikacje (np. Spotify, Mapy czy Timer), a Hyper Bridge przekształci ich powiadomienia w elegancką wyspę HyperIsland.</string>
     <string name="early_development">Wczesny rozwój</string>
-    <string name="beta_warning">Uwaga: Ta aplikacja jest w wersji Beta. Możesz napotkać błędy lub nieprawidłowe informacje wizualne.</string>
+    <string name="beta_warning">Uwaga: aplikacja jest w fazie Beta. Możesz napotkać błędy lub nieprawidłowe informacje wizualne.</string>
 
     <string name="device_compatible">Urządzenie kompatybilne</string>
     <string name="unsupported_device">Nieobsługiwane urządzenie</string>
@@ -202,13 +202,13 @@
 
     <string name="badge_new">NOWA</string>
 
-    <string name="custom_design">Custom Design</string>
+    <string name="custom_design">Własny wygląd</string>
     <string name="nav_layout_title">Układ wyspy nawigacji</string>
     <string name="nav_layout_desc">Wybierz informację, która pojawi się w danej części wyspy</string>
     <string name="left_content">Lewa strona</string>
     <string name="right_content">Prawa strona</string>
 
-    <string name="nav_content_instruction">Instrukcja</string>
+    <string name="nav_content_instruction">Polecenie</string>
     <string name="nav_content_distance">Odległość</string>
     <string name="nav_content_eta">Czas przybycia</string>
     <string name="nav_content_distance_eta">Odległość i czas</string>
@@ -270,7 +270,7 @@
     <string name="status_unknown">Nieznany</string>
 
     <string name="warning_cn_rom_title">Wykryto ROM China</string>
-    <string name="warning_cn_rom_desc">Twoje urządzenie wydaje się działać na ROM-ie China. Xiaomi znacznie modyfikuje powiadomienia w ROM-ach CN. Funkcje mogą być niestabilne lub w ogóle nie działać.</string>
+    <string name="warning_cn_rom_desc">Twoje urządzenie prawdopodobnie działa na ROM-ie China. W tej wersji Xiaomi znacznie modyfikuje działanie powiadomień. Funkcje mogą być niestabilne lub w ogóle nie działać.</string>
 
     <string name="system_version">Wersja systemu</string>
 
@@ -382,4 +382,59 @@
             • Naprawiono przycisk „Wyjście” w wyspie nawigacji – teraz wyświetla on tekst, a nie ikonę.\n
             • Naprawiono ładowanie ikon aplikacji w Ustawieniach.\n
     </string>
+
+    <string name="close">Zamknij</string>
+    <string name="search">Szukaj</string>
+    <string name="widget_updated_toast">Zaktualizowano widżet</string>
+    <string name="widget_settings_error">Nie można edytować ustawień tego widżetu</string>
+
+    <string name="widget_picker_title">Dodaj widżet</string>
+    <string name="search_apps_placeholder">Wyszukaj aplikacje…</string>
+    <plurals name="widget_count_fmt">
+        <item quantity="other">%d widżetów</item>
+        <item quantity="many">%d widżetów</item>
+        <item quantity="few">%d widżety</item>
+        <item quantity="one">%d widżet</item>
+    </plurals>
+
+    <string name="widget_config_title">Konfiguruj widżet</string>
+    <string name="widget_settings_button">Ustawienia widżetu</string>
+    <string name="config_tab_appearance">Wygląd</string>
+    <string name="config_tab_behavior">Zachowanie</string>
+
+    <string name="config_render_mode_label">Tryb renderowania</string>
+    <string name="config_container_size_label">Rozmiar kontenera</string>
+
+    <string name="config_shade_title">Pokaż w panelu powiadomień</string>
+    <string name="config_shade_desc">Widżet będzie widoczny w panelu powiadomień</string>
+
+    <string name="config_timeout_title">Zamknij automatycznie</string>
+    <string name="config_timeout_desc">Zamknij wyspę po opóźnieniu</string>
+    <plurals name="config_timeout_fmt">
+        <item quantity="other">%d sekund</item>
+        <item quantity="many">%d sekund</item>
+        <item quantity="few">%d sekundy</item>
+        <item quantity="one">%d sekunda</item>
+    </plurals>
+
+    <string name="config_refresh_title">Odświeżanie</string>
+    <string name="config_refresh_desc">Aktualizuj okresowo migawkę</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="other">Co %d minut</item>
+        <item quantity="many">Co %d minut</item>
+        <item quantity="few">Co %d minuty</item>
+        <item quantity="one">Co minutę</item>
+    </plurals>
+    <string name="config_refresh_warning">Wyższa częstotliwość zużywa więcej baterii.</string>
+
+    <string name="render_interactive_label">Interaktywny</string>
+    <string name="render_interactive_desc">Z działającymi przyciskami. Najlepszy dla muzyki bądź kontrolowania elementów.</string>
+    <string name="render_snapshot_label">Migawka</string>
+    <string name="render_snapshot_desc">Sprawia, że listy nie są puste. Najlepszy dla Kalendarza czy Gmaila.</string>
+
+    <string name="size_original">Oryginalny</string>
+    <string name="size_small">Mały (100dp)</string>
+    <string name="size_medium">Średni (180dp)</string>
+    <string name="size_large">Duży (280dp)</string>
+    <string name="size_xlarge">Bardzo duży (380dp)</string>
 </resources>
