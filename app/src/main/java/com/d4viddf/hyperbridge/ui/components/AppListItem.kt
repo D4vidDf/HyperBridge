@@ -29,7 +29,7 @@ fun AppListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onToggle(!app.isBridged) }
+            .clickable { onSettingsClick() }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
