@@ -6,6 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +21,7 @@ import com.d4viddf.hyperbridge.ui.components.AppListFilterSection
 import com.d4viddf.hyperbridge.ui.components.AppListItem
 import com.d4viddf.hyperbridge.ui.components.EmptyState
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LibraryPage(
     apps: List<AppInfo>,
@@ -29,7 +33,12 @@ fun LibraryPage(
     val selectedCategory = viewModel.libraryCategory.collectAsState().value
     val sortOption = viewModel.librarySort.collectAsState().value
 
-    Column {
+    // [LOGIC] Only show the Pull Indicator if we have content.
+    // On first load (apps empty), we hide it so we can show the big centered loader instead.
+    val isRefreshing = isLoading && apps.isNotEmpty()
+    val pullState = rememberPullToRefreshState()
+
+    Column(modifier = Modifier.fillMaxSize()) {
         AppListFilterSection(
             searchQuery = searchQuery,
             onSearchChange = { viewModel.librarySearch.value = it },
@@ -39,37 +48,76 @@ fun LibraryPage(
             onSortChange = { viewModel.librarySort.value = it }
         )
 
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (apps.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                EmptyState(
-                    title = stringResource(R.string.no_apps_found),
-                    description = "", // Optional
-                    icon = Icons.Default.SearchOff
-                )
-            }
-        } else {
-            LazyColumn(
+        // Wrapper Box to ensure weight is applied correctly
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { viewModel.refreshApps() },
+                state = pullState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                contentAlignment = Alignment.TopCenter, // Updated to TopCenter
+                indicator = {
+                    PullToRefreshDefaults.LoadingIndicator(
+                        state = pullState,
+                        isRefreshing = isRefreshing,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                    )
+                }
             ) {
-                items(apps, key = { it.packageName }) { app ->
-                    Column(modifier = Modifier.animateItem()) {
-                        AppListItem(
-                            app = app,
-                            onToggle = { viewModel.toggleApp(app.packageName, it) },
-                            onSettingsClick = { onConfig(app) },
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 72.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                // 1. Initial Load / Refreshing Empty State
+                if (apps.isEmpty() && isLoading) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        LoadingIndicator()
+                    }
+                }
+                // 2. Empty State (No results)
+                else if (apps.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        EmptyState(
+                            title = stringResource(R.string.no_apps_found),
+                            description = "",
+                            icon = Icons.Default.SearchOff
                         )
                     }
                 }
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+                // 3. List Content
+                else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(apps, key = { it.packageName }) { app ->
+                            Column(modifier = Modifier.animateItem()) {
+                                AppListItem(
+                                    app = app,
+                                    onToggle = { viewModel.toggleApp(app.packageName, it) },
+                                    onSettingsClick = { onConfig(app) },
+                                )
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                                )
+                            }
+                        }
+
+                        // Bottom Pagination Loader (only if we have content)
+                        if (isLoading) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    LoadingIndicator(modifier = Modifier.width(40.dp))
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

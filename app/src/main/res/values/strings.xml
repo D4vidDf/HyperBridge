@@ -439,4 +439,7 @@
     <string name="size_medium">Medium (180dp)</string>
     <string name="size_large">Large (280dp)</string>
     <string name="size_xlarge">Extra Large (380dp)</string>
+
+    <string name="app_uninstalled_badge">Uninstalled</string>
+    <string name="settings_action">Settings</string>
 </resources>

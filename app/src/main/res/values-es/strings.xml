@@ -454,4 +454,7 @@
     <string name="size_medium">Mediano (180dp)</string>
     <string name="size_large">Grande (280dp)</string>
     <string name="size_xlarge">Extra Grande (380dp)</string>
+
+    <string name="app_uninstalled_badge">Desinstalada</string>
+    <string name="settings_action">Ajustes</string>
 </resources>
