@@ -1,7 +1,20 @@
 package com.d4viddf.hyperbridge.ui.screens.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
@@ -11,26 +24,12 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ToggleOff
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShortNavigationBar
-import androidx.compose.material3.ShortNavigationBarItem
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppInfo
@@ -38,14 +37,12 @@ import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.AppConfigBottomSheet
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
-import com.d4viddf.hyperbridge.ui.screens.design.SavedWidgetsListScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 
-private sealed class DesignRoute {
-    data object Dashboard : DesignRoute()
-    data object WidgetList : DesignRoute()
-    data class AppDetail(val packageName: String, val appName: String) : DesignRoute()
+private enum class DesignRoute {
+    DASHBOARD,
+    WIDGET_LIST
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +53,9 @@ fun HomeScreen(
     onNavConfigClick: (String) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(1) }
-    var designRoute by remember { mutableStateOf<DesignRoute>(DesignRoute.Dashboard) }
+
+    // Internal Design Navigation
+    var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
 
     // Overlay States
     var showWidgetPicker by remember { mutableStateOf(false) }
@@ -67,47 +66,34 @@ fun HomeScreen(
     val libraryApps by viewModel.libraryAppsState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // --- Back Handling ---
-    if (showWidgetPicker) BackHandler { showWidgetPicker = false }
-    else if (editingWidgetId != null) BackHandler { editingWidgetId = null }
-    else if (selectedTab == 0 && designRoute !is DesignRoute.Dashboard) {
-        // Handle nested design navigation
-        when (designRoute) {
-            is DesignRoute.AppDetail -> BackHandler { designRoute = DesignRoute.WidgetList }
-            is DesignRoute.WidgetList -> BackHandler { designRoute = DesignRoute.Dashboard }
-            else -> {}
-        }
+    // --- PREDICTIVE BACK HANDLERS ---
+    // The order matters: Last added = First handled
+
+    // 1. Config App Bottom Sheet (Handled internally by ModalBottomSheet usually, but we track state)
+    if (configApp != null) {
+        BackHandler { configApp = null }
     }
 
-    // --- MAIN UI ---
-    // We determine if we are in a "Full Screen" mode (Deep inside Design Tab)
-    // If so, we bypass the Main Scaffold with BottomBar
-    val isFullScreenDesign = selectedTab == 0 && designRoute !is DesignRoute.Dashboard
+    // 2. Widget Config Screen (Deepest overlay)
+    if (editingWidgetId != null) {
+        BackHandler { editingWidgetId = null }
+    }
 
-    Box {
-        if (isFullScreenDesign) {
-            // [NEW SCREEN] Render full screen content without Bottom Nav
-            when (val route = designRoute) {
-                DesignRoute.WidgetList -> SavedWidgetsListScreen(
-                    onNavigateToDetail = { pkg, name ->
-                        designRoute = DesignRoute.AppDetail(pkg, name)
-                    },
-                    onLaunchPicker = { showWidgetPicker = true },
-                    onBack = { designRoute = DesignRoute.Dashboard }
-                )
-                is DesignRoute.AppDetail -> SavedAppWidgetsScreen(
-                    packageName = route.packageName,
-                    appName = route.appName,
-                    onBack = { designRoute = DesignRoute.WidgetList },
-                    onEditWidget = { id -> editingWidgetId = id },
-                    onAddMore = { showWidgetPicker = true }
-                )
-                else -> {}
-            }
-        } else {
-            // [MAIN SCREEN] Render standard tabs with Bottom Nav
-            Scaffold(
-                topBar = {
+    // 3. Widget Picker Screen
+    if (showWidgetPicker) {
+        BackHandler { showWidgetPicker = false }
+    }
+
+    // 4. Design Tab Internal Navigation
+    if (selectedTab == 0 && designRoute == DesignRoute.WIDGET_LIST) {
+        BackHandler { designRoute = DesignRoute.DASHBOARD }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                // Hide TopBar only inside the "Widget List" sub-screen to allow its own toolbar
+                if (selectedTab != 0 || designRoute == DesignRoute.DASHBOARD) {
                     TopAppBar(
                         title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold) },
                         actions = {
@@ -117,8 +103,16 @@ fun HomeScreen(
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
                     )
-                },
-                bottomBar = {
+                }
+            },
+            bottomBar = {
+                // Hide BottomBar if deeply navigated (Standard Android Pattern)
+                // This gives more space to the list
+                AnimatedVisibility(
+                    visible = selectedTab != 0 || designRoute == DesignRoute.DASHBOARD,
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut()
+                ) {
                     ShortNavigationBar {
                         ShortNavigationBarItem(
                             selected = selectedTab == 0,
@@ -140,39 +134,83 @@ fun HomeScreen(
                         )
                     }
                 }
-            ) { padding ->
-                Box(modifier = Modifier.padding(padding)) {
-                    when (selectedTab) {
-                        0 -> DesignScreen(
-                            onNavigateToWidgets = { designRoute = DesignRoute.WidgetList },
-                            onLaunchPicker = { showWidgetPicker = true } // FAB Action
-                        )
-                        1 -> ActiveAppsPage(activeApps, isLoading, viewModel) { configApp = it }
-                        2 -> LibraryPage(libraryApps, isLoading, viewModel) { configApp = it }
+            }
+        ) { padding ->
+            // If we are in the sub-screen, we consume the padding manually or ignore it
+            // to allow full screen content (since we hide bars)
+            val effectivePadding = if (selectedTab == 0 && designRoute == DesignRoute.WIDGET_LIST) PaddingValues(0.dp) else padding
+
+            Box(modifier = Modifier.padding(effectivePadding)) {
+                when (selectedTab) {
+                    0 -> {
+                        // [ANIMATION] Smooth Slide Transition between Dashboard and List
+                        AnimatedContent(
+                            targetState = designRoute,
+                            transitionSpec = {
+                                if (targetState == DesignRoute.WIDGET_LIST) {
+                                    // Going Deeper: Slide In from Right
+                                    slideInHorizontally { it } + fadeIn() togetherWith
+                                            slideOutHorizontally { -it / 3 } + fadeOut()
+                                } else {
+                                    // Going Back: Slide In from Left
+                                    slideInHorizontally { -it } + fadeIn() togetherWith
+                                            slideOutHorizontally { it / 3 } + fadeOut()
+                                }
+                            },
+                            label = "DesignTabNav"
+                        ) { route ->
+                            if (route == DesignRoute.DASHBOARD) {
+                                DesignScreen(
+                                    onNavigateToWidgets = { designRoute = DesignRoute.WIDGET_LIST },
+                                    onLaunchPicker = { showWidgetPicker = true }
+                                )
+                            } else {
+                                SavedAppWidgetsScreen(
+                                    onBack = { designRoute = DesignRoute.DASHBOARD },
+                                    onEditWidget = { id -> editingWidgetId = id },
+                                    onAddMore = { showWidgetPicker = true }
+                                )
+                            }
+                        }
                     }
+                    1 -> ActiveAppsPage(activeApps, isLoading, viewModel) { configApp = it }
+                    2 -> LibraryPage(libraryApps, isLoading, viewModel) { configApp = it }
                 }
             }
         }
 
-        // --- OVERLAYS (Cover everything) ---
+        // --- GLOBAL OVERLAYS (Full Screen Slide-Up) ---
 
-        // 1. Widget Picker (The "Bottom Sheet" style picker)
-        if (showWidgetPicker) {
+        // 1. Widget Picker
+        AnimatedVisibility(
+            visible = showWidgetPicker,
+            enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(400)) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(400)) + fadeOut(),
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
+        ) {
             WidgetPickerScreen(
                 onBack = { showWidgetPicker = false },
                 onWidgetSelected = { newId ->
                     showWidgetPicker = false
+                    // Small delay to allow picker to close before opening config
                     editingWidgetId = newId
                 }
             )
         }
 
-        // 2. Widget Config (The Preview Screen)
-        if (editingWidgetId != null) {
-            WidgetConfigScreen(
-                widgetId = editingWidgetId!!,
-                onBack = { editingWidgetId = null }
-            )
+        // 2. Widget Configuration
+        AnimatedVisibility(
+            visible = editingWidgetId != null,
+            enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(400)) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(400)) + fadeOut(),
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
+        ) {
+            if (editingWidgetId != null) {
+                WidgetConfigScreen(
+                    widgetId = editingWidgetId!!,
+                    onBack = { editingWidgetId = null }
+                )
+            }
         }
 
         // 3. App Config Bottom Sheet

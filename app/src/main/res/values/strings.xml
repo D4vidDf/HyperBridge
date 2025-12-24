@@ -442,4 +442,10 @@
 
     <string name="app_uninstalled_badge">Uninstalled</string>
     <string name="settings_action">Settings</string>
+
+    <string name="saved_widgets_title">Saved Widgets</string>
+    <string name="new_widget_fab">New Widget</string>
+    <string name="no_saved_widgets">No saved widgets found.</string>
+    <string name="widget_id_fmt">Widget #%d</string>
+    <string name="show_on_island">Show on Island</string>
 </resources>

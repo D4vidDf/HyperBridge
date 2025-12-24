@@ -35,12 +35,10 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", displayTitle)
 
         // --- CONFIGURATION ---
-        val finalTimeout = config.timeout ?: 0
-        // If timeout is 0, we force float to false to prevent stuck heads-up
-
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
+        builder.setReopen(true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 
         // ---------------------
@@ -49,16 +47,25 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        val actions = extractBridgeActions(sbn)
-        val actionKeys = actions.map { it.action.key }
+        // Extract actions
+        val bridgeActions = extractBridgeActions(sbn)
 
-        // Action Logic: Move to Hint if > 1 (Optional, keeping standard behavior for now)
+        // [FIX] Register actions as HIDDEN so they work but don't show in the footer
+        bridgeActions.forEach {
+            builder.addHiddenAction(it.action)
+        }
+
+        // We do NOT pass actionKeys to setBaseInfo
         builder.setBaseInfo(
             type = 2,
             title = displayTitle,
             content = displayContent,
-            pictureKey = picKey,
-            actionKeys = actionKeys
+            // actionKeys = ... (Removed)
+        )
+        builder.setIconTextInfo(
+            picKey= picKey,
+            title = displayTitle,
+            content = displayContent
         )
 
         if (isMedia) {
@@ -72,9 +79,10 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
 
         builder.setSmallIsland(picKey)
 
-        actions.forEach {
-            builder.addAction(it.action)
-            it.actionImage?.let { iconPic -> builder.addPicture(iconPic) }
+        // [NEW] Configure Text Buttons
+        if (bridgeActions.isNotEmpty()) {
+            val hyperActions = bridgeActions.map { it.action }.toTypedArray()
+            builder.setTextButtons(*hyperActions)
         }
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())

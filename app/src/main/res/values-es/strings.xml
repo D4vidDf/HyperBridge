@@ -457,4 +457,10 @@
 
     <string name="app_uninstalled_badge">Desinstalada</string>
     <string name="settings_action">Ajustes</string>
+
+    <string name="saved_widgets_title">Widgets Guardados</string>
+    <string name="new_widget_fab">Nuevo Widget</string>
+    <string name="no_saved_widgets">No hay widgets guardados.</string>
+    <string name="widget_id_fmt">Widget #%d</string>
+    <string name="show_on_island">Mostrar en Isla</string>
 </resources>

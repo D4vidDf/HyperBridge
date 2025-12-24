@@ -4,17 +4,7 @@ import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -26,27 +16,8 @@ import androidx.compose.material.icons.filled.AppSettingsAlt
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material3.Badge
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,11 +41,9 @@ fun DesignScreen(
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
 
-    // State for Bottom Sheet
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
-    // Data Loading
     val savedWidgetIds by preferences.savedWidgetIdsFlow.collectAsState(initial = emptyList())
     var widgetIcons by remember { mutableStateOf<List<Drawable>>(emptyList()) }
 
@@ -98,7 +67,7 @@ fun DesignScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showBottomSheet = true }, // Opens the Sheet
+                onClick = { showBottomSheet = true },
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Design")
@@ -119,6 +88,7 @@ fun DesignScreen(
                 title = "Widgets",
                 icon = Icons.Default.Widgets,
                 onClick = onNavigateToWidgets,
+                showBetaBadge = true, // [NEW] Tag
                 content = {
                     if (savedWidgetIds.isEmpty()) {
                         Text("No widgets configured", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
@@ -179,12 +149,10 @@ fun DesignScreen(
                 }
             )
 
-            // Spacer for FAB
             Spacer(modifier = Modifier.height(80.dp))
         }
     }
 
-    // --- BOTTOM SHEET ---
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -202,22 +170,20 @@ fun DesignScreen(
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // Option 1: System Widget
                 Button(
                     onClick = {
                         showBottomSheet = false
-                        onLaunchPicker() // Calls back to HomeScreen to show Picker Overlay
+                        onLaunchPicker()
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(Icons.Outlined.Widgets, null, modifier = Modifier.padding(end = 8.dp))
-                    Text("System Widget", style = MaterialTheme.typography.titleMedium)
+                    Text("System Widget (Beta)", style = MaterialTheme.typography.titleMedium)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Option 2: Custom Layout (Placeholder)
                 FilledTonalButton(
                     onClick = {
                         Toast.makeText(context, "Custom Layouts Coming Soon", Toast.LENGTH_SHORT).show()
@@ -239,6 +205,7 @@ fun DesignCategoryCard(
     title: String,
     icon: ImageVector,
     enabled: Boolean = true,
+    showBetaBadge: Boolean = false, // [NEW] Param
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -253,6 +220,23 @@ fun DesignCategoryCard(
                 Icon(imageVector = icon, contentDescription = null, tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 Spacer(Modifier.width(12.dp))
                 Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline)
+
+                // [NEW] Beta Badge Logic
+                if (showBetaBadge && enabled) {
+                    Spacer(Modifier.width(8.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = "BETA",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
             Spacer(Modifier.height(16.dp))
             content()
