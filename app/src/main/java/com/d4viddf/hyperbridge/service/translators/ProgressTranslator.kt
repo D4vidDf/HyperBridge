@@ -19,6 +19,13 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
     }
 
     fun translate(sbn: StatusBarNotification, title: String, picKey: String, config: IslandConfig): HyperIslandData {
+
+        // --- [PERSONALIZATION DEFAULTS] ---
+        val themeFinishIcon = R.drawable.rounded_check_circle_24
+        val themeProgressColor = "#007AFF"
+        val themeFinishColor = "#34C759"
+        // ----------------------------------
+
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
 
         builder.setEnableFloat(config.isFloat ?: false)
@@ -39,37 +46,31 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
 
         val tickKey = "${picKey}_tick"
         val hiddenKey = "hidden_pixel"
-        val greenColor = "#34C759"
-        val blueColor = "#007AFF"
 
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
         if (isFinished) {
-            builder.addPicture(getColoredPicture(tickKey, R.drawable.rounded_check_circle_24, greenColor))
+            // [UPDATED] Use theme icon/color
+            builder.addPicture(getColoredPicture(tickKey, themeFinishIcon, themeFinishColor))
         }
 
-        // Extract actions (Titles are needed for Text Buttons)
         val actions = extractBridgeActions(sbn)
 
-        // --- SHADE / BASE INFO ---
         builder.setChatInfo(
             title = title,
             content = if (isFinished) "Download Complete" else textContent,
             pictureKey = picKey,
-            // Removed actionKeys here so they don't appear inline
             appPkg = sbn.packageName
         )
 
-        // --- LINEAR PROGRESS ---
         if (!isFinished && !indeterminate) {
             builder.setProgressBar(
                 progress = percent,
-                color = blueColor
+                color = themeProgressColor
             )
         }
 
-        // --- ISLAND LAYOUT ---
         if (isFinished) {
             builder.setBigIslandInfo(
                 left = ImageTextInfoLeft(1, PicInfo(1, hiddenKey), TextInfo("", "")),
@@ -88,28 +89,27 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
                     picKey,
                     "$percent%",
                     progress = percent,
-                    color = blueColor,
+                    color = themeProgressColor,
                     true
                 )
 
                 builder.setSmallIslandCircularProgress(
                     picKey,
                     progress = percent,
-                    color = blueColor,
+                    color = themeProgressColor,
                     isCCW = true
                 )
             }
         }
 
-        // --- TEXT BUTTONS ---
-        // 1. Add pictures for actions if they exist
         actions.forEach {
             it.actionImage?.let { pic -> builder.addPicture(pic) }
         }
 
-        // 2. Set all actions as Text Buttons at once
         val hyperActions = actions.map { it.action }.toTypedArray()
-        builder.setTextButtons(*hyperActions)
+        hyperActions.forEach {
+            builder.addAction(it)
+        }
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

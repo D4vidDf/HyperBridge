@@ -41,26 +41,23 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
         builder.setReopen(true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 
-        // ---------------------
-
         val hiddenKey = "hidden_pixel"
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        // Extract actions
-        val bridgeActions = extractBridgeActions(sbn)
+        // [UPDATED] Extract actions with Reply logic
+        // 1. hideReplies = false (So the button still shows up)
+        // 2. useAppOpenForReplies = true (So clicking "Reply" opens the chat instead of failing)
+        val bridgeActions = extractBridgeActions(
+            sbn,
+            hideReplies = false,
+            useAppOpenForReplies = true
+        )
 
-        // [FIX] Register actions as HIDDEN so they work but don't show in the footer
-        bridgeActions.forEach {
-            builder.addHiddenAction(it.action)
-        }
-
-        // We do NOT pass actionKeys to setBaseInfo
         builder.setBaseInfo(
             type = 2,
             title = displayTitle,
-            content = displayContent,
-            // actionKeys = ... (Removed)
+            content = displayContent
         )
         builder.setIconTextInfo(
             picKey= picKey,
@@ -79,10 +76,12 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
 
         builder.setSmallIsland(picKey)
 
-        // [NEW] Configure Text Buttons
         if (bridgeActions.isNotEmpty()) {
             val hyperActions = bridgeActions.map { it.action }.toTypedArray()
             builder.setTextButtons(*hyperActions)
+            hyperActions.forEach {
+                builder.addHiddenAction(it)
+            }
         }
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())

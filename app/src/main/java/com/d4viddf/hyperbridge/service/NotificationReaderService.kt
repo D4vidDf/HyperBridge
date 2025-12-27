@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -41,12 +42,13 @@ import java.util.concurrent.ConcurrentHashMap
 class NotificationReaderService : NotificationListenerService() {
 
     private val TAG = "HyperBridgeDebug"
+    private val EXTRA_ORIGINAL_KEY = "hyper_original_key"
 
     // --- CHANNELS ---
     private val NOTIFICATION_CHANNEL_ID = "hyper_bridge_notification_channel"
     private val WIDGET_CHANNEL_ID = "hyper_bridge_widget_channel"
 
-    private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
+    private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
 
     // --- STATE & CONFIG ---
     private var allowedPackageSet: Set<String> = emptySet()
@@ -56,13 +58,17 @@ class NotificationReaderService : NotificationListenerService() {
 
     // --- CACHES ---
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
+
+    // Forward Map: Original Key -> HyperBridge ID
     private val activeTranslations = ConcurrentHashMap<String, Int>()
+
+    // Reverse Map: HyperBridge ID -> Original Key
+    private val reverseTranslations = ConcurrentHashMap<Int, String>()
+
     private val lastUpdateMap = ConcurrentHashMap<String, Long>()
 
     // Widget Specific Caches
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
-
-    // [NEW] Track dismissed widgets to prevent them from reappearing automatically
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
 
     private val appLabelCache = ConcurrentHashMap<String, String>()
@@ -106,16 +112,11 @@ class NotificationReaderService : NotificationListenerService() {
         // --- WIDGET LISTENER ---
         serviceScope.launch {
             WidgetManager.widgetUpdates.collect { updatedId ->
-                // 1. Check if user explicitly dismissed this widget
-                if (dismissedWidgetIds.contains(updatedId)) {
-                    Log.d(TAG, "Skipping update for dismissed widget: $updatedId")
-                    return@collect
-                }
+                if (dismissedWidgetIds.contains(updatedId)) return@collect
 
                 val savedIds = preferences.savedWidgetIdsFlow.first()
                 if (savedIds.contains(updatedId)) {
                     val config = preferences.getWidgetConfigFlow(updatedId).first()
-
                     if (shouldProcessWidgetUpdate(updatedId, config)) {
                         launch(Dispatchers.Main) {
                             processSingleWidget(updatedId, config)
@@ -131,9 +132,7 @@ class NotificationReaderService : NotificationListenerService() {
         if (intent?.action == "ACTION_TEST_WIDGET") {
             val widgetId = intent.getIntExtra("WIDGET_ID", -1)
             if (widgetId != -1) {
-                // [NEW] User manually requested this widget -> Un-dismiss it
                 dismissedWidgetIds.remove(widgetId)
-
                 serviceScope.launch(Dispatchers.Main) {
                     val config = preferences.getWidgetConfigFlow(widgetId).first()
                     processSingleWidget(widgetId, config)
@@ -144,84 +143,126 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     // =========================================================================
-    //  WIDGET LOGIC
-    // =========================================================================
-
-    private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
-        val now = System.currentTimeMillis()
-        val lastTime = widgetUpdateDebouncer[widgetId] ?: 0L
-        val throttleTime = if (config.renderMode == WidgetRenderMode.SNAPSHOT) 1500L else 200L
-
-        if (now - lastTime < throttleTime) return false
-
-        widgetUpdateDebouncer[widgetId] = now
-        return true
-    }
-
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private suspend fun processSingleWidget(widgetId: Int, config: WidgetConfig) {
-        try {
-            val data = widgetTranslator.translate(widgetId)
-            postWidgetNotification(WIDGET_ID_BASE + widgetId, data)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to process widget $widgetId", e)
-        }
-    }
-
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private fun postWidgetNotification(notificationId: Int, data: HyperIslandData) {
-        val builder = NotificationCompat.Builder(this, WIDGET_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Widget Overlay")
-            .setContentText("Active")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .addExtras(data.resources)
-
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        builder.setContentIntent(pendingIntent)
-
-        val notification = builder.build()
-        notification.extras.putString("miui.focus.param", data.jsonParam)
-
-        NotificationManagerCompat.from(this).notify(notificationId, notification)
-    }
-
-    // =========================================================================
     //  NOTIFICATION REMOVAL LOGIC
     // =========================================================================
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         sbn?.let {
-            // [NEW] Check if the removed notification was a Widget
-            if (it.id >= WIDGET_ID_BASE) {
-                val widgetId = it.id - WIDGET_ID_BASE
-                Log.d(TAG, "Widget Dismissed: $widgetId")
-                dismissedWidgetIds.add(widgetId)
+            val isOurApp = it.packageName == packageName
+            val notifId = it.id
+            val notifKey = it.key
+
+            // --- CASE A: User Dismissed OUR Notification (HyperBridge) ---
+            if (isOurApp) {
+                // 1. Check if it's a Widget
+                if (notifId >= WIDGET_ID_BASE) {
+                    val widgetId = notifId - WIDGET_ID_BASE
+                    dismissedWidgetIds.add(widgetId)
+                    return
+                }
+
+                // 2. Check if it's a Bridge Notification
+                // First, check the Memory Cache
+                var originalKey = reverseTranslations[notifId]
+
+                // If Cache miss (e.g., Service Restarted), check the Notification Extras
+                if (originalKey == null) {
+                    originalKey = it.notification.extras.getString(EXTRA_ORIGINAL_KEY)
+                }
+
+                if (originalKey != null) {
+                    Log.d(TAG, "Dismissing source notification for ID $notifId -> Key: $originalKey")
+
+                    // Launch sync task
+                    serviceScope.launch {
+                        cancelSourceNotification(originalKey)
+                    }
+
+                    // Clean up
+                    cleanupCache(originalKey)
+                } else {
+                    Log.w(TAG, "Could not find original key for dismissed notification: $notifId")
+                }
                 return
             }
 
-            // Standard Notification Removal Logic
-            val key = it.key
-            if (activeTranslations.containsKey(key)) {
-                val hyperId = activeTranslations[key] ?: return
-                try { NotificationManagerCompat.from(this).cancel(hyperId) } catch (e: Exception) {}
+            // --- CASE B: User Dismissed SOURCE Notification (Other App) ---
+            // If the user removed the original manually, we remove ours.
+            if (activeTranslations.containsKey(notifKey)) {
+                val hyperId = activeTranslations[notifKey] ?: return
 
-                activeIslands.remove(key)
-                activeTranslations.remove(key)
-                lastUpdateMap.remove(key)
+                try {
+                    NotificationManagerCompat.from(this).cancel(hyperId)
+                } catch (e: Exception) {}
+
+                cleanupCache(notifKey)
             }
         }
     }
 
+    /**
+     * Smart dismissal that handles Grouped Notifications (e.g. Chats).
+     * If we cancel a child and only an empty "Summary" remains, we kill the summary too.
+     */
+    private fun cancelSourceNotification(targetKey: String) {
+        try {
+            // 1. Get snapshot of current notifications BEFORE removal
+            val currentNotifications = try {
+                activeNotifications
+            } catch (e: Exception) {
+                // Fallback if system call fails (e.g. TransactionTooLarge)
+                cancelNotification(targetKey)
+                return
+            }
+
+            val targetSbn = currentNotifications.find { it.key == targetKey }
+
+            // 2. Cancel the specific target immediately
+            cancelNotification(targetKey)
+
+            // 3. Check for leftover Group Summaries
+            if (targetSbn != null) {
+                val groupKey = targetSbn.groupKey
+                val pkg = targetSbn.packageName
+
+                if (groupKey == null) return
+
+                // Simulate the list after removal
+                val remainingGroupMembers = currentNotifications.filter {
+                    it.packageName == pkg &&
+                            it.groupKey == groupKey &&
+                            it.key != targetKey
+                }
+
+                // If only 1 notification remains, and it is a Summary, it's a "Ghost".
+                if (remainingGroupMembers.size == 1) {
+                    val survivor = remainingGroupMembers[0]
+                    val isSummary = (survivor.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
+
+                    if (isSummary) {
+                        Log.d(TAG, "Cleaning up orphaned Group Summary: ${survivor.key}")
+                        cancelNotification(survivor.key)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during smart dismissal", e)
+        }
+    }
+
+    private fun cleanupCache(originalKey: String) {
+        val hyperId = activeTranslations[originalKey]
+        activeIslands.remove(originalKey)
+        activeTranslations.remove(originalKey)
+        lastUpdateMap.remove(originalKey)
+
+        if (hyperId != null) {
+            reverseTranslations.remove(hyperId)
+        }
+    }
+
     // =========================================================================
-    //  STANDARD NOTIFICATION LOGIC (Unchanged)
+    //  STANDARD NOTIFICATION LOGIC
     // =========================================================================
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -332,7 +373,15 @@ class NotificationReaderService : NotificationListenerService() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .addExtras(data.resources)
+
+        // [CRITICAL FIX] Inject the Original Key into the notification extras
+        // This ensures we can find the parent even if the Service restarts and clears RAM
+        val extras = Bundle()
+        extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
+        builder.addExtras(extras)
+
+        // Add content data
+        builder.addExtras(data.resources)
 
         sbn.notification.contentIntent?.let { builder.setContentIntent(it) }
 
@@ -340,7 +389,10 @@ class NotificationReaderService : NotificationListenerService() {
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
         NotificationManagerCompat.from(this).notify(bridgeId, notification)
+
+        // Sync memory maps
         activeTranslations[sbn.key] = bridgeId
+        reverseTranslations[bridgeId] = sbn.key
     }
 
     // =========================================================================
@@ -349,28 +401,49 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun createChannels() {
         val manager = getSystemService(NotificationManager::class.java)
-
-        val notifChannel = NotificationChannel(
-            NOTIFICATION_CHANNEL_ID,
-            getString(R.string.channel_active_islands),
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            setSound(null, null)
-            enableVibration(false)
-            setShowBadge(false)
+        // ... (Channels code remains same) ...
+        val notifChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID, getString(R.string.channel_active_islands), NotificationManager.IMPORTANCE_HIGH).apply {
+            setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(notifChannel)
-
-        val widgetChannel = NotificationChannel(
-            WIDGET_CHANNEL_ID,
-            "Widgets Overlay",
-            NotificationManager.IMPORTANCE_LOW
-        ).apply {
-            setSound(null, null)
-            enableVibration(false)
-            setShowBadge(false)
+        val widgetChannel = NotificationChannel(WIDGET_CHANNEL_ID, "Widgets Overlay", NotificationManager.IMPORTANCE_LOW).apply {
+            setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(widgetChannel)
+    }
+
+    private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
+        val now = System.currentTimeMillis()
+        val lastTime = widgetUpdateDebouncer[widgetId] ?: 0L
+        val throttleTime = if (config.renderMode == WidgetRenderMode.SNAPSHOT) 1500L else 200L
+        if (now - lastTime < throttleTime) return false
+        widgetUpdateDebouncer[widgetId] = now
+        return true
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private suspend fun processSingleWidget(widgetId: Int, config: WidgetConfig) {
+        try {
+            val data = widgetTranslator.translate(widgetId)
+            postWidgetNotification(WIDGET_ID_BASE + widgetId, data)
+        } catch (e: Exception) { Log.e(TAG, "Failed widget $widgetId", e) }
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun postWidgetNotification(notificationId: Int, data: HyperIslandData) {
+        val builder = NotificationCompat.Builder(this, WIDGET_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Widget Overlay").setContentText("Active")
+            .setPriority(NotificationCompat.PRIORITY_LOW).setOngoing(true)
+            .setOnlyAlertOnce(true).addExtras(data.resources)
+
+        val intent = Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK }
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        builder.setContentIntent(pendingIntent)
+
+        val notification = builder.build()
+        notification.extras.putString("miui.focus.param", data.jsonParam)
+        NotificationManagerCompat.from(this).notify(notificationId, notification)
     }
 
     private fun shouldSkipUpdate(sbn: StatusBarNotification): Boolean {
@@ -383,91 +456,44 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun handleLimitReached(newType: NotificationType, newPkg: String) {
-        when (currentMode) {
-            IslandLimitMode.FIRST_COME -> return
-            IslandLimitMode.MOST_RECENT -> {
-                val oldest = activeIslands.minByOrNull { it.value.postTime }
-                oldest?.let {
-                    NotificationManagerCompat.from(this).cancel(it.value.id)
-                    activeIslands.remove(it.key)
-                }
+        if (currentMode == IslandLimitMode.MOST_RECENT) {
+            val oldest = activeIslands.minByOrNull { it.value.postTime }
+            oldest?.let {
+                NotificationManagerCompat.from(this).cancel(it.value.id)
+                cleanupCache(it.key)
             }
-            IslandLimitMode.PRIORITY -> {}
         }
     }
 
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
+        // ... (Junk logic remains same) ...
         val notification = sbn.notification
         val extras = notification.extras
         val pkg = sbn.packageName
-
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
-        val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim() ?: ""
 
-        // --- 3. PRIORITY PASS ---
-        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
-                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
-        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT ||
-                notification.category == Notification.CATEGORY_CALL ||
-                notification.category == Notification.CATEGORY_NAVIGATION ||
-                extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
-
+        // Priority Pass
+        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 || extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT || notification.category == Notification.CATEGORY_CALL ||
+                notification.category == Notification.CATEGORY_NAVIGATION || extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
         if (hasProgress || isSpecial) return false
-        // --- 1. CONTENT CHECKS ---
-        if (title.isEmpty() && text.isEmpty() && subText.isEmpty()) return true
 
-        // Package Name Leaks
-        if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true) || subText.equals(pkg, ignoreCase = true)) return true
-        if (title.contains("com.google.android", ignoreCase = true)) return true
-
-        // *** NEW: GLOBAL BLOCKLIST CHECK ***
-        // If title or text contains any blocked word, ignore it.
-        if (globalBlockedTerms.isNotEmpty()) {
-            val content = "$title $text"
-            if (globalBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
-                return true
-            }
-        }
-
-        // Placeholder Titles
-        val appName = try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" }
-        if (title == appName && text.isEmpty() && subText.isEmpty()) return true
-
-        // System Noise
-        if (title.contains("running in background", true)) return true
-        if (text.contains("tap for more info", true)) return true
-        if (text.contains("displaying over other apps", true)) return true
-
-        // --- 2. GROUP SUMMARIES ---
+        // Checks
+        if (title.isEmpty() && text.isEmpty()) return true
+        if (title.equals(pkg, true) || text.equals(pkg, true)) return true
+        if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
-
-
-
         return false
     }
 
-    private fun getCachedAppLabel(pkg: String): String {
-        return appLabelCache.getOrPut(pkg) {
-            try {
-                val info = packageManager.getApplicationInfo(pkg, 0)
-                packageManager.getApplicationLabel(info).toString()
-            } catch (e: Exception) { "" }
-        }
+    private fun getCachedAppLabel(pkg: String): String = appLabelCache.getOrPut(pkg) {
+        try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" }
     }
 
-    private fun shouldIgnore(packageName: String): Boolean {
-        return packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
-    }
-
+    private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
     private fun isAppAllowed(packageName: String): Boolean = allowedPackageSet.contains(packageName)
 
-    override fun onListenerConnected() {
-        Log.i(TAG, "HyperBridge Service Connected")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        serviceScope.cancel()
-    }
+    override fun onListenerConnected() { Log.i(TAG, "HyperBridge Service Connected") }
+    override fun onDestroy() { super.onDestroy(); serviceScope.cancel() }
 }

@@ -2,14 +2,8 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
-import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.BridgeAction
@@ -36,25 +30,28 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: "Call"
 
-        // --- Timer Data ---
+        // --- [PERSONALIZATION DEFAULTS] ---
+        // Colors for buttons
+        val themeHangUpColor = "#FF3B30"
+        val themeAnswerColor = "#34C759"
+        val themeNeutralColor = "#8E8E93"
+        // ----------------------------------
+
         val isChronometerShown = extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER)
         val baseTime = sbn.notification.`when`
         val now = System.currentTimeMillis()
 
-        // --- Action Detection ---
         val actions = sbn.notification.actions ?: emptyArray()
         val hasAnswerAction = actions.any { action ->
             val txt = action.title.toString().lowercase()
             answerKeywords.any { k -> txt.contains(k) }
         }
 
-        // Incoming if: No timer running AND has "Answer" button
         val isIncoming = !isChronometerShown && hasAnswerAction
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
 
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 
@@ -62,11 +59,16 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        // --- ACTIONS ---
-        val bridgeActions = getFilteredCallActions(sbn, isIncoming)
+        // Pass theme colors to action logic
+        val bridgeActions = getFilteredCallActions(
+            sbn,
+            isIncoming,
+            themeHangUpColor,
+            themeAnswerColor,
+            themeNeutralColor
+        )
         val actionKeys = bridgeActions.map { it.action.key }
 
-        // --- CONTENT SETUP ---
         val rightText: String
         var timerInfo: TimerInfo? = null
 
@@ -80,13 +82,11 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
             }
         }
 
-        // 1. Add Resources
         bridgeActions.forEach {
             builder.addAction(it.action)
             it.actionImage?.let { pic -> builder.addPicture(pic) }
         }
 
-        // 2. ChatInfo
         builder.setChatInfo(
             title = title,
             content = rightText,
@@ -96,33 +96,24 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
             timer = timerInfo
         )
 
-        // 3. Island Configuration
         builder.setSmallIsland(picKey)
 
         if (isIncoming) {
-            // INCOMING: Name on Left, Status on Right
             builder.setBigIslandInfo(
                 left = ImageTextInfoLeft(
                     type = 1,
                     picInfo = PicInfo(type = 1, pic = picKey),
-                    // UPDATE: Show Name (Title) on the LEFT
                     textInfo = TextInfo(title = title, content = "")
                 ),
                 right = ImageTextInfoRight(
                     type = 2,
-                    // UPDATE: Show Status ("Incoming Call") on the RIGHT
                     textInfo = TextInfo(title = rightText, content = "")
                 )
             )
         } else {
-            // ACTIVE: Timer on Right (using setBigIslandCountUp)
             if (baseTime > 0) {
-                // This helper usually puts the picture on left and timer on right.
-                // Note: Standard 'setBigIslandCountUp' might not support showing text on the left.
-                // If you need Name + Timer, we might need a custom layout, but this is the Kit's timer method.
                 builder.setBigIslandCountUp(baseTime, picKey)
             } else {
-                // Fallback Layout
                 builder.setBigIslandInfo(
                     left = ImageTextInfoLeft(
                         type = 1,
@@ -140,7 +131,13 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }
 
-    private fun getFilteredCallActions(sbn: StatusBarNotification, isIncoming: Boolean): List<BridgeAction> {
+    private fun getFilteredCallActions(
+        sbn: StatusBarNotification,
+        isIncoming: Boolean,
+        hangUpColor: String,
+        answerColor: String,
+        neutralColor: String
+    ): List<BridgeAction> {
         val rawActions = sbn.notification.actions ?: return emptyList()
         val results = mutableListOf<BridgeAction>()
 
@@ -175,10 +172,11 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
             val isHangUp = index == hangUpIndex
             val isAnswer = index == answerIndex
 
+            // [UPDATED] Use parameterized colors
             val bgColorHex = when {
-                isHangUp -> "#FF3B30"
-                isAnswer -> "#34C759"
-                else -> "#8E8E93"
+                isHangUp -> hangUpColor
+                isAnswer -> answerColor
+                else -> neutralColor
             }
             val bgColorInt = bgColorHex.toColorInt()
 
@@ -208,14 +206,5 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
             results.add(BridgeAction(hyperAction, hyperPic))
         }
         return results
-    }
-
-    private fun tintBitmap(source: Bitmap, color: Int): Bitmap {
-        val result = createBitmap(source.width, source.height)
-        val canvas = Canvas(result)
-        val paint = Paint()
-        paint.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
-        canvas.drawBitmap(source, 0f, 0f, paint)
-        return result
     }
 }

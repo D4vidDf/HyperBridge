@@ -399,6 +399,7 @@
     <string name="search_apps_placeholder">Search apps...</string>
     <plurals name="widget_count_fmt">
         <item quantity="many">%d widgets</item>
+        <item quantity="other">%d widgets</item>
         <item quantity="one">%d widget</item>
     </plurals>
 
@@ -418,6 +419,7 @@
     <string name="config_timeout_desc">Close island after delay</string>
     <plurals name="config_timeout_fmt">
         <item quantity="many">%d seconds</item>
+        <item quantity="other">%d seconds</item>
         <item quantity="one">%d second</item>
     </plurals>
 
@@ -425,7 +427,8 @@
     <string name="config_refresh_desc">Update snapshot periodically</string>
 ¡    <plurals name="config_refresh_fmt">
         <item quantity="many">Every %d minutes</item>
-        <item quantity="one">Every minute</item>
+    <item quantity="other">Every %d minutes</item>
+    <item quantity="one">Every minute</item>
     </plurals>
     <string name="config_refresh_warning">Higher frequency uses more battery.</string>
 

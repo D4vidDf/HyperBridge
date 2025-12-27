@@ -1,7 +1,7 @@
 [versions]
 agp = "8.13.1"
 datastorePreferences = "1.2.0"
-hyperislandKit = "0.4.3"
+hyperislandKit = "0.4.4"
 kotlin = "2.2.21"
 ksp = "2.1.21-2.0.1"
 coreKtx = "1.17.0"

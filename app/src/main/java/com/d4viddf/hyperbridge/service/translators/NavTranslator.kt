@@ -4,7 +4,6 @@ import android.app.Notification
 import android.content.Context
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
-import android.util.Log
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.HyperIslandData
@@ -33,6 +32,18 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         leftLayout: NavContent,
         rightLayout: NavContent
     ): HyperIslandData {
+
+        // --- [PERSONALIZATION DEFAULTS] ---
+        // In the future, load these from 'config'
+        val themeNavStartIcon = R.drawable.ic_nav_start
+        val themeNavEndIcon = R.drawable.ic_nav_end
+        val themeProgressBarColor = "#34C759"
+
+        // Button Design: Background color for actions (Default: ~25% Grey)
+        // Set to null or 0 if user wants transparent buttons
+        val themeActionBgColor = "#40808080".toColorInt()
+        val themeActionPadding = 6
+        // ----------------------------------
 
         val extras = sbn.notification.extras
 
@@ -118,16 +129,12 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
 
         if (instruction.isEmpty()) instruction = context.getString(R.string.maps_title)
 
-        Log.d(TAG, "NavData -> Inst: '$instruction' | Dist: '$distance' | ETA: '$eta'")
-
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", instruction)
 
-        val finalTimeout = config.timeout ?: 0
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
-
 
         val hiddenKey = "hidden_pixel"
         val navStartKey = "nav_start_icon"
@@ -135,12 +142,13 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
 
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
-        builder.addPicture(getPictureFromResource(navStartKey, R.drawable.ic_nav_start))
-        builder.addPicture(getPictureFromResource(navEndKey, R.drawable.ic_nav_end))
+
+        // [UPDATED] Use theme variables
+        builder.addPicture(getPictureFromResource(navStartKey, themeNavStartIcon))
+        builder.addPicture(getPictureFromResource(navEndKey, themeNavEndIcon))
 
         // --- ACTION BUTTONS (Manual Processing for Custom Backgrounds) ---
         val rawActions = sbn.notification.actions ?: emptyArray()
-        val bgGreyTransparent = "#40808080".toColorInt() // ~25% Grey
 
         rawActions.forEachIndexed { index, action ->
             val uniqueKey = "act_${sbn.key.hashCode()}_$index"
@@ -152,12 +160,13 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
             var actionIcon: Icon? = null
             var hyperPic: HyperPicture? = null
 
-            // 2. Apply Grey Background & Padding
+            // 2. Apply Themed Background & Padding
             if (originalBitmap != null) {
+                // If themeActionBgColor is 0, we can skip the background logic in the future
                 val roundedBitmap = createRoundedIconWithBackground(
                     source = originalBitmap,
-                    backgroundColor = bgGreyTransparent,
-                    paddingDp = 6
+                    backgroundColor = themeActionBgColor,
+                    paddingDp = themeActionPadding
                 )
                 val picKeyAction = "${uniqueKey}_icon"
 
@@ -176,7 +185,6 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
                 titleColor = "#FFFFFF"
             )
 
-            // 4. Add to Builder
             builder.addAction(hyperAction)
             hyperPic?.let { builder.addPicture(it) }
         }
@@ -195,7 +203,7 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         if (hasProgress) {
             builder.setProgressBar(
                 progress = percent,
-                color = "#34C759",
+                color = themeProgressBarColor,
                 picForwardKey = navStartKey,
                 picEndKey = navEndKey
             )
@@ -213,16 +221,8 @@ class NavTranslator(context: Context) : BaseTranslator(context) {
         }
 
         builder.setBigIslandInfo(
-            left = ImageTextInfoLeft(
-                1,
-                PicInfo(1, picKey),
-                getTextInfo(leftLayout)
-            ),
-            right = ImageTextInfoRight(
-                2,
-                PicInfo(1, hiddenKey),
-                getTextInfo(rightLayout)
-            )
+            left = ImageTextInfoLeft(1, PicInfo(1, picKey), getTextInfo(leftLayout)),
+            right = ImageTextInfoRight(2, PicInfo(1, hiddenKey), getTextInfo(rightLayout))
         )
 
         builder.setSmallIsland(picKey)

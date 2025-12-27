@@ -17,12 +17,12 @@ import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.BridgeAction
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
-import androidx.core.graphics.toColorInt
-import androidx.core.graphics.createBitmap
 
 abstract class BaseTranslator(protected val context: Context) {
 
@@ -53,12 +53,9 @@ abstract class BaseTranslator(protected val context: Context) {
         val extras = sbn.notification.extras
 
         try {
-            // 1. Try EXTRA_PICTURE (BigPictureStyle)
             val picture = extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE)
             if (picture != null) return picture
 
-            // 2. Try CallStyle Person Icon
-            // Call notifications often store the caller's face in the Person object
             if (sbn.notification.category == Notification.CATEGORY_CALL) {
                 val person = extras.getParcelable<Person>(Notification.EXTRA_MESSAGING_PERSON)
                     ?: extras.getParcelableArrayList<Person>(Notification.EXTRA_PEOPLE_LIST)?.firstOrNull()
@@ -69,24 +66,20 @@ abstract class BaseTranslator(protected val context: Context) {
                 }
             }
 
-            // 3. Try Large Icon (Bitmap or Icon)
-            val largeIcon = sbn.notification.getLargeIcon() // Returns Icon?
+            val largeIcon = sbn.notification.getLargeIcon()
             if (largeIcon != null) {
                 val bitmap = loadIconBitmap(largeIcon, pkg)
                 if (bitmap != null) return bitmap
             }
 
-            // Legacy: Check extras for raw bitmap
             val largeIconBitmap = extras.getParcelable<Bitmap>(Notification.EXTRA_LARGE_ICON)
             if (largeIconBitmap != null) return largeIconBitmap
 
-            // 4. Try Small Icon
             if (sbn.notification.smallIcon != null) {
                 val bitmap = loadIconBitmap(sbn.notification.smallIcon, pkg)
                 if (bitmap != null) return bitmap
             }
 
-            // 5. Fallback to App Icon
             return getAppIconBitmap(pkg)
 
         } catch (e: Exception) {
@@ -104,9 +97,6 @@ abstract class BaseTranslator(protected val context: Context) {
         }
     }
 
-    /**
-     * Creates a circular icon with a specific background color.
-     */
     protected fun createRoundedIconWithBackground(source: Bitmap, backgroundColor: Int, paddingDp: Int = 8): Bitmap {
         val size = 96
         val output = createBitmap(size, size)
@@ -143,14 +133,32 @@ abstract class BaseTranslator(protected val context: Context) {
         return result
     }
 
+    /**
+     * Extracts actions from the notification.
+     * * @param mode How to display (Text, Icon, etc).
+     * @param hideReplies If true, actions requiring text input (RemoteInput) are skipped.
+     * @param useAppOpenForReplies If true (and hideReplies is false), clicking a Reply action opens the App instead.
+     */
     protected fun extractBridgeActions(
         sbn: StatusBarNotification,
-        mode: ActionDisplayMode = ActionDisplayMode.BOTH
+        mode: ActionDisplayMode = ActionDisplayMode.BOTH,
+        hideReplies: Boolean = true, // Default to hiding reply buttons
+        useAppOpenForReplies: Boolean = false
     ): List<BridgeAction> {
         val bridgeActions = mutableListOf<BridgeAction>()
         val actions = sbn.notification.actions ?: return emptyList()
 
         actions.forEachIndexed { index, androidAction ->
+            // [NEW] Check for RemoteInput (Reply capability)
+            val hasRemoteInput = androidAction.remoteInputs != null && androidAction.remoteInputs!!.isNotEmpty()
+
+            // Logic to handle Reply buttons
+            if (hasRemoteInput) {
+                if (hideReplies) {
+                    return@forEachIndexed // Skip adding this action
+                }
+            }
+
             val rawTitle = androidAction.title?.toString() ?: ""
             val uniqueKey = "act_${sbn.key.hashCode()}_$index"
 
@@ -173,11 +181,20 @@ abstract class BaseTranslator(protected val context: Context) {
                 }
             }
 
+            // [NEW] Swap Intent if needed
+            // If it's a reply button and we want it to open the app,
+            // we use the notification's main ContentIntent instead of the ActionIntent.
+            val finalIntent = if (hasRemoteInput && useAppOpenForReplies) {
+                sbn.notification.contentIntent ?: androidAction.actionIntent
+            } else {
+                androidAction.actionIntent
+            }
+
             val hyperAction = HyperAction(
                 key = uniqueKey,
                 title = finalTitle,
                 icon = actionIcon,
-                pendingIntent = androidAction.actionIntent,
+                pendingIntent = finalIntent,
                 actionIntentType = 1
             )
 
@@ -218,6 +235,7 @@ abstract class BaseTranslator(protected val context: Context) {
 
     protected fun createFallbackBitmap(): Bitmap = createBitmap(1, 1)
 
+    // Helper for consistency
     protected fun Drawable.toBitmap(): Bitmap {
         if (this is BitmapDrawable && this.bitmap != null) return this.bitmap
         val width = if (intrinsicWidth > 0) intrinsicWidth else 96
