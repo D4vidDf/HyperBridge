@@ -66,7 +66,7 @@ class NotificationReaderService : NotificationListenerService() {
     // Reverse Map: HyperBridge ID -> Original Key
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
 
-    // [NEW] Job Tracker: Keeps track of "Processing" tasks so we can cancel them if the notification is removed
+    // Job Tracker
     private val processingJobs = ConcurrentHashMap<String, Job>()
 
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
@@ -151,8 +151,7 @@ class NotificationReaderService : NotificationListenerService() {
             val notifId = it.id
             val notifKey = it.key
 
-            // [NEW] CRITICAL FIX: Stop any pending processing for this key immediately
-            // This prevents "Ghost" notifications from appearing if they were closed while loading
+            // Cancel any pending processing for this key
             processingJobs[notifKey]?.cancel()
             processingJobs.remove(notifKey)
 
@@ -247,34 +246,27 @@ class NotificationReaderService : NotificationListenerService() {
         sbn?.let {
             if (shouldIgnore(it.packageName)) return
 
-            // Cancel any existing job for this key (in case of rapid updates)
             processingJobs[it.key]?.cancel()
 
-            // Launch new job and track it
             val job = serviceScope.launch {
                 if (isAppAllowed(it.packageName)) {
-                    //if (isJunkNotification(it)) return@launch
+                    if (isJunkNotification(it)) return@launch
                     processStandardNotification(it)
                 }
             }
-
-            // Store job reference
             processingJobs[it.key] = job
-
-            // Cleanup map when done
             job.invokeOnCompletion { processingJobs.remove(sbn.key) }
         }
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private suspend fun processStandardNotification(rawSbn: StatusBarNotification) {
-        // [FIX] Ensure SBN is valid, but don't delay downloads
         val sbn = ensureValidSbn(rawSbn)
 
         try {
-            val extras = sbn.notification.extras
-            val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
-            val text = extras.getString(Notification.EXTRA_TEXT) ?: ""
+            // [UPDATED] Resolve Title and Text intelligently
+            val title = resolveTitle(sbn)
+            val text = resolveText(sbn.notification.extras)
 
             // App Blocked Terms Check
             val appBlockedTerms = preferences.getAppBlockedTerms(sbn.packageName).first()
@@ -290,7 +282,6 @@ class NotificationReaderService : NotificationListenerService() {
             val key = sbn.key
             val isUpdate = activeIslands.containsKey(key)
 
-            // Limit check
             if (!isUpdate && activeIslands.size >= MAX_ISLANDS) {
                 handleLimitReached(type, sbn.packageName)
                 if (activeIslands.size >= MAX_ISLANDS) return
@@ -323,19 +314,12 @@ class NotificationReaderService : NotificationListenerService() {
                 return
             }
 
-            // [NEW] Final Check: Before showing, ensure this key wasn't removed while we were processing
-            // We check activeNotifications to be 100% sure the system still has it
+            // Final safety check
             try {
-                // This is a "cheap" check to avoid showing dead notifications
                 val currentNotifs = activeNotifications
                 val exists = currentNotifs.any { it.key == key }
-                if (!exists) {
-                    Log.d(TAG, "Aborting display: Notification $key was removed during processing")
-                    return
-                }
-            } catch (e: Exception) {
-                // If we can't check, assume it's valid to be safe
-            }
+                if (!exists) return
+            } catch (e: Exception) { }
 
             postStandardNotification(sbn, bridgeId, data)
 
@@ -351,26 +335,56 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     /**
-     * [FIXED] Smart Sanity Check
-     * 1. If it has PROGRESS (Downloads), return IMMEDIATELY (Fixes slow Google Play).
-     * 2. If Title == PackageName, wait 150ms to fix glitches.
+     * [UPDATED] Helper to get the best Title (Handles BigPicture AND BigText styles)
+     * If standard title is garbage (package name), use EXTRA_TITLE_BIG.
      */
+    private fun resolveTitle(sbn: StatusBarNotification): String {
+        val extras = sbn.notification.extras
+        var title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
+        val bigTitle = extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()?.trim()
+        val pkg = sbn.packageName
+
+        // If title is package name (bug), or empty... AND we have an expanded title
+        // Use the Expanded Title (works for BigText and BigPicture)
+        if ((title.isEmpty() || title.equals(pkg, ignoreCase = true)) && !bigTitle.isNullOrEmpty()) {
+            return bigTitle
+        }
+
+        if (title.isEmpty()) return pkg
+        return title
+    }
+
+    /**
+     * Helper to get the best Text.
+     * BigText notifications sometimes leave EXTRA_TEXT empty and only fill EXTRA_BIG_TEXT.
+     */
+    private fun resolveText(extras: Bundle): String {
+        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim()
+        val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.trim()
+
+        // If standard text is present, use it (usually a good summary).
+        // If standard text is empty, fall back to BigText (the full body).
+        if (!text.isNullOrEmpty()) return text
+
+        return bigText ?: ""
+    }
+
     private suspend fun ensureValidSbn(sbn: StatusBarNotification): StatusBarNotification {
         val extras = sbn.notification.extras
-
-        // [NEW] Optimization: If it has progress, it's valid and time-sensitive. Don't delay.
         val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
                 extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
         if (hasProgress) return sbn
 
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim()
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim()
+        // [UPDATED] Use our smart resolver to check the title
+        val title = resolveTitle(sbn)
+        val text = resolveText(extras) // Use smart text resolver too
         val pkg = sbn.packageName
 
-        val isSuspicious = title.isNullOrEmpty() || title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)
+        // If even the "smart resolved" title still looks like the package name...
+        val isSuspicious = title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)
 
         if (isSuspicious) {
-            delay(150) // Only delay if it looks broken
+            delay(150)
             try {
                 val activeList = activeNotifications
                 val updatedSbn = activeList?.firstOrNull { it.key == sbn.key }
@@ -503,7 +517,6 @@ class NotificationReaderService : NotificationListenerService() {
 
         if (title.isEmpty() && text.isEmpty()) return true
 
-        // Strict package name check (Fixes #66)
         if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)) return true
 
         if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true

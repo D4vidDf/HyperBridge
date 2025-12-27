@@ -86,7 +86,7 @@ fun MainRootNavigation() {
     val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null } }
     @Suppress("DEPRECATION")
     val currentVersionCode = packageInfo?.longVersionCode?.toInt() ?: 0
-    val currentVersionName = packageInfo?.versionName ?: "0.3.1"
+    val currentVersionName = packageInfo?.versionName ?: "0.4.0-dev06"
 
     // --- 2. ROBUST DATA COLLECTION ---
     val isSetupComplete by produceState<Boolean?>(initialValue = null) {
