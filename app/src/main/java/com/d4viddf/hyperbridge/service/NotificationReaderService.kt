@@ -34,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -65,15 +66,14 @@ class NotificationReaderService : NotificationListenerService() {
     // Reverse Map: HyperBridge ID -> Original Key
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
 
-    private val lastUpdateMap = ConcurrentHashMap<String, Long>()
+    // [NEW] Job Tracker: Keeps track of "Processing" tasks so we can cancel them if the notification is removed
+    private val processingJobs = ConcurrentHashMap<String, Job>()
 
-    // Widget Specific Caches
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
 
     private val appLabelCache = ConcurrentHashMap<String, String>()
 
-    private val NOTIF_UPDATE_INTERVAL_MS = 200L
     private val MAX_ISLANDS = 9
     private val WIDGET_ID_BASE = 9000
 
@@ -113,7 +113,6 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch {
             WidgetManager.widgetUpdates.collect { updatedId ->
                 if (dismissedWidgetIds.contains(updatedId)) return@collect
-
                 val savedIds = preferences.savedWidgetIdsFlow.first()
                 if (savedIds.contains(updatedId)) {
                     val config = preferences.getWidgetConfigFlow(updatedId).first()
@@ -152,42 +151,35 @@ class NotificationReaderService : NotificationListenerService() {
             val notifId = it.id
             val notifKey = it.key
 
+            // [NEW] CRITICAL FIX: Stop any pending processing for this key immediately
+            // This prevents "Ghost" notifications from appearing if they were closed while loading
+            processingJobs[notifKey]?.cancel()
+            processingJobs.remove(notifKey)
+
             // --- CASE A: User Dismissed OUR Notification (HyperBridge) ---
             if (isOurApp) {
-                // 1. Check if it's a Widget
                 if (notifId >= WIDGET_ID_BASE) {
                     val widgetId = notifId - WIDGET_ID_BASE
                     dismissedWidgetIds.add(widgetId)
                     return
                 }
 
-                // 2. Check if it's a Bridge Notification
-                // First, check the Memory Cache
                 var originalKey = reverseTranslations[notifId]
-
-                // If Cache miss (e.g., Service Restarted), check the Notification Extras
                 if (originalKey == null) {
                     originalKey = it.notification.extras.getString(EXTRA_ORIGINAL_KEY)
                 }
 
                 if (originalKey != null) {
                     Log.d(TAG, "Dismissing source notification for ID $notifId -> Key: $originalKey")
-
-                    // Launch sync task
                     serviceScope.launch {
                         cancelSourceNotification(originalKey)
                     }
-
-                    // Clean up
                     cleanupCache(originalKey)
-                } else {
-                    Log.w(TAG, "Could not find original key for dismissed notification: $notifId")
                 }
                 return
             }
 
             // --- CASE B: User Dismissed SOURCE Notification (Other App) ---
-            // If the user removed the original manually, we remove ours.
             if (activeTranslations.containsKey(notifKey)) {
                 val hyperId = activeTranslations[notifKey] ?: return
 
@@ -200,47 +192,33 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    /**
-     * Smart dismissal that handles Grouped Notifications (e.g. Chats).
-     * If we cancel a child and only an empty "Summary" remains, we kill the summary too.
-     */
     private fun cancelSourceNotification(targetKey: String) {
         try {
-            // 1. Get snapshot of current notifications BEFORE removal
             val currentNotifications = try {
                 activeNotifications
             } catch (e: Exception) {
-                // Fallback if system call fails (e.g. TransactionTooLarge)
                 cancelNotification(targetKey)
                 return
             }
 
             val targetSbn = currentNotifications.find { it.key == targetKey }
-
-            // 2. Cancel the specific target immediately
             cancelNotification(targetKey)
 
-            // 3. Check for leftover Group Summaries
             if (targetSbn != null) {
                 val groupKey = targetSbn.groupKey
                 val pkg = targetSbn.packageName
-
                 if (groupKey == null) return
 
-                // Simulate the list after removal
                 val remainingGroupMembers = currentNotifications.filter {
                     it.packageName == pkg &&
                             it.groupKey == groupKey &&
                             it.key != targetKey
                 }
 
-                // If only 1 notification remains, and it is a Summary, it's a "Ghost".
                 if (remainingGroupMembers.size == 1) {
                     val survivor = remainingGroupMembers[0]
                     val isSummary = (survivor.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
-
                     if (isSummary) {
-                        Log.d(TAG, "Cleaning up orphaned Group Summary: ${survivor.key}")
                         cancelNotification(survivor.key)
                     }
                 }
@@ -254,7 +232,6 @@ class NotificationReaderService : NotificationListenerService() {
         val hyperId = activeTranslations[originalKey]
         activeIslands.remove(originalKey)
         activeTranslations.remove(originalKey)
-        lastUpdateMap.remove(originalKey)
 
         if (hyperId != null) {
             reverseTranslations.remove(hyperId)
@@ -270,24 +247,36 @@ class NotificationReaderService : NotificationListenerService() {
         sbn?.let {
             if (shouldIgnore(it.packageName)) return
 
-            serviceScope.launch {
+            // Cancel any existing job for this key (in case of rapid updates)
+            processingJobs[it.key]?.cancel()
+
+            // Launch new job and track it
+            val job = serviceScope.launch {
                 if (isAppAllowed(it.packageName)) {
-                    if (isJunkNotification(it)) return@launch
+                    //if (isJunkNotification(it)) return@launch
                     processStandardNotification(it)
                 }
             }
+
+            // Store job reference
+            processingJobs[it.key] = job
+
+            // Cleanup map when done
+            job.invokeOnCompletion { processingJobs.remove(sbn.key) }
         }
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private suspend fun processStandardNotification(sbn: StatusBarNotification) {
-        if (shouldSkipUpdate(sbn)) return
+    private suspend fun processStandardNotification(rawSbn: StatusBarNotification) {
+        // [FIX] Ensure SBN is valid, but don't delay downloads
+        val sbn = ensureValidSbn(rawSbn)
 
         try {
             val extras = sbn.notification.extras
             val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
             val text = extras.getString(Notification.EXTRA_TEXT) ?: ""
 
+            // App Blocked Terms Check
             val appBlockedTerms = preferences.getAppBlockedTerms(sbn.packageName).first()
             if (appBlockedTerms.isNotEmpty()) {
                 val content = "$title $text"
@@ -295,12 +284,13 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             val type = detectNotificationType(sbn)
-
             val config = preferences.getAppConfig(sbn.packageName).first()
             if (!config.contains(type.name)) return
 
             val key = sbn.key
             val isUpdate = activeIslands.containsKey(key)
+
+            // Limit check
             if (!isUpdate && activeIslands.size >= MAX_ISLANDS) {
                 handleLimitReached(type, sbn.packageName)
                 if (activeIslands.size >= MAX_ISLANDS) return
@@ -325,10 +315,26 @@ class NotificationReaderService : NotificationListenerService() {
                 else -> standardTranslator.translate(sbn, picKey, finalConfig)
             }
 
+            // Deduplication via Content Hash
             val newContentHash = data.jsonParam.hashCode()
             val previousIsland = activeIslands[key]
+
             if (isUpdate && previousIsland != null && previousIsland.lastContentHash == newContentHash) {
                 return
+            }
+
+            // [NEW] Final Check: Before showing, ensure this key wasn't removed while we were processing
+            // We check activeNotifications to be 100% sure the system still has it
+            try {
+                // This is a "cheap" check to avoid showing dead notifications
+                val currentNotifs = activeNotifications
+                val exists = currentNotifs.any { it.key == key }
+                if (!exists) {
+                    Log.d(TAG, "Aborting display: Notification $key was removed during processing")
+                    return
+                }
+            } catch (e: Exception) {
+                // If we can't check, assume it's valid to be safe
             }
 
             postStandardNotification(sbn, bridgeId, data)
@@ -342,6 +348,38 @@ class NotificationReaderService : NotificationListenerService() {
         } catch (e: Exception) {
             Log.e(TAG, "💥 Error processing standard notification", e)
         }
+    }
+
+    /**
+     * [FIXED] Smart Sanity Check
+     * 1. If it has PROGRESS (Downloads), return IMMEDIATELY (Fixes slow Google Play).
+     * 2. If Title == PackageName, wait 150ms to fix glitches.
+     */
+    private suspend fun ensureValidSbn(sbn: StatusBarNotification): StatusBarNotification {
+        val extras = sbn.notification.extras
+
+        // [NEW] Optimization: If it has progress, it's valid and time-sensitive. Don't delay.
+        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
+                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+        if (hasProgress) return sbn
+
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim()
+        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim()
+        val pkg = sbn.packageName
+
+        val isSuspicious = title.isNullOrEmpty() || title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)
+
+        if (isSuspicious) {
+            delay(150) // Only delay if it looks broken
+            try {
+                val activeList = activeNotifications
+                val updatedSbn = activeList?.firstOrNull { it.key == sbn.key }
+                if (updatedSbn != null) {
+                    return updatedSbn
+                }
+            } catch (e: Exception) { }
+        }
+        return sbn
     }
 
     private fun detectNotificationType(sbn: StatusBarNotification): NotificationType {
@@ -374,13 +412,9 @@ class NotificationReaderService : NotificationListenerService() {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
 
-        // [CRITICAL FIX] Inject the Original Key into the notification extras
-        // This ensures we can find the parent even if the Service restarts and clears RAM
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
         builder.addExtras(extras)
-
-        // Add content data
         builder.addExtras(data.resources)
 
         sbn.notification.contentIntent?.let { builder.setContentIntent(it) }
@@ -390,7 +424,6 @@ class NotificationReaderService : NotificationListenerService() {
 
         NotificationManagerCompat.from(this).notify(bridgeId, notification)
 
-        // Sync memory maps
         activeTranslations[sbn.key] = bridgeId
         reverseTranslations[bridgeId] = sbn.key
     }
@@ -401,7 +434,6 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun createChannels() {
         val manager = getSystemService(NotificationManager::class.java)
-        // ... (Channels code remains same) ...
         val notifChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID, getString(R.string.channel_active_islands), NotificationManager.IMPORTANCE_HIGH).apply {
             setSound(null, null); enableVibration(false); setShowBadge(false)
         }
@@ -446,15 +478,6 @@ class NotificationReaderService : NotificationListenerService() {
         NotificationManagerCompat.from(this).notify(notificationId, notification)
     }
 
-    private fun shouldSkipUpdate(sbn: StatusBarNotification): Boolean {
-        val key = sbn.key
-        val now = System.currentTimeMillis()
-        val lastTime = lastUpdateMap[key] ?: 0L
-        if (now - lastTime < NOTIF_UPDATE_INTERVAL_MS) return true
-        lastUpdateMap[key] = now
-        return false
-    }
-
     private fun handleLimitReached(newType: NotificationType, newPkg: String) {
         if (currentMode == IslandLimitMode.MOST_RECENT) {
             val oldest = activeIslands.minByOrNull { it.value.postTime }
@@ -466,29 +489,27 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun isJunkNotification(sbn: StatusBarNotification): Boolean {
-        // ... (Junk logic remains same) ...
         val notification = sbn.notification
         val extras = notification.extras
         val pkg = sbn.packageName
+
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
 
-        // Priority Pass
         val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 || extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
         val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT || notification.category == Notification.CATEGORY_CALL ||
                 notification.category == Notification.CATEGORY_NAVIGATION || extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
         if (hasProgress || isSpecial) return false
 
-        // Checks
         if (title.isEmpty() && text.isEmpty()) return true
-        if (title.equals(pkg, true) || text.equals(pkg, true)) return true
+
+        // Strict package name check (Fixes #66)
+        if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)) return true
+
         if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
-        return false
-    }
 
-    private fun getCachedAppLabel(pkg: String): String = appLabelCache.getOrPut(pkg) {
-        try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" }
+        return false
     }
 
     private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
