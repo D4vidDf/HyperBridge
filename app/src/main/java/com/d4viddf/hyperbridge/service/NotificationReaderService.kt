@@ -59,19 +59,11 @@ class NotificationReaderService : NotificationListenerService() {
 
     // --- CACHES ---
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
-
-    // Forward Map: Original Key -> HyperBridge ID
     private val activeTranslations = ConcurrentHashMap<String, Int>()
-
-    // Reverse Map: HyperBridge ID -> Original Key
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
-
-    // Job Tracker
     private val processingJobs = ConcurrentHashMap<String, Job>()
-
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
-
     private val appLabelCache = ConcurrentHashMap<String, String>()
 
     private val MAX_ISLANDS = 9
@@ -151,11 +143,9 @@ class NotificationReaderService : NotificationListenerService() {
             val notifId = it.id
             val notifKey = it.key
 
-            // Cancel any pending processing for this key
             processingJobs[notifKey]?.cancel()
             processingJobs.remove(notifKey)
 
-            // --- CASE A: User Dismissed OUR Notification (HyperBridge) ---
             if (isOurApp) {
                 if (notifId >= WIDGET_ID_BASE) {
                     val widgetId = notifId - WIDGET_ID_BASE
@@ -178,7 +168,6 @@ class NotificationReaderService : NotificationListenerService() {
                 return
             }
 
-            // --- CASE B: User Dismissed SOURCE Notification (Other App) ---
             if (activeTranslations.containsKey(notifKey)) {
                 val hyperId = activeTranslations[notifKey] ?: return
 
@@ -264,22 +253,65 @@ class NotificationReaderService : NotificationListenerService() {
         val sbn = ensureValidSbn(rawSbn)
 
         try {
-            // [UPDATED] Resolve Title and Text intelligently
-            val title = resolveTitle(sbn)
-            val text = resolveText(sbn.notification.extras)
+            val extras = sbn.notification.extras
 
-            // App Blocked Terms Check
+            val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+            val rawText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+            val rawBigTitle = extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()
+            val rawBigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+            val rawProgress = extras.getInt(Notification.EXTRA_PROGRESS, -1)
+
+            Log.d(TAG, "--------------------------------------------------")
+            Log.d(TAG, "START PROCESSING: ${sbn.packageName}")
+            Log.d(TAG, " RAW Title    : '$rawTitle'")
+            Log.d(TAG, " RAW Text     : '$rawText'")
+            Log.d(TAG, " RAW BigTitle : '$rawBigTitle'")
+            Log.d(TAG, " RAW BigText  : '$rawBigText'")
+            Log.d(TAG, " RAW Progress : $rawProgress")
+
+            // [LOGIC] 1. Resolve Info intelligently
+            var effectiveTitle = resolveTitle(sbn)
+            val effectiveText = resolveText(sbn.notification.extras)
+
+            Log.d(TAG, " RESOLVED Initial Title: '$effectiveTitle'")
+
+            // [LOGIC] 2. State Preservation
+            val key = sbn.key
+            val previous = activeIslands[key]
+
+            if (effectiveTitle.isEmpty()) {
+                Log.w(TAG, " Title invalid. Attempting fallback...")
+                if (previous != null && previous.title.isNotEmpty() && previous.title != sbn.packageName) {
+                    effectiveTitle = previous.title
+                    Log.d(TAG, " >>> Restored from Cache: '$effectiveTitle'")
+                } else {
+                    effectiveTitle = getCachedAppLabel(sbn.packageName)
+                    Log.d(TAG, " >>> Used App Label Fallback: '$effectiveTitle'")
+                }
+            }
+
+            // [LOGIC] 3. Hard Stop
+            val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
+                    extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+
+            if (effectiveTitle.isEmpty() && !hasProgress) {
+                Log.w(TAG, " ABORTING: Title still empty and no progress bar.")
+                return
+            }
+
             val appBlockedTerms = preferences.getAppBlockedTerms(sbn.packageName).first()
             if (appBlockedTerms.isNotEmpty()) {
-                val content = "$title $text"
-                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) return
+                val content = "$effectiveTitle $effectiveText"
+                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
+                    Log.d(TAG, " ABORTING: Blocked term found.")
+                    return
+                }
             }
 
             val type = detectNotificationType(sbn)
             val config = preferences.getAppConfig(sbn.packageName).first()
             if (!config.contains(type.name)) return
 
-            val key = sbn.key
             val isUpdate = activeIslands.containsKey(key)
 
             if (!isUpdate && activeIslands.size >= MAX_ISLANDS) {
@@ -301,31 +333,35 @@ class NotificationReaderService : NotificationListenerService() {
                     navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second)
                 }
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig)
-                NotificationType.PROGRESS -> progressTranslator.translate(sbn, title, picKey, finalConfig)
+                NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
-                else -> standardTranslator.translate(sbn, picKey, finalConfig)
+                // [UPDATED] Pass effectiveTitle AND effectiveText
+                else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig)
             }
 
-            // Deduplication via Content Hash
             val newContentHash = data.jsonParam.hashCode()
             val previousIsland = activeIslands[key]
 
             if (isUpdate && previousIsland != null && previousIsland.lastContentHash == newContentHash) {
+                Log.d(TAG, " ABORTING: Content hash duplicate.")
                 return
             }
 
-            // Final safety check
             try {
                 val currentNotifs = activeNotifications
                 val exists = currentNotifs.any { it.key == key }
                 if (!exists) return
             } catch (e: Exception) { }
 
+            Log.i(TAG, " POSTING Island -> ID: $bridgeId, Type: $type, FinalTitle: '$effectiveTitle', FinalText: '$effectiveText'")
             postStandardNotification(sbn, bridgeId, data)
 
             activeIslands[key] = ActiveIsland(
                 id = bridgeId, type = type, postTime = System.currentTimeMillis(),
-                packageName = sbn.packageName, title = title, text = text, subText = "",
+                packageName = sbn.packageName,
+                title = effectiveTitle,
+                text = effectiveText,
+                subText = "",
                 lastContentHash = newContentHash
             )
 
@@ -334,38 +370,26 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    /**
-     * [UPDATED] Helper to get the best Title (Handles BigPicture AND BigText styles)
-     * If standard title is garbage (package name), use EXTRA_TITLE_BIG.
-     */
     private fun resolveTitle(sbn: StatusBarNotification): String {
         val extras = sbn.notification.extras
-        var title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
         val bigTitle = extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()?.trim()
         val pkg = sbn.packageName
 
-        // If title is package name (bug), or empty... AND we have an expanded title
-        // Use the Expanded Title (works for BigText and BigPicture)
         if ((title.isEmpty() || title.equals(pkg, ignoreCase = true)) && !bigTitle.isNullOrEmpty()) {
             return bigTitle
         }
 
-        if (title.isEmpty()) return pkg
+        if (title.equals(pkg, ignoreCase = true)) return ""
+
         return title
     }
 
-    /**
-     * Helper to get the best Text.
-     * BigText notifications sometimes leave EXTRA_TEXT empty and only fill EXTRA_BIG_TEXT.
-     */
     private fun resolveText(extras: Bundle): String {
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim()
         val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.trim()
 
-        // If standard text is present, use it (usually a good summary).
-        // If standard text is empty, fall back to BigText (the full body).
         if (!text.isNullOrEmpty()) return text
-
         return bigText ?: ""
     }
 
@@ -375,13 +399,11 @@ class NotificationReaderService : NotificationListenerService() {
                 extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
         if (hasProgress) return sbn
 
-        // [UPDATED] Use our smart resolver to check the title
         val title = resolveTitle(sbn)
-        val text = resolveText(extras) // Use smart text resolver too
+        val text = resolveText(extras)
         val pkg = sbn.packageName
 
-        // If even the "smart resolved" title still looks like the package name...
-        val isSuspicious = title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)
+        val isSuspicious = title.isEmpty() || text.equals(pkg, ignoreCase = true)
 
         if (isSuspicious) {
             delay(150)
@@ -523,6 +545,10 @@ class NotificationReaderService : NotificationListenerService() {
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
 
         return false
+    }
+
+    private fun getCachedAppLabel(pkg: String): String = appLabelCache.getOrPut(pkg) {
+        try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" }
     }
 
     private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
