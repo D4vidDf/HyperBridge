@@ -6,9 +6,11 @@ import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.BridgeAction
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.HyperPicture
@@ -18,24 +20,28 @@ import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
 import io.github.d4viddf.hyperisland_kit.models.TimerInfo
 
-class CallTranslator(context: Context) : BaseTranslator(context) {
-
-    private val TAG = "HyperBridgeCall"
+class CallTranslator(
+    context: Context,
+    repo: ThemeRepository
+) : BaseTranslator(context, repo) {
 
     private val hangUpKeywords by lazy { context.resources.getStringArray(R.array.call_keywords_hangup).toList() }
     private val answerKeywords by lazy { context.resources.getStringArray(R.array.call_keywords_answer).toList() }
     private val speakerKeywords by lazy { context.resources.getStringArray(R.array.call_keywords_speaker).toList() }
 
-    fun translate(sbn: StatusBarNotification, picKey: String, config: IslandConfig): HyperIslandData {
+    fun translate(
+        sbn: StatusBarNotification,
+        picKey: String,
+        config: IslandConfig,
+        theme: HyperTheme?
+    ): HyperIslandData {
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: "Call"
 
-        // --- [PERSONALIZATION DEFAULTS] ---
-        // Colors for buttons
-        val themeHangUpColor = "#FF3B30"
-        val themeAnswerColor = "#34C759"
-        val themeNeutralColor = "#8E8E93"
-        // ----------------------------------
+        // [FIX] Pass sbn.packageName to resolveColor
+        val themeHangUpColor = resolveColor(theme, sbn.packageName, "#FF3B30")
+        val themeAnswerColor = resolveColor(theme, sbn.packageName, "#34C759")
+        val themeNeutralColor = resolveColor(theme, sbn.packageName, "#8E8E93")
 
         val isChronometerShown = extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER)
         val baseTime = sbn.notification.`when`
@@ -50,7 +56,6 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
         val isIncoming = !isChronometerShown && hasAnswerAction
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
-
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
@@ -59,7 +64,7 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        // Pass theme colors to action logic
+        // Get Actions with Themed Colors
         val bridgeActions = getFilteredCallActions(
             sbn,
             isIncoming,
@@ -97,6 +102,7 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
         )
 
         builder.setSmallIsland(picKey)
+        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor)
 
         if (isIncoming) {
             builder.setBigIslandInfo(
@@ -172,13 +178,14 @@ class CallTranslator(context: Context) : BaseTranslator(context) {
             val isHangUp = index == hangUpIndex
             val isAnswer = index == answerIndex
 
-            // [UPDATED] Use parameterized colors
+            // Determine Background Color
             val bgColorHex = when {
                 isHangUp -> hangUpColor
                 isAnswer -> answerColor
                 else -> neutralColor
             }
-            val bgColorInt = bgColorHex.toColorInt()
+            // Use safe color parsing
+            val bgColorInt = try { bgColorHex.toColorInt() } catch(e: Exception) { 0xFF8E8E93.toInt() }
 
             val originalIcon = action.getIcon()
             val originalBitmap = if (originalIcon != null) loadIconBitmap(originalIcon, sbn.packageName) else null

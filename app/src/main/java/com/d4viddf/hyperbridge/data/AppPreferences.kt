@@ -89,6 +89,26 @@ class AppPreferences(context: Context) {
         save(SettingsKeys.ALLOWED_PACKAGES, newSet.serialize())
     }
 
+    // ========================================================================
+    //                        THEME ENGINE (NEW)
+    // ========================================================================
+
+    /**
+     * Holds the ID (folder name) of the currently active theme.
+     * Null means the system default (no theme).
+     */
+    val activeThemeIdFlow: Flow<String?> = dao.getSettingFlow("active_theme_id")
+
+    suspend fun setActiveThemeId(id: String?) {
+        if (id == null) {
+            remove("active_theme_id")
+        } else {
+            save("active_theme_id", id)
+        }
+    }
+
+    // ========================================================================
+
     // --- LIMITS & PRIORITY ---
     val limitModeFlow: Flow<IslandLimitMode> = dao.getSettingFlow("limit_mode").map {
         try { IslandLimitMode.valueOf(it ?: IslandLimitMode.MOST_RECENT.name) } catch(e: Exception) { IslandLimitMode.MOST_RECENT }

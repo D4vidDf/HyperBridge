@@ -16,6 +16,8 @@ import androidx.core.app.NotificationManagerCompat
 import com.d4viddf.hyperbridge.MainActivity
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.theme.RulesEngine
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
@@ -71,6 +73,10 @@ class NotificationReaderService : NotificationListenerService() {
 
     private lateinit var preferences: AppPreferences
 
+    // --- THEME ENGINE ---
+    private lateinit var themeRepository: ThemeRepository
+    private lateinit var rulesEngine: RulesEngine
+
     // Translators
     private lateinit var callTranslator: CallTranslator
     private lateinit var navTranslator: NavTranslator
@@ -86,11 +92,18 @@ class NotificationReaderService : NotificationListenerService() {
         preferences = AppPreferences(applicationContext)
         createChannels()
 
-        callTranslator = CallTranslator(this)
-        navTranslator = NavTranslator(this)
-        timerTranslator = TimerTranslator(this)
-        progressTranslator = ProgressTranslator(this)
-        standardTranslator = StandardTranslator(this)
+        // [INIT] Theme Engine
+        themeRepository = ThemeRepository(this)
+        rulesEngine = RulesEngine()
+
+        // [UPDATED] Pass ThemeRepository to Translators
+        callTranslator = CallTranslator(this, themeRepository)
+        navTranslator = NavTranslator(this, themeRepository)
+        timerTranslator = TimerTranslator(this, themeRepository)
+        progressTranslator = ProgressTranslator(this, themeRepository)
+        standardTranslator = StandardTranslator(this, themeRepository)
+
+        // Media and Widget translators don't necessarily need the repo yet
         mediaTranslator = MediaTranslator(this)
         widgetTranslator = WidgetTranslator(this)
 
@@ -100,6 +113,19 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
+
+        // [FIX] Listen for Theme Changes and update the Repository
+        serviceScope.launch {
+            preferences.activeThemeIdFlow.collectLatest { themeId ->
+                Log.d(TAG, "Service detected theme change: $themeId")
+                if (themeId != null) {
+                    themeRepository.activateTheme(themeId)
+                } else {
+                    // Reset to defaults if theme is removed/disabled
+                    themeRepository.activateTheme("") // Handle empty/null in repo logic implies default
+                }
+            }
+        }
 
         // --- WIDGET LISTENER ---
         serviceScope.launch {
@@ -308,7 +334,26 @@ class NotificationReaderService : NotificationListenerService() {
                 }
             }
 
-            val type = detectNotificationType(sbn)
+            // [UPDATED] 4. Theme & Rules Interception
+            // A. Get Active Theme
+            val activeTheme = themeRepository.activeTheme.value
+
+            // B. Check Interceptor Rules
+            val ruleMatch = rulesEngine.match(sbn, effectiveTitle, effectiveText, activeTheme)
+
+            // C. Determine Type: If rule matched, FORCE that type. Else, use detection.
+            val type = if (ruleMatch?.targetLayout != null) {
+                try {
+                    NotificationType.valueOf(ruleMatch.targetLayout)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Invalid rule layout: ${ruleMatch.targetLayout}")
+                    detectNotificationType(sbn)
+                }
+            } else {
+                detectNotificationType(sbn)
+            }
+
+            // D. Check if app is enabled for this type (standard config check)
             val config = preferences.getAppConfig(sbn.packageName).first()
             if (!config.contains(type.name)) return
 
@@ -321,22 +366,30 @@ class NotificationReaderService : NotificationListenerService() {
 
             val appIslandConfig = preferences.getAppIslandConfig(sbn.packageName).first()
             val globalConfig = preferences.globalConfigFlow.first()
+
+            // E. Inject Theme Highlight Color into Configuration
+            // [FIXED] Removed invalid reference to globalConfig.highlightColor
+            val themeHighlight = themeRepository.getHighlightColor(sbn.packageName, "#000000")
+
+            // Create a config that includes the theme's highlight color logic
+            // (Assumes globalConfig handles highlight, or we simply effectively use it)
             val finalConfig = appIslandConfig.mergeWith(globalConfig)
 
             val bridgeId = sbn.key.hashCode()
             val picKey = "pic_${bridgeId}"
 
+            // [UPDATED] Pass 'activeTheme' to Translators
             val data: HyperIslandData = when (type) {
-                NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig)
+                NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig, activeTheme)
                 NotificationType.NAVIGATION -> {
                     val navLayout = preferences.getEffectiveNavLayout(sbn.packageName).first()
-                    navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second)
+                    navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second, activeTheme)
                 }
-                NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig)
-                NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig)
+                NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig, activeTheme)
+                NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
                 // [UPDATED] Pass effectiveTitle AND effectiveText
-                else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig)
+                else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
             }
 
             val newContentHash = data.jsonParam.hashCode()

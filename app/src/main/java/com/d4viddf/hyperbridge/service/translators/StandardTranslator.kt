@@ -4,29 +4,30 @@ import android.app.Notification
 import android.content.Context
 import android.service.notification.StatusBarNotification
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
 
-class StandardTranslator(context: Context) : BaseTranslator(context) {
+class StandardTranslator(
+    context: Context,
+    repo: ThemeRepository
+) : BaseTranslator(context, repo) {
 
-    // [UPDATED] Added 'text' parameter
     fun translate(
         sbn: StatusBarNotification,
         title: String,
-        text: String, // <--- NEW PARAMETER
+        text: String,
         picKey: String,
-        config: IslandConfig
+        config: IslandConfig,
+        theme: HyperTheme? // [NEW] Accept Theme
     ): HyperIslandData {
         val extras = sbn.notification.extras
-
-        // [REMOVED] We use the passed 'text' parameter now
-        // val text = extras.getString(Notification.EXTRA_TEXT) ?: ""
-
         val template = extras.getString(Notification.EXTRA_TEMPLATE) ?: ""
         val subText = extras.getString(Notification.EXTRA_SUB_TEXT) ?: ""
 
@@ -54,13 +55,14 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        // [UPDATED] Extract actions with Reply logic
+        // Actions (Auto-Reply logic enabled)
         val bridgeActions = extractBridgeActions(
             sbn,
             hideReplies = false,
             useAppOpenForReplies = true
         )
 
+        // Base Info (Shade)
         builder.setBaseInfo(
             type = 2,
             title = displayTitle,
@@ -72,6 +74,7 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
             content = displayContent
         )
 
+        // Island Layout
         if (isMedia) {
             builder.setBigIslandInfo(left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")))
         } else {
@@ -83,13 +86,25 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
 
         builder.setSmallIsland(picKey)
 
+        // Add Actions
         if (bridgeActions.isNotEmpty()) {
             val hyperActions = bridgeActions.map { it.action }.toTypedArray()
+
+            // Set actions visible in shade
             builder.setTextButtons(*hyperActions)
+
+            // Register them internally (required for clicks to work)
             hyperActions.forEach {
                 builder.addHiddenAction(it)
             }
+
+            // Register any custom icons if we extracted them
+            bridgeActions.forEach {
+                it.actionImage?.let { pic -> builder.addPicture(pic) }
+            }
         }
+        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor)
+
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

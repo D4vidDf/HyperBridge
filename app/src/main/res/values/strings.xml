@@ -451,4 +451,38 @@
     <string name="no_saved_widgets">No saved widgets found.</string>
     <string name="widget_id_fmt">Widget #%d</string>
     <string name="show_on_island">Show on Island</string>
+
+    <string name="theme_installer_title">Import Theme</string>
+    <string name="theme_installer_analyzing">Analyzing theme package...</string>
+    <string name="theme_installer_success_title">Theme Ready</string>
+    <string name="theme_installer_author">Created by %s</string>
+    <string name="theme_installer_version">Version %d</string>
+    <string name="theme_installer_description_default">No description provided.</string>
+    <string name="theme_installer_apply_question">Do you want to apply this theme to HyperBridge now?</string>
+    <string name="theme_installer_action_apply">Apply Theme</string>
+    <string name="theme_installer_action_later">Save for Later</string>
+    <string name="theme_installer_error_title">Import Failed</string>
+    <string name="theme_installer_error_generic">Could not verify the theme file.</string>
+    <string name="theme_installer_btn_close">Close</string>
+    <string name="theme_manager_title">My Themes</string>
+    <string name="theme_manager_cd_back">Navigate Back</string>
+    <string name="theme_manager_cd_add">Add New Theme</string>
+
+    <string name="theme_card_author_format">by %s</string>
+    <string name="theme_card_cd_active">Active Theme</string>
+    <string name="theme_card_cd_delete">Delete Theme</string>
+
+    <string name="theme_system_default_title">System Default</string>
+    <string name="theme_system_default_desc">Standard Look</string>
+
+    <string name="theme_sheet_title">Add New Theme</string>
+    <string name="theme_sheet_action_create">Create from Scratch</string>
+    <string name="theme_sheet_action_find">Find on Play Store</string>
+    <string name="creator_title">New Theme</string>
+    <string name="creator_label_name">Theme Name</string>
+    <string name="creator_label_author">Author Name</string>
+    <string name="creator_label_color">Highlight Color</string>
+    <string name="creator_preview">Preview</string>
+    <string name="creator_btn_save">Save Theme</string>
+    <string name="creator_err_inputs">Please enter a name and author</string>
 </resources>
