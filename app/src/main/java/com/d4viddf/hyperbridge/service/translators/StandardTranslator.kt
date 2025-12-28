@@ -14,10 +14,19 @@ import io.github.d4viddf.hyperisland_kit.models.TextInfo
 
 class StandardTranslator(context: Context) : BaseTranslator(context) {
 
-    fun translate(sbn: StatusBarNotification, picKey: String, config: IslandConfig): HyperIslandData {
+    // [UPDATED] Added 'text' parameter
+    fun translate(
+        sbn: StatusBarNotification,
+        title: String,
+        text: String, // <--- NEW PARAMETER
+        picKey: String,
+        config: IslandConfig
+    ): HyperIslandData {
         val extras = sbn.notification.extras
-        val title = extras.getString(Notification.EXTRA_TITLE) ?: sbn.packageName
-        val text = extras.getString(Notification.EXTRA_TEXT) ?: ""
+
+        // [REMOVED] We use the passed 'text' parameter now
+        // val text = extras.getString(Notification.EXTRA_TEXT) ?: ""
+
         val template = extras.getString(Notification.EXTRA_TEMPLATE) ?: ""
         val subText = extras.getString(Notification.EXTRA_SUB_TEXT) ?: ""
 
@@ -46,8 +55,6 @@ class StandardTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(getTransparentPicture(hiddenKey))
 
         // [UPDATED] Extract actions with Reply logic
-        // 1. hideReplies = false (So the button still shows up)
-        // 2. useAppOpenForReplies = true (So clicking "Reply" opens the chat instead of failing)
         val bridgeActions = extractBridgeActions(
             sbn,
             hideReplies = false,
