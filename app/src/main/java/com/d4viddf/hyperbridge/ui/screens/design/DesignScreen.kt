@@ -1,33 +1,66 @@
 package com.d4viddf.hyperbridge.ui.screens.design
 
 import android.graphics.drawable.Drawable
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AppSettingsAlt
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material3.Badge
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -36,16 +69,27 @@ import kotlinx.coroutines.withContext
 @Composable
 fun DesignScreen(
     onNavigateToWidgets: () -> Unit,
+    onNavigateToThemes: () -> Unit,
     onLaunchPicker: () -> Unit
 ) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
+
+    val themeRepo = remember { ThemeRepository(context.applicationContext) }
+    val activeTheme by themeRepo.activeTheme.collectAsState()
+    val activeThemeId by preferences.activeThemeIdFlow.collectAsState(initial = null)
 
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
     val savedWidgetIds by preferences.savedWidgetIdsFlow.collectAsState(initial = emptyList())
     var widgetIcons by remember { mutableStateOf<List<Drawable>>(emptyList()) }
+
+    LaunchedEffect(activeThemeId) {
+        if (activeThemeId != null) {
+            themeRepo.activateTheme(activeThemeId!!)
+        }
+    }
 
     LaunchedEffect(savedWidgetIds) {
         if (savedWidgetIds.isNotEmpty()) {
@@ -88,7 +132,7 @@ fun DesignScreen(
                 title = "Widgets",
                 icon = Icons.Default.Widgets,
                 onClick = onNavigateToWidgets,
-                showBetaBadge = true, // [NEW] Tag
+                showBetaBadge = true,
                 content = {
                     if (savedWidgetIds.isEmpty()) {
                         Text("No widgets configured", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
@@ -123,16 +167,51 @@ fun DesignScreen(
                 }
             )
 
-            // --- 2. APP DESIGNS CARD ---
+            // --- 2. NOTIFICATION THEMES CARD ---
             DesignCategoryCard(
-                title = "App Designs",
-                icon = Icons.Default.AppSettingsAlt,
-                enabled = false,
-                onClick = {},
+                title = "Themes",
+                icon = Icons.Rounded.Palette,
+                enabled = true,
+                showBetaBadge = true, // [NEW] Added Beta Badge here
+                onClick = onNavigateToThemes,
                 content = {
-                    Text("Customize notification style per app", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(8.dp))
-                    Badge(containerColor = MaterialTheme.colorScheme.surfaceVariant) { Text("Coming Soon", modifier = Modifier.padding(4.dp)) }
+                    val theme = activeTheme
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (theme != null) {
+                            // Custom Theme Active
+                            val color = try {
+                                Color((theme.global.highlightColor ?: "#000000").toColorInt())
+                            } catch (e: Exception) { MaterialTheme.colorScheme.primary }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text(theme.meta.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Text("by ${theme.meta.author}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        } else {
+                            // System Default
+                            Surface(
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = CircleShape,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Rounded.PhoneAndroid, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                                }
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text("System Default", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Text("Standard Look", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
                 }
             )
 
@@ -184,16 +263,16 @@ fun DesignScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                FilledTonalButton(
+                OutlinedButton(
                     onClick = {
-                        Toast.makeText(context, "Custom Layouts Coming Soon", Toast.LENGTH_SHORT).show()
                         showBottomSheet = false
+                        onNavigateToThemes()
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Brush, null, modifier = Modifier.padding(end = 8.dp))
-                    Text("Custom Layout", style = MaterialTheme.typography.titleMedium)
+                    Icon(Icons.Rounded.Palette, null, modifier = Modifier.padding(end = 8.dp))
+                    Text("Get Themes", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
@@ -205,7 +284,7 @@ fun DesignCategoryCard(
     title: String,
     icon: ImageVector,
     enabled: Boolean = true,
-    showBetaBadge: Boolean = false, // [NEW] Param
+    showBetaBadge: Boolean = false,
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -221,7 +300,6 @@ fun DesignCategoryCard(
                 Spacer(Modifier.width(12.dp))
                 Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline)
 
-                // [NEW] Beta Badge Logic
                 if (showBetaBadge && enabled) {
                     Spacer(Modifier.width(8.dp))
                     Surface(

@@ -451,4 +451,109 @@
     <string name="no_saved_widgets">No saved widgets found.</string>
     <string name="widget_id_fmt">Widget #%d</string>
     <string name="show_on_island">Show on Island</string>
+
+    <string name="theme_installer_title">Import Theme</string>
+    <string name="theme_installer_analyzing">Analyzing theme package...</string>
+    <string name="theme_installer_success_title">Theme Ready</string>
+    <string name="theme_installer_author">Created by %s</string>
+    <string name="theme_installer_version">Version %d</string>
+    <string name="theme_installer_description_default">No description provided.</string>
+    <string name="theme_installer_apply_question">Do you want to apply this theme to HyperBridge now?</string>
+    <string name="theme_installer_action_apply">Apply Theme</string>
+    <string name="theme_installer_action_later">Save for Later</string>
+    <string name="theme_installer_error_title">Import Failed</string>
+    <string name="theme_installer_error_generic">Could not verify the theme file.</string>
+    <string name="theme_installer_btn_close">Close</string>
+    <string name="theme_manager_title">My Themes</string>
+    <string name="theme_manager_cd_back">Navigate Back</string>
+    <string name="theme_manager_cd_add">Add New Theme</string>
+
+    <string name="theme_card_author_format">by %s</string>
+    <string name="theme_card_cd_active">Active Theme</string>
+    <string name="theme_card_cd_delete">Delete Theme</string>
+
+    <string name="theme_system_default_title">System Default</string>
+    <string name="theme_system_default_desc">Standard Look</string>
+
+    <string name="theme_sheet_title">Add New Theme</string>
+    <string name="creator_title">New Theme</string>
+    <string name="creator_label_name">Theme Name</string>
+    <string name="creator_label_author">Author Name</string>
+    <string name="creator_label_color">Highlight Color</string>
+    <string name="creator_preview">Preview</string>
+    <string name="creator_btn_save">Save Theme</string>
+    <string name="creator_err_inputs">Please enter a name and author</string>
+
+    <string name="theme_sheet_action_create">Create New Theme</string>
+    <string name="theme_sheet_action_find">Find on Play Store</string>
+    <string name="theme_sheet_action_import">Import from File</string>
+    <string name="theme_action_import_short">Import</string>
+    <string name="theme_card_action_edit">Edit</string>
+    <string name="theme_card_action_export">Export</string>
+
+    <string name="creator_title_new">Create Theme</string>
+    <string name="creator_title_edit">Edit Theme</string>
+    <string name="creator_nav_colors">Colors</string>
+    <string name="creator_nav_icons">Icons &amp; Shapes</string>
+    <string name="creator_nav_calls">Call Style</string>
+    <string name="creator_nav_apps">App Config</string>
+    <string name="creator_action_save">Save</string>
+    <string name="creator_btn_edit_info">Edit Theme Info</string>
+    <string name="creator_sub_colors">Palettes &amp; contrast</string>
+    <string name="creator_sub_icons">Shape &amp; padding</string>
+    <string name="creator_sub_calls">Answer &amp; decline buttons</string>
+    <string name="creator_sub_apps">Per-app overrides</string>
+
+    <string name="meta_title">Theme Info</string>
+    <string name="meta_label_name">Theme Name</string>
+    <string name="meta_label_author">Author Name</string>
+    <string name="meta_action_done">Done</string>
+
+    <string name="colors_tab_presets">Presets</string>
+    <string name="colors_tab_custom">Custom</string>
+    <string name="colors_label_presets">Presets</string>
+    <string name="colors_label_use_app_colors">Use App Colors</string>
+    <string name="colors_desc_use_app_colors">Adapt colors from installed apps</string>
+    <string name="colors_label_custom_title">Custom Color</string>
+    <string name="colors_cd_add_custom">Add Custom Color</string>
+    <string name="colors_dialog_title">Pick a Color</string>
+    <string name="colors_dialog_desc">Select a custom color for your theme.</string>
+    <string name="colors_label_hex">Hex Code</string>
+    <string name="colors_action_done">Done</string>
+
+    <string name="icons_tab_style">Style</string>
+    <string name="icons_tab_assets">Icons</string>
+    <string name="icons_tab_shape">Shape</string>
+    <string name="icons_label_size">Icon Size</string>
+    <string name="icons_label_full">Full</string>
+    <string name="icons_label_minimal">Minimal</string>
+    <string name="icons_group_nav">Navigation</string>
+    <string name="icons_btn_start">Start</string>
+    <string name="icons_btn_end">End</string>
+    <string name="icons_group_progress">Progress</string>
+    <string name="icons_btn_success">Success</string>
+    <string name="icons_label_shape_title">Icon Shape</string>
+
+    <string name="shape_circle">Circle</string>
+    <string name="shape_square">Square</string>
+    <string name="shape_cookie">Cookie</string>
+    <string name="shape_arch">Arch</string>
+    <string name="shape_clover">Clover</string>
+
+    <string name="calls_label_answer">Answer</string>
+    <string name="calls_label_decline">Decline</string>
+    <string name="calls_label_hex">Hex Color</string>
+
+    <string name="apps_title">Configured Apps</string>
+    <string name="apps_empty">No apps configured</string>
+    <string name="apps_sheet_title">Configure App</string>
+    <string name="apps_label_select">Select App</string>
+    <string name="apps_label_app">App</string>
+    <string name="apps_label_highlight">Highlight Color (Hex)</string>
+    <string name="apps_group_actions">Custom Actions</string>
+    <string name="apps_label_keyword">Keyword</string>
+    <string name="apps_desc_button_contains">Button containing \'%s\'</string>
+    <string name="apps_action_save">Save Configuration</string>
+    <string name="apps_default_color">Default Color</string>
+    <string name="apps_action_count">%d actions</string>
 </resources>

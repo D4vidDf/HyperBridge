@@ -4,30 +4,41 @@ import android.app.Notification
 import android.content.Context
 import android.service.notification.StatusBarNotification
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
 
-class ProgressTranslator(context: Context) : BaseTranslator(context) {
+class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(context, repo) {
 
     private val finishKeywords by lazy {
         context.resources.getStringArray(R.array.progress_finish_keywords).toList()
     }
 
-    fun translate(sbn: StatusBarNotification, title: String, picKey: String, config: IslandConfig): HyperIslandData {
+    fun translate(
+        sbn: StatusBarNotification,
+        title: String,
+        picKey: String,
+        config: IslandConfig,
+        theme: HyperTheme?
+    ): HyperIslandData {
 
-        // --- [PERSONALIZATION DEFAULTS] ---
-        val themeFinishIcon = R.drawable.rounded_check_circle_24
-        val themeProgressColor = "#007AFF"
-        val themeFinishColor = "#34C759"
-        // ----------------------------------
+        // [FIX] Prioritize Progress Colors -> Global Highlight -> Default
+        val themeProgressColor = theme?.defaultProgress?.activeColor
+            ?: resolveColor(theme, sbn.packageName, "#007AFF")
+
+        val themeFinishColor = theme?.defaultProgress?.finishedColor
+            ?: resolveColor(theme, sbn.packageName, "#34C759")
+
+        val customTick = getThemeBitmap(theme, "tick_icon")
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
-
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
@@ -40,7 +51,6 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         val textContent = (extras.getString(Notification.EXTRA_TEXT) ?: "")
 
         val percent = if (max > 0) ((current.toFloat() / max.toFloat()) * 100).toInt() else 0
-
         val isTextFinished = finishKeywords.any { textContent.contains(it, ignoreCase = true) }
         val isFinished = percent >= 100 || isTextFinished
 
@@ -51,24 +61,25 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
         builder.addPicture(getTransparentPicture(hiddenKey))
 
         if (isFinished) {
-            // [UPDATED] Use theme icon/color
-            builder.addPicture(getColoredPicture(tickKey, themeFinishIcon, themeFinishColor))
+            if (customTick != null) {
+                builder.addPicture(HyperPicture(tickKey, customTick))
+            } else {
+                // Tint default tick with specific finish color
+                builder.addPicture(getColoredPicture(tickKey, R.drawable.rounded_check_circle_24, themeFinishColor))
+            }
         }
 
-        val actions = extractBridgeActions(sbn)
+        val actions = extractBridgeActions(sbn, theme)
 
         builder.setChatInfo(
             title = title,
-            content = if (isFinished) "Download Complete" else textContent,
+            content = if (isFinished) "Complete" else textContent,
             pictureKey = picKey,
             appPkg = sbn.packageName
         )
 
         if (!isFinished && !indeterminate) {
-            builder.setProgressBar(
-                progress = percent,
-                color = themeProgressColor
-            )
+            builder.setProgressBar(percent, themeProgressColor)
         }
 
         if (isFinished) {
@@ -85,31 +96,20 @@ class ProgressTranslator(context: Context) : BaseTranslator(context) {
                 )
                 builder.setSmallIsland(picKey)
             } else {
-                builder.setBigIslandProgressCircle(
-                    picKey,
-                    "$percent%",
-                    progress = percent,
-                    color = themeProgressColor,
-                    true
-                )
-
-                builder.setSmallIslandCircularProgress(
-                    picKey,
-                    progress = percent,
-                    color = themeProgressColor,
-                    isCCW = true
-                )
+                builder.setBigIslandProgressCircle(picKey, "$percent%", percent, themeProgressColor, true)
+                builder.setSmallIslandCircularProgress(picKey, percent, themeProgressColor, isCCW = true)
             }
         }
 
-        actions.forEach {
-            it.actionImage?.let { pic -> builder.addPicture(pic) }
-        }
+        val highlight = resolveColor(theme, sbn.packageName, themeProgressColor)
+        builder.setIslandConfig(highlightColor = highlight)
 
+        actions.forEach { it.actionImage?.let { pic -> builder.addPicture(pic) } }
         val hyperActions = actions.map { it.action }.toTypedArray()
         hyperActions.forEach {
             builder.addAction(it)
         }
+        hyperActions.forEach { builder.addHiddenAction(it) }
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

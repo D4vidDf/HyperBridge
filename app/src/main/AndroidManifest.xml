@@ -14,6 +14,10 @@
         <intent>
             <action android:name="android.appwidget.action.APPWIDGET_PICK" />
         </intent>
+
+        <intent>
+            <action android:name="com.d4viddf.hyperbridge.THEME_PROVIDER" />
+        </intent>
     </queries>
 
     <application
@@ -26,6 +30,7 @@
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.HyperBridge">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -33,10 +38,10 @@
             android:theme="@style/Theme.HyperBridge">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <receiver
             android:name=".receiver.BootReceiver"
             android:enabled="true"
@@ -52,9 +57,10 @@
             android:label="HyperBridge Listener"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true"
-            android:directBootAware="true"> <intent-filter>
-            <action android:name="android.service.notification.NotificationListenerService" />
-        </intent-filter>
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
         </service>
 
         <service
@@ -62,6 +68,45 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="shortService" />
+
+        <activity
+            android:name=".ui.screens.theme.ThemeInstallerActivity"
+            android:exported="true"
+            android:theme="@style/Theme.HyperBridge.Transparent"
+            android:excludeFromRecents="true">
+
+            <intent-filter>
+                <action android:name="com.d4viddf.hyperbridge.APPLY_THEME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/x-zip-compressed" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

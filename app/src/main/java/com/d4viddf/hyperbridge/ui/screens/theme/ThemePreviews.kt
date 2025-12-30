@@ -1,4 +1,4 @@
-package com.d4viddf.hyperbridge.ui.screens.theme.content
+package com.d4viddf.hyperbridge.ui.screens.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -35,47 +35,38 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 
-// --- SHARED PREVIEW CAROUSEL ---
+// --- 1. MAIN CAROUSEL (For General Screen) ---
 @Composable
-fun SharedThemePreview(
-    highlightColorHex: String,
-    useAppColors: Boolean,
-    shapeId: String,
-    paddingPercent: Int,
-    answerColorHex: String,
-    declineColorHex: String,
-    answerShapeId: String,
-    declineShapeId: String
-) {
+fun ThemeCarouselPreview(viewModel: ThemeViewModel) {
     val pagerState = rememberPagerState(pageCount = { 3 })
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp) // Reduced vertical padding
     ) {
         HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(horizontal = 64.dp),
+            contentPadding = PaddingValues(horizontal = 64.dp), // Wider peek to see neighbors
             pageSpacing = 16.dp
         ) { page ->
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp)
+                    .height(64.dp) // Fixed lower height for the preview area
             ) {
                 when (page) {
-                    0 -> StandardIslandPreview(highlightColorHex, useAppColors)
-                    1 -> ButtonIslandPreview(highlightColorHex, shapeId, paddingPercent)
-                    2 -> CallIslandPreview(answerColorHex, declineColorHex, answerShapeId, declineShapeId, paddingPercent)
+                    0 -> StandardIslandPreview(viewModel)
+                    1 -> ButtonIslandPreview(viewModel)
+                    2 -> CallIslandPreview(viewModel)
                 }
             }
         }
 
         Spacer(Modifier.height(12.dp))
 
+        // Indicators
         Row(
             Modifier.wrapContentHeight().fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
@@ -87,51 +78,42 @@ fun SharedThemePreview(
                         .padding(4.dp)
                         .clip(CircleShape)
                         .background(color)
-                        .size(6.dp)
+                        .size(6.dp) // Smaller dots
                 )
             }
         }
     }
 }
 
-// --- SPECIFIC PREVIEWS (For Detail Screens) ---
+// --- 2. SPECIFIC PREVIEWS (For Detail Screens) ---
 
 @Composable
-fun IconsSpecificPreview(
-    highlightColorHex: String,
-    shapeId: String,
-    paddingPercent: Int
-) {
+fun IconsSpecificPreview(viewModel: ThemeViewModel) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp).height(64.dp)
     ) {
-        ButtonIslandPreview(highlightColorHex, shapeId, paddingPercent)
+        ButtonIslandPreview(viewModel)
     }
 }
 
 @Composable
-fun CallSpecificPreview(
-    answerColorHex: String,
-    declineColorHex: String,
-    answerShapeId: String,
-    declineShapeId: String,
-    paddingPercent: Int
-) {
+fun CallSpecificPreview(viewModel: ThemeViewModel) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp).height(64.dp)
     ) {
-        CallIslandPreview(answerColorHex, declineColorHex, answerShapeId, declineShapeId, paddingPercent)
+        CallIslandPreview(viewModel)
     }
 }
 
 // --- INTERNAL IMPLEMENTATIONS ---
 
+// Preview 1: Standard (Text + Accent)
 @Composable
-private fun StandardIslandPreview(colorHex: String, useAppColors: Boolean) {
-    val selectedColor = safeParseColor(colorHex)
-    val appColor = if (useAppColors) Color(0xFF4CAF50) else selectedColor
+private fun StandardIslandPreview(viewModel: ThemeViewModel) {
+    val selectedColor = safeParseColor(viewModel.selectedColorHex)
+    val appColor = if (viewModel.useAppColors) Color(0xFF4CAF50) else selectedColor
 
     IslandPill(width = 180.dp, height = 48.dp) {
         Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -148,12 +130,13 @@ private fun StandardIslandPreview(colorHex: String, useAppColors: Boolean) {
     }
 }
 
+// Preview 2: Buttons (Shape Showcase)
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ButtonIslandPreview(colorHex: String, shapeId: String, paddingPercent: Int) {
-    val selectedColor = safeParseColor(colorHex)
-    val iconShape = getShapeFromId(shapeId).toShape()
-    val padding = (32 * (paddingPercent / 100f)).dp
+private fun ButtonIslandPreview(viewModel: ThemeViewModel) {
+    val selectedColor = safeParseColor(viewModel.selectedColorHex)
+    val iconShape = getShapeFromId(viewModel.selectedShapeId).toShape()
+    val padding = (32 * (viewModel.iconPaddingPercent / 100f)).dp
 
     IslandPill(width = 220.dp, height = 48.dp) {
         Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -178,31 +161,27 @@ private fun ButtonIslandPreview(colorHex: String, shapeId: String, paddingPercen
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+// Preview 3: Calls (Answer/Decline)
 @Composable
-private fun CallIslandPreview(
-    answerColorHex: String,
-    declineColorHex: String,
-    answerShapeId: String,
-    declineShapeId: String,
-    paddingPercent: Int
-) {
-    val answerColor = safeParseColor(answerColorHex)
-    val declineColor = safeParseColor(declineColorHex)
-    val answerShape = getShapeFromId(answerShapeId).toShape()
-    val declineShape = getShapeFromId(declineShapeId).toShape()
-    val padding = (32 * (paddingPercent / 100f)).dp
+private fun CallIslandPreview(viewModel: ThemeViewModel) {
+    val answerColor = safeParseColor(viewModel.callAnswerColor)
+    val declineColor = safeParseColor(viewModel.callDeclineColor)
 
     IslandPill(width = 200.dp, height = 48.dp) {
         Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            // Caller Icon
             Box(Modifier.size(32.dp).clip(CircleShape).background(Color.LightGray))
             Spacer(Modifier.weight(1f))
+
+            // Actions
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(modifier = Modifier.size(32.dp).background(declineColor.copy(alpha=0.2f), declineShape).padding(padding), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.CallEnd, null, tint = declineColor)
+                // Decline
+                Box(Modifier.size(32.dp).background(declineColor.copy(alpha=0.2f), CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.CallEnd, null, tint = declineColor, modifier = Modifier.size(18.dp))
                 }
-                Box(modifier = Modifier.size(32.dp).background(answerColor.copy(alpha=0.2f), answerShape).padding(padding), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Call, null, tint = answerColor)
+                // Answer
+                Box(Modifier.size(32.dp).background(answerColor.copy(alpha=0.2f), CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.Call, null, tint = answerColor, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -210,7 +189,12 @@ private fun CallIslandPreview(
 }
 
 @Composable
-private fun IslandPill(width: Dp, height: Dp, borderColor: Color = Color(0xFF333333), content: @Composable () -> Unit) {
+private fun IslandPill(
+    width: Dp,
+    height: Dp,
+    borderColor: Color = Color(0xFF333333),
+    content: @Composable () -> Unit
+) {
     Surface(
         modifier = Modifier.size(width, height),
         shape = RoundedCornerShape(height / 2),

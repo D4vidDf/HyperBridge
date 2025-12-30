@@ -463,4 +463,109 @@
     <string name="no_saved_widgets">No hay widgets guardados.</string>
     <string name="widget_id_fmt">Widget #%d</string>
     <string name="show_on_island">Mostrar en Isla</string>
+
+    <string name="theme_installer_title">Importar tema</string>
+    <string name="theme_installer_analyzing">Analizando paquete del tema...</string>
+    <string name="theme_installer_success_title">Tema listo</string>
+    <string name="theme_installer_author">Creado por %s</string>
+    <string name="theme_installer_version">Versión %d</string>
+    <string name="theme_installer_description_default">Sin descripción.</string>
+    <string name="theme_installer_apply_question">¿Quieres aplicar este tema a HyperBridge ahora?</string>
+    <string name="theme_installer_action_apply">Aplicar tema</string>
+    <string name="theme_installer_action_later">Guardar para luego</string>
+    <string name="theme_installer_error_title">Error al importar</string>
+    <string name="theme_installer_error_generic">No se pudo verificar el archivo del tema.</string>
+    <string name="theme_installer_btn_close">Cerrar</string>
+    <string name="theme_manager_title">Mis temas</string>
+    <string name="theme_manager_cd_back">Volver atrás</string>
+    <string name="theme_manager_cd_add">Añadir nuevo tema</string>
+
+    <string name="theme_card_author_format">por %s</string>
+    <string name="theme_card_cd_active">Tema activo</string>
+    <string name="theme_card_cd_delete">Eliminar tema</string>
+
+    <string name="theme_system_default_title">Predeterminado del sistema</string>
+    <string name="theme_system_default_desc">Apariencia estándar</string>
+
+    <string name="theme_sheet_title">Añadir nuevo tema</string>
+    <string name="creator_title">Nuevo tema</string>
+    <string name="creator_label_name">Nombre del tema</string>
+    <string name="creator_label_author">Nombre del autor</string>
+    <string name="creator_label_color">Color de realce</string>
+    <string name="creator_preview">Vista previa</string>
+    <string name="creator_btn_save">Guardar tema</string>
+    <string name="creator_err_inputs">Por favor, introduce un nombre y un autor</string>
+
+    <string name="theme_sheet_action_create">Crear nuevo tema</string>
+    <string name="theme_sheet_action_find">Buscar en Play Store</string>
+    <string name="theme_sheet_action_import">Importar desde archivo</string>
+    <string name="theme_action_import_short">Importar</string>
+    <string name="theme_card_action_edit">Editar</string>
+    <string name="theme_card_action_export">Exportar</string>
+
+    <string name="creator_title_new">Crear tema</string>
+    <string name="creator_title_edit">Editar tema</string>
+    <string name="creator_nav_colors">Colores</string>
+    <string name="creator_nav_icons">Iconos y formas</string>
+    <string name="creator_nav_calls">Estilo de llamada</string>
+    <string name="creator_nav_apps">Config. de Apps</string>
+    <string name="creator_action_save">Guardar</string>
+    <string name="creator_btn_edit_info">Editar info. del tema</string>
+    <string name="creator_sub_colors">Paletas y contraste</string>
+    <string name="creator_sub_icons">Forma y relleno</string>
+    <string name="creator_sub_calls">Botones de respuesta</string>
+    <string name="creator_sub_apps">Ajustes por aplicación</string>
+
+    <string name="meta_title">Info. del tema</string>
+    <string name="meta_label_name">Nombre del tema</string>
+    <string name="meta_label_author">Nombre del autor</string>
+    <string name="meta_action_done">Hecho</string>
+
+    <string name="colors_tab_presets">Preajustes</string>
+    <string name="colors_tab_custom">Personalizado</string>
+    <string name="colors_label_presets">Preajustes</string>
+    <string name="colors_label_use_app_colors">Usar colores de la App</string>
+    <string name="colors_desc_use_app_colors">Adaptar colores de apps instaladas</string>
+    <string name="colors_label_custom_title">Color personalizado</string>
+    <string name="colors_cd_add_custom">Añadir color personalizado</string>
+    <string name="colors_dialog_title">Elegir un color</string>
+    <string name="colors_dialog_desc">Selecciona un color personalizado para tu tema.</string>
+    <string name="colors_label_hex">Código Hex</string>
+    <string name="colors_action_done">Hecho</string>
+
+    <string name="icons_tab_style">Estilo</string>
+    <string name="icons_tab_assets">Iconos</string>
+    <string name="icons_tab_shape">Forma</string>
+    <string name="icons_label_size">Tamaño del icono</string>
+    <string name="icons_label_full">Completo</string>
+    <string name="icons_label_minimal">Mínimo</string>
+    <string name="icons_group_nav">Navegación</string>
+    <string name="icons_btn_start">Inicio</string>
+    <string name="icons_btn_end">Fin</string>
+    <string name="icons_group_progress">Progreso</string>
+    <string name="icons_btn_success">Éxito</string>
+    <string name="icons_label_shape_title">Forma del icono</string>
+
+    <string name="shape_circle">Círculo</string>
+    <string name="shape_square">Cuadrado</string>
+    <string name="shape_cookie">Galleta</string>
+    <string name="shape_arch">Arco</string>
+    <string name="shape_clover">Trébol</string>
+
+    <string name="calls_label_answer">Responder</string>
+    <string name="calls_label_decline">Rechazar</string>
+    <string name="calls_label_hex">Color Hex</string>
+
+    <string name="apps_title">Apps configuradas</string>
+    <string name="apps_empty">Ninguna app configurada</string>
+    <string name="apps_sheet_title">Configurar App</string>
+    <string name="apps_label_select">Seleccionar App</string>
+    <string name="apps_label_app">App</string>
+    <string name="apps_label_highlight">Color de realce (Hex)</string>
+    <string name="apps_group_actions">Acciones personalizadas</string>
+    <string name="apps_label_keyword">Palabra clave</string>
+    <string name="apps_desc_button_contains">Botón contiene \'%s\'</string>
+    <string name="apps_action_save">Guardar configuración</string>
+    <string name="apps_default_color">Color predeterminado</string>
+    <string name="apps_action_count">%d acciones</string>
 </resources>

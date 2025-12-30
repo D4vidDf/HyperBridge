@@ -3,30 +3,229 @@ package com.d4viddf.hyperbridge.service.translators
 import android.app.Notification
 import android.app.Person
 import android.content.Context
-import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
+import android.os.Build
+import android.os.Bundle
+import android.os.Parcelable
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
-import com.d4viddf.hyperbridge.R
+import androidx.graphics.shapes.toPath
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.BridgeAction
+import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import com.d4viddf.hyperbridge.models.theme.ResourceType
+import com.d4viddf.hyperbridge.models.theme.ThemeResource
+import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
 
-abstract class BaseTranslator(protected val context: Context) {
+abstract class BaseTranslator(
+    protected val context: Context,
+    protected val repository: ThemeRepository? = null
+) {
 
     enum class ActionDisplayMode { TEXT, ICON, BOTH }
+
+    protected inline fun <reified T : Parcelable> Bundle.getParcelableCompat(key: String): T? {
+        return if (Build.VERSION.SDK_INT >= 33) {
+            getParcelable(key, T::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            getParcelable(key)
+        }
+    }
+
+    protected inline fun <reified T : Parcelable> Bundle.getParcelableArrayListCompat(key: String): ArrayList<T>? {
+        return if (Build.VERSION.SDK_INT >= 33) {
+            getParcelableArrayList(key, T::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            getParcelableArrayList(key)
+        }
+    }
+
+    // --- THEME HELPERS ---
+
+    protected fun getThemeBitmap(theme: HyperTheme?, resourceKey: String): Bitmap? {
+        if (theme == null || repository == null) return null
+        val resource = ThemeResource(ResourceType.LOCAL_FILE, "icons/$resourceKey.png")
+        return repository.getResourceBitmap(resource)
+    }
+
+    protected fun resolveColor(theme: HyperTheme?, pkg: String?, defaultHex: String): String {
+        if (theme == null) return defaultHex
+        if (pkg != null) {
+            val override = theme.apps[pkg]
+            if (override?.highlightColor != null) return override.highlightColor
+        }
+        return theme.global.highlightColor ?: defaultHex
+    }
+
+    protected fun resolveActionIcon(theme: HyperTheme?, pkg: String, actionTitle: String): Bitmap? {
+        if (theme == null || repository == null) return null
+        val override = theme.apps[pkg] ?: return null
+        val actionsMap = override.actions ?: return null
+        val matchedConfig = actionsMap.entries.find { (keyword, _) -> actionTitle.contains(keyword, ignoreCase = true) }?.value
+        val resource = matchedConfig?.icon ?: return null
+        return if (resource.type == ResourceType.LOCAL_FILE) repository.getResourceBitmap(resource) else null
+    }
+
+    protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
+        val originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
+        return HyperPicture(picKey, originalBitmap)
+    }
+
+    /**
+     * Applies Theme Shape, Color, and Padding to an Action Icon.
+     */
+    protected fun applyThemeToActionIcon(source: Bitmap, theme: HyperTheme, bgColor: Int): Bitmap {
+        val shapeId = theme.global.iconShapeId
+        val paddingPercent = theme.global.iconPaddingPercent
+
+        val size = 96
+        val output = createBitmap(size, size)
+        val canvas = Canvas(output)
+
+        // 1. Generate & Scale Path (The Shape)
+        val polygon = getShapeFromId(shapeId)
+        val path = polygon.toPath()
+        val bounds = RectF()
+        path.computeBounds(bounds, true)
+
+        val matrix = Matrix()
+        val destRect = RectF(0f, 0f, size.toFloat(), size.toFloat())
+        // ScaleToFit.FILL ensures the shape stretches to fill the 96x96 box exactly
+        matrix.setRectToRect(bounds, destRect, Matrix.ScaleToFit.FILL)
+        path.transform(matrix)
+
+        // 2. Draw the Colored Background Shape
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = bgColor
+            style = Paint.Style.FILL
+        }
+        canvas.drawPath(path, bgPaint)
+
+        // 3. Draw the Icon (Centered & Scaled)
+        val paddingPx = (size * (paddingPercent / 100f))
+
+        // Define the area where the icon is allowed to be drawn
+        val iconDestRect = RectF(
+            paddingPx,
+            paddingPx,
+            size - paddingPx,
+            size - paddingPx
+        )
+
+        if (iconDestRect.width() > 0 && iconDestRect.height() > 0) {
+            // Configure paint to tint the icon white and clip it to the background shape
+            val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
+                colorFilter = PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
+            }
+
+            // Calculate matrix to CENTER the icon inside the padding rect
+            val iconMatrix = Matrix()
+            val iconBounds = RectF(0f, 0f, source.width.toFloat(), source.height.toFloat())
+            iconMatrix.setRectToRect(iconBounds, iconDestRect, Matrix.ScaleToFit.CENTER)
+
+            canvas.drawBitmap(source, iconMatrix, iconPaint)
+        }
+
+        return output
+    }
+
+    // --- CORE LOGIC ---
+
+    protected fun extractBridgeActions(
+        sbn: StatusBarNotification,
+        theme: HyperTheme? = null,
+        mode: ActionDisplayMode = ActionDisplayMode.BOTH,
+        hideReplies: Boolean = true,
+        useAppOpenForReplies: Boolean = false
+    ): List<BridgeAction> {
+        val bridgeActions = mutableListOf<BridgeAction>()
+        val actions = sbn.notification.actions ?: return emptyList()
+
+        // [FIX] Changed default fallback from Grey to standard Blue (#007AFF)
+        val defaultActionBg = if (theme != null) {
+            try {
+                // If global highlight is missing, use Blue
+                val hex = theme.global.highlightColor ?: "#007AFF"
+                resolveColor(theme, sbn.packageName, hex).toColorInt()
+            } catch (e: Exception) {
+                "#007AFF".toColorInt() }
+        } else {
+            "#007AFF".toColorInt()
+        }
+
+        actions.forEachIndexed { index, androidAction ->
+            val hasRemoteInput = androidAction.remoteInputs != null && androidAction.remoteInputs!!.isNotEmpty()
+            if (hasRemoteInput && hideReplies) return@forEachIndexed
+
+            val rawTitle = androidAction.title?.toString() ?: ""
+            val uniqueKey = "act_${sbn.key.hashCode()}_$index"
+
+            var actionIcon: Icon? = null
+            var hyperPic: HyperPicture? = null
+
+            val finalTitle = if (mode == ActionDisplayMode.ICON) "" else rawTitle
+            val shouldLoadIcon = (mode == ActionDisplayMode.ICON) || (mode == ActionDisplayMode.BOTH) || (mode == ActionDisplayMode.TEXT && rawTitle.isEmpty())
+
+            var bitmapToUse = resolveActionIcon(theme, sbn.packageName, rawTitle)
+
+            if (bitmapToUse == null && shouldLoadIcon) {
+                val originalIcon = androidAction.getIcon()
+                if (originalIcon != null) {
+                    bitmapToUse = loadIconBitmap(originalIcon, sbn.packageName)
+                }
+            }
+
+            if (bitmapToUse != null) {
+                val processedBitmap = if (theme != null) {
+                    applyThemeToActionIcon(bitmapToUse, theme, defaultActionBg)
+                } else {
+                    createRoundedIconWithBackground(bitmapToUse, defaultActionBg, 12)
+                }
+
+                actionIcon = Icon.createWithBitmap(processedBitmap)
+                hyperPic = HyperPicture("${uniqueKey}_icon", processedBitmap)
+            }
+
+            val finalIntent = if (hasRemoteInput && useAppOpenForReplies) {
+                sbn.notification.contentIntent ?: androidAction.actionIntent
+            } else {
+                androidAction.actionIntent
+            }
+
+            val hyperAction = HyperAction(
+                key = uniqueKey,
+                title = finalTitle,
+                icon = actionIcon,
+                pendingIntent = finalIntent,
+                actionIntentType = 1
+            )
+
+            bridgeActions.add(BridgeAction(hyperAction, hyperPic))
+        }
+        return bridgeActions
+    }
+
+    // --- UTILS ---
 
     protected fun getTransparentPicture(key: String): HyperPicture {
         val conf = Bitmap.Config.ARGB_8888
@@ -36,7 +235,7 @@ abstract class BaseTranslator(protected val context: Context) {
 
     protected fun getColoredPicture(key: String, resId: Int, colorHex: String): HyperPicture {
         val drawable = ContextCompat.getDrawable(context, resId)?.mutate()
-        val color = colorHex.toColorInt()
+        val color = try { colorHex.toColorInt() } catch (e: Exception) { Color.WHITE }
         drawable?.setTint(color)
         val bitmap = drawable?.toBitmap() ?: createFallbackBitmap()
         return HyperPicture(key, bitmap)
@@ -53,12 +252,12 @@ abstract class BaseTranslator(protected val context: Context) {
         val extras = sbn.notification.extras
 
         try {
-            val picture = extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE)
+            val picture = extras.getParcelableCompat<Bitmap>(Notification.EXTRA_PICTURE)
             if (picture != null) return picture
 
             if (sbn.notification.category == Notification.CATEGORY_CALL) {
-                val person = extras.getParcelable<Person>(Notification.EXTRA_MESSAGING_PERSON)
-                    ?: extras.getParcelableArrayList<Person>(Notification.EXTRA_PEOPLE_LIST)?.firstOrNull()
+                val person = extras.getParcelableCompat<Person>(Notification.EXTRA_MESSAGING_PERSON)
+                    ?: extras.getParcelableArrayListCompat<Person>(Notification.EXTRA_PEOPLE_LIST)?.firstOrNull()
 
                 if (person != null && person.icon != null) {
                     val bitmap = loadIconBitmap(person.icon!!, pkg)
@@ -72,7 +271,8 @@ abstract class BaseTranslator(protected val context: Context) {
                 if (bitmap != null) return bitmap
             }
 
-            val largeIconBitmap = extras.getParcelable<Bitmap>(Notification.EXTRA_LARGE_ICON)
+            @Suppress("DEPRECATION")
+            val largeIconBitmap = extras.getParcelableCompat<Bitmap>(Notification.EXTRA_LARGE_ICON)
             if (largeIconBitmap != null) return largeIconBitmap
 
             if (sbn.notification.smallIcon != null) {
@@ -88,15 +288,7 @@ abstract class BaseTranslator(protected val context: Context) {
         }
     }
 
-    protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
-        val bitmap = getNotificationBitmap(sbn)
-        return if (bitmap != null) {
-            HyperPicture(picKey, bitmap)
-        } else {
-            getPictureFromResource(picKey, R.drawable.ic_launcher_foreground)
-        }
-    }
-
+    // Standard fallback implementation
     protected fun createRoundedIconWithBackground(source: Bitmap, backgroundColor: Int, paddingDp: Int = 8): Bitmap {
         val size = 96
         val output = createBitmap(size, size)
@@ -127,80 +319,11 @@ abstract class BaseTranslator(protected val context: Context) {
         val result = createBitmap(source.width, source.height)
         val canvas = Canvas(result)
         val paint = Paint().apply {
-            colorFilter = android.graphics.PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+            colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+            isFilterBitmap = true
         }
         canvas.drawBitmap(source, 0f, 0f, paint)
         return result
-    }
-
-    /**
-     * Extracts actions from the notification.
-     * * @param mode How to display (Text, Icon, etc).
-     * @param hideReplies If true, actions requiring text input (RemoteInput) are skipped.
-     * @param useAppOpenForReplies If true (and hideReplies is false), clicking a Reply action opens the App instead.
-     */
-    protected fun extractBridgeActions(
-        sbn: StatusBarNotification,
-        mode: ActionDisplayMode = ActionDisplayMode.BOTH,
-        hideReplies: Boolean = true, // Default to hiding reply buttons
-        useAppOpenForReplies: Boolean = false
-    ): List<BridgeAction> {
-        val bridgeActions = mutableListOf<BridgeAction>()
-        val actions = sbn.notification.actions ?: return emptyList()
-
-        actions.forEachIndexed { index, androidAction ->
-            // [NEW] Check for RemoteInput (Reply capability)
-            val hasRemoteInput = androidAction.remoteInputs != null && androidAction.remoteInputs!!.isNotEmpty()
-
-            // Logic to handle Reply buttons
-            if (hasRemoteInput) {
-                if (hideReplies) {
-                    return@forEachIndexed // Skip adding this action
-                }
-            }
-
-            val rawTitle = androidAction.title?.toString() ?: ""
-            val uniqueKey = "act_${sbn.key.hashCode()}_$index"
-
-            var actionIcon: Icon? = null
-            var hyperPic: HyperPicture? = null
-
-            val finalTitle = if (mode == ActionDisplayMode.ICON) "" else rawTitle
-            val shouldLoadIcon = (mode == ActionDisplayMode.ICON) ||
-                    (mode == ActionDisplayMode.BOTH) ||
-                    (mode == ActionDisplayMode.TEXT && rawTitle.isEmpty())
-
-            if (shouldLoadIcon) {
-                val originalIcon = androidAction.getIcon()
-                if (originalIcon != null) {
-                    val bitmap = loadIconBitmap(originalIcon, sbn.packageName)
-                    if (bitmap != null) {
-                        actionIcon = Icon.createWithBitmap(bitmap)
-                        hyperPic = HyperPicture("${uniqueKey}_icon", bitmap)
-                    }
-                }
-            }
-
-            // [NEW] Swap Intent if needed
-            // If it's a reply button and we want it to open the app,
-            // we use the notification's main ContentIntent instead of the ActionIntent.
-            val finalIntent = if (hasRemoteInput && useAppOpenForReplies) {
-                sbn.notification.contentIntent ?: androidAction.actionIntent
-            } else {
-                androidAction.actionIntent
-            }
-
-            val hyperAction = HyperAction(
-                key = uniqueKey,
-                title = finalTitle,
-                icon = actionIcon,
-                pendingIntent = finalIntent,
-                actionIntentType = 1
-            )
-
-            bridgeActions.add(BridgeAction(hyperAction, hyperPic))
-        }
-        return bridgeActions
     }
 
     protected fun loadIconBitmap(icon: Icon, packageName: String): Bitmap? {
@@ -209,17 +332,14 @@ abstract class BaseTranslator(protected val context: Context) {
                 try {
                     val targetContext = context.createPackageContext(packageName, 0)
                     icon.loadDrawable(targetContext)
-                } catch (e: PackageManager.NameNotFoundException) {
+                } catch (e: Exception) {
                     icon.loadDrawable(context)
-                } catch (e: Resources.NotFoundException) {
-                    null
                 }
             } else {
                 icon.loadDrawable(context)
             }
             drawable?.toBitmap()
         } catch (e: Exception) {
-            Log.w("BaseTranslator", "Failed to load icon from $packageName", e)
             null
         }
     }
@@ -235,7 +355,6 @@ abstract class BaseTranslator(protected val context: Context) {
 
     protected fun createFallbackBitmap(): Bitmap = createBitmap(1, 1)
 
-    // Helper for consistency
     protected fun Drawable.toBitmap(): Bitmap {
         if (this is BitmapDrawable && this.bitmap != null) return this.bitmap
         val width = if (intrinsicWidth > 0) intrinsicWidth else 96
