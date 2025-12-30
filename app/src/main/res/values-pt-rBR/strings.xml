@@ -11,7 +11,7 @@
     <string name="info">Info</string>
     <string name="configure">Configurar</string>
     <string name="clear">Limpar</string>
-    <string name="sort_order">Ordem</string>
+    <string name="sort_order">Organizar por</string>
 
     <string name="welcome_title">Bem-vindo(a) ao\nHyper Bridge</string>
     <string name="welcome_subtitle">Integre as HyperIslands perfeitamente à sua experiência na HyperOS.</string>
@@ -131,7 +131,7 @@
     <string name="whats_new_title">Novidades na %s</string>
     <string name="version_history">Histórico de Versões</string>
 
-    <string name="title_0_1_0">La Actualización Expresiva</string>
+    <string name="title_0_1_0">A Atualização Expressiva</string>
     <string name="changelog_0_1_0">
         • &lt;b&gt;Grandes mudanças na IU:&lt;/b&gt; Hyper Bridge agora usa o Material 3 Expressive com novas animações suaves.\n
         • &lt;b&gt;Melhorias na HyperIsland:&lt;/b&gt; O texto agora aparece à direita e mostra um tick verde para downloads completos.\n
@@ -315,7 +315,7 @@
         • Corrigido um bug crítico no qual o app ficava travado durante o carregamento após uma reinicialização.\n
         • Corrigido notificações as vezes mostrarem o nome do pacote (ex.: "com.google...") em vez do conteúdo.\n
         • As configurações do app foram redesenhadas para melhor usabilidade.\n
-        • Melhorado a tela de verificação de compatibilidade com informações detalhadas do aparelho.
+        • Melhorada a tela de verificação de compatibilidade com informações detalhadas do aparelho.
     </string>
 
     <string name="privacy_title">100% Offline e Seguro</string> 
@@ -385,4 +385,66 @@
             • Corrigido o botão "Sair" na Navigation Island, que aparecia como ícone em vez de texto.\n
             • Corrigido o carregamento de ícones de apps nas Configurações.\n
     </string>
+
+    <string name="close">Fechar</string>
+    <string name="search">Pesquisar</string>
+    <string name="widget_updated_toast">Widget atualizado</string>
+    <string name="widget_settings_error">Não é possível alterar as opções deste widget</string>
+
+    <string name="widget_picker_title">Adicionar Widget</string>
+    <string name="search_apps_placeholder">Pesquisar apps...</string>
+    <plurals name="widget_count_fmt">
+        <item quantity="many">%d widgets</item>
+        <item quantity="other">%d widgets</item>
+        <item quantity="one">%d widget</item>
+    </plurals>
+
+    <string name="widget_config_title">Configurar Widget</string>
+    <string name="widget_settings_button">Configurações do Widget</string>
+
+    <string name="config_tab_appearance">Aparência</string>
+    <string name="config_tab_behavior">Comportamento</string>
+
+    <string name="config_render_mode_label">Modo de Renderização</string>
+    <string name="config_container_size_label">Tamanho do Contêiner</string>
+
+    <string name="config_shade_title">Mostrar no painel</string>
+    <string name="config_shade_desc">Visivel no painel de notificações</string>
+
+    <string name="config_timeout_title">Fechar Automaticamente</string>
+    <string name="config_timeout_desc">Fecha a Ilha depois de um período</string>
+    <plurals name="config_timeout_fmt">
+        <item quantity="many">%d segundos</item>
+        <item quantity="other">%d segundos</item>
+        <item quantity="one">%d segundo</item>
+    </plurals>
+
+    <string name="config_refresh_title">Atualizar Automaticamente</string>
+    <string name="config_refresh_desc">Atualiza um snapshot periodicamente</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="many">A cada %d minutos</item>
+    <item quantity="other">A cada %d minutos</item>
+    <item quantity="one">A cada minuto</item>
+    </plurals>
+    <string name="config_refresh_warning">Uma frequência maior usa mais bateria.</string>
+
+    <string name="render_interactive_label">Interativo</string>
+    <string name="render_interactive_desc">Botões funcionam. Ideal para música e botões de controle.</string>
+    <string name="render_snapshot_label">Snapshot</string>
+    <string name="render_snapshot_desc">Corrige listas vazias. Ideal para calendário e Gmail.</string>
+
+    <string name="size_original">Original</string>
+    <string name="size_small">Pequeno (100dp)</string>
+    <string name="size_medium">Médio (180dp)</string>
+    <string name="size_large">Grande (280dp)</string>
+    <string name="size_xlarge">Extra Grande (380dp)</string>
+
+    <string name="app_uninstalled_badge">Desinstalado</string>
+    <string name="settings_action">Configurações</string>
+
+    <string name="saved_widgets_title">Widgets Salvos</string>
+    <string name="new_widget_fab">Novo Widget</string>
+    <string name="no_saved_widgets">Nenhum widget salvo encontrado.</string>
+    <string name="widget_id_fmt">Widget #%d</string>
+    <string name="show_on_island">Mostrar na Ilha</string>
 </resources>
