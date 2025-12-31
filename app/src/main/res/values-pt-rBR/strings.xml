@@ -5,7 +5,7 @@
     <string name="back">Voltar</string>
     <string name="next">Avançar</string>
     <string name="finish">Finalizar</string>
-    <string name="done">Feito</string>
+    <string name="done">Concluído</string>
     <string name="logo_desc">Logo do app</string>
     <string name="settings">Configurações</string>
     <string name="info">Info</string>
@@ -51,7 +51,7 @@
     <string name="sort_az">Ordem: A-Z</string>
     <string name="sort_za">Ordem: Z-A</string>
 
-    <string name="no_active_bridges">Sem Bridges Ativos</string>
+    <string name="no_active_bridges">Nenhum Bridge Ativo</string>
     <string name="no_active_bridges_desc">Acesse a Biblioteca para habilitar seus aplicativos.</string>
     <string name="no_apps_found">Nenhum aplicativo encontrado</string>
 
@@ -83,7 +83,7 @@
     <string name="autostart_desc">Permitir que o app abra na inicialização</string>
     <string name="battery_unrestricted">Bateria Sem Restrições</string>
     <string name="battery_desc">Evita que o sistema encerre o app</string>
-    <string name="recents_note">Nota: Também bloqueie o app na tela de \'Recentes\'.</string>
+    <string name="recents_note">Nota: Bloqueie o app também no menu de \'Recentes\'.</string>
     <string name="status_active">Ativo</string>
     <string name="action_needed">Ação Necessária</string>
 
@@ -108,7 +108,7 @@
     <string name="downloading">Baixando</string>
     <string name="waiting">Aguardando...</string>
     <string name="now_playing">Reproduzindo</string>
-    <string name="unknown_caller">Desconhecido</string>
+    <string name="unknown_caller">Número Desconhecido</string>
     <string name="incoming_call">Chamada</string>
     <string name="maps_title">Mapas</string>
     <string name="timer_title">Timer</string>
@@ -118,7 +118,7 @@
         <item>concluído</item>
         <item>finalizado</item>
         <item>instalado</item>
-        <item>feito</item>
+        <item>concluído</item>
         <item>bem-sucedido</item>
         <item>bem-sucedido</item>
         <item>completado</item>
@@ -183,7 +183,7 @@
     <string name="setting_float_desc">Exibir notificação pop-up</string>
     <string name="setting_shade">Exibir no painel</string>
     <string name="setting_shade_desc">Manter no painel de notificações</string>
-    <string name="setting_timeout">Duração</string>
+    <string name="setting_timeout">Tempo para minimizar</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar valores globais</string>
     <string name="customize_app">Personalizar</string>
@@ -298,7 +298,7 @@
     <string name="title_0_3_0">A Atualização Global</string>
     <string name="changelog_0_3_0">
         <b>Notificações Ocultas 👻</b>\n
-        Nova opção para ocultar notificações do painel do sistema enquanto mantém a Ilha ativa. Cheque as Configurações Globais!\n\n
+        Nova opção para ocultar notificações do painel do sistema enquanto mantém a Ilha ativa. Verifique as Configurações Globais!\n\n
         <b>Novos Idiomas 🌍</b>\n
         Agradecimentos especiais para a nossa comunidade por essas traduções:\n
         • 🇧🇷 Português Brasileiro\n
@@ -310,7 +310,7 @@
         <b>Proteção contra Spoiler 🛡️</b>\n
         Nova função de "Termos Bloqueados". Defina palavras globalmente ou por app para impedir que notificações especificas apareçam na Ilha.\n\n
         <b>Melhorias em Ligações 📞</b>\n
-        Melhorado a lógica de detecção para dar suporte a uma maior variedade de aplicativos de chamadas.\n\n
+        Melhorada a lógica de detecção para dar suporte a uma maior variedade de aplicativos de chamadas.\n\n
         <b>Correções &amp; Melhorias 🛠️</b>\n
         • Corrigido um bug crítico no qual o app ficava travado durante o carregamento após uma reinicialização.\n
         • Corrigido notificações as vezes mostrarem o nome do pacote (ex.: "com.google...") em vez do conteúdo.\n
@@ -447,4 +447,109 @@
     <string name="no_saved_widgets">Nenhum widget salvo encontrado.</string>
     <string name="widget_id_fmt">Widget #%d</string>
     <string name="show_on_island">Mostrar na Ilha</string>
+
+        <string name="theme_installer_title">Importar Tema</string>
+    <string name="theme_installer_analyzing">Analisando arquivo de tema...</string>
+    <string name="theme_installer_success_title">Tema pronto</string>
+    <string name="theme_installer_author">Criado por %s</string>
+    <string name="theme_installer_version">Versão %d</string>
+    <string name="theme_installer_description_default">Sem descrição.</string>
+    <string name="theme_installer_apply_question">Você deseja aplicar este tema no HyperBridge agora?</string>
+    <string name="theme_installer_action_apply">Aplicar tema</string>
+    <string name="theme_installer_action_later">Salvar para depois</string>
+    <string name="theme_installer_error_title">Falha ao importar</string>
+    <string name="theme_installer_error_generic">Não foi possível verificar o arquivo de tema.</string>
+    <string name="theme_installer_btn_close">Fechar</string>
+    <string name="theme_manager_title">Meus Temas</string>
+    <string name="theme_manager_cd_back">Voltar a navegação</string>
+    <string name="theme_manager_cd_add">Adicionar novo tema</string>
+
+    <string name="theme_card_author_format">por %s</string>
+    <string name="theme_card_cd_active">Tema ativo</string>
+    <string name="theme_card_cd_delete">Excluir tema</string>
+
+    <string name="theme_system_default_title">Padrão do Sistema</string>
+    <string name="theme_system_default_desc">Estilo Padrão</string>
+
+    <string name="theme_sheet_title">Adicionar novo tema</string>
+    <string name="creator_title">Novo tema</string>
+    <string name="creator_label_name">Nome do tema</string>
+    <string name="creator_label_author">Nome do autor</string>
+    <string name="creator_label_color">Cor de destaque</string>
+    <string name="creator_preview">Prévia</string>
+    <string name="creator_btn_save">Salvar tema</string>
+    <string name="creator_err_inputs">Por favor adicione um nome e um autor</string>
+
+    <string name="theme_sheet_action_create">Criar novo tema</string>
+    <string name="theme_sheet_action_find">Procurar na Play Store</string>
+    <string name="theme_sheet_action_import">Importar de um arquivo</string>
+    <string name="theme_action_import_short">Importar</string>
+    <string name="theme_card_action_edit">Editar</string>
+    <string name="theme_card_action_export">Exportar</string>
+
+    <string name="creator_title_new">Criar tema</string>
+    <string name="creator_title_edit">Editar tema</string>
+    <string name="creator_nav_colors">Cores</string>
+    <string name="creator_nav_icons">Ícones &amp; Formas</string>
+    <string name="creator_nav_calls">Estilo da ligação</string>
+    <string name="creator_nav_apps">Configurações de app</string>
+    <string name="creator_action_save">Salvar</string>
+    <string name="creator_btn_edit_info">Editar informações do tema</string>
+    <string name="creator_sub_colors">Paletas &amp; contraste</string>
+    <string name="creator_sub_icons">Forma &amp; espaçamento</string>
+    <string name="creator_sub_calls">Resposta &amp; botões de recusar</string>
+    <string name="creator_sub_apps">Substituições por aplicativo</string>
+
+    <string name="meta_title">Informações do Tema</string>
+    <string name="meta_label_name">Nome do tema</string>
+    <string name="meta_label_author">Nome do autor</string>
+    <string name="meta_action_done">Pronto</string>
+
+    <string name="colors_tab_presets">Predefinições</string>
+    <string name="colors_tab_custom">Personalizado</string>
+    <string name="colors_label_presets">Predefinições</string>
+    <string name="colors_label_use_app_colors">Usar cores do app</string>
+    <string name="colors_desc_use_app_colors">Adapta as cores dos apps instalados</string>
+    <string name="colors_label_custom_title">Cor customizada</string>
+    <string name="colors_cd_add_custom">Adicionar cor customizada</string>
+    <string name="colors_dialog_title">Selecione uma cor</string>
+    <string name="colors_dialog_desc">Selecione uma cor personalizada para o seu tema.</string>
+    <string name="colors_label_hex">Código Hex</string>
+    <string name="colors_action_done">Pronto</string>
+
+    <string name="icons_tab_style">Estilo</string>
+    <string name="icons_tab_assets">Ícones</string>
+    <string name="icons_tab_shape">Formas</string>
+    <string name="icons_label_size">Tamanho do ícone</string>
+    <string name="icons_label_full">Cheio</string>
+    <string name="icons_label_minimal">Mínimo</string>
+    <string name="icons_group_nav">Navegação</string>
+    <string name="icons_btn_start">Iniciar</string>
+    <string name="icons_btn_end">Finalizar</string>
+    <string name="icons_group_progress">Progresso</string>
+    <string name="icons_btn_success">Sucesso</string>
+    <string name="icons_label_shape_title">Formato do ícone</string>
+
+    <string name="shape_circle">Círculo</string>
+    <string name="shape_square">Quadrado</string>
+    <string name="shape_cookie">Cookie</string>
+    <string name="shape_arch">Arco</string>
+    <string name="shape_clover">Trevo</string>
+
+    <string name="calls_label_answer">Atender</string>
+    <string name="calls_label_decline">Recusar</string>
+    <string name="calls_label_hex">Cor Hex</string>
+
+    <string name="apps_title">Apps Configurados</string>
+    <string name="apps_empty">Nenhum app configurado</string>
+    <string name="apps_sheet_title">Configurar App</string>
+    <string name="apps_label_select">Selecionar App</string>
+    <string name="apps_label_app">App</string>
+    <string name="apps_label_highlight">Cor de destaque (Hex)</string>
+    <string name="apps_group_actions">Ações customizadas</string>
+    <string name="apps_label_keyword">Palavra-chave</string>
+    <string name="apps_desc_button_contains">Botão contendo \'%s\'</string>
+    <string name="apps_action_save">Salvar configuração</string>
+    <string name="apps_default_color">Cor padrão</string>
+    <string name="apps_action_count">%d ações</string>
 </resources>
