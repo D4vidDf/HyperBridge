@@ -556,4 +556,23 @@
     <string name="apps_action_save">Save Configuration</string>
     <string name="apps_default_color">Default Color</string>
     <string name="apps_action_count">%d actions</string>
+
+    <string name="design_hero_customization_title">Customization</string>
+    <string name="design_hero_customization_subtitle">Learn how to create themes</string>
+    <string name="design_hero_pro_title">Pro Features</string>
+    <string name="design_hero_pro_subtitle">Unlock more power</string>
+    <string name="design_hero_community_title">Community</string>
+    <string name="design_hero_community_subtitle">Join our GitHub</string>
+
+    <string name="design_section_themes">Themes</string>
+    <string name="design_section_widgets">Widgets</string>
+
+    <string name="design_browse_more">Browse More</string>
+    <string name="design_add_new">Add New</string>
+    <string name="design_add_design">Add Design</string>
+    <string name="design_add_to_island">Customization</string>
+    <string name="design_system_widget_beta">System Widget (Beta)</string>
+    <string name="design_get_themes">Get Themes</string>
+    <string name="design_empty_widget_title">Add your first Widget</string>
+    <string name="design_active_count">%d Active</string>
 </resources>

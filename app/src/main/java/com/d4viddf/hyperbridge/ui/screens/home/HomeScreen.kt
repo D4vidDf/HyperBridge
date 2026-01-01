@@ -1,7 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.home
 
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -15,7 +14,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -24,15 +22,25 @@ import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.ToggleOn
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Brush
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ToggleOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppInfo
@@ -44,7 +52,6 @@ import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeCreatorScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeManagerScreen
-import androidx.core.net.toUri
 
 private enum class DesignRoute {
     DASHBOARD,
@@ -62,11 +69,8 @@ fun HomeScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(1) }
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
-
-    // [FIX] Track which theme is being edited
     var editingThemeId by remember { mutableStateOf<String?>(null) }
 
-    // Overlay States
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
     var configApp by remember { mutableStateOf<AppInfo?>(null) }
@@ -77,7 +81,6 @@ fun HomeScreen(
 
     val context = LocalContext.current
 
-    // --- PREDICTIVE BACK HANDLERS ---
     if (configApp != null) BackHandler { configApp = null }
     if (editingWidgetId != null) BackHandler { editingWidgetId = null }
     if (showWidgetPicker) BackHandler { showWidgetPicker = false }
@@ -86,7 +89,7 @@ fun HomeScreen(
         BackHandler {
             designRoute = when (designRoute) {
                 DesignRoute.THEME_CREATOR -> {
-                    editingThemeId = null // Reset edit state when backing out
+                    editingThemeId = null
                     DesignRoute.THEME_MANAGER
                 }
                 else -> DesignRoute.DASHBOARD
@@ -96,19 +99,6 @@ fun HomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = {
-                if (selectedTab != 0 || designRoute == DesignRoute.DASHBOARD) {
-                    TopAppBar(
-                        title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold) },
-                        actions = {
-                            IconButton(onClick = onSettingsClick) {
-                                Icon(Icons.Outlined.Settings, stringResource(R.string.settings))
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
-                    )
-                }
-            },
             bottomBar = {
                 AnimatedVisibility(
                     visible = selectedTab != 0 || designRoute == DesignRoute.DASHBOARD,
@@ -138,9 +128,9 @@ fun HomeScreen(
                 }
             }
         ) { padding ->
-            val effectivePadding = if (selectedTab == 0 && designRoute != DesignRoute.DASHBOARD) PaddingValues(0.dp) else padding
-
-            Box(modifier = Modifier.padding(effectivePadding)) {
+            // [FIX] Only apply bottom padding. Let children handle their own top insets.
+            // This prevents the "double top padding" issue.
+            Box(modifier = Modifier.padding(bottom = padding.calculateBottomPadding())) {
                 when (selectedTab) {
                     0 -> {
                         AnimatedContent(
@@ -159,7 +149,8 @@ fun HomeScreen(
                                     DesignScreen(
                                         onNavigateToWidgets = { designRoute = DesignRoute.WIDGET_LIST },
                                         onNavigateToThemes = { designRoute = DesignRoute.THEME_MANAGER },
-                                        onLaunchPicker = { showWidgetPicker = true }
+                                        onLaunchPicker = { showWidgetPicker = true },
+                                        onSettingsClick = onSettingsClick // [NEW] Pass the callback here
                                     )
                                 }
                                 DesignRoute.WIDGET_LIST -> {
@@ -175,22 +166,19 @@ fun HomeScreen(
                                         onFindThemes = {
                                             val query = "HyperBridge Theme"
                                             try {
-                                                val intent = Intent(Intent.ACTION_VIEW,
-                                                    "market://search?q=$query&c=apps".toUri())
+                                                val intent = Intent(Intent.ACTION_VIEW, "market://search?q=$query&c=apps".toUri())
                                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                 context.startActivity(intent)
-                                            } catch (e: Exception) {
-                                                val intent = Intent(Intent.ACTION_VIEW,
-                                                    "https://play.google.com/store/search?q=$query&c=apps".toUri())
+                                            } catch (_: Exception) {
+                                                val intent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/search?q=$query&c=apps".toUri())
                                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                 context.startActivity(intent)
                                             }
                                         },
                                         onCreateTheme = {
-                                            editingThemeId = null // Ensure we start fresh
+                                            editingThemeId = null
                                             designRoute = DesignRoute.THEME_CREATOR
                                         },
-                                        // [FIX] Implemented Callback
                                         onEditTheme = { id ->
                                             editingThemeId = id
                                             designRoute = DesignRoute.THEME_CREATOR
@@ -199,7 +187,7 @@ fun HomeScreen(
                                 }
                                 DesignRoute.THEME_CREATOR -> {
                                     ThemeCreatorScreen(
-                                        editThemeId = editingThemeId, // [FIX] Passed ID
+                                        editThemeId = editingThemeId,
                                         onBack = {
                                             designRoute = DesignRoute.THEME_MANAGER
                                             editingThemeId = null
@@ -213,13 +201,25 @@ fun HomeScreen(
                             }
                         }
                     }
-                    1 -> ActiveAppsPage(activeApps, isLoading, viewModel) { configApp = it }
-                    2 -> LibraryPage(libraryApps, isLoading, viewModel) { configApp = it }
+                    1 -> ActiveAppsPage(
+                        apps = activeApps,
+                        isLoading = isLoading,
+                        viewModel = viewModel,
+                        onConfig = { configApp = it },
+                        onSettingsClick = onSettingsClick
+                    )
+                    2 -> LibraryPage(
+                        apps = libraryApps,
+                        isLoading = isLoading,
+                        viewModel = viewModel,
+                        onConfig = { configApp = it },
+                        onSettingsClick = onSettingsClick
+                    )
                 }
             }
         }
 
-        // --- GLOBAL OVERLAYS ---
+        // --- OVERLAYS ---
         AnimatedVisibility(
             visible = showWidgetPicker,
             enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(400)) + fadeIn(),

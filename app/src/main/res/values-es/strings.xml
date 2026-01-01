@@ -568,4 +568,23 @@
     <string name="apps_action_save">Guardar configuración</string>
     <string name="apps_default_color">Color predeterminado</string>
     <string name="apps_action_count">%d acciones</string>
+
+    <string name="design_hero_customization_title">Personalización</string>
+    <string name="design_hero_customization_subtitle">Aprende a crear temas</string>
+    <string name="design_hero_pro_title">Funciones Pro</string>
+    <string name="design_hero_pro_subtitle">Desbloquea todo el potencial</string>
+    <string name="design_hero_community_title">Comunidad</string>
+    <string name="design_hero_community_subtitle">Únete a nuestro GitHub</string>
+
+    <string name="design_section_themes">Temas</string>
+    <string name="design_section_widgets">Widgets</string>
+
+    <string name="design_browse_more">Ver más</string>
+    <string name="design_add_new">Añadir nuevo</string>
+    <string name="design_add_design">Añadir diseño</string>
+    <string name="design_add_to_island">Añadir a la Isla</string>
+    <string name="design_system_widget_beta">Widget del sistema (Beta)</string>
+    <string name="design_get_themes">Obtener temas</string>
+    <string name="design_empty_widget_title">Añade tu primer widget</string>
+    <string name="design_active_count">%d Activos</string>
 </resources>
