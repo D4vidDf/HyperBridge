@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hyper Bridge</string>
-
     <string name="back">뒤로</string>
     <string name="next">다음</string>
     <string name="finish">완료</string>
@@ -11,37 +11,30 @@
     <string name="configure">설정하기</string>
     <string name="clear">지우기</string>
     <string name="sort_order">정렬 순서</string>
-
     <string name="welcome_title">Hyper Bridge에 오신 것을\n환영합니다</string>
     <string name="welcome_subtitle">HyperIslands를 HyperOS 시스템에 쉽게 통합하세요.</string>
     <string name="get_started">시작하기</string>
-
     <string name="how_it_works">작동 방식</string>
     <string name="how_it_works_desc">좋아하는 앱(Spotify, 지도, 타이머)을 선택하세요. HyperBridge가 알림을 아름다운 HyperIsland로 변환합니다.</string>
     <string name="early_development">초기 개발</string>
     <string name="beta_warning">참고: 이 앱은 베타 버전입니다. 오류나 시각적 문제가 발생할 수 있습니다.</string>
-
     <string name="device_compatible">호환되는 기기</string>
     <string name="unsupported_device">지원되지 않는 기기</string>
     <string name="compatible_msg">기기가 HyperOS/MIUI에서 실행 중인 것으로 보입니다. 준비 완료!</string>
     <string name="incompatible_msg">HyperBridge는 HyperOS의 특정 기능에 의존합니다. 제조사가 Xiaomi/POCO/Redmi가 아닌 것 같습니다.</string>
     <string name="system_detected">✅ 시스템 감지됨</string>
     <string name="app_wont_work">⚠️ 앱이 작동하지 않을 수 있습니다</string>
-
     <string name="show_island">섬 표시</string>
     <string name="perm_post_desc">화면에 ‘섬’ 알림을 표시하려면 권한이 필요합니다.</string>
     <string name="perm_granted">✅ 권한 허용됨</string>
     <string name="allow_notifications">알림 허용</string>
-
     <string name="read_data">데이터 읽기</string>
     <string name="perm_listener_desc">앱을 연결하려면 해당 앱의 알림(음악, 지도, 타이머)을 읽을 수 있어야 합니다.</string>
     <string name="open_settings">설정 열기</string>
-
     <string name="keep_alive">백그라운드 유지</string>
     <string name="optimization_desc">HyperOS는 백그라운드 앱을 중지합니다. 자동 실행과 “제한 없음”을 켜서 섬을 유지하세요.</string>
     <string name="enable_autostart">1. 자동 실행 켜기</string>
     <string name="set_battery_no_restrictions">2. 배터리 절약: “제한 없음”</string>
-
     <string name="tab_active">활성</string>
     <string name="tab_library">라이브러리</string>
     <string name="title_active_bridges">활성 브리지</string>
@@ -49,19 +42,15 @@
     <string name="search_hint">앱 검색...</string>
     <string name="sort_az">정렬: A–Z</string>
     <string name="sort_za">정렬: Z–A</string>
-
     <string name="no_active_bridges">활성 브리지가 없습니다</string>
     <string name="no_active_bridges_desc">라이브러리에서 앱을 활성화하세요.</string>
     <string name="no_apps_found">앱을 찾을 수 없습니다</string>
-
     <string name="about">앱 소개</string>
     <string name="version_template">버전 %s</string>
     <string name="developer_credit">D4vidDf 제작</string>
-
     <string name="group_configuration">구성</string>
     <string name="system_setup">시스템 설정</string>
     <string name="system_setup_subtitle">권한 및 배터리 문제 해결</string>
-
     <string name="group_about">앱 정보</string>
     <string name="developer">개발자</string>
     <string name="developer_subtitle">d4viddf.com 방문</string>
@@ -70,7 +59,6 @@
     <string name="licenses">오픈소스 라이선스</string>
     <string name="licenses_subtitle">서드파티 소프트웨어</string>
     <string name="footer_made_with_love">스페인에서 ❤️로 제작됨</string>
-
     <string name="app_health">앱 상태</string>
     <string name="app_health_desc">백그라운드 작동을 위해 모든 항목이 초록색인지 확인하세요.</string>
     <string name="req_permissions">필수 권한</string>
@@ -85,13 +73,11 @@
     <string name="recents_note">참고: 최근 앱 화면에서 앱을 고정(자물쇠)하세요.</string>
     <string name="status_active">활성</string>
     <string name="action_needed">조치 필요</string>
-
     <string name="cat_all">전체</string>
     <string name="cat_music">음악</string>
     <string name="cat_nav">내비게이션</string>
     <string name="cat_timer">생산성</string>
     <string name="cat_other">기타</string>
-
     <string name="select_active_notifs">활성 알림 선택</string>
     <string name="type_standard">메시지 및 일반</string>
     <string name="type_progress">다운로드 및 진행 상황</string>
@@ -99,7 +85,6 @@
     <string name="type_nav">지도 및 GPS</string>
     <string name="type_call">통화</string>
     <string name="type_timer">타이머 및 알람</string>
-
     <string name="service_active">활성</string>
     <string name="download_complete">다운로드 완료</string>
     <string name="pending">대기 중...</string>
@@ -111,7 +96,6 @@
     <string name="incoming_call">전화</string>
     <string name="maps_title">지도</string>
     <string name="timer_title">타이머</string>
-
     <string-array name="progress_finish_keywords">
         <item>downloaded</item>
         <item>completed</item>
@@ -124,11 +108,7 @@
         <item>완료됨</item>
         <item>끝남</item>
         <item>설치됨</item>
-        <item>완료</item>
-        <item>성공</item>
-        <item>성공적으로</item>
     </string-array>
-
     <string name="status_download_complete">다운로드 완료</string>
     <string name="status_downloading">다운로드 중</string>
     <string name="status_pending">대기 중...</string>
@@ -136,14 +116,11 @@
     <string name="status_now_playing">재생 중</string>
     <string name="status_incoming_call">수신 전화</string>
     <string name="caller_unknown">알 수 없는 발신자</string>
-
     <string name="fallback_maps">지도</string>
     <string name="fallback_timer">타이머</string>
     <string name="fallback_stopwatch">스톱워치</string>
-
     <string name="whats_new_title">%s의 새로운 기능</string>
     <string name="awesome">멋져요!</string>
-
     <string name="island_behavior">섬 동작 방식</string>
     <string name="limit_strategy">제한 도달</string>
     <string name="limit_desc">섬 개수 제한(9개)을 초과하면 어떻게 될까요?</string>
@@ -158,7 +135,6 @@
     <string name="move_up">위로</string>
     <string name="move_down">아래로</string>
     <string name="configure_order">순서 설정</string>
-
     <string name="global_settings">전역 설정</string>
     <string name="island_appearance">섬 외형</string>
     <string name="setting_float">플로팅 섬 표시</string>
@@ -170,63 +146,46 @@
     <string name="use_global_default">전역 설정 사용</string>
     <string name="customize_app">설정하기</string>
     <string name="override_settings">설정 재정의</string>
-
     <string-array name="nav_arrival_keywords">
         <item>arrival</item>
         <item>arrive</item>
         <item>eta</item>
         <item>reaching</item>
         <item>destination</item>
-        <item>도착</item>
-        <item>도착하다</item>
-        <item>도달</item>
-        <item>목적지</item>
     </string-array>
-
     <string name="hint_options">옵션</string>
-
     <string name="version_history">버전 기록</string>
-
     <string name="title_0_2_0">The Information 업데이트</string>
-    <string name="changelog_0_2_0">
-        • &lt;b&gt;고급 진행률 표시줄:&lt;/b&gt; "단계별 진행"(예: 1/3) 및 알림창 내 아이콘이 포함된 진행률 표시줄 지원이 추가되었습니다.\n
-        • &lt;b&gt;우선순위 시스템:&lt;/b&gt; 새로운 "아일랜드 동작" 설정. "최신순", "선착순", 또는 사용자 지정 "앱 우선순위" 목록 중에서 선택하세요.\n
+    <string name="changelog_0_2_0">        • &lt;b&gt;고급 진행률 표시줄:&lt;/b&gt; \"단계별 진행\"(예: 1/3) 및 알림창 내 아이콘이 포함된 진행률 표시줄 지원이 추가되었습니다.\n
+        • &lt;b&gt;우선순위 시스템:&lt;/b&gt; 새로운 \"아일랜드 동작\" 설정. \"최신순\", \"선착순\", 또는 사용자 지정 \"앱 우선순위\" 목록 중에서 선택하세요.\n
         • &lt;b&gt;스마트 필터링:&lt;/b&gt; 중복 알림 및 그룹화된 다운로드 감지 기능이 개선되었습니다.\n
         • &lt;b&gt;시각적 개선:&lt;/b&gt; 내비게이션 안내의 레이아웃 문제를 수정했습니다.\n
         • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 시간 제한 및 플로팅 동작을 사용자가 지정할 수 있습니다.
     </string>
-
     <string name="title_0_1_0">The Expressive 업데이트</string>
-    <string name="changelog_0_1_0">
-        • &lt;b&gt;주요 UI 개편:&lt;/b&gt; 부드러운 애니메이션이 적용된 새로운 Material 3 Expressive 디자인.\n
+    <string name="changelog_0_1_0">        • &lt;b&gt;주요 UI 개편:&lt;/b&gt; 부드러운 애니메이션이 적용된 새로운 Material 3 Expressive 디자인.\n
         • &lt;b&gt;향상된 아일랜드:&lt;/b&gt; 이제 텍스트가 오른쪽에 표시됩니다. 완료된 다운로드에 녹색 체크 표시가 추가되었습니다.\n
         • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 특정 알림 유형(음악, 지도, 통화)을 선택할 수 있습니다.\n
         • &lt;b&gt;스마트 필터:&lt;/b&gt; 중복 알림을 차단하고 배터리를 절약합니다.\n
         • &lt;b&gt;새로운 라이브러리:&lt;/b&gt; 카테고리별로 앱을 필터링하고 정렬 순서를 변경할 수 있습니다.\n
         • &lt;b&gt;현지화:&lt;/b&gt; 스페인어 지원이 추가되었습니다.
     </string>
-
     <string name="priority_edu_title">새 기능: 섬 제어</string>
     <string name="priority_edu_desc">HyperBridge는 이제 9개 제한에 도달했을 때 여러 알림을 어떻게 처리할지 관리할 수 있습니다.\n\n<b>기본값: 최신순</b>\n새로운 알림이 오래된 알림을 자동으로 대체합니다.</string>
     <string name="keep_default">기본 유지</string>
     <string name="configure_now">지금 설정</string>
-
     <string name="badge_new">신규</string>
-
     <string name="custom_design">사용자 디자인</string>
     <string name="nav_layout_title">내비게이션 레이아웃</string>
     <string name="nav_layout_desc">표시할 정보를 선택하세요</string>
     <string name="left_content">왼쪽</string>
     <string name="right_content">오른쪽</string>
-
     <string name="nav_content_instruction">안내</string>
     <string name="nav_content_distance">거리</string>
     <string name="nav_content_eta">도착 시간</string>
     <string name="nav_content_distance_eta">거리 + 시간</string>
     <string name="nav_content_none">없음</string>
-
     <string name="channel_active_islands">활성 섬</string>
-
     <string name="cd_toggle_app">%s 전환</string>
     <string name="cd_configure_app">%s 설정</string>
     <string name="cd_enable_type">%s 알림 켜기</string>
@@ -234,7 +193,6 @@
     <string name="cd_nav_edit">내비게이션 레이아웃 편집</string>
     <string name="cd_app_state_active">활성</string>
     <string name="cd_app_state_inactive">비활성</string>
-
     <string name="cd_move_up">위로 이동</string>
     <string name="cd_move_down">아래로 이동</string>
     <string name="cd_drag_handle">드래그 핸들. 두 번 탭 후 길게 눌러 순서를 변경하거나 이동 작업을 사용하세요.</string>
@@ -244,11 +202,9 @@
     <string name="cd_collapse_changelog">버전 기록 접기</string>
     <string name="cd_configuration_group">구성 설정</string>
     <string name="cd_about_group">앱 정보</string>
-
     <string name="nav_preview_instruction">우회전</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
-
     <string name="blocked_terms">차단된 단어</string>
     <string name="blocked_terms_desc">이 단어를 포함하는 알림은 무시됩니다.</string>
     <string name="add_blocked_word">단어 추가 (예: ‘스포일러’)</string>
@@ -256,18 +212,15 @@
     <string name="remove">삭제</string>
     <string name="tap_to_configure_rules">앱을 눌러 차단 규칙을 설정하세요.</string>
     <string name="spoiler_subtitle">스포일러 보호 및 필터 관리</string>
-
     <string name="active_notifications_title">알림 유형</string>
     <string name="active_notifications_subtitle">%d개 활성</string>
     <string name="appearance_use_defaults_desc">애니메이션 속도 및 플로팅 동작은 시스템 설정을 따릅니다.</string>
     <string name="blocked_terms_active_count">활성 규칙: %d</string>
-
     <string name="global_rules">전역 규칙</string>
     <string name="app_specific_rules">앱별 규칙</string>
     <string name="manage_app_rules_desc">앱별 필터를 설정하세요</string>
     <string name="blocked_terms_count">차단된 단어: %d</string>
     <string name="no_active_rules">활성 규칙 없음</string>
-
     <string name="setup_health_title">시스템 호환성</string>
     <string name="check_device">기기: %s</string>
     <string name="check_os_version">OS: %s</string>
@@ -279,45 +232,27 @@
     <string name="status_ok">호환됨</string>
     <string name="status_fail">호환되지 않음</string>
     <string name="status_unknown">알 수 없음</string>
-
     <string name="warning_cn_rom_title">중국(CN) 롬 감지됨</string>
     <string name="warning_cn_rom_desc">기기가 중국 롬을 사용 중입니다. Xiaomi는 이 버전에서 알림 구조를 크게 수정하므로 기능이 불안정하거나 작동하지 않을 수 있습니다.</string>
-
     <string name="system_version">시스템 버전</string>
-
     <string name="call_incoming">수신 전화</string>
     <string name="call_ongoing">통화 중</string>
-
     <string-array name="call_keywords_hangup">
         <item>hang</item>
         <item>end</item>
         <item>decline</item>
         <item>reject</item>
-        <item>끊기</item>
-        <item>종료</item>
-        <item>거절</item>
-        <item>끊다</item>
     </string-array>
-
     <string-array name="call_keywords_answer">
         <item>answer</item>
         <item>accept</item>
-        <item>응답</item>
-        <item>받기</item>
     </string-array>
-
     <string-array name="call_keywords_speaker">
         <item>speaker</item>
         <item>audio</item>
-        <item>스피커</item>
-        <item>오디오</item>
-        <item>확성기</item>
-        <item>스피커폰</item>
     </string-array>
-
     <string name="title_0_3_0">The Hidden 업데이트</string>
-    <string name="changelog_0_3_0">
-            • &lt;b&gt;숨겨진 알림 👻:&lt;/b&gt; 알림 패널에는 숨기고, 아일랜드에서는 계속 표시되도록 하는 새로운 옵션이 추가되었습니다. 전역 설정에서 확인하세요.\n
+    <string name="changelog_0_3_0">            • &lt;b&gt;숨겨진 알림 👻:&lt;/b&gt; 알림 패널에는 숨기고, 아일랜드에서는 계속 표시되도록 하는 새로운 옵션이 추가되었습니다. 전역 설정에서 확인하세요.\n
             • &lt;b&gt;새로운 언어 🌍:&lt;/b&gt; 커뮤니티 번역에 감사드립니다:\n
                 • 🇧🇷 포르투갈어(브라질)\n
                 • 🇵🇱 폴란드어\n
@@ -332,40 +267,30 @@
                 • 앱 구성 패널 디자인 개선\n
                 • 기기 정보를 포함한 호환성 검사 화면 개선\n
     </string>
-
     <string name="privacy_title">100% 오프라인 &amp; 보안</string>
     <string name="privacy_desc">Hyper Bridge는 모든 작업을 휴대폰의 프로세서에서 직접 처리합니다.\n\n인터넷 연결이 필요하지 않으며, 이는 알림과 개인 데이터가 절대 기기를 떠나지 않음을 의미합니다.</string>
-    
     <string name="language">언어</string>
     <string name="language_desc">애플리케이션 언어 변경</string>
     <string name="system_default">시스템 기본값</string>
     <string name="save">저장</string>
-    
     <string name="backup_restore_title">백업 &amp; 복원</string>
     <string name="backup_section_title">데이터 관리</string>
     <string name="backup_options_subtitle">작업에 포함할 데이터를 선택하세요</string>
-    
     <string name="option_app_settings">앱 설정</string>
     <string name="option_app_settings_desc">설정 상태, 테마, 동작 모드</string>
-    
     <string name="option_blocklist">차단 목록 데이터베이스</string>
     <string name="option_blocklist_desc">사용자가 지정한 차단된 키워드 및 앱</string>
-    
     <string name="option_priorities">우선순위 규칙</string>
     <string name="option_priorities_desc">사용자 지정 알림 우선순위 구성</string>
-    
     <string name="action_export">백업 생성</string>
     <string name="action_import">백업 복원</string>
-    
     <string name="export_success">백업이 성공적으로 저장되었습니다</string>
     <string name="export_failed">백업 실패: %s</string>
     <string name="import_success">데이터가 성공적으로 복원되었습니다</string>
     <string name="import_failed">복원 실패: %s</string>
     <string name="invalid_backup_file">잘못된 HyperBridge 백업 파일입니다</string>
     <string name="db_version_mismatch">경고: 다른 데이터베이스 버전에서 생성된 백업입니다</string>
-    
     <string name="autostart_manual_check">상태를 자동으로 확인할 수 없습니다.\n서비스가 정상적으로 동작하도록 직접 확인해 주세요</string>
-    
     <string name="backup_info_title">백업 정보</string>
     <string name="backup_meta_date">날짜</string>
     <string name="backup_meta_device">기기</string>
@@ -373,17 +298,12 @@
     <string name="backup_meta_keys">전체 항목 수</string>
     <string name="backup_empty_suffix"> (비어 있음)</string>
     <string name="action_restore_selected">선택한 데이터 복원</string>
-    
     <string name="optimization_title">기기 최적화</string>
     <string name="no_restrictions">“제한 없음”으로 설정</string>
-    
     <string name="privacy_card_title">오프라인 우선</string>
     <string name="privacy_card_desc">인터넷 연결이 필요 없습니다.</string>
-    
     <string name="title_0_3_1">백업 &amp; 다국어 업데이트</string>
-    
-    <string name="changelog_0_3_1">
-            &lt;b&gt;백업 &amp; 복원 📦&lt;/b&gt;\n
+    <string name="changelog_0_3_1">            &lt;b&gt;백업 &amp; 복원 📦&lt;/b&gt;\n
             고급 사용자 기능 추가! 설정, 차단 목록, 앱 우선순위를 .hbr 파일로 안전하게 내보내고 언제든지 복원할 수 있습니다.\n\n
             &lt;b&gt;새로운 언어 🌍&lt;/b&gt;\n
             다음 언어가 추가되었습니다:\n
@@ -401,4 +321,160 @@
             • Navigation Island에서 “종료” 버튼이 아이콘으로 표시되던 문제 수정 — 이제 텍스트로 표시됩니다.\n
             • 설정에서 앱 아이콘 로딩 문제 수정.\n
     </string>
+    <string name="close">Close</string>
+    <string name="search">Search</string>
+    <string name="widget_updated_toast">Widget updated</string>
+    <string name="widget_settings_error">Cannot edit this widget settings</string>
+    <string name="widget_picker_title">Add Widget</string>
+    <string name="search_apps_placeholder">Search apps...</string>
+    <plurals name="widget_count_fmt">
+        <item quantity="other">%d widgets</item>
+    </plurals>
+    <string name="widget_config_title">Configure Widget</string>
+    <string name="widget_settings_button">Widget Settings</string>
+    <string name="config_tab_appearance">Appearance</string>
+    <string name="config_tab_behavior">Behavior</string>
+    <string name="config_render_mode_label">Render Mode</string>
+    <string name="config_container_size_label">Container Size</string>
+    <string name="config_shade_title">Show in Shade</string>
+    <string name="config_shade_desc">Visible in notification panel</string>
+    <string name="config_timeout_title">Auto Close</string>
+    <string name="config_timeout_desc">Close island after delay</string>
+    <plurals name="config_timeout_fmt">
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <string name="config_refresh_title">Auto Refresh</string>
+    <string name="config_refresh_desc">Update snapshot periodically</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="other">Every %d minutes</item>
+    </plurals>
+    <string name="config_refresh_warning">Higher frequency uses more battery.</string>
+    <string name="render_interactive_label">Interactive</string>
+    <string name="render_interactive_desc">Buttons work. Best for Music, Controls.</string>
+    <string name="render_snapshot_label">Snapshot</string>
+    <string name="render_snapshot_desc">Fixes empty lists. Best for Calendar, Gmail.</string>
+    <string name="size_original">Original</string>
+    <string name="size_small">Small (100dp)</string>
+    <string name="size_medium">Medium (180dp)</string>
+    <string name="size_large">Large (280dp)</string>
+    <string name="size_xlarge">Extra Large (380dp)</string>
+    <string name="app_uninstalled_badge">Uninstalled</string>
+    <string name="settings_action">Settings</string>
+    <string name="saved_widgets_title">Saved Widgets</string>
+    <string name="new_widget_fab">New Widget</string>
+    <string name="no_saved_widgets">No saved widgets found.</string>
+    <string name="widget_id_fmt">Widget #%d</string>
+    <string name="show_on_island">Show on Island</string>
+    <string name="theme_installer_title">Import Theme</string>
+    <string name="theme_installer_analyzing">Analyzing theme package...</string>
+    <string name="theme_installer_success_title">Theme Ready</string>
+    <string name="theme_installer_author">Created by %s</string>
+    <string name="theme_installer_version">Version %d</string>
+    <string name="theme_installer_description_default">No description provided.</string>
+    <string name="theme_installer_apply_question">Do you want to apply this theme to HyperBridge now?</string>
+    <string name="theme_installer_action_apply">Apply Theme</string>
+    <string name="theme_installer_action_later">Save for Later</string>
+    <string name="theme_installer_error_title">Import Failed</string>
+    <string name="theme_installer_error_generic">Could not verify the theme file.</string>
+    <string name="theme_installer_btn_close">Close</string>
+    <string name="theme_manager_title">My Themes</string>
+    <string name="theme_manager_cd_back">Navigate Back</string>
+    <string name="theme_manager_cd_add">Add New Theme</string>
+    <string name="theme_card_author_format">by %s</string>
+    <string name="theme_card_cd_active">Active Theme</string>
+    <string name="theme_card_cd_delete">Delete Theme</string>
+    <string name="theme_system_default_title">System Default</string>
+    <string name="theme_system_default_desc">Standard Look</string>
+    <string name="theme_sheet_title">Add New Theme</string>
+    <string name="creator_title">New Theme</string>
+    <string name="creator_label_name">Theme Name</string>
+    <string name="creator_label_author">Author Name</string>
+    <string name="creator_label_color">Highlight Color</string>
+    <string name="creator_preview">Preview</string>
+    <string name="creator_btn_save">Save Theme</string>
+    <string name="creator_err_inputs">Please enter a name and author</string>
+    <string name="theme_sheet_action_create">Create New Theme</string>
+    <string name="theme_sheet_action_find">Find on Play Store</string>
+    <string name="theme_sheet_action_import">Import from File</string>
+    <string name="theme_action_import_short">Import</string>
+    <string name="theme_card_action_edit">Edit</string>
+    <string name="theme_card_action_export">Export</string>
+    <string name="creator_title_new">Create Theme</string>
+    <string name="creator_title_edit">Edit Theme</string>
+    <string name="creator_nav_colors">Colors</string>
+    <string name="creator_nav_icons">Icons &amp; Shapes</string>
+    <string name="creator_nav_calls">Call Style</string>
+    <string name="creator_nav_apps">App Config</string>
+    <string name="creator_action_save">Save</string>
+    <string name="creator_btn_edit_info">Edit Theme Info</string>
+    <string name="creator_sub_colors">Palettes &amp; contrast</string>
+    <string name="creator_sub_icons">Shape &amp; padding</string>
+    <string name="creator_sub_calls">Answer &amp; decline buttons</string>
+    <string name="creator_sub_apps">Per-app overrides</string>
+    <string name="meta_title">Theme Info</string>
+    <string name="meta_label_name">Theme Name</string>
+    <string name="meta_label_author">Author Name</string>
+    <string name="meta_action_done">Done</string>
+    <string name="colors_tab_presets">Presets</string>
+    <string name="colors_tab_custom">Custom</string>
+    <string name="colors_label_presets">Presets</string>
+    <string name="colors_label_use_app_colors">Use App Colors</string>
+    <string name="colors_desc_use_app_colors">Adapt colors from installed apps</string>
+    <string name="colors_label_custom_title">Custom Color</string>
+    <string name="colors_cd_add_custom">Add Custom Color</string>
+    <string name="colors_dialog_title">Pick a Color</string>
+    <string name="colors_dialog_desc">Select a custom color for your theme.</string>
+    <string name="colors_label_hex">Hex Code</string>
+    <string name="colors_action_done">Done</string>
+    <string name="icons_tab_style">Style</string>
+    <string name="icons_tab_assets">Icons</string>
+    <string name="icons_tab_shape">Shape</string>
+    <string name="icons_label_size">Icon Size</string>
+    <string name="icons_label_full">Full</string>
+    <string name="icons_label_minimal">Minimal</string>
+    <string name="icons_group_nav">Navigation</string>
+    <string name="icons_btn_start">Start</string>
+    <string name="icons_btn_end">End</string>
+    <string name="icons_group_progress">Progress</string>
+    <string name="icons_btn_success">Success</string>
+    <string name="icons_label_shape_title">Icon Shape</string>
+    <string name="shape_circle">Circle</string>
+    <string name="shape_square">Square</string>
+    <string name="shape_cookie">Cookie</string>
+    <string name="shape_arch">Arch</string>
+    <string name="shape_clover">Clover</string>
+    <string name="calls_label_answer">Answer</string>
+    <string name="calls_label_decline">Decline</string>
+    <string name="calls_label_hex">Hex Color</string>
+    <string name="apps_title">Configured Apps</string>
+    <string name="apps_empty">No apps configured</string>
+    <string name="apps_sheet_title">Configure App</string>
+    <string name="apps_label_select">Select App</string>
+    <string name="apps_label_app">App</string>
+    <string name="apps_label_highlight">Highlight Color (Hex)</string>
+    <string name="apps_group_actions">Custom Actions</string>
+    <string name="apps_label_keyword">Keyword</string>
+    <string name="apps_desc_button_contains">Button containing \'%s\'</string>
+    <string name="apps_action_save">Save Configuration</string>
+    <string name="apps_default_color">Default Color</string>
+    <plurals name="apps_action_count">
+        <item quantity="other">%d actions</item>
+    </plurals>
+    <string name="design_hero_customization_title">Customization</string>
+    <string name="design_hero_customization_subtitle">Learn how to create themes</string>
+    <string name="design_hero_pro_title">Pro Features</string>
+    <string name="design_hero_pro_subtitle">Unlock more power</string>
+    <string name="design_hero_community_title">Community</string>
+    <string name="design_hero_community_subtitle">Join our GitHub</string>
+    <string name="design_section_themes">Themes</string>
+    <string name="design_section_widgets">Widgets</string>
+    <string name="design_browse_more">Browse More</string>
+    <string name="design_add_new">Add New</string>
+    <string name="design_add_design">Add Design</string>
+    <string name="design_add_to_island">Customization</string>
+    <string name="design_system_widget_beta">System Widget (Beta)</string>
+    <string name="design_get_themes">Get Themes</string>
+    <string name="design_empty_widget_title">Add your first Widget</string>
+    <string name="design_active_count">%d Active</string>
+    <string name="design">Design</string>
 </resources>

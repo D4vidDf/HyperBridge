@@ -110,7 +110,7 @@ fun HomeScreen(
                             selected = selectedTab == 0,
                             onClick = { selectedTab = 0 },
                             icon = { Icon(if (selectedTab == 0) Icons.Filled.Brush else Icons.Outlined.Brush, null) },
-                            label = { Text("Design") }
+                            label = { Text(stringResource(R.string.design)) }
                         )
                         ShortNavigationBarItem(
                             selected = selectedTab == 1,
@@ -224,7 +224,9 @@ fun HomeScreen(
             visible = showWidgetPicker,
             enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(400)) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(400)) + fadeOut(),
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             WidgetPickerScreen(
                 onBack = { showWidgetPicker = false },
@@ -239,7 +241,9 @@ fun HomeScreen(
             visible = editingWidgetId != null,
             enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(400)) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(400)) + fadeOut(),
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             if (editingWidgetId != null) {
                 WidgetConfigScreen(

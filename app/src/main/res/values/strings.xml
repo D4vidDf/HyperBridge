@@ -555,7 +555,11 @@
     <string name="apps_desc_button_contains">Button containing \'%s\'</string>
     <string name="apps_action_save">Save Configuration</string>
     <string name="apps_default_color">Default Color</string>
-    <string name="apps_action_count">%d actions</string>
+    <plurals name="apps_action_count">
+        <item quantity="many">%d actions</item>
+        <item quantity="other">%d actions</item>
+        <item quantity="one">%d action</item>
+    </plurals>
 
     <string name="design_hero_customization_title">Customization</string>
     <string name="design_hero_customization_subtitle">Learn how to create themes</string>
@@ -575,4 +579,5 @@
     <string name="design_get_themes">Get Themes</string>
     <string name="design_empty_widget_title">Add your first Widget</string>
     <string name="design_active_count">%d Active</string>
+    <string name="design">Design</string>
 </resources>
