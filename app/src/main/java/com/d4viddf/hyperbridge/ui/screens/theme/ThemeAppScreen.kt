@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,7 +58,7 @@ fun AppOverrideCard(label: String, override: AppThemeOverride, onDelete: () -> U
             supportingContent = {
                 val color = override.highlightColor ?: stringResource(R.string.apps_default_color)
                 val actions = override.actions?.size ?: 0
-                Text("$color • " + stringResource(R.string.apps_action_count, actions))
+                Text("$color • " + pluralStringResource(R.plurals.apps_action_count, actions))
             },
             trailingContent = { IconButton(onClick = onDelete) { Icon(Icons.Rounded.Delete, null, tint = MaterialTheme.colorScheme.error) } },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -82,7 +83,7 @@ fun AppConfigSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState())) {
-            Text(stringResource(com.d4viddf.hyperbridge.R.string.apps_sheet_title), style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.apps_sheet_title), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(16.dp))
 
             var expanded by remember { mutableStateOf(false) }
@@ -98,7 +99,7 @@ fun AppConfigSheet(
             }
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(value = highlightColor, onValueChange = { highlightColor = it }, label = { Text(stringResource(
-                com.d4viddf.hyperbridge.R.string.apps_label_highlight)) }, modifier = Modifier.fillMaxWidth())
+                R.string.apps_label_highlight)) }, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(16.dp))
             HorizontalDivider()
             Spacer(Modifier.height(16.dp))
@@ -106,7 +107,7 @@ fun AppConfigSheet(
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(value = newKeyword, onValueChange = { newKeyword = it }, label = { Text(stringResource(
-                    com.d4viddf.hyperbridge.R.string.apps_label_keyword)) }, modifier = Modifier.weight(1f))
+                    R.string.apps_label_keyword)) }, modifier = Modifier.weight(1f))
                 Spacer(Modifier.width(8.dp))
                 AssetPickerButton("", Icons.Rounded.Image) { uri ->
                     if (newKeyword.isNotBlank() && selectedApp != null) {

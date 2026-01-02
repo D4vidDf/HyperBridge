@@ -104,10 +104,14 @@
         <item>hecho</item>
         <item>exitoso</item>
         <item>listo</item>
+        <item>guardado</item>
+        <item>downloaded</item>
+        <item>completed</item>
+        <item>finished</item>
     </string-array>
     <string name="status_download_complete">Descarga Completa</string>
     <string name="status_downloading">Descargando</string>
-    <string name="status_pending">Pendiente…</string>
+    <string name="status_pending">Pendiente...</string>
     <string name="status_finished">Finalizado</string>
     <string name="status_now_playing">Reproduciendo</string>
     <string name="status_incoming_call">Llamada Entrante</string>
@@ -136,8 +140,8 @@
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
-    <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificación. Si está desactivada, solo aparece como una isla.</string>
-    <string name="setting_timeout">Retraso de cierre automático</string>
+    <string name="setting_shade_desc">Mantiene la notificación en el panel del sistema. Si se desactiva, solo se verá como Isla.</string>
+    <string name="setting_timeout">Retardo de Minimización</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar valores globales</string>
     <string name="customize_app">Personalizar</string>
@@ -398,7 +402,7 @@
     <string name="creator_btn_save">Guardar tema</string>
     <string name="creator_err_inputs">Por favor, introduce un nombre y un autor</string>
     <string name="theme_sheet_action_create">Crear nuevo tema</string>
-    <string name="theme_sheet_action_find">Buscar</string>
+    <string name="theme_sheet_action_find">Buscar en Play Store</string>
     <string name="theme_sheet_action_import">Importar desde archivo</string>
     <string name="theme_action_import_short">Importar</string>
     <string name="theme_card_action_edit">Editar</string>
@@ -482,69 +486,4 @@
     <string name="design_empty_widget_title">Añade tu primer widget</string>
     <string name="design_active_count">%d Activos</string>
     <string name="design">Diseño</string>
-    <string name="creator_nav_actions">Acciones globales</string>
-    <string name="creator_sub_actions">Personalizar botones con palabras clave</string>
-    <string name="action_sheet_title">Configurar Acción</string>
-    <string name="action_label_keyword">Palabra clave (ej. Responder)</string>
-    <string name="action_label_bg_color">Color de fondo</string>
-    <string name="action_label_tint_color">Color de Icono y Texto</string>
-    <string name="action_preview">Previsualización</string>
-    <string name="action_mode_icon">Solo icono</string>
-    <string name="action_mode_text">Texto</string>
-    <string name="action_mode_both">Ambos</string>
-    <string name="actions_empty_title">No hay acciones personalizados</string>
-    <string name="actions_empty_desc">Añadir reglas al estilo de botones de notificación basados en su texto (por ejemplo, \"Responder\", \"Archivo\").</string>
-    <string name="action_default_preview_text">Acción</string>
-    <string name="actions_search_hint">Buscar acciones...</string>
-    <string name="actions_search_empty_fmt">No se encontraron acciones que coincida con \"%1$s\"</string>
-    <string name="action_wip_warning">Esta función es un trabajo en progreso. La coincidencia de palabras clave depende de cómo las aplicaciones estructuran sus notificaciones y puede no funcionar para cada aplicación.</string>
-    <string name="creator_dialog_apply_title">¿Aplicar tema?</string>
-    <string name="creator_dialog_apply_desc">¿Quieres aplicar este tema ahora?</string>
-    <string name="creator_dialog_action_save_apply">Guardar &amp; Aplicar</string>
-    <string name="creator_dialog_action_save_only">Guardar solamente</string>
-    <string name="select_icon">Seleccionar icono</string>
-    <string name="change_icon">Cambiar icono</string>
-    <string name="action_add">Añadir aplicación</string>
-    <string name="apps_sheet_select_title">Seleccionar aplicación</string>
-    <string name="edit_app">Editar App</string>
-    <string name="creator_sub_colors_custom">Personalizado</string>
-    <string name="creator_sub_colors_default">Usar valores globales</string>
-    <string name="creator_sub_icons_custom">Forma personalizada</string>
-    <string name="creator_sub_icons_default">Usar valores globales</string>
-    <string name="app_customization_desc">Añade una aplicación para personalizar su aspecto.</string>
-    <string name="discard">Descartar</string>
-    <string name="unsaved_changes">Cambios sin guardar</string>
-    <string name="unsaved_changes_desc">Tiene cambios no guardados para esta aplicación. ¿Desea guardarlos antes de salir?</string>
-    <string name="share_theme">Compartir tema</string>
-    <string name="my_theme">Mi tema</string>
-    <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d acción personalizada</item>
-        <item quantity="other">%1$d acciones personalizadas</item>
-    </plurals>
-    <string name="title_0_4_0">La Actualización de Personalización</string>
-    <string name="changelog_0_4_0">        <b>Theme Engine 🎨</b>\n
-        ¡La actualización más grande hasta la fecha! Ahora puedes personalizar completamente la experiencia visual de la isla dinámica.\n
-        • <b>Creador de temas:</b> Diseña temas directamente en tu teléfono con cambios en tiempo real.\n
-        • <b>Control avanzado:</b> Elegir exactamente cómo se muestran los iconos, personalizar colores y formas de notificación de llamadas, y configurar aplicaciones individuales.\n
-        • <b>Colores Inteligentes:</b> Extraer automáticamente los colores de acento de los iconos de la aplicación.\n
-        • <b>Personalización por acción (Beta):</b> Ajusta el aspecto de las acciones de notificación específicas.\n
-        • <b>Compartir:</b> Exporta e importa temas como paquetes <i>. hbr</i>.\n\n
-
-        <b>Soporte para Widgets🧩</b>\n
-        Ancla Widgets a la isla para un rápido acceso, incluso en tu <b>Pantalla de Bloqueo</b>!\n
-        • Elija entre <b>modo interactivo</b> o <b>Snapshot</b> para aquellas aplcaciones que tengan problemas para cargar la información.\n\n
-
-        <b>Motor de notificación 2.0. ⚡</b>\n
-        Una completa reescritura de la lógica para una mejor estabilidad:\n
-        • <b>Análisis más inteligente:</b> Problemas arreglados donde las notificaciones mostraban los nombres de los paquetes (ej. com.whatsapp) en lugar del contenido del mensaje.\n
-        • <b>Anti-Flicker:</b> Nuevo hashing de contenido previene actualizaciones redundantes.\n
-        • <b>Notificaciones Fantasmas:</b> Resuelto varios problemas que hacían que las notificaciones se mantuvieran auqnue la notificación original ya no estaba presente\n\n
-
-        <b>Refresco visual ✨</b>\n
-        • Pestaña \"Diseño\": Nueva pantalla que permite crear tus propios temas o usar Widgets.\n
-        • Nuevos botones de \"Texto\" para acciones de notificación más claras.\n
-        • Añadido soporte para 🇮🇩 Indonesia y 🇹🇷 Turco.\n\n
-
-        <i>Nota: Esta versión incluye cambios significativos en la arquitectura. Por favor, informe de cualquier error en GitHub!</i>
-    </string>
 </resources>

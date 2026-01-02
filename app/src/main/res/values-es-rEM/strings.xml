@@ -39,7 +39,7 @@
     <string name="tab_library">Biblioteca</string>
     <string name="title_active_bridges">Bridges Activos</string>
     <string name="title_library">Biblioteca de aplicaciones</string>
-    <string name="search_hint">Search apps…</string>
+    <string name="search_hint">Buscar aplicaciones…</string>
     <string name="sort_az">Orden: A-Z</string>
     <string name="sort_za">Orden: Z-A</string>
     <string name="no_active_bridges">Sin Bridges Activos</string>
@@ -111,7 +111,7 @@
     </string-array>
     <string name="status_download_complete">Descarga Completa</string>
     <string name="status_downloading">Descargando</string>
-    <string name="status_pending">Pending…</string>
+    <string name="status_pending">Pendiente...</string>
     <string name="status_finished">Finalizado</string>
     <string name="status_now_playing">Reproduciendo</string>
     <string name="status_incoming_call">Llamada Entrante</string>
@@ -140,8 +140,8 @@
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
-    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
-    <string name="setting_timeout">Auto-Close delay</string>
+    <string name="setting_shade_desc">Mantiene la notificación en el panel del sistema. Si se desactiva, solo se verá como Isla.</string>
+    <string name="setting_timeout">Retardo de Minimización</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar valores globales</string>
     <string name="customize_app">Personalizar</string>
@@ -402,7 +402,7 @@
     <string name="creator_btn_save">Guardar tema</string>
     <string name="creator_err_inputs">Por favor, introduce un nombre y un autor</string>
     <string name="theme_sheet_action_create">Crear nuevo tema</string>
-    <string name="theme_sheet_action_find">Search</string>
+    <string name="theme_sheet_action_find">Buscar en Play Store</string>
     <string name="theme_sheet_action_import">Importar desde archivo</string>
     <string name="theme_action_import_short">Importar</string>
     <string name="theme_card_action_edit">Editar</string>
@@ -486,43 +486,4 @@
     <string name="design_empty_widget_title">Añade tu primer widget</string>
     <string name="design_active_count">%d Activos</string>
     <string name="design">Design</string>
-    <string name="creator_nav_actions">Global Actions</string>
-    <string name="creator_sub_actions">Style buttons by keyword</string>
-    <string name="action_sheet_title">Configure Action</string>
-    <string name="action_label_keyword">Keyword (e.g. \'Reply\')</string>
-    <string name="action_label_bg_color">Background Color</string>
-    <string name="action_label_tint_color">Icon/Text Color</string>
-    <string name="action_preview">Live Preview</string>
-    <string name="action_mode_icon">Icon Only</string>
-    <string name="action_mode_text">Text</string>
-    <string name="action_mode_both">Both</string>
-    <string name="actions_empty_title">No Custom Actions</string>
-    <string name="actions_empty_desc">Add rules to style notification buttons based on their text (e.g., \"Reply\", \"Archive\").</string>
-    <string name="action_default_preview_text">Action</string>
-    <string name="actions_search_hint">Search actions...</string>
-    <string name="actions_search_empty_fmt">No actions found for \"%1$s\"</string>
-    <string name="action_wip_warning">This feature is a Work in Progress. Keyword matching depends on how apps structure their notifications and may not work for every app.</string>
-    <string name="creator_dialog_apply_title">Apply Theme?</string>
-    <string name="creator_dialog_apply_desc">Do you want to apply this theme now?</string>
-    <string name="creator_dialog_action_save_apply">Save &amp; Apply</string>
-    <string name="creator_dialog_action_save_only">Save Only</string>
-    <string name="select_icon">Select Icon</string>
-    <string name="change_icon">Change Icon</string>
-    <string name="action_add">Add App</string>
-    <string name="apps_sheet_select_title">Select App</string>
-    <string name="edit_app">Edit App</string>
-    <string name="creator_sub_colors_custom">Custom Color Set</string>
-    <string name="creator_sub_colors_default">Using Global Default</string>
-    <string name="creator_sub_icons_custom">Custom Shape Set</string>
-    <string name="creator_sub_icons_default">Using Global Default</string>
-    <string name="app_customization_desc">Add an app to customize its look specifically.</string>
-    <string name="discard">Discard</string>
-    <string name="unsaved_changes">Unsaved Changes</string>
-    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
-    <string name="share_theme">Share Theme</string>
-    <string name="my_theme">My Theme</string>
-    <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d custom action</item>
-        <item quantity="other">%1$d custom actions</item>
-    </plurals>
 </resources>

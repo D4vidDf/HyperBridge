@@ -205,7 +205,7 @@ fun InfoScreen(
     }
 
     if (showLanguageDialog) {
-        LanguageSelectorDialog(onDismiss = { })
+        LanguageSelectorDialog(onDismiss = { showLanguageDialog = false})
     }
 }
 

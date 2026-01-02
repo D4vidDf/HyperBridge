@@ -39,7 +39,7 @@
     <string name="tab_library">Biblioteka</string>
     <string name="title_active_bridges">Aktywne mosty</string>
     <string name="title_library">Biblioteka aplikacji</string>
-    <string name="search_hint">Szukaj aplikacji…</string>
+    <string name="search_hint">Szukaj aplikacje...</string>
     <string name="sort_az">Sortuj: A-Z</string>
     <string name="sort_za">Sortuj: Z-A</string>
     <string name="no_active_bridges">Brak aktywnych mostów</string>
@@ -104,10 +104,14 @@
         <item>gotowe</item>
         <item>udane</item>
         <item>powodzenie</item>
+        <item>pomyślnie</item>
+        <item>zainstalowana</item>
+        <item>ukończona</item>
+        <item>zakończona</item>
     </string-array>
     <string name="status_download_complete">Pobieranie ukończone</string>
     <string name="status_downloading">Pobieranie</string>
-    <string name="status_pending">Oczekiwanie…</string>
+    <string name="status_pending">Oczekiwanie...</string>
     <string name="status_finished">Zakończone</string>
     <string name="status_now_playing">Teraz odtwarzane</string>
     <string name="status_incoming_call">Połączenie</string>
@@ -137,7 +141,7 @@
     <string name="setting_float_desc">Pokaż powiadomienie, które zostanie potem zminimalizowane do formy wyspy.</string>
     <string name="setting_shade">Panel powiadomień</string>
     <string name="setting_shade_desc">Zachowaj powiadomienie w Panelu powiadomień. Jeśli opcja jest wyłączona, pojawi się ono tylko jako wyspa.</string>
-    <string name="setting_timeout">Opóźnienie automatycznego zamknięcia</string>
+    <string name="setting_timeout">Czas wyświetlania</string>
     <string name="seconds_suffix">%d s</string>
     <string name="use_global_default">Użyj ustawień globalnych</string>
     <string name="customize_app">Dostosuj</string>
@@ -388,7 +392,7 @@
     <string name="theme_installer_error_generic">Nie można zweryfikować pliku motywu.</string>
     <string name="theme_installer_btn_close">Zamknij</string>
     <string name="theme_manager_title">Moje motywy</string>
-    <string name="theme_manager_cd_back">Przejdź wstecz</string>
+    <string name="theme_manager_cd_back">Navigate Back</string>
     <string name="theme_manager_cd_add">Dodaj nowy motyw</string>
     <string name="theme_card_author_format">od %s</string>
     <string name="theme_card_cd_active">Aktywny motyw</string>
@@ -404,7 +408,7 @@
     <string name="creator_btn_save">Zapisz motyw</string>
     <string name="creator_err_inputs">Wprowadź nazwę motywu i jego autora</string>
     <string name="theme_sheet_action_create">Utwórz nowy motyw</string>
-    <string name="theme_sheet_action_find">Znajdź</string>
+    <string name="theme_sheet_action_find">Google Play</string>
     <string name="theme_sheet_action_import">Importuj z pliku</string>
     <string name="theme_action_import_short">Importuj</string>
     <string name="theme_card_action_edit">Edytuj</string>
@@ -489,72 +493,5 @@
     <string name="design_get_themes">Uzyskaj motywy</string>
     <string name="design_empty_widget_title">Dodaj swój pierwszy widżet</string>
     <string name="design_active_count">Aktywne: %d</string>
-    <string name="design">Wygląd</string>
-    <string name="creator_nav_actions">Globalne akcje</string>
-    <string name="creator_sub_actions">Style przycisków w oparciu o słowa kluczowe</string>
-    <string name="action_sheet_title">Skonfiguruj akcję</string>
-    <string name="action_label_keyword">Słowo kluczowe (np. \'Odpowiedz\')</string>
-    <string name="action_label_bg_color">Kolor tła</string>
-    <string name="action_label_tint_color">Kolor ikony/tekstu</string>
-    <string name="action_preview">Podgląd na żywo</string>
-    <string name="action_mode_icon">Tylko ikona</string>
-    <string name="action_mode_text">Tekst</string>
-    <string name="action_mode_both">Oba</string>
-    <string name="actions_empty_title">Brak niestandardowych akcji</string>
-    <string name="actions_empty_desc">Dodaj reguły, aby stylizować przyciski powiadomień w oparciu o ich tekst (np. \"Odpowiedz\", \"Zarchiwizuj\").</string>
-    <string name="action_default_preview_text">Akcja</string>
-    <string name="actions_search_hint">Wyszukaj akcje...</string>
-    <string name="actions_search_empty_fmt">Nie znaleziono akcji dla \"%1$s\"</string>
-    <string name="action_wip_warning">Ta funkcja jest obecnie dopracowywana. Dopasowanie słów kluczowych zależy od tego, jak aplikacje kształtują swoje powiadomienia, i może nie działać w każdej aplikacji.</string>
-    <string name="creator_dialog_apply_title">Zastosować motyw?</string>
-    <string name="creator_dialog_apply_desc">Czy chcesz teraz zastosować ten motyw?</string>
-    <string name="creator_dialog_action_save_apply">Zapisz i zastosuj</string>
-    <string name="creator_dialog_action_save_only">Tylko zapisz</string>
-    <string name="select_icon">Wybierz ikonę</string>
-    <string name="change_icon">Zmień ikonę</string>
-    <string name="action_add">Dodaj aplikację</string>
-    <string name="apps_sheet_select_title">Wybierz aplikację</string>
-    <string name="edit_app">Edytuj aplikację</string>
-    <string name="creator_sub_colors_custom">Własny zestaw kolorów</string>
-    <string name="creator_sub_colors_default">Używanie ustawień domyślnych</string>
-    <string name="creator_sub_icons_custom">Własny zestaw kształtów</string>
-    <string name="creator_sub_icons_default">Używanie ustawień domyślnych</string>
-    <string name="app_customization_desc">Dodaj aplikację, aby dostosować wygląd jej powiadomień.</string>
-    <string name="discard">Odrzuć</string>
-    <string name="unsaved_changes">Niezapisane zmiany</string>
-    <string name="unsaved_changes_desc">Masz niezapisane zmiany dla tej aplikacji. Czy chcesz je zapisać przed wyjściem?</string>
-    <string name="share_theme">Udostępnij motyw</string>
-    <string name="my_theme">Mój motyw</string>
-    <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d niestandardowa akcja</item>
-        <item quantity="few">%1$d niestandardowe akcje</item>
-        <item quantity="other">%1$d niestandardowych akcji</item>
-        <item quantity="many">%1$d niestandardowych akcji</item>
-    </plurals>
-    <string name="title_0_4_0">Aktualizacja personalizacyjna</string>
-    <string name="changelog_0_4_0">        <b>Silnik motywów 🎨</b>\n
-        Największa aktualizacja do tej pory! Teraz możesz w pełni personalizować wygląd dynamicznej wyspy.\n
-        • <b>Kreator motywów:</b> Projektuj motywy bezpośrednio na telefonie, z podglądami na żywo.\n
-        • <b>Pełna kontrola:</b> Zdecyduj, jak dokładnie będą wyświetlane ikony, personalizuj kolory i kształty powiadomień o połączeniach, a także konfiguruj zmiany dla poszczególnych aplikacji.\n
-        • <b>Inteligentne kolory:</b> Automatycznie wyodrębniaj żywe kolory z ikon aplikacji.\n
-        • <b>Dostosowywanie akcji (Beta):</b> Dostosuj wygląd konkretnych akcji powiadomień.\n
-        • <b>Udostępnianie:</b> Eksportuj i importuj motywy jako przenośne pliki <i>.hbr</i>.\n\n
-
-        <b>Wsparcie dla widżetów 🧩</b>\n
-        Przypinaj standardowe widżety Androida do wyspy, aby mieć do nich szybki dostęp — nawet na <b>Ekranie blokady</b>!\n
-        • Wybierz między trybem <b>Interaktywnym</b> (szybszy) a trybem <b>Migawki</b> (oszczędność baterii).\n\n
-
-        <b>Silnik powiadomień 2.0 ⚡</b>\n
-        Całkowicie przepisany rdzeń dla lepszej stabilności:\n
-        • <b>Inteligentniejsze parsowanie:</b> Naprawiono problem, w ramach którego powiadomienia pokazywały nazwy pakietów (np. com.whatsapp) zamiast treści wiadomości.\n
-        • <b>Zapobieganie odświeżaniu:</b> Nowe haszowanie treści zapobiega ich zbędnym aktualizacjom i migotaniu.\n
-        • <b>Naprawa duchów:</b> Naprawiono problem, w ramach którego wyspy pozostawały na ekranie po ich usunięciu.\n\n
-
-        <b>Zmiany wizualne ✨</b>\n
-        • Przeprojektowano zakładkę \"Wygląd\" z płynnymi, natywnymi karuzelami.\n
-        • Nowe przyciski \"Tekstowa pigułka\" dla czytelniejszych akcji powiadomień.\n
-        • Dodano wsparcie dla języków: 🇮🇩 indonezyjskiego i 🇹🇷 tureckiego.\n\n
-
-        <i>Uwaga: Ta wersja zawiera istotne zmiany architektoniczne. Prosimy o zgłaszanie wszelkich błędów na GitHubie!</i>
-    </string>
+    <string name="design">Design</string>
 </resources>
