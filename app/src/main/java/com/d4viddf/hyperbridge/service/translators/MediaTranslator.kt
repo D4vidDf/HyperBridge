@@ -137,7 +137,9 @@ class MediaTranslator(context: Context) : BaseTranslator(context) {
             appPkg = sbn.packageName,
             actionKeys = actionKeys,
             titleColor = onContainerTitleHex,    // High Emphasis
-            contentColor = onContainerBodyHex    // Medium Emphasis
+            titleColorDark = "#ffffff",
+            contentColor = onContainerBodyHex,    // Medium Emphasis
+            contentColorDark = "#ffffff"
         )
 
         // --- Island (Collapsed) ---

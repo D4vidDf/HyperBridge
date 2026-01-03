@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
 
 // --- 1. MAIN CAROUSEL (For General Screen) ---
 @Composable
@@ -43,18 +44,18 @@ fun ThemeCarouselPreview(viewModel: ThemeViewModel) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp) // Reduced vertical padding
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
     ) {
         HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(horizontal = 64.dp), // Wider peek to see neighbors
+            contentPadding = PaddingValues(horizontal = 64.dp),
             pageSpacing = 16.dp
         ) { page ->
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp) // Fixed lower height for the preview area
+                    .height(64.dp)
             ) {
                 when (page) {
                     0 -> StandardIslandPreview(viewModel)
@@ -78,7 +79,7 @@ fun ThemeCarouselPreview(viewModel: ThemeViewModel) {
                         .padding(4.dp)
                         .clip(CircleShape)
                         .background(color)
-                        .size(6.dp) // Smaller dots
+                        .size(6.dp)
                 )
             }
         }
@@ -162,10 +163,16 @@ private fun ButtonIslandPreview(viewModel: ThemeViewModel) {
 }
 
 // Preview 3: Calls (Answer/Decline)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CallIslandPreview(viewModel: ThemeViewModel) {
     val answerColor = safeParseColor(viewModel.callAnswerColor)
     val declineColor = safeParseColor(viewModel.callDeclineColor)
+
+    // [FIX] Get specific shapes for Answer and Decline
+    val answerShape = getShapeFromId(viewModel.callAnswerShapeId).toShape()
+    val declineShape = getShapeFromId(viewModel.callDeclineShapeId).toShape()
+    val padding = (32 * (viewModel.iconPaddingPercent / 100f)).dp
 
     IslandPill(width = 200.dp, height = 48.dp) {
         Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -176,12 +183,18 @@ private fun CallIslandPreview(viewModel: ThemeViewModel) {
             // Actions
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 // Decline
-                Box(Modifier.size(32.dp).background(declineColor.copy(alpha=0.2f), CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.CallEnd, null, tint = declineColor, modifier = Modifier.size(18.dp))
+                Box(
+                    modifier = Modifier.size(32.dp).background(declineColor.copy(alpha=0.2f), declineShape).padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Rounded.CallEnd, null, tint = declineColor)
                 }
                 // Answer
-                Box(Modifier.size(32.dp).background(answerColor.copy(alpha=0.2f), CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Call, null, tint = answerColor, modifier = Modifier.size(18.dp))
+                Box(
+                    modifier = Modifier.size(32.dp).background(answerColor.copy(alpha=0.2f), answerShape).padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Rounded.Call, null, tint = answerColor)
                 }
             }
         }

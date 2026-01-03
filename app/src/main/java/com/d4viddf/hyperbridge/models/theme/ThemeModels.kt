@@ -37,8 +37,16 @@ data class GlobalConfig(
 )
 
 // ... (Rest of the models: CallModule, AppThemeOverride, etc. remain unchanged from previous version)
-@Serializable data class CallModule(@SerialName("answer_icon") val answerIcon: ThemeResource? = null, @SerialName("decline_icon") val declineIcon: ThemeResource? = null, @SerialName("answer_color") val answerColor: String? = "#34C759", @SerialName("decline_color") val declineColor: String? = "#FF3B30")
-@Serializable data class AppThemeOverride(@SerialName("highlight_color") val highlightColor: String? = null, val actions: Map<String, ActionConfig>? = null, val progress: ProgressModule? = null, val navigation: NavigationModule? = null)
+@Serializable
+data class CallModule(
+    @SerialName("answer_icon") val answerIcon: ThemeResource? = null,
+    @SerialName("decline_icon") val declineIcon: ThemeResource? = null,
+    @SerialName("answer_color") val answerColor: String? = "#34C759",
+    @SerialName("decline_color") val declineColor: String? = "#FF3B30",
+    // [NEW] Shape overrides
+    @SerialName("answer_shape_id") val answerShapeId: String = "circle",
+    @SerialName("decline_shape_id") val declineShapeId: String = "circle"
+)@Serializable data class AppThemeOverride(@SerialName("highlight_color") val highlightColor: String? = null, val actions: Map<String, ActionConfig>? = null, val progress: ProgressModule? = null, val navigation: NavigationModule? = null)
 @Serializable data class ActionConfig(val mode: ActionButtonMode = ActionButtonMode.ICON, val icon: ThemeResource? = null, @SerialName("background_color") val backgroundColor: String? = null, @SerialName("tint_color") val tintColor: String? = null, @SerialName("text_color") val textColor: String? = null)
 @Serializable data class ProgressModule(@SerialName("active_color") val activeColor: String? = null, @SerialName("active_icon") val activeIcon: ThemeResource? = null, @SerialName("finished_color") val finishedColor: String? = null, @SerialName("finished_icon") val finishedIcon: ThemeResource? = null, @SerialName("show_percentage") val showPercentage: Boolean = true)
 @Serializable data class NavigationModule(@SerialName("progress_bar_color") val progressBarColor: String? = null, @SerialName("pic_forward") val forwardIcon: ThemeResource? = null, @SerialName("pic_end") val endIcon: ThemeResource? = null, @SerialName("swap_sides") val swapSides: Boolean = false)

@@ -23,16 +23,22 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import androidx.core.graphics.toColorInt
 import androidx.graphics.shapes.toPath
+import androidx.palette.graphics.Palette
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.BridgeAction
+import com.d4viddf.hyperbridge.models.theme.ActionButtonMode
+import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeResource
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 
 abstract class BaseTranslator(
     protected val context: Context,
@@ -40,6 +46,8 @@ abstract class BaseTranslator(
 ) {
 
     enum class ActionDisplayMode { TEXT, ICON, BOTH }
+
+    private val appColorCache = ConcurrentHashMap<String, String>()
 
     protected inline fun <reified T : Parcelable> Bundle.getParcelableCompat(key: String): T? {
         return if (Build.VERSION.SDK_INT >= 33) {
@@ -69,19 +77,95 @@ abstract class BaseTranslator(
 
     protected fun resolveColor(theme: HyperTheme?, pkg: String?, defaultHex: String): String {
         if (theme == null) return defaultHex
+
+        // 1. App Specific Override (Highest Priority)
         if (pkg != null) {
             val override = theme.apps[pkg]
-            if (override?.highlightColor != null) return override.highlightColor
+            val overrideColor = override?.highlightColor
+            if (!overrideColor.isNullOrEmpty()) {
+                return overrideColor
+            }
         }
+
+        // 2. Global "Use App Colors" -> Extract from Icon
+        if (theme.global.useAppColors && pkg != null) {
+            // Check cache first
+            val cached = appColorCache[pkg]
+            if (cached != null) return cached
+
+            // Extract and Cache
+            val extracted = extractColorFromAppIcon(pkg)
+            if (extracted != null) {
+                appColorCache[pkg] = extracted
+                return extracted
+            }
+        }
+
+        // 3. Global Theme Highlight -> Default Fallback
         return theme.global.highlightColor ?: defaultHex
     }
 
+    private fun extractColorFromAppIcon(pkg: String): String? {
+        return try {
+            val drawable = context.packageManager.getApplicationIcon(pkg)
+            // Use a scaled down bitmap for faster Palette generation
+            val bitmap = drawable.toBitmap(width = 128, height = 128)
+
+            // Clear filters to ensure we process the raw colors
+            val palette = Palette.from(bitmap).clearFilters().generate()
+
+            // Priority list for "brand" colors
+            val swatches = listOf(
+                palette.vibrantSwatch,
+                palette.darkVibrantSwatch,
+                palette.lightVibrantSwatch,
+                palette.dominantSwatch,
+                palette.mutedSwatch
+            )
+
+            // Find first valid swatch that is NOT Grayscale (White/Black/Grey)
+            val bestSwatch = swatches.firstOrNull { it != null && !isGrayscale(it.rgb) }
+                ?: palette.dominantSwatch // Fallback to dominant if everything is gray
+
+            if (bestSwatch != null) {
+                String.format("#%06X", (0xFFFFFF and bestSwatch.rgb))
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Helper to detect if a color is White, Black, or Gray
+    private fun isGrayscale(color: Int): Boolean {
+        val r = (color shr 16) and 0xFF
+        val g = (color shr 8) and 0xFF
+        val b = color and 0xFF
+
+        // If RGB values are very close to each other, it's gray scale
+        val diff = abs(r - g) + abs(g - b) + abs(b - r)
+        return diff < 30
+    }
+
+    protected fun resolveActionConfig(theme: HyperTheme?, pkg: String, actionTitle: String): ActionConfig? {
+        if (theme == null) return null
+
+        val appOverride = theme.apps[pkg]?.actions?.entries?.find { (keyword, _) ->
+            actionTitle.contains(keyword, ignoreCase = true)
+        }?.value
+
+        if (appOverride != null) return appOverride
+
+        return theme.defaultActions.entries.find { (keyword, _) ->
+            actionTitle.contains(keyword, ignoreCase = true)
+        }?.value
+    }
+
     protected fun resolveActionIcon(theme: HyperTheme?, pkg: String, actionTitle: String): Bitmap? {
-        if (theme == null || repository == null) return null
-        val override = theme.apps[pkg] ?: return null
-        val actionsMap = override.actions ?: return null
-        val matchedConfig = actionsMap.entries.find { (keyword, _) -> actionTitle.contains(keyword, ignoreCase = true) }?.value
-        val resource = matchedConfig?.icon ?: return null
+        if (repository == null) return null
+        val config = resolveActionConfig(theme, pkg, actionTitle) ?: return null
+        val resource = config.icon ?: return null
         return if (resource.type == ResourceType.LOCAL_FILE) repository.getResourceBitmap(resource) else null
     }
 
@@ -90,18 +174,11 @@ abstract class BaseTranslator(
         return HyperPicture(picKey, originalBitmap)
     }
 
-    /**
-     * Applies Theme Shape, Color, and Padding to an Action Icon.
-     */
-    protected fun applyThemeToActionIcon(source: Bitmap, theme: HyperTheme, bgColor: Int): Bitmap {
-        val shapeId = theme.global.iconShapeId
-        val paddingPercent = theme.global.iconPaddingPercent
-
+    protected fun applyThemeToActionIcon(source: Bitmap, shapeId: String, paddingPercent: Int, bgColor: Int): Bitmap {
         val size = 96
         val output = createBitmap(size, size)
         val canvas = Canvas(output)
 
-        // 1. Generate & Scale Path (The Shape)
         val polygon = getShapeFromId(shapeId)
         val path = polygon.toPath()
         val bounds = RectF()
@@ -109,44 +186,34 @@ abstract class BaseTranslator(
 
         val matrix = Matrix()
         val destRect = RectF(0f, 0f, size.toFloat(), size.toFloat())
-        // ScaleToFit.FILL ensures the shape stretches to fill the 96x96 box exactly
         matrix.setRectToRect(bounds, destRect, Matrix.ScaleToFit.FILL)
         path.transform(matrix)
 
-        // 2. Draw the Colored Background Shape
         val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = bgColor
             style = Paint.Style.FILL
         }
         canvas.drawPath(path, bgPaint)
 
-        // 3. Draw the Icon (Centered & Scaled)
         val paddingPx = (size * (paddingPercent / 100f))
-
-        // Define the area where the icon is allowed to be drawn
-        val iconDestRect = RectF(
-            paddingPx,
-            paddingPx,
-            size - paddingPx,
-            size - paddingPx
-        )
+        val iconDestRect = RectF(paddingPx, paddingPx, size - paddingPx, size - paddingPx)
 
         if (iconDestRect.width() > 0 && iconDestRect.height() > 0) {
-            // Configure paint to tint the icon white and clip it to the background shape
             val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
                 colorFilter = PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
             }
-
-            // Calculate matrix to CENTER the icon inside the padding rect
             val iconMatrix = Matrix()
             val iconBounds = RectF(0f, 0f, source.width.toFloat(), source.height.toFloat())
             iconMatrix.setRectToRect(iconBounds, iconDestRect, Matrix.ScaleToFit.CENTER)
-
             canvas.drawBitmap(source, iconMatrix, iconPaint)
         }
 
         return output
+    }
+
+    protected fun applyThemeToActionIcon(source: Bitmap, theme: HyperTheme, bgColor: Int): Bitmap {
+        return applyThemeToActionIcon(source, theme.global.iconShapeId, theme.global.iconPaddingPercent, bgColor)
     }
 
     // --- CORE LOGIC ---
@@ -161,14 +228,11 @@ abstract class BaseTranslator(
         val bridgeActions = mutableListOf<BridgeAction>()
         val actions = sbn.notification.actions ?: return emptyList()
 
-        // [FIX] Changed default fallback from Grey to standard Blue (#007AFF)
         val defaultActionBg = if (theme != null) {
             try {
-                // If global highlight is missing, use Blue
                 val hex = theme.global.highlightColor ?: "#007AFF"
                 resolveColor(theme, sbn.packageName, hex).toColorInt()
-            } catch (e: Exception) {
-                "#007AFF".toColorInt() }
+            } catch (e: Exception) { "#007AFF".toColorInt() }
         } else {
             "#007AFF".toColorInt()
         }
@@ -180,13 +244,37 @@ abstract class BaseTranslator(
             val rawTitle = androidAction.title?.toString() ?: ""
             val uniqueKey = "act_${sbn.key.hashCode()}_$index"
 
+            val config = resolveActionConfig(theme, sbn.packageName, rawTitle)
+
+            val finalBgColorInt = if (config?.backgroundColor != null) {
+                try {
+                    config.backgroundColor.toColorInt()
+                } catch(e: Exception) { defaultActionBg }
+            } else {
+                defaultActionBg
+            }
+
+            val finalBgColorHex = String.format("#%08X", (0xFFFFFFFF and finalBgColorInt.toLong()))
+            val finalTintColorHex = config?.tintColor ?: "#FFFFFF"
+
+            val effectiveMode = when (config?.mode) {
+                ActionButtonMode.ICON -> ActionDisplayMode.ICON
+                ActionButtonMode.TEXT -> ActionDisplayMode.TEXT
+                ActionButtonMode.BOTH -> ActionDisplayMode.BOTH
+                null -> mode
+            }
+
             var actionIcon: Icon? = null
             var hyperPic: HyperPicture? = null
 
-            val finalTitle = if (mode == ActionDisplayMode.ICON) "" else rawTitle
-            val shouldLoadIcon = (mode == ActionDisplayMode.ICON) || (mode == ActionDisplayMode.BOTH) || (mode == ActionDisplayMode.TEXT && rawTitle.isEmpty())
+            val finalTitle = if (effectiveMode == ActionDisplayMode.ICON) "" else rawTitle
+            val shouldLoadIcon = (effectiveMode != ActionDisplayMode.TEXT)
 
-            var bitmapToUse = resolveActionIcon(theme, sbn.packageName, rawTitle)
+            var bitmapToUse: Bitmap? = null
+            val configIconRes = config?.icon
+            if (configIconRes != null && configIconRes.type == ResourceType.LOCAL_FILE && repository != null) {
+                bitmapToUse = repository.getResourceBitmap(configIconRes)
+            }
 
             if (bitmapToUse == null && shouldLoadIcon) {
                 val originalIcon = androidAction.getIcon()
@@ -197,9 +285,9 @@ abstract class BaseTranslator(
 
             if (bitmapToUse != null) {
                 val processedBitmap = if (theme != null) {
-                    applyThemeToActionIcon(bitmapToUse, theme, defaultActionBg)
+                    applyThemeToActionIcon(bitmapToUse, theme, finalBgColorInt)
                 } else {
-                    createRoundedIconWithBackground(bitmapToUse, defaultActionBg, 12)
+                    createRoundedIconWithBackground(bitmapToUse, finalBgColorInt, 12)
                 }
 
                 actionIcon = Icon.createWithBitmap(processedBitmap)
@@ -212,12 +300,17 @@ abstract class BaseTranslator(
                 androidAction.actionIntent
             }
 
+            // [FIX] If mode is TEXT, strip the background color so it doesn't look like a solid block
+            val appliedBgColor = if (effectiveMode == ActionDisplayMode.TEXT) null else finalBgColorHex
+
             val hyperAction = HyperAction(
                 key = uniqueKey,
                 title = finalTitle,
                 icon = actionIcon,
                 pendingIntent = finalIntent,
-                actionIntentType = 1
+                actionIntentType = 1,
+                actionBgColor = appliedBgColor, // Use conditional color
+                titleColor = finalTintColorHex
             )
 
             bridgeActions.add(BridgeAction(hyperAction, hyperPic))
@@ -288,7 +381,6 @@ abstract class BaseTranslator(
         }
     }
 
-    // Standard fallback implementation
     protected fun createRoundedIconWithBackground(source: Bitmap, backgroundColor: Int, paddingDp: Int = 8): Bitmap {
         val size = 96
         val output = createBitmap(size, size)
@@ -355,11 +447,18 @@ abstract class BaseTranslator(
 
     protected fun createFallbackBitmap(): Bitmap = createBitmap(1, 1)
 
-    protected fun Drawable.toBitmap(): Bitmap {
-        if (this is BitmapDrawable && this.bitmap != null) return this.bitmap
-        val width = if (intrinsicWidth > 0) intrinsicWidth else 96
-        val height = if (intrinsicHeight > 0) intrinsicHeight else 96
-        val bitmap = createBitmap(width, height)
+    protected fun Drawable.toBitmap(width: Int? = null, height: Int? = null): Bitmap {
+        if (this is BitmapDrawable && this.bitmap != null) {
+            if (width != null && height != null) {
+                return this.bitmap.scale(width, height)
+            }
+            return this.bitmap
+        }
+
+        val w = width ?: if (intrinsicWidth > 0) intrinsicWidth else 96
+        val h = height ?: if (intrinsicHeight > 0) intrinsicHeight else 96
+
+        val bitmap = createBitmap(w, h)
         val canvas = Canvas(bitmap)
         setBounds(0, 0, canvas.width, canvas.height)
         draw(canvas)

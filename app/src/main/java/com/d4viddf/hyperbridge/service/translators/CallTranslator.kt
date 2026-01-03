@@ -2,6 +2,8 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
@@ -137,6 +139,10 @@ class CallTranslator(
         val answerColor = theme?.callConfig?.answerColor ?: "#34C759"
         val neutralColor = "#8E8E93"
 
+        // Load custom icons from theme resources
+        val customAnswerBitmap = getThemeBitmap(theme, "call_answer")
+        val customDeclineBitmap = getThemeBitmap(theme, "call_decline")
+
         var answerIndex = -1
         var hangUpIndex = -1
         var speakerIndex = -1
@@ -157,6 +163,7 @@ class CallTranslator(
             if (hangUpIndex != -1) indicesToShow.add(hangUpIndex)
         }
 
+        // Fallback detection logic if keywords failed
         if (indicesToShow.isEmpty()) {
             if (rawActions.isNotEmpty()) {
                 indicesToShow.add(0)
@@ -182,32 +189,53 @@ class CallTranslator(
             }
             val bgColorInt = try { bgColorHex.toColorInt() } catch(e: Exception) { 0xFF8E8E93.toInt() }
 
-            val originalIcon = action.getIcon()
-            val originalBitmap = if (originalIcon != null) loadIconBitmap(originalIcon, sbn.packageName) else null
+            // Determine Icon Source (Custom vs System)
+            var originalBitmap: Bitmap? = null
+            if (isAnswer && customAnswerBitmap != null) {
+                originalBitmap = customAnswerBitmap
+            } else if (isHangUp && customDeclineBitmap != null) {
+                originalBitmap = customDeclineBitmap
+            } else {
+                val originalIcon = action.getIcon()
+                if (originalIcon != null) originalBitmap = loadIconBitmap(originalIcon, sbn.packageName)
+            }
 
-            var actionIcon: android.graphics.drawable.Icon? = null
+            var actionIcon: Icon? = null
             var hyperPic: HyperPicture? = null
+
+            // [NEW] Determine Shape
+            val actionShapeId = if (theme != null) {
+                when {
+                    isAnswer -> theme.callConfig.answerShapeId
+                    isHangUp -> theme.callConfig.declineShapeId
+                    else -> theme.global.iconShapeId
+                }
+            } else "circle"
+
+            val padding = theme?.global?.iconPaddingPercent ?: 15
 
             if (originalBitmap != null) {
                 // Apply Shape & Padding to ACTION ICON
                 val processedBitmap = if (theme != null) {
-                    applyThemeToActionIcon(originalBitmap, theme, bgColorInt)
+                    // [FIX] Use specific shape for this action
+                    applyThemeToActionIcon(originalBitmap, actionShapeId, padding, bgColorInt)
                 } else {
                     createRoundedIconWithBackground(originalBitmap, bgColorInt, 12)
                 }
 
                 val picKey = "${uniqueKey}_icon"
-                actionIcon = android.graphics.drawable.Icon.createWithBitmap(processedBitmap)
+                actionIcon = Icon.createWithBitmap(processedBitmap)
                 hyperPic = HyperPicture(picKey, processedBitmap)
             }
 
+            // Create Action with Color String
             val hyperAction = io.github.d4viddf.hyperisland_kit.HyperAction(
                 key = uniqueKey,
                 title = action.title?.toString() ?: "",
                 icon = actionIcon,
                 pendingIntent = action.actionIntent,
                 actionIntentType = 1,
-                actionBgColor = null,
+                actionBgColor = bgColorHex, // [FIX] Hex String
                 titleColor = "#FFFFFF"
             )
 

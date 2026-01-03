@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +18,7 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
+import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.models.theme.AppThemeOverride
 import com.d4viddf.hyperbridge.models.theme.CallModule
 import com.d4viddf.hyperbridge.models.theme.GlobalConfig
@@ -26,6 +26,7 @@ import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeMetadata
 import com.d4viddf.hyperbridge.models.theme.ThemeResource
+import com.d4viddf.hyperbridge.service.NotificationReaderService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -71,14 +72,20 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var callAnswerColor by mutableStateOf("#34C759")
     var callDeclineColor by mutableStateOf("#FF3B30")
 
+    // [NEW] Call Button Shapes
+    var callAnswerShapeId by mutableStateOf("circle")
+    var callDeclineShapeId by mutableStateOf("circle")
+
+    // Actions
+    var themeDefaultActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
+
     init {
         refreshThemes()
         loadInstalledApps()
     }
 
     // --- SHAPE DEFINITIONS ---
-    // [UPDATED] Uses Resource IDs for localization
-    enum class ShapeOption(val id: String, @StringRes val labelRes: Int) {
+    enum class ShapeOption(val id: String, val labelRes: Int) {
         CIRCLE("circle", R.string.shape_circle),
         SQUARE("square", R.string.shape_square),
         COOKIE_4("cookie", R.string.shape_cookie),
@@ -101,7 +108,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshThemes() {
         viewModelScope.launch {
             _installedThemes.value = repo.getAvailableThemes()
-            prefs.activeThemeIdFlow.collect { id -> if (id != null) repo.activateTheme(id) }
+            val currentId = activeThemeId.value
+            if (currentId != null) repo.activateTheme(currentId)
         }
     }
 
@@ -109,11 +117,22 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             prefs.setActiveThemeId(theme.id)
             repo.activateTheme(theme.id)
+            // Notify service to reload
+            val intent = Intent(context, NotificationReaderService::class.java).apply {
+                action = NotificationReaderService.ACTION_RELOAD_THEME
+            }
+            context.startService(intent)
         }
     }
 
     fun resetToDefault() {
-        viewModelScope.launch { prefs.setActiveThemeId(null) }
+        viewModelScope.launch {
+            prefs.setActiveThemeId(null)
+            val intent = Intent(context, NotificationReaderService::class.java).apply {
+                action = NotificationReaderService.ACTION_RELOAD_THEME
+            }
+            context.startService(intent)
+        }
     }
 
     fun deleteTheme(theme: HyperTheme) {
@@ -166,7 +185,11 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             iconPaddingPercent = theme.global.iconPaddingPercent
             callAnswerColor = theme.callConfig.answerColor ?: "#34C759"
             callDeclineColor = theme.callConfig.declineColor ?: "#FF3B30"
+            callAnswerShapeId = theme.callConfig.answerShapeId
+            callDeclineShapeId = theme.callConfig.declineShapeId
+
             _appOverrides.value = theme.apps
+            themeDefaultActions = theme.defaultActions
         }
     }
 
@@ -181,12 +204,29 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         callDeclineUri = null
         callAnswerColor = "#34C759"
         callDeclineColor = "#FF3B30"
+        callAnswerShapeId = "circle"
+        callDeclineShapeId = "circle"
+
         _appOverrides.value = emptyMap()
+        themeDefaultActions = emptyMap()
         _tempAssets.clear()
         isDarkThemePreview = true
     }
 
-    fun saveTheme(existingId: String?) {
+    fun updateDefaultAction(keyword: String, config: ActionConfig) {
+        val current = themeDefaultActions.toMutableMap()
+        current[keyword] = config
+        themeDefaultActions = current
+    }
+
+    fun removeDefaultAction(keyword: String) {
+        val current = themeDefaultActions.toMutableMap()
+        current.remove(keyword)
+        themeDefaultActions = current
+    }
+
+    // [FIX] Added 'apply' parameter
+    fun saveTheme(existingId: String?, apply: Boolean = false) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val themeId = existingId ?: UUID.randomUUID().toString()
@@ -204,11 +244,36 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         iconPaddingPercent = iconPaddingPercent,
                         backgroundColor = "#202124"
                     ),
-                    callConfig = CallModule(answerRes, declineRes, callAnswerColor, callDeclineColor),
+                    callConfig = CallModule(
+                        answerIcon = answerRes,
+                        declineIcon = declineRes,
+                        answerColor = callAnswerColor,
+                        declineColor = callDeclineColor,
+                        answerShapeId = callAnswerShapeId,
+                        declineShapeId = callDeclineShapeId
+                    ),
+                    defaultActions = themeDefaultActions,
                     apps = _appOverrides.value
                 )
 
                 repo.saveTheme(newTheme)
+
+                // [FIX] Logic to apply theme if requested OR if already active
+                if (apply) {
+                    prefs.setActiveThemeId(themeId)
+                    repo.activateTheme(themeId)
+                    val intent = Intent(context, NotificationReaderService::class.java).apply {
+                        action = NotificationReaderService.ACTION_RELOAD_THEME
+                    }
+                    context.startService(intent)
+                } else if (activeThemeId.value == themeId) {
+                    // It was already active, just reload it
+                    repo.activateTheme(themeId)
+                    val intent = Intent(context, NotificationReaderService::class.java).apply {
+                        action = NotificationReaderService.ACTION_RELOAD_THEME
+                    }
+                    context.startService(intent)
+                }
 
                 if (_tempAssets.isNotEmpty()) {
                     val iconsDir = File(File(repo.getThemesDir(), themeId), "icons")

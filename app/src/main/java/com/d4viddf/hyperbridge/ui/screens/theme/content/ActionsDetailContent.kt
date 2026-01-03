@@ -56,14 +56,12 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.ui.components.EmptyState
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
+import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 
 @Composable
-fun ActionsDetailContent(
-    actions: Map<String, ActionConfig>,
-    onUpdateAction: (String, ActionConfig) -> Unit,
-    onRemoveAction: (String) -> Unit
-) {
+fun ActionsDetailContent(viewModel: ThemeViewModel) {
+    val actions = viewModel.themeDefaultActions
     var showSheet by remember { mutableStateOf(false) }
     var selectedKeyword by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
@@ -98,6 +96,7 @@ fun ActionsDetailContent(
                 .fillMaxSize()
         ) {
 
+            // --- SEARCH BAR ---
             Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 TextField(
                     value = searchQuery,
@@ -123,6 +122,7 @@ fun ActionsDetailContent(
                 )
             }
 
+            // --- LIST OR EMPTY STATE ---
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 if (actions.isEmpty() && searchQuery.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -159,7 +159,9 @@ fun ActionsDetailContent(
                                     selectedKeyword = keyword
                                     showSheet = true
                                 },
-                                onDelete = { onRemoveAction(keyword) }
+                                onDelete = {
+                                    viewModel.removeDefaultAction(keyword)
+                                }
                             )
                         }
                     }
@@ -174,7 +176,7 @@ fun ActionsDetailContent(
             initialConfig = if (selectedKeyword != null) actions[selectedKeyword] else null,
             onDismiss = { showSheet = false },
             onSave = { keyword, config ->
-                onUpdateAction(keyword, config)
+                viewModel.updateDefaultAction(keyword, config)
                 showSheet = false
             }
         )

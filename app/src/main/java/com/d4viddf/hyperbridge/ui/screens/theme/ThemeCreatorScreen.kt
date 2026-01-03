@@ -35,7 +35,9 @@ import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -50,10 +52,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,11 +74,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.ui.screens.theme.content.ActionsDetailContent
+import com.d4viddf.hyperbridge.ui.screens.theme.content.CallStyleSheetContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ColorsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.IconsDetailContent
+import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
 
 enum class CreatorRoute {
-    MAIN_MENU, COLORS, ICONS, CALLS, APPS
+    MAIN_MENU, COLORS, ICONS, CALLS, ACTIONS, APPS
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,8 +92,11 @@ fun ThemeCreatorScreen(
     onThemeCreated: () -> Unit
 ) {
     val viewModel: ThemeViewModel = viewModel()
+    val activeThemeId by viewModel.activeThemeId.collectAsState()
+
     var currentRoute by remember { mutableStateOf(CreatorRoute.MAIN_MENU) }
     var showSettingsSheet by remember { mutableStateOf(false) }
+    var showSaveDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(editThemeId) {
         if (editThemeId != null) viewModel.loadThemeForEditing(editThemeId)
@@ -107,6 +117,7 @@ fun ThemeCreatorScreen(
                             CreatorRoute.COLORS -> stringResource(R.string.creator_nav_colors)
                             CreatorRoute.ICONS -> stringResource(R.string.creator_nav_icons)
                             CreatorRoute.CALLS -> stringResource(R.string.creator_nav_calls)
+                            CreatorRoute.ACTIONS -> stringResource(R.string.creator_nav_actions)
                             CreatorRoute.APPS -> stringResource(R.string.creator_nav_apps)
                         },
                         fontWeight = FontWeight.Bold
@@ -114,7 +125,13 @@ fun ThemeCreatorScreen(
                 },
                 navigationIcon = {
                     FilledTonalIconButton(
-                        onClick = onBack,
+                        onClick = {
+                            if (currentRoute != CreatorRoute.MAIN_MENU) {
+                                currentRoute = CreatorRoute.MAIN_MENU
+                            } else {
+                                onBack()
+                            }
+                        },
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
@@ -123,18 +140,26 @@ fun ThemeCreatorScreen(
                     }
                 },
                 actions = {
-                    Button(
-                        onClick = {
-                            viewModel.saveTheme(editThemeId)
-                            onThemeCreated()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text(stringResource(R.string.creator_action_save), fontWeight = FontWeight.Bold)
+                    if (currentRoute == CreatorRoute.MAIN_MENU) {
+                        Button(
+                            onClick = {
+                                // Logic: If editing current theme -> Save directly.
+                                // If new theme or inactive theme -> Ask to apply.
+                                if (editThemeId != null && editThemeId == activeThemeId) {
+                                    viewModel.saveTheme(editThemeId) // Assuming saveTheme handles re-activation if needed
+                                    onThemeCreated()
+                                } else {
+                                    showSaveDialog = true
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(stringResource(R.string.creator_action_save), fontWeight = FontWeight.Bold)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -142,7 +167,7 @@ fun ThemeCreatorScreen(
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
             AnimatedContent(
                 targetState = currentRoute,
                 transitionSpec = {
@@ -176,10 +201,13 @@ fun ThemeCreatorScreen(
                         content = { CallStyleSheetContent(viewModel) }
                     )
 
-                    CreatorRoute.APPS -> DetailScreenShell(
-                        previewContent = { ThemeCarouselPreview(viewModel) },
-                        content = { AppsDetailContent(viewModel) }
-                    )
+                    CreatorRoute.ACTIONS -> Box(Modifier.fillMaxSize()) {
+                        ActionsDetailContent(viewModel)
+                    }
+
+                    CreatorRoute.APPS -> Box(Modifier.fillMaxSize()) {
+                        AppsDetailContent(viewModel)
+                    }
                 }
             }
         }
@@ -187,30 +215,66 @@ fun ThemeCreatorScreen(
         if (showSettingsSheet) {
             ThemeMetadataSheet(viewModel) { showSettingsSheet = false }
         }
+
+        if (showSaveDialog) {
+            AlertDialog(
+                onDismissRequest = { showSaveDialog = false },
+                title = { Text(stringResource(R.string.creator_dialog_apply_title)) },
+                text = { Text(stringResource(R.string.creator_dialog_apply_desc)) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showSaveDialog = false
+                            // Note: You must update ThemeViewModel.saveTheme to accept 'apply: Boolean'
+                            viewModel.saveTheme(editThemeId, apply = true)
+                            onThemeCreated()
+                        }
+                    ) {
+                        Text(stringResource(R.string.creator_dialog_action_save_apply))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showSaveDialog = false
+                            viewModel.saveTheme(editThemeId, apply = false)
+                            onThemeCreated()
+                        }
+                    ) {
+                        Text(stringResource(R.string.creator_dialog_action_save_only))
+                    }
+                }
+            )
+        }
     }
 }
 
+// --- MAIN MENU ---
 @Composable
 private fun CreatorMainList(
     viewModel: ThemeViewModel,
     onNavigate: (CreatorRoute) -> Unit,
     onEditSettings: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.35f),
+                .height(240.dp),
             contentAlignment = Alignment.Center
         ) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp),
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surfaceContainer
             ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 24.dp)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 12.dp)) {
                     ThemeCarouselPreview(viewModel)
                 }
             }
@@ -218,13 +282,9 @@ private fun CreatorMainList(
 
         Column(
             modifier = Modifier
-                .weight(0.65f)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
         ) {
-            Spacer(Modifier.height(8.dp))
-
             Button(
                 onClick = onEditSettings,
                 modifier = Modifier
@@ -248,6 +308,7 @@ private fun CreatorMainList(
                 CreatorRoute.COLORS,
                 CreatorRoute.ICONS,
                 CreatorRoute.CALLS,
+                CreatorRoute.ACTIONS,
                 CreatorRoute.APPS
             )
 
@@ -291,6 +352,13 @@ private fun CreatorMainList(
                             shape = shape,
                             onClick = { onNavigate(route) }
                         )
+                        CreatorRoute.ACTIONS -> CreatorOptionCard(
+                            title = stringResource(R.string.creator_nav_actions),
+                            subtitle = stringResource(R.string.creator_sub_actions),
+                            icon = Icons.Outlined.TouchApp,
+                            shape = shape,
+                            onClick = { onNavigate(route) }
+                        )
                         CreatorRoute.APPS -> CreatorOptionCard(
                             title = stringResource(R.string.creator_nav_apps),
                             subtitle = stringResource(R.string.creator_sub_apps),
@@ -303,7 +371,7 @@ private fun CreatorMainList(
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(48.dp))
         }
     }
 }
@@ -344,6 +412,7 @@ private fun CreatorOptionCard(
     }
 }
 
+// --- DETAIL SHELL (For Screens with Preview) ---
 @Composable
 private fun DetailScreenShell(
     previewContent: @Composable () -> Unit,
@@ -353,19 +422,19 @@ private fun DetailScreenShell(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp),
+                .height(200.dp),
             contentAlignment = Alignment.Center
         ) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surfaceContainer
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(vertical = 24.dp)
+                    modifier = Modifier.padding(vertical = 12.dp)
                 ) {
                     previewContent()
                 }

@@ -90,6 +90,7 @@ import kotlinx.coroutines.withContext
 fun DesignScreen(
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
+    onEditTheme: (String) -> Unit, // [UPDATED] Added callback for editing
     onLaunchPicker: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -134,6 +135,7 @@ fun DesignScreen(
         widgetIcons = widgetIcons,
         onNavigateToWidgets = onNavigateToWidgets,
         onNavigateToThemes = onNavigateToThemes,
+        onEditTheme = onEditTheme, // [UPDATED] Pass callback down
         onFabClick = { showBottomSheet = true },
         onSettingsClick = onSettingsClick
     )
@@ -195,6 +197,7 @@ fun DesignScreenContent(
     widgetIcons: List<Drawable>,
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
+    onEditTheme: (String) -> Unit, // [UPDATED] Added callback
     onFabClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -248,7 +251,8 @@ fun DesignScreenContent(
                 ThemesCarousel(
                     themes = availableThemes,
                     activeId = activeThemeId,
-                    onNavigateToThemes = onNavigateToThemes
+                    onNavigateToThemes = onNavigateToThemes,
+                    onEditTheme = onEditTheme // [UPDATED] Pass callback down
                 )
             }
 
@@ -316,7 +320,8 @@ fun HeroSection() {
 fun ThemesCarousel(
     themes: List<HyperTheme>,
     activeId: String?,
-    onNavigateToThemes: () -> Unit
+    onNavigateToThemes: () -> Unit,
+    onEditTheme: (String) -> Unit // [UPDATED] Added callback
 ) {
     val displayThemes = themes.take(5)
     val totalCount = 1 + displayThemes.size + 1
@@ -330,42 +335,47 @@ fun ThemesCarousel(
         itemSpacing = 8.dp,
         contentPadding = PaddingValues(horizontal = 16.dp)
     ){ i ->
-        when (i) {
-            0 -> {
-                ThemePreviewCard(
-                    title = stringResource(R.string.theme_system_default_title),
-                    subtitle = stringResource(R.string.theme_system_default_desc),
-                    color = MaterialTheme.colorScheme.secondary,
-                    isActive = activeId == null,
-                    icon = Icons.Rounded.PhoneAndroid,
-                    onClick = onNavigateToThemes,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            }
-            in 1..displayThemes.size -> {
-                val theme = displayThemes[i - 1]
-                val color = try {
-                    Color((theme.global.highlightColor ?: "#000000").toColorInt())
-                } catch (_: Exception) { MaterialTheme.colorScheme.primary }
+        val isSystemDefault = i == 0
+        val isAction = i > displayThemes.size
 
-                ThemePreviewCard(
-                    title = theme.meta.name,
-                    subtitle = stringResource(R.string.theme_card_author_format, theme.meta.author),
-                    color = color,
-                    isActive = theme.id == activeId,
-                    icon = Icons.Rounded.Palette,
-                    onClick = onNavigateToThemes,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            }
-            else -> {
-                ActionCard(
-                    text = stringResource(R.string.design_browse_more),
-                    icon = Icons.Rounded.Add,
-                    onClick = onNavigateToThemes,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            }
+        if (isAction) {
+            ThemePreviewCard(
+                title = stringResource(R.string.design_browse_more),
+                subtitle = "",
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                isActive = false,
+                icon = Icons.Rounded.Add,
+                isAction = true,
+                onClick = onNavigateToThemes,
+                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
+            )
+        } else if (isSystemDefault) {
+            ThemePreviewCard(
+                title = stringResource(R.string.theme_system_default_title),
+                subtitle = stringResource(R.string.theme_system_default_desc),
+                color = MaterialTheme.colorScheme.secondary,
+                isActive = activeId == null,
+                icon = Icons.Rounded.PhoneAndroid,
+                // [NOTE] System default is not "editable" in creator, so we just open manager
+                onClick = onNavigateToThemes,
+                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
+            )
+        } else {
+            val theme = displayThemes[i - 1]
+            val color = try {
+                Color((theme.global.highlightColor ?: "#000000").toColorInt())
+            } catch (_: Exception) { MaterialTheme.colorScheme.primary }
+
+            ThemePreviewCard(
+                title = theme.meta.name,
+                subtitle = stringResource(R.string.theme_card_author_format, theme.meta.author),
+                color = color,
+                isActive = theme.id == activeId,
+                icon = Icons.Rounded.Palette,
+                // [FIX] Clicking a user theme now opens the editor for that theme
+                onClick = { onEditTheme(theme.id) },
+                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
+            )
         }
     }
 }
@@ -413,13 +423,15 @@ fun WidgetsCarousel(
                 WidgetPreviewCard(
                     label = stringResource(R.string.widget_id_fmt, i + 1),
                     icon = icon,
+                    isAction = false,
                     onClick = onNavigateToWidgets,
                     modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
                 )
             } else {
-                ActionCard(
-                    text = stringResource(R.string.design_add_new),
-                    icon = Icons.Rounded.Add,
+                WidgetPreviewCard(
+                    label = stringResource(R.string.design_add_new),
+                    icon = null,
+                    isAction = true,
                     onClick = onAddWidget,
                     modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
                 )
@@ -474,45 +486,58 @@ fun ThemePreviewCard(
     color: Color,
     isActive: Boolean,
     icon: ImageVector,
+    isAction: Boolean = false,
     onClick: () -> Unit,
     modifier: Modifier
 ) {
+    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
+
     Card(
         onClick = onClick,
         modifier = modifier
             .height(180.dp)
             .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Box(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = color
-                )
-                if (isActive) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                            .padding(4.dp)
-                    ) {
-                        Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.onPrimaryContainer, CircleShape))
-                    }
+        if (isAction) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(icon, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(8.dp))
+                    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = color
+                    )
+                    if (isActive) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                .padding(4.dp)
+                        ) {
+                            Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.onPrimaryContainer, CircleShape))
+                        }
+                    }
+                }
 
-            Column {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                Column {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                }
             }
         }
     }
@@ -521,48 +546,44 @@ fun ThemePreviewCard(
 @Composable
 fun WidgetPreviewCard(
     label: String,
-    icon: Drawable,
+    icon: Drawable?,
+    isAction: Boolean,
     onClick: () -> Unit,
     modifier: Modifier
 ) {
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .height(180.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Image(
-                bitmap = icon.toBitmap().asImageBitmap(),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(64.dp)
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-        }
-    }
-}
+    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
 
-@Composable
-fun ActionCard(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = onClick,
         modifier = modifier
             .height(180.dp)
             .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(icon, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(8.dp))
-                Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (isAction) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(8.dp))
+                    Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                if (icon != null) {
+                    Image(
+                        bitmap = icon.toBitmap().asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+                Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -618,6 +639,7 @@ private fun DesignScreenPreview() {
             widgetIcons = mockIcons,
             onNavigateToWidgets = {},
             onNavigateToThemes = {},
+            onEditTheme = {},
             onFabClick = {},
             onSettingsClick = {},
         )
@@ -635,6 +657,7 @@ private fun DesignScreenEmptyPreview() {
             widgetIcons = emptyList(),
             onNavigateToWidgets = {},
             onNavigateToThemes = {},
+            onEditTheme = {},
             onFabClick = {},
             onSettingsClick = {}
         )

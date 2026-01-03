@@ -1,8 +1,5 @@
 package com.d4viddf.hyperbridge.ui.screens.theme.content
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,6 +7,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,17 +23,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.FormatPaint
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Navigation
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FabPosition
@@ -43,6 +39,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -55,26 +52,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.ui.screens.design.ToolbarOption
+import com.d4viddf.hyperbridge.ui.screens.theme.AssetPickerButton
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun IconsDetailContent(
-    iconPaddingPercent: Int,
-    selectedShapeId: String,
-    onPaddingChange: (Int) -> Unit,
-    onShapeChange: (String) -> Unit,
-    onStageAsset: (String, Uri) -> Unit
-) {
+fun IconsDetailContent(viewModel: ThemeViewModel) {
     var tabIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -103,11 +97,9 @@ fun IconsDetailContent(
                             onClick = { tabIndex = 1 }
                         )
 
-                        // [FIX] Removed incompatible shapeIcon param
-                        // Replaced with a generic placeholder icon for "Shape" since ToolbarOption expects an ImageVector
                         ToolbarOption(
                             selected = tabIndex == 2,
-                            icon = Icons.Outlined.Circle, // Or another suitable icon
+                            shapeIcon = MaterialShapes.Arch.toShape(),
                             text = stringResource(R.string.icons_tab_shape),
                             onClick = { tabIndex = 2 }
                         )
@@ -116,6 +108,7 @@ fun IconsDetailContent(
             )
         }
     ) { paddingValues ->
+        // [FIX] Removed top padding
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -138,9 +131,9 @@ fun IconsDetailContent(
                     modifier = Modifier.padding(24.dp)
                 ) { selectedTab ->
                     when (selectedTab) {
-                        0 -> IconsStyleTab(iconPaddingPercent, onPaddingChange)
-                        1 -> IconsAssetsTab(onStageAsset)
-                        2 -> IconsShapeTab(selectedShapeId, onShapeChange)
+                        0 -> IconsStyleTab(viewModel)
+                        1 -> IconsAssetsTab(viewModel)
+                        2 -> IconsShapeTab(viewModel)
                     }
                 }
             }
@@ -150,10 +143,44 @@ fun IconsDetailContent(
 }
 
 @Composable
-private fun IconsStyleTab(
-    paddingPercent: Int,
-    onPaddingChange: (Int) -> Unit
+fun ToolbarOption(
+    selected: Boolean,
+    text: String,
+    onClick: () -> Unit,
+    icon: ImageVector? = null,
+    shapeIcon: Shape? = null
 ) {
+    val backgroundColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+    val fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+
+    Box(
+        modifier = Modifier
+            .height(48.dp)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .clickable(
+                onClick = onClick,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            )
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(icon, null, tint = contentColor, modifier = Modifier.size(20.dp))
+            } else if (shapeIcon != null) {
+                Box(modifier = Modifier.size(20.dp).background(contentColor, shapeIcon))
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(text, color = contentColor, style = MaterialTheme.typography.labelLarge, fontWeight = fontWeight)
+        }
+    }
+}
+
+@Composable
+private fun IconsStyleTab(viewModel: ThemeViewModel) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -165,8 +192,8 @@ private fun IconsStyleTab(
         )
 
         Slider(
-            value = paddingPercent.toFloat(),
-            onValueChange = { onPaddingChange(it.toInt()) },
+            value = viewModel.iconPaddingPercent.toFloat(),
+            onValueChange = { viewModel.iconPaddingPercent = it.toInt() },
             valueRange = 0f..40f
         )
 
@@ -181,30 +208,7 @@ private fun IconsStyleTab(
 }
 
 @Composable
-private fun IconsAssetsTab(onStageAsset: (String, Uri) -> Unit) {
-    val context = LocalContext.current
-    var targetAssetKey by remember { mutableIntStateOf(0) }
-
-    val assetLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            try {
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            } catch (_: Exception) {}
-
-            when(targetAssetKey) {
-                1 -> onStageAsset("nav_start", uri)
-                2 -> onStageAsset("nav_end", uri)
-                3 -> onStageAsset("tick_icon", uri)
-            }
-        }
-        targetAssetKey = 0
-    }
-
+private fun IconsAssetsTab(viewModel: ThemeViewModel) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -212,32 +216,9 @@ private fun IconsAssetsTab(onStageAsset: (String, Uri) -> Unit) {
         Column {
             Text(stringResource(R.string.icons_group_nav), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = {
-                        targetAssetKey = 1
-                        assetLauncher.launch(arrayOf("image/*"))
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.filledTonalButtonColors()
-                ) {
-                    Icon(Icons.Rounded.Navigation, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.icons_btn_start))
-                }
-
-                Button(
-                    onClick = {
-                        targetAssetKey = 2
-                        assetLauncher.launch(arrayOf("image/*"))
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.filledTonalButtonColors()
-                ) {
-                    Icon(Icons.Rounded.Flag, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.icons_btn_end))
-                }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                AssetPickerButton(stringResource(R.string.icons_btn_start), Icons.Rounded.Navigation) { uri -> viewModel.stageAsset("nav_start", uri) }
+                AssetPickerButton(stringResource(R.string.icons_btn_end), Icons.Rounded.Flag) { uri -> viewModel.stageAsset("nav_end", uri) }
             }
         }
 
@@ -246,17 +227,8 @@ private fun IconsAssetsTab(onStageAsset: (String, Uri) -> Unit) {
         Column {
             Text(stringResource(R.string.icons_group_progress), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
-            Button(
-                onClick = {
-                    targetAssetKey = 3
-                    assetLauncher.launch(arrayOf("image/*"))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.filledTonalButtonColors()
-            ) {
-                Icon(Icons.Rounded.CheckCircle, null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.icons_btn_success))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                AssetPickerButton(stringResource(R.string.icons_btn_success), Icons.Rounded.CheckCircle) { uri -> viewModel.stageAsset("tick_icon", uri) }
             }
         }
     }
@@ -264,10 +236,7 @@ private fun IconsAssetsTab(onStageAsset: (String, Uri) -> Unit) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun IconsShapeTab(
-    selectedShapeId: String,
-    onShapeChange: (String) -> Unit
-) {
+private fun IconsShapeTab(viewModel: ThemeViewModel) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -283,7 +252,7 @@ private fun IconsShapeTab(
             modifier = Modifier.fillMaxWidth()
         ) {
             items(ThemeViewModel.ShapeOption.entries) { shapeOption ->
-                val isSelected = selectedShapeId == shapeOption.id
+                val isSelected = viewModel.selectedShapeId == shapeOption.id
                 val shape = getShapeFromId(shapeOption.id).toShape()
 
                 val containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
@@ -294,7 +263,7 @@ private fun IconsShapeTab(
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .clickable { onShapeChange(shapeOption.id) }
+                        .clickable { viewModel.selectedShapeId = shapeOption.id }
                         .semantics { contentDescription = label }
                         .background(containerColor, shape)
                         .border(2.dp, borderColor, shape),

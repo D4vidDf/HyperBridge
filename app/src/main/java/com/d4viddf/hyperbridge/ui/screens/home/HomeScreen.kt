@@ -129,7 +129,6 @@ fun HomeScreen(
             }
         ) { padding ->
             // [FIX] Only apply bottom padding. Let children handle their own top insets.
-            // This prevents the "double top padding" issue.
             Box(modifier = Modifier.padding(bottom = padding.calculateBottomPadding())) {
                 when (selectedTab) {
                     0 -> {
@@ -149,8 +148,13 @@ fun HomeScreen(
                                     DesignScreen(
                                         onNavigateToWidgets = { designRoute = DesignRoute.WIDGET_LIST },
                                         onNavigateToThemes = { designRoute = DesignRoute.THEME_MANAGER },
+                                        // [FIX] Pass callback to edit theme from Dashboard
+                                        onEditTheme = { themeId ->
+                                            editingThemeId = themeId
+                                            designRoute = DesignRoute.THEME_CREATOR
+                                        },
                                         onLaunchPicker = { showWidgetPicker = true },
-                                        onSettingsClick = onSettingsClick // [NEW] Pass the callback here
+                                        onSettingsClick = onSettingsClick
                                     )
                                 }
                                 DesignRoute.WIDGET_LIST -> {
@@ -189,6 +193,9 @@ fun HomeScreen(
                                     ThemeCreatorScreen(
                                         editThemeId = editingThemeId,
                                         onBack = {
+                                            // [FIX] If came from dashboard (no ID means new theme, ID means edit), return to dashboard if needed,
+                                            // but standard flow is usually Manager -> Creator.
+                                            // Here we route back to Manager to keep flow consistent.
                                             designRoute = DesignRoute.THEME_MANAGER
                                             editingThemeId = null
                                         },

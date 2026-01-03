@@ -60,17 +60,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.ui.screens.design.ToolbarOption
+import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
 import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ColorsDetailContent(
-    selectedColorHex: String,
-    useAppColors: Boolean,
-    onColorSelected: (String) -> Unit,
-    onUseAppColorsChanged: (Boolean) -> Unit
-) {
+fun ColorsDetailContent(viewModel: ThemeViewModel) {
     var tabIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -103,6 +98,7 @@ fun ColorsDetailContent(
             )
         }
     ) { paddingValues ->
+        // [FIX] Removed top padding
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,8 +122,8 @@ fun ColorsDetailContent(
                     modifier = Modifier.padding(vertical = 12.dp)
                 ) { selectedTab ->
                     when (selectedTab) {
-                        0 -> ColorsPresetsTab(selectedColorHex, useAppColors, onColorSelected, onUseAppColorsChanged)
-                        1 -> ColorsCustomTab(selectedColorHex, onColorSelected)
+                        0 -> ColorsPresetsTab(viewModel)
+                        1 -> ColorsCustomTab(viewModel)
                     }
                 }
             }
@@ -136,12 +132,7 @@ fun ColorsDetailContent(
 }
 
 @Composable
-private fun ColorsPresetsTab(
-    selectedColorHex: String,
-    useAppColors: Boolean,
-    onColorSelected: (String) -> Unit,
-    onUseAppColorsChanged: (Boolean) -> Unit
-) {
+private fun ColorsPresetsTab(viewModel: ThemeViewModel) {
     val presets = listOf("#3DDA82", "#FF3B30", "#007AFF", "#FF9500", "#9333ea", "#e11d48", "#2563eb", "#FFFFFF")
 
     Column(
@@ -161,7 +152,7 @@ private fun ColorsPresetsTab(
         ) {
             items(presets) { hex ->
                 val color = safeParseColor(hex)
-                val isSelected = selectedColorHex.equals(hex, ignoreCase = true) && !useAppColors
+                val isSelected = viewModel.selectedColorHex.equals(hex, ignoreCase = true) && !viewModel.useAppColors
 
                 val shape = if (isSelected) RoundedCornerShape(16.dp) else CircleShape
                 val borderColor = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
@@ -173,8 +164,8 @@ private fun ColorsPresetsTab(
                         .clip(shape)
                         .background(color)
                         .clickable {
-                            onColorSelected(hex)
-                            onUseAppColorsChanged(false)
+                            viewModel.selectedColorHex = hex
+                            viewModel.useAppColors = false
                         }
                         .border(borderWidth, borderColor, shape),
                     contentAlignment = Alignment.Center
@@ -206,8 +197,8 @@ private fun ColorsPresetsTab(
             },
             trailingContent = {
                 Switch(
-                    checked = useAppColors,
-                    onCheckedChange = onUseAppColorsChanged
+                    checked = viewModel.useAppColors,
+                    onCheckedChange = { viewModel.useAppColors = it }
                 )
             },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -216,12 +207,9 @@ private fun ColorsPresetsTab(
 }
 
 @Composable
-private fun ColorsCustomTab(
-    selectedColorHex: String,
-    onColorSelected: (String) -> Unit
-) {
+private fun ColorsCustomTab(viewModel: ThemeViewModel) {
     var showColorPicker by remember { mutableStateOf(false) }
-    val savedColors = listOf(selectedColorHex)
+    val savedColors = listOf(viewModel.selectedColorHex)
 
     Column(
         modifier = Modifier
@@ -257,7 +245,10 @@ private fun ColorsCustomTab(
                             .size(56.dp)
                             .clip(shape)
                             .background(color)
-                            .clickable { onColorSelected(hex) }
+                            .clickable {
+                                viewModel.selectedColorHex = hex
+                                viewModel.useAppColors = false
+                            }
                             .border(3.dp, MaterialTheme.colorScheme.onSurface, shape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -277,8 +268,11 @@ private fun ColorsCustomTab(
                     Text(stringResource(R.string.colors_dialog_desc))
 
                     OutlinedTextField(
-                        value = selectedColorHex,
-                        onValueChange = { onColorSelected(it) },
+                        value = viewModel.selectedColorHex,
+                        onValueChange = {
+                            viewModel.selectedColorHex = it
+                            viewModel.useAppColors = false
+                        },
                         label = { Text(stringResource(R.string.colors_label_hex)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
@@ -291,7 +285,7 @@ private fun ColorsCustomTab(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .background(safeParseColor(selectedColorHex))
+                                    .background(safeParseColor(viewModel.selectedColorHex))
                                     .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                             )
                         }
