@@ -19,6 +19,7 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
+import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.models.theme.AppThemeOverride
 import com.d4viddf.hyperbridge.models.theme.CallModule
 import com.d4viddf.hyperbridge.models.theme.GlobalConfig
@@ -71,13 +72,19 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var callAnswerColor by mutableStateOf("#34C759")
     var callDeclineColor by mutableStateOf("#FF3B30")
 
+    // [NEW] Call Button Shapes
+    var callAnswerShapeId by mutableStateOf("circle")
+    var callDeclineShapeId by mutableStateOf("circle")
+
+    // Actions
+    var themeDefaultActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
+
     init {
         refreshThemes()
         loadInstalledApps()
     }
 
     // --- SHAPE DEFINITIONS ---
-    // [UPDATED] Uses Resource IDs for localization
     enum class ShapeOption(val id: String, @StringRes val labelRes: Int) {
         CIRCLE("circle", R.string.shape_circle),
         SQUARE("square", R.string.shape_square),
@@ -101,7 +108,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshThemes() {
         viewModelScope.launch {
             _installedThemes.value = repo.getAvailableThemes()
-            prefs.activeThemeIdFlow.collect { id -> if (id != null) repo.activateTheme(id) }
+            // Ensure the active theme is loaded in repo
+            val currentId = activeThemeId.value
+            if (currentId != null) repo.activateTheme(currentId)
         }
     }
 
@@ -166,7 +175,12 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             iconPaddingPercent = theme.global.iconPaddingPercent
             callAnswerColor = theme.callConfig.answerColor ?: "#34C759"
             callDeclineColor = theme.callConfig.declineColor ?: "#FF3B30"
+            // [NEW] Load shapes
+            callAnswerShapeId = theme.callConfig.answerShapeId
+            callDeclineShapeId = theme.callConfig.declineShapeId
+
             _appOverrides.value = theme.apps
+            themeDefaultActions = theme.defaultActions
         }
     }
 
@@ -181,9 +195,26 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         callDeclineUri = null
         callAnswerColor = "#34C759"
         callDeclineColor = "#FF3B30"
+        // [NEW] Reset shapes
+        callAnswerShapeId = "circle"
+        callDeclineShapeId = "circle"
+
         _appOverrides.value = emptyMap()
+        themeDefaultActions = emptyMap()
         _tempAssets.clear()
         isDarkThemePreview = true
+    }
+
+    fun updateDefaultAction(keyword: String, config: ActionConfig) {
+        val current = themeDefaultActions.toMutableMap()
+        current[keyword] = config
+        themeDefaultActions = current
+    }
+
+    fun removeDefaultAction(keyword: String) {
+        val current = themeDefaultActions.toMutableMap()
+        current.remove(keyword)
+        themeDefaultActions = current
     }
 
     fun saveTheme(existingId: String?) {
@@ -204,11 +235,24 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         iconPaddingPercent = iconPaddingPercent,
                         backgroundColor = "#202124"
                     ),
-                    callConfig = CallModule(answerRes, declineRes, callAnswerColor, callDeclineColor),
+                    // [NEW] Save custom shapes
+                    callConfig = CallModule(
+                        answerIcon = answerRes,
+                        declineIcon = declineRes,
+                        answerColor = callAnswerColor,
+                        declineColor = callDeclineColor,
+                        answerShapeId = callAnswerShapeId,
+                        declineShapeId = callDeclineShapeId
+                    ),
+                    defaultActions = themeDefaultActions,
                     apps = _appOverrides.value
                 )
 
                 repo.saveTheme(newTheme)
+
+                if (activeThemeId.value == themeId) {
+                    repo.activateTheme(themeId)
+                }
 
                 if (_tempAssets.isNotEmpty()) {
                     val iconsDir = File(File(repo.getThemesDir(), themeId), "icons")

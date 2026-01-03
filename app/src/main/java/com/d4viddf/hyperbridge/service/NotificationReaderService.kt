@@ -44,6 +44,10 @@ import java.util.concurrent.ConcurrentHashMap
 
 class NotificationReaderService : NotificationListenerService() {
 
+    companion object {
+        const val ACTION_RELOAD_THEME = "com.d4viddf.hyperbridge.ACTION_RELOAD_THEME"
+    }
+
     private val TAG = "HyperBridgeDebug"
     private val EXTRA_ORIGINAL_KEY = "hyper_original_key"
 
@@ -155,6 +159,15 @@ class NotificationReaderService : NotificationListenerService() {
                     processSingleWidget(widgetId, config)
                 }
             }
+        } else if (intent?.action == ACTION_RELOAD_THEME) {
+            // [NEW] Force reload current theme from disk
+            serviceScope.launch {
+                val themeId = preferences.activeThemeIdFlow.first()
+                if (themeId != null) {
+                    Log.d(TAG, "Hot-reloading theme: $themeId")
+                    themeRepository.activateTheme(themeId)
+                }
+            }
         }
         return START_STICKY
     }
@@ -210,7 +223,7 @@ class NotificationReaderService : NotificationListenerService() {
         try {
             val currentNotifications = try {
                 activeNotifications
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 cancelNotification(targetKey)
                 return
             }
@@ -345,7 +358,7 @@ class NotificationReaderService : NotificationListenerService() {
             val type = if (ruleMatch?.targetLayout != null) {
                 try {
                     NotificationType.valueOf(ruleMatch.targetLayout)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Log.e(TAG, "Invalid rule layout: ${ruleMatch.targetLayout}")
                     detectNotificationType(sbn)
                 }

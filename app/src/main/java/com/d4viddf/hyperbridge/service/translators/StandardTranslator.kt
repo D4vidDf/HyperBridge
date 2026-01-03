@@ -8,6 +8,7 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
@@ -42,6 +43,8 @@ class StandardTranslator(
             else -> text
         }
 
+        val highlightColor = resolveColor(theme, sbn.packageName, "#FFFFFF")
+
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", displayTitle)
 
         // --- CONFIGURATION ---
@@ -52,11 +55,9 @@ class StandardTranslator(
         builder.setIslandFirstFloat(config.isFloat ?: false)
 
         val hiddenKey = "hidden_pixel"
-        // [UPDATED] Just return bitmap, no shaping
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        // [FIX] Pass Theme to Extract Actions (enables shaped action icons)
         val bridgeActions = extractBridgeActions(
             sbn = sbn,
             theme = theme,
@@ -90,25 +91,36 @@ class StandardTranslator(
 
         // Add Actions
         if (bridgeActions.isNotEmpty()) {
-            val hyperActions = bridgeActions.map { it.action }.toTypedArray()
+            // [FIX] Specific configuration for Shade Text Buttons:
+            // 1. actionBgColor = null -> Transparent Background
+            // 2. titleColor = "#FFFFFF" -> White Text (Neutral/No Color)
+            val textActions = bridgeActions.map { it.action }.map { original ->
+                HyperAction(
+                    key = original.key,
+                    title = original.title,
+                    icon = original.icon,
+                    pendingIntent = original.pendingIntent,
+                    actionIntentType = original.actionIntentType,
+                    actionBgColor = null,
+                    titleColor = "#FFFFFF"
+                )
+            }.toTypedArray()
 
             // Set actions visible in shade
-            builder.setTextButtons(*hyperActions)
+            builder.setTextButtons(*textActions)
 
-            // Register them internally (required for clicks to work)
-            hyperActions.forEach {
+            // Register them internally
+            textActions.forEach {
                 builder.addHiddenAction(it)
             }
 
-            // Register any custom/shaped icons if we extracted them
+            // Register any custom icons if available
             bridgeActions.forEach {
                 it.actionImage?.let { pic -> builder.addPicture(pic) }
             }
         }
 
-        // [FIX] Apply Theme Highlight Color (with App Override logic via helper)
-        val highlight = resolveColor(theme, sbn.packageName, "#FFFFFF")
-        builder.setIslandConfig(highlightColor = highlight)
+        builder.setIslandConfig(highlightColor = highlightColor)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }
