@@ -2,6 +2,7 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.drawable.Icon
 import android.widget.RemoteViews
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
@@ -10,6 +11,7 @@ import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.models.WidgetSize
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import kotlinx.coroutines.Dispatchers
@@ -21,14 +23,32 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
     private val preferences = AppPreferences(context)
 
     suspend fun translate(widgetId: Int): HyperIslandData {
-        // Fetch config for THIS SPECIFIC widgetId
         val config = preferences.getWidgetConfigFlow(widgetId).first()
 
         val targetSize = config.size
         val renderMode = config.renderMode
-        val title = "Widget Active"
+
+        // 1. Get Widget Provider Info
+        val widgetInfo = WidgetManager.getWidgetInfo(context, widgetId)
+        val packageName = widgetInfo?.provider?.packageName
+        val label = if (widgetInfo != null) widgetInfo.loadLabel(context.packageManager) else "Widget"
+
+        val title = label.toString()
         val builder = HyperIslandNotification.Builder(context, "widget_channel", title)
 
+        // 2. Load the App Icon
+        val iconKey = "widget_icon_$widgetId"
+        var iconBitmap: Bitmap? = null
+
+        if (packageName != null) {
+            try {
+                iconBitmap = context.packageManager.getApplicationIcon(packageName).toBitmap()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // --- View Rendering Logic ---
         if (renderMode == WidgetRenderMode.SNAPSHOT) {
             val density = context.resources.displayMetrics.density
             val widthPx = (350 * density).toInt()
@@ -45,7 +65,7 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
             val bitmap: Bitmap? = withContext(Dispatchers.Main) {
                 try {
                     WidgetManager.getWidgetBitmap(context, widgetId, widthPx, heightPx)
-                } catch (e: Exception) { null }
+                } catch (_: Exception) { null }
             }
 
             if (bitmap != null) {
@@ -69,10 +89,23 @@ class WidgetTranslator(context: Context) : BaseTranslator(context) {
             }
         }
 
-        builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = "default_icon")))
-        builder.setSmallIsland("default_icon")
+        // [FIX] 3. Apply the Icon to the Island
+        if (iconBitmap != null) {
+            val icon = Icon.createWithBitmap(iconBitmap)
+
+            // Fix: Create the HyperPicture object first
+            val picture = HyperPicture(iconKey, icon)
+            builder.addPicture(picture)
+
+            builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = iconKey)))
+            builder.setSmallIsland(iconKey)
+        } else {
+            builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = "default_icon")))
+            builder.setSmallIsland("default_icon")
+            builder.addPicture(getTransparentPicture("default_icon"))
+        }
+
         builder.setIslandConfig(timeout = config.timeout , dismissible = false)
-        builder.addPicture(getTransparentPicture("default_icon"))
         builder.setEnableFloat(false)
         builder.setShowNotification(config.isShowShade)
         builder.setIslandFirstFloat(false)
