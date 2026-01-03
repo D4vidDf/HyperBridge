@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -55,10 +57,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
-import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -95,10 +98,11 @@ fun ColorsDetailContent(viewModel: ThemeViewModel) {
             )
         }
     ) { paddingValues ->
+        // [FIX] Removed top padding
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(bottom = paddingValues.calculateBottomPadding())
                 .padding(bottom = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
@@ -115,7 +119,7 @@ fun ColorsDetailContent(viewModel: ThemeViewModel) {
                     targetState = tabIndex,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                     label = "ColorsTabTransition",
-                    modifier = Modifier.padding(24.dp)
+                    modifier = Modifier.padding(vertical = 12.dp)
                 ) { selectedTab ->
                     when (selectedTab) {
                         0 -> ColorsPresetsTab(viewModel)
@@ -133,42 +137,64 @@ private fun ColorsPresetsTab(viewModel: ThemeViewModel) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(stringResource(R.string.colors_label_presets), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(R.string.colors_label_presets),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = 16.dp, top = 8.dp)
+        )
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp),
-            modifier = Modifier.fillMaxWidth()
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().height(72.dp)
         ) {
             items(presets) { hex ->
                 val color = safeParseColor(hex)
-                val isSelected = viewModel.selectedColorHex.equals(hex, ignoreCase = true)
+                val isSelected = viewModel.selectedColorHex.equals(hex, ignoreCase = true) && !viewModel.useAppColors
 
                 val shape = if (isSelected) RoundedCornerShape(16.dp) else CircleShape
-                val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                val borderColor = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
+                val borderWidth = if (isSelected) 3.dp else 0.dp
 
                 Box(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(shape)
                         .background(color)
-                        .clickable { viewModel.selectedColorHex = hex }
-                        .border(
-                            width = if (isSelected) 3.dp else 1.dp,
-                            color = borderColor,
-                            shape = shape
-                        )
-                )
+                        .clickable {
+                            viewModel.selectedColorHex = hex
+                            viewModel.useAppColors = false
+                        }
+                        .border(borderWidth, borderColor, shape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Rounded.Check, null, tint = if (color == Color.White) Color.Black else Color.White)
+                    }
+                }
             }
         }
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
 
         ListItem(
-            headlineContent = { Text(stringResource(R.string.colors_label_use_app_colors)) },
-            supportingContent = { Text(stringResource(R.string.colors_desc_use_app_colors)) },
+            headlineContent = {
+                Text(stringResource(R.string.colors_label_use_app_colors), fontWeight = FontWeight.Medium)
+            },
+            supportingContent = {
+                Text(
+                    stringResource(R.string.colors_desc_use_app_colors),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    minLines = 1,
+                    maxLines = 3
+                )
+            },
             trailingContent = {
                 Switch(
                     checked = viewModel.useAppColors,
@@ -186,7 +212,9 @@ private fun ColorsCustomTab(viewModel: ThemeViewModel) {
     val savedColors = listOf(viewModel.selectedColorHex)
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Text(stringResource(R.string.colors_label_custom_title), style = MaterialTheme.typography.titleMedium)
@@ -210,17 +238,22 @@ private fun ColorsCustomTab(viewModel: ThemeViewModel) {
             ) {
                 items(savedColors) { hex ->
                     val color = safeParseColor(hex)
-                    val isSelected = viewModel.selectedColorHex.equals(hex, ignoreCase = true)
-                    val shape = if (isSelected) RoundedCornerShape(16.dp) else CircleShape
+                    val shape = RoundedCornerShape(16.dp)
 
                     Box(
                         modifier = Modifier
                             .size(56.dp)
                             .clip(shape)
                             .background(color)
-                            .clickable { viewModel.selectedColorHex = hex }
-                            .border(2.dp, MaterialTheme.colorScheme.onSurfaceVariant, shape)
-                    )
+                            .clickable {
+                                viewModel.selectedColorHex = hex
+                                viewModel.useAppColors = false
+                            }
+                            .border(3.dp, MaterialTheme.colorScheme.onSurface, shape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.Check, null, tint = if (color == Color.White) Color.Black else Color.White)
+                    }
                 }
             }
         }
@@ -236,7 +269,10 @@ private fun ColorsCustomTab(viewModel: ThemeViewModel) {
 
                     OutlinedTextField(
                         value = viewModel.selectedColorHex,
-                        onValueChange = { viewModel.selectedColorHex = it },
+                        onValueChange = {
+                            viewModel.selectedColorHex = it
+                            viewModel.useAppColors = false
+                        },
                         label = { Text(stringResource(R.string.colors_label_hex)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
@@ -262,5 +298,14 @@ private fun ColorsCustomTab(viewModel: ThemeViewModel) {
                 }
             }
         )
+    }
+}
+
+fun safeParseColor(hex: String?): Color {
+    if (hex.isNullOrEmpty()) return Color.Gray
+    return try {
+        Color(hex.toColorInt())
+    } catch (e: Exception) {
+        Color.Gray
     }
 }
