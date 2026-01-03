@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,10 +52,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,8 +92,11 @@ fun ThemeCreatorScreen(
     onThemeCreated: () -> Unit
 ) {
     val viewModel: ThemeViewModel = viewModel()
+    val activeThemeId by viewModel.activeThemeId.collectAsState()
+
     var currentRoute by remember { mutableStateOf(CreatorRoute.MAIN_MENU) }
     var showSettingsSheet by remember { mutableStateOf(false) }
+    var showSaveDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(editThemeId) {
         if (editThemeId != null) viewModel.loadThemeForEditing(editThemeId)
@@ -137,8 +143,14 @@ fun ThemeCreatorScreen(
                     if (currentRoute == CreatorRoute.MAIN_MENU) {
                         Button(
                             onClick = {
-                                viewModel.saveTheme(editThemeId)
-                                onThemeCreated()
+                                // Logic: If editing current theme -> Save directly.
+                                // If new theme or inactive theme -> Ask to apply.
+                                if (editThemeId != null && editThemeId == activeThemeId) {
+                                    viewModel.saveTheme(editThemeId) // Assuming saveTheme handles re-activation if needed
+                                    onThemeCreated()
+                                } else {
+                                    showSaveDialog = true
+                                }
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
@@ -155,7 +167,6 @@ fun ThemeCreatorScreen(
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        // Use padding.calculateTopPadding() to avoid double padding if children use Scaffolds
         Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
             AnimatedContent(
                 targetState = currentRoute,
@@ -204,6 +215,37 @@ fun ThemeCreatorScreen(
         if (showSettingsSheet) {
             ThemeMetadataSheet(viewModel) { showSettingsSheet = false }
         }
+
+        if (showSaveDialog) {
+            AlertDialog(
+                onDismissRequest = { showSaveDialog = false },
+                title = { Text(stringResource(R.string.creator_dialog_apply_title)) },
+                text = { Text(stringResource(R.string.creator_dialog_apply_desc)) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showSaveDialog = false
+                            // Note: You must update ThemeViewModel.saveTheme to accept 'apply: Boolean'
+                            viewModel.saveTheme(editThemeId, apply = true)
+                            onThemeCreated()
+                        }
+                    ) {
+                        Text(stringResource(R.string.creator_dialog_action_save_apply))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showSaveDialog = false
+                            viewModel.saveTheme(editThemeId, apply = false)
+                            onThemeCreated()
+                        }
+                    ) {
+                        Text(stringResource(R.string.creator_dialog_action_save_only))
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -214,17 +256,15 @@ private fun CreatorMainList(
     onNavigate: (CreatorRoute) -> Unit,
     onEditSettings: () -> Unit
 ) {
-    // [FIX] Single Scrollable Column so preview scrolls up with the content
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Preview Area
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp), // Taller to fit padding comfortably
+                .height(240.dp),
             contentAlignment = Alignment.Center
         ) {
             Surface(
@@ -240,7 +280,6 @@ private fun CreatorMainList(
             }
         }
 
-        // List Area (part of same scroll)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -383,7 +422,7 @@ private fun DetailScreenShell(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp), // Fixed height to allow content below to breathe
+                .height(200.dp),
             contentAlignment = Alignment.Center
         ) {
             Surface(
