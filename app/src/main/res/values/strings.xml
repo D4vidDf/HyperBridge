@@ -605,4 +605,20 @@
     <string name="creator_dialog_action_save_only">Save Only</string>
     <string name="select_icon">Select Icon</string>
     <string name="change_icon">Change Icon</string>
+    <string name="action_add">Add App</string>
+    <string name="apps_sheet_select_title">Select App</string>
+    <string name="edit_app">Edit App</string>
+
+    <string name="creator_sub_colors_custom">Custom Color Set</string>
+    <string name="creator_sub_colors_default">Using Global Default</string>
+
+    <string name="creator_sub_icons_custom">Custom Shape Set</string>
+    <string name="creator_sub_icons_default">Using Global Default</string>
+    <string name="app_customization_desc">Add an app to customize its look specifically.</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="one">%1$d custom action</item>
+        <item quantity="other">%1$d custom actions</item>
+        <item quantity="many">%1$d custom actions</item>
+
+    </plurals>
 </resources>

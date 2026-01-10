@@ -415,7 +415,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="creator_btn_save">Salvar Tema</string>
     <string name="creator_err_inputs">Por favor, insira um nome e autor</string>
     <string name="theme_sheet_action_create">Criar Novo Tema</string>
-    <string name="theme_sheet_action_find">Buscar na Play Store</string>
+    <string name="theme_sheet_action_find">Search</string>
     <string name="theme_sheet_action_import">Importar de Arquivo</string>
     <string name="theme_action_import_short">Importar</string>
     <string name="theme_card_action_edit">Editar</string>
@@ -519,4 +519,6 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="creator_dialog_apply_desc">Deseja aplicar este tema agora?</string>
     <string name="creator_dialog_action_save_apply">Salvar e Aplicar</string>
     <string name="creator_dialog_action_save_only">Apenas Salvar</string>
+    <string name="select_icon">Select Icon</string>
+    <string name="change_icon">Change Icon</string>
 </resources>

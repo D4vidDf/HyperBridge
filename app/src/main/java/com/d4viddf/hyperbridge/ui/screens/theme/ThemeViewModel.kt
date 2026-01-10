@@ -49,17 +49,18 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     private val _installedThemes = MutableStateFlow<List<HyperTheme>>(emptyList())
     val installedThemes: StateFlow<List<HyperTheme>> = _installedThemes
     val activeThemeId = prefs.activeThemeIdFlow.stateIn(viewModelScope, SharingStarted.Lazily, null)
-    private val _tempAssets = mutableMapOf<String, Uri>()
+
     private val _appOverrides = MutableStateFlow<Map<String, AppThemeOverride>>(emptyMap())
     val appOverrides: StateFlow<Map<String, AppThemeOverride>> = _appOverrides
+
     private val _installedApps = MutableStateFlow<List<AppItem>>(emptyList())
     val installedApps: StateFlow<List<AppItem>> = _installedApps
 
-    // --- VISUAL STATE ---
+    // --- GLOBAL VISUAL STATE ---
+    var currentEditingThemeId: String? by mutableStateOf(null)
+
     var themeName by mutableStateOf("")
     var themeAuthor by mutableStateOf("")
-
-    // [NEW] Added fields for Description, Icon, Lock, and Share Link
     var themeDescription by mutableStateOf("")
     var themeIconUri by mutableStateOf<Uri?>(null)
     var isLockedForEditing by mutableStateOf(false)
@@ -67,14 +68,11 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     var selectedColorHex by mutableStateOf("#3DDA82")
     var useAppColors by mutableStateOf(false)
-
     var isDarkThemePreview by mutableStateOf(true)
 
-    // Icons
     var selectedShapeId by mutableStateOf("circle")
     var iconPaddingPercent by mutableIntStateOf(15)
 
-    // Call
     var callAnswerUri by mutableStateOf<Uri?>(null)
     var callDeclineUri by mutableStateOf<Uri?>(null)
     var callAnswerColor by mutableStateOf("#34C759")
@@ -82,15 +80,35 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var callAnswerShapeId by mutableStateOf("circle")
     var callDeclineShapeId by mutableStateOf("circle")
 
-    // Actions
     var themeDefaultActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
+
+    // --- APP-SPECIFIC EDITING STATE (Buffers) ---
+    var editingAppPackage by mutableStateOf<String?>(null)
+    var editingAppLabel by mutableStateOf("")
+
+    var appHighlightColor by mutableStateOf<String?>(null)
+    var appUseAppColors by mutableStateOf<Boolean?>(null)
+
+    var appShapeId by mutableStateOf<String?>(null)
+    var appPaddingPercent by mutableStateOf<Int?>(null)
+
+    var appCallAnswerColor by mutableStateOf<String?>(null)
+    var appCallDeclineColor by mutableStateOf<String?>(null)
+    var appCallAnswerUri by mutableStateOf<Uri?>(null)
+    var appCallDeclineUri by mutableStateOf<Uri?>(null)
+
+    var appCallAnswerShapeId by mutableStateOf<String?>(null)
+    var appCallDeclineShapeId by mutableStateOf<String?>(null)
+
+    var appActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
+
+    private val _tempAssets = mutableMapOf<String, Uri>()
 
     init {
         refreshThemes()
         loadInstalledApps()
     }
 
-    // --- SHAPE DEFINITIONS ---
     enum class ShapeOption(val id: String, @StringRes val labelRes: Int) {
         CIRCLE("circle", R.string.shape_circle),
         SQUARE("square", R.string.shape_square),
@@ -99,22 +117,18 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         CLOVER_8("clover8", R.string.shape_clover)
     }
 
-    // --- ACTIONS ---
     fun importTheme(uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repo.installThemeFromUri(uri)
                 refreshThemes()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 
     fun refreshThemes() {
         viewModelScope.launch {
             _installedThemes.value = repo.getAvailableThemes()
-            // Ensure the active theme is loaded in repo
             val currentId = activeThemeId.value
             if (currentId != null) repo.activateTheme(currentId)
         }
@@ -124,20 +138,14 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             prefs.setActiveThemeId(theme.id)
             repo.activateTheme(theme.id)
-            val intent = Intent(context, NotificationReaderService::class.java).apply {
-                action = NotificationReaderService.ACTION_RELOAD_THEME
-            }
-            context.startService(intent)
+            reloadNotificationService()
         }
     }
 
     fun resetToDefault() {
         viewModelScope.launch {
             prefs.setActiveThemeId(null)
-            val intent = Intent(context, NotificationReaderService::class.java).apply {
-                action = NotificationReaderService.ACTION_RELOAD_THEME
-            }
-            context.startService(intent)
+            reloadNotificationService()
         }
     }
 
@@ -176,20 +184,111 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun stageAsset(key: String, uri: Uri) { _tempAssets[key] = uri }
-    fun updateAppOverride(pkg: String, override: AppThemeOverride) { _appOverrides.value = _appOverrides.value + (pkg to override) }
-    fun removeAppOverride(pkg: String) { _appOverrides.value = _appOverrides.value - pkg }
+
+    fun updateAppOverride(pkg: String, override: AppThemeOverride) {
+        val newMap = _appOverrides.value.toMutableMap()
+        newMap[pkg] = override
+        _appOverrides.value = newMap
+        saveTheme(currentEditingThemeId, apply = false)
+    }
+
+    fun removeAppOverride(pkg: String) {
+        val newMap = _appOverrides.value.toMutableMap()
+        newMap.remove(pkg)
+        _appOverrides.value = newMap
+        saveTheme(currentEditingThemeId, apply = false)
+    }
+
     fun getThemeById(id: String): HyperTheme? = _installedThemes.value.find { it.id == id }
 
+    // --- APP EDITOR LOGIC ---
+
+    fun loadAppForEditing(pkg: String, label: String) {
+        val override = _appOverrides.value[pkg]
+        editingAppPackage = pkg
+        editingAppLabel = label
+
+        appHighlightColor = override?.highlightColor
+        appUseAppColors = override?.useAppColors
+
+        appShapeId = override?.iconShapeId
+        appPaddingPercent = override?.iconPaddingPercent
+
+        appCallAnswerColor = override?.callConfig?.answerColor
+        appCallDeclineColor = override?.callConfig?.declineColor
+        appCallAnswerShapeId = override?.callConfig?.answerShapeId
+        appCallDeclineShapeId = override?.callConfig?.declineShapeId
+
+        appCallAnswerUri = null
+        appCallDeclineUri = null
+
+        appActions = override?.actions ?: emptyMap()
+    }
+
+    fun saveAppChanges() {
+        val pkg = editingAppPackage ?: return
+
+        val existingOverride = _appOverrides.value[pkg]
+
+        val hasCallChanges = appCallAnswerColor != null || appCallDeclineColor != null ||
+                appCallAnswerUri != null || appCallDeclineUri != null ||
+                appCallAnswerShapeId != null || appCallDeclineShapeId != null
+
+        val callModule = if (hasCallChanges) {
+            CallModule(
+                answerColor = appCallAnswerColor,
+                declineColor = appCallDeclineColor,
+                answerShapeId = appCallAnswerShapeId ?: "circle", // Fallback to avoid null error
+                declineShapeId = appCallDeclineShapeId ?: "circle", // Fallback to avoid null error
+                answerIcon = if (appCallAnswerUri != null) {
+                    val key = "app_${pkg}_answer"
+                    stageAsset(key, appCallAnswerUri!!)
+                    ThemeResource(ResourceType.LOCAL_FILE, "icons/$key.png")
+                } else existingOverride?.callConfig?.answerIcon,
+                declineIcon = if (appCallDeclineUri != null) {
+                    val key = "app_${pkg}_decline"
+                    stageAsset(key, appCallDeclineUri!!)
+                    ThemeResource(ResourceType.LOCAL_FILE, "icons/$key.png")
+                } else existingOverride?.callConfig?.declineIcon
+            )
+        } else null
+
+        val newOverride = AppThemeOverride(
+            highlightColor = appHighlightColor,
+            useAppColors = appUseAppColors,
+            iconShapeId = appShapeId,
+            iconPaddingPercent = appPaddingPercent,
+            callConfig = callModule,
+            actions = appActions.ifEmpty { null },
+            progress = existingOverride?.progress, // Preserving existing progress
+            navigation = existingOverride?.navigation // Preserving existing navigation
+        )
+
+        updateAppOverride(pkg, newOverride)
+        editingAppPackage = null
+    }
+
+    fun cancelAppEditing() {
+        editingAppPackage = null
+    }
+
+    fun updateAppAction(keyword: String, config: ActionConfig) {
+        appActions = appActions + (keyword to config)
+    }
+
+    fun removeAppAction(keyword: String) {
+        appActions = appActions - keyword
+    }
+
     fun loadThemeForEditing(id: String) {
+        currentEditingThemeId = id
         val theme = _installedThemes.value.find { it.id == id }
         if (theme != null) {
             themeName = theme.meta.name
             themeAuthor = theme.meta.author
-            // [NEW] Load new metadata fields
             themeDescription = theme.meta.description
             isLockedForEditing = theme.meta.lockedForEditing
             customShareLink = theme.meta.customShareLink ?: ""
-            // Note: themeIconUri is not loaded here as it's local. We preserve the existing one in save() if not changed.
 
             selectedColorHex = theme.global.highlightColor ?: "#3DDA82"
             useAppColors = theme.global.useAppColors
@@ -206,9 +305,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearCreatorState() {
+        currentEditingThemeId = null
         themeName = ""
         themeAuthor = ""
-        // [NEW] Clear new fields
         themeDescription = ""
         themeIconUri = null
         isLockedForEditing = false
@@ -224,6 +323,11 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         callDeclineColor = "#FF3B30"
         callAnswerShapeId = "circle"
         callDeclineShapeId = "circle"
+
+        appHighlightColor = null
+        appUseAppColors = null
+        appCallAnswerShapeId = null
+        appCallDeclineShapeId = null
 
         _appOverrides.value = emptyMap()
         themeDefaultActions = emptyMap()
@@ -244,46 +348,50 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun saveTheme(existingId: String?, apply: Boolean = false) {
+        val themeId = existingId ?: currentEditingThemeId ?: UUID.randomUUID().toString()
+        if (currentEditingThemeId == null) currentEditingThemeId = themeId
+
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val themeId = existingId ?: UUID.randomUUID().toString()
+                val iconsDir = File(File(repo.getThemesDir(), themeId), "icons")
+                if (!iconsDir.exists()) iconsDir.mkdirs()
 
-                val answerRes = if (callAnswerUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_answer.png") else null
-                val declineRes = if (callDeclineUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_decline.png") else null
-
-                // [FIX] Initialize themeIconRes. If editing, preserve existing icon unless overwritten.
                 var themeIconRes = existingId?.let { getThemeById(it)?.meta?.customIcon }
-
-                // [FIX] Robust Icon Saving Logic
                 if (themeIconUri != null) {
-                    val iconsDir = File(File(repo.getThemesDir(), themeId), "icons")
-                    if (!iconsDir.exists()) iconsDir.mkdirs()
-
                     try {
                         context.contentResolver.openInputStream(themeIconUri!!)?.use { input ->
                             val originalBitmap = BitmapFactory.decodeStream(input)
                             if (originalBitmap != null) {
-                                // [REQ] Enforce 512x512 px size for consistency
                                 val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 512, 512, true)
-
                                 val iconFile = File(iconsDir, "theme_thumb.png")
-                                iconFile.outputStream().use { out ->
-                                    scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                                }
-
-                                // Update resource pointer only if save succeeded
+                                iconFile.outputStream().use { out -> scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
                                 themeIconRes = ThemeResource(ResourceType.LOCAL_FILE, "icons/theme_thumb.png")
-
-                                // Recycle bitmaps to free memory
                                 if (originalBitmap != scaledBitmap) originalBitmap.recycle()
-                                // scaledBitmap.recycle() // Let GC handle it
                             }
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        // If save fails, we keep the previous icon (if any) or null
-                    }
+                    } catch (e: Exception) { e.printStackTrace() }
                 }
+
+                if (_tempAssets.isNotEmpty()) {
+                    _tempAssets.forEach { (key, uri) ->
+                        try {
+                            context.contentResolver.openInputStream(uri)?.use { input ->
+                                val bitmap = BitmapFactory.decodeStream(input)
+                                if (bitmap != null) {
+                                    File(iconsDir, "$key.png").outputStream().use {
+                                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) { e.printStackTrace() }
+                    }
+                    _tempAssets.clear()
+                }
+
+                val answerRes = if (callAnswerUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_answer.png")
+                else getThemeById(themeId)?.callConfig?.answerIcon
+                val declineRes = if (callDeclineUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_decline.png")
+                else getThemeById(themeId)?.callConfig?.declineIcon
 
                 val newTheme = HyperTheme(
                     id = themeId,
@@ -291,7 +399,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         name = themeName.ifBlank { "My Theme" },
                         author = themeAuthor,
                         description = themeDescription,
-                        customIcon = themeIconRes, // Use the resolved/updated resource
+                        customIcon = themeIconRes,
                         lockedForEditing = isLockedForEditing,
                         customShareLink = customShareLink.ifBlank { null }
                     ),
@@ -316,43 +424,21 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
                 repo.saveTheme(newTheme)
 
-                // [FIX] Apply Logic with Service Reload
-                if (apply) {
-                    prefs.setActiveThemeId(themeId)
+                if (apply || activeThemeId.value == themeId) {
+                    if(apply) prefs.setActiveThemeId(themeId)
                     repo.activateTheme(themeId)
-                    val intent = Intent(context, NotificationReaderService::class.java).apply {
-                        action = NotificationReaderService.ACTION_RELOAD_THEME
-                    }
-                    context.startService(intent)
-                } else if (activeThemeId.value == themeId) {
-                    // If saving changes to the currently active theme, reload it
-                    repo.activateTheme(themeId)
-                    val intent = Intent(context, NotificationReaderService::class.java).apply {
-                        action = NotificationReaderService.ACTION_RELOAD_THEME
-                    }
-                    context.startService(intent)
-                }
-
-                if (_tempAssets.isNotEmpty()) {
-                    val iconsDir = File(File(repo.getThemesDir(), themeId), "icons")
-                    if (!iconsDir.exists()) iconsDir.mkdirs()
-                    _tempAssets.forEach { (key, uri) ->
-                        try {
-                            context.contentResolver.openInputStream(uri)?.use { input ->
-                                val bitmap = BitmapFactory.decodeStream(input)
-                                if (bitmap != null) {
-                                    File(iconsDir, "$key.png").outputStream().use {
-                                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
-                                    }
-                                }
-                            }
-                        } catch (e: Exception) { e.printStackTrace() }
-                    }
-                    _tempAssets.clear()
+                    reloadNotificationService()
                 }
             }
             refreshThemes()
         }
+    }
+
+    private fun reloadNotificationService() {
+        val intent = Intent(context, NotificationReaderService::class.java).apply {
+            action = NotificationReaderService.ACTION_RELOAD_THEME
+        }
+        context.startService(intent)
     }
 }
 

@@ -56,12 +56,14 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.ui.components.EmptyState
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
-import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 
 @Composable
-fun ActionsDetailContent(viewModel: ThemeViewModel) {
-    val actions = viewModel.themeDefaultActions
+fun ActionsDetailContent(
+    actions: Map<String, ActionConfig>,
+    onUpdateAction: (String, ActionConfig) -> Unit,
+    onRemoveAction: (String) -> Unit
+) {
     var showSheet by remember { mutableStateOf(false) }
     var selectedKeyword by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
@@ -96,7 +98,6 @@ fun ActionsDetailContent(viewModel: ThemeViewModel) {
                 .fillMaxSize()
         ) {
 
-            // --- SEARCH BAR ---
             Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 TextField(
                     value = searchQuery,
@@ -122,7 +123,6 @@ fun ActionsDetailContent(viewModel: ThemeViewModel) {
                 )
             }
 
-            // --- LIST OR EMPTY STATE ---
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 if (actions.isEmpty() && searchQuery.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -159,9 +159,7 @@ fun ActionsDetailContent(viewModel: ThemeViewModel) {
                                     selectedKeyword = keyword
                                     showSheet = true
                                 },
-                                onDelete = {
-                                    viewModel.removeDefaultAction(keyword)
-                                }
+                                onDelete = { onRemoveAction(keyword) }
                             )
                         }
                     }
@@ -176,7 +174,7 @@ fun ActionsDetailContent(viewModel: ThemeViewModel) {
             initialConfig = if (selectedKeyword != null) actions[selectedKeyword] else null,
             onDismiss = { showSheet = false },
             onSave = { keyword, config ->
-                viewModel.updateDefaultAction(keyword, config)
+                onUpdateAction(keyword, config)
                 showSheet = false
             }
         )

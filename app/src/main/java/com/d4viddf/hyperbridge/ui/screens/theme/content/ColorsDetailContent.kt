@@ -60,12 +60,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
+import com.d4viddf.hyperbridge.ui.screens.design.ToolbarOption
 import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ColorsDetailContent(viewModel: ThemeViewModel) {
+fun ColorsDetailContent(
+    selectedColorHex: String,
+    useAppColors: Boolean,
+    onColorSelected: (String) -> Unit,
+    onUseAppColorsChanged: (Boolean) -> Unit
+) {
     var tabIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -98,7 +103,6 @@ fun ColorsDetailContent(viewModel: ThemeViewModel) {
             )
         }
     ) { paddingValues ->
-        // [FIX] Removed top padding
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -122,8 +126,8 @@ fun ColorsDetailContent(viewModel: ThemeViewModel) {
                     modifier = Modifier.padding(vertical = 12.dp)
                 ) { selectedTab ->
                     when (selectedTab) {
-                        0 -> ColorsPresetsTab(viewModel)
-                        1 -> ColorsCustomTab(viewModel)
+                        0 -> ColorsPresetsTab(selectedColorHex, useAppColors, onColorSelected, onUseAppColorsChanged)
+                        1 -> ColorsCustomTab(selectedColorHex, onColorSelected)
                     }
                 }
             }
@@ -132,7 +136,12 @@ fun ColorsDetailContent(viewModel: ThemeViewModel) {
 }
 
 @Composable
-private fun ColorsPresetsTab(viewModel: ThemeViewModel) {
+private fun ColorsPresetsTab(
+    selectedColorHex: String,
+    useAppColors: Boolean,
+    onColorSelected: (String) -> Unit,
+    onUseAppColorsChanged: (Boolean) -> Unit
+) {
     val presets = listOf("#3DDA82", "#FF3B30", "#007AFF", "#FF9500", "#9333ea", "#e11d48", "#2563eb", "#FFFFFF")
 
     Column(
@@ -152,7 +161,7 @@ private fun ColorsPresetsTab(viewModel: ThemeViewModel) {
         ) {
             items(presets) { hex ->
                 val color = safeParseColor(hex)
-                val isSelected = viewModel.selectedColorHex.equals(hex, ignoreCase = true) && !viewModel.useAppColors
+                val isSelected = selectedColorHex.equals(hex, ignoreCase = true) && !useAppColors
 
                 val shape = if (isSelected) RoundedCornerShape(16.dp) else CircleShape
                 val borderColor = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
@@ -164,8 +173,8 @@ private fun ColorsPresetsTab(viewModel: ThemeViewModel) {
                         .clip(shape)
                         .background(color)
                         .clickable {
-                            viewModel.selectedColorHex = hex
-                            viewModel.useAppColors = false
+                            onColorSelected(hex)
+                            onUseAppColorsChanged(false)
                         }
                         .border(borderWidth, borderColor, shape),
                     contentAlignment = Alignment.Center
@@ -197,8 +206,8 @@ private fun ColorsPresetsTab(viewModel: ThemeViewModel) {
             },
             trailingContent = {
                 Switch(
-                    checked = viewModel.useAppColors,
-                    onCheckedChange = { viewModel.useAppColors = it }
+                    checked = useAppColors,
+                    onCheckedChange = onUseAppColorsChanged
                 )
             },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -207,9 +216,12 @@ private fun ColorsPresetsTab(viewModel: ThemeViewModel) {
 }
 
 @Composable
-private fun ColorsCustomTab(viewModel: ThemeViewModel) {
+private fun ColorsCustomTab(
+    selectedColorHex: String,
+    onColorSelected: (String) -> Unit
+) {
     var showColorPicker by remember { mutableStateOf(false) }
-    val savedColors = listOf(viewModel.selectedColorHex)
+    val savedColors = listOf(selectedColorHex)
 
     Column(
         modifier = Modifier
@@ -245,10 +257,7 @@ private fun ColorsCustomTab(viewModel: ThemeViewModel) {
                             .size(56.dp)
                             .clip(shape)
                             .background(color)
-                            .clickable {
-                                viewModel.selectedColorHex = hex
-                                viewModel.useAppColors = false
-                            }
+                            .clickable { onColorSelected(hex) }
                             .border(3.dp, MaterialTheme.colorScheme.onSurface, shape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -268,11 +277,8 @@ private fun ColorsCustomTab(viewModel: ThemeViewModel) {
                     Text(stringResource(R.string.colors_dialog_desc))
 
                     OutlinedTextField(
-                        value = viewModel.selectedColorHex,
-                        onValueChange = {
-                            viewModel.selectedColorHex = it
-                            viewModel.useAppColors = false
-                        },
+                        value = selectedColorHex,
+                        onValueChange = { onColorSelected(it) },
                         label = { Text(stringResource(R.string.colors_label_hex)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
@@ -285,7 +291,7 @@ private fun ColorsCustomTab(viewModel: ThemeViewModel) {
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .background(safeParseColor(viewModel.selectedColorHex))
+                                    .background(safeParseColor(selectedColorHex))
                                     .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                             )
                         }

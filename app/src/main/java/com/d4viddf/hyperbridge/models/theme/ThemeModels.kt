@@ -53,6 +53,12 @@ data class CallModule(
 @Serializable
 data class AppThemeOverride(
     @SerialName("highlight_color") val highlightColor: String? = null,
+    // [NEW] Added Shape and Padding overrides
+    @SerialName("use_app_colors") val useAppColors: Boolean? = null,
+    @SerialName("icon_shape_id") val iconShapeId: String? = null,
+    @SerialName("icon_padding_percent") val iconPaddingPercent: Int? = null,
+    // [NEW] Added Call Config override
+    @SerialName("call_config") val callConfig: CallModule? = null,
     val actions: Map<String, ActionConfig>? = null,
     val progress: ProgressModule? = null,
     val navigation: NavigationModule? = null

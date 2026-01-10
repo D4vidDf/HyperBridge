@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.theme.content
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -54,13 +55,25 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.ui.screens.design.ToolbarOption
 import com.d4viddf.hyperbridge.ui.screens.theme.AssetPickerButton
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun CallStyleSheetContent(viewModel: ThemeViewModel) {
+fun CallStyleSheetContent(
+    answerColor: String,
+    declineColor: String,
+    answerShapeId: String,
+    declineShapeId: String,
+    onAnswerColorChange: (String) -> Unit,
+    onDeclineColorChange: (String) -> Unit,
+    onAnswerShapeChange: (String) -> Unit,
+    onDeclineShapeChange: (String) -> Unit,
+    onAnswerIconSelected: (Uri) -> Unit,
+    onDeclineIconSelected: (Uri) -> Unit
+) {
     var tabIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -93,7 +106,6 @@ fun CallStyleSheetContent(viewModel: ThemeViewModel) {
             )
         }
     ) { paddingValues ->
-        // [FIX] Removed top padding, only applied bottom padding for FAB
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -118,26 +130,20 @@ fun CallStyleSheetContent(viewModel: ThemeViewModel) {
                     when (selectedTab) {
                         0 -> CallConfigTab(
                             title = stringResource(R.string.calls_label_answer),
-                            color = viewModel.callAnswerColor,
-                            selectedShapeId = viewModel.callAnswerShapeId,
-                            onColorChange = { viewModel.callAnswerColor = it },
-                            onShapeChange = { viewModel.callAnswerShapeId = it },
-                            onAssetSelected = { uri ->
-                                viewModel.stageAsset("call_answer", uri)
-                                viewModel.callAnswerUri = uri
-                            },
+                            color = answerColor,
+                            selectedShapeId = answerShapeId,
+                            onColorChange = onAnswerColorChange,
+                            onShapeChange = onAnswerShapeChange,
+                            onAssetSelected = onAnswerIconSelected,
                             defaultIcon = Icons.Rounded.Call
                         )
                         1 -> CallConfigTab(
                             title = stringResource(R.string.calls_label_decline),
-                            color = viewModel.callDeclineColor,
-                            selectedShapeId = viewModel.callDeclineShapeId,
-                            onColorChange = { viewModel.callDeclineColor = it },
-                            onShapeChange = { viewModel.callDeclineShapeId = it },
-                            onAssetSelected = { uri ->
-                                viewModel.stageAsset("call_decline", uri)
-                                viewModel.callDeclineUri = uri
-                            },
+                            color = declineColor,
+                            selectedShapeId = declineShapeId,
+                            onColorChange = onDeclineColorChange,
+                            onShapeChange = onDeclineShapeChange,
+                            onAssetSelected = onDeclineIconSelected,
                             defaultIcon = Icons.Rounded.CallEnd
                         )
                     }
@@ -156,7 +162,7 @@ private fun CallConfigTab(
     selectedShapeId: String,
     onColorChange: (String) -> Unit,
     onShapeChange: (String) -> Unit,
-    onAssetSelected: (android.net.Uri) -> Unit,
+    onAssetSelected: (Uri) -> Unit,
     defaultIcon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
     Column(

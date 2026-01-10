@@ -337,7 +337,7 @@ fun HeroSection() {
         modifier = Modifier.fillMaxWidth(),
         state = state,
         itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 16.dp)
+        contentPadding = PaddingValues(horizontal = 8.dp)
     ) { i ->
         val item = items[i]
         HeroCard(item,
