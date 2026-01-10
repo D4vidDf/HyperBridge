@@ -487,4 +487,24 @@
     <string name="design_empty_widget_title">Add your first Widget</string>
     <string name="design_active_count">%d Active</string>
     <string name="design">Design</string>
+    <string name="creator_nav_actions">Global Actions</string>
+    <string name="creator_sub_actions">Style buttons by keyword</string>
+    <string name="action_sheet_title">Configure Action</string>
+    <string name="action_label_keyword">Keyword (e.g. \'Reply\')</string>
+    <string name="action_label_bg_color">Background Color</string>
+    <string name="action_label_tint_color">Icon/Text Color</string>
+    <string name="action_preview">Live Preview</string>
+    <string name="action_mode_icon">Icon Only</string>
+    <string name="action_mode_text">Text</string>
+    <string name="action_mode_both">Both</string>
+    <string name="actions_empty_title">No Custom Actions</string>
+    <string name="actions_empty_desc">Add rules to style notification buttons based on their text (e.g., \"Reply\", \"Archive\").</string>
+    <string name="action_default_preview_text">Action</string>
+    <string name="actions_search_hint">Search actions...</string>
+    <string name="actions_search_empty_fmt">No actions found for \"%1$s\"</string>
+    <string name="action_wip_warning">This feature is a Work in Progress. Keyword matching depends on how apps structure their notifications and may not work for every app.</string>
+    <string name="creator_dialog_apply_title">Apply Theme?</string>
+    <string name="creator_dialog_apply_desc">Do you want to apply this theme now?</string>
+    <string name="creator_dialog_action_save_apply">Save &amp; Apply</string>
+    <string name="creator_dialog_action_save_only">Save Only</string>
 </resources>

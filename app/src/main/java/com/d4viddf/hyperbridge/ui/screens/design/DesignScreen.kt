@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.ui.screens.design
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -60,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -80,9 +82,11 @@ import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.theme.CallModule
 import com.d4viddf.hyperbridge.models.theme.GlobalConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 // --- 1. STATEFUL COMPOSABLE (Logic Layer) ---
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +94,7 @@ import kotlinx.coroutines.withContext
 fun DesignScreen(
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
-    onEditTheme: (String) -> Unit, // [UPDATED] Added callback for editing
+    onEditTheme: (String) -> Unit,
     onLaunchPicker: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -103,11 +107,35 @@ fun DesignScreen(
 
     var availableThemes by remember { mutableStateOf<List<HyperTheme>>(emptyList()) }
     var widgetIcons by remember { mutableStateOf<List<Drawable>>(emptyList()) }
+    // [NEW] State for cached theme icons
+    var themeIcons by remember { mutableStateOf<Map<String, ImageBitmap?>>(emptyMap()) }
+
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(Unit) {
-        availableThemes = themeRepo.getAvailableThemes()
+        val themes = themeRepo.getAvailableThemes()
+        availableThemes = themes
+
+        // [NEW] Load custom icons for themes
+        withContext(Dispatchers.IO) {
+            val iconMap = mutableMapOf<String, ImageBitmap?>()
+            themes.forEach { theme ->
+                val iconRes = theme.meta.customIcon
+                if (iconRes != null && iconRes.type == ResourceType.LOCAL_FILE) {
+                    try {
+                        val file = File(themeRepo.getThemesDir(), "${theme.id}/${iconRes.value}")
+                        if (file.exists()) {
+                            val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                            if (bitmap != null) {
+                                iconMap[theme.id] = bitmap.asImageBitmap()
+                            }
+                        }
+                    } catch (e: Exception) { e.printStackTrace() }
+                }
+            }
+            themeIcons = iconMap
+        }
     }
 
     LaunchedEffect(savedWidgetIds) {
@@ -131,11 +159,12 @@ fun DesignScreen(
     DesignScreenContent(
         activeThemeId = activeThemeId,
         availableThemes = availableThemes,
+        themeIcons = themeIcons, // [NEW] Pass icons down
         savedWidgetCount = savedWidgetIds.size,
         widgetIcons = widgetIcons,
         onNavigateToWidgets = onNavigateToWidgets,
         onNavigateToThemes = onNavigateToThemes,
-        onEditTheme = onEditTheme, // [UPDATED] Pass callback down
+        onEditTheme = onEditTheme,
         onFabClick = { showBottomSheet = true },
         onSettingsClick = onSettingsClick
     )
@@ -193,11 +222,12 @@ fun DesignScreen(
 fun DesignScreenContent(
     activeThemeId: String?,
     availableThemes: List<HyperTheme>,
+    themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
     savedWidgetCount: Int,
     widgetIcons: List<Drawable>,
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
-    onEditTheme: (String) -> Unit, // [UPDATED] Added callback
+    onEditTheme: (String) -> Unit,
     onFabClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -211,7 +241,9 @@ fun DesignScreenContent(
                 },
                 actions = {
                     Surface(
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(end = 8.dp), // Added padding to fix layout
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         onClick = onSettingsClick
@@ -240,23 +272,21 @@ fun DesignScreenContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // --- 1. HERO CAROUSEL ---
             HeroSection()
 
-            // --- 2. THEMES SECTION ---
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 SectionHeader(stringResource(R.string.design_section_themes), onNavigateToThemes)
                 ThemesCarousel(
                     themes = availableThemes,
+                    themeIcons = themeIcons, // [NEW] Pass icons down
                     activeId = activeThemeId,
                     onNavigateToThemes = onNavigateToThemes,
-                    onEditTheme = onEditTheme // [UPDATED] Pass callback down
+                    onEditTheme = onEditTheme
                 )
             }
 
-            // --- 3. WIDGETS SECTION ---
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -319,9 +349,10 @@ fun HeroSection() {
 @Composable
 fun ThemesCarousel(
     themes: List<HyperTheme>,
+    themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
     activeId: String?,
     onNavigateToThemes: () -> Unit,
-    onEditTheme: (String) -> Unit // [UPDATED] Added callback
+    onEditTheme: (String) -> Unit
 ) {
     val displayThemes = themes.take(5)
     val totalCount = 1 + displayThemes.size + 1
@@ -356,7 +387,6 @@ fun ThemesCarousel(
                 color = MaterialTheme.colorScheme.secondary,
                 isActive = activeId == null,
                 icon = Icons.Rounded.PhoneAndroid,
-                // [NOTE] System default is not "editable" in creator, so we just open manager
                 onClick = onNavigateToThemes,
                 modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
             )
@@ -366,13 +396,16 @@ fun ThemesCarousel(
                 Color((theme.global.highlightColor ?: "#000000").toColorInt())
             } catch (_: Exception) { MaterialTheme.colorScheme.primary }
 
+            // [NEW] Get custom icon if available
+            val customIcon = themeIcons[theme.id]
+
             ThemePreviewCard(
                 title = theme.meta.name,
                 subtitle = stringResource(R.string.theme_card_author_format, theme.meta.author),
                 color = color,
                 isActive = theme.id == activeId,
                 icon = Icons.Rounded.Palette,
-                // [FIX] Clicking a user theme now opens the editor for that theme
+                customIcon = customIcon, // [NEW] Pass icon
                 onClick = { onEditTheme(theme.id) },
                 modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
             )
@@ -486,6 +519,7 @@ fun ThemePreviewCard(
     color: Color,
     isActive: Boolean,
     icon: ImageVector,
+    customIcon: ImageBitmap? = null,
     isAction: Boolean = false,
     onClick: () -> Unit,
     modifier: Modifier
@@ -516,12 +550,24 @@ fun ThemePreviewCard(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = color
-                    )
+                    if (customIcon != null) {
+                        Image(
+                            bitmap = customIcon,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(16.dp)), // [FIX] Rounded corners applied here
+                            contentScale = ContentScale.Crop // Ensure image fills the rounded box
+                        )
+                    } else {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = color
+                        )
+                    }
+
                     if (isActive) {
                         Box(
                             modifier = Modifier
@@ -595,7 +641,6 @@ fun WidgetPreviewCard(
 @Preview(showBackground = true)
 @Composable
 private fun DesignScreenPreview() {
-    // Generate Fake Data
     val mockThemes = listOf(
         HyperTheme(
             id = "1",
@@ -625,7 +670,6 @@ private fun DesignScreenPreview() {
         )
     )
 
-    // Mock Widget Icons (Color Drawables)
     val mockIcons = listOf(
         android.graphics.Color.RED.toDrawable(),
         android.graphics.Color.BLUE.toDrawable()
@@ -635,6 +679,7 @@ private fun DesignScreenPreview() {
         DesignScreenContent(
             activeThemeId = "1",
             availableThemes = mockThemes,
+            themeIcons = emptyMap(),
             savedWidgetCount = 2,
             widgetIcons = mockIcons,
             onNavigateToWidgets = {},
@@ -653,6 +698,7 @@ private fun DesignScreenEmptyPreview() {
         DesignScreenContent(
             activeThemeId = null,
             availableThemes = emptyList(),
+            themeIcons = emptyMap(),
             savedWidgetCount = 0,
             widgetIcons = emptyList(),
             onNavigateToWidgets = {},

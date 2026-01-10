@@ -392,7 +392,7 @@
     <string name="theme_installer_error_generic">Nie można zweryfikować pliku motywu.</string>
     <string name="theme_installer_btn_close">Zamknij</string>
     <string name="theme_manager_title">Moje motywy</string>
-    <string name="theme_manager_cd_back">Navigate Back</string>
+    <string name="theme_manager_cd_back">Przejdź wstecz</string>
     <string name="theme_manager_cd_add">Dodaj nowy motyw</string>
     <string name="theme_card_author_format">od %s</string>
     <string name="theme_card_cd_active">Aktywny motyw</string>
@@ -493,5 +493,25 @@
     <string name="design_get_themes">Uzyskaj motywy</string>
     <string name="design_empty_widget_title">Dodaj swój pierwszy widżet</string>
     <string name="design_active_count">Aktywne: %d</string>
-    <string name="design">Design</string>
+    <string name="design">Wygląd</string>
+    <string name="creator_nav_actions">Globalne akcje</string>
+    <string name="creator_sub_actions">Style przycisków w oparciu o słowa kluczowe</string>
+    <string name="action_sheet_title">Skonfiguruj akcję</string>
+    <string name="action_label_keyword">Słowo kluczowe (np. \'Odpowiedz\')</string>
+    <string name="action_label_bg_color">Kolor tła</string>
+    <string name="action_label_tint_color">Kolor ikony/tekstu</string>
+    <string name="action_preview">Podgląd na żywo</string>
+    <string name="action_mode_icon">Tylko ikona</string>
+    <string name="action_mode_text">Tekst</string>
+    <string name="action_mode_both">Oba</string>
+    <string name="actions_empty_title">Brak niestandardowych akcji</string>
+    <string name="actions_empty_desc">Dodaj reguły, aby stylizować przyciski powiadomień w oparciu o ich tekst (np. \"Odpowiedz\", \"Zarchiwizuj\").</string>
+    <string name="action_default_preview_text">Akcja</string>
+    <string name="actions_search_hint">Wyszukaj akcje...</string>
+    <string name="actions_search_empty_fmt">Nie znaleziono akcji dla \"%1$s\"</string>
+    <string name="action_wip_warning">Ta funkcja jest obecnie dopracowywana. Dopasowanie słów kluczowych zależy od tego, jak aplikacje kształtują swoje powiadomienia, i może nie działać w każdej aplikacji.</string>
+    <string name="creator_dialog_apply_title">Zastosować motyw?</string>
+    <string name="creator_dialog_apply_desc">Czy chcesz teraz zastosować ten motyw?</string>
+    <string name="creator_dialog_action_save_apply">Zapisz i zastosuj</string>
+    <string name="creator_dialog_action_save_only">Tylko zapisz</string>
 </resources>
