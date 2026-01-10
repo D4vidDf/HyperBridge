@@ -1,17 +1,25 @@
 package com.d4viddf.hyperbridge.ui.screens.theme
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,12 +45,17 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -55,6 +68,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,12 +79,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
@@ -79,12 +96,14 @@ import com.d4viddf.hyperbridge.ui.screens.theme.content.CallStyleSheetContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ColorsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.IconsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class CreatorRoute {
     MAIN_MENU, COLORS, ICONS, CALLS, ACTIONS, APPS
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ThemeCreatorScreen(
     editThemeId: String? = null,
@@ -143,10 +162,8 @@ fun ThemeCreatorScreen(
                     if (currentRoute == CreatorRoute.MAIN_MENU) {
                         Button(
                             onClick = {
-                                // Logic: If editing current theme -> Save directly.
-                                // If new theme or inactive theme -> Ask to apply.
                                 if (editThemeId != null && editThemeId == activeThemeId) {
-                                    viewModel.saveTheme(editThemeId) // Assuming saveTheme handles re-activation if needed
+                                    viewModel.saveTheme(editThemeId)
                                     onThemeCreated()
                                 } else {
                                     showSaveDialog = true
@@ -156,8 +173,9 @@ fun ThemeCreatorScreen(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary
                             ),
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
+                            modifier = Modifier.padding(end = 8.dp),
+                            shapes= ButtonDefaults.shapes(),
+                            ) {
                             Text(stringResource(R.string.creator_action_save), fontWeight = FontWeight.Bold)
                         }
                     }
@@ -167,7 +185,9 @@ fun ThemeCreatorScreen(
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
+        Box(modifier = Modifier
+            .padding(top = padding.calculateTopPadding())
+            .fillMaxSize()) {
             AnimatedContent(
                 targetState = currentRoute,
                 transitionSpec = {
@@ -225,7 +245,6 @@ fun ThemeCreatorScreen(
                     Button(
                         onClick = {
                             showSaveDialog = false
-                            // Note: You must update ThemeViewModel.saveTheme to accept 'apply: Boolean'
                             viewModel.saveTheme(editThemeId, apply = true)
                             onThemeCreated()
                         }
@@ -331,7 +350,11 @@ private fun CreatorMainList(
                                         .size(28.dp)
                                         .clip(CircleShape)
                                         .background(safeParseColor(viewModel.selectedColorHex))
-                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                        .border(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.outlineVariant,
+                                            CircleShape
+                                        )
                                 )
                             }
                         )
@@ -389,7 +412,9 @@ private fun CreatorOptionCard(
         onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = shape,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 88.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 88.dp)
     ) {
         Row(
             modifier = Modifier
@@ -412,7 +437,6 @@ private fun CreatorOptionCard(
     }
 }
 
-// --- DETAIL SHELL (For Screens with Preview) ---
 @Composable
 private fun DetailScreenShell(
     previewContent: @Composable () -> Unit,
@@ -440,20 +464,170 @@ private fun DetailScreenShell(
                 }
             }
         }
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+        Box(modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()) {
             content()
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// --- UPDATED METADATA SHEET ---
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ThemeMetadataSheet(viewModel: ThemeViewModel, onDismiss: () -> Unit) {
     val fm = LocalFocusManager.current
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(24.dp).navigationBarsPadding()) {
+    val context = LocalContext.current
+
+    // [FIX] Open sheet fully expanded by default
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // [NEW] Manual Launcher Configuration
+    // Identical contract to IconsDetailContent for consistency
+    val iconLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+
+            // Update ViewModel
+            viewModel.themeIconUri = uri
+        }
+    }
+
+    // Logic to preview loaded bitmap from the URI
+    var iconBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(viewModel.themeIconUri) {
+        if (viewModel.themeIconUri != null) {
+            withContext(Dispatchers.IO) {
+                try {
+                    context.contentResolver.openInputStream(viewModel.themeIconUri!!)?.use { stream ->
+                        val bmp = BitmapFactory.decodeStream(stream)
+                        iconBitmap = bmp?.asImageBitmap()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    iconBitmap = null
+                }
+            }
+        } else {
+            iconBitmap = null
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally // Center everything
+        ) {
             Text(stringResource(R.string.meta_title), style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(32.dp))
+
+            // --- 1. CENTERED ICON PREVIEW (Clickable) ---
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant,
+                        RoundedCornerShape(24.dp)
+                    )
+                    .clickable {
+                        iconLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }, // [FIX] Trigger launcher
+                contentAlignment = Alignment.Center
+            ) {
+                if (iconBitmap != null) {
+                    Image(
+                        bitmap = iconBitmap!!,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Icons.Outlined.Image,
+                        null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+
             Spacer(Modifier.height(24.dp))
+
+            // --- 2. ACTION ROW (Remove / Change) ---
+            if (viewModel.themeIconUri != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // LEFT: Small, Square, Filled Tonal Icon Button for Delete
+                    FilledTonalButton(
+                        onClick = { viewModel.themeIconUri = null },
+                        modifier = Modifier.size(50.dp), // Square shape
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(Icons.Rounded.Delete, null, modifier = Modifier.size(20.dp))
+                    }
+
+                    // RIGHT: Wide, Text+Icon Change Button
+                    Button(
+                        onClick = { iconLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        ) }, // [FIX] Trigger launcher
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp), // Equal height
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                    ) {
+                        Icon(Icons.Rounded.Edit, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.change_icon))
+                    }
+                }
+            } else {
+                // NO ICON: Single wide Select button
+                Button(
+                    onClick = { iconLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    ) }, // [FIX] Trigger launcher
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                ) {
+                    Icon(Icons.Rounded.Image, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.select_icon))
+                }
+            }
+
+            Spacer(Modifier.height(32.dp))
+
+            // --- 3. METADATA FIELDS ---
             OutlinedTextField(
                 value = viewModel.themeName,
                 onValueChange = { viewModel.themeName = it },
@@ -463,6 +637,7 @@ fun ThemeMetadataSheet(viewModel: ThemeViewModel, onDismiss: () -> Unit) {
                 keyboardActions = KeyboardActions(onDone = { fm.clearFocus() })
             )
             Spacer(Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = viewModel.themeAuthor,
                 onValueChange = { viewModel.themeAuthor = it },
@@ -471,53 +646,29 @@ fun ThemeMetadataSheet(viewModel: ThemeViewModel, onDismiss: () -> Unit) {
                 singleLine = true,
                 keyboardActions = KeyboardActions(onDone = { fm.clearFocus() })
             )
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = viewModel.themeDescription,
+                onValueChange = { viewModel.themeDescription = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 5
+            )
+
+            Spacer(Modifier.height(32.dp))
+
             Button(
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(stringResource(R.string.meta_action_done))
             }
             Spacer(Modifier.height(24.dp))
         }
-    }
-}
-
-sealed class ShapeStyle(
-    val topRadius: Dp,
-    val bottomRadius: Dp
-) {
-    data object None : ShapeStyle(topRadius = 0.dp, bottomRadius = 0.dp)
-    data object ExtraSmall : ShapeStyle(topRadius = 2.dp, bottomRadius = 1.dp)
-    data object Small : ShapeStyle(topRadius = 4.dp, bottomRadius = 2.dp)
-    data object Medium : ShapeStyle(topRadius = 15.dp, bottomRadius = 5.dp)
-    data object Large : ShapeStyle(topRadius = 24.dp, bottomRadius = 4.dp)
-    data object ExtraLarge : ShapeStyle(topRadius = 48.dp, bottomRadius = 16.dp)
-}
-
-fun getExpressiveShape(
-    groupSize: Int,
-    index: Int,
-    style: ShapeStyle = ShapeStyle.Large
-): Shape {
-    if (groupSize <= 1) return RoundedCornerShape(style.topRadius)
-
-    val large = style.topRadius
-    val small = style.bottomRadius
-
-    return when (index) {
-        0 -> RoundedCornerShape(
-            topStart = large,
-            topEnd = large,
-            bottomEnd = small,
-            bottomStart = small
-        )
-        groupSize - 1 -> RoundedCornerShape(
-            topStart = small,
-            topEnd = small,
-            bottomEnd = large,
-            bottomStart = large
-        )
-        else -> RoundedCornerShape(small)
     }
 }

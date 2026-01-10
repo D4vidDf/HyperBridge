@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +58,13 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     // --- VISUAL STATE ---
     var themeName by mutableStateOf("")
     var themeAuthor by mutableStateOf("")
+
+    // [NEW] Added fields for Description, Icon, Lock, and Share Link
+    var themeDescription by mutableStateOf("")
+    var themeIconUri by mutableStateOf<Uri?>(null)
+    var isLockedForEditing by mutableStateOf(false)
+    var customShareLink by mutableStateOf("")
+
     var selectedColorHex by mutableStateOf("#3DDA82")
     var useAppColors by mutableStateOf(false)
 
@@ -71,8 +79,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var callDeclineUri by mutableStateOf<Uri?>(null)
     var callAnswerColor by mutableStateOf("#34C759")
     var callDeclineColor by mutableStateOf("#FF3B30")
-
-    // [NEW] Call Button Shapes
     var callAnswerShapeId by mutableStateOf("circle")
     var callDeclineShapeId by mutableStateOf("circle")
 
@@ -85,7 +91,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // --- SHAPE DEFINITIONS ---
-    enum class ShapeOption(val id: String, val labelRes: Int) {
+    enum class ShapeOption(val id: String, @StringRes val labelRes: Int) {
         CIRCLE("circle", R.string.shape_circle),
         SQUARE("square", R.string.shape_square),
         COOKIE_4("cookie", R.string.shape_cookie),
@@ -108,6 +114,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshThemes() {
         viewModelScope.launch {
             _installedThemes.value = repo.getAvailableThemes()
+            // Ensure the active theme is loaded in repo
             val currentId = activeThemeId.value
             if (currentId != null) repo.activateTheme(currentId)
         }
@@ -117,7 +124,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             prefs.setActiveThemeId(theme.id)
             repo.activateTheme(theme.id)
-            // Notify service to reload
             val intent = Intent(context, NotificationReaderService::class.java).apply {
                 action = NotificationReaderService.ACTION_RELOAD_THEME
             }
@@ -179,6 +185,12 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         if (theme != null) {
             themeName = theme.meta.name
             themeAuthor = theme.meta.author
+            // [NEW] Load new metadata fields
+            themeDescription = theme.meta.description
+            isLockedForEditing = theme.meta.lockedForEditing
+            customShareLink = theme.meta.customShareLink ?: ""
+            // Note: themeIconUri is not loaded here as it's local. We preserve the existing one in save() if not changed.
+
             selectedColorHex = theme.global.highlightColor ?: "#3DDA82"
             useAppColors = theme.global.useAppColors
             selectedShapeId = theme.global.iconShapeId
@@ -196,6 +208,12 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun clearCreatorState() {
         themeName = ""
         themeAuthor = ""
+        // [NEW] Clear new fields
+        themeDescription = ""
+        themeIconUri = null
+        isLockedForEditing = false
+        customShareLink = ""
+
         selectedColorHex = "#3DDA82"
         useAppColors = false
         selectedShapeId = "circle"
@@ -225,7 +243,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         themeDefaultActions = current
     }
 
-    // [FIX] Added 'apply' parameter
     fun saveTheme(existingId: String?, apply: Boolean = false) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -234,9 +251,50 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                 val answerRes = if (callAnswerUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_answer.png") else null
                 val declineRes = if (callDeclineUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_decline.png") else null
 
+                // [FIX] Initialize themeIconRes. If editing, preserve existing icon unless overwritten.
+                var themeIconRes = existingId?.let { getThemeById(it)?.meta?.customIcon }
+
+                // [FIX] Robust Icon Saving Logic
+                if (themeIconUri != null) {
+                    val iconsDir = File(File(repo.getThemesDir(), themeId), "icons")
+                    if (!iconsDir.exists()) iconsDir.mkdirs()
+
+                    try {
+                        context.contentResolver.openInputStream(themeIconUri!!)?.use { input ->
+                            val originalBitmap = BitmapFactory.decodeStream(input)
+                            if (originalBitmap != null) {
+                                // [REQ] Enforce 512x512 px size for consistency
+                                val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 512, 512, true)
+
+                                val iconFile = File(iconsDir, "theme_thumb.png")
+                                iconFile.outputStream().use { out ->
+                                    scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                                }
+
+                                // Update resource pointer only if save succeeded
+                                themeIconRes = ThemeResource(ResourceType.LOCAL_FILE, "icons/theme_thumb.png")
+
+                                // Recycle bitmaps to free memory
+                                if (originalBitmap != scaledBitmap) originalBitmap.recycle()
+                                // scaledBitmap.recycle() // Let GC handle it
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // If save fails, we keep the previous icon (if any) or null
+                    }
+                }
+
                 val newTheme = HyperTheme(
                     id = themeId,
-                    meta = ThemeMetadata(themeName.ifBlank { "My Theme" }, themeAuthor),
+                    meta = ThemeMetadata(
+                        name = themeName.ifBlank { "My Theme" },
+                        author = themeAuthor,
+                        description = themeDescription,
+                        customIcon = themeIconRes, // Use the resolved/updated resource
+                        lockedForEditing = isLockedForEditing,
+                        customShareLink = customShareLink.ifBlank { null }
+                    ),
                     global = GlobalConfig(
                         highlightColor = selectedColorHex,
                         useAppColors = useAppColors,
@@ -258,7 +316,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
                 repo.saveTheme(newTheme)
 
-                // [FIX] Logic to apply theme if requested OR if already active
+                // [FIX] Apply Logic with Service Reload
                 if (apply) {
                     prefs.setActiveThemeId(themeId)
                     repo.activateTheme(themeId)
@@ -267,7 +325,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     context.startService(intent)
                 } else if (activeThemeId.value == themeId) {
-                    // It was already active, just reload it
+                    // If saving changes to the currently active theme, reload it
                     repo.activateTheme(themeId)
                     val intent = Intent(context, NotificationReaderService::class.java).apply {
                         action = NotificationReaderService.ACTION_RELOAD_THEME

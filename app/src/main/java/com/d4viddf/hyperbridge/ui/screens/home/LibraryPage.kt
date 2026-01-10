@@ -72,6 +72,7 @@ fun LibraryPage(
                     Surface(
                     modifier = Modifier
                         .size(40.dp)
+                        .padding(end = 8.dp)
                         .clip(CircleShape) // Ensure ripple is circular
                         .clickable(onClick = onSettingsClick), // [NEW] Added Clickable here
                     color = MaterialTheme.colorScheme.surfaceContainerHigh

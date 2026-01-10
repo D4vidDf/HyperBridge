@@ -486,4 +486,24 @@
     <string name="design_empty_widget_title">Añade tu primer widget</string>
     <string name="design_active_count">%d Activos</string>
     <string name="design">Diseño</string>
+    <string name="creator_nav_actions">Acciones globales</string>
+    <string name="creator_sub_actions">Personalizar botones con palabras clave</string>
+    <string name="action_sheet_title">Configurar Acción</string>
+    <string name="action_label_keyword">Palabra clave (ej. Responder)</string>
+    <string name="action_label_bg_color">Color de fondo</string>
+    <string name="action_label_tint_color">Color de Icono y Texto</string>
+    <string name="action_preview">Previsualización</string>
+    <string name="action_mode_icon">Solo icono</string>
+    <string name="action_mode_text">Texto</string>
+    <string name="action_mode_both">Ambos</string>
+    <string name="actions_empty_title">No hay acciones personalizados</string>
+    <string name="actions_empty_desc">Añadir reglas al estilo de botones de notificación basados en su texto (por ejemplo, \"Responder\", \"Archivo\").</string>
+    <string name="action_default_preview_text">Acción</string>
+    <string name="actions_search_hint">Buscar acciones...</string>
+    <string name="actions_search_empty_fmt">No se encontraron acciones que coincida con \"%1$s\"</string>
+    <string name="action_wip_warning">Esta función es un trabajo en progreso. La coincidencia de palabras clave depende de cómo las aplicaciones estructuran sus notificaciones y puede no funcionar para cada aplicación.</string>
+    <string name="creator_dialog_apply_title">¿Aplicar tema?</string>
+    <string name="creator_dialog_apply_desc">¿Quieres aplicar este tema ahora?</string>
+    <string name="creator_dialog_action_save_apply">Guardar &amp; Aplicar</string>
+    <string name="creator_dialog_action_save_only">Guardar solamente</string>
 </resources>
