@@ -615,6 +615,9 @@
     <string name="creator_sub_icons_custom">Custom Shape Set</string>
     <string name="creator_sub_icons_default">Using Global Default</string>
     <string name="app_customization_desc">Add an app to customize its look specifically.</string>
+    <string name="discard">Discard</string>
+    <string name="unsaved_changes">Unsaved Changes</string>
+    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
     <plurals name="creator_sub_actions_count">
         <item quantity="one">%1$d custom action</item>
         <item quantity="other">%1$d custom actions</item>

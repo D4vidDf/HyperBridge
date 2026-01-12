@@ -114,18 +114,32 @@ fun ThemeCreatorScreen(
     val viewModel: ThemeViewModel = viewModel()
     val activeThemeId by viewModel.activeThemeId.collectAsState()
 
-    // [SWITCH] If editing app -> Show AppThemeEditorScreen
+    // [SWITCH] If editing an app override, delegate to AppThemeEditor
     if (viewModel.editingAppPackage != null) {
         AppThemeEditor(viewModel)
     } else {
-        // --- GLOBAL THEME CREATOR ---
+        // --- GLOBAL THEME CREATOR MENU ---
         var currentRoute by remember { mutableStateOf(CreatorRoute.MAIN_MENU) }
         var showSettingsSheet by remember { mutableStateOf(false) }
         var showSaveDialog by remember { mutableStateOf(false) }
 
+        // [CRITICAL FIX] Robust state initialization
         LaunchedEffect(editThemeId) {
-            if (editThemeId != null) viewModel.loadThemeForEditing(editThemeId)
-            else viewModel.clearCreatorState()
+            if (editThemeId != null) {
+                // Only load if we aren't already editing this specific ID.
+                // This prevents overwriting unsaved changes if this effect re-runs.
+                if (viewModel.currentEditingThemeId != editThemeId) {
+                    viewModel.loadThemeForEditing(editThemeId)
+                }
+            } else {
+                // Only clear/init new state if we haven't started a session yet.
+                // If currentEditingThemeId is NOT null, it means we are already
+                // working on a new draft (and likely just came back from AppEditor),
+                // so we MUST NOT clear the state.
+                if (viewModel.currentEditingThemeId == null) {
+                    viewModel.clearCreatorState()
+                }
+            }
         }
 
         BackHandler(enabled = currentRoute != CreatorRoute.MAIN_MENU) {
@@ -162,10 +176,12 @@ fun ThemeCreatorScreen(
                         if (currentRoute == CreatorRoute.MAIN_MENU) {
                             Button(
                                 onClick = {
+                                    // If we are editing the currently active theme, save and re-apply immediately
                                     if (editThemeId != null && editThemeId == activeThemeId) {
                                         viewModel.saveTheme(editThemeId)
                                         onThemeCreated()
                                     } else {
+                                        // Otherwise ask user if they want to Apply or just Save
                                         showSaveDialog = true
                                     }
                                 },
@@ -301,13 +317,8 @@ fun SaveDialog(viewModel: ThemeViewModel, editThemeId: String?, activeThemeId: S
 @Composable
 fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Unit, onEditSettings: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        // [FIX] Matched height (200dp) and padding (top = 8dp) to DetailScreenShell for alignment
         Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-            Surface(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer
-            ) {
+            Surface(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 12.dp)) {
                     SharedThemePreview(
                         viewModel.selectedColorHex, viewModel.useAppColors, viewModel.selectedShapeId, viewModel.iconPaddingPercent,
@@ -323,7 +334,6 @@ fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Uni
             }
             Spacer(Modifier.height(16.dp))
 
-            // [FIX] Spacing set to 2.dp as requested
             val menuItems = CreatorRoute.entries.filter { it != CreatorRoute.MAIN_MENU }
 
             Column(

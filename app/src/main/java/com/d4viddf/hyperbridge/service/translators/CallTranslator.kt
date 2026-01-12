@@ -135,8 +135,12 @@ class CallTranslator(
         val rawActions = sbn.notification.actions ?: return emptyList()
         val results = mutableListOf<BridgeAction>()
 
-        val hangUpColor = theme?.callConfig?.declineColor ?: "#FF3B30"
-        val answerColor = theme?.callConfig?.answerColor ?: "#34C759"
+        // [FIX] Resolve Colors from Override -> Global
+        val appOverride = theme?.apps?.get(sbn.packageName)
+        val callOverride = appOverride?.callConfig
+
+        val hangUpColor = callOverride?.declineColor ?: theme?.callConfig?.declineColor ?: "#FF3B30"
+        val answerColor = callOverride?.answerColor ?: theme?.callConfig?.answerColor ?: "#34C759"
         val neutralColor = "#8E8E93"
 
         // Load custom icons from theme resources
@@ -163,16 +167,9 @@ class CallTranslator(
             if (hangUpIndex != -1) indicesToShow.add(hangUpIndex)
         }
 
-        // Fallback detection logic if keywords failed
         if (indicesToShow.isEmpty()) {
-            if (rawActions.isNotEmpty()) {
-                indicesToShow.add(0)
-                hangUpIndex = 0
-            }
-            if (rawActions.size > 1) {
-                indicesToShow.add(1)
-                answerIndex = 1
-            }
+            if (rawActions.isNotEmpty()) { indicesToShow.add(0); hangUpIndex = 0 }
+            if (rawActions.size > 1) { indicesToShow.add(1); answerIndex = 1 }
         }
 
         indicesToShow.take(2).forEach { index ->
@@ -181,7 +178,6 @@ class CallTranslator(
             val isHangUp = index == hangUpIndex
             val isAnswer = index == answerIndex
 
-            // Determine Background Color
             val bgColorHex = when {
                 isHangUp -> hangUpColor
                 isAnswer -> answerColor
@@ -189,7 +185,6 @@ class CallTranslator(
             }
             val bgColorInt = try { bgColorHex.toColorInt() } catch(e: Exception) { 0xFF8E8E93.toInt() }
 
-            // Determine Icon Source (Custom vs System)
             var originalBitmap: Bitmap? = null
             if (isAnswer && customAnswerBitmap != null) {
                 originalBitmap = customAnswerBitmap
@@ -203,21 +198,19 @@ class CallTranslator(
             var actionIcon: Icon? = null
             var hyperPic: HyperPicture? = null
 
-            // [NEW] Determine Shape
+            // [FIX] Resolve shape from Call Override -> Global Call -> Global Icon
             val actionShapeId = if (theme != null) {
                 when {
-                    isAnswer -> theme.callConfig.answerShapeId
-                    isHangUp -> theme.callConfig.declineShapeId
-                    else -> theme.global.iconShapeId
+                    isAnswer -> callOverride?.answerShapeId ?: theme.callConfig.answerShapeId
+                    isHangUp -> callOverride?.declineShapeId ?: theme.callConfig.declineShapeId
+                    else -> resolveShape(theme, sbn.packageName) // Fallback for other buttons
                 }
             } else "circle"
 
-            val padding = theme?.global?.iconPaddingPercent ?: 15
+            val padding = resolvePadding(theme, sbn.packageName)
 
             if (originalBitmap != null) {
-                // Apply Shape & Padding to ACTION ICON
                 val processedBitmap = if (theme != null) {
-                    // [FIX] Use specific shape for this action
                     applyThemeToActionIcon(originalBitmap, actionShapeId, padding, bgColorInt)
                 } else {
                     createRoundedIconWithBackground(originalBitmap, bgColorInt, 12)
@@ -228,14 +221,13 @@ class CallTranslator(
                 hyperPic = HyperPicture(picKey, processedBitmap)
             }
 
-            // Create Action with Color String
             val hyperAction = io.github.d4viddf.hyperisland_kit.HyperAction(
                 key = uniqueKey,
                 title = action.title?.toString() ?: "",
                 icon = actionIcon,
                 pendingIntent = action.actionIntent,
                 actionIntentType = 1,
-                actionBgColor = bgColorHex, // [FIX] Hex String
+                actionBgColor = bgColorHex,
                 titleColor = "#FFFFFF"
             )
 

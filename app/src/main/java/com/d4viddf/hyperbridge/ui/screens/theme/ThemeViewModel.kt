@@ -189,6 +189,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         val newMap = _appOverrides.value.toMutableMap()
         newMap[pkg] = override
         _appOverrides.value = newMap
+
+        // [CRITICAL FIX] Pass currentEditingThemeId.
+        // It is guaranteed to be non-null because clearCreatorState/loadThemeForEditing sets it.
         saveTheme(currentEditingThemeId, apply = false)
     }
 
@@ -238,8 +241,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             CallModule(
                 answerColor = appCallAnswerColor,
                 declineColor = appCallDeclineColor,
-                answerShapeId = appCallAnswerShapeId ?: "circle", // Fallback to avoid null error
-                declineShapeId = appCallDeclineShapeId ?: "circle", // Fallback to avoid null error
+                answerShapeId = appCallAnswerShapeId ?: "circle",
+                declineShapeId = appCallDeclineShapeId ?: "circle",
                 answerIcon = if (appCallAnswerUri != null) {
                     val key = "app_${pkg}_answer"
                     stageAsset(key, appCallAnswerUri!!)
@@ -260,8 +263,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             iconPaddingPercent = appPaddingPercent,
             callConfig = callModule,
             actions = appActions.ifEmpty { null },
-            progress = existingOverride?.progress, // Preserving existing progress
-            navigation = existingOverride?.navigation // Preserving existing navigation
+            progress = existingOverride?.progress,
+            navigation = existingOverride?.navigation
         )
 
         updateAppOverride(pkg, newOverride)
@@ -279,6 +282,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun removeAppAction(keyword: String) {
         appActions = appActions - keyword
     }
+
+    // --- MAIN THEME LOADING & SAVING ---
 
     fun loadThemeForEditing(id: String) {
         currentEditingThemeId = id
@@ -305,7 +310,10 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearCreatorState() {
-        currentEditingThemeId = null
+        // [CRITICAL FIX] Generate ID immediately when starting a new theme draft.
+        // This ensures the ID remains constant throughout the creation session.
+        currentEditingThemeId = UUID.randomUUID().toString()
+
         themeName = ""
         themeAuthor = ""
         themeDescription = ""
@@ -347,7 +355,11 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         themeDefaultActions = current
     }
 
-    fun saveTheme(existingId: String?, apply: Boolean = false) {
+    fun saveTheme(existingId: String? = null, apply: Boolean = false) {
+        // [LOGIC UPDATE]
+        // 1. If explicit ID provided (saving specific existing theme), use it.
+        // 2. If session ID exists (which it should, due to clearCreatorState), use it.
+        // 3. Fallback to generating new ID only if needed.
         val themeId = existingId ?: currentEditingThemeId ?: UUID.randomUUID().toString()
         if (currentEditingThemeId == null) currentEditingThemeId = themeId
 

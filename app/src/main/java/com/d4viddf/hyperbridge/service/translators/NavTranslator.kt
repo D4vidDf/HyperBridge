@@ -38,7 +38,6 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         val themeProgressBarColor = theme?.defaultNavigation?.progressBarColor
             ?: resolveColor(theme, sbn.packageName, "#34C759")
 
-        // [FIX] Use progress bar color as fallback for actions instead of grey
         val themeActionBgColor = try {
             themeProgressBarColor.toColorInt()
         } catch (e: Exception) {
@@ -122,7 +121,8 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
 
             if (originalBitmap != null) {
                 val roundedBitmap = if (theme != null) {
-                    applyThemeToActionIcon(originalBitmap, theme, themeActionBgColor)
+                    // [FIX] Updated to use new BaseTranslator signature with packageName
+                    applyThemeToActionIcon(originalBitmap, theme, sbn.packageName, themeActionBgColor)
                 } else {
                     createRoundedIconWithBackground(originalBitmap, themeActionBgColor, themeActionPadding)
                 }

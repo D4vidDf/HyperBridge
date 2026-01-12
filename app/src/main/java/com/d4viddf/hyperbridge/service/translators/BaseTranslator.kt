@@ -81,40 +81,50 @@ abstract class BaseTranslator(
         // 1. App Specific Override (Highest Priority)
         if (pkg != null) {
             val override = theme.apps[pkg]
+            // A. Specific Color Override
             val overrideColor = override?.highlightColor
             if (!overrideColor.isNullOrEmpty()) {
                 return overrideColor
             }
+
+            // B. App-Specific "Use App Colors"
+            // If explicit true -> extract. If explicit false -> skip extraction (fall to global).
+            if (override?.useAppColors == true) {
+                return getAppBrandColor(pkg) ?: theme.global.highlightColor ?: defaultHex
+            }
         }
 
         // 2. Global "Use App Colors" -> Extract from Icon
-        if (theme.global.useAppColors && pkg != null) {
-            // Check cache first
-            val cached = appColorCache[pkg]
-            if (cached != null) return cached
-
-            // Extract and Cache
-            val extracted = extractColorFromAppIcon(pkg)
-            if (extracted != null) {
-                appColorCache[pkg] = extracted
-                return extracted
-            }
+        // Only run if app override didn't explicitly disable it (useAppColors != false)
+        val appOverrideDisabled = theme.apps[pkg]?.useAppColors == false
+        if (theme.global.useAppColors && !appOverrideDisabled && pkg != null) {
+            return getAppBrandColor(pkg) ?: theme.global.highlightColor ?: defaultHex
         }
 
         // 3. Global Theme Highlight -> Default Fallback
         return theme.global.highlightColor ?: defaultHex
     }
 
+    private fun getAppBrandColor(pkg: String): String? {
+        // Check cache first
+        val cached = appColorCache[pkg]
+        if (cached != null) return cached
+
+        // Extract and Cache
+        val extracted = extractColorFromAppIcon(pkg)
+        if (extracted != null) {
+            appColorCache[pkg] = extracted
+            return extracted
+        }
+        return null
+    }
+
     private fun extractColorFromAppIcon(pkg: String): String? {
         return try {
             val drawable = context.packageManager.getApplicationIcon(pkg)
-            // Use a scaled down bitmap for faster Palette generation
             val bitmap = drawable.toBitmap(width = 128, height = 128)
-
-            // Clear filters to ensure we process the raw colors
             val palette = Palette.from(bitmap).clearFilters().generate()
 
-            // Priority list for "brand" colors
             val swatches = listOf(
                 palette.vibrantSwatch,
                 palette.darkVibrantSwatch,
@@ -123,9 +133,8 @@ abstract class BaseTranslator(
                 palette.mutedSwatch
             )
 
-            // Find first valid swatch that is NOT Grayscale (White/Black/Grey)
             val bestSwatch = swatches.firstOrNull { it != null && !isGrayscale(it.rgb) }
-                ?: palette.dominantSwatch // Fallback to dominant if everything is gray
+                ?: palette.dominantSwatch
 
             if (bestSwatch != null) {
                 String.format("#%06X", (0xFFFFFF and bestSwatch.rgb))
@@ -137,15 +146,21 @@ abstract class BaseTranslator(
         }
     }
 
-    // Helper to detect if a color is White, Black, or Gray
     private fun isGrayscale(color: Int): Boolean {
         val r = (color shr 16) and 0xFF
         val g = (color shr 8) and 0xFF
         val b = color and 0xFF
-
-        // If RGB values are very close to each other, it's gray scale
         val diff = abs(r - g) + abs(g - b) + abs(b - r)
         return diff < 30
+    }
+
+    // --- NEW: Resolve Shape Logic ---
+    protected fun resolveShape(theme: HyperTheme?, pkg: String): String {
+        return theme?.apps?.get(pkg)?.iconShapeId ?: theme?.global?.iconShapeId ?: "circle"
+    }
+
+    protected fun resolvePadding(theme: HyperTheme?, pkg: String): Int {
+        return theme?.apps?.get(pkg)?.iconPaddingPercent ?: theme?.global?.iconPaddingPercent ?: 15
     }
 
     protected fun resolveActionConfig(theme: HyperTheme?, pkg: String, actionTitle: String): ActionConfig? {
@@ -162,17 +177,12 @@ abstract class BaseTranslator(
         }?.value
     }
 
-    protected fun resolveActionIcon(theme: HyperTheme?, pkg: String, actionTitle: String): Bitmap? {
-        if (repository == null) return null
-        val config = resolveActionConfig(theme, pkg, actionTitle) ?: return null
-        val resource = config.icon ?: return null
-        return if (resource.type == ResourceType.LOCAL_FILE) repository.getResourceBitmap(resource) else null
-    }
-
     protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
         val originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
         return HyperPicture(picKey, originalBitmap)
     }
+
+    // --- THEME APPLICATION LOGIC ---
 
     protected fun applyThemeToActionIcon(source: Bitmap, shapeId: String, paddingPercent: Int, bgColor: Int): Bitmap {
         val size = 96
@@ -212,8 +222,11 @@ abstract class BaseTranslator(
         return output
     }
 
-    protected fun applyThemeToActionIcon(source: Bitmap, theme: HyperTheme, bgColor: Int): Bitmap {
-        return applyThemeToActionIcon(source, theme.global.iconShapeId, theme.global.iconPaddingPercent, bgColor)
+    // Overloaded to handle overrides automatically
+    protected fun applyThemeToActionIcon(source: Bitmap, theme: HyperTheme, pkg: String, bgColor: Int): Bitmap {
+        val shapeId = resolveShape(theme, pkg)
+        val padding = resolvePadding(theme, pkg)
+        return applyThemeToActionIcon(source, shapeId, padding, bgColor)
     }
 
     // --- CORE LOGIC ---
@@ -230,8 +243,9 @@ abstract class BaseTranslator(
 
         val defaultActionBg = if (theme != null) {
             try {
-                val hex = theme.global.highlightColor ?: "#007AFF"
-                resolveColor(theme, sbn.packageName, hex).toColorInt()
+                // Use updated resolveColor logic
+                val hex = resolveColor(theme, sbn.packageName, "#007AFF")
+                hex.toColorInt()
             } catch (e: Exception) { "#007AFF".toColorInt() }
         } else {
             "#007AFF".toColorInt()
@@ -285,7 +299,8 @@ abstract class BaseTranslator(
 
             if (bitmapToUse != null) {
                 val processedBitmap = if (theme != null) {
-                    applyThemeToActionIcon(bitmapToUse, theme, finalBgColorInt)
+                    // [FIX] Pass package name to respect app-specific shape overrides
+                    applyThemeToActionIcon(bitmapToUse, theme, sbn.packageName, finalBgColorInt)
                 } else {
                     createRoundedIconWithBackground(bitmapToUse, finalBgColorInt, 12)
                 }
@@ -300,7 +315,6 @@ abstract class BaseTranslator(
                 androidAction.actionIntent
             }
 
-            // [FIX] If mode is TEXT, strip the background color so it doesn't look like a solid block
             val appliedBgColor = if (effectiveMode == ActionDisplayMode.TEXT) null else finalBgColorHex
 
             val hyperAction = HyperAction(
@@ -309,7 +323,7 @@ abstract class BaseTranslator(
                 icon = actionIcon,
                 pendingIntent = finalIntent,
                 actionIntentType = 1,
-                actionBgColor = appliedBgColor, // Use conditional color
+                actionBgColor = appliedBgColor,
                 titleColor = finalTintColorHex
             )
 
@@ -330,12 +344,6 @@ abstract class BaseTranslator(
         val drawable = ContextCompat.getDrawable(context, resId)?.mutate()
         val color = try { colorHex.toColorInt() } catch (e: Exception) { Color.WHITE }
         drawable?.setTint(color)
-        val bitmap = drawable?.toBitmap() ?: createFallbackBitmap()
-        return HyperPicture(key, bitmap)
-    }
-
-    protected fun getPictureFromResource(key: String, resId: Int): HyperPicture {
-        val drawable = ContextCompat.getDrawable(context, resId)
         val bitmap = drawable?.toBitmap() ?: createFallbackBitmap()
         return HyperPicture(key, bitmap)
     }

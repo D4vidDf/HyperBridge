@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -37,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -68,13 +70,22 @@ enum class AppEditorRoute {
 @Composable
 fun AppThemeEditor(viewModel: ThemeViewModel) {
     var currentRoute by remember { mutableStateOf(AppEditorRoute.MENU) }
+    var showUnsavedDialog by remember { mutableStateOf(false) }
 
-    BackHandler {
+    // Logic to handle "Back" request
+    val handleBack = {
         if (currentRoute != AppEditorRoute.MENU) {
+            // If in a sub-menu, just go back to App Menu
             currentRoute = AppEditorRoute.MENU
         } else {
-            viewModel.cancelAppEditing()
+            // If at App Menu root, ask to save before exiting
+            showUnsavedDialog = true
         }
+    }
+
+    // Intercept System Back Gesture
+    BackHandler {
+        handleBack()
     }
 
     Scaffold(
@@ -106,13 +117,7 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                 },
                 navigationIcon = {
                     FilledTonalIconButton(
-                        onClick = {
-                            if (currentRoute != AppEditorRoute.MENU) {
-                                currentRoute = AppEditorRoute.MENU
-                            } else {
-                                viewModel.cancelAppEditing()
-                            }
-                        },
+                        onClick = { handleBack() }, // Use the unified back logic
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
@@ -134,7 +139,9 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
+        Box(modifier = Modifier
+            .padding(top = padding.calculateTopPadding())
+            .fillMaxSize()) {
             AnimatedContent(
                 targetState = currentRoute,
                 transitionSpec = {
@@ -184,6 +191,35 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
             }
         }
     }
+
+    // --- UNSAVED CHANGES DIALOG ---
+    if (showUnsavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnsavedDialog = false }, // Cancel/Stay
+            title = { Text(stringResource(R.string.unsaved_changes)) },
+            text = { Text(stringResource(R.string.unsaved_changes_desc)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.saveAppChanges() // Saves and closes editor
+                        showUnsavedDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.cancelAppEditing() // Discards and closes editor
+                        showUnsavedDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.discard))
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -200,11 +236,14 @@ fun AppEditorMenu(
     val effDeclineShape = viewModel.appCallDeclineShapeId ?: viewModel.callDeclineShapeId
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
-        // [FIXED] Padding and Height to match DetailScreenShell
         Box(
-            modifier = Modifier.fillMaxWidth().height(200.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
             contentAlignment = Alignment.Center
         ) {
             Surface(
@@ -221,8 +260,10 @@ fun AppEditorMenu(
         }
 
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp) // [FIXED] Proper separation spacing
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             val items = listOf(
                 AppEditorRoute.COLORS,
@@ -241,7 +282,11 @@ fun AppEditorMenu(
                         shape = shape,
                         onClick = { onNavigate(route) },
                         trailingContent = {
-                            Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(safeParseColor(effHighlight)).border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape))
+                            Box(modifier = Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .background(safeParseColor(effHighlight))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape))
                         }
                     )
                     AppEditorRoute.ICONS -> CreatorOptionCard(
@@ -283,11 +328,9 @@ fun AppEditorMenu(
 fun AppColorEditor(viewModel: ThemeViewModel) {
     ColorsDetailContent(
         selectedColorHex = viewModel.appHighlightColor ?: viewModel.selectedColorHex,
-        // [FIX] Correctly bind to the app-specific usage flag
         useAppColors = viewModel.appUseAppColors == true,
         onColorSelected = {
             viewModel.appHighlightColor = it
-            // If user manually picks a color, typically disable "use app colors"
             viewModel.appUseAppColors = false
         },
         onUseAppColorsChanged = { isEnabled ->
