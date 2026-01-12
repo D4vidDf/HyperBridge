@@ -104,6 +104,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _tempAssets = mutableMapOf<String, Uri>()
 
+    // [FIX] Use application context to get string resource
+    val shareTheme: String = application.getString(R.string.share_theme)
+
     init {
         refreshThemes()
         loadInstalledApps()
@@ -166,7 +169,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                val chooser = Intent.createChooser(intent, "Share Theme")
+                // [FIX] Use the pre-loaded string
+                val chooser = Intent.createChooser(intent, shareTheme)
                 chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(chooser)
             }
@@ -190,8 +194,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         newMap[pkg] = override
         _appOverrides.value = newMap
 
-        // [CRITICAL FIX] Pass currentEditingThemeId.
-        // It is guaranteed to be non-null because clearCreatorState/loadThemeForEditing sets it.
         saveTheme(currentEditingThemeId, apply = false)
     }
 
@@ -310,11 +312,10 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearCreatorState() {
-        // [CRITICAL FIX] Generate ID immediately when starting a new theme draft.
-        // This ensures the ID remains constant throughout the creation session.
         currentEditingThemeId = UUID.randomUUID().toString()
 
-        themeName = ""
+        // [FIX] Extract "My Theme" string
+        themeName = "" // Let the UI handle the "My Theme" placeholder or logic
         themeAuthor = ""
         themeDescription = ""
         themeIconUri = null
@@ -356,10 +357,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun saveTheme(existingId: String? = null, apply: Boolean = false) {
-        // [LOGIC UPDATE]
-        // 1. If explicit ID provided (saving specific existing theme), use it.
-        // 2. If session ID exists (which it should, due to clearCreatorState), use it.
-        // 3. Fallback to generating new ID only if needed.
         val themeId = existingId ?: currentEditingThemeId ?: UUID.randomUUID().toString()
         if (currentEditingThemeId == null) currentEditingThemeId = themeId
 
@@ -405,10 +402,13 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                 val declineRes = if (callDeclineUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_decline.png")
                 else getThemeById(themeId)?.callConfig?.declineIcon
 
+                // [FIX] Use extracted string for default theme name
+                val defaultThemeName = getApplication<Application>().getString(R.string.my_theme)
+
                 val newTheme = HyperTheme(
                     id = themeId,
                     meta = ThemeMetadata(
-                        name = themeName.ifBlank { "My Theme" },
+                        name = themeName.ifBlank { defaultThemeName },
                         author = themeAuthor,
                         description = themeDescription,
                         customIcon = themeIconRes,

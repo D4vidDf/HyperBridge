@@ -618,6 +618,8 @@
     <string name="discard">Discard</string>
     <string name="unsaved_changes">Unsaved Changes</string>
     <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
+    <string name="share_theme">Share Theme</string>
+    <string name="my_theme">My Theme</string>
     <plurals name="creator_sub_actions_count">
         <item quantity="one">%1$d custom action</item>
         <item quantity="other">%1$d custom actions</item>
