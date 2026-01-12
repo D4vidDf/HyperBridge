@@ -1,0 +1,405 @@
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+
+    <string name="back">Kembali</string>
+    <string name="next">Lanjut</string>
+    <string name="finish">Selesai</string>
+    <string name="done">Selesai</string>
+    <string name="logo_desc">Logo Aplikasi</string>
+    <string name="settings">Pengaturan</string>
+    <string name="info">Info</string>
+    <string name="configure">Konfigurasi</string>
+    <string name="clear">Bersihkan</string>
+    <string name="sort_order">Urutan Sortir</string>
+
+    <string name="welcome_title">Selamat Datang di\nHyper Bridge</string>
+    <string name="welcome_subtitle">Integrasikan HyperIslands dengan mulus ke pengalaman HyperOS Anda.</string>
+    <string name="get_started">Mulai</string>
+
+    <string name="how_it_works">Cara Kerjanya</string>
+    <string name="how_it_works_desc">Pilih aplikasi favorit Anda (Spotify, Maps, Timer). HyperBridge mengubah notifikasinya menjadi HyperIsland yang elegan.</string>
+    <string name="early_development">Pengembangan Awal</string>
+    <string name="beta_warning">Catatan: Aplikasi ini masih Beta. Anda mungkin menemukan bug atau informasi visual yang kurang tepat.</string>
+
+    <string name="device_compatible">Perangkat Kompatibel</string>
+    <string name="unsupported_device">Perangkat Tidak Didukung</string>
+    <string name="compatible_msg">Perangkat Anda tampaknya menjalankan HyperOS/MIUI. Anda siap lanjut!</string>
+    <string name="incompatible_msg">HyperBridge bergantung pada fitur sistem khusus HyperOS. Pabrikan perangkat Anda sepertinya bukan Xiaomi/POCO/Redmi.</string>
+    <string name="system_detected">✅ Sistem Terdeteksi</string>
+    <string name="app_wont_work">⚠️ Aplikasi mungkin tidak bekerja</string>
+
+    <string name="show_island">Tampilkan Island</string>
+    <string name="perm_post_desc">Kami butuh izin untuk memunculkan notifikasi \'Island\' di layar Anda.</string>
+    <string name="perm_granted">✅ Izin Diberikan</string>
+    <string name="allow_notifications">Izinkan Notifikasi</string>
+
+    <string name="read_data">Baca Data</string>
+    <string name="perm_listener_desc">Untuk menjembatani aplikasi, kami perlu membaca notifikasinya (Musik, Peta, Timer).</string>
+    <string name="open_settings">Buka Pengaturan</string>
+
+    <string name="keep_alive">Tetap Aktif</string>
+    <string name="optimization_desc">HyperOS sering mematikan aplikasi latar belakang. Aktifkan Mulai Otomatis dan Penghemat Baterai "Tidak Ada Pembatasan" agar Island tetap aktif.</string>
+    <string name="enable_autostart">1. Aktifkan Mulai Otomatis</string>
+    <string name="set_battery_no_restrictions">2. Setel Baterai \'Tidak Ada Pembatasan\'</string>
+
+    <string name="tab_active">Aktif</string>
+    <string name="tab_library">Pustaka</string>
+    <string name="title_active_bridges">Bridge Aktif</string>
+    <string name="title_library">Pustaka Aplikasi</string>
+    <string name="search_hint">Cari aplikasi...</string>
+    <string name="sort_az">Urutkan: A-Z</string>
+    <string name="sort_za">Urutkan: Z-A</string>
+
+    <string name="no_active_bridges">Tidak Ada Bridge Aktif</string>
+    <string name="no_active_bridges_desc">Buka Pustaka untuk mengaktifkan aplikasi.</string>
+    <string name="no_apps_found">Aplikasi tidak ditemukan</string>
+
+    <string name="about">Tentang</string>
+    <string name="version_template">Versi %s</string>
+    <string name="developer_credit">oleh D4vidDf</string>
+
+    <string name="group_configuration">Konfigurasi</string>
+    <string name="system_setup">Pengaturan Sistem</string>
+    <string name="system_setup_subtitle">Perbaiki izin &amp; baterai</string>
+
+    <string name="group_about">Tentang</string>
+    <string name="developer">Pengembang</string>
+    <string name="developer_subtitle">Kunjungi d4viddf.com</string>
+    <string name="source_code">Kode Sumber</string>
+    <string name="source_code_subtitle">Repository GitHub</string>
+    <string name="licenses">Lisensi Open Source</string>
+    <string name="licenses_subtitle">Perangkat lunak pihak ketiga</string>
+    <string name="footer_made_with_love">Dibuat dengan ❤️ di Spanyol</string>
+
+    <string name="app_health">Kesehatan Aplikasi</string>
+    <string name="app_health_desc">Pastikan semua ceklis hijau agar aplikasi berjalan benar di latar belakang.</string>
+    <string name="req_permissions">Izin Diperlukan</string>
+    <string name="notif_access">Akses Notifikasi</string>
+    <string name="notif_access_desc">Diperlukan untuk membaca event aplikasi</string>
+    <string name="perm_display_desc">Izin untuk tampil di atas aplikasi lain</string>
+    <string name="device_optimization">Optimasi Perangkat</string>
+    <string name="xiaomi_autostart">Xiaomi Mulai Otomatis</string>
+    <string name="autostart_desc">Izinkan aplikasi mulai saat boot</string>
+    <string name="battery_unrestricted">Baterai Tidak Dibatasi</string>
+    <string name="battery_desc">Cegah sistem mematikan aplikasi</string>
+    <string name="recents_note">Catatan: Kunci juga aplikasi ini di menu \'Recents\' (App Switcher).</string>
+    <string name="status_active">Aktif</string>
+    <string name="action_needed">Perlu Tindakan</string>
+
+    <string name="cat_all">Semua</string>
+    <string name="cat_music">Musik</string>
+    <string name="cat_nav">Navigasi</string>
+    <string name="cat_timer">Produktivitas</string>
+    <string name="cat_other">Lainnya</string>
+
+    <string name="select_active_notifs">Pilih notifikasi aktif</string>
+    <string name="type_standard">Pesan &amp; Umum</string>
+    <string name="type_progress">Unduhan &amp; Progres</string>
+    <string name="type_media">Musik &amp; Media</string>
+    <string name="type_nav">Peta &amp; GPS</string>
+    <string name="type_call">Panggilan</string>
+    <string name="type_timer">Timer &amp; Alarm</string>
+
+    <string name="service_active">Aktif</string>
+    <string name="download_complete">Unduhan Selesai</string>
+    <string name="pending">Tertunda…</string>
+    <string name="finished">Selesai</string>
+    <string name="downloading">Mengunduh</string>
+    <string name="waiting">Menunggu…</string>
+    <string name="now_playing">Sedang Diputar</string>
+    <string name="unknown_caller">Penelepon Tidak Diketahui</string>
+    <string name="incoming_call">Panggilan</string>
+    <string name="maps_title">Peta</string>
+    <string name="timer_title">Timer</string>
+
+    <string-array name="progress_finish_keywords">
+        <item>downloaded</item>
+        <item>completed</item>
+        <item>finished</item>
+        <item>installed</item>
+        <item>done</item>
+        <item>successful</item>
+        <item>succeeded</item>
+        <item>selesai</item>
+        <item>berhasil</item>
+        <item>sukses</item>
+        <item>terinstal</item>
+        <item>terpasang</item>
+        <item>unduhan selesai</item>
+    </string-array>
+
+    <string name="status_download_complete">Unduhan Selesai</string>
+    <string name="status_downloading">Mengunduh</string>
+    <string name="status_pending">Tertunda...</string>
+    <string name="status_finished">Selesai</string>
+    <string name="status_now_playing">Sedang Diputar</string>
+    <string name="status_incoming_call">Panggilan Masuk</string>
+    <string name="caller_unknown">Penelepon Tidak Diketahui</string>
+
+    <string name="fallback_maps">Peta</string>
+    <string name="fallback_timer">Timer</string>
+    <string name="fallback_stopwatch">Stopwatch</string>
+
+    <string name="whats_new_title">Apa yang Baru di %s</string>
+    <string name="awesome">Keren!</string>
+
+
+    <string name="island_behavior">Perilaku Island</string>
+    <string name="limit_strategy">Strategi Batas</string>
+    <string name="limit_desc">Apa yang terjadi saat mencapai batas 9 island?</string>
+    <string name="mode_fcfs_title">Siapa Cepat, Dia Dapat (FCFS)</string>
+    <string name="mode_fcfs_desc">Pertahankan 9 aplikasi pertama. Aplikasi baru diabaikan sampai ada ruang kosong.</string>
+    <string name="mode_recent_title">Paling Baru (Default)</string>
+    <string name="mode_recent_desc">Notifikasi baru menggantikan yang paling lama.</string>
+    <string name="mode_priority_title">Prioritas Kustom</string>
+    <string name="mode_priority_desc">Tentukan tipe mana (mis. Panggilan) yang lebih penting.</string>
+    <string name="priority_order">Urutan Prioritas</string>
+    <string name="priority_order_desc">Prioritas Tinggi (Atas) menggantikan Prioritas Rendah (Bawah).</string>
+    <string name="move_up">Geser Naik</string>
+    <string name="move_down">Geser Turun</string>
+    <string name="configure_order">Konfigurasi urutan aplikasi</string>
+
+    <string name="global_settings">Pengaturan Global</string>
+    <string name="island_appearance">Tampilan Island</string>
+    <string name="setting_float">Pop-up Heads-up</string>
+    <string name="setting_float_desc">Tampilkan banner notifikasi penuh sejenak sebelum dikecilkan ke Island.</string>
+
+    <string name="setting_shade">Panel Notifikasi</string>
+    <string name="setting_shade_desc">Biarkan notifikasi tetap terlihat di panel sistem. Jika dimatikan, hanya muncul sebagai Island.</string>
+
+    <string name="setting_timeout">Jeda Auto-Minimize</string>
+    <string name="seconds_suffix">%ds</string>
+
+    <string name="use_global_default">Gunakan Default Global</string>
+    <string name="customize_app">Kustomisasi</string>
+    <string name="override_settings">Timpa Pengaturan</string>
+
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+        <item>tiba</item>
+        <item>sampai</item>
+        <item>tujuan</item>
+        <item>estimasi</item>
+    </string-array>
+    <string name="hint_options">Opsi</string>
+
+    <string name="version_history">Riwayat Versi</string>
+
+    <string name="title_0_2_0">Pembaruan Informasi</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;Progres Canggih:&lt;/b&gt; Menambahkan dukungan untuk "Progres Langkah" (mis. 1 dari 3) dan bilah progres dengan ikon di dalam panel notifikasi.\n
+        • &lt;b&gt;Sistem Prioritas:&lt;/b&gt; Pengaturan "Perilaku Island" baru. Pilih antara "Paling Baru", "Siapa Cepat", atau daftar "Prioritas Aplikasi" kustom.\n
+        • &lt;b&gt;Penyaringan Cerdas:&lt;/b&gt; Peningkatan deteksi notifikasi duplikat dan unduhan grup.\n
+        • &lt;b&gt;Peningkatan Visual:&lt;/b&gt; Memperbaiki masalah tata letak pada instruksi Navigasi.\n
+        • &lt;b&gt;Konfig Per-Aplikasi:&lt;/b&gt; Kustomisasi Timeout dan perilaku Mengambang (Floating) per aplikasi.
+    </string>
+
+    <string name="title_0_1_0">Pembaruan Ekspresif</string>
+    <string name="changelog_0_1_0">
+        • &lt;b&gt;Perombakan UI Besar:&lt;/b&gt; Desain Material 3 Expressive baru dengan animasi halus.\n
+        • &lt;b&gt;Island Lebih Baik:&lt;/b&gt; Teks sekarang muncul di sisi kanan. Menambahkan Centang Hijau untuk unduhan selesai.\n
+        • &lt;b&gt;Konfig Per-Aplikasi:&lt;/b&gt; Pilih tipe notifikasi spesifik (Musik, Peta, Panggilan) per aplikasi.\n
+        • &lt;b&gt;Filter Cerdas:&lt;/b&gt; Memblokir notifikasi duplikat dan menghemat baterai.\n
+        • &lt;b&gt;Pustaka Baru:&lt;/b&gt; Filter aplikasi berdasarkan kategori dan urutan sortir.\n
+        • &lt;b&gt;Lokalisasi:&lt;/b&gt; Menambahkan dukungan bahasa Spanyol.
+    </string>
+
+    <string name="priority_edu_title">Baru: Kendalikan Island</string>
+    <string name="priority_edu_desc">HyperBridge sekarang dapat mengelola perilaku notifikasi ganda saat batas 9-island tercapai.\n\n&lt;b&gt;Default: Paling Baru&lt;/b&gt;\nNotifikasi baru menggantikan yang paling lama secara otomatis.</string>
+    <string name="keep_default">Simpan Default</string>
+    <string name="configure_now">Konfigurasi Sekarang</string>
+
+    <string name="badge_new">BARU</string>
+
+    <string name="custom_design">Desain Kustom</string>
+    <string name="nav_layout_title">Tata Letak Navigasi</string>
+    <string name="nav_layout_desc">Pilih di mana informasi muncul</string>
+    <string name="left_content">Sisi Kiri</string>
+    <string name="right_content">Sisi Kanan</string>
+
+    <string name="nav_content_instruction">Instruksi</string>
+    <string name="nav_content_distance">Jarak</string>
+    <string name="nav_content_eta">Waktu Tiba</string>
+    <string name="nav_content_distance_eta">Jarak &amp; Waktu</string>
+    <string name="nav_content_none">Kosong</string>
+
+    <string name="channel_active_islands">Island Aktif</string>
+
+    <string name="cd_toggle_app">Alihkan %s</string>
+    <string name="cd_configure_app">Konfigurasi %s</string>
+    <string name="cd_enable_type">Aktifkan notifikasi %s</string>
+    <string name="cd_disable_type">Nonaktifkan notifikasi %s</string>
+    <string name="cd_nav_edit">Edit tata letak navigasi</string>
+    <string name="cd_app_state_active">Aktif</string>
+    <string name="cd_app_state_inactive">Tidak Aktif</string>
+
+    <string name="cd_move_up">Pindahkan item ke atas</string>
+    <string name="cd_move_down">Pindahkan item ke bawah</string>
+    <string name="cd_drag_handle">Seret pegangan. Tekan dua kali dan tahan untuk mengurutkan ulang, atau gunakan tindakan untuk memindahkan.</string>
+    <string name="cd_app_icon">Ikon Aplikasi untuk %s</string>
+    <string name="cd_nav_preview">Pratinjau Navigasi: %1$s di kiri, %2$s di kanan</string>
+    <string name="cd_expand_changelog">Buka detail versi</string>
+    <string name="cd_collapse_changelog">Tutup detail versi</string>
+    <string name="cd_configuration_group">Pengaturan Konfigurasi</string>
+    <string name="cd_about_group">Informasi Tentang</string>
+
+    <string name="nav_preview_instruction">Belok Kanan</string>
+    <string name="nav_preview_distance">200m</string>
+    <string name="nav_preview_time">10:30</string>
+
+    <string name="blocked_terms">Istilah Diblokir</string>
+    <string name="blocked_terms_desc">Notifikasi yang mengandung kata-kata ini akan diabaikan.</string>
+    <string name="add_blocked_word">Tambah kata (mis. \'Spoiler\')</string>
+    <string name="add">Tambah</string>
+    <string name="remove">Hapus</string>
+    <string name="tap_to_configure_rules">Ketuk aplikasi untuk mengonfigurasi aturan blokir spesifik.</string>
+    <string name="spoiler_subtitle">Kelola filter dan perlindungan spoiler</string>
+
+    <string name="active_notifications_title">Tipe Notifikasi</string>
+    <string name="active_notifications_subtitle">%d aktif</string>
+    <string name="appearance_use_defaults_desc">Menggunakan default sistem untuk kecepatan animasi dan perilaku mengambang.</string>
+    <string name="blocked_terms_active_count">%d aturan aktif</string>
+
+    <string name="global_rules">Aturan Global</string>
+    <string name="app_specific_rules">Aturan Spesifik Aplikasi</string>
+    <string name="manage_app_rules_desc">Kustomisasi filter untuk aplikasi tertentu</string>
+    <string name="blocked_terms_count">%d istilah diblokir</string>
+    <string name="no_active_rules">Tidak ada aturan aktif</string>
+
+    <string name="setup_health_title">Kompatibilitas Sistem</string>
+    <string name="check_device">Perangkat: %s</string>
+    <string name="check_os_version">OS: %s</string>
+    <string name="req_hyperos">Membutuhkan HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">Perangkat Xiaomi/Redmi/Poco diperlukan</string>
+    <string name="check_autostart">Mulai Otomatis (Background)</string>
+    <string name="check_autostart_desc">Diperlukan agar layanan dapat restart setelah reboot.</string>
+    <string name="grant_permission">Izinkan</string>
+    <string name="status_ok">Kompatibel</string>
+    <string name="status_fail">Tidak Kompatibel</string>
+    <string name="status_unknown">Tidak Diketahui</string>
+
+    <string name="warning_cn_rom_title">ROM China Terdeteksi</string>
+    <string name="warning_cn_rom_desc">Perangkat Anda tampaknya menjalankan firmware China. Xiaomi memodifikasi internal notifikasi secara signifikan pada ROM CN. Fitur mungkin tidak stabil atau tidak berfungsi sama sekali.</string>
+
+    <string name="system_version">Versi Sistem</string>
+
+    <string name="call_incoming">Panggilan Masuk</string>
+    <string name="call_ongoing">Panggilan Aktif</string>
+
+    <string-array name="call_keywords_hangup">
+        <item>hang</item>
+        <item>end</item>
+        <item>decline</item>
+        <item>reject</item>
+        <item>akhiri</item>
+        <item>tutup</item>
+        <item>tolak</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>answer</item>
+        <item>accept</item>
+        <item>jawab</item>
+        <item>terima</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>speaker</item>
+        <item>audio</item>
+        <item>pelantang</item>
+        <item>pengeras</item>
+    </string-array>
+
+    <string name="title_0_3_0">Pembaruan Global</string>
+    <string name="changelog_0_3_0">
+        <b>Notifikasi Tersembunyi 👻</b>\n
+        Opsi baru untuk menyembunyikan notifikasi dari panel sistem sambil tetap mengaktifkan Island. Cek Pengaturan Global!\n\n
+        <b>Bahasa Baru 🌍</b>\n
+        Terima kasih khusus kepada komunitas kami untuk terjemahan ini:\n
+        • 🇧🇷 Portugis (Brasil)\n
+        • 🇵🇱 Polandia\n
+        • 🇰🇷 Korea\n\n
+        • 🇺🇦 Ukraina\n\n
+        <b>Kustomisasi Navigasi 🧭</b>\n
+        Anda sekarang dapat memilih informasi apa yang muncul di sisi Kiri dan Kanan Island Navigasi (Jarak, ETA, Instruksi).\n\n
+        <b>Perlindungan Spoiler 🛡️</b>\n
+        Fitur baru "Istilah Diblokir". Tentukan kata secara global atau per-aplikasi untuk mencegah notifikasi spesifik muncul di Island.\n\n
+        <b>Peningkatan Panggilan 📞</b>\n
+        Logika deteksi ditingkatkan untuk mendukung lebih banyak aplikasi VoIP dan Dialer.\n\n
+        <b>Perbaikan &amp; Peningkatan 🛠️</b>\n
+        • Memperbaiki bug kritis di mana aplikasi macet saat memuat setelah reboot.\n
+        • Memperbaiki notifikasi yang kadang menampilkan nama paket mentah (mis. "com.google...") alih-alih konten.\n
+        • Mendesain ulang lembar Konfigurasi Aplikasi untuk penggunaan yang lebih baik.\n
+        • Meningkatkan layar Cek Kompatibilitas dengan info perangkat yang detail.
+    </string>
+
+    <string name="privacy_title">100% Offline &amp; Aman</string>
+    <string name="privacy_desc">Hyper Bridge memproses semuanya langsung di prosesor ponsel Anda.\n\nIni TIDAK memerlukan akses internet, artinya notifikasi dan data pribadi Anda tidak pernah meninggalkan perangkat Anda.</string>
+
+    <string name="language">Bahasa</string>
+    <string name="language_desc">Ubah bahasa aplikasi</string>
+    <string name="system_default">Default Sistem</string>
+    <string name="save">Simpan</string>
+
+    <string name="backup_restore_title">Cadangkan &amp; Pulihkan</string>
+    <string name="backup_section_title">Kelola Data</string>
+    <string name="backup_options_subtitle">Pilih data untuk disertakan dalam operasi</string>
+
+    <string name="option_app_settings">Pengaturan Aplikasi</string>
+    <string name="option_app_settings_desc">Status setup, tema, mode perilaku</string>
+
+    <string name="option_blocklist">Database Daftar Blokir</string>
+    <string name="option_blocklist_desc">Kata kunci dan aplikasi yang diblokir kustom Anda</string>
+
+    <string name="option_priorities">Aturan Prioritas</string>
+    <string name="option_priorities_desc">Konfigurasi prioritas notifikasi kustom</string>
+
+    <string name="action_export">Buat Cadangan</string>
+    <string name="action_import">Pulihkan Cadangan</string>
+
+    <string name="export_success">Cadangan berhasil disimpan</string>
+    <string name="export_failed">Ekspor gagal: %s</string>
+    <string name="import_success">Data berhasil dipulihkan</string>
+    <string name="import_failed">Impor gagal: %s</string>
+    <string name="invalid_backup_file">File cadangan HyperBridge tidak valid</string>
+    <string name="db_version_mismatch">Peringatan: Cadangan berasal dari versi database berbeda</string>
+
+    <string name="autostart_manual_check">Status tidak dapat diverifikasi secara otomatis.\nSilakan periksa manual untuk memastikan layanan berjalan dengan benar.</string>
+
+    <string name="backup_info_title">Informasi Cadangan</string>
+    <string name="backup_meta_date">Tanggal</string>
+    <string name="backup_meta_device">Perangkat</string>
+    <string name="backup_meta_version">Versi</string>
+    <string name="backup_meta_keys">Total Item</string>
+    <string name="backup_empty_suffix"> (Kosong)</string>
+    <string name="action_restore_selected">Pulihkan Data Terpilih</string>
+
+    <string name="optimization_title">Optimasi Perangkat</string>
+    <string name="no_restrictions">Set "Tidak Ada Pembatasan"</string>
+
+    <string name="privacy_card_title">Utamakan Offline</string>
+    <string name="privacy_card_desc">Tidak perlu koneksi internet.</string>
+
+    <string name="title_0_3_1">Pembaruan Cadangan &amp; Polyglot</string>
+    <string name="changelog_0_3_1">
+        <b>Cadangkan &amp; Pulihkan 📦</b>\n
+        Fitur baru untuk power-user! Ekspor pengaturan, daftar blokir, dan prioritas aplikasi Anda dengan aman ke file .hbr dan pulihkan kapan saja.\n\n
+        <b>Bahasa Baru 🌍</b>\n
+        Menambahkan dukungan untuk:\n
+        • 🇩🇪 Jerman\n
+        • 🇷🇺 Rusia\n
+        • 🇺🇦 Ukraina (Ditingkatkan)\n
+        <i>Plus: A new in-app Language Selector to change languages without affecting your system settings.</i>\n\n
+        <b>Penyegaran Visual 🎨</b>\n
+        Aplikasi telah diperbarui dengan desain <b>Material 3 Expressive</b>. Nikmati header yang lebih besar, bentuk yang lebih bulat, dan pengalaman yang lebih halus.\n\n
+        <b>Privasi &amp; Setup 🛡️</b>\n
+        • Peningkatan Onboarding dengan halaman Privasi khusus yang menjelaskan arsitektur offline-first.\n
+        • Cek kompatibilitas yang lebih ketat untuk memastikan pengalaman terbaik di HyperOS 3.0.\n\n
+        <b>Perbaikan 🛠️</b>\n
+        • Memperbaiki masalah kritis di mana pengaturan hilang setelah reboot perangkat (dimigrasikan ke database).\n
+        • Memperbaiki tombol "Keluar" di island Navigasi yang muncul sebagai ikon alih-alih teks.\n
+        • Memperbaiki pemuatan Ikon Aplikasi di Pengaturan.\n
+    </string>
+</resources>
