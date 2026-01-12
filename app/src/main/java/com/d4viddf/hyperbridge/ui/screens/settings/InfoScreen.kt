@@ -251,6 +251,7 @@ fun LanguageSelectorDialog(onDismiss: () -> Unit) {
         "Deutsch" to "de",
         "English" to "en",
         "Español" to "es",
+        "Indonesia" to "in",
         "Português (BR)" to "pt-BR",
         "Polski" to "pl",
         "Korean" to "ko",
