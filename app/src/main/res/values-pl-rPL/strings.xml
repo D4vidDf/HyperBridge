@@ -408,7 +408,7 @@
     <string name="creator_btn_save">Zapisz motyw</string>
     <string name="creator_err_inputs">Wprowadź nazwę motywu i jego autora</string>
     <string name="theme_sheet_action_create">Utwórz nowy motyw</string>
-    <string name="theme_sheet_action_find">Google Play</string>
+    <string name="theme_sheet_action_find">Szukaj</string>
     <string name="theme_sheet_action_import">Importuj z pliku</string>
     <string name="theme_action_import_short">Importuj</string>
     <string name="theme_card_action_edit">Edytuj</string>
@@ -514,4 +514,6 @@
     <string name="creator_dialog_apply_desc">Czy chcesz teraz zastosować ten motyw?</string>
     <string name="creator_dialog_action_save_apply">Zapisz i zastosuj</string>
     <string name="creator_dialog_action_save_only">Tylko zapisz</string>
+    <string name="select_icon">Wybierz ikonę</string>
+    <string name="change_icon">Zmień ikonę</string>
 </resources>

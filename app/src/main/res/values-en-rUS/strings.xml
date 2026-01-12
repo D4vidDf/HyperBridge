@@ -508,4 +508,6 @@
     <string name="creator_dialog_apply_desc">Do you want to apply this theme now?</string>
     <string name="creator_dialog_action_save_apply">Save &amp; Apply</string>
     <string name="creator_dialog_action_save_only">Save Only</string>
+    <string name="discard">Discard</string>
+    <string name="unsaved_changes">Unsaved Changes</string>
 </resources>
