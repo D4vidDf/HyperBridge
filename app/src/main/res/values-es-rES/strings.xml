@@ -402,7 +402,7 @@
     <string name="creator_btn_save">Guardar tema</string>
     <string name="creator_err_inputs">Por favor, introduce un nombre y un autor</string>
     <string name="theme_sheet_action_create">Crear nuevo tema</string>
-    <string name="theme_sheet_action_find">Buscar en Play Store</string>
+    <string name="theme_sheet_action_find">Buscar</string>
     <string name="theme_sheet_action_import">Importar desde archivo</string>
     <string name="theme_action_import_short">Importar</string>
     <string name="theme_card_action_edit">Editar</string>
@@ -506,4 +506,6 @@
     <string name="creator_dialog_apply_desc">¿Quieres aplicar este tema ahora?</string>
     <string name="creator_dialog_action_save_apply">Guardar &amp; Aplicar</string>
     <string name="creator_dialog_action_save_only">Guardar solamente</string>
+    <string name="select_icon">Seleccionar icono</string>
+    <string name="change_icon">Cambiar icono</string>
 </resources>
