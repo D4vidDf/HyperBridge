@@ -128,7 +128,6 @@ fun HomeScreen(
                 }
             }
         ) { padding ->
-            // [FIX] Only apply bottom padding. Let children handle their own top insets.
             Box(modifier = Modifier.padding(bottom = padding.calculateBottomPadding())) {
                 when (selectedTab) {
                     0 -> {
@@ -148,7 +147,6 @@ fun HomeScreen(
                                     DesignScreen(
                                         onNavigateToWidgets = { designRoute = DesignRoute.WIDGET_LIST },
                                         onNavigateToThemes = { designRoute = DesignRoute.THEME_MANAGER },
-                                        // [FIX] Pass callback to edit theme from Dashboard
                                         onEditTheme = { themeId ->
                                             editingThemeId = themeId
                                             designRoute = DesignRoute.THEME_CREATOR
@@ -193,9 +191,6 @@ fun HomeScreen(
                                     ThemeCreatorScreen(
                                         editThemeId = editingThemeId,
                                         onBack = {
-                                            // [FIX] If came from dashboard (no ID means new theme, ID means edit), return to dashboard if needed,
-                                            // but standard flow is usually Manager -> Creator.
-                                            // Here we route back to Manager to keep flow consistent.
                                             designRoute = DesignRoute.THEME_MANAGER
                                             editingThemeId = null
                                         },
@@ -260,13 +255,18 @@ fun HomeScreen(
             }
         }
 
+        // [FIXED] Safe handling of nullable state
         if (configApp != null) {
+            // Capture the non-null value locally for the lambda scope
+            val currentConfigApp = configApp!!
+
             AppConfigBottomSheet(
-                app = configApp!!,
+                app = currentConfigApp,
                 viewModel = viewModel,
                 onDismiss = { configApp = null },
                 onNavConfigClick = {
-                    onNavConfigClick(configApp!!.packageName)
+                    // Use the LOCAL variable, not the mutable state which might have changed
+                    onNavConfigClick(currentConfigApp.packageName)
                     configApp = null
                 }
             )
