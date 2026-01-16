@@ -104,10 +104,6 @@
         <item>hecho</item>
         <item>exitoso</item>
         <item>listo</item>
-        <item>guardado</item>
-        <item>downloaded</item>
-        <item>completed</item>
-        <item>finished</item>
     </string-array>
     <string name="status_download_complete">Descarga Completa</string>
     <string name="status_downloading">Descargando</string>
@@ -525,4 +521,30 @@
         <item quantity="one">%1$d acción personalizada</item>
         <item quantity="other">%1$d acciones personalizadas</item>
     </plurals>
+    <string name="title_0_4_0">La Actualización de Personalización</string>
+    <string name="changelog_0_4_0">        <b>Theme Engine 🎨</b>\n
+        ¡La actualización más grande hasta la fecha! Ahora puedes personalizar completamente la experiencia visual de la isla dinámica.\n
+        • <b>Creador de temas:</b> Diseña temas directamente en tu teléfono con cambios en tiempo real.\n
+        • <b>Control avanzado:</b> Elegir exactamente cómo se muestran los iconos, personalizar colores y formas de notificación de llamadas, y configurar aplicaciones individuales.\n
+        • <b>Colores Inteligentes:</b> Extraer automáticamente los colores de acento de los iconos de la aplicación.\n
+        • <b>Personalización por acción (Beta):</b> Ajusta el aspecto de las acciones de notificación específicas.\n
+        • <b>Compartir:</b> Exporta e importa temas como <i>. hbr</i> paquetes.\n\n
+
+        <b>Soporte para Widgets🧩</b>\n
+        Ancla Widgets a la isla para un rápido acceso, incluso en tu <b>Pantalla de Bloqueo</b>!\n
+        • Elija entre <b>modo interactivo</b> o <b>Snapshot</b> para aquellas aplciaciones que tengan problemas para cargar la información.\n\n
+
+        <b>Motor de notificación 2.0. ⚡</b>\n
+        Una completa reescritura de la lógica para una mejor estabilidad:\n
+        • <b>Análisis más inteligente:</b> Problemas arreglados donde las notificaciones mostraban los nombres de los paquetes (ej. com.whatsapp) en lugar del contenido del mensaje.\n
+        • <b>Anti-Flicker:</b> Nuevo hashing de contenido previene actualizaciones redundantes.\n
+        • <b>Notificaciones Fantasmas:</b> Resuelto varios problemas que hacían que las notificaciones se mantuvieran auqnue la notificación original ya no estaba presente\n\n
+
+        <b>Refresco visual ✨</b>\n
+        • Pestaña \"Diseño\": Nueva pantalla que permite crear tus propios temas o usar Widgets.\n
+        • Nuevos botones de \"Texto\" para acciones de notificación más claras.\n
+        • Añadido soporte para 🇮🇩 Indonesia y:tr: Turco.\n\n
+
+        <i>Nota: Esta versión incluye cambios significativos en la arquitectura. Por favor, informe de cualquier error en GitHub!</i>
+    </string>
 </resources>

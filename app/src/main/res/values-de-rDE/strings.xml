@@ -104,10 +104,6 @@
         <item>done</item>
         <item>successful</item>
         <item>succeeded</item>
-        <item>heruntergeladen</item>
-        <item>fertig</item>
-        <item>abgeschlossen</item>
-        <item>installiert</item>
     </string-array>
     <string name="status_download_complete">Download abgeschlossen</string>
     <string name="status_downloading">Wird heruntergeladen</string>
@@ -526,4 +522,30 @@
         <item quantity="one">%1$d custom action</item>
         <item quantity="other">%1$d custom actions</item>
     </plurals>
+    <string name="title_0_4_0">The Customization Update</string>
+    <string name="changelog_0_4_0">        <b>Theme Engine 🎨</b>\n
+        The biggest update yet! You can now fully customize the Dynamic Island visual experience.\n
+        • <b>Theme Creator:</b> Design themes directly on your phone with real-time previews.\n
+        • <b>Granular Control:</b> Choose exactly how icons are shown, customize call notification colors and shapes, and configure individual app overrides.\n
+        • <b>Smart Colors:</b> Automatically extract vibrant brand colors from app icons.\n
+        • <b>Per-Action Customization (Beta):</b> Fine-tune the look of specific notification actions.\n
+        • <b>Sharing:</b> Export and import themes as portable <i>.hbr</i> packages.\n\n
+
+        <b>Widget Support 🧩</b>\n
+        Pin standard Android widgets to the island for quick access—even on your <b>Lockscreen</b>!\n
+        • Choose between <b>Interactive</b> mode for speed or <b>Snapshot</b> mode for battery efficiency.\n\n
+
+        <b>Notification Engine 2.0 ⚡</b>\n
+        A complete rewrite of the core logic for better stability:\n
+        • <b>Smarter Parsing:</b> Fixed issues where notifications showed package names (e.g., com.whatsapp) instead of message content.\n
+        • <b>Anti-Flicker:</b> New content hashing prevents redundant updates and stuttering.\n
+        • <b>Ghost Fixes:</b> Solved race conditions where islands lingered after dismissal.\n\n
+
+        <b>Visual Refresh ✨</b>\n
+        • Redesigned \"Design\" tab with fluid, native-feeling carousels.\n
+        • New \"Text Pill\" buttons for clearer notification actions.\n
+        • Added support for 🇮🇩 Indonesian and 🇹🇷 Turkish.\n\n
+
+        <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
+    </string>
 </resources>
