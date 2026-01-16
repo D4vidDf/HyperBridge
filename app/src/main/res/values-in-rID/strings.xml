@@ -39,7 +39,7 @@
     <string name="tab_library">Pustaka</string>
     <string name="title_active_bridges">Bridge Aktif</string>
     <string name="title_library">Pustaka Aplikasi</string>
-    <string name="search_hint">Cari aplikasi…</string>
+    <string name="search_hint">Search apps…</string>
     <string name="sort_az">Urutkan: A-Z</string>
     <string name="sort_za">Urutkan: Z-A</string>
     <string name="no_active_bridges">Tidak Ada Bridge Aktif</string>
@@ -104,10 +104,14 @@
         <item>selesai</item>
         <item>berhasil</item>
         <item>sukses</item>
+        <item>selesai</item>
+        <item>tuntas</item>
+        <item>sukses</item>
+        <item>terinstal</item>
     </string-array>
     <string name="status_download_complete">Unduhan Selesai</string>
     <string name="status_downloading">Mengunduh</string>
-    <string name="status_pending">Tertunda…</string>
+    <string name="status_pending">Pending…</string>
     <string name="status_finished">Selesai</string>
     <string name="status_now_playing">Sedang Diputar</string>
     <string name="status_incoming_call">Panggilan Masuk</string>
@@ -136,8 +140,8 @@
     <string name="setting_float">Pop-up Heads-up</string>
     <string name="setting_float_desc">Tampilkan banner notifikasi penuh sejenak sebelum dikecilkan ke Island.</string>
     <string name="setting_shade">Panel Notifikasi</string>
-    <string name="setting_shade_desc">Tetap tampilkan notifikasi di panel notifikasi. Jika dinonaktifkan, notifikasi hanya akan muncul sebagai Island.</string>
-    <string name="setting_timeout">Penundaan Tutup Otomatis</string>
+    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_timeout">Auto-Close delay</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Gunakan Default Global</string>
     <string name="customize_app">Kustomisasi</string>
@@ -512,29 +516,4 @@
     <plurals name="creator_sub_actions_count">
         <item quantity="other">%1$d aksi kustom</item>
     </plurals>
-    <string name="title_0_4_0">Pembaruan Kustomisasi</string>
-    <string name="changelog_0_4_0"><b>Theme Engine 🎨</b>\n
-Pembaruan terbesar sejauh ini! Kini Anda dapat sepenuhnya menyesuaikan tampilan visual Dynamic Island.\n
-• <b>Theme Creator</b> Desain tema langsung di ponsel Anda dengan pratinjau waktu nyata.\n
-• <b>Kontrol Granular</b> Pilih dengan tepat bagaimana ikon ditampilkan, sesuaikan warna dan bentuk notifikasi panggilan, dan konfigurasikan pengaturan khusus untuk setiap aplikasi.\n
-• <b>Smart Colors</b> Secara otomatis mengekstrak warna merek yang hidup dari ikon aplikasi.\n
-• <b>Kustomisasi Per-Aksi (Beta)</b> Sesuaikan tampilan aksi notifikasi tertentu.\n
-• <b>Berbagi</b> Ekspor dan impor tema sebagai paket <i>.hbp</i> portabel.\n\n
-
-<b>Dukungan Widget 🧩</b>\n
-Sematkan widget Android standar ke Island untuk akses cepat—bahkan di <b>Lock screen</b>.\n
-• Pilih antara mode <b>Interaktif</b> untuk kecepatan atau mode <b>Snapshot</b> untuk efisiensi baterai.\n\n
-
-<b>Notification Engine 2.0 ⚡</b>\n
-Penulisan ulang total logika inti untuk stabilitas yang lebih baik.\n
-• <b>Parsing Lebih Cerdas</b> Memperbaiki masalah di mana notifikasi menampilkan nama paket (misalnya com.whatsapp) alih-alih konten pesan.\n
-• <b>Anti-Flicker</b> Hashing konten baru mencegah pembaruan berulang dan efek patah-patah.\n
-• <b>Ghost Fixes</b> Memperbaiki kondisi balapan di mana Island tetap muncul setelah ditutup.\n\n
-
-<b>Penyegaran Visual ✨</b>\n
-• Tab “Design” didesain ulang dengan carousel yang halus dan terasa native.\n
-• Tombol “Text Pill” baru untuk aksi notifikasi yang lebih jelas.\n
-• Menambahkan dukungan untuk 🇮🇩 bahasa Indonesia dan 🇹🇷 Turki.\n\n
-
-<i>Catatan: Rilis ini mencakup perubahan arsitektur yang signifikan. Silakan laporkan bug apa pun di GitHub.</i>    </string>
 </resources>

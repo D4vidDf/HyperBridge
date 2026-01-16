@@ -39,7 +39,7 @@
     <string name="tab_library">라이브러리</string>
     <string name="title_active_bridges">활성 브리지</string>
     <string name="title_library">앱 라이브러리</string>
-    <string name="search_hint">앱 검색...</string>
+    <string name="search_hint">Search apps…</string>
     <string name="sort_az">정렬: A–Z</string>
     <string name="sort_za">정렬: Z–A</string>
     <string name="no_active_bridges">활성 브리지가 없습니다</string>
@@ -111,7 +111,7 @@
     </string-array>
     <string name="status_download_complete">다운로드 완료</string>
     <string name="status_downloading">다운로드 중</string>
-    <string name="status_pending">대기 중...</string>
+    <string name="status_pending">Pending…</string>
     <string name="status_finished">완료됨</string>
     <string name="status_now_playing">재생 중</string>
     <string name="status_incoming_call">수신 전화</string>
@@ -140,8 +140,8 @@
     <string name="setting_float">플로팅 섬 표시</string>
     <string name="setting_float_desc">팝업 알림 표시</string>
     <string name="setting_shade">알림창에 표시</string>
-    <string name="setting_shade_desc">알림 센터에 유지</string>
-    <string name="setting_timeout">타임아웃</string>
+    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_timeout">Auto-Close delay</string>
     <string name="seconds_suffix">%d초</string>
     <string name="use_global_default">전역 설정 사용</string>
     <string name="customize_app">설정하기</string>
@@ -499,4 +499,20 @@
     <string name="creator_dialog_action_save_only">Save Only</string>
     <string name="select_icon">Select Icon</string>
     <string name="change_icon">Change Icon</string>
+    <string name="action_add">Add App</string>
+    <string name="apps_sheet_select_title">Select App</string>
+    <string name="edit_app">Edit App</string>
+    <string name="creator_sub_colors_custom">Custom Color Set</string>
+    <string name="creator_sub_colors_default">Using Global Default</string>
+    <string name="creator_sub_icons_custom">Custom Shape Set</string>
+    <string name="creator_sub_icons_default">Using Global Default</string>
+    <string name="app_customization_desc">Add an app to customize its look specifically.</string>
+    <string name="discard">Discard</string>
+    <string name="unsaved_changes">Unsaved Changes</string>
+    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
+    <string name="share_theme">Share Theme</string>
+    <string name="my_theme">My Theme</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="other">%1$d custom actions</item>
+    </plurals>
 </resources>

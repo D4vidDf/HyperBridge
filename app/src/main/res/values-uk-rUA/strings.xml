@@ -39,7 +39,7 @@
     <string name="tab_library">Бібліотека</string>
     <string name="title_active_bridges">Активні мости</string>
     <string name="title_library">Бібліотека застосунків</string>
-    <string name="search_hint">Пошук застосунків...</string>
+    <string name="search_hint">Search apps…</string>
     <string name="sort_az">Сорт: А-Я</string>
     <string name="sort_za">Сорт: Я-А</string>
     <string name="no_active_bridges">Немає активних мостів</string>
@@ -111,7 +111,7 @@
     </string-array>
     <string name="status_download_complete">Завантаження завершено</string>
     <string name="status_downloading">Завантаження</string>
-    <string name="status_pending">Очікування...</string>
+    <string name="status_pending">Pending…</string>
     <string name="status_finished">Завершено</string>
     <string name="status_now_playing">Зараз грає</string>
     <string name="status_incoming_call">Вхідний дзвінок</string>
@@ -140,8 +140,8 @@
     <string name="setting_float">Показати плаваючий острів</string>
     <string name="setting_float_desc">Показувати спливаюче сповіщення</string>
     <string name="setting_shade">Показати в шторці</string>
-    <string name="setting_shade_desc">Залишити в центрі сповіщень</string>
-    <string name="setting_timeout">Тайм-аут</string>
+    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_timeout">Auto-Close delay</string>
     <string name="seconds_suffix">%dс</string>
     <string name="use_global_default">Використовувати глобальні налаштування</string>
     <string name="customize_app">Налаштувати</string>
@@ -516,4 +516,23 @@
     <string name="creator_dialog_action_save_only">Save Only</string>
     <string name="select_icon">Select Icon</string>
     <string name="change_icon">Change Icon</string>
+    <string name="action_add">Add App</string>
+    <string name="apps_sheet_select_title">Select App</string>
+    <string name="edit_app">Edit App</string>
+    <string name="creator_sub_colors_custom">Custom Color Set</string>
+    <string name="creator_sub_colors_default">Using Global Default</string>
+    <string name="creator_sub_icons_custom">Custom Shape Set</string>
+    <string name="creator_sub_icons_default">Using Global Default</string>
+    <string name="app_customization_desc">Add an app to customize its look specifically.</string>
+    <string name="discard">Discard</string>
+    <string name="unsaved_changes">Unsaved Changes</string>
+    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
+    <string name="share_theme">Share Theme</string>
+    <string name="my_theme">My Theme</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="one">%1$d custom action</item>
+        <item quantity="few">%1$d custom actions</item>
+        <item quantity="other">%1$d custom actions</item>
+        <item quantity="many">%1$d custom actions</item>
+    </plurals>
 </resources>

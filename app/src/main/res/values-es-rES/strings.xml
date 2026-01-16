@@ -111,7 +111,7 @@
     </string-array>
     <string name="status_download_complete">Descarga Completa</string>
     <string name="status_downloading">Descargando</string>
-    <string name="status_pending">Pendiente...</string>
+    <string name="status_pending">Pendiente…</string>
     <string name="status_finished">Finalizado</string>
     <string name="status_now_playing">Reproduciendo</string>
     <string name="status_incoming_call">Llamada Entrante</string>
@@ -140,8 +140,8 @@
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
-    <string name="setting_shade_desc">Mantiene la notificación en el panel del sistema. Si se desactiva, solo se verá como Isla.</string>
-    <string name="setting_timeout">Retardo de Minimización</string>
+    <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificación. Si está desactivada, solo aparece como una isla.</string>
+    <string name="setting_timeout">Retraso de cierre automático</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar valores globales</string>
     <string name="customize_app">Personalizar</string>
@@ -508,4 +508,21 @@
     <string name="creator_dialog_action_save_only">Guardar solamente</string>
     <string name="select_icon">Seleccionar icono</string>
     <string name="change_icon">Cambiar icono</string>
+    <string name="action_add">Añadir aplicación</string>
+    <string name="apps_sheet_select_title">Seleccionar aplicación</string>
+    <string name="edit_app">Editar App</string>
+    <string name="creator_sub_colors_custom">Personalizado</string>
+    <string name="creator_sub_colors_default">Usar valores globales</string>
+    <string name="creator_sub_icons_custom">Forma personalizada</string>
+    <string name="creator_sub_icons_default">Usar valores globales</string>
+    <string name="app_customization_desc">Añade una aplicación para personalizar su aspecto.</string>
+    <string name="discard">Descartar</string>
+    <string name="unsaved_changes">Cambios sin guardar</string>
+    <string name="unsaved_changes_desc">Tiene cambios no guardados para esta aplicación. ¿Desea guardarlos antes de salir?</string>
+    <string name="share_theme">Compartir tema</string>
+    <string name="my_theme">Mi tema</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="one">%1$d acción personalizada</item>
+        <item quantity="other">%1$d acciones personalizadas</item>
+    </plurals>
 </resources>

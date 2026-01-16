@@ -39,7 +39,7 @@
     <string name="tab_library">Biblioteka</string>
     <string name="title_active_bridges">Aktywne mosty</string>
     <string name="title_library">Biblioteka aplikacji</string>
-    <string name="search_hint">Szukaj aplikacje...</string>
+    <string name="search_hint">Search apps…</string>
     <string name="sort_az">Sortuj: A-Z</string>
     <string name="sort_za">Sortuj: Z-A</string>
     <string name="no_active_bridges">Brak aktywnych mostów</string>
@@ -111,7 +111,7 @@
     </string-array>
     <string name="status_download_complete">Pobieranie ukończone</string>
     <string name="status_downloading">Pobieranie</string>
-    <string name="status_pending">Oczekiwanie...</string>
+    <string name="status_pending">Pending…</string>
     <string name="status_finished">Zakończone</string>
     <string name="status_now_playing">Teraz odtwarzane</string>
     <string name="status_incoming_call">Połączenie</string>
@@ -140,8 +140,8 @@
     <string name="setting_float">Popup typu heads-up</string>
     <string name="setting_float_desc">Pokaż powiadomienie, które zostanie potem zminimalizowane do formy wyspy.</string>
     <string name="setting_shade">Panel powiadomień</string>
-    <string name="setting_shade_desc">Zachowaj powiadomienie w Panelu powiadomień. Jeśli opcja jest wyłączona, pojawi się ono tylko jako wyspa.</string>
-    <string name="setting_timeout">Czas wyświetlania</string>
+    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_timeout">Auto-Close delay</string>
     <string name="seconds_suffix">%d s</string>
     <string name="use_global_default">Użyj ustawień globalnych</string>
     <string name="customize_app">Dostosuj</string>
@@ -408,7 +408,7 @@
     <string name="creator_btn_save">Zapisz motyw</string>
     <string name="creator_err_inputs">Wprowadź nazwę motywu i jego autora</string>
     <string name="theme_sheet_action_create">Utwórz nowy motyw</string>
-    <string name="theme_sheet_action_find">Szukaj</string>
+    <string name="theme_sheet_action_find">Znajdź</string>
     <string name="theme_sheet_action_import">Importuj z pliku</string>
     <string name="theme_action_import_short">Importuj</string>
     <string name="theme_card_action_edit">Edytuj</string>
@@ -516,4 +516,23 @@
     <string name="creator_dialog_action_save_only">Tylko zapisz</string>
     <string name="select_icon">Wybierz ikonę</string>
     <string name="change_icon">Zmień ikonę</string>
+    <string name="action_add">Dodaj aplikację</string>
+    <string name="apps_sheet_select_title">Wybierz aplikację</string>
+    <string name="edit_app">Edytuj aplikację</string>
+    <string name="creator_sub_colors_custom">Własny zestaw kolorów</string>
+    <string name="creator_sub_colors_default">Używanie ustawień domyślnych</string>
+    <string name="creator_sub_icons_custom">Własny zestaw kształtów</string>
+    <string name="creator_sub_icons_default">Używanie ustawień domyślnych</string>
+    <string name="app_customization_desc">Dodaj aplikację, aby dostosować wygląd jej powiadomień.</string>
+    <string name="discard">Odrzuć</string>
+    <string name="unsaved_changes">Niezapisane zmiany</string>
+    <string name="unsaved_changes_desc">Masz niezapisane zmiany dla tej aplikacji. Czy chcesz je zapisać przed wyjściem?</string>
+    <string name="share_theme">Udostępnij motyw</string>
+    <string name="my_theme">Mój motyw</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="one">%1$d niestandardowa akcja</item>
+        <item quantity="few">%1$d niestandardowe akcje</item>
+        <item quantity="other">%1$d niestandardowych akcji</item>
+        <item quantity="many">%1$d niestandardowych akcji</item>
+    </plurals>
 </resources>

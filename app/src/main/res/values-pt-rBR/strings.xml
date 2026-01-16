@@ -40,7 +40,7 @@ Hyper Bridge</string>
     <string name="tab_library">Biblioteca</string>
     <string name="title_active_bridges">Pontes Ativas</string>
     <string name="title_library">Biblioteca de Apps</string>
-    <string name="search_hint">Pesquisar apps...</string>
+    <string name="search_hint">Search apps…</string>
     <string name="sort_az">Classificar: A-Z</string>
     <string name="sort_za">Classificar: Z-A</string>
     <string name="no_active_bridges">Nenhuma Ponte Ativa</string>
@@ -112,7 +112,7 @@ Hyper Bridge</string>
     </string-array>
     <string name="status_download_complete">Download Concluído</string>
     <string name="status_downloading">Baixando</string>
-    <string name="status_pending">Pendente...</string>
+    <string name="status_pending">Pending…</string>
     <string name="status_finished">Finalizado</string>
     <string name="status_now_playing">Reproduzindo Agora</string>
     <string name="status_incoming_call">Chamada Recebida</string>
@@ -141,8 +141,8 @@ Hyper Bridge</string>
     <string name="setting_float">Pop-up Flutuante</string>
     <string name="setting_float_desc">Mostra o banner completo da notificação brevemente antes de minimizar para a Ilha.</string>
     <string name="setting_shade">Painel de Notificação</string>
-    <string name="setting_shade_desc">Mantém a notificação visível no painel do sistema. Se desativado, ela aparecerá apenas como uma Ilha.</string>
-    <string name="setting_timeout">Atraso para Auto-Minimizar</string>
+    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_timeout">Auto-Close delay</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar Padrões Globais</string>
     <string name="customize_app">Personalizar</string>
@@ -415,7 +415,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="creator_btn_save">Salvar Tema</string>
     <string name="creator_err_inputs">Por favor, insira um nome e autor</string>
     <string name="theme_sheet_action_create">Criar Novo Tema</string>
-    <string name="theme_sheet_action_find">Search</string>
+    <string name="theme_sheet_action_find">Procurar</string>
     <string name="theme_sheet_action_import">Importar de Arquivo</string>
     <string name="theme_action_import_short">Importar</string>
     <string name="theme_card_action_edit">Editar</string>
@@ -519,6 +519,23 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="creator_dialog_apply_desc">Deseja aplicar este tema agora?</string>
     <string name="creator_dialog_action_save_apply">Salvar e Aplicar</string>
     <string name="creator_dialog_action_save_only">Apenas Salvar</string>
-    <string name="select_icon">Select Icon</string>
-    <string name="change_icon">Change Icon</string>
+    <string name="select_icon">Selecione o ícone</string>
+    <string name="change_icon">Alterar ícone</string>
+    <string name="action_add">Adicionar aplicativo</string>
+    <string name="apps_sheet_select_title">Selecione o aplicativo</string>
+    <string name="edit_app">Editar aplicativo</string>
+    <string name="creator_sub_colors_custom">Conjunto de cores personalizado</string>
+    <string name="creator_sub_colors_default">Usando o padrão global</string>
+    <string name="creator_sub_icons_custom">Conjunto de Formas Personalizadas</string>
+    <string name="creator_sub_icons_default">Usando o padrão global</string>
+    <string name="app_customization_desc">Adicione um aplicativo para personalizar sua aparência especificamente.</string>
+    <string name="discard">Descartar</string>
+    <string name="unsaved_changes">Alterações não salvas</string>
+    <string name="unsaved_changes_desc">Você tem alterações não salvas neste aplicativo. Deseja salvá-las antes de sair?</string>
+    <string name="share_theme">Compartilhar tema</string>
+    <string name="my_theme">Meu tema</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="one">ação personalizada</item>
+        <item quantity="other">ações personalizadas</item>
+    </plurals>
 </resources>

@@ -287,6 +287,7 @@ fun getSettingsShape(groupSize: Int, index: Int): Shape {
 fun LanguageSelectorDialog(onDismiss: () -> Unit) {
     val languages = mapOf(
         stringResource(R.string.system_default) to "",
+        "Bahasa Indonesia" to "id",
         "Deutsch" to "de",
         "English" to "en",
         "Español" to "es",
@@ -294,6 +295,7 @@ fun LanguageSelectorDialog(onDismiss: () -> Unit) {
         "Polski" to "pl",
         "Korean" to "ko",
         "Русский" to "ru",
+        "Türkçe" to "tr",
         "Українська" to "uk"
     )
     val currentAppLocales = AppCompatDelegate.getApplicationLocales()
