@@ -46,7 +46,7 @@
     <string name="tab_library">Library</string>
     <string name="title_active_bridges">Active Bridges</string>
     <string name="title_library">App Library</string>
-    <string name="search_hint">Search apps...</string>
+    <string name="search_hint">Search apps…</string>
     <string name="sort_az">Sort: A-Z</string>
     <string name="sort_za">Sort: Z-A</string>
 
@@ -120,15 +120,11 @@
         <item>done</item>
         <item>successful</item>
         <item>succeeded</item>
-        <item>completado</item>
-        <item>finalizado</item>
-        <item>exitoso</item>
-        <item>instalado</item>
     </string-array>
 
     <string name="status_download_complete">Download Complete</string>
     <string name="status_downloading">Downloading</string>
-    <string name="status_pending">Pending...</string>
+    <string name="status_pending">Pending…</string>
     <string name="status_finished">Finished</string>
     <string name="status_now_playing">Now Playing</string>
     <string name="status_incoming_call">Incoming Call</string>
@@ -163,9 +159,9 @@
     <string name="setting_float_desc">Show the full notification banner briefly before minimizing to the Island.</string>
 
     <string name="setting_shade">Notification Panel</string>
-    <string name="setting_shade_desc">Keep the notification visible in the system shade. If disabled, it only appears as an Island.</string>
+    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
 
-    <string name="setting_timeout">Auto-Minimize Delay</string>
+    <string name="setting_timeout">Auto-Close delay</string>
     <string name="seconds_suffix">%ds</string>
 
     <string name="use_global_default">Use Global Defaults</string>
