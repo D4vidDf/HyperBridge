@@ -34,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.model.HyperBridgeBackup
-import com.d4viddf.hyperbridge.ui.components.ChangelogDialog
+import com.d4viddf.hyperbridge.ui.components.ChangelogSheet
 import com.d4viddf.hyperbridge.ui.components.PriorityEducationDialog
 import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
 import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
@@ -86,7 +86,7 @@ fun MainRootNavigation() {
     val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null } }
     @Suppress("DEPRECATION")
     val currentVersionCode = packageInfo?.longVersionCode?.toInt() ?: 0
-    val currentVersionName = packageInfo?.versionName ?: "0.4.0-dev08"
+    val currentVersionName = packageInfo?.versionName ?: "0.4.0"
 
     // --- 2. ROBUST DATA COLLECTION ---
     val isSetupComplete by produceState<Boolean?>(initialValue = null) {
@@ -232,13 +232,17 @@ fun MainRootNavigation() {
     }
 
     if (showChangelog) {
-        ChangelogDialog(currentVersionName = currentVersionName, changelogText = stringResource(R.string.changelog_0_3_1)) {
-            showChangelog = false
-            scope.launch {
-                preferences.setLastSeenVersion(currentVersionCode)
-                if (!isPriorityEduShown) showPriorityEdu = true
+        ChangelogSheet (
+            currentVersionName = currentVersionName,
+            changelogText = stringResource(R.string.changelog_0_4_0),
+            onDismiss = {
+                showChangelog = false
+                scope.launch {
+                    preferences.setLastSeenVersion(currentVersionCode)
+                    if (!isPriorityEduShown) showPriorityEdu = true
+                }
             }
-        }
+        )
     }
 
     if (showPriorityEdu) {
