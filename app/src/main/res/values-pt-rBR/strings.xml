@@ -11,36 +11,35 @@
     <string name="configure">Configurar</string>
     <string name="clear">Limpar</string>
     <string name="sort_order">Ordem de Classificação</string>
-    <string name="welcome_title">Bem-vindo ao
-Hyper Bridge</string>
-    <string name="welcome_subtitle">Integre HyperIslands perfeitamente à sua experiência no HyperOS.</string>
+    <string name="welcome_title">Bem-vindo(a) ao\nHyper Bridge</string>
+    <string name="welcome_subtitle">Integre Ilhas Dinâmicas perfeitamente à sua experiência no HyperOS.</string>
     <string name="get_started">Começar</string>
     <string name="how_it_works">Como Funciona</string>
-    <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Mapas, Timer). O HyperBridge transforma as notificações deles em uma HyperIsland elegante.</string>
+    <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Mapas, Timer). HyperBridge transforma as notificações em uma elegante Ilha Dinâmica.</string>
     <string name="early_development">Desenvolvimento Inicial</string>
-    <string name="beta_warning">Nota: Este app está em Beta. Você pode encontrar bugs ou informações visuais incorretas.</string>
+    <string name="beta_warning">Nota: Este app está em Beta. Você pode encontrar bugs ou falhas visuais durante o uso.</string>
     <string name="device_compatible">Dispositivo Compatível</string>
-    <string name="unsupported_device">Dispositivo não suportado</string>
-    <string name="compatible_msg">Seu dispositivo parece estar rodando HyperOS/MIUI. Você está pronto para começar!</string>
+    <string name="unsupported_device">Dispositivo Incompatível</string>
+    <string name="compatible_msg">Seu dispositivo parece estar executando a HyperOS/MIUI. Você está pronto para começar!</string>
     <string name="incompatible_msg">O HyperBridge depende de recursos específicos do HyperOS. O fabricante do seu dispositivo não parece ser Xiaomi/POCO/Redmi.</string>
     <string name="system_detected">✅ Sistema Detectado</string>
     <string name="app_wont_work">⚠️ O app pode não funcionar</string>
     <string name="show_island">Mostrar Ilha</string>
-    <string name="perm_post_desc">Precisamos de permissão para postar a notificação da \'Ilha\' na sua tela.</string>
+    <string name="perm_post_desc">Precisamos da permissão para mostrar a notificação da \'Ilha\' na sua tela.</string>
     <string name="perm_granted">Permissão Concedida</string>
     <string name="allow_notifications">Permitir Notificações</string>
     <string name="read_data">Ler Dados</string>
-    <string name="perm_listener_desc">Para conectar seus apps, precisamos ler as notificações deles (Música, Mapas, Timers).</string>
+    <string name="perm_listener_desc">Para conectar seus aplicativos, precisamos ler suas notificações (Música, Mapas, Timers).</string>
     <string name="open_settings">Abrir Configurações</string>
     <string name="keep_alive">Manter Ativo</string>
-    <string name="optimization_desc">O HyperOS encerra apps em segundo plano. Ative o Início Automático e Sem Restrições para manter a ilha ativa.</string>
+    <string name="optimization_desc">A HyperOS encerra apps em segundo plano. Habilite o Início Automático e Nenhuma Restrição para manter a ilha ativa.</string>
     <string name="enable_autostart">1. Ativar Início Automático</string>
-    <string name="set_battery_no_restrictions">2. Definir Bateria como \'Sem Restrições\'</string>
+    <string name="set_battery_no_restrictions">2. Definir Bateria como \'Nenhuma restrição\'</string>
     <string name="tab_active">Ativo</string>
     <string name="tab_library">Biblioteca</string>
     <string name="title_active_bridges">Pontes Ativas</string>
     <string name="title_library">Biblioteca de Apps</string>
-    <string name="search_hint">Search apps…</string>
+    <string name="search_hint">Pesquisar apps...</string>
     <string name="sort_az">Classificar: A-Z</string>
     <string name="sort_za">Classificar: Z-A</string>
     <string name="no_active_bridges">Nenhuma Ponte Ativa</string>
@@ -63,8 +62,8 @@ Hyper Bridge</string>
     <string name="app_health">Saúde do App</string>
     <string name="app_health_desc">Certifique-se de que todas as verificações estejam verdes para que o app funcione corretamente em segundo plano.</string>
     <string name="req_permissions">Permissões Necessárias</string>
-    <string name="notif_access">Acesso a Notificações</string>
-    <string name="notif_access_desc">Necessário para ler eventos dos apps</string>
+    <string name="notif_access">Acesso às Notificações</string>
+    <string name="notif_access_desc">Necessário para ler eventos de apps</string>
     <string name="perm_display_desc">Permissão para exibir sobre outros apps</string>
     <string name="device_optimization">Otimização do Dispositivo</string>
     <string name="xiaomi_autostart">Início Automático Xiaomi</string>
@@ -108,7 +107,7 @@ Hyper Bridge</string>
     </string-array>
     <string name="status_download_complete">Download Concluído</string>
     <string name="status_downloading">Baixando</string>
-    <string name="status_pending">Pending…</string>
+    <string name="status_pending">Pendente…</string>
     <string name="status_finished">Finalizado</string>
     <string name="status_now_playing">Reproduzindo Agora</string>
     <string name="status_incoming_call">Chamada Recebida</string>
@@ -122,7 +121,7 @@ Hyper Bridge</string>
     <string name="limit_strategy">Estratégia de Limite</string>
     <string name="limit_desc">O que acontece quando você atinge 9 ilhas?</string>
     <string name="mode_fcfs_title">Ordem de Chegada</string>
-    <string name="mode_fcfs_desc">Mantém os primeiros 9 apps. Novos apps são ignorados até que haja espaço.</string>
+    <string name="mode_fcfs_desc">Mantém os primeiros 9 aplicativos. Novos aplicativos serão ignorados até haver espaço.</string>
     <string name="mode_recent_title">Mais Recentes (Padrão)</string>
     <string name="mode_recent_desc">Novas notificações substituem as mais antigas.</string>
     <string name="mode_priority_title">Prioridade Personalizada</string>
@@ -137,8 +136,8 @@ Hyper Bridge</string>
     <string name="setting_float">Pop-up Flutuante</string>
     <string name="setting_float_desc">Mostra o banner completo da notificação brevemente antes de minimizar para a Ilha.</string>
     <string name="setting_shade">Painel de Notificação</string>
-    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
-    <string name="setting_timeout">Auto-Close delay</string>
+    <string name="setting_shade_desc">Mantém a notificação visível no painel do sistema. Se desativado, ela aparecerá apenas como uma Ilha.</string>
+    <string name="setting_timeout">Delay para fechar automaticamente</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar Padrões Globais</string>
     <string name="customize_app">Personalizar</string>
@@ -153,18 +152,18 @@ Hyper Bridge</string>
     <string name="hint_options">Opções</string>
     <string name="version_history">Histórico de Versões</string>
     <string name="title_0_2_0">A Atualização de Informações</string>
-    <string name="changelog_0_2_0"> • &lt;b&gt;Progresso Avançado:&lt;/b&gt; Suporte para Progresso em Etapas (ex: 1 de 3) e barras de progresso com ícones dentro da sombra de notificação.
- • &lt;b&gt;Sistema de Prioridade:&lt;/b&gt; Novas configurações de comportamento da Ilha. Escolha entre Mais Recentes, Ordem de Chegada ou lista de Prioridade de Apps personalizada.
- • &lt;b&gt;Filtragem Inteligente:&lt;/b&gt; Detecção aprimorada de notificações duplicadas e downloads agrupados.
- • &lt;b&gt;Melhorias Visuais:&lt;/b&gt; Corrigidos problemas de layout nas instruções de Navegação.
- • &lt;b&gt;Config. por App:&lt;/b&gt; Personalize o Tempo Limite e o comportamento flutuante por aplicativo. </string>
+    <string name="changelog_0_2_0">        • &lt;b&gt;Progresso Avançado:&lt;/b&gt; Suporte para \"Passos\" (ex.: 1 de 3) e barras de progresso com ícones no painel de notificações.\n
+        • &lt;b&gt;Sistema de Prioridade:&lt;/b&gt; Novos ajustes de \"Comportamento\". Define a ordem de aparição das ilhas.\n
+        • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Detecção melhorada de duplicados.\n
+        • &lt;b&gt;Melhorias Visuais:&lt;/b&gt; Corrigido problemas de layout nas instruções de navegação.\n
+        • &lt;b&gt;Configuração por Aplicativo:&lt;/b&gt; Customize o tempo limite e o comportamento de flutuação para cada aplicativo.</string>
     <string name="title_0_1_0">A Atualização Expressiva</string>
-    <string name="changelog_0_1_0">• &lt;b&gt;Grande Reformulação de UI:&lt;/b&gt; Novo design Material 3 Expressive com animações suaves.
- • &lt;b&gt;Ilha Melhorada:&lt;/b&gt; O texto agora aparece no lado direito. Adicionado tique verde para downloads finalizados.
- • &lt;b&gt;Config. por App:&lt;/b&gt; Selecione tipos de notificação específicos (Música, Mapas, Chamadas) por aplicativo.
- • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Bloqueia notificações duplicadas e economiza bateria.
- • &lt;b&gt;Nova Biblioteca:&lt;/b&gt; Filtre apps por categoria e ordem de classificação.
- • &lt;b&gt;Localização:&lt;/b&gt; Adicionado suporte para Espanhol.</string>
+    <string name="changelog_0_1_0">        • &lt;b&gt;Grandes mudanças na IU:&lt;/b&gt; Hyper Bridge agora usa o Material 3 Expressive com novas animações suaves.\n
+        • &lt;b&gt;Melhorias na HyperIsland:&lt;/b&gt; O texto agora aparece à direita e mostra um tick verde para downloads completos.\n
+        • &lt;b&gt;Configuração por aplicativo:&lt;/b&gt; Agora você pode personalizar que tipo de notificação você quer mostrar para cada aplicativo.\n
+        • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Hyper Bridge agora bloqueia notificações duplicadas e economiza bateria.\n
+        • &lt;b&gt;Nova Biblioteca:&lt;/b&gt; Filtra aplicativos por categoria e ordem.\n
+        • &lt;b&gt;Idiomas:&lt;/b&gt; Suporte completo para Espanhol.</string>
     <string name="priority_edu_title">Novo: Controle a Ilha</string>
     <string name="priority_edu_desc">O HyperBridge agora pode gerenciar como várias notificações se comportam quando o limite de 9 ilhas é atingido.
 
@@ -250,30 +249,26 @@ Novas notificações substituem as mais antigas automaticamente.</string>
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">A Atualização Global</string>
-    <string name="changelog_0_3_0"> &lt;b&gt;Notificação Oculta 👻&lt;/b&gt;
- Nova opção para ocultar notificações do painel do sistema enquanto mantém a Ilha ativa. Confira as Configurações Globais!
-
- &lt;b&gt;Novos Idiomas 🌍&lt;/b&gt;
- Agradecimentos especiais à nossa comunidade por estas traduções:
- • 🇧🇷 Português (Brasil)
- • 🇵🇱 Polonês
- • 🇰🇷 Coreano
- • 🇺🇦 Ucraniano
-
- &lt;b&gt;Customização de Navegação 🧭&lt;/b&gt;
- Agora você pode escolher quais informações aparecem nos lados Esquerdo e Direito da Ilha de Navegação (Distância, Hora de Chegada, Instrução).
-
- &lt;b&gt;Proteção contra Spoiler 🛡️&lt;/b&gt;
- Novo recurso de Termos Bloqueados. Defina palavras globalmente ou por app para evitar que notificações específicas apareçam na Ilha.
-
- &lt;b&gt;Melhorias em Chamadas 📞&lt;/b&gt;
- Lógica de detecção aprimorada para suportar uma gama maior de aplicativos VoIP e Discadores.
-
- &lt;b&gt;Correções e Melhorias 🛠️&lt;/b&gt;
- • Corrigido bug crítico onde o app travava ao carregar após reiniciar.
- • Corrigidas notificações que às vezes mostravam nomes de pacotes brutos (ex: com.google...) em vez do conteúdo.
- • Redesenhada a folha de Configuração de Apps para melhor usabilidade.
- • Melhorada a tela de Verificação de Compatibilidade com informações detalhadas do dispositivo. </string>
+    <string name="changelog_0_3_0">        <b>Notificações Ocultas 👻</b>\n
+        Nova opção para ocultar notificações do painel do sistema enquanto mantém a Ilha ativa. Verifique as Configurações Globais!\n\n
+        <b>Novos Idiomas 🌍</b>\n
+        Agradecimentos especiais para a nossa comunidade por essas traduções:\n
+        • 🇧🇷 Português Brasileiro\n
+        • 🇵🇱 Polonês\n
+        • 🇰🇷 Coreano\n\n
+        • 🇺🇦 Ucraniano\n\n
+        <b>Customização da Navegação 🧭</b>\n
+        Você agora pode escolher qual informação aparece no lado esquerdo e direito da navegação da Ilha (Distância, Tempo estimado (ETA), Instrução).\n\n
+        <b>Proteção contra Spoiler 🛡️</b>\n
+        Nova função de \"Termos Bloqueados\". Defina palavras globalmente ou por app para impedir que notificações especificas apareçam na Ilha.\n\n
+        <b>Melhorias em Ligações 📞</b>\n
+        Melhorada a lógica de detecção para dar suporte a uma maior variedade de aplicativos de chamadas.\n\n
+        <b>Correções &amp; Melhorias 🛠️</b>\n
+        • Corrigido um bug crítico no qual o app ficava travado durante o carregamento após uma reinicialização.\n
+        • Corrigido notificações as vezes mostrarem o nome do pacote (ex.: \"com.google...\") em vez do conteúdo.\n
+        • As configurações do app foram redesenhadas para melhor usabilidade.\n
+        • Melhorada a tela de verificação de compatibilidade com informações detalhadas do aparelho.
+    </string>
     <string name="privacy_title">100% Offline e Seguro</string>
     <string name="privacy_desc">O Hyper Bridge processa tudo diretamente no processador do seu telefone.
 
@@ -534,30 +529,30 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
         <item quantity="one">ação personalizada</item>
         <item quantity="other">ações personalizadas</item>
     </plurals>
-    <string name="title_0_4_0">The Customization Update</string>
-    <string name="changelog_0_4_0">        <b>Theme Engine 🎨</b>\n
-        The biggest update yet! You can now fully customize the Dynamic Island visual experience.\n
-        • <b>Theme Creator:</b> Design themes directly on your phone with real-time previews.\n
-        • <b>Granular Control:</b> Choose exactly how icons are shown, customize call notification colors and shapes, and configure individual app overrides.\n
-        • <b>Smart Colors:</b> Automatically extract vibrant brand colors from app icons.\n
-        • <b>Per-Action Customization (Beta):</b> Fine-tune the look of specific notification actions.\n
-        • <b>Sharing:</b> Export and import themes as portable <i>.hbr</i> packages.\n\n
+    <string name="title_0_4_0">A Atualização da Customização</string>
+    <string name="changelog_0_4_0">        <b>Engine de Tema</b>\n
+        A maior atualização até agora! Agora você pode personalizar totalmente a experiência visual das Ilhas Dinâmicas.\n
+        • <b>Criador de Tema:</b>  Crie temas diretamente do seu celular com prévias em tempo real.\n
+        • <b> Controle Granular:</b> Escolha exatamente como os ícones aparecem, personalize cores e formas das notificações de chamada e configure ajustes individuais por app.\n
+        • <b>Cores Inteligentes:</b> Extraia automaticamente cores vibrantes dos ícones dos apps.\n
+        • <b>Personalização por Ação (Beta):</b> Ajuste o visual de ações específicas da notificação.\n
+        • <b>Compartilhando:</b> Exporte e importe temas como pacotes <i>.hbr</i>.\n\n
 
-        <b>Widget Support 🧩</b>\n
-        Pin standard Android widgets to the island for quick access—even on your <b>Lockscreen</b>!\n
-        • Choose between <b>Interactive</b> mode for speed or <b>Snapshot</b> mode for battery efficiency.\n\n
+        <b>Suporte a Widget 🧩</b>\n
+        Fixe widgets do Android na ilha para acesso rápido—mesmo na sua <b>Tela de Bloqueio</b>!\n
+        • Escolha entre modo <b>Interativo</b> para velocidade ou modo <b>Snapshot</b> para economia de bateria.\n\n
 
-        <b>Notification Engine 2.0 ⚡</b>\n
-        A complete rewrite of the core logic for better stability:\n
-        • <b>Smarter Parsing:</b> Fixed issues where notifications showed package names (e.g., com.whatsapp) instead of message content.\n
-        • <b>Anti-Flicker:</b> New content hashing prevents redundant updates and stuttering.\n
-        • <b>Ghost Fixes:</b> Solved race conditions where islands lingered after dismissal.\n\n
+        <b>Engine de Notificação 2.0 ⚡</b>\n
+        Uma reescrita completa da lógica principal para melhor estabilidade:\n
+        • <b>Análise mais Inteligente:</b> Corrigidos problemas em que as notificações exibiam o nome do pacote (ex: com.whatsapp) em vez do conteúdo da mensagem.\n
+        • <b>Anti-Flicker:</b> O novo sistema de hashing de conteúdo evita atualizações redundantes e engasgos visuais.\n
+        • <b>Correções Fantasmas:</b> Resolvidas as condições de execução onde as ilhas permaneciam na tela após serem descartadas.\n\n
 
-        <b>Visual Refresh ✨</b>\n
-        • Redesigned \"Design\" tab with fluid, native-feeling carousels.\n
-        • New \"Text Pill\" buttons for clearer notification actions.\n
-        • Added support for 🇮🇩 Indonesian and 🇹🇷 Turkish.\n\n
+        <b>Atualização Visual ✨</b>\n
+        • Aba \"Design\" redesenhada com carrosséis fluidos e com aspecto nativo.\n
+        • Novos botões estilo \"Pílula de Texto\" para ações de notificação mais claras.\n
+        • Adicionado suporte para 🇮🇩 Indonésio e 🇹🇷 Turco.\n\n
 
-        <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
+        <i>Nota: Esta atualização inclui mudanças significativas na arquitetura do app. Por favor reporte qualquer bug no GitHub!</i>
     </string>
 </resources>

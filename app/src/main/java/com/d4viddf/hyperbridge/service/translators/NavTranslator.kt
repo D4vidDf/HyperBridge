@@ -2,9 +2,7 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.content.Context
-import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
-import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.HyperIslandData
@@ -34,26 +32,21 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         theme: HyperTheme?
     ): HyperIslandData {
 
-        // Default to Green if not specified
+        // 1. Resolve Theme Colors
         val themeProgressBarColor = theme?.defaultNavigation?.progressBarColor
             ?: resolveColor(theme, sbn.packageName, "#34C759")
 
-        val themeActionBgColor = try {
-            themeProgressBarColor.toColorInt()
-        } catch (e: Exception) {
-            0xFF34C759.toInt()
-        }
-
-        val themeActionPadding = 6
-
+        // 2. Resolve Custom Icons
         val navStartBitmap = getThemeBitmap(theme, "nav_start")
         val navEndBitmap = getThemeBitmap(theme, "nav_end")
 
+        // 3. Parse Notification Content
         val extras = sbn.notification.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.replace("\n", " ")?.trim() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
         val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
+
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
         val current = extras.getInt(Notification.EXTRA_PROGRESS, 0)
         val hasProgress = max > 0
@@ -66,6 +59,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         fun isTimeInfo(s: String): Boolean = timeRegex.containsMatchIn(s) || arrivalKeywords.any { s.contains(it, true) }
         fun isDistanceInfo(s: String): Boolean = distanceRegex.containsMatchIn(s)
 
+        // logic to extract ETA/Distance from various fields (Waze vs Maps vs Others)
         if (isTimeInfo(subText)) eta = subText
         else if (isTimeInfo(text) && !isDistanceInfo(text)) eta = text
 
@@ -84,6 +78,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
 
         if (instruction.isEmpty()) instruction = context.getString(R.string.maps_title)
 
+        // 4. Build Notification
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", instruction)
         builder.setEnableFloat(config.isFloat ?: false)
         builder.setIslandConfig(timeout = config.timeout)
@@ -94,6 +89,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         val navStartKey = "nav_start_icon"
         val navEndKey = "nav_end_icon"
 
+        // Add Images
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
@@ -109,52 +105,55 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
             builder.addPicture(getColoredPicture(navEndKey, R.drawable.ic_nav_end, themeProgressBarColor))
         }
 
+        // 5. Actions (Important: Nav needs Text Buttons like "Exit")
+        // We use extractBridgeActions from BaseTranslator but customize the mode slightly if needed
         val rawActions = sbn.notification.actions ?: emptyArray()
+        val actionKeys = mutableListOf<String>()
 
         rawActions.forEachIndexed { index, action ->
             val uniqueKey = "act_${sbn.key.hashCode()}_$index"
-            val originalIcon = action.getIcon()
-            val originalBitmap = if (originalIcon != null) loadIconBitmap(originalIcon, sbn.packageName) else null
 
-            var actionIcon: Icon? = null
-            var hyperPic: HyperPicture? = null
-
-            if (originalBitmap != null) {
-                val roundedBitmap = if (theme != null) {
-                    // [FIX] Updated to use new BaseTranslator signature with packageName
-                    applyThemeToActionIcon(originalBitmap, theme, sbn.packageName, themeActionBgColor)
-                } else {
-                    createRoundedIconWithBackground(originalBitmap, themeActionBgColor, themeActionPadding)
-                }
-
-                val picKeyAction = "${uniqueKey}_icon"
-                actionIcon = Icon.createWithBitmap(roundedBitmap)
-                hyperPic = HyperPicture(picKeyAction, roundedBitmap)
-            }
+            // For Navigation, we usually prefer Text buttons (e.g. "Exit Navigation")
+            // So we don't necessarily need the fancy icon shape logic here unless user explicitly styles it.
+            // We pass null for background to keep it standard pill style or text only.
 
             val hyperAction = HyperAction(
                 key = uniqueKey,
                 title = action.title?.toString() ?: "",
-                icon = actionIcon,
+                icon = null, // Navigation usually works better with text-only pills in the shade
                 pendingIntent = action.actionIntent,
                 actionIntentType = 1,
-                actionBgColor = null,
+                actionBgColor = null, // Transparent/Default
                 titleColor = "#FFFFFF"
             )
 
             builder.addAction(hyperAction)
-            hyperPic?.let { builder.addPicture(it) }
+            actionKeys.add(uniqueKey)
         }
 
-        val finalEta = eta.ifEmpty { " " }
-        val finalDistance = distance.ifEmpty { " " }
+        // 6. Shade Layout (The Fix)
+        // Revert to setBaseInfo (Type 1) which supports standard notifications with actions.
+        val shadeContent = listOf(distance, eta).filter { it.isNotEmpty() }.joinToString(" • ")
 
-        builder.setCoverInfo(picKey, instruction, finalEta, finalDistance)
+        builder.setBaseInfo(
+            type = 1, // Standard Template
+            title = instruction,
+            content = shadeContent,
+            pictureKey = picKey,
+            actionKeys = actionKeys
+        )
 
+        // 7. Progress Bar
         if (hasProgress) {
-            builder.setProgressBar(percent, themeProgressBarColor, picForwardKey = navStartKey, picEndKey = navEndKey)
+            builder.setProgressBar(
+                progress = percent,
+                color = themeProgressBarColor,
+                picForwardKey = navStartKey,
+                picEndKey = navEndKey
+            )
         }
 
+        // 8. Island Layout (Dynamic)
         fun getTextInfo(type: NavContent): TextInfo {
             return when (type) {
                 NavContent.INSTRUCTION -> TextInfo(instruction, null)
@@ -169,6 +168,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
             left = ImageTextInfoLeft(1, PicInfo(1, picKey), getTextInfo(leftLayout)),
             right = ImageTextInfoRight(2, PicInfo(1, hiddenKey), getTextInfo(rightLayout))
         )
+
         builder.setSmallIsland(picKey)
         builder.setIslandConfig(highlightColor = theme?.global?.highlightColor)
 
