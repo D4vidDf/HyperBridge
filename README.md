@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Hyper Bridge bridges standard Android notifications into the pill-shaped UI around the camera cutout, offering a seamless, iOS-like experience on Xiaomi phones.
+  Hyper Bridge bridges standard Android notifications into the pill-shaped UI around the camera cutout, offering a seamless, iOS-like experience on Xiaomi phones. Now with full theme customization and widget support.
 </p>
 
 <p align="center">
@@ -19,9 +19,11 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/version-0.4.0-blue?style=for-the-badge&logo=github" alt="Version 0.4.0" />
   <img src="https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
   <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
   <img src="https://img.shields.io/badge/Material%20Design-757575?style=for-the-badge&logo=material-design&logoColor=white" alt="Material Design" />
+  <a href="https://crowdin.com/project/hyper-bridge"><img src="https://badges.crowdin.net/hyper-bridge/localized.svg" alt="Crowdin" /></a>
 </p>
 
 <br>
@@ -29,27 +31,44 @@
 ## 🚀 Features
 
 * **Native Visuals:** Transforms notifications into HyperOS system-style islands.
+* **🎨 Theme Engine (New):** Customize every pixel.
+    * **Theme Creator:** Built-in editor to design your own themes with real-time previews.
+    * **Smart Colors:** Automatically extract vibrant brand colors from app icons.
+    * **Icon Shaping:** Choose between shapes like *Squircle*, *Clover*, *Arch*, and *Cookie*.
+    * **Granular Control:** Per-app overrides for colors, icons, and action styles.
+* **🧩 Widgets (New):** Pin standard Android widgets to the island layer for quick access—even on the Lockscreen!
 * **Smart Integration:**
     * **🎵 Media:** Show album art and "Now Playing" status with visualizer support.
-    * **🧭 Navigation:** Real-time turn-by-turn instructions (Google Maps, Waze). **New:** Customize the split layout (Distance, ETA, or Instruction).
+    * **🧭 Navigation:** Real-time turn-by-turn instructions (Google Maps, Waze).
     * **⬇️ Downloads:** Circular progress ring with a satisfying "Green Tick" animation upon completion.
     * **📞 Calls:** Dedicated layout for incoming and active calls with timers.
 * **🛡️ Spoiler Protection:** Define blocked terms globally or per-app to prevent specific notifications (e.g., message spoilers) from popping up on the Island.
-* **👻 Ghost Mode:** Option to hide the persistent service notification from the system shade while keeping the Island fully active.
 * **Total Control:** Choose exactly which apps trigger the island, customize timeouts, and toggle floating behavior per app.
+
+## 👩‍💻 For Developers: Create Themes
+
+HyperBridge supports an open theming standard (`.hbr` packages). You can create themes and distribute them, or integrate a "Apply Theme" button directly into your own app (Launcher, Icon Pack, etc.).
+
+* **Documentation:** [Full Guide on Creating & Distributing Themes](https://github.com/D4vidDf/HyperBridge/discussions/78)
+* **Intent API:** Send themes programmatically using `com.d4viddf.hyperbridge.APPLY_THEME`.
 
 ## 🌐 Supported Languages
 
-HyperBridge is fully localized thanks to our amazing community contributors!
+HyperBridge is fully localized thanks to our amazing community. **Want to add your language?** We now use Crowdin for easy translation management.
+
+👉 **[Help translate HyperBridge on Crowdin](https://crowdin.com/project/hyper-bridge)**
 
 * 🇺🇸 **English** (Default)
 * 🇪🇸 **Spanish** (Español)
 * 🇧🇷 **Portuguese** (Português Brasileiro) — Thanks to [@NIICKTCHUNS](https://github.com/NIICKTCHUNS)
 * 🇵🇱 **Polish** (Polski) — Thanks to [@kacskrz](https://github.com/kacskrz)
+* 🇸🇰 **Slovak** (Slovenčina)
 * 🇰🇷 **Korean** (한국어) — Thanks to [@alexkoala](https://github.com/alexkoala)
 * 🇺🇦 **Ukrainian** (Українська) — Thanks to [@ItzDFPlayer](https://github.com/ItzDFPlayer)
-
-> **Special Thanks:** A huge shoutout to everyone who contributed translations for this release. You make HyperBridge accessible to the world! ❤️
+* 🇷🇺 **Russian** (Русский) — Thanks to [@kilo3528](https://github.com/kilo3528)
+* 🇩🇪 **German** (Deutsch) — Thanks to [@kilo3528](https://github.com/kilo3528)
+* 🇮🇩 **Indonesian** (Bahasa Indonesia)
+* 🇹🇷 **Turkish** (Türkçe)
 
 ## 🛠️ Tech Stack
 
@@ -57,14 +76,14 @@ HyperBridge is fully localized thanks to our amazing community contributors!
 * **UI:** Jetpack Compose (Material 3 Expressive)
 * **Architecture:** MVVM
 * **Storage:** Room Database (SQLite)
-* **Services:** NotificationListenerService, BroadcastReceiver
+* **Services:** NotificationListenerService, WidgetOverlayService
 * **Concurrency:** Kotlin Coroutines & Flow
 
 ## 📸 Screenshots
 
-| Home Screen | Settings | Active Island |
-|:---:|:---:|:---:|
-| ![Home](./screenshots/home.png) | ![Settings](./screenshots/settings.png) | ![Island](./screenshots/island_example.png) |
+| Home Screen | Active Island | Theme Creator | Widget Picker |
+|:---:|:---:|:---:|:---:|
+| ![Home](./screenshots/home.png) | ![Island](./screenshots/island_example.png) | ![Creator](./screenshots/theme_creator.png) | ![Widgets](./screenshots/widget_picker.png) |
 
 ## 📥 Installation
 
@@ -90,7 +109,6 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
 4.  Push to the branch (`git push origin feature/AmazingFeature`).
 5.  Open a **Pull Request**.
-
 
 ## 💖 Support the Project
 
