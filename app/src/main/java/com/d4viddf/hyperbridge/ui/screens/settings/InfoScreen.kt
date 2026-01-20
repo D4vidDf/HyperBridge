@@ -293,6 +293,7 @@ fun LanguageSelectorDialog(onDismiss: () -> Unit) {
         "Español" to "es",
         "Português (BR)" to "pt-BR",
         "Polski" to "pl",
+        "Slovenčina" to "sk", // Added Slovak
         "Korean" to "ko",
         "Русский" to "ru",
         "Türkçe" to "tr",
