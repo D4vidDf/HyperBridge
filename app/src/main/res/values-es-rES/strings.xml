@@ -528,11 +528,11 @@
         • <b>Control avanzado:</b> Elegir exactamente cómo se muestran los iconos, personalizar colores y formas de notificación de llamadas, y configurar aplicaciones individuales.\n
         • <b>Colores Inteligentes:</b> Extraer automáticamente los colores de acento de los iconos de la aplicación.\n
         • <b>Personalización por acción (Beta):</b> Ajusta el aspecto de las acciones de notificación específicas.\n
-        • <b>Compartir:</b> Exporta e importa temas como <i>. hbr</i> paquetes.\n\n
+        • <b>Compartir:</b> Exporta e importa temas como paquetes <i>. hbr</i>.\n\n
 
         <b>Soporte para Widgets🧩</b>\n
         Ancla Widgets a la isla para un rápido acceso, incluso en tu <b>Pantalla de Bloqueo</b>!\n
-        • Elija entre <b>modo interactivo</b> o <b>Snapshot</b> para aquellas aplciaciones que tengan problemas para cargar la información.\n\n
+        • Elija entre <b>modo interactivo</b> o <b>Snapshot</b> para aquellas aplcaciones que tengan problemas para cargar la información.\n\n
 
         <b>Motor de notificación 2.0. ⚡</b>\n
         Una completa reescritura de la lógica para una mejor estabilidad:\n
@@ -543,7 +543,7 @@
         <b>Refresco visual ✨</b>\n
         • Pestaña \"Diseño\": Nueva pantalla que permite crear tus propios temas o usar Widgets.\n
         • Nuevos botones de \"Texto\" para acciones de notificación más claras.\n
-        • Añadido soporte para 🇮🇩 Indonesia y:tr: Turco.\n\n
+        • Añadido soporte para 🇮🇩 Indonesia y 🇹🇷 Turco.\n\n
 
         <i>Nota: Esta versión incluye cambios significativos en la arquitectura. Por favor, informe de cualquier error en GitHub!</i>
     </string>
