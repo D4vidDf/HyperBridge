@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="finish">Finish</string>
+    <string name="done">Done</string>
+    <string name="logo_desc">App Logo</string>
+    <string name="settings">Settings</string>
+    <string name="info">Info</string>
+    <string name="configure">Configure</string>
+    <string name="clear">Clear</string>
+    <string name="sort_order">Sort Order</string>
+    <string name="welcome_title">Welcome to\nHyper Bridge</string>
+    <string name="welcome_subtitle">Seamlessly integrate HyperIslands into your HyperOS experience.</string>
+    <string name="get_started">Get Started</string>
+    <string name="how_it_works">How it Works</string>
+    <string name="how_it_works_desc">Select your favorite apps (Spotify, Maps, Timer). HyperBridge transforms their notifications into a sleek HyperIsland.</string>
+    <string name="early_development">Early Development</string>
+    <string name="beta_warning">Note: This app is in Beta. You may encounter bugs or incorrect visual information.</string>
+    <string name="device_compatible">Device Compatible</string>
+    <string name="unsupported_device">Unsupported Device</string>
+    <string name="compatible_msg">Your device appears to be running HyperOS/MIUI. You are good to go!</string>
+    <string name="incompatible_msg">HyperBridge relies on specific HyperOS system features. Your device manufacturer does not appear to be Xiaomi/POCO/Redmi.</string>
+    <string name="system_detected">✅ System Detected</string>
+    <string name="app_wont_work">⚠️ App may not work</string>
+    <string name="show_island">Show Island</string>
+    <string name="perm_post_desc">We need permission to post the \'Island\' notification on your screen.</string>
+    <string name="perm_granted">Permission Granted</string>
+    <string name="allow_notifications">Allow Notifications</string>
+    <string name="read_data">Read Data</string>
+    <string name="perm_listener_desc">To bridge your apps, we need to read their notifications (Music, Maps, Timers).</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="keep_alive">Keep Alive</string>
+    <string name="optimization_desc">HyperOS kills background apps. Enable Autostart and No Restrictions to keep the island active.</string>
+    <string name="enable_autostart">1. Enable Autostart</string>
+    <string name="set_battery_no_restrictions">2. Set Battery \'No Restrictions\'</string>
+    <string name="tab_active">Active</string>
+    <string name="tab_library">Library</string>
+    <string name="title_active_bridges">Active Bridges</string>
+    <string name="title_library">App Library</string>
+    <string name="search_hint">Search apps…</string>
+    <string name="sort_az">Sort: A-Z</string>
+    <string name="sort_za">Sort: Z-A</string>
+    <string name="no_active_bridges">No Active Bridges</string>
+    <string name="no_active_bridges_desc">Go to Library to enable apps.</string>
+    <string name="no_apps_found">No apps found</string>
+    <string name="about">About</string>
+    <string name="version_template">Version %s</string>
+    <string name="developer_credit">by D4vidDf</string>
+    <string name="group_configuration">Configuration</string>
+    <string name="system_setup">System Setup</string>
+    <string name="system_setup_subtitle">Fix permissions &amp; battery</string>
+    <string name="group_about">About</string>
+    <string name="developer">Developer</string>
+    <string name="developer_subtitle">Visit d4viddf.com</string>
+    <string name="source_code">Source Code</string>
+    <string name="source_code_subtitle">GitHub Repository</string>
+    <string name="licenses">Open Source Licenses</string>
+    <string name="licenses_subtitle">Third-party software</string>
+    <string name="footer_made_with_love">Made with ❤️ in Spain</string>
+    <string name="app_health">App Health</string>
+    <string name="app_health_desc">Ensure all checks are green for the app to work correctly in the background.</string>
+    <string name="req_permissions">Required Permissions</string>
+    <string name="notif_access">Notification Access</string>
+    <string name="notif_access_desc">Required to read app events</string>
+    <string name="perm_display_desc">Permission to display over apps</string>
+    <string name="device_optimization">Device Optimization</string>
+    <string name="xiaomi_autostart">Xiaomi Autostart</string>
+    <string name="autostart_desc">Allow app to start on boot</string>
+    <string name="battery_unrestricted">Battery Unrestricted</string>
+    <string name="battery_desc">Prevent system killing app</string>
+    <string name="recents_note">Note: Also lock the app in the \'Recents\' overview menu.</string>
+    <string name="status_active">Active</string>
+    <string name="action_needed">Action Needed</string>
+    <string name="cat_all">All</string>
+    <string name="cat_music">Music</string>
+    <string name="cat_nav">Navigation</string>
+    <string name="cat_timer">Productivity</string>
+    <string name="cat_other">Other</string>
+    <string name="select_active_notifs">Select active notifications</string>
+    <string name="type_standard">Messages &amp; General</string>
+    <string name="type_progress">Downloads &amp; Progress</string>
+    <string name="type_media">Music &amp; Media</string>
+    <string name="type_nav">Maps &amp; GPS</string>
+    <string name="type_call">Calls</string>
+    <string name="type_timer">Timers &amp; Alarms</string>
+    <string name="service_active">Active</string>
+    <string name="download_complete">Download Complete</string>
+    <string name="pending">Pending…</string>
+    <string name="finished">Finished</string>
+    <string name="downloading">Downloading</string>
+    <string name="waiting">Waiting…</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="unknown_caller">Unknown Caller</string>
+    <string name="incoming_call">Call</string>
+    <string name="maps_title">Maps</string>
+    <string name="timer_title">Timer</string>
+    <string-array name="progress_finish_keywords">
+        <item>downloaded</item>
+        <item>completed</item>
+        <item>finished</item>
+        <item>installed</item>
+        <item>done</item>
+        <item>successful</item>
+        <item>succeeded</item>
+    </string-array>
+    <string name="status_download_complete">Download Complete</string>
+    <string name="status_downloading">Downloading</string>
+    <string name="status_pending">Pending…</string>
+    <string name="status_finished">Finished</string>
+    <string name="status_now_playing">Now Playing</string>
+    <string name="status_incoming_call">Incoming Call</string>
+    <string name="caller_unknown">Unknown Caller</string>
+    <string name="fallback_maps">Maps</string>
+    <string name="fallback_timer">Timer</string>
+    <string name="fallback_stopwatch">Stopwatch</string>
+    <string name="whats_new_title">What\'s New in %s</string>
+    <string name="awesome">Awesome!</string>
+    <string name="island_behavior">Island Behavior</string>
+    <string name="limit_strategy">Limit Strategy</string>
+    <string name="limit_desc">What happens when you reach 9 islands?</string>
+    <string name="mode_fcfs_title">First Come, First Served</string>
+    <string name="mode_fcfs_desc">Keeps the first 9 apps. New apps are ignored until space opens.</string>
+    <string name="mode_recent_title">Most Recent (Default)</string>
+    <string name="mode_recent_desc">New notifications replace the oldest ones.</string>
+    <string name="mode_priority_title">Custom Priority</string>
+    <string name="mode_priority_desc">Define which types (e.g. Calls) are more important.</string>
+    <string name="priority_order">Priority Order</string>
+    <string name="priority_order_desc">High priority (Top) replaces Low priority (Bottom).</string>
+    <string name="move_up">Move Up</string>
+    <string name="move_down">Move Down</string>
+    <string name="configure_order">Configure apps order</string>
+    <string name="global_settings">Global Settings</string>
+    <string name="island_appearance">Island Appearance</string>
+    <string name="setting_float">Heads-up Popup</string>
+    <string name="setting_float_desc">Show the full notification banner briefly before minimizing to the Island.</string>
+    <string name="setting_shade">Notification Panel</string>
+    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_timeout">Auto-Close delay</string>
+    <string name="seconds_suffix">%ds</string>
+    <string name="use_global_default">Use Global Defaults</string>
+    <string name="customize_app">Customize</string>
+    <string name="override_settings">Override Settings</string>
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+    </string-array>
+    <string name="hint_options">Options</string>
+    <string name="version_history">Version History</string>
+    <string name="title_0_2_0">The Information Update</string>
+    <string name="changelog_0_2_0">        • &lt;b&gt;Advanced Progress:&lt;/b&gt; Added support for \"Step Progress\" (e.g. 1 of 3) and progress bars with icons inside the notification shade.\n
+        • &lt;b&gt;Priority System:&lt;/b&gt; New \"Island Behavior\" settings. Choose between \"Most Recent\", \"First Come\", or a custom \"App Priority\" list.\n
+        • &lt;b&gt;Smart Filtering:&lt;/b&gt; Improved detection of duplicate notifications and grouped downloads.\n
+        • &lt;b&gt;Visual Improvements:&lt;/b&gt; Fixed layout issues with Navigation instructions.\n
+        • &lt;b&gt;Per-App Config:&lt;/b&gt; Customize Timeout and Floating behavior per app.
+    </string>
+    <string name="title_0_1_0">The Expressive Update</string>
+    <string name="changelog_0_1_0">        • &lt;b&gt;Major UI Overhaul:&lt;/b&gt; New Material 3 Expressive design with smooth animations.\n
+        • &lt;b&gt;Better Island:&lt;/b&gt; Text now appears on the right side. Added Green Tick for finished downloads.\n
+        • &lt;b&gt;Per-App Config:&lt;/b&gt; Select specific notification types (Music, Maps, Calls) per app.\n
+        • &lt;b&gt;Smart Filters:&lt;/b&gt; Blocks duplicate notifications and saves battery.\n
+        • &lt;b&gt;New Library:&lt;/b&gt; Filter apps by category and sort order.\n
+        • &lt;b&gt;Localization:&lt;/b&gt; Added Spanish support.
+    </string>
+    <string name="priority_edu_title">New: Control the Island</string>
+    <string name="priority_edu_desc">HyperBridge can now manage how multiple notifications behave when the 9-island limit is reached.\n\n&lt;b&gt;Default: Most Recent&lt;/b&gt;\nNew notifications replace the oldest ones automatically.</string>
+    <string name="keep_default">Keep Default</string>
+    <string name="configure_now">Configure Now</string>
+    <string name="badge_new">NEW</string>
+    <string name="custom_design">Custom Design</string>
+    <string name="nav_layout_title">Navigation Layout</string>
+    <string name="nav_layout_desc">Choose where information appears</string>
+    <string name="left_content">Left Side</string>
+    <string name="right_content">Right Side</string>
+    <string name="nav_content_instruction">Instruction</string>
+    <string name="nav_content_distance">Distance</string>
+    <string name="nav_content_eta">Arrival Time</string>
+    <string name="nav_content_distance_eta">Dist. &amp; Time</string>
+    <string name="nav_content_none">Empty</string>
+    <string name="channel_active_islands">Active Islands</string>
+    <string name="cd_toggle_app">Toggle %s</string>
+    <string name="cd_configure_app">Configure %s</string>
+    <string name="cd_enable_type">Enable %s notifications</string>
+    <string name="cd_disable_type">Disable %s notifications</string>
+    <string name="cd_nav_edit">Edit navigation layout</string>
+    <string name="cd_app_state_active">Active</string>
+    <string name="cd_app_state_inactive">Inactive</string>
+    <string name="cd_move_up">Move item up</string>
+    <string name="cd_move_down">Move item down</string>
+    <string name="cd_drag_handle">Drag handle. Double tap and hold to reorder, or use actions to move.</string>
+    <string name="cd_app_icon">App Icon for %s</string>
+    <string name="cd_nav_preview">Navigation Preview: %1$s on left, %2$s on right</string>
+    <string name="cd_expand_changelog">Expand version details</string>
+    <string name="cd_collapse_changelog">Collapse version details</string>
+    <string name="cd_configuration_group">Configuration Settings</string>
+    <string name="cd_about_group">About Information</string>
+    <string name="nav_preview_instruction">Turn Right</string>
+    <string name="nav_preview_distance">200m</string>
+    <string name="nav_preview_time">10:30</string>
+    <string name="blocked_terms">Blocked Terms</string>
+    <string name="blocked_terms_desc">Notifications containing these words will be ignored.</string>
+    <string name="add_blocked_word">Add word (e.g. Spoiler)</string>
+    <string name="add">Add</string>
+    <string name="remove">Remove</string>
+    <string name="tap_to_configure_rules">Tap an app to configure specific block rules.</string>
+    <string name="spoiler_subtitle">Manage spoiler protection and filters</string>
+    <string name="active_notifications_title">Notification Types</string>
+    <string name="active_notifications_subtitle">%d active</string>
+    <string name="appearance_use_defaults_desc">Using system defaults for animation speed and floating behavior.</string>
+    <string name="blocked_terms_active_count">%d rules active</string>
+    <string name="global_rules">Global Rules</string>
+    <string name="app_specific_rules">App Specific Rules</string>
+    <string name="manage_app_rules_desc">Customize filters for specific applications</string>
+    <string name="blocked_terms_count">%d terms blocked</string>
+    <string name="no_active_rules">No active rules</string>
+    <string name="setup_health_title">System Compatibility</string>
+    <string name="check_device">Device: %s</string>
+    <string name="check_os_version">OS: %s</string>
+    <string name="req_hyperos">Requires HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">Xiaomi/Redmi/Poco device required</string>
+    <string name="check_autostart">Background Autostart</string>
+    <string name="check_autostart_desc">Required for the service to restart after reboot.</string>
+    <string name="grant_permission">Grant</string>
+    <string name="status_ok">Compatible</string>
+    <string name="status_fail">Incompatible</string>
+    <string name="status_unknown">Unknown</string>
+    <string name="warning_cn_rom_title">China ROM Detected</string>
+    <string name="warning_cn_rom_desc">Your device appears to be running a Chinese firmware. Xiaomi modifies notification internals significantly on CN ROMs. Features might be unstable or not work at all.</string>
+    <string name="system_version">System Version</string>
+    <string name="call_incoming">Incoming Call</string>
+    <string name="call_ongoing">Active Call</string>
+    <string-array name="call_keywords_hangup">
+        <item>hang</item>
+        <item>end</item>
+        <item>decline</item>
+        <item>reject</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>answer</item>
+        <item>accept</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>speaker</item>
+        <item>audio</item>
+    </string-array>
+    <string name="title_0_3_0">The Global Update</string>
+    <string name="changelog_0_3_0">        <b>Hidden Notification 👻</b>\n
+        New option to hide notifications from the system panel while keeping the Island active. Check Global Settings!\n\n
+        <b>New Languages 🌍</b>\n
+        Special thanks to our community for these translations:\n
+        • 🇧🇷 Portuguese (Brazil)\n
+        • 🇵🇱 Polish\n
+        • 🇰🇷 Korean\n\n
+        • 🇺🇦 Ukranian\n\n
+        <b>Navigation Customization 🧭</b>\n
+        You can now choose what information appears on the Left and Right sides of the Navigation Island (Distance, ETA, Instruction).\n\n
+        <b>Spoiler Protection 🛡️</b>\n
+        New \"Blocked Terms\" feature. Define words globally or per-app to prevent specific notifications from showing up on the Island.\n\n
+        <b>Call Improvements 📞</b>\n
+        Improved detection logic to support a wider range of VoIP and Dialer applications.\n\n
+        <b>Fixes &amp; Improvements 🛠️</b>\n
+        • Fixed a critical bug where the app would get stuck loading after a reboot.\n
+        • Fixed notifications sometimes showing raw package names (e.g. \"com.google...\") instead of content.\n
+        • Redesigned App Configuration sheet for better usability.\n
+        • Improved Compatibility Check screen with detailed device info.
+    </string>
+    <string name="privacy_title">100% Offline &amp; Secure</string>
+    <string name="privacy_desc">Hyper Bridge processes everything directly on your phone\'s processor.\n\nIt does NOT require internet access, meaning your notifications and personal data never leave your device.</string>
+    <string name="language">Language</string>
+    <string name="language_desc">Change application language</string>
+    <string name="system_default">System Default</string>
+    <string name="save">Save</string>
+    <string name="backup_restore_title">Backup &amp; Restore</string>
+    <string name="backup_section_title">Manage Data</string>
+    <string name="backup_options_subtitle">Select data to include in the operation</string>
+    <string name="option_app_settings">App Settings</string>
+    <string name="option_app_settings_desc">Setup status, theme, behavior modes</string>
+    <string name="option_blocklist">Blocklist Database</string>
+    <string name="option_blocklist_desc">Your custom blocked keywords and apps</string>
+    <string name="option_priorities">Priority Rules</string>
+    <string name="option_priorities_desc">Custom notification priority configurations</string>
+    <string name="action_export">Create Backup</string>
+    <string name="action_import">Restore Backup</string>
+    <string name="export_success">Backup saved successfully</string>
+    <string name="export_failed">Export failed: %s</string>
+    <string name="import_success">Data restored successfully</string>
+    <string name="import_failed">Import failed: %s</string>
+    <string name="invalid_backup_file">Invalid HyperBridge backup file</string>
+    <string name="db_version_mismatch">Warning: Backup from a different database version</string>
+    <string name="autostart_manual_check">Status cannot be verified automatically.\nPlease check this manually to ensure the service works proprely</string>
+    <string name="backup_info_title">Backup Information</string>
+    <string name="backup_meta_date">Date</string>
+    <string name="backup_meta_device">Device</string>
+    <string name="backup_meta_version">Version</string>
+    <string name="backup_meta_keys">Total Items</string>
+    <string name="backup_empty_suffix"> (Empty)</string>
+    <string name="action_restore_selected">Restore Selected Data</string>
+    <string name="optimization_title">Device Optimization</string>
+    <string name="no_restrictions">Set \"No Restrictions\"</string>
+    <string name="privacy_card_title">Offline First</string>
+    <string name="privacy_card_desc">No internet connection required.</string>
+    <string name="title_0_3_1">Backup &amp; Polyglot Update</string>
+    <string name="changelog_0_3_1">        <b>Backup &amp; Restore 📦</b>\n
+        New power-user feature! Securely export your settings, blocklists, and app priorities to a .hbr file and restore them anytime.\n\n
+        <b>New Languages 🌍</b>\n
+        Added support for:\n
+        • 🇩🇪 German\n
+        • 🇷🇺 Russian\n
+        • 🇺🇦 Ukrainian (Improved)\n
+        <i>Plus: A new in-app Language Selector to change languages without affecting your system settings.</i>\n\n
+        <b>Visual Refresh 🎨</b>\n
+        The app has been updated with <b>Material 3 Expressive</b> design. Enjoy larger headers, rounder shapes, and a smoother experience.\n\n
+        <b>Privacy &amp; Setup 🛡️</b>\n
+        • Improved Onboarding with a dedicated Privacy page clarifying offline-first architecture.\n
+        • Stricter compatibility checks to ensure the best experience on HyperOS 3.0.\n\n
+        <b>Fixes 🛠️</b>\n
+        • Fixed a critical issue where settings were lost after device reboot (migrated to database).\n
+        • Fixed \"Exit\" button in Navigation island showing as an icon instead of text.\n
+        • Fixed App Icon loading in Settings.\n
+    </string>
+    <string name="close">Close</string>
+    <string name="search">Search</string>
+    <string name="widget_updated_toast">Widget updated</string>
+    <string name="widget_settings_error">Cannot edit this widget settings</string>
+    <string name="widget_picker_title">Add Widget</string>
+    <string name="search_apps_placeholder">Search apps...</string>
+    <plurals name="widget_count_fmt">
+        <item quantity="many">%d widgets</item>
+        <item quantity="other">%d widgets</item>
+        <item quantity="one">%d widget</item>
+        <item quantity="few">%d widgets</item>
+    </plurals>
+    <string name="widget_config_title">Configure Widget</string>
+    <string name="widget_settings_button">Widget Settings</string>
+    <string name="config_tab_appearance">Appearance</string>
+    <string name="config_tab_behavior">Behavior</string>
+    <string name="config_render_mode_label">Render Mode</string>
+    <string name="config_container_size_label">Container Size</string>
+    <string name="config_shade_title">Show in Shade</string>
+    <string name="config_shade_desc">Visible in notification panel</string>
+    <string name="config_timeout_title">Auto Close</string>
+    <string name="config_timeout_desc">Close island after delay</string>
+    <plurals name="config_timeout_fmt">
+        <item quantity="many">%d seconds</item>
+        <item quantity="other">%d seconds</item>
+        <item quantity="one">%d second</item>
+        <item quantity="few">%d seconds</item>
+    </plurals>
+    <string name="config_refresh_title">Auto Refresh</string>
+    <string name="config_refresh_desc">Update snapshot periodically</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="many">Every %d minutes</item>
+        <item quantity="other">Every %d minutes</item>
+        <item quantity="one">Every minute</item>
+        <item quantity="few">Every %d minutes</item>
+    </plurals>
+    <string name="config_refresh_warning">Higher frequency uses more battery.</string>
+    <string name="render_interactive_label">Interactive</string>
+    <string name="render_interactive_desc">Buttons work. Best for Music, Controls.</string>
+    <string name="render_snapshot_label">Snapshot</string>
+    <string name="render_snapshot_desc">Fixes empty lists. Best for Calendar, Gmail.</string>
+    <string name="size_original">Original</string>
+    <string name="size_small">Small (100dp)</string>
+    <string name="size_medium">Medium (180dp)</string>
+    <string name="size_large">Large (280dp)</string>
+    <string name="size_xlarge">Extra Large (380dp)</string>
+    <string name="app_uninstalled_badge">Uninstalled</string>
+    <string name="settings_action">Settings</string>
+    <string name="saved_widgets_title">Saved Widgets</string>
+    <string name="new_widget_fab">New Widget</string>
+    <string name="no_saved_widgets">No saved widgets found.</string>
+    <string name="widget_id_fmt">Widget #%d</string>
+    <string name="show_on_island">Show on Island</string>
+    <string name="theme_installer_title">Import Theme</string>
+    <string name="theme_installer_analyzing">Analyzing theme package...</string>
+    <string name="theme_installer_success_title">Theme Ready</string>
+    <string name="theme_installer_author">Created by %s</string>
+    <string name="theme_installer_version">Version %d</string>
+    <string name="theme_installer_description_default">No description provided.</string>
+    <string name="theme_installer_apply_question">Do you want to apply this theme to HyperBridge now?</string>
+    <string name="theme_installer_action_apply">Apply Theme</string>
+    <string name="theme_installer_action_later">Save for Later</string>
+    <string name="theme_installer_error_title">Import Failed</string>
+    <string name="theme_installer_error_generic">Could not verify the theme file.</string>
+    <string name="theme_installer_btn_close">Close</string>
+    <string name="theme_manager_title">My Themes</string>
+    <string name="theme_manager_cd_back">Navigate Back</string>
+    <string name="theme_manager_cd_add">Add New Theme</string>
+    <string name="theme_card_author_format">by %s</string>
+    <string name="theme_card_cd_active">Active Theme</string>
+    <string name="theme_card_cd_delete">Delete Theme</string>
+    <string name="theme_system_default_title">System Default</string>
+    <string name="theme_system_default_desc">Standard Look</string>
+    <string name="theme_sheet_title">Add New Theme</string>
+    <string name="creator_title">New Theme</string>
+    <string name="creator_label_name">Theme Name</string>
+    <string name="creator_label_author">Author Name</string>
+    <string name="creator_label_color">Highlight Color</string>
+    <string name="creator_preview">Preview</string>
+    <string name="creator_btn_save">Save Theme</string>
+    <string name="creator_err_inputs">Please enter a name and author</string>
+    <string name="theme_sheet_action_create">Create New Theme</string>
+    <string name="theme_sheet_action_find">Search</string>
+    <string name="theme_sheet_action_import">Import from File</string>
+    <string name="theme_action_import_short">Import</string>
+    <string name="theme_card_action_edit">Edit</string>
+    <string name="theme_card_action_export">Export</string>
+    <string name="creator_title_new">Create Theme</string>
+    <string name="creator_title_edit">Edit Theme</string>
+    <string name="creator_nav_colors">Colors</string>
+    <string name="creator_nav_icons">Icons &amp; Shapes</string>
+    <string name="creator_nav_calls">Call Style</string>
+    <string name="creator_nav_apps">App Config</string>
+    <string name="creator_action_save">Save</string>
+    <string name="creator_btn_edit_info">Edit Theme Info</string>
+    <string name="creator_sub_colors">Palettes &amp; contrast</string>
+    <string name="creator_sub_icons">Shape &amp; padding</string>
+    <string name="creator_sub_calls">Answer &amp; decline buttons</string>
+    <string name="creator_sub_apps">Per-app overrides</string>
+    <string name="meta_title">Theme Info</string>
+    <string name="meta_label_name">Theme Name</string>
+    <string name="meta_label_author">Author Name</string>
+    <string name="meta_action_done">Done</string>
+    <string name="colors_tab_presets">Presets</string>
+    <string name="colors_tab_custom">Custom</string>
+    <string name="colors_label_presets">Presets</string>
+    <string name="colors_label_use_app_colors">Use App Colors</string>
+    <string name="colors_desc_use_app_colors">Adapt colors from installed apps</string>
+    <string name="colors_label_custom_title">Custom Color</string>
+    <string name="colors_cd_add_custom">Add Custom Color</string>
+    <string name="colors_dialog_title">Pick a Color</string>
+    <string name="colors_dialog_desc">Select a custom color for your theme.</string>
+    <string name="colors_label_hex">Hex Code</string>
+    <string name="colors_action_done">Done</string>
+    <string name="icons_tab_style">Style</string>
+    <string name="icons_tab_assets">Icons</string>
+    <string name="icons_tab_shape">Shape</string>
+    <string name="icons_label_size">Icon Size</string>
+    <string name="icons_label_full">Full</string>
+    <string name="icons_label_minimal">Minimal</string>
+    <string name="icons_group_nav">Navigation</string>
+    <string name="icons_btn_start">Start</string>
+    <string name="icons_btn_end">End</string>
+    <string name="icons_group_progress">Progress</string>
+    <string name="icons_btn_success">Success</string>
+    <string name="icons_label_shape_title">Icon Shape</string>
+    <string name="shape_circle">Circle</string>
+    <string name="shape_square">Square</string>
+    <string name="shape_cookie">Cookie</string>
+    <string name="shape_arch">Arch</string>
+    <string name="shape_clover">Clover</string>
+    <string name="calls_label_answer">Answer</string>
+    <string name="calls_label_decline">Decline</string>
+    <string name="calls_label_hex">Hex Color</string>
+    <string name="apps_title">Configured Apps</string>
+    <string name="apps_empty">No apps configured</string>
+    <string name="apps_sheet_title">Configure App</string>
+    <string name="apps_label_select">Select App</string>
+    <string name="apps_label_app">App</string>
+    <string name="apps_label_highlight">Highlight Color (Hex)</string>
+    <string name="apps_group_actions">Custom Actions</string>
+    <string name="apps_label_keyword">Keyword</string>
+    <string name="apps_desc_button_contains">Button containing \'%s\'</string>
+    <string name="apps_action_save">Save Configuration</string>
+    <string name="apps_default_color">Default Color</string>
+    <plurals name="apps_action_count">
+        <item quantity="many">%d actions</item>
+        <item quantity="other">%d actions</item>
+        <item quantity="one">%d action</item>
+        <item quantity="few">%d actions</item>
+    </plurals>
+    <string name="design_hero_customization_title">Customization</string>
+    <string name="design_hero_customization_subtitle">Learn how to create themes</string>
+    <string name="design_hero_pro_title">Pro Features</string>
+    <string name="design_hero_pro_subtitle">Unlock more power</string>
+    <string name="design_hero_community_title">Community</string>
+    <string name="design_hero_community_subtitle">Join our GitHub</string>
+    <string name="design_section_themes">Themes</string>
+    <string name="design_section_widgets">Widgets</string>
+    <string name="design_browse_more">Browse More</string>
+    <string name="design_add_new">Add New</string>
+    <string name="design_add_design">Add Design</string>
+    <string name="design_add_to_island">Customization</string>
+    <string name="design_system_widget_beta">System Widget (Beta)</string>
+    <string name="design_get_themes">Get Themes</string>
+    <string name="design_empty_widget_title">Add your first Widget</string>
+    <string name="design_active_count">%d Active</string>
+    <string name="design">Design</string>
+    <string name="creator_nav_actions">Global Actions</string>
+    <string name="creator_sub_actions">Style buttons by keyword</string>
+    <string name="action_sheet_title">Configure Action</string>
+    <string name="action_label_keyword">Keyword (e.g. \'Reply\')</string>
+    <string name="action_label_bg_color">Background Color</string>
+    <string name="action_label_tint_color">Icon/Text Color</string>
+    <string name="action_preview">Live Preview</string>
+    <string name="action_mode_icon">Icon Only</string>
+    <string name="action_mode_text">Text</string>
+    <string name="action_mode_both">Both</string>
+    <string name="actions_empty_title">No Custom Actions</string>
+    <string name="actions_empty_desc">Add rules to style notification buttons based on their text (e.g., \"Reply\", \"Archive\").</string>
+    <string name="action_default_preview_text">Action</string>
+    <string name="actions_search_hint">Search actions...</string>
+    <string name="actions_search_empty_fmt">No actions found for \"%1$s\"</string>
+    <string name="action_wip_warning">This feature is a Work in Progress. Keyword matching depends on how apps structure their notifications and may not work for every app.</string>
+    <string name="creator_dialog_apply_title">Apply Theme?</string>
+    <string name="creator_dialog_apply_desc">Do you want to apply this theme now?</string>
+    <string name="creator_dialog_action_save_apply">Save &amp; Apply</string>
+    <string name="creator_dialog_action_save_only">Save Only</string>
+    <string name="select_icon">Select Icon</string>
+    <string name="change_icon">Change Icon</string>
+    <string name="action_add">Add App</string>
+    <string name="apps_sheet_select_title">Select App</string>
+    <string name="edit_app">Edit App</string>
+    <string name="creator_sub_colors_custom">Custom Color Set</string>
+    <string name="creator_sub_colors_default">Using Global Default</string>
+    <string name="creator_sub_icons_custom">Custom Shape Set</string>
+    <string name="creator_sub_icons_default">Using Global Default</string>
+    <string name="app_customization_desc">Add an app to customize its look specifically.</string>
+    <string name="discard">Discard</string>
+    <string name="unsaved_changes">Unsaved Changes</string>
+    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
+    <string name="share_theme">Share Theme</string>
+    <string name="my_theme">My Theme</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="one">%1$d custom action</item>
+        <item quantity="few">%1$d custom actions</item>
+        <item quantity="other">%1$d custom actions</item>
+        <item quantity="many">%1$d custom actions</item>
+    </plurals>
+    <string name="title_0_4_0">The Customization Update</string>
+    <string name="changelog_0_4_0">        <b>Theme Engine 🎨</b>\n
+        The biggest update yet! You can now fully customize the Dynamic Island visual experience.\n
+        • <b>Theme Creator:</b> Design themes directly on your phone with real-time previews.\n
+        • <b>Granular Control:</b> Choose exactly how icons are shown, customize call notification colors and shapes, and configure individual app overrides.\n
+        • <b>Smart Colors:</b> Automatically extract vibrant brand colors from app icons.\n
+        • <b>Per-Action Customization (Beta):</b> Fine-tune the look of specific notification actions.\n
+        • <b>Sharing:</b> Export and import themes as portable <i>.hbr</i> packages.\n\n
+
+        <b>Widget Support 🧩</b>\n
+        Pin standard Android widgets to the island for quick access—even on your <b>Lockscreen</b>!\n
+        • Choose between <b>Interactive</b> mode for speed or <b>Snapshot</b> mode for battery efficiency.\n\n
+
+        <b>Notification Engine 2.0 ⚡</b>\n
+        A complete rewrite of the core logic for better stability:\n
+        • <b>Smarter Parsing:</b> Fixed issues where notifications showed package names (e.g., com.whatsapp) instead of message content.\n
+        • <b>Anti-Flicker:</b> New content hashing prevents redundant updates and stuttering.\n
+        • <b>Ghost Fixes:</b> Solved race conditions where islands lingered after dismissal.\n\n
+
+        <b>Visual Refresh ✨</b>\n
+        • Redesigned \"Design\" tab with fluid, native-feeling carousels.\n
+        • New \"Text Pill\" buttons for clearer notification actions.\n
+        • Added support for 🇮🇩 Indonesian and 🇹🇷 Turkish.\n\n
+
+        <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
+    </string>
+</resources>

@@ -288,12 +288,16 @@ fun LanguageSelectorDialog(onDismiss: () -> Unit) {
     val languages = mapOf(
         stringResource(R.string.system_default) to "",
         "Bahasa Indonesia" to "id",
+        "Čeština" to "cs",              // Added (Czech)
         "Deutsch" to "de",
         "English" to "en",
         "Español" to "es",
+        "Italiano" to "it",             // Added (Italian)
+        "Magyar" to "hu",               // Added (Hungarian)
         "Português (BR)" to "pt-BR",
         "Polski" to "pl",
-        "Slovenčina" to "sk", // Added Slovak
+        "Slovenčina" to "sk",
+        "繁體中文 (TW)" to "zh-TW",     // Added (Traditional Chinese)
         "Korean" to "ko",
         "Русский" to "ru",
         "Türkçe" to "tr",

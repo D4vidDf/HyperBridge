@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+    <string name="back">返回</string>
+    <string name="next">下一步</string>
+    <string name="finish">完成</string>
+    <string name="done">已完成</string>
+    <string name="logo_desc">應用程式圖示</string>
+    <string name="settings">設定</string>
+    <string name="info">資訊</string>
+    <string name="configure">設定</string>
+    <string name="clear">清除</string>
+    <string name="sort_order">排序方式</string>
+    <string name="welcome_title">歡迎使用\nHyper Bridge</string>
+    <string name="welcome_subtitle">將 HyperIslands 整合至你的 HyperOS 使用體驗中。</string>
+    <string name="get_started">開始使用</string>
+    <string name="how_it_works">運作方式</string>
+    <string name="how_it_works_desc">選擇你常用的應用程式（Spotify、地圖、計時器）。HyperBridge 會將它們的通知轉換為簡潔俐落的 HyperIsland。</string>
+    <string name="early_development">早期開發階段</string>
+    <string name="beta_warning">注意：此應用程式目前為 Beta 測試版，您可能會遇到程式錯誤 或顯示資訊不正確的情況。</string>
+    <string name="device_compatible">相容的裝置</string>
+    <string name="unsupported_device">不支援此裝置</string>
+    <string name="compatible_msg">偵測到您的裝置正在運行 HyperOS/MIUI，一切就緒！</string>
+    <string name="incompatible_msg">HyperBridge 需依賴特定的 HyperOS 系統功能。您的裝置製造商似乎並非 小米/POCO/紅米。</string>
+    <string name="system_detected">✅ 已偵測到系統</string>
+    <string name="app_wont_work">⚠️ 應用程式可能無法正常運作</string>
+    <string name="show_island">顯示超級島</string>
+    <string name="perm_post_desc">我們需要取得權限，才能在您的螢幕上顯示「超級島」通知。</string>
+    <string name="perm_granted">已授予權限</string>
+    <string name="allow_notifications">允許通知權限</string>
+    <string name="read_data">存取資料權限</string>
+    <string name="perm_listener_desc">為了連接您的應用程式，我們需要存取通知內容（如：音樂、地圖、計時器）。</string>
+    <string name="open_settings">開啟設定</string>
+    <string name="keep_alive">保持背景執行</string>
+    <string name="optimization_desc">HyperOS 會自動關閉背景程式。請開啟「自啟動」並將省電策略設為「無限制」，以維持超級島運作。</string>
+    <string name="enable_autostart">1. 開啟自啟動</string>
+    <string name="set_battery_no_restrictions">2. 將省電策略設為「無限制」</string>
+    <string name="tab_active">已啟用</string>
+    <string name="tab_library">資料庫</string>
+    <string name="title_active_bridges">執行中的程式通知</string>
+    <string name="title_library">應用程式庫</string>
+    <string name="search_hint">搜尋應用程式…</string>
+    <string name="sort_az">排序：A-Z</string>
+    <string name="sort_za">排序：Z-A</string>
+    <string name="no_active_bridges">尚無執行中的程式通知</string>
+    <string name="no_active_bridges_desc">請前往「應用程式庫」以啟用 App。</string>
+    <string name="no_apps_found">找不到應用程式</string>
+    <string name="about">關於</string>
+    <string name="version_template">版本 %s</string>
+    <string name="developer_credit">開發者：D4vidDf</string>
+    <string name="group_configuration">設定</string>
+    <string name="system_setup">系統設定</string>
+    <string name="system_setup_subtitle">修正權限 &amp; 電池設定</string>
+    <string name="group_about">關於</string>
+    <string name="developer">開發者</string>
+    <string name="developer_subtitle">造訪 d4viddf.com</string>
+    <string name="source_code">原始碼</string>
+    <string name="source_code_subtitle">GitHub 儲存庫</string>
+    <string name="licenses">開源授權</string>
+    <string name="licenses_subtitle">第三方軟體</string>
+    <string name="footer_made_with_love">在西班牙由 ❤️ 打造</string>
+    <string name="app_health">應用程式運行狀態</string>
+    <string name="app_health_desc">請確保所有檢查項目皆顯示為綠色，以確保應用程式能在背景正常運作。</string>
+    <string name="req_permissions">必要的權限</string>
+    <string name="notif_access">通知存取權</string>
+    <string name="notif_access_desc">讀取應用程式事件所需權限</string>
+    <string name="perm_display_desc">請允許顯示在最上層的權限</string>
+    <string name="device_optimization">裝置優化設定</string>
+    <string name="xiaomi_autostart">小米自啟動</string>
+    <string name="autostart_desc">允許應用程式在開機時啟動</string>
+    <string name="battery_unrestricted">電池使用量不受限制</string>
+    <string name="battery_desc">防止系統自動關閉應用程式</string>
+    <string name="recents_note">注意：請同時在「最近任務」預覽介面中鎖定此應用程式。</string>
+    <string name="status_active">已啟用</string>
+    <string name="action_needed">需要採取行動</string>
+    <string name="cat_all">全部</string>
+    <string name="cat_music">音樂</string>
+    <string name="cat_nav">導航</string>
+    <string name="cat_timer">生產力</string>
+    <string name="cat_other">其他</string>
+    <string name="select_active_notifs">選擇要顯示的通知</string>
+    <string name="type_standard">訊息 &amp; 一般通知</string>
+    <string name="type_progress">下載 &amp; 進度</string>
+    <string name="type_media">音樂 &amp; 媒體</string>
+    <string name="type_nav">地圖 &amp; GPS</string>
+    <string name="type_call">通話</string>
+    <string name="type_timer">計時器 &amp; 鬧鐘</string>
+    <string name="service_active">已啟用</string>
+    <string name="download_complete">下載完成</string>
+    <string name="pending">等待中…</string>
+    <string name="finished">已完成</string>
+    <string name="downloading">正在下載</string>
+    <string name="waiting">正在等待…</string>
+    <string name="now_playing">正在播放</string>
+    <string name="unknown_caller">未知來電</string>
+    <string name="incoming_call">通話</string>
+    <string name="maps_title">地圖</string>
+    <string name="timer_title">計時器</string>
+    <string-array name="progress_finish_keywords">
+        <item>已下載</item>
+        <item>已完成</item>
+        <item>已完成</item>
+        <item>已安裝</item>
+        <item>完成</item>
+        <item>成功</item>
+        <item>完成</item>
+    </string-array>
+    <string name="status_download_complete">下載完成</string>
+    <string name="status_downloading">正在下載</string>
+    <string name="status_pending">等候中…</string>
+    <string name="status_finished">已完成</string>
+    <string name="status_now_playing">正在播放</string>
+    <string name="status_incoming_call">來電</string>
+    <string name="caller_unknown">未知來電者</string>
+    <string name="fallback_maps">地圖</string>
+    <string name="fallback_timer">計時器</string>
+    <string name="fallback_stopwatch">碼錶</string>
+    <string name="whats_new_title">%s的新功能</string>
+    <string name="awesome">太棒了！</string>
+    <string name="island_behavior">超級島行為</string>
+    <string name="limit_strategy">限制策略</string>
+    <string name="limit_desc">當達到 9 個超級島通知時會發生什麼事？</string>
+    <string name="mode_fcfs_title">依到達順序處理</string>
+    <string name="mode_fcfs_desc">保留前 9 個 App。在空間釋出前，系統會忽略新的 App。</string>
+    <string name="mode_recent_title">最近優先 (預設)</string>
+    <string name="mode_recent_desc">新的通知會替換掉最舊的通知。</string>
+    <string name="mode_priority_title">自訂優先順序</string>
+    <string name="mode_priority_desc">定義哪些類型（例如：電話）比較重要。</string>
+    <string name="priority_order">優先級排序</string>
+    <string name="priority_order_desc">高優先級（頂部）會替換掉低優先級（底部）。</string>
+    <string name="move_up">上移</string>
+    <string name="move_down">下移</string>
+    <string name="configure_order">設定 App 排序</string>
+    <string name="global_settings">預設設定</string>
+    <string name="island_appearance">超級島外觀</string>
+    <string name="setting_float">懸浮通知彈出</string>
+    <string name="setting_float_desc">在縮小到超級島之前，先短暫顯示完整的通知橫幅。</string>
+    <string name="setting_shade">通知欄</string>
+    <string name="setting_shade_desc">在通知面板中保留通知。若停用，則僅會以超級島形式顯示。</string>
+    <string name="setting_timeout">自動關閉延遲</string>
+    <string name="seconds_suffix">%ds</string>
+    <string name="use_global_default">使用預設設定</string>
+    <string name="customize_app">自訂</string>
+    <string name="override_settings">覆蓋設定</string>
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+    </string-array>
+    <string name="hint_options">選項</string>
+    <string name="version_history">版本紀錄</string>
+    <string name="title_0_2_0">資訊更新</string>
+    <string name="changelog_0_2_0">        •&lt;b&gt;進階進度顯示：&lt;/b&gt;新增支援「分段進度」（例如：1/3）以及通知欄內含圖示的進度條。\n
+        •&lt;b&gt;優先級系統：&lt;/b&gt;全新的「超級島行為」設定。可選擇「最近優先」、「先到先得」或自訂「App 優先順序」清單。\n
+        •&lt;b&gt;智慧過濾：&lt;/b&gt;優化了重複通知與群組下載的偵測機制。\n
+        •&lt;b&gt;視覺優化：&lt;/b&gt;修正了導航指令的佈局問題。\n
+        •&lt;b&gt;個別 App 設定：&lt;/b&gt;可針對不同 App 自訂逾時時間與懸浮行為。
+    </string>
+    <string name="title_0_1_0">快速更新</string>
+    <string name="changelog_0_1_0">        •&lt;b&gt;介面大改版：&lt;/b&gt;全新的 Material 3 豐富表現設計，搭配流暢的動畫效果。\n
+        •&lt;b&gt;超級島優化：&lt;/b&gt;文字現在會顯示在右側。新增下載完成時的綠色勾選圖示。\n
+        •&lt;b&gt;個別 App 設定：&lt;/b&gt;可針對不同 App 選擇特定的通知類型（音樂、地圖、電話）。\n
+        •&lt;b&gt;智慧過濾：&lt;/b&gt;阻擋重複通知並節省電力。\n
+        •&lt;b&gt;全新資料庫：&lt;/b&gt;可按類別過濾 App 並自訂排序方式。\n
+        •&lt;b&gt;在地化：&lt;/b&gt;新增西班牙語支援。
+    </string>
+    <string name="priority_edu_title">全新：超級島控制功能</string>
+    <string name="priority_edu_desc">HyperBridge 現在可以管理當達到 9 個超級島上限時，多個通知的處理方式。\n\n&lt;b&gt;設值：最近優先&lt;/b&gt;\n新的通知將會自動替換掉最舊的通知。</string>
+    <string name="keep_default">保留預設設定</string>
+    <string name="configure_now">立即設定</string>
+    <string name="badge_new">新功能</string>
+    <string name="custom_design">自訂外觀</string>
+    <string name="nav_layout_title">導航設定</string>
+    <string name="nav_layout_desc">選擇資訊顯示的位置</string>
+    <string name="left_content">左側</string>
+    <string name="right_content">右側</string>
+    <string name="nav_content_instruction">操作說明</string>
+    <string name="nav_content_distance">距離</string>
+    <string name="nav_content_eta">抵達時間</string>
+    <string name="nav_content_distance_eta">距離 &amp; 時間</string>
+    <string name="nav_content_none">無</string>
+    <string name="channel_active_islands">啟動超級島</string>
+    <string name="cd_toggle_app">切換 %s</string>
+    <string name="cd_configure_app">設定 %s</string>
+    <string name="cd_enable_type">停用 %s 通知%</string>
+    <string name="cd_disable_type">停用 %s 通知%</string>
+    <string name="cd_nav_edit">編輯導航設定</string>
+    <string name="cd_app_state_active">已啟用</string>
+    <string name="cd_app_state_inactive">停用</string>
+    <string name="cd_move_up">將項目上移</string>
+    <string name="cd_move_down">將項目下移</string>
+    <string name="cd_drag_handle">拖移控制桿。連按兩下並按住即可重新排序，或使用操作選單移動位置。</string>
+    <string name="cd_app_icon">%s 的 App 圖示</string>
+    <string name="cd_nav_preview">導航預覽：左側顯示 %1$s，右側顯示 %2$s</string>
+    <string name="cd_expand_changelog">開啟版本資訊</string>
+    <string name="cd_collapse_changelog">摺疊版本資訊</string>
+    <string name="cd_configuration_group">細部設定</string>
+    <string name="cd_about_group">關於資訊</string>
+    <string name="nav_preview_instruction">向右轉</string>
+    <string name="nav_preview_distance">200m</string>
+    <string name="nav_preview_time">10:30</string>
+    <string name="blocked_terms">封鎖關鍵字</string>
+    <string name="blocked_terms_desc">包含這些關鍵字的通知將會被忽略。</string>
+    <string name="add_blocked_word">新增關鍵字（例如：劇透）</string>
+    <string name="add">新增</string>
+    <string name="remove">移除</string>
+    <string name="tap_to_configure_rules">點擊 App 以設定特定的封鎖規則。</string>
+    <string name="spoiler_subtitle">管理防劇透保護與過濾器</string>
+    <string name="active_notifications_title">通知類型</string>
+    <string name="active_notifications_subtitle">%d 個已啟用</string>
+    <string name="appearance_use_defaults_desc">動畫速度與懸浮行為正使用系統預設值。</string>
+    <string name="blocked_terms_active_count">%d 條規則已啟用</string>
+    <string name="global_rules">預設規則</string>
+    <string name="app_specific_rules">個別 App 規則</string>
+    <string name="manage_app_rules_desc">為特定應用程式自訂過濾器</string>
+    <string name="blocked_terms_count">已封鎖 %d 個關鍵字</string>
+    <string name="no_active_rules">無啟用的規則</string>
+    <string name="setup_health_title">系統相容性</string>
+    <string name="check_device">裝置：%s</string>
+    <string name="check_os_version">作業系統：%s</string>
+    <string name="req_hyperos">需要 HyperOS 3.0 以上版本 (Android 15+)</string>
+    <string name="req_xiaomi">僅支援 小米/紅米/Poco 裝置</string>
+    <string name="check_autostart">背景自動啟動</string>
+    <string name="check_autostart_desc">重啟裝置後需要重新啟動服務。</string>
+    <string name="grant_permission">授予權限</string>
+    <string name="status_ok">相容</string>
+    <string name="status_fail">不相容</string>
+    <string name="status_unknown">未知</string>
+    <string name="warning_cn_rom_title">偵測到中國版 ROM / 韌體</string>
+    <string name="warning_cn_rom_desc">您的裝置似乎正在執行中國版韌體。小米在中國版 ROM 上大幅修改了通知系統底層，功能可能不穩定或無法運作。</string>
+    <string name="system_version">系統版本</string>
+    <string name="call_incoming">來電</string>
+    <string name="call_ongoing">通話中</string>
+    <string-array name="call_keywords_hangup">
+        <item>掛斷</item>
+        <item>結束</item>
+        <item>拒接</item>
+        <item>掛斷</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>接聽</item>
+        <item>接受</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>擴音</item>
+        <item>audio</item>
+    </string-array>
+    <string name="title_0_3_0">預設功能更新</string>
+    <string name="changelog_0_3_0">        <b>隱藏通知 👻</b>\n
+        新增可從系統面板隱藏通知，同時保持超級島運作的選項。請查看預設設定！\n\n
+        <b>新語言支援 🌍</b>\n
+        特別感謝社群提供的翻譯貢獻：\n
+        • 葡萄牙語（巴西）\n•
+        • 波蘭語\n
+        • 韓語\n\n
+        • 烏克蘭語\n\n
+        <b>導航自訂功能 🧭</b>\n
+        您現在可以選擇導航時島左側與右側顯示的資訊（距離、預計抵達時間、導航指令）。\n\n
+        <b>防劇透保護 🛡️</b>\n
+        全新「封鎖關鍵字」功能。可進行預設設定或針對個別 App 定義關鍵字，防止特定通知顯示在超級島上。\n\n
+        <b>通話功能優化 📞</b>\n
+        優化偵測邏輯，以支援更多種類的 VoIP 與撥號應用程式。\n\n
+        <b>修復 &amp; 優化 🛠️</b>\n
+        • 修正了裝置重啟後 App 可能卡在載入畫面的重大錯誤。\n
+        • 修正了通知有時會顯示原始套件名稱（例如：com.google...）而非實際內容的問題。\n
+        • 重新設計 App 配置頁面以提升易用性。\n
+        • 優化相容性檢查畫面，提供更詳細的裝置資訊。
+    </string>
+    <string name="privacy_title">100% 離線 &amp; 安全</string>
+    <string name="privacy_desc">Hyper Bridge 直接在您的手機處理器上處理所有資訊。\n\n它完全不需連接網路，這意味著您的通知與個人資料絕不會離開您的裝置。</string>
+    <string name="language">語言</string>
+    <string name="language_desc">變更應用程式語言</string>
+    <string name="system_default">系統預設</string>
+    <string name="save">儲存</string>
+    <string name="backup_restore_title">備份 &amp; 還原</string>
+    <string name="backup_section_title">資料維護</string>
+    <string name="backup_options_subtitle">選擇要包含在操作中的資料</string>
+    <string name="option_app_settings">App 設定</string>
+    <string name="option_app_settings_desc">設定狀態、主題、行為模式</string>
+    <string name="option_blocklist">封鎖名單資料庫</string>
+    <string name="option_blocklist_desc">您自訂的封鎖關鍵字與 App</string>
+    <string name="option_priorities">優先級規則</string>
+    <string name="option_priorities_desc">自訂通知優先級設定</string>
+    <string name="action_export">建立備份</string>
+    <string name="action_import">還原備份</string>
+    <string name="export_success">備份儲存成功</string>
+    <string name="export_failed">匯出失敗：%s</string>
+    <string name="import_success">資料還原成功</string>
+    <string name="import_failed">匯入失敗：%s</string>
+    <string name="invalid_backup_file">無效的 HyperBridge 備份檔案</string>
+    <string name="db_version_mismatch">警告：備份來自不同的資料庫版本</string>
+    <string name="autostart_manual_check">無法自動驗證狀態。\n請手動檢查以確保服務正常運作</string>
+    <string name="backup_info_title">備份資訊</string>
+    <string name="backup_meta_date">日期</string>
+    <string name="backup_meta_device">裝置</string>
+    <string name="backup_meta_version">版本</string>
+    <string name="backup_meta_keys">項目總數</string>
+    <string name="backup_empty_suffix"> (無)</string>
+    <string name="action_restore_selected">還原所選資料</string>
+    <string name="optimization_title">裝置優化</string>
+    <string name="no_restrictions">設定為「無限制」</string>
+    <string name="privacy_card_title">離線優先</string>
+    <string name="privacy_card_desc">無需連接網路。</string>
+    <string name="title_0_3_1">備份 &amp; 多語言更新</string>
+    <string name="changelog_0_3_1">        <b>備份 &amp; 還原 📦</b>\n
+        全新的進階功能！現在可以安全地將您的設定、封鎖名單與 App 優先順序匯出為 .hbr 檔案，並能隨時進行還原。\n\n
+        <b>新語言支援 🌍</b>\n
+        新增支援：\n 
+        • 🇩🇪 德語\n 
+        • 🇷🇺 俄語\n • 
+        🇺🇦 烏克蘭語（已優化）\n 
+        <i>外加：全新的內建語言切換器，讓您可以直接變更 App 語言而不影響系統設定。</i>\n\n 
+        <b>視覺翻新 🎨</b>\n 
+        App 已更新為 <b>Material 3 豐富表現</b>設計。享受更大的標題、更圓潤的形狀以及更流暢的使用體驗。\n\n 
+        <b>隱私 &amp; 設定 🛡️</b>\n 
+        • 優化了初始設定流程，新增專屬的隱私頁面以詳細說明「離線優先」的架構。\n
+        • 執行更嚴格的相容性檢查，確保在 HyperOS 3.0 上擁有最佳體驗。\n\n 
+        <b>修復 🛠️</b>\n 
+        • 修正了裝置重啟後設定遺失的重大問題（已遷移至資料庫）。
+        \n • 修正了導航島中的「退出」按鈕顯示為圖示而非文字的問題。
+        \n • 修正了設定頁面中 App 圖示載入的問題。\n
+    </string>
+    <string name="close">關閉</string>
+    <string name="search">搜尋</string>
+    <string name="widget_updated_toast">小工具已更新</string>
+    <string name="widget_settings_error">無法編輯此小工具設定</string>
+    <string name="widget_picker_title">新增小工具</string>
+    <string name="search_apps_placeholder">搜尋應用程式……</string>
+    <plurals name="widget_count_fmt">
+        <item quantity="other">%d 個小工具</item>
+    </plurals>
+    <string name="widget_config_title">設定小工具</string>
+    <string name="widget_settings_button">小工具設定</string>
+    <string name="config_tab_appearance">外觀</string>
+    <string name="config_tab_behavior">行為</string>
+    <string name="config_render_mode_label">渲染模式</string>
+    <string name="config_container_size_label">小工具尺寸</string>
+    <string name="config_shade_title">在通知欄中顯示</string>
+    <string name="config_shade_desc">在通知面板中可見</string>
+    <string name="config_timeout_title">自動關閉</string>
+    <string name="config_timeout_desc">延遲後關閉超級島</string>
+    <plurals name="config_timeout_fmt">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+    <string name="config_refresh_title">自動重新整理</string>
+    <string name="config_refresh_desc">定期更新快照</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="other">每 %d 分鐘</item>
+    </plurals>
+    <string name="config_refresh_warning">更新頻率越高越耗電。</string>
+    <string name="render_interactive_label">互動模式</string>
+    <string name="render_interactive_desc">按鈕可操作。適用於音樂、控制台。</string>
+    <string name="render_snapshot_label">快照模式</string>
+    <string name="render_snapshot_desc">修復列表空白問題。適用於日曆、Gmail。</string>
+    <string name="size_original">原始大小</string>
+    <string name="size_small">小 (100dp)</string>
+    <string name="size_medium">中 (180dp)</string>
+    <string name="size_large">大 (280dp)</string>
+    <string name="size_xlarge">特大 (380dp)</string>
+    <string name="app_uninstalled_badge">已卸載</string>
+    <string name="settings_action">設定</string>
+    <string name="saved_widgets_title">已儲存的小工具</string>
+    <string name="new_widget_fab">新增小工具</string>
+    <string name="no_saved_widgets">未發現已儲存的小工具。</string>
+    <string name="widget_id_fmt">小工具 #%d</string>
+    <string name="show_on_island">顯示於超級島</string>
+    <string name="theme_installer_title">匯入主題</string>
+    <string name="theme_installer_analyzing">正在分析主題包……</string>
+    <string name="theme_installer_success_title">主題已就緒</string>
+    <string name="theme_installer_author">建立者：%s</string>
+    <string name="theme_installer_version">版本 %d</string>
+    <string name="theme_installer_description_default">未提供描述。</string>
+    <string name="theme_installer_apply_question">您現在要將此主題套用到 HyperBridge 嗎？</string>
+    <string name="theme_installer_action_apply">套用主題</string>
+    <string name="theme_installer_action_later">稍後儲存</string>
+    <string name="theme_installer_error_title">匯入失敗</string>
+    <string name="theme_installer_error_generic">無法驗證主題檔案。</string>
+    <string name="theme_installer_btn_close">關閉</string>
+    <string name="theme_manager_title">我的主題</string>
+    <string name="theme_manager_cd_back">返回</string>
+    <string name="theme_manager_cd_add">新增主題</string>
+    <string name="theme_card_author_format">作者：%s</string>
+    <string name="theme_card_cd_active">目前使用中的主題</string>
+    <string name="theme_card_cd_delete">刪除主題</string>
+    <string name="theme_system_default_title">系統預設</string>
+    <string name="theme_system_default_desc">標準外觀</string>
+    <string name="theme_sheet_title">新增主題</string>
+    <string name="creator_title">新主題</string>
+    <string name="creator_label_name">主題名稱</string>
+    <string name="creator_label_author">作者姓名</string>
+    <string name="creator_label_color">強調色彩</string>
+    <string name="creator_preview">預覽</string>
+    <string name="creator_btn_save">儲存主題</string>
+    <string name="creator_err_inputs">請輸入名稱與作者</string>
+    <string name="theme_sheet_action_create">建立新主題</string>
+    <string name="theme_sheet_action_find">搜尋</string>
+    <string name="theme_sheet_action_import">從檔案匯入</string>
+    <string name="theme_action_import_short">匯入</string>
+    <string name="theme_card_action_edit">編輯</string>
+    <string name="theme_card_action_export">匯出</string>
+    <string name="creator_title_new">建立主題</string>
+    <string name="creator_title_edit">編輯主題</string>
+    <string name="creator_nav_colors">色彩</string>
+    <string name="creator_nav_icons">圖示 &amp; 形狀</string>
+    <string name="creator_nav_calls">通話樣式</string>
+    <string name="creator_nav_apps">應用程式配置</string>
+    <string name="creator_action_save">儲存</string>
+    <string name="creator_btn_edit_info">編輯主題資訊</string>
+    <string name="creator_sub_colors">調色盤 &amp; 對比度</string>
+    <string name="creator_sub_icons">形狀 &amp; 間距</string>
+    <string name="creator_sub_calls">接聽 &amp; 拒接按鈕</string>
+    <string name="creator_sub_apps">個別應用程式覆蓋設定</string>
+    <string name="meta_title">主題資訊</string>
+    <string name="meta_label_name">主題名稱</string>
+    <string name="meta_label_author">作者姓名</string>
+    <string name="meta_action_done">完成</string>
+    <string name="colors_tab_presets">預設</string>
+    <string name="colors_tab_custom">自訂</string>
+    <string name="colors_label_presets">預設</string>
+    <string name="colors_label_use_app_colors">使用應用程式色彩</string>
+    <string name="colors_desc_use_app_colors">從已安裝的應用程式中調整色彩</string>
+    <string name="colors_label_custom_title">自訂色彩</string>
+    <string name="colors_cd_add_custom">新增自訂色彩</string>
+    <string name="colors_dialog_title">挑選顏色</string>
+    <string name="colors_dialog_desc">為您的主題選擇一個自訂色彩。</string>
+    <string name="colors_label_hex">十六進位碼</string>
+    <string name="colors_action_done">完成</string>
+    <string name="icons_tab_style">樣式</string>
+    <string name="icons_tab_assets">圖示</string>
+    <string name="icons_tab_shape">形狀</string>
+    <string name="icons_label_size">圖示大小</string>
+    <string name="icons_label_full">完整</string>
+    <string name="icons_label_minimal">極簡</string>
+    <string name="icons_group_nav">導覽</string>
+    <string name="icons_btn_start">開始</string>
+    <string name="icons_btn_end">結束</string>
+    <string name="icons_group_progress">進度</string>
+    <string name="icons_btn_success">成功</string>
+    <string name="icons_label_shape_title">圖示形狀</string>
+    <string name="shape_circle">圓形</string>
+    <string name="shape_square">正方形</string>
+    <string name="shape_cookie">餅乾形</string>
+    <string name="shape_arch">拱形</string>
+    <string name="shape_clover">幸運草形</string>
+    <string name="calls_label_answer">接聽</string>
+    <string name="calls_label_decline">拒絕</string>
+    <string name="calls_label_hex">十六進位顏色碼</string>
+    <string name="apps_title">已設定的應用程式</string>
+    <string name="apps_empty">尚未設定任何應用程式</string>
+    <string name="apps_sheet_title">設定應用程式</string>
+    <string name="apps_label_select">選擇應用程式</string>
+    <string name="apps_label_app">應用程式</string>
+    <string name="apps_label_highlight">強調色彩 (十六進位碼)</string>
+    <string name="apps_group_actions">自訂動作</string>
+    <string name="apps_label_keyword">關鍵字</string>
+    <string name="apps_desc_button_contains">包含「%s」的按鈕</string>
+    <string name="apps_action_save">儲存配置</string>
+    <string name="apps_default_color">預設顏色</string>
+    <plurals name="apps_action_count">
+        <item quantity="other">%d 個動作</item>
+    </plurals>
+    <string name="design_hero_customization_title">個人化設定</string>
+    <string name="design_hero_customization_subtitle">了解如何建立主題</string>
+    <string name="design_hero_pro_title">進階功能</string>
+    <string name="design_hero_pro_subtitle">解鎖更多強大功能</string>
+    <string name="design_hero_community_title">社群</string>
+    <string name="design_hero_community_subtitle">加入我們的 GitHub</string>
+    <string name="design_section_themes">主題</string>
+    <string name="design_section_widgets">小工具</string>
+    <string name="design_browse_more">瀏覽更多</string>
+    <string name="design_add_new">新增</string>
+    <string name="design_add_design">新增設計</string>
+    <string name="design_add_to_island">個人化設定</string>
+    <string name="design_system_widget_beta">系統小工具 (Beta)</string>
+    <string name="design_get_themes">取得主題</string>
+    <string name="design_empty_widget_title">新增您的第一個小工具</string>
+    <string name="design_active_count">%d 個正在使用中</string>
+    <string name="design">設計</string>
+    <string name="creator_nav_actions">預設動作</string>
+    <string name="creator_sub_actions">依關鍵字設定按鈕樣式</string>
+    <string name="action_sheet_title">設定動作</string>
+    <string name="action_label_keyword">關鍵字（例如：「回覆」）</string>
+    <string name="action_label_bg_color">背景顏色</string>
+    <string name="action_label_tint_color">圖示 / 文字顏色</string>
+    <string name="action_preview">即時預覽</string>
+    <string name="action_mode_icon">僅圖示</string>
+    <string name="action_mode_text">文字</string>
+    <string name="action_mode_both">兩者</string>
+    <string name="actions_empty_title">尚無自訂動作</string>
+    <string name="actions_empty_desc">新增規則，根據通知按鈕的文字（例如：「回覆」、「封存」）來設定其樣式。</string>
+    <string name="action_default_preview_text">動作</string>
+    <string name="actions_search_hint">搜尋動作……</string>
+    <string name="actions_search_empty_fmt">找不到與「%1$s」相關的動作</string>
+    <string name="action_wip_warning">此功能仍在開發中。關鍵字比對取決於應用程式如何建立通知結構，因此可能無法支援所有應用程式。</string>
+    <string name="creator_dialog_apply_title">套用主題？</string>
+    <string name="creator_dialog_apply_desc">您現在要套用此主題嗎？</string>
+    <string name="creator_dialog_action_save_apply">儲存 &amp; 套用</string>
+    <string name="creator_dialog_action_save_only">僅儲存</string>
+    <string name="select_icon">選擇圖示</string>
+    <string name="change_icon">變更圖示</string>
+    <string name="action_add">新增應用程式</string>
+    <string name="apps_sheet_select_title">選擇應用程式</string>
+    <string name="edit_app">編輯應用程式</string>
+    <string name="creator_sub_colors_custom">已設定自訂色彩</string>
+    <string name="creator_sub_colors_default">使用預設值</string>
+    <string name="creator_sub_icons_custom">已設定自訂形狀</string>
+    <string name="creator_sub_icons_default">套用預設設定</string>
+    <string name="app_customization_desc">新增應用程式以進行個別的外觀自訂。</string>
+    <string name="discard">捨棄</string>
+    <string name="unsaved_changes">未儲存的變更</string>
+    <string name="unsaved_changes_desc">您有尚未儲存的變更。在結束前要先儲存嗎？</string>
+    <string name="share_theme">分享主題</string>
+    <string name="my_theme">我的主題</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="other">%1$d 個自訂動作</item>
+    </plurals>
+    <string name="title_0_4_0">自訂更新</string>
+    <string name="changelog_0_4_0">        <b>主題引擎 🎨</b>\n
+        史上最大更新！現在你可以完整自訂 Dynamic Island 的視覺體驗。\n
+        • <b>主題創建器： </b>直接在手機上設計主題，並即時預覽。\n
+        • <b>精細控制： </b>自訂圖示顯示方式、來電通知的顏色與形狀，並為單一 App 設定覆蓋選項。\n
+        • <b>智慧配色： </b>自動從 App 圖示提取鮮明品牌色。\n
+        • <b>動作級自訂 (Beta)：</b> 微調特定通知動作的外觀。\n
+        • <b>分享： </b>將主題匯出或匯入為 <i>.hbr</i> 套件。\n\n
+
+<b>小工具支援 🧩</b>\n
+        將標準 Android 小工具固定到超級島，快速存取——即使在 <b>鎖定畫面</b> 也能使用！\n
+        • 可選 互動模式 <b>Interactive</b> 提升速度，或 快照模式 <b>Snapshot</b>節省電量。\n\n
+
+        <b>通知引擎 2.0 ⚡</b>\n
+        核心邏輯全面重寫，提升穩定性：\n
+        • <b>更智慧的解析： </b>修正通知只顯示套件名稱（如 com.whatsapp）而非訊息內容的問題。\n
+        • <b>防閃爍： </b>新增內容雜湊機制，避免重複更新與畫面卡頓。\n
+        • <b>幽靈通知修正： </b>解決通知消失後 Island 遺留的 race condition 問題。\n\n
+
+<b>視覺更新 ✨</b>\n
+        • 重新設計「設計」分頁，使用流暢且原生感的旋轉木馬介面。\n
+        • 新增「文字膠囊」按鈕，讓通知動作更清楚。\n
+        • 新增對 🇮🇩 印尼語與 🇹🇷 土耳其語的支援。\n\n
+
+        <i>備註：本次版本包含重大架構調整，如發現任何問題，請至 GitHub 回報！</i>
+    </string>
+</resources>
