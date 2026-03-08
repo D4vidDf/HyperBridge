@@ -650,4 +650,8 @@
 
         <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
     </string>
+    <string name="title_0_4_2">Hotfix Update</string>
+    <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
+        •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
+    </string>
 </resources>

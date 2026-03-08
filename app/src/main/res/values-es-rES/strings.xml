@@ -547,4 +547,8 @@
 
         <i>Nota: Esta versión incluye cambios significativos en la arquitectura. Por favor, informe de cualquier error en GitHub!</i>
     </string>
+    <string name="title_0_4_2">Actualización Rápida</string>
+    <string name="changelog_0_4_2">        •&lt;b&gt;Corrección de errores:&lt;/b&gt; Se solucionó un error crítico que provocaba el cierre de la aplicación al abrir la configuración en Chino Tradicional.\n
+        •&lt;b&gt;Mejoras generales:&lt;/b&gt; Corrección de errores menores y mejoras de estabilidad para que la Isla funcione sin problemas.
+    </string>
 </resources>

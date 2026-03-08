@@ -26,7 +26,7 @@
     <string name="app_wont_work">⚠️ 應用程式可能無法正常運作</string>
     <string name="show_island">顯示超級島</string>
     <string name="perm_post_desc">我們需要取得權限，才能在您的螢幕上顯示「超級島」通知。</string>
-    <string name="perm_granted">已授予權限</string>
+    <string name="perm_granted">✅ 已授予權限</string>
     <string name="allow_notifications">允許通知權限</string>
     <string name="read_data">存取資料權限</string>
     <string name="perm_listener_desc">為了連接您的應用程式，我們需要存取通知內容（如：音樂、地圖、計時器）。</string>
@@ -39,7 +39,7 @@
     <string name="tab_library">資料庫</string>
     <string name="title_active_bridges">執行中的程式通知</string>
     <string name="title_library">應用程式庫</string>
-    <string name="search_hint">搜尋應用程式…</string>
+    <string name="search_hint">搜尋應用程式……</string>
     <string name="sort_az">排序：A-Z</string>
     <string name="sort_za">排序：Z-A</string>
     <string name="no_active_bridges">尚無執行中的程式通知</string>
@@ -104,10 +104,14 @@
         <item>完成</item>
         <item>成功</item>
         <item>完成</item>
+        <item>完成</item>
+        <item>結束</item>
+        <item>成功</item>
+        <item>已安裝</item>
     </string-array>
     <string name="status_download_complete">下載完成</string>
     <string name="status_downloading">正在下載</string>
-    <string name="status_pending">等候中…</string>
+    <string name="status_pending">等待中……</string>
     <string name="status_finished">已完成</string>
     <string name="status_now_playing">正在播放</string>
     <string name="status_incoming_call">來電</string>
@@ -133,11 +137,11 @@
     <string name="configure_order">設定 App 排序</string>
     <string name="global_settings">預設設定</string>
     <string name="island_appearance">超級島外觀</string>
-    <string name="setting_float">懸浮通知彈出</string>
-    <string name="setting_float_desc">在縮小到超級島之前，先短暫顯示完整的通知橫幅。</string>
-    <string name="setting_shade">通知欄</string>
-    <string name="setting_shade_desc">在通知面板中保留通知。若停用，則僅會以超級島形式顯示。</string>
-    <string name="setting_timeout">自動關閉延遲</string>
+    <string name="setting_float">顯示於超級島</string>
+    <string name="setting_float_desc">顯示提前通知</string>
+    <string name="setting_shade">在通知欄中顯示</string>
+    <string name="setting_shade_desc">在通知中心中保留</string>
+    <string name="setting_timeout">逾時</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">使用預設設定</string>
     <string name="customize_app">自訂</string>
@@ -184,8 +188,8 @@
     <string name="channel_active_islands">啟動超級島</string>
     <string name="cd_toggle_app">切換 %s</string>
     <string name="cd_configure_app">設定 %s</string>
-    <string name="cd_enable_type">停用 %s 通知%</string>
-    <string name="cd_disable_type">停用 %s 通知%</string>
+    <string name="cd_enable_type">停用 %s 通知</string>
+    <string name="cd_disable_type">停用 %s 通知</string>
     <string name="cd_nav_edit">編輯導航設定</string>
     <string name="cd_app_state_active">已啟用</string>
     <string name="cd_app_state_inactive">停用</string>
