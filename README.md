@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.4.0-blue?style=for-the-badge&logo=github" alt="Version 0.4.0" />
+  <img src="https://img.shields.io/badge/version-0.4.4-blue?style=for-the-badge&logo=github" alt="Version 0.4.2" />
   <img src="https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
   <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
   <img src="https://img.shields.io/badge/Material%20Design-757575?style=for-the-badge&logo=material-design&logoColor=white" alt="Material Design" />
