@@ -671,4 +671,8 @@
     <string name="recommended">Recommended</string>
     <string name="all">All</string>
     <string name="favorites">Favorites</string>
+
+    <string name="settings_live_updates_title">Native Android Live Updates</string>
+    <string name="settings_live_updates_desc">Transform notifications into standard Android 16 ongoing tasks instead of overriding them with custom Xiaomi Islands.</string>
+    <string name="channel_live_updates">Native Live Updates</string>
 </resources>

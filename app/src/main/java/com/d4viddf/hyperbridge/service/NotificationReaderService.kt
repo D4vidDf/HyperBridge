@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
@@ -26,6 +27,7 @@ import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.service.translators.CallTranslator
+import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
 import com.d4viddf.hyperbridge.service.translators.MediaTranslator
 import com.d4viddf.hyperbridge.service.translators.NavTranslator
 import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
@@ -54,7 +56,7 @@ class NotificationReaderService : NotificationListenerService() {
     // --- CHANNELS ---
     private val NOTIFICATION_CHANNEL_ID = "hyper_bridge_notification_channel"
     private val WIDGET_CHANNEL_ID = "hyper_bridge_widget_channel"
-
+    private val LIVE_UPDATE_CHANNEL_ID = "hyper_bridge_live_update_channel" // [NEW]
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
 
     // --- STATE & CONFIG ---
@@ -89,6 +91,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var standardTranslator: StandardTranslator
     private lateinit var mediaTranslator: MediaTranslator
     private lateinit var widgetTranslator: WidgetTranslator
+    private lateinit var liveUpdateTranslator: LiveUpdateTranslator // [NEW]
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onCreate() {
@@ -100,12 +103,13 @@ class NotificationReaderService : NotificationListenerService() {
         themeRepository = ThemeRepository(this)
         rulesEngine = RulesEngine()
 
-        // [UPDATED] Pass ThemeRepository to Translators
+        // Pass ThemeRepository to Translators
         callTranslator = CallTranslator(this, themeRepository)
         navTranslator = NavTranslator(this, themeRepository)
         timerTranslator = TimerTranslator(this, themeRepository)
         progressTranslator = ProgressTranslator(this, themeRepository)
         standardTranslator = StandardTranslator(this, themeRepository)
+        liveUpdateTranslator = LiveUpdateTranslator(this, themeRepository) // [NEW]
 
         // Media and Widget translators don't necessarily need the repo yet
         mediaTranslator = MediaTranslator(this)
@@ -118,7 +122,7 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
 
-        // [FIX] Listen for Theme Changes and update the Repository
+        // Listen for Theme Changes and update the Repository
         serviceScope.launch {
             preferences.activeThemeIdFlow.collectLatest { themeId ->
                 Log.d(TAG, "Service detected theme change: $themeId")
@@ -126,7 +130,7 @@ class NotificationReaderService : NotificationListenerService() {
                     themeRepository.activateTheme(themeId)
                 } else {
                     // Reset to defaults if theme is removed/disabled
-                    themeRepository.activateTheme("") // Handle empty/null in repo logic implies default
+                    themeRepository.activateTheme("")
                 }
             }
         }
@@ -160,7 +164,7 @@ class NotificationReaderService : NotificationListenerService() {
                 }
             }
         } else if (intent?.action == ACTION_RELOAD_THEME) {
-            // [NEW] Force reload current theme from disk
+            // Force reload current theme from disk
             serviceScope.launch {
                 val themeId = preferences.activeThemeIdFlow.first()
                 if (themeId != null) {
@@ -348,13 +352,9 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             // [UPDATED] 4. Theme & Rules Interception
-            // A. Get Active Theme
             val activeTheme = themeRepository.activeTheme.value
-
-            // B. Check Interceptor Rules
             val ruleMatch = rulesEngine.match(sbn, effectiveTitle, effectiveText, activeTheme)
 
-            // C. Determine Type: If rule matched, FORCE that type. Else, use detection.
             val type = if (ruleMatch?.targetLayout != null) {
                 try {
                     NotificationType.valueOf(ruleMatch.targetLayout)
@@ -366,7 +366,6 @@ class NotificationReaderService : NotificationListenerService() {
                 detectNotificationType(sbn)
             }
 
-            // D. Check if app is enabled for this type (standard config check)
             val config = preferences.getAppConfig(sbn.packageName).first()
             if (!config.contains(type.name)) return
 
@@ -379,14 +378,52 @@ class NotificationReaderService : NotificationListenerService() {
 
             val appIslandConfig = preferences.getAppIslandConfig(sbn.packageName).first()
             val globalConfig = preferences.globalConfigFlow.first()
-
-            // Merge configs (Island behavior config, NOT theme style)
             val finalConfig = appIslandConfig.mergeWith(globalConfig)
 
             val bridgeId = sbn.key.hashCode()
             val picKey = "pic_${bridgeId}"
 
-            // [CRITICAL UPDATE] Pass 'activeTheme' to all Translators
+            // ===================================================================
+            // [NEW LOGIC] NATIVE LIVE UPDATES FALLBACK
+            // ===================================================================
+            val useLiveUpdates = getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
+                .getBoolean("use_native_live_updates", false)
+
+            if (useLiveUpdates) {
+                Log.i(TAG, " POSTING Native Live Update -> ID: $bridgeId, Type: $type")
+
+                // [FIXED] Pass the dedicated Live Update Channel ID
+                val builder = liveUpdateTranslator.translateToLiveUpdate(sbn, finalConfig, LIVE_UPDATE_CHANNEL_ID)
+
+                // Track original notification key for dismissal synchronization
+                builder.extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
+
+                val notification = builder.build()
+                val newContentHash = notification.hashCode()
+
+                if (isUpdate && previous != null && previous.lastContentHash == newContentHash) {
+                    Log.d(TAG, " ABORTING: Content hash duplicate (Live Update).")
+                    return
+                }
+
+                NotificationManagerCompat.from(this).notify(bridgeId, notification)
+
+                activeTranslations[sbn.key] = bridgeId
+                reverseTranslations[bridgeId] = sbn.key
+
+                activeIslands[key] = ActiveIsland(
+                    id = bridgeId, type = type, postTime = System.currentTimeMillis(),
+                    packageName = sbn.packageName,
+                    title = effectiveTitle,
+                    text = effectiveText,
+                    subText = "LiveUpdate",
+                    lastContentHash = newContentHash
+                )
+                return
+            }
+            // ===================================================================
+
+            // [ORIGINAL LOGIC] Xiaomi Custom Island Injection
             val data: HyperIslandData = when (type) {
                 NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig, activeTheme)
                 NotificationType.NAVIGATION -> {
@@ -395,14 +432,13 @@ class NotificationReaderService : NotificationListenerService() {
                 }
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig, activeTheme)
                 NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme)
-                NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig) // Media usually keeps its own art
+                NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
                 else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
             }
 
             val newContentHash = data.jsonParam.hashCode()
-            val previousIsland = activeIslands[key]
 
-            if (isUpdate && previousIsland != null && previousIsland.lastContentHash == newContentHash) {
+            if (isUpdate && previous != null && previous.lastContentHash == newContentHash) {
                 Log.d(TAG, " ABORTING: Content hash duplicate.")
                 return
             }
@@ -534,10 +570,19 @@ class NotificationReaderService : NotificationListenerService() {
             setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(notifChannel)
+
         val widgetChannel = NotificationChannel(WIDGET_CHANNEL_ID, "Widgets Overlay", NotificationManager.IMPORTANCE_LOW).apply {
             setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(widgetChannel)
+
+        // [NEW] Channel specifically for Native Android Live Updates
+        val liveUpdateChannel = NotificationChannel(LIVE_UPDATE_CHANNEL_ID, getString(R.string.channel_live_updates), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            setSound(null, null)
+            enableVibration(false)
+            setShowBadge(false)
+        }
+        manager.createNotificationChannel(liveUpdateChannel)
     }
 
     private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
