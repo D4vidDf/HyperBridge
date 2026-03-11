@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.settings
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,10 +9,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -71,6 +74,46 @@ fun GlobalSettingsScreen(
                     onClick = onNavSettingsClick
                 )
             }
+            var useNativeLiveUpdates by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                val prefs = context.getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
+                useNativeLiveUpdates = prefs.getBoolean("use_native_live_updates", false)
+            }
+
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_live_updates_title), fontWeight = FontWeight.SemiBold) },
+                supportingContent = {
+                    Text(
+                        stringResource(R.string.settings_live_updates_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                leadingContent = {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                    }
+                },
+                trailingContent = {
+                    Switch(
+                        checked = useNativeLiveUpdates,
+                        onCheckedChange = { isChecked ->
+                            useNativeLiveUpdates = isChecked
+                            context.getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
+                                .edit().putBoolean("use_native_live_updates", isChecked).apply()
+                        }
+                    )
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         }
     }
 }
