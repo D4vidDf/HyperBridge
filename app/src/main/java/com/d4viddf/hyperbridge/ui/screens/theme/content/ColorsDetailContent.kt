@@ -25,11 +25,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Colorize
 import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.rounded.Add
@@ -50,7 +50,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -69,17 +68,18 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.ui.screens.design.ToolbarOption
-import com.d4viddf.hyperbridge.ui.components.CustomColorBottomSheet // Import your new component!
+import com.d4viddf.hyperbridge.models.theme.ColorMode
+import com.d4viddf.hyperbridge.ui.components.CustomColorBottomSheet
 import com.d4viddf.hyperbridge.ui.components.GradientSlider
+import com.d4viddf.hyperbridge.ui.screens.design.ToolbarOption
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColorsDetailContent(
     selectedColorHex: String,
-    useAppColors: Boolean,
+    colorMode: ColorMode,
     onColorSelected: (String) -> Unit,
-    onUseAppColorsChanged: (Boolean) -> Unit
+    onColorModeChanged: (ColorMode) -> Unit
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
 
@@ -136,8 +136,8 @@ fun ColorsDetailContent(
                     modifier = Modifier.padding(vertical = 12.dp)
                 ) { selectedTab ->
                     when (selectedTab) {
-                        0 -> ColorsPresetsTab(selectedColorHex, useAppColors, onColorSelected, onUseAppColorsChanged)
-                        1 -> ColorsCustomTab(selectedColorHex, onColorSelected)
+                        0 -> ColorsPresetsTab(selectedColorHex, colorMode, onColorSelected, onColorModeChanged)
+                        1 -> ColorsCustomTab(selectedColorHex, colorMode, onColorSelected, onColorModeChanged)
                     }
                 }
             }
@@ -149,27 +149,27 @@ fun ColorsDetailContent(
 @Composable
 private fun ColorsPresetsTab(
     selectedColorHex: String,
-    useAppColors: Boolean,
+    colorMode: ColorMode,
     onColorSelected: (String) -> Unit,
-    onUseAppColorsChanged: (Boolean) -> Unit
+    onColorModeChanged: (ColorMode) -> Unit
 ) {
     val presets = listOf("#3DDA82", "#FF3B30", "#007AFF", "#FF9500", "#9333ea", "#e11d48", "#2563eb", "#FFFFFF")
 
-    // We only set this initially. We DO NOT use a LaunchedEffect to auto-update it anymore.
-    // This prevents the checkmark from jumping to the "White" preset when sliding lightness to max.
     var activePresetBase by remember {
         mutableStateOf(presets.find { it.equals(selectedColorHex, ignoreCase = true) })
     }
 
-    // Calculate current lightness from the actual selected color
     val selectedColor = safeParseColor(selectedColorHex)
     val hsl = FloatArray(3)
     ColorUtils.colorToHSL(selectedColor.toArgb(), hsl)
     val currentLightness = hsl[2]
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()) // <-- ADDED SCROLLING HERE
+            .padding(bottom = 16.dp), // Added bottom padding for clearance
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = stringResource(R.string.colors_label_presets),
@@ -186,8 +186,7 @@ private fun ColorsPresetsTab(
         ) {
             items(presets) { hex ->
                 val color = safeParseColor(hex)
-                // Selected if it is the actively tracked base preset
-                val isSelected = activePresetBase.equals(hex, ignoreCase = true) && !useAppColors
+                val isSelected = activePresetBase.equals(hex, ignoreCase = true) && colorMode == ColorMode.CUSTOM
 
                 val shape = if (isSelected) RoundedCornerShape(16.dp) else CircleShape
                 val borderColor = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
@@ -199,9 +198,9 @@ private fun ColorsPresetsTab(
                         .clip(shape)
                         .background(color)
                         .clickable {
-                            activePresetBase = hex // Lock in the base color
+                            activePresetBase = hex
                             onColorSelected(hex)
-                            onUseAppColorsChanged(false)
+                            onColorModeChanged(ColorMode.CUSTOM)
                         }
                         .border(borderWidth, borderColor, shape),
                     contentAlignment = Alignment.Center
@@ -215,7 +214,7 @@ private fun ColorsPresetsTab(
 
         // 2. Animated Lightness Slider Row
         AnimatedVisibility(
-            visible = activePresetBase != null && !useAppColors,
+            visible = activePresetBase != null && colorMode == ColorMode.CUSTOM,
             enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
             exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut()
         ) {
@@ -235,8 +234,6 @@ private fun ColorsPresetsTab(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // We calculate the gradient based strictly on the BASE color,
-                // ensuring the gradient doesn't lose its hue when the slider hits pure white/black.
                 val baseColor = safeParseColor(activePresetBase)
                 val baseHsl = FloatArray(3)
                 ColorUtils.colorToHSL(baseColor.toArgb(), baseHsl)
@@ -254,7 +251,6 @@ private fun ColorsPresetsTab(
                 GradientSlider(
                     value = currentLightness,
                     onValueChange = { newLightness ->
-                        // Generate the new hex using the base Hue/Sat, but the NEW Lightness
                         val newHsl = floatArrayOf(baseHsl[0], baseHsl[1], newLightness)
                         val newColorArgb = ColorUtils.HSLToColor(newHsl)
                         val newColorHex = String.format("#%06X", (0xFFFFFF and newColorArgb))
@@ -269,14 +265,18 @@ private fun ColorsPresetsTab(
 
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outlineVariant,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        // 3. Use App Colors Toggle
+        Text(
+            text = stringResource(R.string.colors_label_dynamic_modes),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+        )
+
+        // 3. App Icon Colors Option (Switch)
         ListItem(
-            headlineContent = {
-                Text(stringResource(R.string.colors_label_use_app_colors), fontWeight = FontWeight.Medium)
-            },
+            headlineContent = { Text(stringResource(R.string.colors_label_use_app_colors), fontWeight = FontWeight.Medium) },
             supportingContent = {
                 Text(
                     stringResource(R.string.colors_desc_use_app_colors),
@@ -288,9 +288,40 @@ private fun ColorsPresetsTab(
             },
             trailingContent = {
                 Switch(
-                    checked = useAppColors,
-                    onCheckedChange = onUseAppColorsChanged
+                    checked = colorMode == ColorMode.APP_ICON,
+                    onCheckedChange = { isChecked ->
+                        onColorModeChanged(if (isChecked) ColorMode.APP_ICON else ColorMode.CUSTOM)
+                    }
                 )
+            },
+            modifier = Modifier.clickable {
+                onColorModeChanged(if (colorMode == ColorMode.APP_ICON) ColorMode.CUSTOM else ColorMode.APP_ICON)
+            },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+        )
+
+        // 4. Material You Option (Switch)
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.colors_label_material_you), fontWeight = FontWeight.Medium) },
+            supportingContent = {
+                Text(
+                    stringResource(R.string.colors_desc_material_you),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    minLines = 1,
+                    maxLines = 3
+                )
+            },
+            trailingContent = {
+                Switch(
+                    checked = colorMode == ColorMode.MATERIAL_YOU,
+                    onCheckedChange = { isChecked ->
+                        onColorModeChanged(if (isChecked) ColorMode.MATERIAL_YOU else ColorMode.CUSTOM)
+                    }
+                )
+            },
+            modifier = Modifier.clickable {
+                onColorModeChanged(if (colorMode == ColorMode.MATERIAL_YOU) ColorMode.CUSTOM else ColorMode.MATERIAL_YOU)
             },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
@@ -300,26 +331,39 @@ private fun ColorsPresetsTab(
 @Composable
 private fun ColorsCustomTab(
     selectedColorHex: String,
-    onColorSelected: (String) -> Unit
+    colorMode: ColorMode,
+    onColorSelected: (String) -> Unit,
+    onColorModeChanged: (ColorMode) -> Unit
 ) {
     var showColorPicker by remember { mutableStateOf(false) }
 
-    // In a real app, this should ideally be backed by your ViewModel/Database
-    // so saved colors persist across app restarts!
-    // For now, it holds state while the screen is alive.
     val savedColors = remember {
         mutableStateListOf<String>().apply {
             if (selectedColorHex.isNotEmpty()) add(selectedColorHex)
         }
     }
 
+    val selectedColor = safeParseColor(selectedColorHex)
+    val isCustomColorSelected = savedColors.contains(selectedColorHex) && colorMode == ColorMode.CUSTOM
+
+    val hsl = FloatArray(3)
+    ColorUtils.colorToHSL(selectedColor.toArgb(), hsl)
+    val hue = hsl[0]
+    val saturation = hsl[1]
+    val lightness = hsl[2]
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState()) // <-- ADDED SCROLLING HERE
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(stringResource(R.string.colors_label_custom_title), style = MaterialTheme.typography.titleMedium)
+        // ... (Keep the rest of your ColorsCustomTab exactly the same) ...
+        Text(
+            stringResource(R.string.colors_label_custom_title),
+            style = MaterialTheme.typography.titleMedium
+        )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -330,7 +374,10 @@ private fun ColorsCustomTab(
                 onClick = { showColorPicker = true },
                 modifier = Modifier.size(56.dp)
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.colors_cd_add_custom))
+                Icon(
+                    Icons.Rounded.Add,
+                    contentDescription = stringResource(R.string.colors_cd_add_custom)
+                )
             }
 
             // 2. Vertical Separator
@@ -348,10 +395,14 @@ private fun ColorsCustomTab(
             ) {
                 items(savedColors) { hex ->
                     val color = safeParseColor(hex)
-                    val isSelected = selectedColorHex.equals(hex, ignoreCase = true)
+                    val isSelected = selectedColorHex.equals(
+                        hex,
+                        ignoreCase = true
+                    ) && colorMode == ColorMode.CUSTOM
 
                     val shape = if (isSelected) RoundedCornerShape(16.dp) else CircleShape
-                    val borderColor = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
+                    val borderColor =
+                        if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
                     val borderWidth = if (isSelected) 3.dp else 0.dp
 
                     Box(
@@ -359,38 +410,40 @@ private fun ColorsCustomTab(
                             .size(56.dp)
                             .clip(shape)
                             .background(color)
-                            .clickable { onColorSelected(hex) }
+                            .clickable {
+                                onColorSelected(hex)
+                                onColorModeChanged(ColorMode.CUSTOM)
+                            }
                             .border(borderWidth, borderColor, shape),
                         contentAlignment = Alignment.Center
                     ) {
                         if (isSelected) {
-                            Icon(Icons.Rounded.Check, null, tint = if (color == Color.White) Color.Black else Color.White)
+                            Icon(
+                                Icons.Rounded.Check,
+                                null,
+                                tint = if (color == Color.White) Color.Black else Color.White
+                            )
                         }
                     }
                 }
             }
         }
-    }
-
-    // 4. Custom HSL Bottom Sheet
-    if (showColorPicker) {
-        CustomColorBottomSheet(
-            initialColor = safeParseColor(selectedColorHex), // Pass current color as starting point
-            onDismiss = { showColorPicker = false },
-            onColorAdded = { newColor ->
-                // Format the new color to hex
-                val hex = String.format("#%06X", (0xFFFFFF and newColor.toArgb()))
-
-                // Add it to our local list if it doesn't already exist
-                if (!savedColors.contains(hex)) {
-                    savedColors.add(0, hex) // Adds to the beginning of the list
+        // 4. Custom HSL Bottom Sheet
+        if (showColorPicker) {
+            CustomColorBottomSheet(
+                initialColor = safeParseColor(selectedColorHex),
+                onDismiss = { showColorPicker = false },
+                onColorAdded = { newColor ->
+                    val hex = String.format("#%06X", (0xFFFFFF and newColor.toArgb()))
+                    if (!savedColors.contains(hex)) {
+                        savedColors.add(0, hex)
+                    }
+                    onColorSelected(hex)
+                    onColorModeChanged(ColorMode.CUSTOM)
+                    showColorPicker = false
                 }
-
-                // Notify parent
-                onColorSelected(hex)
-                showColorPicker = false // Close bottom sheet
-            }
-        )
+            )
+        }
     }
 }
 

@@ -33,12 +33,21 @@ data class GlobalConfig(
     @SerialName("highlight_color") val highlightColor: String? = null,
     @SerialName("background_color") val backgroundColor: String? = null,
     @SerialName("text_color") val textColor: String? = "#FFFFFF",
+
+    @Deprecated("Use colorMode instead. Kept for backward compatibility with v0.4.x themes.")
     @SerialName("use_app_colors") val useAppColors: Boolean = false,
+
+    // [NEW] Safe migration enum. Defaults to null for old JSONs.
+    @SerialName("color_mode") val colorMode: ColorMode? = null,
 
     // SHAPE CONFIGURATION
     @SerialName("icon_shape_id") val iconShapeId: String = "circle", // "circle", "square", "squircle", "cookie", "flower"
     @SerialName("icon_padding_percent") val iconPaddingPercent: Int = 15
-)
+) {
+    // Safe getter: reads new enum, falls back to legacy boolean logic if null
+    val activeColorMode: ColorMode
+        get() = colorMode ?: if (useAppColors) ColorMode.APP_ICON else ColorMode.CUSTOM
+}
 
 @Serializable
 data class CallModule(
@@ -53,17 +62,27 @@ data class CallModule(
 @Serializable
 data class AppThemeOverride(
     @SerialName("highlight_color") val highlightColor: String? = null,
-    // [NEW] Added Shape and Padding overrides
+
+    @Deprecated("Use colorMode instead. Kept for backward compatibility with v0.4.x themes.")
     @SerialName("use_app_colors") val useAppColors: Boolean? = null,
+
+    // [NEW] Safe migration enum for per-app overrides
+    @SerialName("color_mode") val colorMode: ColorMode? = null,
+
+    // [NEW] Added Shape and Padding overrides
     @SerialName("icon_shape_id") val iconShapeId: String? = null,
     @SerialName("icon_padding_percent") val iconPaddingPercent: Int? = null,
+
     // [NEW] Added Call Config override
     @SerialName("call_config") val callConfig: CallModule? = null,
     val actions: Map<String, ActionConfig>? = null,
     val progress: ProgressModule? = null,
     val navigation: NavigationModule? = null
-)
-
+) {
+    // Safe getter: reads new enum, falls back to legacy boolean if present, else returns null (uses global)
+    val activeColorMode: ColorMode?
+        get() = colorMode ?: useAppColors?.let { if (it) ColorMode.APP_ICON else ColorMode.CUSTOM }
+}
 @Serializable
 data class ActionConfig(
     val mode: ActionButtonMode = ActionButtonMode.ICON,

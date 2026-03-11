@@ -328,14 +328,9 @@ fun AppEditorMenu(
 fun AppColorEditor(viewModel: ThemeViewModel) {
     ColorsDetailContent(
         selectedColorHex = viewModel.appHighlightColor ?: viewModel.selectedColorHex,
-        useAppColors = viewModel.appUseAppColors == true,
-        onColorSelected = {
-            viewModel.appHighlightColor = it
-            viewModel.appUseAppColors = false
-        },
-        onUseAppColorsChanged = { isEnabled ->
-            viewModel.appUseAppColors = isEnabled
-        }
+        colorMode = viewModel.appColorMode ?: viewModel.colorMode,
+        onColorSelected = { viewModel.appHighlightColor = it },
+        onColorModeChanged = { viewModel.appColorMode = it }
     )
 }
 
