@@ -114,3 +114,9 @@ data class ThemeResource(val type: ResourceType, val value: String)
 enum class ResourceType { PRESET_DRAWABLE, LOCAL_FILE, URI_CONTENT }
 
 enum class ActionButtonMode { ICON, TEXT, BOTH }
+
+enum class ColorMode {
+    CUSTOM,         // Uses selectedColorHex
+    APP_ICON,       // Extracts color from the notification's app icon
+    MATERIAL_YOU    // Extracts color from the system wallpaper (Monet)
+}

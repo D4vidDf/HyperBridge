@@ -146,6 +146,11 @@ fun ThemeCreatorScreen(
             currentRoute = CreatorRoute.MAIN_MENU
         }
 
+        BackHandler(enabled = currentRoute == CreatorRoute.MAIN_MENU) {
+            viewModel.currentEditingThemeId = null // Clear state!
+            onBack()
+        }
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -165,7 +170,12 @@ fun ThemeCreatorScreen(
                     navigationIcon = {
                         FilledTonalIconButton(
                             onClick = {
-                                if (currentRoute != CreatorRoute.MAIN_MENU) currentRoute = CreatorRoute.MAIN_MENU else onBack()
+                                if (currentRoute != CreatorRoute.MAIN_MENU) {
+                                    currentRoute = CreatorRoute.MAIN_MENU
+                                } else {
+                                    viewModel.currentEditingThemeId = null // Clear state!
+                                    onBack()
+                                }
                             },
                             colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
                         ) {
@@ -179,9 +189,9 @@ fun ThemeCreatorScreen(
                                     // If we are editing the currently active theme, save and re-apply immediately
                                     if (editThemeId != null && editThemeId == activeThemeId) {
                                         viewModel.saveTheme(editThemeId)
+                                        viewModel.currentEditingThemeId = null // Clear state!
                                         onThemeCreated()
                                     } else {
-                                        // Otherwise ask user if they want to Apply or just Save
                                         showSaveDialog = true
                                     }
                                 },
@@ -309,11 +319,24 @@ fun SaveDialog(viewModel: ThemeViewModel, editThemeId: String?, activeThemeId: S
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.creator_dialog_apply_title)) },
         text = { Text(stringResource(R.string.creator_dialog_apply_desc)) },
-        confirmButton = { Button(onClick = { onDismiss(); viewModel.saveTheme(editThemeId, apply = true); onThemeCreated() }) { Text(stringResource(R.string.creator_dialog_action_save_apply)) } },
-        dismissButton = { TextButton(onClick = { onDismiss(); viewModel.saveTheme(editThemeId, apply = false); onThemeCreated() }) { Text(stringResource(R.string.creator_dialog_action_save_only)) } }
+        confirmButton = {
+            Button(onClick = {
+                onDismiss()
+                viewModel.saveTheme(editThemeId, apply = true)
+                viewModel.currentEditingThemeId = null // Clear state!
+                onThemeCreated()
+            }) { Text(stringResource(R.string.creator_dialog_action_save_apply)) }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                onDismiss()
+                viewModel.saveTheme(editThemeId, apply = false)
+                viewModel.currentEditingThemeId = null // Clear state!
+                onThemeCreated()
+            }) { Text(stringResource(R.string.creator_dialog_action_save_only)) }
+        }
     )
 }
-
 @Composable
 fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Unit, onEditSettings: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
