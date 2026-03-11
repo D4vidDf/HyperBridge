@@ -555,4 +555,17 @@
     <string name="colors_label_hue">Tono</string>
     <string name="colors_label_saturation">Saturación</string>
     <string name="colors_label_lightness">Claridad</string>
+
+    <string name="colors_label_material_you">Material You (Sistema)</string>
+    <string name="colors_desc_material_you">Extrae los colores de tu fondo de pantalla actual.</string>
+
+    <string name="filter_compatible_widgets">Mostrar solo compatibles con la Isla</string>
+    <string name="kill_all_widgets">Detener widgets activos</string>
+    <string name="permission_reminder_title">Aviso de actualización</string>
+    <string name="permission_reminder_desc">¡HyperBridge se ha actualizado! Por favor, asegúrate de que los permisos de Inicio automático y Batería en segundo plano no hayan sido revocados silenciosamente por el sistema para que tus widgets sigan funcionando sin problemas.</string>
+    <string name="got_it">Entendido</string>
+
+    <string name="recommended">Recomendados</string>
+    <string name="all">Todos</string>
+    <string name="favorites">Favoritos</string>
 </resources>
