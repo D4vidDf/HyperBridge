@@ -661,4 +661,14 @@
     <string name="colors_label_dynamic_modes">Dynamic Colors</string>
     <string name="colors_label_material_you">Material You (System)</string>
     <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
+
+    <string name="filter_compatible_widgets">Show Island Compatible Only</string>
+    <string name="kill_all_widgets">Kill Active Widgets</string>
+    <string name="permission_reminder_title">Update Notice</string>
+    <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
+    <string name="got_it">Got it</string>
+
+    <string name="recommended">Recommended</string>
+    <string name="all">All</string>
+    <string name="favorites">Favorites</string>
 </resources>
