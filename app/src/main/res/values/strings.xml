@@ -654,4 +654,11 @@
     <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
         •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
     </string>
+
+    <string name="colors_label_hue">Hue</string>
+    <string name="colors_label_saturation">Saturation</string>
+    <string name="colors_label_lightness">Lightness</string>
+    <string name="colors_label_dynamic_modes">Dynamic Colors</string>
+    <string name="colors_label_material_you">Material You (System)</string>
+    <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
 </resources>
