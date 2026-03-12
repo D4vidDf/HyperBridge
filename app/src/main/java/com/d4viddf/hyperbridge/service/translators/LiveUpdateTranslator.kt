@@ -2,6 +2,7 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.content.Context
+import android.graphics.Bitmap
 import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -25,18 +26,24 @@ class LiveUpdateTranslator(
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
 
-        val progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
-        val progress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
-        val indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
+        var progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
+        var progress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
+        var indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
 
-        // [CRITICAL FIX] Android 16 STRICTLY filters Live Updates by category.
-        // It actively blocks "CATEGORY_SERVICE". We must force it to PROGRESS or TRANSPORT.
+        // Identify if it's media so we can use the title for the Island chip
+        val isMedia = extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
+                extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
+
+        // [FIXED] Media apps often leave random progress flags in the background.
+        // Force them off so it doesn't show an indeterminate loading bar!
+        if (isMedia) {
+            progressMax = 0
+            progress = 0
+            indeterminate = false
+        }
+        // Force category for Android 16 promotion limits
         val validCategory = if (original.category.isNullOrEmpty() || original.category == NotificationCompat.CATEGORY_SERVICE) {
-            if (progressMax > 0 || indeterminate) {
-                NotificationCompat.CATEGORY_PROGRESS
-            } else {
-                NotificationCompat.CATEGORY_TRANSPORT
-            }
+            if (progressMax > 0 || indeterminate) NotificationCompat.CATEGORY_PROGRESS else NotificationCompat.CATEGORY_TRANSPORT
         } else {
             original.category
         }
@@ -47,64 +54,60 @@ class LiveUpdateTranslator(
             .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setCategory(validCategory) // Must use the strictly valid category!
+            .setCategory(validCategory)
             .setContentIntent(original.contentIntent)
 
-        // [CRITICAL FIX] Carry over the original timestamp so the OS can calculate time active!
+        // --- ADD PICTURE / LARGE ICON ---
+        if (android.os.Build.VERSION.SDK_INT >= 23 && original.getLargeIcon() != null) {
+            builder.setLargeIcon(original.getLargeIcon())
+        } else {
+            @Suppress("DEPRECATION")
+            val picture = extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE)
+            if (picture != null) builder.setLargeIcon(picture)
+        }
+
+        // Carry over the original timestamp (Standard behavior)
         if (original.`when` > 0) {
             builder.setWhen(original.`when`)
             builder.setShowWhen(true)
         }
 
-        // 1. Copy Original Actions Using IconCompat
+        // --- COPY BUTTONS ---
         original.actions?.forEach { action ->
-            val iconCompat = if (action.getIcon() != null) {
+            val iconCompat = if ( action.getIcon() != null) {
                 IconCompat.createFromIcon(context, action.getIcon()!!)
             } else {
                 IconCompat.createWithResource(context, action.icon)
             }
-
-            val compatAction = NotificationCompat.Action.Builder(
-                iconCompat,
-                action.title,
-                action.actionIntent
-            ).build()
-            builder.addAction(compatAction)
+            builder.addAction(NotificationCompat.Action.Builder(iconCompat, action.title, action.actionIntent).build())
         }
 
-        // 2. Apply Progress if it exists
+        // --- APPLY STYLES ---
         if (progressMax > 0 || indeterminate) {
             builder.setProgress(progressMax, progress, indeterminate)
+        } else {
+            // Standard notification: Allow expanding text
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(text).setBigContentTitle(title))
         }
 
-        // 3. ANDROID 16 LIVE UPDATE PROMOTION
-        val shortAlertText = generateCriticalShortText(title, text, progress, progressMax)
+        // --- ANDROID 16 LIVE UPDATE INJECTION ---
+        val shortAlertText = generateCriticalShortText(title, text, progress, progressMax, isMedia)
+        builder.setRequestPromotedOngoing(true)
+        builder.setShortCriticalText(shortAlertText)
 
-        // [CRITICAL FIX] Use bundle extras to force the new Android 16 behavior natively!
-        builder.extras.putBoolean("android.requestPromotedOngoing", true)
-        builder.extras.putString("android.shortCriticalText", shortAlertText)
 
         return builder
     }
 
-    /**
-     * The Status Chip / Right-side Island text only supports ~7 characters!
-     * We dynamically extract the most critical piece of info.
-     */
-    private fun generateCriticalShortText(title: String, text: String, progress: Int, max: Int): String {
-        // 1. If it's a progress notification, return the percentage (e.g. "45%")
-        if (max > 0) {
-            val percent = (progress * 100) / max
-            return "$percent%"
-        }
+    private fun generateCriticalShortText(title: String, text: String, progress: Int, max: Int, isMedia: Boolean): String {
+        if (isMedia) return title.ifBlank { "Media" }
 
-        // 2. Try to extract an ETA or time (e.g. "5 min", "12m")
+        if (max > 0) return "${(progress * 100) / max}%"
+
         val timeRegex = Regex("(\\d+\\s*(min|m))", RegexOption.IGNORE_CASE)
         timeRegex.find(text)?.let { return it.groupValues[1] }
         timeRegex.find(title)?.let { return it.groupValues[1] }
 
-        // 3. Fallback: Take the first word of the title, max 7 chars
-        val firstWord = title.split(" ").firstOrNull() ?: "Active"
-        return if (firstWord.length > 7) firstWord.substring(0, 6) + "…" else firstWord
+        return title.ifBlank { text }.ifBlank { "Active" }
     }
 }
