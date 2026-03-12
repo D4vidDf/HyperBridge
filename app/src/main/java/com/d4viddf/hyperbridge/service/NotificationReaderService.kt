@@ -399,7 +399,21 @@ class NotificationReaderService : NotificationListenerService() {
                 builder.extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
 
                 val notification = builder.build()
-                val newContentHash = notification.hashCode()
+
+                // [FIXED] Dynamic Hash that accounts for Text, Progress, AND Button Actions (Play/Pause)
+                val actualProgress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
+                val actualMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
+                val isIndeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
+
+                // Track the button titles so we know when Play becomes Pause
+                val actionState = sbn.notification.actions?.joinToString { it.title?.toString() ?: "" } ?: ""
+
+                val newContentHash = effectiveTitle.hashCode() * 31 +
+                        effectiveText.hashCode() +
+                        actualProgress +
+                        actualMax +
+                        isIndeterminate.hashCode() +
+                        actionState.hashCode()
 
                 if (isUpdate && previous != null && previous.lastContentHash == newContentHash) {
                     Log.d(TAG, " ABORTING: Content hash duplicate (Live Update).")
