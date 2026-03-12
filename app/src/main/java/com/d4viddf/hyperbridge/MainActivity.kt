@@ -234,7 +234,7 @@ fun MainRootNavigation() {
     if (showChangelog) {
         ChangelogSheet (
             currentVersionName = currentVersionName,
-            changelogText = stringResource(R.string.changelog_0_4_0),
+            changelogText = stringResource(R.string.changelog_0_4_2),
             onDismiss = {
                 showChangelog = false
                 scope.launch {
