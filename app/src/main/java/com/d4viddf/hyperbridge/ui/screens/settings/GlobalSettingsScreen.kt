@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -31,7 +30,7 @@ import kotlinx.coroutines.launch
 fun GlobalSettingsScreen(
     onBack: () -> Unit,
     onNavSettingsClick: () -> Unit // New Callback
-    ) {
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
@@ -51,6 +50,7 @@ fun GlobalSettingsScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+            // Island Settings Card
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
@@ -65,7 +65,7 @@ fun GlobalSettingsScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // NEW: Navigation Layout Card
+            // Navigation Layout Card
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
                 SettingsItem(
                     icon = Icons.Default.Navigation,
@@ -74,6 +74,8 @@ fun GlobalSettingsScreen(
                     onClick = onNavSettingsClick
                 )
             }
+            Spacer(modifier = Modifier.height(16.dp))
+
             var useNativeLiveUpdates by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
@@ -81,39 +83,20 @@ fun GlobalSettingsScreen(
                 useNativeLiveUpdates = prefs.getBoolean("use_native_live_updates", false)
             }
 
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.settings_live_updates_title), fontWeight = FontWeight.SemiBold) },
-                supportingContent = {
-                    Text(
-                        stringResource(R.string.settings_live_updates_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                leadingContent = {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            // Native Live Updates Card
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+                SettingsSwitchItem(
+                    icon = Icons.Default.Notifications,
+                    title = stringResource(R.string.settings_live_updates_title),
+                    subtitle = stringResource(R.string.settings_live_updates_desc),
+                    checked = useNativeLiveUpdates,
+                    onCheckedChange = { isChecked ->
+                        useNativeLiveUpdates = isChecked
+                        context.getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
+                            .edit().putBoolean("use_native_live_updates", isChecked).apply()
                     }
-                },
-                trailingContent = {
-                    Switch(
-                        checked = useNativeLiveUpdates,
-                        onCheckedChange = { isChecked ->
-                            useNativeLiveUpdates = isChecked
-                            context.getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
-                                .edit().putBoolean("use_native_live_updates", isChecked).apply()
-                        }
-                    )
-                },
-                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                )
+            }
         }
     }
 }
@@ -166,6 +149,56 @@ fun SettingsItem(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+@Composable
+fun SettingsSwitchItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
         )
     }
 }
