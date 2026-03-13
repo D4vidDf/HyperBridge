@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.design
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.view.View
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.*
@@ -48,15 +50,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.WidgetSize
-import com.d4viddf.hyperbridge.ui.components.EmptyState // Import EmptyState
+import com.d4viddf.hyperbridge.ui.components.EmptyState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -81,21 +83,41 @@ fun SavedAppWidgetsScreen(
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context.applicationContext) }
 
+    val favorites by preferences.favoriteWidgetAppsFlow.collectAsState(initial = emptySet())
+    val savedIds by preferences.savedWidgetIdsFlow.collectAsState(initial = null) // Reactive listening for newly added widgets!
+
     var allGroups by remember { mutableStateOf<List<SavedWidgetGroup>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
+    var tabIndex by remember { mutableIntStateOf(1) } // 0 = Favorites, 1 = All
 
+    var showPermissionReminder by remember { mutableStateOf(false) }
     val refreshTrigger = remember { mutableStateOf(0) }
 
     val pullState = rememberPullToRefreshState()
     val isRefreshing = isLoading && allGroups.isNotEmpty()
 
-    LaunchedEffect(refreshTrigger.value) {
+    // App Update Permission Reminder Logic
+    LaunchedEffect(Unit) {
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        val currentVersion = PackageInfoCompat.getLongVersionCode(packageInfo).toInt()
+        val sharedPrefs = context.getSharedPreferences("hyperbridge_internal", Context.MODE_PRIVATE)
+        val lastVersion = sharedPrefs.getInt("last_seen_version", currentVersion)
+
+        if (lastVersion in 1 until currentVersion) {
+            showPermissionReminder = true
+        }
+        sharedPrefs.edit().putInt("last_seen_version", currentVersion).apply()
+    }
+
+    // Fetch Saved Widgets (Reacts to new widgets being added dynamically)
+    LaunchedEffect(savedIds, refreshTrigger.value) {
+        if (savedIds == null) return@LaunchedEffect
+
         isLoading = true
         withContext(Dispatchers.IO) {
-            val savedIds = preferences.savedWidgetIdsFlow.first()
             val groupsMap = mutableMapOf<String, MutableList<Int>>()
-            savedIds.forEach { id ->
+            savedIds!!.forEach { id ->
                 val info = WidgetManager.getWidgetInfo(context, id)
                 val pkg = info?.provider?.packageName ?: return@forEach
                 groupsMap.getOrPut(pkg) { mutableListOf() }.add(id)
@@ -120,16 +142,38 @@ fun SavedAppWidgetsScreen(
         isLoading = false
     }
 
-    val displayedGroups = remember(allGroups, searchQuery) {
-        if (searchQuery.isEmpty()) {
-            allGroups
-        } else {
-            allGroups.filter {
+    // Reactive Filtering (Favorites + Search)
+    val displayedGroups = remember(allGroups, searchQuery, tabIndex, favorites) {
+        var filtered = allGroups
+
+        // Filter by Favorites
+        if (tabIndex == 0) {
+            filtered = filtered.filter { favorites.contains(it.packageName) }
+        }
+
+        // Filter by Search Query
+        if (searchQuery.isNotEmpty()) {
+            filtered = filtered.filter {
                 it.appName.contains(searchQuery, ignoreCase = true)
             }.map {
                 it.copy(isExpanded = true)
             }
         }
+
+        filtered
+    }
+
+    if (showPermissionReminder) {
+        AlertDialog(
+            onDismissRequest = { showPermissionReminder = false },
+            title = { Text(stringResource(R.string.permission_reminder_title)) },
+            text = { Text(stringResource(R.string.permission_reminder_desc)) },
+            confirmButton = {
+                Button(onClick = { showPermissionReminder = false }) {
+                    Text(stringResource(R.string.got_it))
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -139,7 +183,7 @@ fun SavedAppWidgetsScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.saved_widgets_title), fontWeight = FontWeight.Bold)
 
-                        // [NEW] Beta Badge
+                        // Beta Badge
                         Spacer(Modifier.width(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.tertiaryContainer,
@@ -154,7 +198,7 @@ fun SavedAppWidgetsScreen(
                             )
                         }
                     }
-                        },
+                },
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = onBack,
@@ -165,15 +209,79 @@ fun SavedAppWidgetsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
+                actions = {
+                    if (allGroups.isNotEmpty()) {
+                        FilledTonalIconButton(
+                            onClick = {
+                                val intent = Intent(context, com.d4viddf.hyperbridge.service.WidgetOverlayService::class.java).apply {
+                                    action = "ACTION_KILL_ALL_WIDGETS"
+                                }
+                                context.startService(intent)
+                            },
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        ) {
+                            Icon(Icons.Outlined.Block, contentDescription = stringResource(R.string.kill_all_widgets))
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
+        floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAddMore,
-                icon = { Icon(Icons.Default.Add, null) },
-                text = { Text(stringResource(R.string.new_widget_fab)) }
-            )
+            // A full-width Box so the Toolbar can be centered and the FAB right-aligned
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                // Centered Filter Toolbar
+                Box(modifier = Modifier.align(Alignment.Center)) {
+                    HorizontalFloatingToolbar(
+                        expanded = true,
+                        content = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            ) {
+                                TextButton(
+                                    onClick = { tabIndex = 0 },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        containerColor = if (tabIndex == 0) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                                        contentColor = if (tabIndex == 0) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                ) {
+                                    Text(stringResource(R.string.favorites), fontWeight = FontWeight.SemiBold)
+                                }
+
+                                TextButton(
+                                    onClick = { tabIndex = 1 },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        containerColor = if (tabIndex == 1) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                                        contentColor = if (tabIndex == 1) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                ) {
+                                    Text(stringResource(R.string.all), fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                        }
+                    )
+                }
+
+                // Add FAB aligned to the far right
+                FloatingActionButton(
+                    onClick = onAddMore,
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Widget")
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
@@ -227,7 +335,6 @@ fun SavedAppWidgetsScreen(
                             LoadingIndicator()
                         }
                     } else if (displayedGroups.isEmpty()) {
-                        // [UPDATED] Use EmptyState Component
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             EmptyState(
                                 title = stringResource(R.string.no_saved_widgets),
@@ -238,7 +345,7 @@ fun SavedAppWidgetsScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(displayedGroups, key = { it.packageName }) { group ->
@@ -251,6 +358,14 @@ fun SavedAppWidgetsScreen(
                                         onToggle = { expanded = !expanded },
                                         onEdit = onEditWidget,
                                         onDelete = { widgetId ->
+                                            // 1. Instantly kill the active Island notification
+                                            val killIntent = Intent(context, com.d4viddf.hyperbridge.service.WidgetOverlayService::class.java).apply {
+                                                action = "ACTION_KILL_WIDGET"
+                                                putExtra("WIDGET_ID", widgetId)
+                                            }
+                                            context.startService(killIntent)
+
+                                            // 2. Remove from database and refresh UI
                                             scope.launch {
                                                 preferences.removeWidgetId(widgetId)
                                                 refreshTrigger.value++

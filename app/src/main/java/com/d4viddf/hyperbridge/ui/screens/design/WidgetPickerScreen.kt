@@ -16,7 +16,20 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,9 +41,38 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,8 +86,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class WidgetAppGroup(
@@ -56,7 +100,7 @@ data class WidgetAppGroup(
     val isExpanded: Boolean = false
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WidgetPickerScreen(
     onBack: () -> Unit,
@@ -64,9 +108,14 @@ fun WidgetPickerScreen(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
+    val preferences = remember { AppPreferences(context.applicationContext) }
+
+    val favorites by preferences.favoriteWidgetAppsFlow.collectAsState(initial = emptySet())
 
     var allGroups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
+    var tabIndex by remember { mutableIntStateOf(0) } // 0 = Recommended, 1 = All
     var pendingWidgetId by remember { mutableStateOf(-1) }
 
     val bindLauncher = rememberLauncherForActivityResult(
@@ -84,37 +133,41 @@ fun WidgetPickerScreen(
         withContext(Dispatchers.IO) {
             val manager = AppWidgetManager.getInstance(context)
             val providers = manager.installedProviders
-
             val grouped = providers.groupBy { it.provider.packageName }
 
-            val uiGroups = grouped.map { (pkg, list) ->
-                val appName = try {
-                    val appInfo = context.packageManager.getApplicationInfo(pkg, 0)
-                    context.packageManager.getApplicationLabel(appInfo).toString()
-                } catch (e: Exception) { pkg }
-
-                val icon = try {
-                    context.packageManager.getApplicationIcon(pkg)
+            val uiGroups = grouped.mapNotNull { (pkg, list) ->
+                try {
+                    val appName = context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(pkg, 0)).toString()
+                    val icon = context.packageManager.getApplicationIcon(pkg)
+                    WidgetAppGroup(pkg, appName, icon, list)
                 } catch (e: Exception) { null }
-
-                WidgetAppGroup(pkg, appName, icon, list)
             }.sortedBy { it.appName }
 
             allGroups = uiGroups
         }
     }
 
-    val displayedGroups = remember(allGroups, searchQuery) {
-        if (searchQuery.isEmpty()) {
-            allGroups
-        } else {
-            allGroups.filter {
-                it.appName.contains(searchQuery, ignoreCase = true)
-            }.map {
-                it.copy(isExpanded = true)
+    val displayedGroups = allGroups.mapNotNull { group ->
+        val filteredWidgets = if (tabIndex == 0) {
+            group.widgets.filter { w ->
+                // Filter specifically for 1x4 and 2x4 layouts (Compatible with Island sizes)
+                if (android.os.Build.VERSION.SDK_INT >= 31) {
+                    w.targetCellWidth == 4 && (w.targetCellHeight == 1 || w.targetCellHeight == 2)
+                } else {
+                    w.minWidth >= 200 && w.minHeight <= 150 // Rough estimation for older Android versions
+                }
             }
-        }
-    }
+        } else group.widgets
+
+        if (filteredWidgets.isNotEmpty()) group.copy(widgets = filteredWidgets) else null
+    }.filter {
+        if (searchQuery.isNotEmpty()) it.appName.contains(searchQuery, ignoreCase = true) else true
+    }.map {
+        if (searchQuery.isNotEmpty()) it.copy(isExpanded = true) else it
+    }.sortedWith(
+        compareByDescending<WidgetAppGroup> { favorites.contains(it.packageName) }
+            .thenBy { it.appName }
+    )
 
     Scaffold(
         topBar = {
@@ -122,8 +175,6 @@ fun WidgetPickerScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.widget_picker_title), fontWeight = FontWeight.Bold)
-
-                        // [NEW] Beta Badge
                         Spacer(Modifier.width(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.tertiaryContainer,
@@ -138,7 +189,7 @@ fun WidgetPickerScreen(
                             )
                         }
                     }
-                        },
+                },
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = onBack,
@@ -149,9 +200,32 @@ fun WidgetPickerScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+            )
+        },
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
+            HorizontalFloatingToolbar(
+                expanded = true,
+                content = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        ToolbarOption(
+                            selected = tabIndex == 0,
+                            icon = Icons.Outlined.Star,
+                            text = stringResource(R.string.recommended),
+                            onClick = { tabIndex = 0 }
+                        )
+                        ToolbarOption(
+                            selected = tabIndex == 1,
+                            icon = Icons.Outlined.Widgets,
+                            text = stringResource(R.string.all),
+                            onClick = { tabIndex = 1 }
+                        )
+                    }
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.surface
@@ -176,10 +250,8 @@ fun WidgetPickerScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                     colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     )
@@ -188,17 +260,22 @@ fun WidgetPickerScreen(
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp), // Extra padding for the floating bar
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(displayedGroups, key = { it.packageName }) { group ->
                     var expanded by remember(group.packageName, searchQuery) { mutableStateOf(group.isExpanded) }
+                    val isFavorite = favorites.contains(group.packageName)
 
                     Box(modifier = Modifier.animateItem()) {
                         AppGroupItem(
                             group = group,
                             isExpanded = expanded,
+                            isFavorite = isFavorite,
                             onToggle = { expanded = !expanded },
+                            onFavoriteToggle = {
+                                scope.launch { preferences.toggleFavoriteWidgetApp(group.packageName, !isFavorite) }
+                            },
                             onSelectWidget = { provider ->
                                 val widgetId = WidgetManager.allocateId(context)
                                 val allowed = WidgetManager.bindWidget(context, widgetId, provider.provider)
@@ -226,7 +303,9 @@ fun WidgetPickerScreen(
 fun AppGroupItem(
     group: WidgetAppGroup,
     isExpanded: Boolean,
+    isFavorite: Boolean,
     onToggle: () -> Unit,
+    onFavoriteToggle: () -> Unit,
     onSelectWidget: (AppWidgetProviderInfo) -> Unit
 ) {
     val numWidget = pluralStringResource(R.plurals.widget_count_fmt, group.widgets.size, group.widgets.size)
@@ -267,6 +346,15 @@ fun AppGroupItem(
                         text = numWidget,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // [NEW] Star Button
+                IconButton(onClick = onFavoriteToggle) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Rounded.Star else Icons.Outlined.StarBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -318,7 +406,21 @@ fun WidgetChildItem(
 ) {
     val context = LocalContext.current
     val label = info.loadLabel(context.packageManager)
-    val dims = "${info.minWidth} × ${info.minHeight}"
+
+    // Convert dp dimensions to Android Grid Proportions (e.g., 4x1, 2x2)
+    val cols = if (android.os.Build.VERSION.SDK_INT >= 31) {
+        info.targetCellWidth
+    } else {
+        maxOf(1, Math.ceil((info.minWidth + 30) / 70.0).toInt())
+    }
+
+    val rows = if (android.os.Build.VERSION.SDK_INT >= 31) {
+        info.targetCellHeight
+    } else {
+        maxOf(1, Math.ceil((info.minHeight + 30) / 70.0).toInt())
+    }
+
+    val dims = "$cols × $rows"
 
     var preview by remember { mutableStateOf<Drawable?>(null) }
     LaunchedEffect(info) {
@@ -369,7 +471,8 @@ fun WidgetChildItem(
             text = label,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
         Text(
             text = dims,

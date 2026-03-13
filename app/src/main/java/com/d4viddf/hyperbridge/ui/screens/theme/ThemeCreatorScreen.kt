@@ -90,6 +90,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.models.theme.ColorMode
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ActionsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.AppsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.CallStyleSheetContent
@@ -114,28 +115,19 @@ fun ThemeCreatorScreen(
     val viewModel: ThemeViewModel = viewModel()
     val activeThemeId by viewModel.activeThemeId.collectAsState()
 
-    // [SWITCH] If editing an app override, delegate to AppThemeEditor
     if (viewModel.editingAppPackage != null) {
         AppThemeEditor(viewModel)
     } else {
-        // --- GLOBAL THEME CREATOR MENU ---
         var currentRoute by remember { mutableStateOf(CreatorRoute.MAIN_MENU) }
         var showSettingsSheet by remember { mutableStateOf(false) }
         var showSaveDialog by remember { mutableStateOf(false) }
 
-        // [CRITICAL FIX] Robust state initialization
         LaunchedEffect(editThemeId) {
             if (editThemeId != null) {
-                // Only load if we aren't already editing this specific ID.
-                // This prevents overwriting unsaved changes if this effect re-runs.
                 if (viewModel.currentEditingThemeId != editThemeId) {
                     viewModel.loadThemeForEditing(editThemeId)
                 }
             } else {
-                // Only clear/init new state if we haven't started a session yet.
-                // If currentEditingThemeId is NOT null, it means we are already
-                // working on a new draft (and likely just came back from AppEditor),
-                // so we MUST NOT clear the state.
                 if (viewModel.currentEditingThemeId == null) {
                     viewModel.clearCreatorState()
                 }
@@ -144,6 +136,11 @@ fun ThemeCreatorScreen(
 
         BackHandler(enabled = currentRoute != CreatorRoute.MAIN_MENU) {
             currentRoute = CreatorRoute.MAIN_MENU
+        }
+
+        BackHandler(enabled = currentRoute == CreatorRoute.MAIN_MENU) {
+            viewModel.currentEditingThemeId = null
+            onBack()
         }
 
         Scaffold(
@@ -165,7 +162,12 @@ fun ThemeCreatorScreen(
                     navigationIcon = {
                         FilledTonalIconButton(
                             onClick = {
-                                if (currentRoute != CreatorRoute.MAIN_MENU) currentRoute = CreatorRoute.MAIN_MENU else onBack()
+                                if (currentRoute != CreatorRoute.MAIN_MENU) {
+                                    currentRoute = CreatorRoute.MAIN_MENU
+                                } else {
+                                    viewModel.currentEditingThemeId = null
+                                    onBack()
+                                }
                             },
                             colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
                         ) {
@@ -176,12 +178,11 @@ fun ThemeCreatorScreen(
                         if (currentRoute == CreatorRoute.MAIN_MENU) {
                             Button(
                                 onClick = {
-                                    // If we are editing the currently active theme, save and re-apply immediately
                                     if (editThemeId != null && editThemeId == activeThemeId) {
                                         viewModel.saveTheme(editThemeId)
+                                        viewModel.currentEditingThemeId = null
                                         onThemeCreated()
                                     } else {
-                                        // Otherwise ask user if they want to Apply or just Save
                                         showSaveDialog = true
                                     }
                                 },
@@ -214,7 +215,8 @@ fun ThemeCreatorScreen(
                             previewContent = {
                                 SharedThemePreview(
                                     highlightColorHex = viewModel.selectedColorHex,
-                                    useAppColors = viewModel.useAppColors,
+                                    // [FIX 1] Convert ColorMode Enum to boolean for the preview
+                                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
                                     shapeId = viewModel.selectedShapeId,
                                     paddingPercent = viewModel.iconPaddingPercent,
                                     answerColorHex = viewModel.callAnswerColor,
@@ -226,9 +228,10 @@ fun ThemeCreatorScreen(
                             content = {
                                 ColorsDetailContent(
                                     selectedColorHex = viewModel.selectedColorHex,
-                                    useAppColors = viewModel.useAppColors,
+                                    // [FIX 2] Pass ColorMode Enum instead of boolean
+                                    colorMode = viewModel.colorMode,
                                     onColorSelected = { viewModel.selectedColorHex = it },
-                                    onUseAppColorsChanged = { viewModel.useAppColors = it }
+                                    onColorModeChanged = { viewModel.colorMode = it }
                                 )
                             }
                         )
@@ -236,7 +239,8 @@ fun ThemeCreatorScreen(
                             previewContent = {
                                 SharedThemePreview(
                                     highlightColorHex = viewModel.selectedColorHex,
-                                    useAppColors = viewModel.useAppColors,
+                                    // [FIX 3] Convert ColorMode Enum to boolean
+                                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
                                     shapeId = viewModel.selectedShapeId,
                                     paddingPercent = viewModel.iconPaddingPercent,
                                     answerColorHex = viewModel.callAnswerColor,
@@ -259,7 +263,8 @@ fun ThemeCreatorScreen(
                             previewContent = {
                                 SharedThemePreview(
                                     highlightColorHex = viewModel.selectedColorHex,
-                                    useAppColors = viewModel.useAppColors,
+                                    // [FIX 4] Convert ColorMode Enum to boolean
+                                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
                                     shapeId = viewModel.selectedShapeId,
                                     paddingPercent = viewModel.iconPaddingPercent,
                                     answerColorHex = viewModel.callAnswerColor,
@@ -309,11 +314,24 @@ fun SaveDialog(viewModel: ThemeViewModel, editThemeId: String?, activeThemeId: S
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.creator_dialog_apply_title)) },
         text = { Text(stringResource(R.string.creator_dialog_apply_desc)) },
-        confirmButton = { Button(onClick = { onDismiss(); viewModel.saveTheme(editThemeId, apply = true); onThemeCreated() }) { Text(stringResource(R.string.creator_dialog_action_save_apply)) } },
-        dismissButton = { TextButton(onClick = { onDismiss(); viewModel.saveTheme(editThemeId, apply = false); onThemeCreated() }) { Text(stringResource(R.string.creator_dialog_action_save_only)) } }
+        confirmButton = {
+            Button(onClick = {
+                onDismiss()
+                viewModel.saveTheme(editThemeId, apply = true)
+                viewModel.currentEditingThemeId = null // Clear state!
+                onThemeCreated()
+            }) { Text(stringResource(R.string.creator_dialog_action_save_apply)) }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                onDismiss()
+                viewModel.saveTheme(editThemeId, apply = false)
+                viewModel.currentEditingThemeId = null // Clear state!
+                onThemeCreated()
+            }) { Text(stringResource(R.string.creator_dialog_action_save_only)) }
+        }
     )
 }
-
 @Composable
 fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Unit, onEditSettings: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -321,7 +339,10 @@ fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Uni
             Surface(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 12.dp)) {
                     SharedThemePreview(
-                        viewModel.selectedColorHex, viewModel.useAppColors, viewModel.selectedShapeId, viewModel.iconPaddingPercent,
+                        viewModel.selectedColorHex,
+                        // [FIX 5] Convert ColorMode Enum to boolean
+                        (viewModel.colorMode == ColorMode.APP_ICON),
+                        viewModel.selectedShapeId, viewModel.iconPaddingPercent,
                         viewModel.callAnswerColor, viewModel.callDeclineColor, viewModel.callAnswerShapeId, viewModel.callDeclineShapeId
                     )
                 }

@@ -34,6 +34,8 @@ class WidgetOverlayService : Service() {
         const val WIDGET_CHANNEL_ID = "hyper_bridge_widget_channel"
         const val ACTION_TEST_WIDGET = "ACTION_TEST_WIDGET"
         const val ACTION_START_MONITORING = "ACTION_START_MONITORING"
+        const val ACTION_KILL_ALL_WIDGETS = "ACTION_KILL_ALL_WIDGETS"
+        const val ACTION_KILL_WIDGET = "ACTION_KILL_WIDGET"
     }
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
@@ -73,12 +75,31 @@ class WidgetOverlayService : Service() {
                     }
                 }
             }
+            ACTION_KILL_ALL_WIDGETS -> {
+                // Instantly kill all active widgets
+                serviceScope.launch(Dispatchers.IO) {
+                    val savedIds = preferences.savedWidgetIdsFlow.first()
+                    savedIds.forEach { id ->
+                        notificationManager.cancel(9000 + id)
+                        widgetUpdateDebouncer.remove(id)
+                    }
+                }
+            }
+            ACTION_KILL_WIDGET -> {
+                // NEW: Instantly kill a specific widget
+                val widgetId = intent.getIntExtra("WIDGET_ID", -1)
+                if (widgetId != -1) {
+                    notificationManager.cancel(9000 + widgetId)
+                    widgetUpdateDebouncer.remove(widgetId) // Clean up memory
+                }
+            }
             ACTION_START_MONITORING -> {
                 // Ensure service is sticky
             }
         }
         return START_STICKY
     }
+
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun startMonitoringWidgets() {
         serviceScope.launch {

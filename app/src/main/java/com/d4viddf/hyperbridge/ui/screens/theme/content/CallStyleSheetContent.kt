@@ -35,7 +35,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,18 +42,21 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.ui.components.CustomColorBottomSheet
 import com.d4viddf.hyperbridge.ui.screens.design.ToolbarOption
 import com.d4viddf.hyperbridge.ui.screens.theme.AssetPickerButton
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
@@ -165,6 +167,8 @@ private fun CallConfigTab(
     onAssetSelected: (Uri) -> Unit,
     defaultIcon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
+    var showColorPicker by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -176,6 +180,7 @@ private fun CallConfigTab(
         )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Pick Icon Button
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -187,22 +192,33 @@ private fun CallConfigTab(
 
             Spacer(Modifier.width(16.dp))
 
-            OutlinedTextField(
-                value = color,
-                onValueChange = onColorChange,
-                label = { Text("Hex Color") },
-                modifier = Modifier.weight(1f),
-                trailingIcon = {
+            // Pick Color Button
+            Surface(
+                onClick = { showColorPicker = true },
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.weight(1f).height(56.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = color.uppercase(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+
                     Box(
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(32.dp)
                             .clip(CircleShape)
                             .background(safeParseColor(color))
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                     )
-                },
-                singleLine = true
-            )
+                }
+            }
         }
 
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -246,5 +262,19 @@ private fun CallConfigTab(
                 }
             }
         }
+    }
+
+    // Call the bottom sheet if state is true
+    if (showColorPicker) {
+        CustomColorBottomSheet(
+            initialColor = safeParseColor(color),
+            onDismiss = { showColorPicker = false },
+            onColorAdded = { newColor ->
+                // Format the compose Color back to Hex String
+                val hex = String.format("#%06X", (0xFFFFFF and newColor.toArgb()))
+                onColorChange(hex)
+                showColorPicker = false
+            }
+        )
     }
 }

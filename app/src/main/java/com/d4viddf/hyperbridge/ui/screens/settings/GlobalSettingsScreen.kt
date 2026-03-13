@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.settings
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +30,7 @@ import kotlinx.coroutines.launch
 fun GlobalSettingsScreen(
     onBack: () -> Unit,
     onNavSettingsClick: () -> Unit // New Callback
-    ) {
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
@@ -48,6 +50,7 @@ fun GlobalSettingsScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+            // Island Settings Card
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
@@ -62,13 +65,36 @@ fun GlobalSettingsScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // NEW: Navigation Layout Card
+            // Navigation Layout Card
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
                 SettingsItem(
                     icon = Icons.Default.Navigation,
                     title = stringResource(R.string.nav_layout_title),
                     subtitle = stringResource(R.string.nav_layout_desc),
                     onClick = onNavSettingsClick
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            var useNativeLiveUpdates by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                val prefs = context.getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
+                useNativeLiveUpdates = prefs.getBoolean("use_native_live_updates", false)
+            }
+
+            // Native Live Updates Card
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+                SettingsSwitchItem(
+                    icon = Icons.Default.Notifications,
+                    title = stringResource(R.string.settings_live_updates_title),
+                    subtitle = stringResource(R.string.settings_live_updates_desc),
+                    checked = useNativeLiveUpdates,
+                    onCheckedChange = { isChecked ->
+                        useNativeLiveUpdates = isChecked
+                        context.getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
+                            .edit().putBoolean("use_native_live_updates", isChecked).apply()
+                    }
                 )
             }
         }
@@ -123,6 +149,56 @@ fun SettingsItem(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+@Composable
+fun SettingsSwitchItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
         )
     }
 }
