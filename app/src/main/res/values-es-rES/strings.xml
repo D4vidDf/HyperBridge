@@ -591,4 +591,8 @@
     <string name="behaviour_triggers"><![CDATA[Comportamiento y desencadenantes]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[Motor, tiempos de espera y disparadores]]></string>
     <string name="global_behavior">Comportamiento global</string>
+    <string name="auto_hide_island">Auto-ocultar isla</string>
+    <string name="hides_after_a_set_time">Oculta después de un tiempo determinado</string>
+    <string name="behavior_hide_desc">Visible hasta que manualmente se descarte</string>
+    <string name="behavior_desc_hide_long">Determina cuánto tiempo permanece la isla en pantalla antes de desaparecer automáticamente.</string>
 </resources>

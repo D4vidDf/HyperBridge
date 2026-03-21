@@ -62,9 +62,11 @@ fun IslandSettingsControl(
                     Icon(Icons.Default.AccessTime, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(20.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Auto-hide Island", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.auto_hide_island), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                         Text(
-                            text = if (isTimeoutEnabled) "Hides after a set time" else "Visible until manually dismissed",
+                            text = if (isTimeoutEnabled) stringResource(R.string.hides_after_a_set_time) else stringResource(
+                                R.string.behavior_hide_desc
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -109,7 +111,7 @@ fun IslandSettingsControl(
                         )
 
                         Text(
-                            text = "Determines how long the island stays on screen before disappearing automatically.",
+                            text = stringResource(R.string.behavior_desc_hide_long),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             modifier = Modifier.padding(top = 4.dp)

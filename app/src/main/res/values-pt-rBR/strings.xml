@@ -39,7 +39,7 @@
     <string name="tab_library">Biblioteca</string>
     <string name="title_active_bridges">Pontes Ativas</string>
     <string name="title_library">Biblioteca de Apps</string>
-    <string name="search_hint">Pesquisar apps…</string>
+    <string name="search_hint">Pesquisar apps...</string>
     <string name="sort_az">Classificar: A-Z</string>
     <string name="sort_za">Classificar: Z-A</string>
     <string name="no_active_bridges">Nenhuma Ponte Ativa</string>
@@ -265,7 +265,7 @@ Novas notificações substituem as mais antigas automaticamente.</string>
         Melhorada a lógica de detecção para dar suporte a uma maior variedade de aplicativos de chamadas.\n\n
         <b>Correções &amp; Melhorias 🛠️</b>\n
         • Corrigido um bug crítico no qual o app ficava travado durante o carregamento após uma reinicialização.\n
-        • Corrigido notificações as vezes mostrarem o nome do pacote (ex.: \"com.google…\") em vez do conteúdo.\n
+        • Corrigido notificações as vezes mostrarem o nome do pacote (ex.: \"com.google...\") em vez do conteúdo.\n
         • As configurações do app foram redesenhadas para melhor usabilidade.\n
         • Melhorada a tela de verificação de compatibilidade com informações detalhadas do aparelho.
     </string>
@@ -335,7 +335,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="widget_updated_toast">Widget atualizado</string>
     <string name="widget_settings_error">Não é possível editar as configurações deste widget</string>
     <string name="widget_picker_title">Adicionar Widget</string>
-    <string name="search_apps_placeholder">Pesquisar apps…</string>
+    <string name="search_apps_placeholder">Pesquisar apps...</string>
     <plurals name="widget_count_fmt">
         <item quantity="other">Outro</item>
         <item quantity="one">Um</item>
@@ -378,7 +378,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="widget_id_fmt">Widget</string>
     <string name="show_on_island">Mostrar na Ilha</string>
     <string name="theme_installer_title">Importar Tema</string>
-    <string name="theme_installer_analyzing">Analisando pacote do tema…</string>
+    <string name="theme_installer_analyzing">Analisando pacote do tema...</string>
     <string name="theme_installer_success_title">Tema Pronto</string>
     <string name="theme_installer_author">Criado por %s</string>
     <string name="theme_installer_version">Versão %d</string>
@@ -503,7 +503,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="actions_empty_title">Sem Ações Personalizadas</string>
     <string name="actions_empty_desc">Adicione regras para estilizar botões de notificação com base no texto (ex: Responder, Arquivar).</string>
     <string name="action_default_preview_text">Ação</string>
-    <string name="actions_search_hint">Pesquisar ações…</string>
+    <string name="actions_search_hint">Pesquisar ações...</string>
     <string name="actions_search_empty_fmt">Nenhuma ação encontrada para %1$s</string>
     <string name="action_wip_warning">Este recurso é um trabalho em andamento. A correspondência de palavras-chave depende de como os aplicativos estruturam suas notificações e pode não funcionar para todos.</string>
     <string name="creator_dialog_apply_title">Aplicar Tema?</string>
@@ -599,4 +599,8 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
     <string name="global_behavior">Global Behavior</string>
+    <string name="auto_hide_island">Auto-hide Island</string>
+    <string name="hides_after_a_set_time">Hides after a set time</string>
+    <string name="behavior_hide_desc">Visible until manually dismissed</string>
+    <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
 </resources>
