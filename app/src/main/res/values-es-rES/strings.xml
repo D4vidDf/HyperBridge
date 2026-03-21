@@ -7,21 +7,21 @@
     <string name="done">Hecho</string>
     <string name="logo_desc">Logo de la App</string>
     <string name="settings">Ajustes</string>
-    <string name="info">Info</string>
+    <string name="info">Información</string>
     <string name="configure">Configurar</string>
     <string name="clear">Borrar</string>
     <string name="sort_order">Orden</string>
     <string name="welcome_title">Bienvenido a\nHyper Bridge</string>
-    <string name="welcome_subtitle">Integra HyperIslands perfectamente en tu experiencia HyperOS.</string>
+    <string name="welcome_subtitle">Integra Hyper Islands perfectamente en tu experiencia HyperOS.</string>
     <string name="get_started">Empezar</string>
     <string name="how_it_works">Cómo funciona</string>
-    <string name="how_it_works_desc">Selecciona tus aplicaciones favoritas (Spotify, Maps, Timer). HyperBridge transforma sus notificaciones en una elegante HyperIsland.</string>
+    <string name="how_it_works_desc">Selecciona tus aplicaciones favoritas (Spotify, Navegación, Relojes). Hyper Bridge transforma sus notificaciones en una elegante Hyper Island.</string>
     <string name="early_development">Desarrollo Temprano</string>
     <string name="beta_warning">Nota: Esta app está en Beta. Puedes encontrar errores o información visual incorrecta.</string>
     <string name="device_compatible">Dispositivo Compatible</string>
     <string name="unsupported_device">Dispositivo No Soportado</string>
     <string name="compatible_msg">Tu dispositivo parece ejecutar HyperOS/MIUI. ¡Todo listo!</string>
-    <string name="incompatible_msg">HyperBridge depende de funciones específicas de HyperOS. Tu fabricante no parece ser Xiaomi/POCO/Redmi.</string>
+    <string name="incompatible_msg">Hype rBridge depende de funciones específicas de HyperOS. Tu fabricante no parece ser Xiaomi/POCO/Redmi.</string>
     <string name="system_detected">✅ Sistema Detectado</string>
     <string name="app_wont_work">⚠️ La app podría no funcionar</string>
     <string name="show_island">Mostrar Isla</string>
@@ -551,21 +551,44 @@
     <string name="changelog_0_4_2">        •&lt;b&gt;Corrección de errores:&lt;/b&gt; Se solucionó un error crítico que provocaba el cierre de la aplicación al abrir la configuración en Chino Tradicional.\n
         •&lt;b&gt;Mejoras generales:&lt;/b&gt; Corrección de errores menores y mejoras de estabilidad para que la Isla funcione sin problemas.
     </string>
-
     <string name="colors_label_hue">Tono</string>
     <string name="colors_label_saturation">Saturación</string>
     <string name="colors_label_lightness">Claridad</string>
-
+    <string name="colors_label_dynamic_modes">Colores Dinámicos</string>
     <string name="colors_label_material_you">Material You (Sistema)</string>
     <string name="colors_desc_material_you">Extrae los colores de tu fondo de pantalla actual.</string>
-
     <string name="filter_compatible_widgets">Mostrar solo compatibles con la Isla</string>
     <string name="kill_all_widgets">Detener widgets activos</string>
     <string name="permission_reminder_title">Aviso de actualización</string>
     <string name="permission_reminder_desc">¡HyperBridge se ha actualizado! Por favor, asegúrate de que los permisos de Inicio automático y Batería en segundo plano no hayan sido revocados silenciosamente por el sistema para que tus widgets sigan funcionando sin problemas.</string>
     <string name="got_it">Entendido</string>
-
     <string name="recommended">Recomendados</string>
     <string name="all">Todos</string>
     <string name="favorites">Favoritos</string>
+    <string name="settings_live_updates_title">Actualizaciones nativas en vivo de Android</string>
+    <string name="settings_live_updates_desc">Transforma las notificaciones en las notificaciones en vivo de Android 16 en lugar del diseño de Xiaomi.</string>
+    <string name="channel_live_updates">Actualizaciones nativas en vivo</string>
+    <string name="engine_preview_title">Vista previa</string>
+    <string name="engine_design_section">Diseño de notificaciones</string>
+    <string name="engine_xiaomi_title">Diseño destacado de Xiaomi</string>
+    <string name="engine_xiaomi_desc">Diseño moderno de HyperOS de Xiaomi.</string>
+    <string name="engine_native_title">Actualización en vivo</string>
+    <string name="engine_native_desc">Diseño de notificaciones de Android, funciona en CN ROM.</string>
+    <string name="engine_config_title">Configuación del motor</string>
+    <string name="engine_section_preview">Vista previa</string>
+    <string name="engine_section_design">Diseño de notificaciones</string>
+    <string name="engine_mock_charging">Cargando</string>
+    <string name="engine_mock_percentage">85 %</string>
+    <string name="engine_mock_nav_dist"></string>
+    <string name="engine_mock_nav_street">Nombre de calle</string>
+    <string name="good_to_know">Es bueno saber</string>
+    <string name="nav_layout_info">• Los diseños de navegación se integrarán completamente en el motor de temas en una próxima actualización.\n• Al usar el motor de actualización nativa en vivo, solo se muestra el contenido del lado derecho de la isla.</string>
+    <string name="xiaomi_featured_notifications">Notificaciones destacadas de Xiaomi</string>
+    <string name="island_behavior_title">Comportamiento de la isla</string>
+    <string name="island_behavior_desc"><![CDATA[Tiempo de espera, duplicados y visibilidad]]></string>
+    <string name="engine">Motor</string>
+    <string name="engine_desc">Actualizaciones en Vivo vs Isla Xiaomi</string>
+    <string name="behaviour_triggers"><![CDATA[Comportamiento y desencadenantes]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Motor, tiempos de espera y disparadores]]></string>
+    <string name="global_behavior">Comportamiento global</string>
 </resources>

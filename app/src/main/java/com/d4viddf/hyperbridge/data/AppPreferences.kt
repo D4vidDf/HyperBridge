@@ -273,7 +273,7 @@ class AppPreferences(context: Context) {
 
             WidgetConfig(
                 isShowShade = shown.toBoolean(true),
-                timeout = timeout.toInt(5),
+                timeout = timeout.toInt(10),
                 size = sizeEnum,
                 renderMode = modeEnum,
                 autoUpdate = autoStr.toBoolean(false),
@@ -327,5 +327,19 @@ class AppPreferences(context: Context) {
         val currentSet = currentStr.deserializeSet()
         val newSet = if (isFavorite) currentSet + packageName else currentSet - packageName
         save("favorite_widget_apps", newSet.serialize())
+    }
+
+
+    // ========================================================================
+    //                        Notification Engine
+    // ========================================================================
+
+    private val USE_NATIVE_ENGINE = "use_native_live_updates"
+
+    val useNativeLiveUpdates: Flow<Boolean> = dao.getSettingFlow(USE_NATIVE_ENGINE)
+        .map { it?.toBoolean() ?: false }
+
+    suspend fun setUseNativeLiveUpdates(value: Boolean) {
+        save(USE_NATIVE_ENGINE, value.toString())
     }
 }

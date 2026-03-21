@@ -81,7 +81,6 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         // 4. Build Notification
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", instruction)
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 
@@ -170,7 +169,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         )
 
         builder.setSmallIsland(picKey)
-        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor)
+        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor, timeout = config.timeout)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

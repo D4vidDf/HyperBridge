@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
+import androidx.core.graphics.scale
 
 class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -370,7 +371,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         context.contentResolver.openInputStream(themeIconUri!!)?.use { input ->
                             val originalBitmap = BitmapFactory.decodeStream(input)
                             if (originalBitmap != null) {
-                                val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 512, 512, true)
+                                val scaledBitmap = originalBitmap.scale(512, 512)
                                 val iconFile = File(iconsDir, "theme_thumb.png")
                                 iconFile.outputStream().use { out -> scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
                                 themeIconRes = ThemeResource(ResourceType.LOCAL_FILE, "icons/theme_thumb.png")
@@ -450,6 +451,20 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             action = NotificationReaderService.ACTION_RELOAD_THEME
         }
         context.startService(intent)
+    }
+
+    val useNativeLiveUpdates = prefs.useNativeLiveUpdates
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    fun setUseNativeLiveUpdates(value: Boolean) {
+        viewModelScope.launch {
+            prefs.setUseNativeLiveUpdates(value)
+            reloadNotificationService()
+        }
     }
 }
 

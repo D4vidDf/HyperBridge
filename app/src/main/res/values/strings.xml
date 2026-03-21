@@ -675,4 +675,30 @@
     <string name="settings_live_updates_title">Native Android Live Updates</string>
     <string name="settings_live_updates_desc">Transform notifications into standard Android 16 ongoing tasks instead of overriding them with custom Xiaomi Islands.</string>
     <string name="channel_live_updates">Native Live Updates</string>
+
+    <string name="engine_preview_title">Preview</string>
+    <string name="engine_design_section">Notification Design</string>
+    <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
+    <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
+    <string name="engine_native_title">Live Update Design</string>
+    <string name="engine_native_desc">Native android notification designs, works on CN ROM.</string>
+
+    <string name="engine_config_title">Engine Configuration</string>
+    <string name="engine_section_preview">Preview</string>
+    <string name="engine_section_design">Notification Design</string>
+
+    <string name="engine_mock_charging">Charging</string>
+    <string name="engine_mock_percentage">85%</string>
+    <string name="engine_mock_nav_dist">150m</string>
+    <string name="engine_mock_nav_street">Street Name</string>
+    <string name="good_to_know">Good to know</string>
+    <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
+    <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
+    <string name="island_behavior_title">Island Behavior</string>
+    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
+    <string name="engine">Engine</string>
+    <string name="engine_desc">Live Updates vs Xiaomi Island</string>
+    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
+    <string name="global_behavior">Global Behavior</string>
 </resources>
