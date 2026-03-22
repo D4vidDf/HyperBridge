@@ -585,10 +585,6 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="engine_config_title">Engine Configuration</string>
     <string name="engine_section_preview">Preview</string>
     <string name="engine_section_design">Notification Design</string>
-    <string name="engine_mock_charging">Charging</string>
-    <string name="engine_mock_percentage">85%</string>
-    <string name="engine_mock_nav_dist">150m</string>
-    <string name="engine_mock_nav_street">Street Name</string>
     <string name="good_to_know">Good to know</string>
     <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
     <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
