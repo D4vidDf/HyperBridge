@@ -40,7 +40,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setIslandConfig(timeout = config.timeout)
+
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 
@@ -88,6 +88,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
                 right = ImageTextInfoRight(1, PicInfo(1, tickKey), TextInfo("Finished", title))
             )
             builder.setSmallIsland(tickKey)
+            builder.setIslandConfig(timeout = config.timeout , dismissible = true)
         } else {
             if (indeterminate) {
                 builder.setBigIslandInfo(
@@ -102,8 +103,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
         }
 
         val highlight = resolveColor(theme, sbn.packageName, themeProgressColor)
-        builder.setIslandConfig(highlightColor = highlight)
-
+        builder.setIslandConfig(timeout = config.timeout, highlightColor = highlight)
         actions.forEach { it.actionImage?.let { pic -> builder.addPicture(pic) } }
         val hyperActions = actions.map { it.action }.toTypedArray()
         hyperActions.forEach {

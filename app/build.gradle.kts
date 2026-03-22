@@ -16,7 +16,7 @@ android {
         minSdk = 35
         targetSdk = 36
         versionCode = 16
-        versionName = "0.5.0-alpha01"
+        versionName = "0.5.0-alpha02"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -51,7 +51,6 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.palette.ktx)
-    implementation(libs.androidx.material3)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

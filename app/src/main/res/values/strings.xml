@@ -675,4 +675,45 @@
     <string name="settings_live_updates_title">Native Android Live Updates</string>
     <string name="settings_live_updates_desc">Transform notifications into standard Android 16 ongoing tasks instead of overriding them with custom Xiaomi Islands.</string>
     <string name="channel_live_updates">Native Live Updates</string>
+
+    <string name="engine_preview_title">Preview</string>
+    <string name="engine_design_section">Notification Design</string>
+    <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
+    <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
+    <string name="engine_native_title">Live Update Design</string>
+    <string name="engine_native_desc">Native android notification designs, works on CN ROM.</string>
+
+    <string name="engine_config_title">Engine Configuration</string>
+    <string name="engine_section_preview">Preview</string>
+    <string name="engine_section_design">Notification Design</string>
+    <string name="good_to_know">Good to know</string>
+    <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
+    <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
+    <string name="island_behavior_title">Island Behavior</string>
+    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
+    <string name="engine">Engine</string>
+    <string name="engine_desc">Live Updates vs Xiaomi Island</string>
+    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
+    <string name="global_behavior">Global Behavior</string>
+    <string name="auto_hide_island">Auto-hide Island</string>
+    <string name="hides_after_a_set_time">Hides after a set time</string>
+    <string name="behavior_hide_desc">Visible until manually dismissed</string>
+    <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
+    <string name="managed_by_theme_desc">Behavior managed by active theme.</string>
+    <string name="use_global_default_engine">Use the default value for the notification engine</string>
+    <string name="active_triggers">Active Triggers</string>
+    <string name="active_triggers_global_desc">Select which global events trigger the island</string>
+    <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_progress_desc">Downloads, uploads, and ongoing tasks</string>
+    <string name="type_media_desc">Music and video playback controls</string>
+    <string name="type_nav_desc">Turn-by-turn directions and ETA</string>
+    <string name="type_call_desc">Incoming and ongoing phone calls</string>
+    <string name="type_timer_desc">Active timers and stopwatches</string>
+    <string name="select_triggered_events">Select triggered events</string>
+    <string name="override_global_triggers">Override Global Triggers</string>
+    <string name="override_global_trigger_desc">Set custom allowed notifications for this app</string>
+    <string name="trigger_override">Trigger Override</string>
+    <string name="trigger_app_desc">Select which events trigger the island for this app.</string>
+    <string name="enable_triggers">Enable specific triggers</string>
 </resources>

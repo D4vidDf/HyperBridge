@@ -49,8 +49,8 @@ class StandardTranslator(
 
         // --- CONFIGURATION ---
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setIslandConfig(timeout = config.timeout)
-        builder.setShowNotification(config.isShowShade ?: true)
+        builder.setIslandConfig(timeout = config.timeout , dismissible = true, highlightColor = highlightColor)
+        builder.setShowNotification(config.isShowShade ?: false)
         builder.setReopen(true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
 
@@ -120,7 +120,6 @@ class StandardTranslator(
             }
         }
 
-        builder.setIslandConfig(highlightColor = highlightColor)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

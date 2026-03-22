@@ -50,6 +50,8 @@ import com.d4viddf.hyperbridge.ui.screens.settings.LicensesScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.NavCustomizationScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.PrioritySettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.SetupHealthScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.EngineSettingsScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.IslandSettingsScreen
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.util.BackupManager
 import kotlinx.coroutines.launch
@@ -67,10 +69,11 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+// Added ENGINE_SETTINGS
 enum class Screen(val depth: Int) {
     ONBOARDING(0), HOME(1), INFO(2), SETUP(3), LICENSES(3), BEHAVIOR(3), GLOBAL_SETTINGS(3), HISTORY(3),
-    BACKUP(3), IMPORT_PREVIEW(4), // Backup Flow
-    NAV_CUSTOMIZATION(4), APP_PRIORITY(4), GLOBAL_BLOCKLIST(4), BLOCKLIST_APPS(5)
+    BACKUP(3), IMPORT_PREVIEW(4),
+    NAV_CUSTOMIZATION(4), ENGINE_SETTINGS(4), APP_PRIORITY(4), GLOBAL_BLOCKLIST(4), BLOCKLIST_APPS(5), ISLAND_SETTINGS(4)
 }
 
 @Composable
@@ -129,7 +132,9 @@ fun MainRootNavigation() {
             Screen.BLOCKLIST_APPS -> Screen.GLOBAL_BLOCKLIST
             Screen.GLOBAL_BLOCKLIST -> Screen.INFO
             Screen.NAV_CUSTOMIZATION -> if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS
+            Screen.ENGINE_SETTINGS -> Screen.GLOBAL_SETTINGS // Back from Engine
             Screen.GLOBAL_SETTINGS -> Screen.INFO
+            Screen.ISLAND_SETTINGS -> Screen.GLOBAL_SETTINGS
             Screen.APP_PRIORITY -> Screen.BEHAVIOR
             Screen.HISTORY -> Screen.INFO
             Screen.BEHAVIOR, Screen.SETUP, Screen.LICENSES -> Screen.INFO
@@ -178,8 +183,14 @@ fun MainRootNavigation() {
                     onBlocklistClick = { currentScreen = Screen.GLOBAL_BLOCKLIST },
                     onBackupClick = { currentScreen = Screen.BACKUP }
                 )
-                Screen.GLOBAL_SETTINGS -> GlobalSettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavSettingsClick = { navConfigPackage = null; currentScreen = Screen.NAV_CUSTOMIZATION })
+                Screen.GLOBAL_SETTINGS -> GlobalSettingsScreen(
+                    onBack = { currentScreen = Screen.INFO },
+                    onNavSettingsClick = { navConfigPackage = null; currentScreen = Screen.NAV_CUSTOMIZATION },
+                    onIslandSettingsClick = { currentScreen = Screen.ISLAND_SETTINGS },
+                    onEngineSettingsClick = { currentScreen = Screen.ENGINE_SETTINGS } // Added param
+                )
                 Screen.NAV_CUSTOMIZATION -> NavCustomizationScreen(onBack = { currentScreen = if (navConfigPackage != null) Screen.HOME else Screen.GLOBAL_SETTINGS }, packageName = navConfigPackage)
+                Screen.ENGINE_SETTINGS -> EngineSettingsScreen(onBack = { currentScreen = Screen.GLOBAL_SETTINGS }) // Added Engine Settings render
                 Screen.SETUP -> SetupHealthScreen(onBack = { currentScreen = Screen.INFO })
                 Screen.LICENSES -> LicensesScreen(onBack = { currentScreen = Screen.INFO })
                 Screen.BEHAVIOR -> PrioritySettingsScreen(onBack = { currentScreen = Screen.INFO }, onNavigateToPriorityList = { currentScreen = Screen.APP_PRIORITY })
@@ -227,6 +238,8 @@ fun MainRootNavigation() {
                         LaunchedEffect(Unit) { currentScreen = Screen.BACKUP }
                     }
                 }
+
+                Screen.ISLAND_SETTINGS -> IslandSettingsScreen (onBack = { currentScreen = Screen.GLOBAL_SETTINGS })
             }
         }
     }

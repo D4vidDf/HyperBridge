@@ -90,13 +90,9 @@ class AppPreferences(context: Context) {
     }
 
     // ========================================================================
-    //                        THEME ENGINE (NEW)
+    //                        THEME ENGINE
     // ========================================================================
 
-    /**
-     * Holds the ID (folder name) of the currently active theme.
-     * Null means the system default (no theme).
-     */
     val activeThemeIdFlow: Flow<String?> = dao.getSettingFlow("active_theme_id")
 
     suspend fun setActiveThemeId(id: String?) {
@@ -106,8 +102,6 @@ class AppPreferences(context: Context) {
             save("active_theme_id", id)
         }
     }
-
-    // ========================================================================
 
     // --- LIMITS & PRIORITY ---
     val limitModeFlow: Flow<IslandLimitMode> = dao.getSettingFlow("limit_mode").map {
@@ -124,14 +118,6 @@ class AppPreferences(context: Context) {
         return dao.getSettingFlow(legacyKey).map { str ->
             str?.deserializeSet() ?: NotificationType.entries.map { t -> t.name }.toSet()
         }
-    }
-
-    suspend fun updateAppConfig(packageName: String, type: NotificationType, isEnabled: Boolean) {
-        val key = "config_$packageName"
-        val currentStr = dao.getSetting(key)
-        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
-        val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
-        save(key, newSet.serialize())
     }
 
     // --- ISLAND CONFIG (Standard Notifications) ---
@@ -239,19 +225,11 @@ class AppPreferences(context: Context) {
 
     private val WIDGET_IDS_DB_KEY = "saved_widget_ids_list"
 
-    /**
-     * Provides a Flow of all currently saved Widget IDs.
-     */
     val savedWidgetIdsFlow: Flow<List<Int>> = dao.getSettingFlow(WIDGET_IDS_DB_KEY).map { str ->
         str?.split(",")?.mapNotNull { it.toIntOrNull() } ?: emptyList()
     }
 
-    /**
-     * Gets configuration specific to a single Widget ID.
-     * Returns the clean WidgetConfig class.
-     */
     fun getWidgetConfigFlow(id: Int): Flow<WidgetConfig> {
-        // [FIX] 'combine' only supports up to 5 args nicely. For 6+, it returns an Array<T>.
         return combine(
             dao.getSettingFlow("widget_${id}_shown"),
             dao.getSettingFlow("widget_${id}_timeout"),
@@ -260,7 +238,6 @@ class AppPreferences(context: Context) {
             dao.getSettingFlow("widget_${id}_auto_update"),
             dao.getSettingFlow("widget_${id}_update_interval")
         ) { args: Array<String?> ->
-            // Manually unpack the array
             val shown = args[0]
             val timeout = args[1]
             val sizeStr = args[2]
@@ -273,7 +250,7 @@ class AppPreferences(context: Context) {
 
             WidgetConfig(
                 isShowShade = shown.toBoolean(true),
-                timeout = timeout.toInt(5),
+                timeout = timeout.toInt(10),
                 size = sizeEnum,
                 renderMode = modeEnum,
                 autoUpdate = autoStr.toBoolean(false),
@@ -282,9 +259,6 @@ class AppPreferences(context: Context) {
         }
     }
 
-    /**
-     * Saves configuration for a specific widget ID.
-     */
     suspend fun saveWidgetConfig(
         id: Int,
         config: WidgetConfig
@@ -327,5 +301,68 @@ class AppPreferences(context: Context) {
         val currentSet = currentStr.deserializeSet()
         val newSet = if (isFavorite) currentSet + packageName else currentSet - packageName
         save("favorite_widget_apps", newSet.serialize())
+    }
+
+    // ========================================================================
+    //                        Global Notification Types
+    // ========================================================================
+
+    val GLOBAL_NOTIFICATION_TYPES_KEY = "global_notification_types"
+
+    val globalNotificationTypesFlow: Flow<Set<String>> = dao.getSettingFlow(GLOBAL_NOTIFICATION_TYPES_KEY).map { str ->
+        str?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+    }
+
+    suspend fun updateGlobalNotificationType(type: NotificationType, isEnabled: Boolean) {
+        val currentStr = dao.getSetting(GLOBAL_NOTIFICATION_TYPES_KEY)
+        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
+        save(GLOBAL_NOTIFICATION_TYPES_KEY, newSet.serialize())
+    }
+
+    // --- APP-SPECIFIC NOTIFICATION TYPES ---
+
+    fun getAppConfigFlow(packageName: String): Flow<Set<String>?> {
+        val legacyKey = "config_$packageName"
+        return dao.getSettingFlow(legacyKey).map { str ->
+            str?.deserializeSet()
+        }
+    }
+
+    suspend fun updateAppConfig(packageName: String, type: NotificationType, isEnabled: Boolean) {
+        val key = "config_$packageName"
+        val currentStr = dao.getSetting(key)
+        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
+        save(key, newSet.serialize())
+    }
+
+    // ========================================================================
+    //                        THEME ENGINE CONFIGURATION
+    // ========================================================================
+
+    private val USE_NATIVE_ENGINE = "use_native_live_updates"
+
+    val useNativeLiveUpdates: Flow<Boolean> = dao.getSettingFlow(USE_NATIVE_ENGINE)
+        .map { it?.toBoolean() ?: false }
+
+    suspend fun setUseNativeLiveUpdates(value: Boolean) {
+        save(USE_NATIVE_ENGINE, value.toString())
+    }
+
+    // --- APP-SPECIFIC ENGINE OVERRIDES ---
+
+    fun getAppEnginePreferenceFlow(packageName: String): Flow<Boolean?> {
+        val key = "config_${packageName}_use_native"
+        return dao.getSettingFlow(key).map { it?.toBooleanStrictOrNull() }
+    }
+
+    suspend fun updateAppEnginePreference(packageName: String, useNative: Boolean?) {
+        val key = "config_${packageName}_use_native"
+        if (useNative != null) {
+            save(key, useNative.toString())
+        } else {
+            remove(key)
+        }
     }
 }

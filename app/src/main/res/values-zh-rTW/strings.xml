@@ -104,10 +104,6 @@
         <item>完成</item>
         <item>成功</item>
         <item>完成</item>
-        <item>完成</item>
-        <item>結束</item>
-        <item>成功</item>
-        <item>已安裝</item>
     </string-array>
     <string name="status_download_complete">下載完成</string>
     <string name="status_downloading">正在下載</string>
@@ -142,16 +138,16 @@
     <string name="setting_shade">在通知欄中顯示</string>
     <string name="setting_shade_desc">在通知中心中保留</string>
     <string name="setting_timeout">逾時</string>
-    <string name="seconds_suffix">%ds</string>
+    <string name="seconds_suffix">%d秒</string>
     <string name="use_global_default">使用預設設定</string>
     <string name="customize_app">自訂</string>
     <string name="override_settings">覆蓋設定</string>
     <string-array name="nav_arrival_keywords">
-        <item>arrival</item>
-        <item>arrive</item>
+        <item>到達</item>
+        <item>到達</item>
         <item>eta</item>
-        <item>reaching</item>
-        <item>destination</item>
+        <item>到達</item>
+        <item>目標</item>
     </string-array>
     <string name="hint_options">選項</string>
     <string name="version_history">版本紀錄</string>
@@ -249,7 +245,7 @@
     </string-array>
     <string-array name="call_keywords_speaker">
         <item>擴音</item>
-        <item>audio</item>
+        <item>聲音</item>
     </string-array>
     <string name="title_0_3_0">預設功能更新</string>
     <string name="changelog_0_3_0">        <b>隱藏通知 👻</b>\n
@@ -546,4 +542,52 @@
 
         <i>備註：本次版本包含重大架構調整，如發現任何問題，請至 GitHub 回報！</i>
     </string>
+    <string name="title_0_4_2">修補更新</string>
+    <string name="changelog_0_4_2">        •&lt;/b&gt;崩潰修復：&lt;/b&gt;修正了在繁體中文環境下，開啟設定選單會導致應用程式閃退的嚴重問題。\n
+        •&lt;b&gt;底層最佳化：&lt;/b&gt; 一般錯誤的修正與穩定性提升，確保您的超級島順暢運作。
+    </string>
+    <string name="colors_label_hue">色調</string>
+    <string name="colors_label_saturation">飽和度</string>
+    <string name="colors_label_lightness">亮度</string>
+    <string name="colors_label_dynamic_modes">超級島顏色</string>
+    <string name="colors_label_material_you">Material You (系統初始設定)</string>
+    <string name="colors_desc_material_you">從目前壁紙中提取顏色。</string>
+    <string name="filter_compatible_widgets">僅顯示相容超級島的程式</string>
+    <string name="kill_all_widgets">停止運作中的小工具</string>
+    <string name="permission_reminder_title">更新通知</string>
+    <string name="permission_reminder_desc">HyperBridge 已更新！請確保您的自啟動和後台運作權限未被系統移除，以確保您的小工具正常運作。</string>
+    <string name="got_it">明白了</string>
+    <string name="recommended">建議</string>
+    <string name="all">全部</string>
+    <string name="favorites">我的最愛</string>
+    <string name="settings_live_updates_title">原生安卓即時更新</string>
+    <string name="settings_live_updates_desc">將通知轉換為原生 Android 16 即時更新，而不是用自訂的小米超級島來覆蓋它們。</string>
+    <string name="channel_live_updates">原生即時更新</string>
+    <string name="engine_preview_title">Preview</string>
+    <string name="engine_design_section">Notification Design</string>
+    <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
+    <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
+    <string name="engine_native_title">Live Update Design</string>
+    <string name="engine_native_desc">Native android notification designs, works on CN ROM.</string>
+    <string name="engine_config_title">Engine Configuration</string>
+    <string name="engine_section_preview">Preview</string>
+    <string name="engine_section_design">Notification Design</string>
+    <string name="engine_mock_charging">Charging</string>
+    <string name="engine_mock_percentage">85%</string>
+    <string name="engine_mock_nav_dist">150m</string>
+    <string name="engine_mock_nav_street">Street Name</string>
+    <string name="good_to_know">Good to know</string>
+    <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
+    <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
+    <string name="island_behavior_title">Island Behavior</string>
+    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
+    <string name="engine">Engine</string>
+    <string name="engine_desc">Live Updates vs Xiaomi Island</string>
+    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
+    <string name="global_behavior">Global Behavior</string>
+    <string name="auto_hide_island">Auto-hide Island</string>
+    <string name="hides_after_a_set_time">Hides after a set time</string>
+    <string name="behavior_hide_desc">Visible until manually dismissed</string>
+    <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
 </resources>

@@ -546,4 +546,52 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
         • Hozzáadott támogatás 🇮🇩 indonéz és 🇹🇷 török nyelvekhez.\n\n
 
         <i>Megjegyzés: Ez a kiadás jelentős architektúraváltozásokat tartalmaz. A hibákat a GitHubon jelentsd!</i></string>
+    <string name="title_0_4_2">Hotfix Update</string>
+    <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
+        •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
+    </string>
+    <string name="colors_label_hue">Hue</string>
+    <string name="colors_label_saturation">Saturation</string>
+    <string name="colors_label_lightness">Lightness</string>
+    <string name="colors_label_dynamic_modes">Dynamic Colors</string>
+    <string name="colors_label_material_you">Material You (System)</string>
+    <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
+    <string name="filter_compatible_widgets">Show Island Compatible Only</string>
+    <string name="kill_all_widgets">Kill Active Widgets</string>
+    <string name="permission_reminder_title">Update Notice</string>
+    <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
+    <string name="got_it">Got it</string>
+    <string name="recommended">Recommended</string>
+    <string name="all">All</string>
+    <string name="favorites">Favorites</string>
+    <string name="settings_live_updates_title">Native Android Live Updates</string>
+    <string name="settings_live_updates_desc">Transform notifications into standard Android 16 ongoing tasks instead of overriding them with custom Xiaomi Islands.</string>
+    <string name="channel_live_updates">Native Live Updates</string>
+    <string name="engine_preview_title">Preview</string>
+    <string name="engine_design_section">Notification Design</string>
+    <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
+    <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
+    <string name="engine_native_title">Live Update Design</string>
+    <string name="engine_native_desc">Native android notification designs, works on CN ROM.</string>
+    <string name="engine_config_title">Engine Configuration</string>
+    <string name="engine_section_preview">Preview</string>
+    <string name="engine_section_design">Notification Design</string>
+    <string name="engine_mock_charging">Charging</string>
+    <string name="engine_mock_percentage">85%</string>
+    <string name="engine_mock_nav_dist">150m</string>
+    <string name="engine_mock_nav_street">Street Name</string>
+    <string name="good_to_know">Good to know</string>
+    <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
+    <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
+    <string name="island_behavior_title">Island Behavior</string>
+    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
+    <string name="engine">Engine</string>
+    <string name="engine_desc">Live Updates vs Xiaomi Island</string>
+    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
+    <string name="global_behavior">Global Behavior</string>
+    <string name="auto_hide_island">Auto-hide Island</string>
+    <string name="hides_after_a_set_time">Hides after a set time</string>
+    <string name="behavior_hide_desc">Visible until manually dismissed</string>
+    <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
 </resources>

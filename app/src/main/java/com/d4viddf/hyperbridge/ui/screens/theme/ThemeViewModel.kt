@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
+import androidx.core.graphics.scale
 
 class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -69,6 +70,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     var selectedColorHex by mutableStateOf("#3DDA82")
     var colorMode by mutableStateOf(ColorMode.CUSTOM)
+
     var isDarkThemePreview by mutableStateOf(true)
 
     var selectedShapeId by mutableStateOf("circle")
@@ -98,10 +100,15 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var appCallAnswerUri by mutableStateOf<Uri?>(null)
     var appCallDeclineUri by mutableStateOf<Uri?>(null)
 
+
     var appCallAnswerShapeId by mutableStateOf<String?>(null)
     var appCallDeclineShapeId by mutableStateOf<String?>(null)
 
     var appActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
+
+    // NEW: App-specific Behavior Overrides
+    var appUseNativeLiveUpdates by mutableStateOf<Boolean?>(null)
+    var appEnabledNotificationTypes by mutableStateOf<Set<String>?>(null)
 
     private val _tempAssets = mutableMapOf<String, Uri>()
 
@@ -227,6 +234,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         appCallDeclineUri = null
 
         appActions = override?.actions ?: emptyMap()
+
+        appUseNativeLiveUpdates = override?.useNativeLiveUpdates
+        appEnabledNotificationTypes = override?.activeNotificationTypes
     }
 
     fun saveAppChanges() {
@@ -266,11 +276,16 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             callConfig = callModule,
             actions = appActions.ifEmpty { null },
             progress = existingOverride?.progress,
-            navigation = existingOverride?.navigation
+            navigation = existingOverride?.navigation,
+            useNativeLiveUpdates = appUseNativeLiveUpdates,
+            activeNotificationTypes = appEnabledNotificationTypes
+
         )
 
         updateAppOverride(pkg, newOverride)
         editingAppPackage = null
+
+
     }
 
     fun cancelAppEditing() {
@@ -337,6 +352,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         appCallAnswerShapeId = null
         appCallDeclineShapeId = null
 
+        appUseNativeLiveUpdates = null
+        appEnabledNotificationTypes = null
+
         _appOverrides.value = emptyMap()
         themeDefaultActions = emptyMap()
         _tempAssets.clear()
@@ -370,7 +388,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         context.contentResolver.openInputStream(themeIconUri!!)?.use { input ->
                             val originalBitmap = BitmapFactory.decodeStream(input)
                             if (originalBitmap != null) {
-                                val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 512, 512, true)
+                                val scaledBitmap = originalBitmap.scale(512, 512)
                                 val iconFile = File(iconsDir, "theme_thumb.png")
                                 iconFile.outputStream().use { out -> scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
                                 themeIconRes = ThemeResource(ResourceType.LOCAL_FILE, "icons/theme_thumb.png")
@@ -450,6 +468,20 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             action = NotificationReaderService.ACTION_RELOAD_THEME
         }
         context.startService(intent)
+    }
+
+    val useNativeLiveUpdates = prefs.useNativeLiveUpdates
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    fun setUseNativeLiveUpdates(value: Boolean) {
+        viewModelScope.launch {
+            prefs.setUseNativeLiveUpdates(value)
+            reloadNotificationService()
+        }
     }
 }
 

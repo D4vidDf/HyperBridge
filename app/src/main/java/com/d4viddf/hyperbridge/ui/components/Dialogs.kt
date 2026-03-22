@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -72,8 +73,11 @@ fun AppConfigBottomSheet(
     onDismiss: () -> Unit,
     onNavConfigClick: () -> Unit
 ) {
-    // Data Loading
-    val typeConfig by viewModel.getAppConfig(app.packageName).collectAsState(initial = emptySet())
+    // --- UPDATED DATA LOADING ---
+    val effectiveConfig by viewModel.getEffectiveAppConfigFlow(app.packageName).collectAsState(initial = null)
+    val activeTypes = effectiveConfig?.activeTypes ?: emptySet()
+    val isManagedByTheme = effectiveConfig?.isManagedByTheme == true
+
     val appIslandConfig by viewModel.getAppIslandConfig(app.packageName).collectAsState(initial = IslandConfig())
     val globalConfig by viewModel.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5))
     val blockedTerms by viewModel.getAppBlockedTerms(app.packageName).collectAsState(initial = emptySet())
@@ -131,9 +135,36 @@ fun AppConfigBottomSheet(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // --- NEW: THEME OVERRIDE WARNING ---
+                if (isManagedByTheme) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                text = "Behaviors are currently managed by your active Theme.",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+
                 // --- CARD 1: NOTIFICATION TYPES (New Dropdown) ---
-                // Count how many are active to show in subtitle
-                val activeCount = NotificationType.entries.toTypedArray().count { typeConfig.contains(it.name) }
+                // Count how many are active from the effective config
+                val activeCount = NotificationType.entries.toTypedArray().count { activeTypes.contains(it.name) }
                 val activeSubtitle = stringResource(R.string.active_notifications_subtitle, activeCount)
 
                 ExpandableSettingCard(
@@ -143,7 +174,7 @@ fun AppConfigBottomSheet(
                 ) {
                     NotificationTypesContent(
                         app = app,
-                        typeConfig = typeConfig,
+                        activeTypes = activeTypes,
                         viewModel = viewModel,
                         onNavConfigClick = { onDismiss(); onNavConfigClick() },
                         navEditDesc = navEditDesc
@@ -210,14 +241,14 @@ fun AppConfigBottomSheet(
 @Composable
 fun NotificationTypesContent(
     app: AppInfo,
-    typeConfig: Set<String>,
+    activeTypes: Set<String>,
     viewModel: AppListViewModel,
     onNavConfigClick: () -> Unit,
     navEditDesc: String
 ) {
     Column {
         NotificationType.entries.forEach { type ->
-            val isChecked = typeConfig.contains(type.name)
+            val isChecked = activeTypes.contains(type.name)
             val typeLabel = stringResource(type.labelRes)
             val switchDesc = if (isChecked) stringResource(R.string.cd_disable_type, typeLabel)
             else stringResource(R.string.cd_enable_type, typeLabel)
@@ -225,6 +256,7 @@ fun NotificationTypesContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    // viewModel.updateAppConfig perfectly routes to Theme or Database depending on state!
                     .clickable { viewModel.updateAppConfig(app.packageName, type, !isChecked) }
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically

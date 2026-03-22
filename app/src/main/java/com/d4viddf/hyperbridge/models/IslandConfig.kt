@@ -10,7 +10,7 @@ data class IslandConfig(
     fun mergeWith(global: IslandConfig): IslandConfig {
         return IslandConfig(
             isFloat = this.isFloat ?: global.isFloat ?: false,
-            isShowShade = this.isShowShade ?: global.isShowShade ?: true,
+            isShowShade = this.isShowShade ?: global.isShowShade ?: false,
             timeout = this.timeout ?: global.timeout ?: 10,
 
         )

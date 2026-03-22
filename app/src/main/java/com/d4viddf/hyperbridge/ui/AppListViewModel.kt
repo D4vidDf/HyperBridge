@@ -12,14 +12,20 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.hyperbridge.data.AppCacheManager
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import com.d4viddf.hyperbridge.models.theme.NavigationModule
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,6 +51,10 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     private val packageManager = application.packageManager
     private val preferences = AppPreferences(application)
     private val cacheManager = AppCacheManager(application)
+
+    // [NEW] Theme Repository to resolve behavior overrides
+    private val themeRepo = ThemeRepository(application)
+    val activeTheme: StateFlow<HyperTheme?> = themeRepo.activeTheme
 
     private val _installedApps = MutableStateFlow<List<AppInfo>?>(null)
 
@@ -140,6 +150,59 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+// ========================================================================
+    //               EFFECTIVE BEHAVIOR LOGIC (THEME vs PREFS)
+    // ========================================================================
+
+    data class EffectiveAppConfig(
+        val isManagedByTheme: Boolean,
+        val activeTypes: Set<String>,
+        val useNativeEngine: Boolean,
+        val navigationOverride: NavigationModule?,
+        val localNavContent: Pair<NavContent, NavContent> // Added for the bottom sheet
+    )
+
+    /**
+     * Resolves the "true" settings for an app by layering:
+     * Active Theme > Local App Preferences > Global Fallbacks
+     */
+    fun getEffectiveAppConfigFlow(packageName: String): Flow<EffectiveAppConfig> {
+        return combine(
+            preferences.getAppConfigFlow(packageName),
+            preferences.globalNotificationTypesFlow,
+            preferences.getEffectiveNavLayout(packageName), // Gets the fallback-resolved NavContent
+            activeTheme
+        ) { appPrefTypes, globalTypes, effectiveNavContent, theme ->
+
+            val themeOverride = theme?.apps?.get(packageName)
+            val isManaged = themeOverride != null
+
+            // 1. Resolve Types (Theme -> AppPref -> Global)
+            val effectiveTypes = when {
+                themeOverride?.activeNotificationTypes != null -> themeOverride.activeNotificationTypes
+                appPrefTypes != null -> appPrefTypes
+                else -> globalTypes
+            }
+
+            // 2. Resolve Engine
+            val effectiveEngine = when {
+                themeOverride?.useNativeLiveUpdates != null -> themeOverride.useNativeLiveUpdates
+                else -> true // Global Default
+            }
+
+            // 3. Resolve Navigation Visuals (Theme completely overrides local nav preferences)
+            val effectiveNavVisuals = themeOverride?.navigation
+
+            EffectiveAppConfig(
+                isManagedByTheme = isManaged,
+                activeTypes = effectiveTypes,
+                useNativeEngine = effectiveEngine,
+                navigationOverride = effectiveNavVisuals,
+                localNavContent = effectiveNavContent
+            )
+        }
+    }
+
     // --- PREFERENCE ACTIONS ---
 
     fun toggleApp(packageName: String, isEnabled: Boolean) {
@@ -148,10 +211,44 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun getAppConfig(packageName: String) = preferences.getAppConfig(packageName)
+    // Standard non-flow getter if needed by other parts of the app
+    suspend fun getAppConfig(packageName: String) = preferences.getAppConfigFlow(packageName).first()
 
+    /**
+     * Updates notification types. Intelligently routes the save to the
+     * Active Theme JSON if the theme is managing the app, otherwise saves locally.
+     */
     fun updateAppConfig(pkg: String, type: NotificationType, enabled: Boolean) {
-        viewModelScope.launch { preferences.updateAppConfig(pkg, type, enabled) }
+        viewModelScope.launch {
+            val currentTheme = activeTheme.value
+            val themeOverride = currentTheme?.apps?.get(pkg)
+
+            if (currentTheme != null && themeOverride != null) {
+                // The Theme is managing this app! Update the Theme JSON directly.
+                val currentTypes = themeOverride.activeNotificationTypes ?: emptySet()
+                val newTypes = if (enabled) currentTypes + type.name else currentTypes - type.name
+
+                val updatedOverride = themeOverride.copy(activeNotificationTypes = newTypes)
+                val updatedAppsMap = currentTheme.apps.toMutableMap().apply { put(pkg, updatedOverride) }
+                val updatedTheme = currentTheme.copy(apps = updatedAppsMap)
+
+                // Save to disk and reload the active theme state
+                themeRepo.saveTheme(updatedTheme)
+                themeRepo.activateTheme(updatedTheme.id)
+            } else {
+                // Not managed by theme. Save normally to local AppPreferences.
+                preferences.updateAppConfig(pkg, type, enabled)
+            }
+        }
+    }
+
+    /**
+     * Updates the per-app navigation content layout (Distance vs ETA, etc.)
+     */
+    fun updateAppNavLayout(pkg: String, left: NavContent?, right: NavContent?) {
+        viewModelScope.launch {
+            preferences.updateAppNavLayout(pkg, left, right)
+        }
     }
 
     // --- ISLAND CONFIG ---
@@ -223,5 +320,27 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         setBounds(0, 0, canvas.width, canvas.height)
         draw(canvas)
         return bitmap
+    }
+
+    fun updateAppEngine(pkg: String, useNative: Boolean) {
+        viewModelScope.launch {
+            val currentTheme = activeTheme.value
+            val themeOverride = currentTheme?.apps?.get(pkg)
+
+            if (currentTheme != null && themeOverride != null) {
+                // The Theme is managing this app! Update the Theme JSON directly.
+                val updatedOverride = themeOverride.copy(useNativeLiveUpdates = useNative)
+                val updatedAppsMap = currentTheme.apps.toMutableMap().apply { put(pkg, updatedOverride) }
+                val updatedTheme = currentTheme.copy(apps = updatedAppsMap)
+
+                // Save to disk and reload the active theme state
+                themeRepo.saveTheme(updatedTheme)
+                themeRepo.activateTheme(updatedTheme.id)
+            } else {
+                // Not managed by theme. Save normally to local AppPreferences.
+                // NOTE: Make sure you have `updateAppEnginePreference(pkg, useNative)` in your AppPreferences!
+                preferences.updateAppEnginePreference(pkg, useNative)
+            }
+        }
     }
 }
