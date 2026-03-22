@@ -239,7 +239,8 @@ fun ThemeCreatorScreen(
                         CreatorRoute.BEHAVIOR_ENGINE -> {
                             EngineThemeContent(
                                 isNative = isNative,
-                                onEngineChange = { viewModel.setUseNativeLiveUpdates(it) }
+                                showDefaultOption = false,
+                                onEngineChange = { viewModel.setUseNativeLiveUpdates(it ?: false) }
                             )
                         }
                         CreatorRoute.BEHAVIOR_ISLAND -> Box(Modifier.fillMaxSize()) {

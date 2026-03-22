@@ -2,8 +2,11 @@ package com.d4viddf.hyperbridge.ui.screens.theme
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -26,6 +29,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ColorLens
+import androidx.compose.material.icons.outlined.DisplaySettings
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.AlertDialog
@@ -42,6 +48,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,18 +59,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.ui.components.SettingsToggleCard
+import com.d4viddf.hyperbridge.ui.screens.settings.NavCustomizationScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ActionConfigSheet
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ActionsDetailContent
+import com.d4viddf.hyperbridge.ui.screens.theme.content.BehaviourMenuContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.CallStyleSheetContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ColorsDetailContent
+import com.d4viddf.hyperbridge.ui.screens.theme.content.EngineThemeContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.IconsDetailContent
+import com.d4viddf.hyperbridge.ui.screens.theme.content.NotificationTypesContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.SharedThemePreview
+import com.d4viddf.hyperbridge.ui.screens.theme.content.ThemeBehaviourContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
+import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 
 enum class AppEditorRoute {
-    MENU, COLORS, ICONS, CALLS, ACTIONS
+    MENU, BEHAVIOR_MENU, BEHAVIOR_ENGINE, BEHAVIOR_ISLAND, BEHAVIOR_TYPES, COLORS, ICONS, CALLS, NAVIGATION, ACTIONS
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,14 +88,16 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
     var currentRoute by remember { mutableStateOf(AppEditorRoute.MENU) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
 
+    val isNative by viewModel.useNativeLiveUpdates.collectAsState()
+
     // Logic to handle "Back" request
     val handleBack = {
-        if (currentRoute != AppEditorRoute.MENU) {
-            // If in a sub-menu, just go back to App Menu
-            currentRoute = AppEditorRoute.MENU
-        } else {
-            // If at App Menu root, ask to save before exiting
-            showUnsavedDialog = true
+        when (currentRoute) {
+            AppEditorRoute.BEHAVIOR_ENGINE,
+            AppEditorRoute.BEHAVIOR_ISLAND,
+            AppEditorRoute.BEHAVIOR_TYPES -> currentRoute = AppEditorRoute.BEHAVIOR_MENU // Go back to sub-menu
+            AppEditorRoute.MENU -> showUnsavedDialog = true // Ask to save before exiting
+            else -> currentRoute = AppEditorRoute.MENU // Go back to main app menu
         }
     }
 
@@ -96,9 +114,14 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                         Text(
                             text = if (currentRoute == AppEditorRoute.MENU) stringResource(R.string.edit_app) else stringResource(
                                 when (currentRoute) {
+                                    AppEditorRoute.BEHAVIOR_MENU -> R.string.behaviour_triggers
+                                    AppEditorRoute.BEHAVIOR_ENGINE -> R.string.engine
+                                    AppEditorRoute.BEHAVIOR_ISLAND -> R.string.island_behavior
+                                    AppEditorRoute.BEHAVIOR_TYPES -> R.string.active_notifications_title
                                     AppEditorRoute.COLORS -> R.string.creator_nav_colors
                                     AppEditorRoute.ICONS -> R.string.creator_nav_icons
                                     AppEditorRoute.CALLS -> R.string.creator_nav_calls
+                                    AppEditorRoute.NAVIGATION -> R.string.nav_layout_title
                                     AppEditorRoute.ACTIONS -> R.string.creator_nav_actions
                                     else -> R.string.app_name
                                 }
@@ -145,7 +168,7 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
             AnimatedContent(
                 targetState = currentRoute,
                 transitionSpec = {
-                    if (targetState == AppEditorRoute.MENU) {
+                    if (targetState == AppEditorRoute.MENU || targetState == AppEditorRoute.BEHAVIOR_MENU && initialState != AppEditorRoute.MENU) {
                         slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
                     } else {
                         slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
@@ -166,6 +189,28 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                         viewModel = viewModel,
                         onNavigate = { currentRoute = it }
                     )
+                    AppEditorRoute.BEHAVIOR_MENU -> Box(Modifier.fillMaxSize()) {
+                        BehaviourMenuContent(onNavigate = {
+                            currentRoute = when (it) {
+                                CreatorRoute.BEHAVIOR_ENGINE -> AppEditorRoute.BEHAVIOR_ENGINE
+                                CreatorRoute.BEHAVIOR_ISLAND -> AppEditorRoute.BEHAVIOR_ISLAND
+                                CreatorRoute.BEHAVIOR_TYPES -> AppEditorRoute.BEHAVIOR_TYPES
+                                else -> AppEditorRoute.BEHAVIOR_MENU
+                            }
+                        })
+                    }
+                    AppEditorRoute.BEHAVIOR_ENGINE -> Box(Modifier.fillMaxSize()) {
+                        EngineThemeContent(
+                            isNative = viewModel.appUseNativeLiveUpdates,
+                            onEngineChange = { viewModel.appUseNativeLiveUpdates = it }
+                        )
+                    }
+                    AppEditorRoute.BEHAVIOR_ISLAND -> Box(Modifier.fillMaxSize()) {
+                        ThemeBehaviourContent() // Still uses standard island behavior
+                    }
+                    AppEditorRoute.BEHAVIOR_TYPES -> Box(Modifier.fillMaxSize()) {
+                        AppNotificationTypesEditor(viewModel = viewModel)
+                    }
                     AppEditorRoute.COLORS -> DetailScreenShell(
                         previewContent = { SharedThemePreview(effHighlight, false, effShape, effPadding, effAnswerColor, effDeclineColor, effAnswerShape, effDeclineShape) },
                         content = {
@@ -184,6 +229,13 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                             AppCallEditor(viewModel)
                         }
                     )
+                    AppEditorRoute.NAVIGATION -> Box(Modifier.fillMaxSize()) {
+                        NavCustomizationScreen(
+                            onBack = { currentRoute = AppEditorRoute.MENU },
+                            packageName = viewModel.editingAppPackage,
+                            showTopBar = false
+                        )
+                    }
                     AppEditorRoute.ACTIONS -> Box(Modifier.fillMaxSize()) {
                         AppActionEditor(viewModel)
                     }
@@ -266,15 +318,24 @@ fun AppEditorMenu(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             val items = listOf(
+                AppEditorRoute.BEHAVIOR_MENU,
                 AppEditorRoute.COLORS,
                 AppEditorRoute.ICONS,
                 AppEditorRoute.CALLS,
+                AppEditorRoute.NAVIGATION,
                 AppEditorRoute.ACTIONS
             )
 
             items.forEachIndexed { index, route ->
                 val shape = getExpressiveShape(items.size, index, ShapeStyle.Large)
                 when(route) {
+                    AppEditorRoute.BEHAVIOR_MENU -> CreatorOptionCard(
+                        title = stringResource(R.string.engine),
+                        subtitle = stringResource(R.string.engine_timeouts_triggers),
+                        icon = Icons.Outlined.DisplaySettings,
+                        shape = shape,
+                        onClick = { onNavigate(route) }
+                    )
                     AppEditorRoute.COLORS -> CreatorOptionCard(
                         title = stringResource(R.string.creator_nav_colors),
                         subtitle = if (viewModel.appHighlightColor != null) stringResource(R.string.creator_sub_colors_custom) else stringResource(R.string.creator_sub_colors_default),
@@ -300,6 +361,13 @@ fun AppEditorMenu(
                         title = stringResource(R.string.creator_nav_calls),
                         subtitle = stringResource(R.string.creator_sub_calls),
                         icon = Icons.Outlined.Call,
+                        shape = shape,
+                        onClick = { onNavigate(route) }
+                    )
+                    AppEditorRoute.NAVIGATION -> CreatorOptionCard(
+                        title = stringResource(R.string.nav_layout_title),
+                        subtitle = stringResource(R.string.nav_layout_desc),
+                        icon = Icons.Outlined.Map,
                         shape = shape,
                         onClick = { onNavigate(route) }
                     )
@@ -384,5 +452,172 @@ fun AppActionEditor(viewModel: ThemeViewModel) {
                 showAddSheet = false
             }
         )
+    }
+}
+
+
+// ========================================================================
+//                      APP-SPECIFIC BEHAVIOR EDITORS
+// ========================================================================
+
+@Composable
+fun AppNotificationTypesEditor(viewModel: ThemeViewModel) {
+    // If it's not null, it means the user is overriding the global setting
+    var isOverride by remember { mutableStateOf(viewModel.appEnabledNotificationTypes != null) }
+    val activeTypes = viewModel.appEnabledNotificationTypes ?: emptySet()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+    ) {
+        Text(stringResource(R.string.trigger_override), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.trigger_app_desc), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(16.dp))
+
+        SettingsToggleCard(
+            title = stringResource(R.string.override_global_triggers),
+            subtitle = stringResource(R.string.override_global_trigger_desc),
+            icon = Icons.Outlined.NotificationsActive,
+            checked = isOverride,
+            onCheckedChange = { checked ->
+                isOverride = checked
+                // If turning on, default to everything enabled for this app
+                viewModel.appEnabledNotificationTypes = if (checked) NotificationType.entries.map { it.name }.toSet() else null
+            },
+            shape = RoundedCornerShape(24.dp)
+        )
+
+        AnimatedVisibility(
+            visible = isOverride,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column(Modifier.padding(top = 16.dp)) {
+                NotificationType.entries.forEachIndexed { index, type ->
+                    val shape = when {
+                        NotificationType.entries.size == 1 -> RoundedCornerShape(24.dp)
+                        index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+                        index == NotificationType.entries.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                        else -> RoundedCornerShape(4.dp)
+                    }
+
+                    // You can map the exact icons and subtitles here as you did in ThemeSettingsContent
+                    SettingsToggleCard(
+                        title = stringResource(type.labelRes),
+                        subtitle = stringResource(R.string.enable_triggers),
+                        icon = Icons.Outlined.TouchApp, // Update this with your specific type icons if desired
+                        checked = activeTypes.contains(type.name),
+                        onCheckedChange = { isChecked ->
+                            val newSet = if (isChecked) activeTypes + type.name else activeTypes - type.name
+                            viewModel.appEnabledNotificationTypes = newSet
+                        },
+                        shape = shape
+                    )
+
+                    if (index < NotificationType.entries.size - 1) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ========================================================================
+//                             PREVIEWS
+// ========================================================================
+
+@Preview(showBackground = true, name = "1. App Editor Menu (Light)")
+@Composable
+fun PreviewAppEditorMenuLight() {
+    HyperBridgeTheme(darkTheme = false) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) {
+            BehaviourMenuContent(onNavigate = {})
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "2. App Editor Menu (Dark)")
+@Composable
+fun PreviewAppEditorMenuDark() {
+    HyperBridgeTheme(darkTheme = true) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) {
+            BehaviourMenuContent(onNavigate = {})
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "3. Notification Types (Light)")
+@Composable
+fun PreviewNotificationTypesContentLight() {
+    HyperBridgeTheme(darkTheme = false) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) {
+            NotificationTypesContent()
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "4. Notification Types (Dark)")
+@Composable
+fun PreviewNotificationTypesContentDark() {
+    HyperBridgeTheme(darkTheme = true) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) {
+            NotificationTypesContent()
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "5. Engine - Default Inherit (Light)")
+@Composable
+fun PreviewEngineThemeContentDefault() {
+    HyperBridgeTheme(darkTheme = false) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) {
+            EngineThemeContent(
+                isNative = null, // Demonstrates the Default option selected
+                onEngineChange = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "6. Engine - Native Live Updates (Dark)")
+@Composable
+fun PreviewEngineThemeContentNativeDark() {
+    HyperBridgeTheme(darkTheme = true) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) {
+            EngineThemeContent(
+                isNative = true, // Demonstrates the Native option selected
+                onEngineChange = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "7. Engine - Xiaomi Custom (Light)")
+@Composable
+fun PreviewEngineThemeContentXiaomiLight() {
+    HyperBridgeTheme(darkTheme = false) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) {
+            EngineThemeContent(
+                isNative = false, // Demonstrates the Xiaomi option selected
+                onEngineChange = {}
+            )
+        }
     }
 }

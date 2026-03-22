@@ -55,17 +55,21 @@ fun NavCustomizationScreen(
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
 
+    // 1. Get Global Fallback
     val globalLayout by preferences.globalNavLayoutFlow.collectAsState(initial = NavContent.DISTANCE_ETA to NavContent.INSTRUCTION)
+
+    // 2. Get local AppPreference (if packageName is provided)
     val appLayout by if (packageName != null) {
         preferences.getAppNavLayout(packageName).collectAsState(initial = null to null)
     } else {
-        remember { mutableStateOf(null to null) }
+        remember { mutableStateOf<Pair<NavContent?, NavContent?>>(null to null) }
     }
 
+    // 3. Resolve what is currently active
     val isGlobalMode = packageName == null
     val isUsingGlobalDefault = !isGlobalMode && appLayout.first == null
-    val currentLeft = if (isGlobalMode || isUsingGlobalDefault) globalLayout.first else (appLayout.first ?: globalLayout.first)
-    val currentRight = if (isGlobalMode || isUsingGlobalDefault) globalLayout.second else (appLayout.second ?: globalLayout.second)
+    val currentLeft = appLayout.first ?: globalLayout.first
+    val currentRight = appLayout.second ?: globalLayout.second
 
     Scaffold(
         topBar = {

@@ -2,13 +2,14 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.content.Context
-import android.graphics.Bitmap
 import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
-import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.NavContent
+import com.d4viddf.hyperbridge.models.NotificationType
 
 class LiveUpdateTranslator(
     context: Context,
@@ -17,8 +18,9 @@ class LiveUpdateTranslator(
 
     fun translateToLiveUpdate(
         sbn: StatusBarNotification,
-        config: IslandConfig,
-        channelId: String
+        channelId: String,
+        type: NotificationType,
+        navRight: NavContent? = null
     ): NotificationCompat.Builder {
         val original = sbn.notification
         val extras = original.extras
@@ -26,55 +28,51 @@ class LiveUpdateTranslator(
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
 
-        var progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
-        var progress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
-        var indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
-
-        // Identify if it's media so we can use the title for the Island chip
-        val isMedia = extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
-                extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
-
-        // [FIXED] Media apps often leave random progress flags in the background.
-        // Force them off so it doesn't show an indeterminate loading bar!
-        if (isMedia) {
-            progressMax = 0
-            progress = 0
-            indeterminate = false
-        }
-        // Force category for Android 16 promotion limits
-        val validCategory = if (original.category.isNullOrEmpty() || original.category == NotificationCompat.CATEGORY_SERVICE) {
-            if (progressMax > 0 || indeterminate) NotificationCompat.CATEGORY_PROGRESS else NotificationCompat.CATEGORY_TRANSPORT
-        } else {
-            original.category
-        }
+        val progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
+        val progress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
+        val indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
 
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(original.smallIcon?.let { IconCompat.createFromIcon(context, it) } ?: IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
             .setContentTitle(title)
             .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setCategory(validCategory)
-            .setContentIntent(original.contentIntent)
+            .setCategory(original.category)
 
-        // --- ADD PICTURE / LARGE ICON ---
-        if (android.os.Build.VERSION.SDK_INT >= 23 && original.getLargeIcon() != null) {
-            builder.setLargeIcon(original.getLargeIcon())
+        original.contentIntent?.let { builder.setContentIntent(it) }
+
+        // --- THEME COLOR & ICON INJECTION ---
+        val theme = repository?.activeTheme?.value
+
+        if (type == NotificationType.NAVIGATION) {
+            // 1. Inject Theme Nav Color
+            val themeColorStr = theme?.defaultNavigation?.progressBarColor
+                ?: resolveColor(theme, sbn.packageName, "#34C759") // Green fallback
+
+            val themeColorInt = try {
+                themeColorStr.toColorInt()
+            } catch (e: Exception) {
+                original.color
+            }
+            builder.setColor(themeColorInt)
+
+            // 2. Inject Theme Nav Icon
+            val navStartBitmap = getThemeBitmap(theme, "nav_start")
+            if (navStartBitmap != null) {
+                builder.setSmallIcon(IconCompat.createWithBitmap(navStartBitmap))
+            } else {
+                builder.setSmallIcon(original.smallIcon?.let { IconCompat.createFromIcon(context, it) } ?: IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
+            }
         } else {
-            @Suppress("DEPRECATION")
-            val picture = extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE)
-            if (picture != null) builder.setLargeIcon(picture)
+            // Standard fallback for non-navigation
+            builder.setColor(original.color)
+            builder.setSmallIcon(original.smallIcon?.let { IconCompat.createFromIcon(context, it) } ?: IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
         }
 
-        // Carry over the original timestamp (Standard behavior)
-        if (original.`when` > 0) {
-            builder.setWhen(original.`when`)
-            builder.setShowWhen(true)
-        }
-
-        // --- COPY BUTTONS ---
-        original.actions?.forEach { action ->
-            val iconCompat = if ( action.getIcon() != null) {
+        // --- ACTIONS ---
+        val rawActions = original.actions ?: emptyArray()
+        rawActions.forEach { action ->
+            val iconCompat = if (action.getIcon() != null) {
                 IconCompat.createFromIcon(context, action.getIcon()!!)
             } else {
                 IconCompat.createWithResource(context, action.icon)
@@ -83,31 +81,76 @@ class LiveUpdateTranslator(
         }
 
         // --- APPLY STYLES ---
+        // BigTextStyle ensures text isn't completely hidden by the progress bar
+        builder.setStyle(NotificationCompat.BigTextStyle().bigText(text).setBigContentTitle(title))
+
+        // Add back the progress bar to show the user where they are
         if (progressMax > 0 || indeterminate) {
             builder.setProgress(progressMax, progress, indeterminate)
-        } else {
-            // Standard notification: Allow expanding text
-            builder.setStyle(NotificationCompat.BigTextStyle().bigText(text).setBigContentTitle(title))
         }
 
         // --- ANDROID 16 LIVE UPDATE INJECTION ---
-        val shortAlertText = generateCriticalShortText(title, text, progress, progressMax, isMedia)
+        val shortAlertText = generateCriticalShortText(title, text, progress, progressMax, type, navRight, sbn)
+
         builder.setRequestPromotedOngoing(true)
         builder.setShortCriticalText(shortAlertText)
-
 
         return builder
     }
 
-    private fun generateCriticalShortText(title: String, text: String, progress: Int, max: Int, isMedia: Boolean): String {
-        if (isMedia) return title.ifBlank { "Media" }
+    private fun generateCriticalShortText(
+        title: String,
+        text: String,
+        progress: Int,
+        max: Int,
+        type: NotificationType,
+        navRight: NavContent?,
+        sbn: StatusBarNotification
+    ): String {
 
+        if (type == NotificationType.MEDIA) return title.ifBlank { "Media" }
+
+        // Advanced Extraction for Navigation Layouts
+        if (type == NotificationType.NAVIGATION) {
+            val extras = sbn.notification.extras
+            val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
+            val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
+
+            val timeRegex = Regex("(\\d{1,2}:\\d{2})|(\\d+h\\s*\\d+m)", RegexOption.IGNORE_CASE)
+            val distanceRegex = Regex("^\\d+([,.]\\d+)?\\s*(m|km|ft|mi|yd|yards|miles|meters)", RegexOption.IGNORE_CASE)
+
+            var distance = ""
+            var eta = ""
+
+            // Extract ETA
+            if (timeRegex.containsMatchIn(subText)) eta = subText
+            else if (timeRegex.containsMatchIn(text) && !distanceRegex.containsMatchIn(text)) eta = text
+
+            // Extract Distance
+            val candidates = listOf(bigText, title, text).filter { it.isNotEmpty() }
+            val contentSource = candidates.firstOrNull { str -> distanceRegex.containsMatchIn(str) } ?: if (title.isNotEmpty()) title else text
+
+            if (distanceRegex.containsMatchIn(contentSource)) {
+                distanceRegex.find(contentSource)?.let { distance = it.value }
+            }
+
+            // Return the value based on the user's customized Right Side layout!
+            return when (navRight) {
+                NavContent.ETA -> eta.ifEmpty { distance }
+                NavContent.DISTANCE -> distance.ifEmpty { eta }
+                NavContent.DISTANCE_ETA -> listOf(distance, eta).filter { it.isNotEmpty() }.joinToString(" • ")
+                NavContent.INSTRUCTION -> title
+                else -> eta.ifEmpty { distance }.ifEmpty { title } // Fallback
+            }
+        }
+
+        // Standard Progress Fallback (Only applied if NOT Navigation)
         if (max > 0) return "${(progress * 100) / max}%"
 
+        // Timer Fallback
         val timeRegex = Regex("(\\d+\\s*(min|m))", RegexOption.IGNORE_CASE)
         timeRegex.find(text)?.let { return it.groupValues[1] }
-        timeRegex.find(title)?.let { return it.groupValues[1] }
 
-        return title.ifBlank { text }.ifBlank { "Active" }
+        return title
     }
 }

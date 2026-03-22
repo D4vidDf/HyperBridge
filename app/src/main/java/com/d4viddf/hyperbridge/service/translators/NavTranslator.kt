@@ -105,16 +105,11 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         }
 
         // 5. Actions (Important: Nav needs Text Buttons like "Exit")
-        // We use extractBridgeActions from BaseTranslator but customize the mode slightly if needed
         val rawActions = sbn.notification.actions ?: emptyArray()
         val actionKeys = mutableListOf<String>()
 
         rawActions.forEachIndexed { index, action ->
             val uniqueKey = "act_${sbn.key.hashCode()}_$index"
-
-            // For Navigation, we usually prefer Text buttons (e.g. "Exit Navigation")
-            // So we don't necessarily need the fancy icon shape logic here unless user explicitly styles it.
-            // We pass null for background to keep it standard pill style or text only.
 
             val hyperAction = HyperAction(
                 key = uniqueKey,
@@ -130,8 +125,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
             actionKeys.add(uniqueKey)
         }
 
-        // 6. Shade Layout (The Fix)
-        // Revert to setBaseInfo (Type 1) which supports standard notifications with actions.
+        // 6. Shade Layout
         val shadeContent = listOf(distance, eta).filter { it.isNotEmpty() }.joinToString(" • ")
 
         builder.setBaseInfo(
@@ -152,7 +146,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
             )
         }
 
-        // 8. Island Layout (Dynamic)
+        // 8. Island Layout (Dynamic from App Preference / Global)
         fun getTextInfo(type: NavContent): TextInfo {
             return when (type) {
                 NavContent.INSTRUCTION -> TextInfo(instruction, null)
@@ -169,7 +163,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         )
 
         builder.setSmallIsland(picKey)
-        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor, timeout = config.timeout)
+        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
@@ -23,6 +22,7 @@ import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandLimitMode
+import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
@@ -56,7 +56,7 @@ class NotificationReaderService : NotificationListenerService() {
     // --- CHANNELS ---
     private val NOTIFICATION_CHANNEL_ID = "hyper_bridge_notification_channel"
     private val WIDGET_CHANNEL_ID = "hyper_bridge_widget_channel"
-    private val LIVE_UPDATE_CHANNEL_ID = "hyper_bridge_live_update_channel" // [NEW]
+    private val LIVE_UPDATE_CHANNEL_ID = "hyper_bridge_live_update_channel"
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
 
     // --- STATE & CONFIG ---
@@ -91,7 +91,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var standardTranslator: StandardTranslator
     private lateinit var mediaTranslator: MediaTranslator
     private lateinit var widgetTranslator: WidgetTranslator
-    private lateinit var liveUpdateTranslator: LiveUpdateTranslator // [NEW]
+    private lateinit var liveUpdateTranslator: LiveUpdateTranslator
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onCreate() {
@@ -109,9 +109,8 @@ class NotificationReaderService : NotificationListenerService() {
         timerTranslator = TimerTranslator(this, themeRepository)
         progressTranslator = ProgressTranslator(this, themeRepository)
         standardTranslator = StandardTranslator(this, themeRepository)
-        liveUpdateTranslator = LiveUpdateTranslator(this, themeRepository) // [NEW]
+        liveUpdateTranslator = LiveUpdateTranslator(this, themeRepository)
 
-        // Media and Widget translators don't necessarily need the repo yet
         mediaTranslator = MediaTranslator(this)
         widgetTranslator = WidgetTranslator(this)
 
@@ -122,14 +121,13 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
 
-        // Listen for Theme Changes and update the Repository
+        // Listen for Theme Changes
         serviceScope.launch {
             preferences.activeThemeIdFlow.collectLatest { themeId ->
                 Log.d(TAG, "Service detected theme change: $themeId")
                 if (themeId != null) {
                     themeRepository.activateTheme(themeId)
                 } else {
-                    // Reset to defaults if theme is removed/disabled
                     themeRepository.activateTheme("")
                 }
             }
@@ -164,7 +162,6 @@ class NotificationReaderService : NotificationListenerService() {
                 }
             }
         } else if (intent?.action == ACTION_RELOAD_THEME) {
-            // Force reload current theme from disk
             serviceScope.launch {
                 val themeId = preferences.activeThemeIdFlow.first()
                 if (themeId != null) {
@@ -174,6 +171,34 @@ class NotificationReaderService : NotificationListenerService() {
             }
         }
         return START_STICKY
+    }
+
+    // =========================================================================
+    //  EFFECTIVE BEHAVIOR RESOLUTION (Theme > App > Global)
+    // =========================================================================
+
+    private suspend fun getEffectiveTypes(pkg: String): Set<String> {
+        val themeOverride = themeRepository.activeTheme.value?.apps?.get(pkg)
+        if (themeOverride?.activeNotificationTypes != null) return themeOverride.activeNotificationTypes
+
+        val localPref = preferences.getAppConfigFlow(pkg).first()
+        if (localPref != null) return localPref
+
+        return preferences.globalNotificationTypesFlow.first()
+    }
+
+    private suspend fun getEffectiveEngine(pkg: String): Boolean {
+        val themeOverride = themeRepository.activeTheme.value?.apps?.get(pkg)
+        if (themeOverride?.useNativeLiveUpdates != null) return themeOverride.useNativeLiveUpdates
+
+        val localPref = preferences.getAppEnginePreferenceFlow(pkg).first()
+        if (localPref != null) return localPref
+
+        return preferences.useNativeLiveUpdates.first()
+    }
+
+    private suspend fun getEffectiveNav(pkg: String): Pair<NavContent, NavContent> {
+        return preferences.getEffectiveNavLayout(pkg).first()
     }
 
     // =========================================================================
@@ -300,36 +325,21 @@ class NotificationReaderService : NotificationListenerService() {
 
             val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
             val rawText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            val rawBigTitle = extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()
-            val rawBigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
             val rawProgress = extras.getInt(Notification.EXTRA_PROGRESS, -1)
-
-            Log.d(TAG, "--------------------------------------------------")
-            Log.d(TAG, "START PROCESSING: ${sbn.packageName}")
-            Log.d(TAG, " RAW Title    : '$rawTitle'")
-            Log.d(TAG, " RAW Text     : '$rawText'")
-            Log.d(TAG, " RAW BigTitle : '$rawBigTitle'")
-            Log.d(TAG, " RAW BigText  : '$rawBigText'")
-            Log.d(TAG, " RAW Progress : $rawProgress")
 
             // [LOGIC] 1. Resolve Info intelligently
             var effectiveTitle = resolveTitle(sbn)
             val effectiveText = resolveText(sbn.notification.extras)
-
-            Log.d(TAG, " RESOLVED Initial Title: '$effectiveTitle'")
 
             // [LOGIC] 2. State Preservation
             val key = sbn.key
             val previous = activeIslands[key]
 
             if (effectiveTitle.isEmpty()) {
-                Log.w(TAG, " Title invalid. Attempting fallback...")
                 if (previous != null && previous.title.isNotEmpty() && previous.title != sbn.packageName) {
                     effectiveTitle = previous.title
-                    Log.d(TAG, " >>> Restored from Cache: '$effectiveTitle'")
                 } else {
                     effectiveTitle = getCachedAppLabel(sbn.packageName)
-                    Log.d(TAG, " >>> Used App Label Fallback: '$effectiveTitle'")
                 }
             }
 
@@ -337,37 +347,31 @@ class NotificationReaderService : NotificationListenerService() {
             val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
                     extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
 
-            if (effectiveTitle.isEmpty() && !hasProgress) {
-                Log.w(TAG, " ABORTING: Title still empty and no progress bar.")
-                return
-            }
+            if (effectiveTitle.isEmpty() && !hasProgress) return
 
             val appBlockedTerms = preferences.getAppBlockedTerms(sbn.packageName).first()
             if (appBlockedTerms.isNotEmpty()) {
                 val content = "$effectiveTitle $effectiveText"
-                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) {
-                    Log.d(TAG, " ABORTING: Blocked term found.")
-                    return
-                }
+                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) return
             }
 
-            // [UPDATED] 4. Theme & Rules Interception
+            // [LOGIC] 4. Theme & Rules Interception
             val activeTheme = themeRepository.activeTheme.value
             val ruleMatch = rulesEngine.match(sbn, effectiveTitle, effectiveText, activeTheme)
 
             val type = if (ruleMatch?.targetLayout != null) {
-                try {
-                    NotificationType.valueOf(ruleMatch.targetLayout)
-                } catch (_: Exception) {
-                    Log.e(TAG, "Invalid rule layout: ${ruleMatch.targetLayout}")
-                    detectNotificationType(sbn)
-                }
+                try { NotificationType.valueOf(ruleMatch.targetLayout) }
+                catch (_: Exception) { detectNotificationType(sbn) }
             } else {
                 detectNotificationType(sbn)
             }
 
-            val config = preferences.getAppConfig(sbn.packageName).first()
-            if (!config.contains(type.name)) return
+            // --- LAYERED TRIGGERS LOGIC ---
+            val effectiveTypes = getEffectiveTypes(sbn.packageName)
+            if (!effectiveTypes.contains(type.name)) {
+                Log.d(TAG, " ABORTING: Type $type disabled by user/theme for ${sbn.packageName}")
+                return
+            }
 
             val isUpdate = activeIslands.containsKey(key)
 
@@ -383,65 +387,56 @@ class NotificationReaderService : NotificationListenerService() {
             val bridgeId = sbn.key.hashCode()
             val picKey = "pic_${bridgeId}"
 
-            // ===================================================================
-            // [NEW LOGIC] NATIVE LIVE UPDATES FALLBACK
-            // ===================================================================
-            val useLiveUpdates = getSharedPreferences("hyperbridge_settings", Context.MODE_PRIVATE)
-                .getBoolean("use_native_live_updates", false)
+            // --- LAYERED ENGINE LOGIC ---
+            val useLiveUpdates = getEffectiveEngine(sbn.packageName)
 
             if (useLiveUpdates) {
                 Log.i(TAG, " POSTING Native Live Update -> ID: $bridgeId, Type: $type")
 
-                // [FIXED] Pass the dedicated Live Update Channel ID
-                val builder = liveUpdateTranslator.translateToLiveUpdate(sbn, finalConfig, LIVE_UPDATE_CHANNEL_ID)
+                // [FIX] Fetch the user's custom layout so the Live Update can use it!
+                val navLayout = if (type == NotificationType.NAVIGATION) getEffectiveNav(sbn.packageName) else null
 
-                // Track original notification key for dismissal synchronization
+                // [FIX] Pass the type and the right layout to the translator
+                val builder = liveUpdateTranslator.translateToLiveUpdate(
+                    sbn = sbn,
+                    channelId = LIVE_UPDATE_CHANNEL_ID,
+                    type = type,
+                    navRight = navLayout?.second
+                )
+
                 builder.extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
 
                 val notification = builder.build()
 
-                // [FIXED] Dynamic Hash that accounts for Text, Progress, AND Button Actions (Play/Pause)
                 val actualProgress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
                 val actualMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
                 val isIndeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
-
-                // Track the button titles so we know when Play becomes Pause
                 val actionState = sbn.notification.actions?.joinToString { it.title?.toString() ?: "" } ?: ""
 
                 val newContentHash = effectiveTitle.hashCode() * 31 +
-                        effectiveText.hashCode() +
-                        actualProgress +
-                        actualMax +
-                        isIndeterminate.hashCode() +
-                        actionState.hashCode()
+                        effectiveText.hashCode() + actualProgress + actualMax +
+                        isIndeterminate.hashCode() + actionState.hashCode()
 
-                if (isUpdate && previous != null && previous.lastContentHash == newContentHash) {
-                    Log.d(TAG, " ABORTING: Content hash duplicate (Live Update).")
-                    return
-                }
+                if (isUpdate && previous != null && previous.lastContentHash == newContentHash) return
 
                 NotificationManagerCompat.from(this).notify(bridgeId, notification)
 
                 activeTranslations[sbn.key] = bridgeId
                 reverseTranslations[bridgeId] = sbn.key
-
                 activeIslands[key] = ActiveIsland(
                     id = bridgeId, type = type, postTime = System.currentTimeMillis(),
-                    packageName = sbn.packageName,
-                    title = effectiveTitle,
-                    text = effectiveText,
-                    subText = "LiveUpdate",
-                    lastContentHash = newContentHash
+                    packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
+                    subText = "LiveUpdate", lastContentHash = newContentHash
                 )
                 return
             }
-            // ===================================================================
 
-            // [ORIGINAL LOGIC] Xiaomi Custom Island Injection
+            // --- LAYERED CUSTOM ISLAND LOGIC ---
             val data: HyperIslandData = when (type) {
                 NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig, activeTheme)
                 NotificationType.NAVIGATION -> {
-                    val navLayout = preferences.getEffectiveNavLayout(sbn.packageName).first()
+                    // --- LAYERED NAVIGATION LOGIC ---
+                    val navLayout = getEffectiveNav(sbn.packageName)
                     navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second, activeTheme)
                 }
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig, activeTheme)
@@ -451,28 +446,15 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             val newContentHash = data.jsonParam.hashCode()
-
-            if (isUpdate && previous != null && previous.lastContentHash == newContentHash) {
-                Log.d(TAG, " ABORTING: Content hash duplicate.")
-                return
-            }
-
-            try {
-                val currentNotifs = activeNotifications
-                val exists = currentNotifs.any { it.key == key }
-                if (!exists) return
-            } catch (e: Exception) { }
+            if (isUpdate && previous != null && previous.lastContentHash == newContentHash) return
 
             Log.i(TAG, " POSTING Island -> ID: $bridgeId, Type: $type, FinalTitle: '$effectiveTitle', FinalText: '$effectiveText'")
             postStandardNotification(sbn, bridgeId, data)
 
             activeIslands[key] = ActiveIsland(
                 id = bridgeId, type = type, postTime = System.currentTimeMillis(),
-                packageName = sbn.packageName,
-                title = effectiveTitle,
-                text = effectiveText,
-                subText = "",
-                lastContentHash = newContentHash
+                packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
+                subText = "", lastContentHash = newContentHash
             )
 
         } catch (e: Exception) {
@@ -489,9 +471,7 @@ class NotificationReaderService : NotificationListenerService() {
         if ((title.isEmpty() || title.equals(pkg, ignoreCase = true)) && !bigTitle.isNullOrEmpty()) {
             return bigTitle
         }
-
         if (title.equals(pkg, ignoreCase = true)) return ""
-
         return title
     }
 
@@ -520,9 +500,7 @@ class NotificationReaderService : NotificationListenerService() {
             try {
                 val activeList = activeNotifications
                 val updatedSbn = activeList?.firstOrNull { it.key == sbn.key }
-                if (updatedSbn != null) {
-                    return updatedSbn
-                }
+                if (updatedSbn != null) return updatedSbn
             } catch (e: Exception) { }
         }
         return sbn
@@ -590,11 +568,8 @@ class NotificationReaderService : NotificationListenerService() {
         }
         manager.createNotificationChannel(widgetChannel)
 
-        // [NEW] Channel specifically for Native Android Live Updates
         val liveUpdateChannel = NotificationChannel(LIVE_UPDATE_CHANNEL_ID, getString(R.string.channel_live_updates), NotificationManager.IMPORTANCE_DEFAULT).apply {
-            setSound(null, null)
-            enableVibration(false)
-            setShowBadge(false)
+            setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(liveUpdateChannel)
     }
@@ -655,11 +630,8 @@ class NotificationReaderService : NotificationListenerService() {
         val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT || notification.category == Notification.CATEGORY_CALL ||
                 notification.category == Notification.CATEGORY_NAVIGATION || extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
         if (hasProgress || isSpecial) return false
-
         if (title.isEmpty() && text.isEmpty()) return true
-
         if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)) return true
-
         if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
 
