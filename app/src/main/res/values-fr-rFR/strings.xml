@@ -581,11 +581,11 @@
     <string name="nav_layout_info">• Les dispositions de navigation seront intégrées au moteur de thèmes dans une prochaine mise à jour.\n• En cas d\'utilisation du moteur de mise à jour natif, seul le contenu du côté droit est visible.</string>
     <string name="xiaomi_featured_notifications">Notifications standard de Xiaomi</string>
     <string name="island_behavior_title">Comportement de la bulle</string>
-    <string name="island_behavior_desc"><![CDATA[Délai d'expiration, doublons et visibilité]]></string>
+    <string name="island_behavior_desc"><![CDATA[Délai d\'expiration, doublons et visibilité]]></string>
     <string name="engine">Moteur</string>
     <string name="engine_desc">Notifications natives vs Xiaomi</string>
     <string name="behaviour_triggers"><![CDATA[Comportement & Déclencheurs]]></string>
-    <string name="engine_timeouts_triggers"><![CDATA[Moteur, délai d'expiration & déclencheurs]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Moteur, délai d\'expiration & déclencheurs]]></string>
     <string name="global_behavior">Comportement global</string>
     <string name="auto_hide_island">Cacher automatiquement la bulle de notification</string>
     <string name="hides_after_a_set_time">Masquer après une heure définie</string>
