@@ -143,11 +143,11 @@
     <string name="customize_app">Personalizar</string>
     <string name="override_settings">Substituir Configurações</string>
     <string-array name="nav_arrival_keywords">
-        <item>arrival</item>
-        <item>arrive</item>
+        <item>chegada</item>
+        <item>chegar</item>
         <item>eta</item>
-        <item>reaching</item>
-        <item>destination</item>
+        <item>chegando</item>
+        <item>destino</item>
     </string-array>
     <string name="hint_options">Opções</string>
     <string name="version_history">Histórico de Versões</string>
@@ -246,7 +246,7 @@ Novas notificações substituem as mais antigas automaticamente.</string>
     </string-array>
     <string-array name="call_keywords_speaker">
         <item>palestrante</item>
-        <item>audio</item>
+        <item>áudio</item>
     </string-array>
     <string name="title_0_3_0">A Atualização Global</string>
     <string name="changelog_0_3_0">        <b>Notificações Ocultas 👻</b>\n
@@ -555,26 +555,26 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
 
         <i>Nota: Esta atualização inclui mudanças significativas na arquitetura do app. Por favor reporte qualquer bug no GitHub!</i>
     </string>
-    <string name="title_0_4_2">Hotfix Update</string>
+    <string name="title_0_4_2">Atualização de correção</string>
     <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
         •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
     </string>
-    <string name="colors_label_hue">Hue</string>
-    <string name="colors_label_saturation">Saturation</string>
-    <string name="colors_label_lightness">Lightness</string>
-    <string name="colors_label_dynamic_modes">Dynamic Colors</string>
-    <string name="colors_label_material_you">Material You (System)</string>
-    <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
-    <string name="filter_compatible_widgets">Show Island Compatible Only</string>
-    <string name="kill_all_widgets">Kill Active Widgets</string>
-    <string name="permission_reminder_title">Update Notice</string>
-    <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
-    <string name="got_it">Got it</string>
-    <string name="recommended">Recommended</string>
-    <string name="all">All</string>
-    <string name="favorites">Favorites</string>
+    <string name="colors_label_hue">Matiz</string>
+    <string name="colors_label_saturation">Saturação</string>
+    <string name="colors_label_lightness">Luminosidade</string>
+    <string name="colors_label_dynamic_modes">Cores dinâmicas</string>
+    <string name="colors_label_material_you">Material You (Sistema)</string>
+    <string name="colors_desc_material_you">Extrai as cores do seu papel de parede atual.</string>
+    <string name="filter_compatible_widgets">Mostrar apenas compatíveis com a ilha</string>
+    <string name="kill_all_widgets">Encerrar todos os widgets ativos</string>
+    <string name="permission_reminder_title">Aviso de atualização</string>
+    <string name="permission_reminder_desc">HyperBridge atualizou! Por favor, certifique-se de que o auto início e as configurações de bateria não foram alteradas pelo sistema para manter seus widgets rodando tranquilamente.</string>
+    <string name="got_it">Certo</string>
+    <string name="recommended">Recomendado</string>
+    <string name="all">Tudo</string>
+    <string name="favorites">Favoritos</string>
     <string name="settings_live_updates_title">Native Android Live Updates</string>
-    <string name="settings_live_updates_desc">Transform notifications into standard Android 16 ongoing tasks instead of overriding them with custom Xiaomi Islands.</string>
+    <string name="settings_live_updates_desc"></string>
     <string name="channel_live_updates">Native Live Updates</string>
     <string name="engine_preview_title">Preview</string>
     <string name="engine_design_section">Notification Design</string>
