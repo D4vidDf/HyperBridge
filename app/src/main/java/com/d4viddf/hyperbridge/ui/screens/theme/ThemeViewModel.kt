@@ -85,6 +85,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     var themeDefaultActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
 
+    // [FIX] Make state nullable
+    var themeUseNativeLiveUpdates by mutableStateOf<Boolean?>(null)
+
     // --- APP-SPECIFIC EDITING STATE (Buffers) ---
     var editingAppPackage by mutableStateOf<String?>(null)
     var editingAppLabel by mutableStateOf("")
@@ -99,7 +102,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var appCallDeclineColor by mutableStateOf<String?>(null)
     var appCallAnswerUri by mutableStateOf<Uri?>(null)
     var appCallDeclineUri by mutableStateOf<Uri?>(null)
-
 
     var appCallAnswerShapeId by mutableStateOf<String?>(null)
     var appCallDeclineShapeId by mutableStateOf<String?>(null)
@@ -119,7 +121,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         loadInstalledApps()
     }
 
-    enum class ShapeOption(val id: String, @StringRes val labelRes: Int) {
+    enum class ShapeOption(val id: String, @param:StringRes val labelRes: Int) {
         CIRCLE("circle", R.string.shape_circle),
         SQUARE("square", R.string.shape_square),
         COOKIE_4("cookie", R.string.shape_cookie),
@@ -265,7 +267,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                     ThemeResource(ResourceType.LOCAL_FILE, "icons/$key.png")
                 } else existingOverride?.callConfig?.declineIcon
             )
-        } else null
+        } else existingOverride?.callConfig // [FIX] Prevent existing call configs from being wiped if only Live Updates were changed!
 
         val newOverride = AppThemeOverride(
             highlightColor = appHighlightColor,
@@ -279,13 +281,10 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             navigation = existingOverride?.navigation,
             useNativeLiveUpdates = appUseNativeLiveUpdates,
             activeNotificationTypes = appEnabledNotificationTypes
-
         )
 
         updateAppOverride(pkg, newOverride)
         editingAppPackage = null
-
-
     }
 
     fun cancelAppEditing() {
@@ -321,6 +320,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             callAnswerShapeId = theme.callConfig.answerShapeId
             callDeclineShapeId = theme.callConfig.declineShapeId
 
+            // [FIX] Load the global engine selection
+            themeUseNativeLiveUpdates = theme.global.useNativeLiveUpdates
+
             _appOverrides.value = theme.apps
             themeDefaultActions = theme.defaultActions
         }
@@ -346,6 +348,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         callDeclineColor = "#FF3B30"
         callAnswerShapeId = "circle"
         callDeclineShapeId = "circle"
+
+        // [FIX] Reset to null instead of false
+        themeUseNativeLiveUpdates = null
 
         appHighlightColor = null
         appColorMode = null
@@ -437,7 +442,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         colorMode = colorMode,
                         iconShapeId = selectedShapeId,
                         iconPaddingPercent = iconPaddingPercent,
-                        backgroundColor = "#202124"
+                        backgroundColor = "#202124",
+                        useNativeLiveUpdates = themeUseNativeLiveUpdates // [FIX] Save to Theme JSON
                     ),
                     callConfig = CallModule(
                         answerIcon = answerRes,
