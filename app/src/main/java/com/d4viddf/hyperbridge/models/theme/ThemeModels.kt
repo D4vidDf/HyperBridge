@@ -32,6 +32,7 @@ data class ThemeMetadata(
 data class GlobalConfig(
     @SerialName("highlight_color") val highlightColor: String? = null,
     @SerialName("background_color") val backgroundColor: String? = null,
+    @SerialName("use_native_live_updates") val useNativeLiveUpdates: Boolean? = null,
     @SerialName("text_color") val textColor: String? = "#FFFFFF",
 
     @Deprecated("Use colorMode instead. Kept for backward compatibility with v0.4.x themes.")

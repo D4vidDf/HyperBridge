@@ -325,20 +325,21 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     fun updateAppEngine(pkg: String, useNative: Boolean) {
         viewModelScope.launch {
             val currentTheme = activeTheme.value
-            val themeOverride = currentTheme?.apps?.get(pkg)
+            val isCustomTheme = currentTheme != null && currentTheme.id.isNotEmpty()
 
-            if (currentTheme != null && themeOverride != null) {
-                // The Theme is managing this app! Update the Theme JSON directly.
-                val updatedOverride = themeOverride.copy(useNativeLiveUpdates = useNative)
+            if (isCustomTheme) {
+                // If a Custom Theme is active, we MUST patch the Theme JSON,
+                // even if it didn't have an override before!
+                val existingOverride = currentTheme!!.apps[pkg] ?: com.d4viddf.hyperbridge.models.theme.AppThemeOverride()
+                val updatedOverride = existingOverride.copy(useNativeLiveUpdates = useNative)
+
                 val updatedAppsMap = currentTheme.apps.toMutableMap().apply { put(pkg, updatedOverride) }
                 val updatedTheme = currentTheme.copy(apps = updatedAppsMap)
 
-                // Save to disk and reload the active theme state
                 themeRepo.saveTheme(updatedTheme)
                 themeRepo.activateTheme(updatedTheme.id)
             } else {
-                // Not managed by theme. Save normally to local AppPreferences.
-                // NOTE: Make sure you have `updateAppEnginePreference(pkg, useNative)` in your AppPreferences!
+                // If NO custom theme is active, save to normal AppPreferences
                 preferences.updateAppEnginePreference(pkg, useNative)
             }
         }

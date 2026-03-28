@@ -188,12 +188,21 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private suspend fun getEffectiveEngine(pkg: String): Boolean {
-        val themeOverride = themeRepository.activeTheme.value?.apps?.get(pkg)
-        if (themeOverride?.useNativeLiveUpdates != null) return themeOverride.useNativeLiveUpdates
+        val activeTheme = themeRepository.activeTheme.value
 
-        val localPref = preferences.getAppEnginePreferenceFlow(pkg).first()
-        if (localPref != null) return localPref
+        // 1. Theme App Override (Creator explicitly configured this app)
+        val themeAppOverride = activeTheme?.apps?.get(pkg)?.useNativeLiveUpdates
+        if (themeAppOverride != null) return themeAppOverride
 
+        // 2. User App Override (User explicitly configured this app via Home Screen)
+        val userAppOverride = preferences.getAppEnginePreferenceFlow(pkg).first()
+        if (userAppOverride != null) return userAppOverride
+
+        // 3. Theme Global Override (Creator explicitly forced an engine for the whole theme)
+        val themeGlobalOverride = activeTheme?.global?.useNativeLiveUpdates
+        if (themeGlobalOverride != null) return themeGlobalOverride
+
+        // 4. User Global Fallback (The main Engine Setting on the Home Screen!)
         return preferences.useNativeLiveUpdates.first()
     }
 
