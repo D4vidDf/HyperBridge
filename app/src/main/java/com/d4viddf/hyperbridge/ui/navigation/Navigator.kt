@@ -1,4 +1,4 @@
-package com.d4viddf.hyperbridge
+package com.d4viddf.hyperbridge.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
 

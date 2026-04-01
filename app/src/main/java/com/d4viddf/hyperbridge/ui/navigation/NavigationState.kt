@@ -1,4 +1,4 @@
-package com.d4viddf.hyperbridge
+package com.d4viddf.hyperbridge.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -35,8 +35,8 @@ fun <T : NavKey> rememberNavigationState(
     }
 
     @Suppress("UNCHECKED_CAST")
-    val backStacks = topLevelRoutes.associateWith { key -> 
-        rememberNavBackStack(key) as NavBackStack<T> 
+    val backStacks = topLevelRoutes.associateWith { key ->
+        rememberNavBackStack(key) as NavBackStack<T>
     }
 
     return remember(startRoute, topLevelRoutes) {

@@ -22,14 +22,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
-import com.d4viddf.hyperbridge.data.model.HyperBridgeBackup
 import com.d4viddf.hyperbridge.ui.components.ChangelogSheet
 import com.d4viddf.hyperbridge.ui.components.PriorityEducationDialog
+import com.d4viddf.hyperbridge.ui.navigation.NavigationState
+import com.d4viddf.hyperbridge.ui.navigation.Navigator
+import com.d4viddf.hyperbridge.ui.navigation.Screen
+import com.d4viddf.hyperbridge.ui.navigation.rememberNavigationState
+import com.d4viddf.hyperbridge.ui.navigation.toEntries
 import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
 import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.AppPriorityScreen
@@ -49,7 +52,6 @@ import com.d4viddf.hyperbridge.ui.screens.settings.SetupHealthScreen
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.util.BackupManager
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,25 +64,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-}
-
-@Serializable sealed interface Screen : NavKey {
-    @Serializable data object Onboarding : Screen
-    @Serializable data object Home : Screen
-    @Serializable data object Info : Screen
-    @Serializable data object Setup : Screen
-    @Serializable data object Licenses : Screen
-    @Serializable data object Behavior : Screen
-    @Serializable data object GlobalSettings : Screen
-    @Serializable data object History : Screen
-    @Serializable data object Backup : Screen
-    @Serializable data class ImportPreview(val backup: HyperBridgeBackup) : Screen
-    @Serializable data class NavCustomization(val packageName: String?) : Screen
-    @Serializable data object EngineSettings : Screen
-    @Serializable data object AppPriority : Screen
-    @Serializable data object GlobalBlocklist : Screen
-    @Serializable data object BlocklistApps : Screen
-    @Serializable data object IslandSettings : Screen
 }
 
 @Composable
