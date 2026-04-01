@@ -1,7 +1,8 @@
 package com.d4viddf.hyperbridge
 
+import android.content.Context
 import android.os.Bundle
-import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
@@ -22,35 +23,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.ui.components.ChangelogSheet
 import com.d4viddf.hyperbridge.ui.components.PriorityEducationDialog
-import com.d4viddf.hyperbridge.ui.navigation.NavigationState
 import com.d4viddf.hyperbridge.ui.navigation.Navigator
 import com.d4viddf.hyperbridge.ui.navigation.Screen
+import com.d4viddf.hyperbridge.ui.navigation.mainNavGraph
 import com.d4viddf.hyperbridge.ui.navigation.rememberNavigationState
 import com.d4viddf.hyperbridge.ui.navigation.toEntries
-import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
-import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.AppPriorityScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.BackupSettingsScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.BlocklistAppListScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.ChangelogHistoryScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.EngineSettingsScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.GlobalBlocklistScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.GlobalSettingsScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.ImportPreviewScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.InfoScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.IslandSettingsScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.LicensesScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.NavCustomizationScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.PrioritySettingsScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.SetupHealthScreen
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.util.BackupManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -59,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             HyperBridgeTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    MainRootNavigation()
+                    MainRootNavigation(onExit = { finish() })
                 }
             }
         }
@@ -67,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 @Composable
-fun MainRootNavigation() {
+fun MainRootNavigation(onExit: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
@@ -84,153 +69,82 @@ fun MainRootNavigation() {
         preferences.isSetupComplete.collect { value = it }
     }
 
+    if (isSetupComplete == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        MainNavigationContent(
+            isSetupComplete = isSetupComplete!!,
+            context = context,
+            scope = scope,
+            preferences = preferences,
+            backupManager = backupManager,
+            currentVersionCode = currentVersionCode,
+            currentVersionName = currentVersionName,
+            onExit = onExit
+        )
+    }
+}
+
+@Composable
+private fun MainNavigationContent(
+    isSetupComplete: Boolean,
+    context: Context,
+    scope: CoroutineScope,
+    preferences: AppPreferences,
+    backupManager: BackupManager,
+    currentVersionCode: Int,
+    currentVersionName: String,
+    onExit: () -> Unit
+) {
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = currentVersionCode)
     val isPriorityEduShown by preferences.isPriorityEduShown.collectAsState(initial = true)
 
     var showChangelog by remember { mutableStateOf(false) }
     var showPriorityEdu by remember { mutableStateOf(false) }
 
+    val startRoute = if (isSetupComplete) Screen.Home else Screen.Onboarding
     val navigationState = rememberNavigationState(
-        startRoute = Screen.Onboarding,
+        startRoute = startRoute,
         topLevelRoutes = setOf(Screen.Onboarding, Screen.Home)
     )
-    val navigator = remember { Navigator(navigationState) }
+    val navigator = remember(navigationState) { Navigator(navigationState) }
 
     LaunchedEffect(isSetupComplete) {
-        if (isSetupComplete != null) {
-            if (isSetupComplete == true && navigationState.topLevelRoute == Screen.Onboarding) {
-                navigationState.topLevelRoute = Screen.Home
-            } else if (isSetupComplete == false && navigationState.topLevelRoute == Screen.Home) {
-                navigationState.topLevelRoute = Screen.Onboarding
-            }
-
-            if (isSetupComplete == true) {
-                if (currentVersionCode > lastSeenVersion) {
-                    showChangelog = true
-                } else if (!isPriorityEduShown && !showChangelog) {
-                    showPriorityEdu = true
-                }
+        if (isSetupComplete) {
+            if (currentVersionCode > lastSeenVersion) {
+                showChangelog = true
+            } else if (!isPriorityEduShown && !showChangelog) {
+                showPriorityEdu = true
             }
         }
     }
 
-    val entryProvider = entryProvider {
-        entry<Screen.Onboarding> {
-            OnboardingScreen {
-                scope.launch {
-                    preferences.setSetupComplete(true)
-                    preferences.setLastSeenVersion(currentVersionCode)
-                    preferences.setPriorityEduShown(true)
-                    navigator.navigate(Screen.Home)
-                }
-            }
-        }
-        entry<Screen.Home> {
-            HomeScreen(
-                onSettingsClick = { navigator.navigate(Screen.Info) },
-                onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) }
-            )
-        }
-        entry<Screen.Info> {
-            InfoScreen(
-                onBack = { navigator.goBack() },
-                onSetupClick = { navigator.navigate(Screen.Setup) },
-                onLicensesClick = { navigator.navigate(Screen.Licenses) },
-                onBehaviorClick = { navigator.navigate(Screen.Behavior) },
-                onGlobalSettingsClick = { navigator.navigate(Screen.GlobalSettings) },
-                onHistoryClick = { navigator.navigate(Screen.History) },
-                onBlocklistClick = { navigator.navigate(Screen.GlobalBlocklist) },
-                onBackupClick = { navigator.navigate(Screen.Backup) }
-            )
-        }
-        entry<Screen.GlobalSettings> {
-            GlobalSettingsScreen(
-                onBack = { navigator.goBack() },
-                onNavSettingsClick = { navigator.navigate(Screen.NavCustomization(null)) },
-                onIslandSettingsClick = { navigator.navigate(Screen.IslandSettings) },
-                onEngineSettingsClick = { navigator.navigate(Screen.EngineSettings) }
-            )
-        }
-        entry<Screen.NavCustomization> { key ->
-            NavCustomizationScreen(
-                onBack = { navigator.goBack() },
-                packageName = key.packageName
-            )
-        }
-        entry<Screen.EngineSettings> {
-            EngineSettingsScreen(onBack = { navigator.goBack() })
-        }
-        entry<Screen.Setup> {
-            SetupHealthScreen(onBack = { navigator.goBack() })
-        }
-        entry<Screen.Licenses> {
-            LicensesScreen(onBack = { navigator.goBack() })
-        }
-        entry<Screen.Behavior> {
-            PrioritySettingsScreen(
-                onBack = { navigator.goBack() },
-                onNavigateToPriorityList = { navigator.navigate(Screen.AppPriority) }
-            )
-        }
-        entry<Screen.AppPriority> {
-            AppPriorityScreen(onBack = { navigator.goBack() })
-        }
-        entry<Screen.History> {
-            ChangelogHistoryScreen(onBack = { navigator.goBack() })
-        }
-        entry<Screen.GlobalBlocklist> {
-            GlobalBlocklistScreen(
-                onBack = { navigator.goBack() },
-                onNavigateToAppList = { navigator.navigate(Screen.BlocklistApps) }
-            )
-        }
-        entry<Screen.BlocklistApps> {
-            BlocklistAppListScreen(onBack = { navigator.goBack() })
-        }
-        entry<Screen.Backup> {
-            BackupSettingsScreen(
-                onBack = { navigator.goBack() },
-                backupManager = backupManager,
-                onBackupFileLoaded = { backup ->
-                    navigator.navigate(Screen.ImportPreview(backup))
-                }
-            )
-        }
-        entry<Screen.ImportPreview> { key ->
-            val importSuccessMsg = stringResource(R.string.import_success)
-            val importFailedMsg = stringResource(R.string.import_failed)
-            ImportPreviewScreen(
-                backupData = key.backup,
-                onBack = { navigator.goBack() },
-                onConfirmRestore = { selection ->
-                    scope.launch {
-                        val result = backupManager.restoreBackup(key.backup, selection)
-                        if (result.isSuccess) {
-                            Toast.makeText(context, importSuccessMsg, Toast.LENGTH_LONG).show()
-                            navigator.navigate(Screen.Home)
-                        } else {
-                            val error = result.exceptionOrNull()?.message ?: ""
-                            Toast.makeText(context, importFailedMsg.format(error), Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            )
-        }
-        entry<Screen.IslandSettings> {
-            IslandSettingsScreen(onBack = { navigator.goBack() })
+    val entryProvider = mainNavGraph(
+        context = context,
+        scope = scope,
+        preferences = preferences,
+        navigator = navigator,
+        backupManager = backupManager,
+        currentVersionCode = currentVersionCode,
+        onExit = onExit
+    )
+
+    BackHandler {
+        if (!navigator.goBack()) {
+            onExit()
         }
     }
 
-    if (isSetupComplete == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    NavDisplay(
+        entries = navigationState.toEntries(entryProvider),
+        onBack = {
+            if (!navigator.goBack()) {
+                onExit()
+            }
         }
-    } else {
-        NavDisplay(
-            entries = navigationState.toEntries(entryProvider),
-            onBack = { navigator.goBack() }
-        )
-    }
+    )
 
     if (showChangelog) {
         ChangelogSheet(

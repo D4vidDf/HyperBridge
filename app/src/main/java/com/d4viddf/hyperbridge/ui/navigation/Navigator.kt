@@ -15,22 +15,25 @@ class Navigator<T : NavKey>(val state: NavigationState<T>) {
         }
     }
 
-    fun goBack() {
+    /**
+     * Returns true if the back event was handled, false if we're at the root of the start route.
+     */
+    fun goBack(): Boolean {
         val currentStack = state.backStacks[state.topLevelRoute]
             ?: error("Stack for ${state.topLevelRoute} not found")
-        val currentRoute = currentStack.last()
+        val currentRoute = currentStack.lastOrNull() ?: return false
 
         // If we're at the base of the current route, go back to the start route stack.
         if (currentRoute == state.topLevelRoute) {
             if (state.topLevelRoute != state.startRoute) {
                 state.topLevelRoute = state.startRoute
+                return true
             } else {
-                // Already at start route, maybe exit app or do nothing
-                // NavDisplay handles the back gesture, so we might not need to do much here
-                // unless we want to exit the app.
+                return false
             }
         } else {
             currentStack.removeLastOrNull()
+            return true
         }
     }
 }
