@@ -2,11 +2,21 @@ package com.d4viddf.hyperbridge
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.BackEventCompat
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -21,8 +31,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
@@ -105,9 +118,11 @@ private fun MainNavigationContent(
     var showPriorityEdu by remember { mutableStateOf(false) }
 
     val startRoute = if (isSetupComplete) Screen.Home else Screen.Onboarding
+    val topLevelRoutes = if (isSetupComplete) setOf(Screen.Home) else setOf(Screen.Onboarding, Screen.Home)
+
     val navigationState = rememberNavigationState(
         startRoute = startRoute,
-        topLevelRoutes = setOf(Screen.Onboarding, Screen.Home)
+        topLevelRoutes = topLevelRoutes
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
 
@@ -143,7 +158,43 @@ private fun MainNavigationContent(
             if (!navigator.goBack()) {
                 onExit()
             }
-        }
+        },
+        transitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(400)
+            ) + fadeIn(animationSpec = tween(400)) togetherWith slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(400)
+            ) + fadeOut(animationSpec = tween(400))
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(400)
+            ) + fadeIn(animationSpec = tween(400)) togetherWith slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(400)
+            ) + fadeOut(animationSpec = tween(400))
+        },
+        predictivePopTransitionSpec = { swipeEdge ->
+            val origin = if (swipeEdge == BackEventCompat.EDGE_LEFT) {
+                TransformOrigin(0.92f, 0.5f)
+            } else {
+                TransformOrigin(0.08f, 0.5f)
+            }
+            EnterTransition.None togetherWith (
+                scaleOut(
+                    targetScale = 0.86f,
+                    transformOrigin = origin
+                ) + slideOutHorizontally(
+                    targetOffsetX = { if (swipeEdge == BackEventCompat.EDGE_LEFT) -it / 30 else it / 30 }
+                ) + fadeOut()
+            )
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(32.dp))
     )
 
     if (showChangelog) {
