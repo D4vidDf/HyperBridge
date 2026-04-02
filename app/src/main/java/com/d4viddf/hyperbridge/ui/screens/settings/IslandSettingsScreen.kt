@@ -2,6 +2,8 @@ package com.d4viddf.hyperbridge.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +71,7 @@ fun IslandSettingsContent(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             IslandSettingsControl(
@@ -84,7 +87,7 @@ fun IslandSettingsContent(
 fun IslandSettingsScreenPreview() {
     HyperBridgeTheme {
         IslandSettingsContent(
-            globalConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
+            globalConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5, floatTimeout = 6),
             onBack = {},
             onUpdateConfig = {}
         )

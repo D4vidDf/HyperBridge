@@ -88,7 +88,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
                 right = ImageTextInfoRight(1, PicInfo(1, tickKey), TextInfo("Finished", title))
             )
             builder.setSmallIsland(tickKey)
-            builder.setIslandConfig(timeout = config.timeout , dismissible = true)
+            builder.setIslandConfig(timeout = config.timeout , dismissible = true, expandedTimeMs = config.floatTimeout)
         } else {
             if (indeterminate) {
                 builder.setBigIslandInfo(
@@ -103,7 +103,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
         }
 
         val highlight = resolveColor(theme, sbn.packageName, themeProgressColor)
-        builder.setIslandConfig(timeout = config.timeout, highlightColor = highlight)
+        builder.setIslandConfig(timeout = config.timeout, highlightColor = highlight, expandedTimeMs = config.floatTimeout)
         actions.forEach { it.actionImage?.let { pic -> builder.addPicture(pic) } }
         val hyperActions = actions.map { it.action }.toTypedArray()
         hyperActions.forEach {

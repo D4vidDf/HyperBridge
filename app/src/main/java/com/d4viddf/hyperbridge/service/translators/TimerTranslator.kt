@@ -40,8 +40,6 @@ class TimerTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(
         builder.setIslandConfig(timeout = config.timeout)
         builder.setShowNotification(config.isShowShade ?: true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
-        // Apply Theme Color to Island text
-        builder.setIslandConfig(highlightColor = themeHighlight)
 
         val hiddenKey = "hidden_pixel"
         builder.addPicture(resolveIcon(sbn, picKey))
@@ -71,7 +69,7 @@ class TimerTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(
             builder.addAction(it.action)
             it.actionImage?.let { pic -> builder.addPicture(pic) }
         }
-        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor)
+        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor, expandedTimeMs = config.floatTimeout)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }

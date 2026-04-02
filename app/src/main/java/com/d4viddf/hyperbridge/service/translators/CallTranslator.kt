@@ -92,7 +92,7 @@ class CallTranslator(
         builder.setSmallIsland(picKey)
 
         val highlight = resolveColor(theme, sbn.packageName, "#FFFFFF")
-        builder.setIslandConfig(highlightColor = highlight)
+        builder.setIslandConfig(highlightColor = highlight, expandedTimeMs = config.floatTimeout)
 
         if (isIncoming) {
             builder.setBigIslandInfo(

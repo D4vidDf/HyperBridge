@@ -129,27 +129,41 @@ class AppPreferences(context: Context) {
     val globalConfigFlow: Flow<IslandConfig> = combine(
         dao.getSettingFlow(SettingsKeys.GLOBAL_FLOAT),
         dao.getSettingFlow(SettingsKeys.GLOBAL_SHADE),
-        dao.getSettingFlow(SettingsKeys.GLOBAL_TIMEOUT)
-    ) { f, s, t ->
-        IslandConfig(f.toBoolean(true), s.toBoolean(true), t?.toIntOrNull())
+        dao.getSettingFlow(SettingsKeys.GLOBAL_TIMEOUT),
+        dao.getSettingFlow(SettingsKeys.GLOBAL_FLOAT_TIMEOUT),
+        dao.getSettingFlow(SettingsKeys.GLOBAL_REMOVE_NOTIF)
+    ) { f, s, t, ft, rn ->
+        IslandConfig(
+            f.toBoolean(true),
+            s.toBoolean(true),
+            t?.toIntOrNull(),
+            ft?.toIntOrNull(),
+            rn?.toBoolean()
+        )
     }
 
     suspend fun updateGlobalConfig(config: IslandConfig) {
         config.isFloat?.let { save(SettingsKeys.GLOBAL_FLOAT, it.toString()) }
         config.isShowShade?.let { save(SettingsKeys.GLOBAL_SHADE, it.toString()) }
         config.timeout?.let { save(SettingsKeys.GLOBAL_TIMEOUT, it.toString()) }
+        config.floatTimeout?.let { save(SettingsKeys.GLOBAL_FLOAT_TIMEOUT, it.toString()) }
+        config.removeOriginalNotification?.let { save(SettingsKeys.GLOBAL_REMOVE_NOTIF, it.toString()) }
     }
 
     fun getAppIslandConfig(packageName: String): Flow<IslandConfig> {
         return combine(
             dao.getSettingFlow("config_${packageName}_float"),
             dao.getSettingFlow("config_${packageName}_shade"),
-            dao.getSettingFlow("config_${packageName}_timeout")
-        ) { f, s, t ->
+            dao.getSettingFlow("config_${packageName}_timeout"),
+            dao.getSettingFlow("config_${packageName}_float_timeout"),
+            dao.getSettingFlow("config_${packageName}_remove_notif")
+        ) { f, s, t, ft, rn ->
             IslandConfig(
                 f?.toBoolean(),
                 s?.toBoolean(),
-                t?.toIntOrNull()
+                t?.toIntOrNull(),
+                ft?.toIntOrNull(),
+                rn?.toBoolean()
             )
         }
     }
@@ -158,10 +172,14 @@ class AppPreferences(context: Context) {
         val fKey = "config_${packageName}_float"
         val sKey = "config_${packageName}_shade"
         val tKey = "config_${packageName}_timeout"
+        val ftKey = "config_${packageName}_float_timeout"
+        val rnKey = "config_${packageName}_remove_notif"
 
         if (config.isFloat != null) save(fKey, config.isFloat.toString()) else remove(fKey)
         if (config.isShowShade != null) save(sKey, config.isShowShade.toString()) else remove(sKey)
         if (config.timeout != null) save(tKey, config.timeout.toString()) else remove(tKey)
+        if (config.floatTimeout != null) save(ftKey, config.floatTimeout.toString()) else remove(ftKey)
+        if (config.removeOriginalNotification != null) save(rnKey, config.removeOriginalNotification.toString()) else remove(rnKey)
     }
 
     // --- NAVIGATION ---

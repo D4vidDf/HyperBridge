@@ -48,7 +48,7 @@ class StandardTranslator(
 
         // --- CONFIGURATION ---
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setIslandConfig(timeout = config.timeout , dismissible = true, highlightColor = highlightColor)
+        builder.setIslandConfig(timeout = config.timeout , dismissible = true, highlightColor = highlightColor, expandedTimeMs = config.floatTimeout)
         builder.setShowNotification(config.isShowShade ?: false)
         builder.setReopen(true)
         builder.setIslandFirstFloat(config.isFloat ?: false)

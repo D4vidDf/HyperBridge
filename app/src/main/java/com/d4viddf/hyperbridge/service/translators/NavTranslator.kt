@@ -163,7 +163,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         )
 
         builder.setSmallIsland(picKey)
-        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor)
+        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor, expandedTimeMs = config.floatTimeout)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }
