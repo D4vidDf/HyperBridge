@@ -330,7 +330,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             if (isCustomTheme) {
                 // If a Custom Theme is active, we MUST patch the Theme JSON,
                 // even if it didn't have an override before!
-                val existingOverride = currentTheme!!.apps[pkg] ?: com.d4viddf.hyperbridge.models.theme.AppThemeOverride()
+                val existingOverride = currentTheme.apps[pkg] ?: com.d4viddf.hyperbridge.models.theme.AppThemeOverride()
                 val updatedOverride = existingOverride.copy(useNativeLiveUpdates = useNative)
 
                 val updatedAppsMap = currentTheme.apps.toMutableMap().apply { put(pkg, updatedOverride) }

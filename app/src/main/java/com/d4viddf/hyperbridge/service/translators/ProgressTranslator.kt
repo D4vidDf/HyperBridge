@@ -97,7 +97,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
                 )
                 builder.setSmallIsland(picKey)
             } else {
-                builder.setBigIslandProgressCircle(picKey, "$percent%", percent, themeProgressColor, true)
+                builder.setBigIslandProgressCircle(picKey, "", percent, themeProgressColor, true)
                 builder.setSmallIslandCircularProgress(picKey, percent, themeProgressColor, isCCW = true)
             }
         }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import androidx.core.graphics.createBitmap
 
 @SuppressLint("StaticFieldLeak")
 object WidgetManager {
@@ -98,7 +99,7 @@ object WidgetManager {
         hostView.layout(0, 0, hostView.measuredWidth, hostView.measuredHeight)
 
         try {
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
             hostView.draw(canvas)
             return bitmap

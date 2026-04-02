@@ -48,7 +48,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,7 +72,6 @@ import com.d4viddf.hyperbridge.ui.screens.theme.content.ColorsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.EngineThemeContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.IconsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.NotificationTypesContent
-import com.d4viddf.hyperbridge.ui.screens.theme.content.SharedThemePreview
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ThemeBehaviourContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
@@ -87,8 +85,6 @@ enum class AppEditorRoute {
 fun AppThemeEditor(viewModel: ThemeViewModel) {
     var currentRoute by remember { mutableStateOf(AppEditorRoute.MENU) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
-
-    val isNative by viewModel.useNativeLiveUpdates.collectAsState()
 
     // Logic to handle "Back" request
     val handleBack = {

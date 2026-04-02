@@ -24,7 +24,7 @@ class AppCacheManager(private val context: Context) {
         if (icon != null) {
             try {
                 val file = File(iconsDir, "$packageName.png")
-                // Only save if it doesn't exist or we want to update it (optional optimization)
+                // Only save if it doesn't exist, or we want to update it (optional optimization)
                 if (!file.exists()) {
                     FileOutputStream(file).use { out ->
                         icon.compress(Bitmap.CompressFormat.PNG, 100, out)

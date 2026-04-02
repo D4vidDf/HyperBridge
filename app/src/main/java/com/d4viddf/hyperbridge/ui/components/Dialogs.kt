@@ -79,7 +79,11 @@ fun AppConfigBottomSheet(
     val isManagedByTheme = effectiveConfig?.isManagedByTheme == true
 
     val appIslandConfig by viewModel.getAppIslandConfig(app.packageName).collectAsState(initial = IslandConfig())
-    val globalConfig by viewModel.globalConfigFlow.collectAsState(initial = IslandConfig(true, true, 5))
+    val globalConfig by viewModel.globalConfigFlow.collectAsState(initial = IslandConfig(
+        isFloat = true,
+        isShowShade = true,
+        timeout = 5
+    ))
     val blockedTerms by viewModel.getAppBlockedTerms(app.packageName).collectAsState(initial = emptySet())
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

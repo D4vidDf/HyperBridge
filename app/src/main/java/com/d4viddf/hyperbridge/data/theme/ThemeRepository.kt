@@ -114,7 +114,7 @@ class ThemeRepository(private val context: Context) {
 
                 // 3. INSTALLATION
                 // We use the ID defined in JSON, or generate one if missing (shouldn't happen with strict spec)
-                val finalId = if (theme.id.isNotEmpty()) theme.id else tempId
+                val finalId = theme.id.ifEmpty { tempId }
                 val targetDir = File(themesDir, finalId)
 
                 // If updating, clear old version

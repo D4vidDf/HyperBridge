@@ -16,7 +16,6 @@ import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.service.notification.StatusBarNotification
@@ -50,21 +49,11 @@ abstract class BaseTranslator(
     private val appColorCache = ConcurrentHashMap<String, String>()
 
     protected inline fun <reified T : Parcelable> Bundle.getParcelableCompat(key: String): T? {
-        return if (Build.VERSION.SDK_INT >= 33) {
-            getParcelable(key, T::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            getParcelable(key)
-        }
+        return getParcelable(key, T::class.java)
     }
 
     protected inline fun <reified T : Parcelable> Bundle.getParcelableArrayListCompat(key: String): ArrayList<T>? {
-        return if (Build.VERSION.SDK_INT >= 33) {
-            getParcelableArrayList(key, T::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            getParcelableArrayList(key)
-        }
+        return getParcelableArrayList(key, T::class.java)
     }
 
     // --- THEME HELPERS ---

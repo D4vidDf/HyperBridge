@@ -35,7 +35,6 @@ class StandardTranslator(
         val isMedia = template.contains("MediaStyle")
         val isCall = sbn.notification.category == Notification.CATEGORY_CALL
 
-        val displayTitle = title
         val displayContent = when {
             isMedia -> context.getString(R.string.status_now_playing)
             isCall && subText.isNotEmpty() -> "$text • $subText"
@@ -45,7 +44,7 @@ class StandardTranslator(
 
         val highlightColor = resolveColor(theme, sbn.packageName, "#FFFFFF")
 
-        val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", displayTitle)
+        val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
 
         // --- CONFIGURATION ---
         builder.setEnableFloat(config.isFloat ?: false)
@@ -68,12 +67,12 @@ class StandardTranslator(
         // Base Info (Shade)
         builder.setBaseInfo(
             type = 2,
-            title = displayTitle,
+            title = title,
             content = displayContent
         )
         builder.setIconTextInfo(
             picKey= picKey,
-            title = displayTitle,
+            title = title,
             content = displayContent
         )
 
@@ -83,7 +82,7 @@ class StandardTranslator(
         } else {
             builder.setBigIslandInfo(
                 left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
-                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(displayTitle, displayContent))
+                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, displayContent))
             )
         }
 
