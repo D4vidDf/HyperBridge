@@ -154,8 +154,8 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "ACTION_TEST_WIDGET") {
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        if (intent.action == "ACTION_TEST_WIDGET") {
             val widgetId = intent.getIntExtra("WIDGET_ID", -1)
             if (widgetId != -1) {
                 dismissedWidgetIds.remove(widgetId)
@@ -164,7 +164,7 @@ class NotificationReaderService : NotificationListenerService() {
                     processSingleWidget(widgetId, config)
                 }
             }
-        } else if (intent?.action == ACTION_RELOAD_THEME) {
+        } else if (intent.action == ACTION_RELOAD_THEME) {
             serviceScope.launch {
                 val themeId = preferences.activeThemeIdFlow.first()
                 if (themeId != null) {
@@ -246,10 +246,8 @@ class NotificationReaderService : NotificationListenerService() {
                 }
 
                 if (originalKey != null) {
-                    Log.d(TAG, "Dismissing source notification for ID $notifId -> Key: $originalKey")
-                    serviceScope.launch {
-                        cancelSourceNotification(originalKey)
-                    }
+                    Log.d(TAG, "Our notification $notifId removed. Cleaning up cache for $originalKey")
+                    // [FIX] We no longer kill the source notification when our Island is dismissed or timed out
                     cleanupCache(originalKey)
                 }
                 return
@@ -315,23 +313,25 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType) {
+    private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType, isLiveUpdate: Boolean) {
         // 1. Remove original if enabled (EXCEPT for Media)
         if (config.removeOriginalNotification == true && type != NotificationType.MEDIA) {
             intentionallyRemovedKeys.add(originalKey)
             cancelNotification(originalKey)
         }
 
-        // 2. Schedule timeout
-        val timeoutSeconds = config.timeout ?: 0
-        timeoutJobs[originalKey]?.cancel()
-        if (timeoutSeconds > 0) {
-            timeoutJobs[originalKey] = serviceScope.launch {
-                delay(timeoutSeconds * 1000L)
-                Log.d(TAG, "Timeout reached for $originalKey, removing translated notification $bridgeId")
-                NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
-                cleanupCache(originalKey)
-                timeoutJobs.remove(originalKey)
+        // 2. Schedule timeout ONLY for Live Update notifications
+        if (isLiveUpdate) {
+            val timeoutSeconds = config.timeout ?: 0
+            timeoutJobs[originalKey]?.cancel()
+            if (timeoutSeconds > 0) {
+                timeoutJobs[originalKey] = serviceScope.launch {
+                    delay(timeoutSeconds * 1000L)
+                    Log.d(TAG, "Timeout reached for $originalKey, removing translated notification $bridgeId")
+                    NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
+                    cleanupCache(originalKey)
+                    timeoutJobs.remove(originalKey)
+                }
             }
         }
     }
@@ -471,7 +471,7 @@ class NotificationReaderService : NotificationListenerService() {
                     subText = "LiveUpdate", lastContentHash = newContentHash
                 )
                 
-                handlePostNotificationSideEffects(key, bridgeId, finalConfig, type)
+                handlePostNotificationSideEffects(key, bridgeId, finalConfig, type, true)
                 return
             }
 
@@ -501,7 +501,7 @@ class NotificationReaderService : NotificationListenerService() {
                 subText = "", lastContentHash = newContentHash
             )
 
-            handlePostNotificationSideEffects(key, bridgeId, finalConfig, type)
+            handlePostNotificationSideEffects(key, bridgeId, finalConfig, type, false)
 
         } catch (e: Exception) {
             Log.e(TAG, "💥 Error processing standard notification", e)
