@@ -102,7 +102,6 @@ import com.d4viddf.hyperbridge.ui.screens.theme.content.ColorsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.EngineThemeContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.IconsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.NotificationTypesContent
-import com.d4viddf.hyperbridge.ui.screens.theme.content.SharedThemePreview
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ThemeBehaviourContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
 import kotlinx.coroutines.Dispatchers
@@ -450,15 +449,30 @@ fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Uni
                         else -> stringResource(R.string.app_name)
                     }
 
-                    val trailing: (@Composable () -> Unit)? = if (route == CreatorRoute.COLORS) {
-                        { Box(modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(safeParseColor(viewModel.selectedColorHex))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)) }
-                    } else if (route == CreatorRoute.ICONS) {
-                        { Icon(Icons.Outlined.Image, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp)) }
-                    } else null
+                    val trailing: (@Composable () -> Unit)? = when (route) {
+                        CreatorRoute.COLORS -> {
+                            {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(CircleShape)
+                                        .background(safeParseColor(viewModel.selectedColorHex))
+                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                )
+                            }
+                        }
+                        CreatorRoute.ICONS -> {
+                            {
+                                Icon(
+                                    Icons.Outlined.Image,
+                                    null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                        else -> null
+                    }
 
                     CreatorOptionCard(title, sub, icon, shape, { onNavigate(route) }, trailing)
                 }

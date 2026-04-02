@@ -91,6 +91,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -117,6 +118,7 @@ fun WidgetConfigScreen(
     val scope = rememberCoroutineScope()
     val appPreferences = remember { AppPreferences(context.applicationContext) }
     val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
 
     val screenWidthDp = configuration.screenWidthDp
     val previewWidthDp = screenWidthDp - 32
@@ -158,7 +160,7 @@ fun WidgetConfigScreen(
         isShowShade = config.isShowShade
 
         // Timeout Logic
-        config.timeout?.let {
+        config.timeout.let {
             if (it <= 0) {
                 isTimeoutEnabled = false
                 timeoutSeconds = 0
@@ -172,11 +174,14 @@ fun WidgetConfigScreen(
         updateInterval = config.updateIntervalMinutes.toFloat()
     }
 
+    val updatedToastText = stringResource(R.string.widget_updated_toast)
+    val settingsErrorText = stringResource(R.string.widget_settings_error)
+
     val reconfigureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            Toast.makeText(context, context.getString(R.string.widget_updated_toast), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, updatedToastText, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -186,7 +191,7 @@ fun WidgetConfigScreen(
                 configureIntent.flags = 0
                 reconfigureLauncher.launch(configureIntent)
             } catch (e: Exception) {
-                Toast.makeText(context, context.getString(R.string.widget_settings_error), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, settingsErrorText, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -262,7 +267,7 @@ fun WidgetConfigScreen(
                             update = { wrapper ->
                                 val hostView = wrapper.getChildAt(0)
                                 if (hostView != null) {
-                                    val density = context.resources.displayMetrics.density
+                                    val densityVal = density.density
                                     val hDp = when (selectedSize) {
                                         WidgetSize.SMALL -> 100
                                         WidgetSize.MEDIUM -> 180
@@ -271,8 +276,8 @@ fun WidgetConfigScreen(
                                         else -> 180
                                     }
 
-                                    val widthPx = (previewWidthDp * density).toInt()
-                                    val heightPx = (hDp * density).toInt()
+                                    val widthPx = (previewWidthDp * densityVal).toInt()
+                                    val heightPx = (hDp * densityVal).toInt()
 
                                     val widthSpec = View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY)
                                     val heightSpec = View.MeasureSpec.makeMeasureSpec(heightPx, View.MeasureSpec.EXACTLY)

@@ -28,10 +28,10 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EmptyState(
+    modifier: Modifier = Modifier,
     title: String,
     description: String,
-    icon: ImageVector = Icons.Outlined.NotificationsOff,
-    modifier: Modifier = Modifier
+    icon: ImageVector = Icons.Outlined.NotificationsOff
 ) {
     Column(
         modifier = modifier
