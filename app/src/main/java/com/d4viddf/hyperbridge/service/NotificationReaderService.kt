@@ -21,6 +21,7 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
+import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
@@ -70,6 +71,8 @@ class NotificationReaderService : NotificationListenerService() {
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
     private val processingJobs = ConcurrentHashMap<String, Job>()
+    private val timeoutJobs = ConcurrentHashMap<String, Job>()
+    private val intentionallyRemovedKeys = ConcurrentHashMap.newKeySet<String>()
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
     private val appLabelCache = ConcurrentHashMap<String, String>()
@@ -220,8 +223,15 @@ class NotificationReaderService : NotificationListenerService() {
             val notifId = it.id
             val notifKey = it.key
 
+            if (intentionallyRemovedKeys.remove(notifKey)) {
+                return
+            }
+
             processingJobs[notifKey]?.cancel()
             processingJobs.remove(notifKey)
+
+            timeoutJobs[notifKey]?.cancel()
+            timeoutJobs.remove(notifKey)
 
             if (isOurApp) {
                 if (notifId >= WIDGET_ID_BASE) {
@@ -297,9 +307,32 @@ class NotificationReaderService : NotificationListenerService() {
         val hyperId = activeTranslations[originalKey]
         activeIslands.remove(originalKey)
         activeTranslations.remove(originalKey)
+        timeoutJobs[originalKey]?.cancel()
+        timeoutJobs.remove(originalKey)
 
         if (hyperId != null) {
             reverseTranslations.remove(hyperId)
+        }
+    }
+
+    private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType) {
+        // 1. Remove original if enabled (EXCEPT for Media)
+        if (config.removeOriginalNotification == true && type != NotificationType.MEDIA) {
+            intentionallyRemovedKeys.add(originalKey)
+            cancelNotification(originalKey)
+        }
+
+        // 2. Schedule timeout
+        val timeoutSeconds = config.timeout ?: 0
+        timeoutJobs[originalKey]?.cancel()
+        if (timeoutSeconds > 0) {
+            timeoutJobs[originalKey] = serviceScope.launch {
+                delay(timeoutSeconds * 1000L)
+                Log.d(TAG, "Timeout reached for $originalKey, removing translated notification $bridgeId")
+                NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
+                cleanupCache(originalKey)
+                timeoutJobs.remove(originalKey)
+            }
         }
     }
 
@@ -437,6 +470,8 @@ class NotificationReaderService : NotificationListenerService() {
                     packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
                     subText = "LiveUpdate", lastContentHash = newContentHash
                 )
+                
+                handlePostNotificationSideEffects(key, bridgeId, finalConfig, type)
                 return
             }
 
@@ -465,6 +500,8 @@ class NotificationReaderService : NotificationListenerService() {
                 packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
                 subText = "", lastContentHash = newContentHash
             )
+
+            handlePostNotificationSideEffects(key, bridgeId, finalConfig, type)
 
         } catch (e: Exception) {
             Log.e(TAG, "💥 Error processing standard notification", e)
