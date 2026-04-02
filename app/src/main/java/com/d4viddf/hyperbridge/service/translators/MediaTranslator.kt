@@ -152,7 +152,7 @@ class MediaTranslator(context: Context) : BaseTranslator(context) {
                 textInfo = TextInfo(title = "", content = "")
             )
         )
-        builder.setIslandConfig(highlightColor = containerColorHex)
+        builder.setIslandConfig(highlightColor = containerColorHex, expandedTimeMs = config.floatTimeout)
         builder.setHideDeco(true).setReopen(true).setShowSmallIcon(true)
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
