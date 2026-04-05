@@ -4,7 +4,7 @@
     <string name="back">返回</string>
     <string name="next">下一步</string>
     <string name="finish">完成</string>
-    <string name="done">已完成</string>
+    <string name="done">完成</string>
     <string name="logo_desc">應用程式圖示</string>
     <string name="settings">設定</string>
     <string name="info">資訊</string>
@@ -135,6 +135,7 @@
     <string name="island_appearance">超級島外觀</string>
     <string name="setting_float">顯示於超級島</string>
     <string name="setting_float_desc">顯示提前通知</string>
+    <string name="setting_float_timeout_desc">彈出式提示框的顯示時長。</string>
     <string name="setting_shade">在通知欄中顯示</string>
     <string name="setting_shade_desc">在通知中心中保留</string>
     <string name="setting_timeout">逾時</string>
@@ -602,4 +603,12 @@
     <string name="trigger_override">覆蓋觸發器</string>
     <string name="trigger_app_desc">為應用程式選擇一個條件觸發器上超級島。</string>
     <string name="enable_triggers">啟用特定的觸發器</string>
+    <string name="open_source_licenses">開放原始碼授權</string>
+    <string name="live_updates">即時更新</string>
+    <string name="remove_original_notification">移除預設通知</string>
+    <string name="remove_original_notification_desc">當即時更新處於啟用狀態時，自動關閉通知來源。</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
 </resources>

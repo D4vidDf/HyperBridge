@@ -135,6 +135,7 @@
     <string name="island_appearance">Island megjelenése</string>
     <string name="setting_float">Felugró ablak</string>
     <string name="setting_float_desc">A minimálisra csökkentés előtt rövid ideig mutassa meg a teljes értesítési sávot az Islandon.</string>
+    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Értesítési panel</string>
     <string name="setting_shade_desc">Tartsa láthatóvá az értesítést az értesítési panelen. Ha letiltja, akkor csak Island-on jelenik meg.</string>
     <string name="setting_timeout">Automatikus bezárás késleltetése</string>
@@ -606,4 +607,12 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="trigger_override">Aktiválás felülírása</string>
     <string name="trigger_app_desc">Válaszd ki, hogy melyik esemény aktiválja a szigetet ehhez az apphoz.</string>
     <string name="enable_triggers">Bizonyos aktiválók engedélyezése</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="live_updates">Live updates</string>
+    <string name="remove_original_notification">Remove original notification</string>
+    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
 </resources>

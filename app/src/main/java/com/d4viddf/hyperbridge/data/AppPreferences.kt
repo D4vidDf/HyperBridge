@@ -34,6 +34,13 @@ class AppPreferences(context: Context) {
         // --- MIGRATION LOGIC ---
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // Force Onboarding reset for version 0.5.0 (versionCode 17)
+                val lastResetVersion = dao.getSetting("onboarding_reset_version")?.toIntOrNull() ?: 0
+                if (lastResetVersion < 17) {
+                    dao.insert(AppSetting(SettingsKeys.SETUP_COMPLETE, "false"))
+                    dao.insert(AppSetting("onboarding_reset_version", "17"))
+                }
+
                 val isMigrated = dao.getSetting(SettingsKeys.MIGRATION_COMPLETE) == "true"
                 if (!isMigrated) {
                     val legacyPrefs = legacyDataStore.data.first().asMap()
@@ -105,7 +112,7 @@ class AppPreferences(context: Context) {
 
     // --- LIMITS & PRIORITY ---
     val limitModeFlow: Flow<IslandLimitMode> = dao.getSettingFlow("limit_mode").map {
-        try { IslandLimitMode.valueOf(it ?: IslandLimitMode.MOST_RECENT.name) } catch(e: Exception) { IslandLimitMode.MOST_RECENT }
+        try { IslandLimitMode.valueOf(it ?: IslandLimitMode.MOST_RECENT.name) } catch(_: Exception) { IslandLimitMode.MOST_RECENT }
     }
     val appPriorityListFlow: Flow<List<String>> = dao.getSettingFlow(SettingsKeys.PRIORITY_ORDER).map { it.deserializeList() }
 
@@ -197,8 +204,8 @@ class AppPreferences(context: Context) {
         dao.getSettingFlow(SettingsKeys.NAV_LEFT),
         dao.getSettingFlow(SettingsKeys.NAV_RIGHT)
     ) { l, r ->
-        val left = try { NavContent.valueOf(l ?: NavContent.DISTANCE_ETA.name) } catch (e: Exception) { NavContent.DISTANCE_ETA }
-        val right = try { NavContent.valueOf(r ?: NavContent.INSTRUCTION.name) } catch (e: Exception) { NavContent.INSTRUCTION }
+        val left = try { NavContent.valueOf(l ?: NavContent.DISTANCE_ETA.name) } catch (_: Exception) { NavContent.DISTANCE_ETA }
+        val right = try { NavContent.valueOf(r ?: NavContent.INSTRUCTION.name) } catch (_: Exception) { NavContent.INSTRUCTION }
         left to right
     }
 
@@ -212,8 +219,8 @@ class AppPreferences(context: Context) {
             dao.getSettingFlow("config_${packageName}_nav_left"),
             dao.getSettingFlow("config_${packageName}_nav_right")
         ) { l, r ->
-            val left = l?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
-            val right = r?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
+            val left = l?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} }
+            val right = r?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} }
             left to right
         }
     }
@@ -224,8 +231,8 @@ class AppPreferences(context: Context) {
             dao.getSettingFlow("config_${packageName}_nav_right"),
             globalNavLayoutFlow
         ) { appL, appR, global ->
-            val left = appL?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} } ?: global.first
-            val right = appR?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} } ?: global.second
+            val left = appL?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} } ?: global.first
+            val right = appR?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} } ?: global.second
             left to right
         }
     }
@@ -263,8 +270,8 @@ class AppPreferences(context: Context) {
             val autoStr = args[4]
             val intervalStr = args[5]
 
-            val sizeEnum = try { WidgetSize.valueOf(sizeStr ?: WidgetSize.MEDIUM.name) } catch (e: Exception) { WidgetSize.MEDIUM }
-            val modeEnum = try { WidgetRenderMode.valueOf(modeStr ?: WidgetRenderMode.INTERACTIVE.name) } catch (e: Exception) { WidgetRenderMode.INTERACTIVE }
+            val sizeEnum = try { WidgetSize.valueOf(sizeStr ?: WidgetSize.MEDIUM.name) } catch (_: Exception) { WidgetSize.MEDIUM }
+            val modeEnum = try { WidgetRenderMode.valueOf(modeStr ?: WidgetRenderMode.INTERACTIVE.name) } catch (_: Exception) { WidgetRenderMode.INTERACTIVE }
 
             WidgetConfig(
                 isShowShade = shown.toBoolean(true),

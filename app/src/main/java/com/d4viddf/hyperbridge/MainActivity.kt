@@ -40,7 +40,6 @@ import androidx.navigation3.ui.NavDisplay
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.ui.components.ChangelogSheet
-import com.d4viddf.hyperbridge.ui.components.PriorityEducationDialog
 import com.d4viddf.hyperbridge.ui.navigation.Navigator
 import com.d4viddf.hyperbridge.ui.navigation.Screen
 import com.d4viddf.hyperbridge.ui.navigation.mainNavGraph
@@ -73,7 +72,7 @@ fun MainRootNavigation(onExit: () -> Unit) {
     val database = remember { AppDatabase.getDatabase(context) }
     val backupManager = remember { BackupManager(context, preferences, database) }
 
-    val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (e: Exception) { null } }
+    val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (_: Exception) { null } }
     @Suppress("DEPRECATION")
     val currentVersionCode = packageInfo?.longVersionCode?.toInt() ?: 0
     val currentVersionName = packageInfo?.versionName ?: "0.4.2"
@@ -112,10 +111,8 @@ private fun MainNavigationContent(
     onExit: () -> Unit
 ) {
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = currentVersionCode)
-    val isPriorityEduShown by preferences.isPriorityEduShown.collectAsState(initial = true)
 
     var showChangelog by remember { mutableStateOf(false) }
-    var showPriorityEdu by remember { mutableStateOf(false) }
 
     val startRoute = if (isSetupComplete) Screen.Home else Screen.Onboarding
     val topLevelRoutes = if (isSetupComplete) setOf(Screen.Home) else setOf(Screen.Onboarding, Screen.Home)
@@ -130,8 +127,6 @@ private fun MainNavigationContent(
         if (isSetupComplete) {
             if (currentVersionCode > lastSeenVersion) {
                 showChangelog = true
-            } else if (!isPriorityEduShown && !showChangelog) {
-                showPriorityEdu = true
             }
         }
     }
@@ -205,19 +200,7 @@ private fun MainNavigationContent(
                 showChangelog = false
                 scope.launch {
                     preferences.setLastSeenVersion(currentVersionCode)
-                    if (!isPriorityEduShown) showPriorityEdu = true
                 }
-            }
-        )
-    }
-
-    if (showPriorityEdu) {
-        PriorityEducationDialog(
-            onDismiss = { showPriorityEdu = false; scope.launch { preferences.setPriorityEduShown(true) } },
-            onConfigure = {
-                showPriorityEdu = false
-                scope.launch { preferences.setPriorityEduShown(true) }
-                navigator.navigate(Screen.Behavior)
             }
         )
     }

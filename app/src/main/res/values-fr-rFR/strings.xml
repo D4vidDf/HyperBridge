@@ -135,6 +135,7 @@
     <string name="island_appearance">Apparence des bulles de notifications</string>
     <string name="setting_float">Popup de notification flottante</string>
     <string name="setting_float_desc">Afficher brièvement la bannière de notification complète avant de minimiser la bulle.</string>
+    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Panneau des notifications</string>
     <string name="setting_shade_desc">Garder la notification visible dans le panneau de notification. Si désactivé, elle n\'apparaît que dans une bulle.</string>
     <string name="setting_timeout">Délai de fermeture automatique</string>
@@ -183,7 +184,7 @@
     <string name="nav_content_none">Vide</string>
     <string name="channel_active_islands">Bulles actives</string>
     <string name="cd_toggle_app">Basculer %s</string>
-    <string name="cd_configure_app">Configurer %s%s</string>
+    <string name="cd_configure_app">Configurer %1$s %2$s</string>
     <string name="cd_enable_type">Activer les %s notifications</string>
     <string name="cd_disable_type">Désactiver les %s notifications</string>
     <string name="cd_nav_edit">Modifier la disposition de navigation</string>
@@ -581,11 +582,11 @@
     <string name="nav_layout_info">• Les dispositions de navigation seront intégrées au moteur de thèmes dans une prochaine mise à jour.\n• En cas d\'utilisation du moteur de mise à jour natif, seul le contenu du côté droit est visible.</string>
     <string name="xiaomi_featured_notifications">Notifications standard de Xiaomi</string>
     <string name="island_behavior_title">Comportement de la bulle</string>
-    <string name="island_behavior_desc"><![CDATA[Délai d\'expiration, doublons et visibilité]]></string>
+    <string name="island_behavior_desc"><![CDATA[Délai d’expiration, doublons et visibilité]]></string>
     <string name="engine">Moteur</string>
     <string name="engine_desc">Notifications natives vs Xiaomi</string>
-    <string name="behaviour_triggers"><![CDATA[Comportement & Déclencheurs]]></string>
-    <string name="engine_timeouts_triggers"><![CDATA[Moteur, délai d\'expiration & déclencheurs]]></string>
+    <string name="behaviour_triggers"><![CDATA[Comportement et Déclencheurs]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Moteur, délai d’expiration et déclencheurs]]></string>
     <string name="global_behavior">Comportement global</string>
     <string name="auto_hide_island">Cacher automatiquement la bulle de notification</string>
     <string name="hides_after_a_set_time">Masquer après une heure définie</string>
@@ -607,4 +608,12 @@
     <string name="trigger_override">Remplacement du déclencheur</string>
     <string name="trigger_app_desc">Sélectionnez quels événements déclenchent les bulles de notification pour cette application.</string>
     <string name="enable_triggers">Activer des déclencheurs spécifiques</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="live_updates">Live updates</string>
+    <string name="remove_original_notification">Remove original notification</string>
+    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
 </resources>

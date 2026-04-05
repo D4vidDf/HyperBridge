@@ -28,7 +28,7 @@
     <string name="perm_post_desc">Necesitamos permiso para mostrar la notificación \'Isla\' en tu pantalla.</string>
     <string name="perm_granted">Permiso Concedido</string>
     <string name="allow_notifications">Permitir Notificaciones</string>
-    <string name="read_data">Leer Datos</string>
+    <string name="read_data">Leer Notificaciones</string>
     <string name="perm_listener_desc">Para conectar tus aplicaciones, necesitamos leer sus notificaciones (Música, Mapas, Temporizadores).</string>
     <string name="open_settings">Abrir Ajustes</string>
     <string name="keep_alive">Mantener Activo</string>
@@ -166,8 +166,8 @@
         • &lt;b&gt;Nueva Biblioteca:&lt;/b&gt; Filtra aplicaciones por categoría y orden.\n
         • &lt;b&gt;Idiomas:&lt;/b&gt; Soporte completo para Español.
     </string>
-    <string name="priority_edu_title">Nuevo: Controla la Isla</string>
-    <string name="priority_edu_desc">HyperBridge ahora gestiona cómo se comportan múltiples notificaciones cuando se alcanza el límite de 9.\n\n&lt;b&gt;Por Defecto: Más Reciente&lt;/b&gt;\nLas nuevas notificaciones reemplazan a las más antiguas automáticamente.</string>
+    <string name="priority_edu_title">Controla la Isla</string>
+    <string name="priority_edu_desc">Elige cómo debe comportarse la isla cuando hay varias notificaciones activas al mismo tiempo.</string>
     <string name="keep_default">Mantener</string>
     <string name="configure_now">Configurar</string>
     <string name="badge_new">NUEVO</string>
@@ -607,4 +607,8 @@
     <string name="trigger_override">Anular desencadenantes</string>
     <string name="trigger_app_desc">Selecciona qué eventos activan la isla para esta aplicación.</string>
     <string name="enable_triggers">Habilitar eventos específicos</string>
+    <string name="onboarding_can_be_changed">Puedes cambiar estas opciones más tarde en Ajustes y el Configurador de Temas.</string>
+    <string name="onboarding_widget_desc">Añade widgets estándar de Android a tu isla para un acceso rápido.</string>
+    <string name="onboard_theme_desc">Personaliza completamente los colores, formas e iconos de tu isla.</string>
+    <string name="onboard_design_desc">Amplía las posibilidades con diferentes opciones de personalización</string>
 </resources>
