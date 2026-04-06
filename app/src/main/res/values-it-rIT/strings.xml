@@ -135,6 +135,7 @@
     <string name="island_appearance">Aspetto Dell\'isola</string>
     <string name="setting_float">Avviso Pop-up</string>
     <string name="setting_float_desc">Mostra brevemente il banner di notifica completo prima di ridurre al minimo l\'isola.</string>
+    <string name="setting_float_timeout_desc">Quanto tempo rimane visibile il pop-up headsup.</string>
     <string name="setting_shade">Pannello delle Notifiche</string>
     <string name="setting_shade_desc">Mantieni la notifica visibile nel pannello di notifica. Se disabilitata, appare solo come un\'isola.</string>
     <string name="setting_timeout">Ritardo chiusura automatica</string>
@@ -607,4 +608,12 @@
     <string name="trigger_override">Sovrascrivi Attivazione</string>
     <string name="trigger_app_desc">Seleziona quali eventi attivano l\'isola per questa app.</string>
     <string name="enable_triggers">Abilita trigger specifici</string>
+    <string name="open_source_licenses">Licenze open source</string>
+    <string name="live_updates">Aggiornamenti in tempo reale</string>
+    <string name="remove_original_notification">Rimuovi notifica originale</string>
+    <string name="remove_original_notification_desc">Rimuovi automaticamente la notifica di origine quando è attivo un Live Update.</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
 </resources>

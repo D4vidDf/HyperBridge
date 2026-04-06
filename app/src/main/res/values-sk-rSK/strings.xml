@@ -135,6 +135,7 @@
     <string name="island_appearance">Vzhľad Islandu</string>
     <string name="setting_float">Vyskakovacie okno s upozornením</string>
     <string name="setting_float_desc">Krátko zobrazí celý notifikačný banner pred minimalizáciou Islandu.</string>
+    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Panel oznámení</string>
     <string name="setting_shade_desc">Udržuje upozornenie viditeľné v paneli oznámení. Ak je vypnuté, zobrazí sa iba ako Ostrov.</string>
     <string name="setting_timeout">Oneskorenie automatického zatvorenia</string>
@@ -617,4 +618,12 @@
     <string name="trigger_override">Trigger Override</string>
     <string name="trigger_app_desc">Select which events trigger the island for this app.</string>
     <string name="enable_triggers">Enable specific triggers</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="live_updates">Live updates</string>
+    <string name="remove_original_notification">Remove original notification</string>
+    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
 </resources>

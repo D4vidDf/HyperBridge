@@ -25,7 +25,7 @@ import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 
 // Define our snap points (in seconds) for the auto-hide island
-private val timeoutSteps = listOf(
+val timeoutSteps = listOf(
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 45,
     60, 300, 900, 1800, 3600
 )
@@ -241,7 +241,7 @@ fun IslandSettingsControl(
 /**
  * Formats seconds into a readable string (e.g. "10s", "5m", "1h")
  */
-private fun formatSeconds(seconds: Int): String {
+fun formatSeconds(seconds: Int): String {
     return when {
         seconds < 60 -> "${seconds}s"
         seconds < 3600 -> "${seconds / 60}m"

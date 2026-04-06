@@ -33,14 +33,14 @@
     <string name="perm_granted">Permission Granted</string>
     <string name="allow_notifications">Allow Notifications</string>
 
-    <string name="read_data">Read Data</string>
+    <string name="read_data">Read Notifications</string>
     <string name="perm_listener_desc">To bridge your apps, we need to read their notifications (Music, Maps, Timers).</string>
     <string name="open_settings">Open Settings</string>
 
     <string name="keep_alive">Keep Alive</string>
     <string name="optimization_desc">HyperOS kills background apps. Enable Autostart and No Restrictions to keep the island active.</string>
-    <string name="enable_autostart">1. Enable Autostart</string>
-    <string name="set_battery_no_restrictions">2. Set Battery \'No Restrictions\'</string>
+    <string name="enable_autostart">Allow Autostart</string>
+    <string name="set_battery_no_restrictions">Disable Restrictions</string>
 
     <string name="tab_active">Active</string>
     <string name="tab_library">Library</string>
@@ -199,8 +199,8 @@
         • &lt;b&gt;Localization:&lt;/b&gt; Added Spanish support.
     </string>
 
-    <string name="priority_edu_title">New: Control the Island</string>
-    <string name="priority_edu_desc">HyperBridge can now manage how multiple notifications behave when the 9-island limit is reached.\n\n&lt;b&gt;Default: Most Recent&lt;/b&gt;\nNew notifications replace the oldest ones automatically.</string>
+    <string name="priority_edu_title">Control the Island</string>
+    <string name="priority_edu_desc">Choose how the island should behave when multiple notifications are active at the same time.</string>
     <string name="keep_default">Keep Default</string>
     <string name="configure_now">Configure Now</string>
 
@@ -721,4 +721,9 @@
     <string name="live_updates">Live updates</string>
     <string name="remove_original_notification">Remove original notification</string>
     <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
+    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
 </resources>
