@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.util
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -18,13 +19,13 @@ fun openAutoStartSettings(context: Context) {
             "com.miui.permcenter.autostart.AutoStartManagementActivity"
         )
         context.startActivity(intent)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Fallback
         try {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             intent.data = "package:${context.packageName}".toUri()
             context.startActivity(intent)
-        } catch (e2: Exception) {
+        } catch (_: Exception) {
             Toast.makeText(context, "Settings not found", Toast.LENGTH_SHORT).show()
         }
     }
@@ -33,17 +34,18 @@ fun openAutoStartSettings(context: Context) {
 /**
  * Opens the Battery Optimization screen for this app.
  */
+@SuppressLint("BatteryLife")
 fun openBatterySettings(context: Context) {
     try {
         val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
         intent.data = "package:${context.packageName}".toUri()
         context.startActivity(intent)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         try {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             intent.data = "package:${context.packageName}".toUri()
             context.startActivity(intent)
-        } catch (e2: Exception) {
+        } catch (_: Exception) {
             Toast.makeText(context, "Settings not found", Toast.LENGTH_SHORT).show()
         }
     }

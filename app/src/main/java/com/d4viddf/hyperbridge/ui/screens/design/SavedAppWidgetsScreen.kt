@@ -112,7 +112,7 @@ fun SavedAppWidgetsScreen(
     }
 
     // Fetch Saved Widgets (Reacts to new widgets being added dynamically)
-    LaunchedEffect(savedIds, refreshTrigger.value) {
+    LaunchedEffect(savedIds, refreshTrigger.intValue) {
         if (savedIds == null) return@LaunchedEffect
 
         isLoading = true
@@ -128,11 +128,11 @@ fun SavedAppWidgetsScreen(
                 val appName = try {
                     val appInfo = context.packageManager.getApplicationInfo(pkg, 0)
                     context.packageManager.getApplicationLabel(appInfo).toString()
-                } catch (e: Exception) { pkg }
+                } catch (_: Exception) { pkg }
 
                 val icon = try {
                     context.packageManager.getApplicationIcon(pkg)
-                } catch (e: Exception) { null }
+                } catch (_: Exception) { null }
 
                 SavedWidgetGroup(pkg, appName, icon, ids)
             }.sortedBy { it.appName }

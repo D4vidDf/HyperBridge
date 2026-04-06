@@ -258,7 +258,7 @@ class NotificationReaderService : NotificationListenerService() {
 
                 try {
                     NotificationManagerCompat.from(this).cancel(hyperId)
-                } catch (e: Exception) {}
+                } catch (_: Exception) {}
 
                 cleanupCache(notifKey)
             }
@@ -364,10 +364,6 @@ class NotificationReaderService : NotificationListenerService() {
 
         try {
             val extras = sbn.notification.extras
-
-            val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
-            val rawText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            val rawProgress = extras.getInt(Notification.EXTRA_PROGRESS, -1)
 
             // [LOGIC] 1. Resolve Info intelligently
             var effectiveTitle = resolveTitle(sbn)
@@ -547,7 +543,7 @@ class NotificationReaderService : NotificationListenerService() {
                 val activeList = activeNotifications
                 val updatedSbn = activeList?.firstOrNull { it.key == sbn.key }
                 if (updatedSbn != null) return updatedSbn
-            } catch (e: Exception) { }
+            } catch (_: Exception) { }
         }
         return sbn
     }
@@ -556,7 +552,7 @@ class NotificationReaderService : NotificationListenerService() {
         val n = sbn.notification
         val extras = n.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE) ?: ""
-        val isCall = n.category == Notification.CATEGORY_CALL || template == "android.app.Notification\$CallStyle"
+        val isCall = n.category == Notification.CATEGORY_CALL || template == $$"android.app.Notification$CallStyle"
         val isNav = n.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.let { it.contains("maps") || it.contains("waze") }
         val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || n.category == Notification.CATEGORY_ALARM) && n.`when` > 0
         val isMedia = template.contains("MediaStyle") || n.category == Notification.CATEGORY_TRANSPORT
@@ -685,7 +681,7 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun getCachedAppLabel(pkg: String): String = appLabelCache.getOrPut(pkg) {
-        try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { "" }
+        try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (_: Exception) { "" }
     }
 
     private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")

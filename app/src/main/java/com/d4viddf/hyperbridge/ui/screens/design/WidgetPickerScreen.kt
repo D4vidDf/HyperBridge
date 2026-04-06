@@ -116,7 +116,7 @@ fun WidgetPickerScreen(
     var allGroups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
     var tabIndex by remember { mutableIntStateOf(0) } // 0 = Recommended, 1 = All
-    var pendingWidgetId by remember { mutableStateOf(-1) }
+    var pendingWidgetId by remember { mutableIntStateOf(-1) }
 
     val bindLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -140,7 +140,7 @@ fun WidgetPickerScreen(
                     val appName = context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(pkg, 0)).toString()
                     val icon = context.packageManager.getApplicationIcon(pkg)
                     WidgetAppGroup(pkg, appName, icon, list)
-                } catch (e: Exception) { null }
+                } catch (_: Exception) { null }
             }.sortedBy { it.appName }
 
             allGroups = uiGroups
@@ -415,7 +415,7 @@ fun WidgetChildItem(
         withContext(Dispatchers.IO) {
             preview = try {
                 info.loadPreviewImage(context, 0) ?: info.loadIcon(context, 0)
-            } catch (e: Exception) { null }
+            } catch (_: Exception) { null }
         }
     }
 

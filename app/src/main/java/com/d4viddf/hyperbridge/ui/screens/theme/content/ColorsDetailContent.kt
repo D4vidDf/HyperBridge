@@ -344,13 +344,9 @@ private fun ColorsCustomTab(
     }
 
     val selectedColor = safeParseColor(selectedColorHex)
-    val isCustomColorSelected = savedColors.contains(selectedColorHex) && colorMode == ColorMode.CUSTOM
 
     val hsl = FloatArray(3)
     ColorUtils.colorToHSL(selectedColor.toArgb(), hsl)
-    val hue = hsl[0]
-    val saturation = hsl[1]
-    val lightness = hsl[2]
 
     Column(
         modifier = Modifier
@@ -451,7 +447,7 @@ fun safeParseColor(hex: String?): Color {
     if (hex.isNullOrEmpty()) return Color.Gray
     return try {
         Color(hex.toColorInt())
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         Color.Gray
     }
 }

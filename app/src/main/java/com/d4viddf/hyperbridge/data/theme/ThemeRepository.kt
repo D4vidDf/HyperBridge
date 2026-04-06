@@ -23,7 +23,7 @@ import java.util.zip.ZipInputStream
 
 class ThemeRepository(private val context: Context) {
 
-    private val TAG = "HyperBridgeTheme"
+    private val tag = "HyperBridgeTheme"
     private val json = Json { ignoreUnknownKeys = true; prettyPrint = true }
 
     private val _activeTheme = MutableStateFlow<HyperTheme?>(null)
@@ -46,13 +46,13 @@ class ThemeRepository(private val context: Context) {
                     val content = themeFile.readText()
                     val theme = json.decodeFromString<HyperTheme>(content)
                     _activeTheme.value = theme
-                    Log.i(TAG, "Theme Activated: ${theme.meta.name}")
+                    Log.i(tag, "Theme Activated: ${theme.meta.name}")
                 } else {
-                    Log.w(TAG, "Theme file not found: $themeId")
+                    Log.w(tag, "Theme file not found: $themeId")
                     _activeTheme.value = null
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to load theme", e)
+                Log.e(tag, "Failed to load theme", e)
                 _activeTheme.value = null
             }
         }
@@ -108,7 +108,7 @@ class ThemeRepository(private val context: Context) {
                 val content = configFile.readText()
                 val theme = try {
                     json.decodeFromString<HyperTheme>(content)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     throw IllegalArgumentException("Invalid JSON structure")
                 }
 
@@ -129,11 +129,11 @@ class ThemeRepository(private val context: Context) {
                     tempDir.deleteRecursively()
                 }
 
-                Log.i(TAG, "Theme Installed Successfully: $finalId")
+                Log.i(tag, "Theme Installed Successfully: $finalId")
                 return@withContext finalId
 
             } catch (e: Exception) {
-                Log.e(TAG, "Installation failed", e)
+                Log.e(tag, "Installation failed", e)
                 tempDir.deleteRecursively() // Cleanup
                 throw e
             }
@@ -195,7 +195,7 @@ class ThemeRepository(private val context: Context) {
                 ResourceType.PRESET_DRAWABLE -> null
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Error loading bitmap resource: ${resource.value}", e)
+            Log.w(tag, "Error loading bitmap resource: ${resource.value}", e)
             null
         }
     }
@@ -219,8 +219,8 @@ class ThemeRepository(private val context: Context) {
                             val theme = json.decodeFromString<HyperTheme>(content)
                             list.add(theme)
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Corrupt theme found in: ${themeFolder.name}")
+                    } catch (_: Exception) {
+                        Log.e(tag, "Corrupt theme found in: ${themeFolder.name}")
                     }
                 }
             }
@@ -285,7 +285,7 @@ class ThemeRepository(private val context: Context) {
                 }
                 return@withContext zipFile
             } catch (e: Exception) {
-                Log.e(TAG, "Export failed", e)
+                Log.e(tag, "Export failed", e)
                 return@withContext null
             }
         }

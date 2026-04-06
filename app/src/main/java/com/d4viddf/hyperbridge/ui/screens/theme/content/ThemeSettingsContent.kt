@@ -96,11 +96,16 @@ fun ThemeBehaviourContent() {
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
 
-    val globalConfig by preferences.globalConfigFlow.collectAsState(initial = IslandConfig(false, false, 10))
+    val globalConfig by preferences.globalConfigFlow.collectAsState(initial = IslandConfig(
+        isFloat = false,
+        isShowShade = false,
+        timeout = 10
+    ))
 
     Column(
         modifier = Modifier
             .padding(16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         IslandSettingsControl(
             config = globalConfig,

@@ -376,7 +376,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="saved_widgets_title">Widgets Salvos</string>
     <string name="new_widget_fab">Novo Widget</string>
     <string name="no_saved_widgets">Nenhum widget salvo encontrado.</string>
-    <string name="widget_id_fmt">Widget</string>
+    <string name="widget_id_fmt">Widget #%d</string>
     <string name="show_on_island">Mostrar na Ilha</string>
     <string name="theme_installer_title">Importar Tema</string>
     <string name="theme_installer_analyzing">Analisando pacote do tema...</string>

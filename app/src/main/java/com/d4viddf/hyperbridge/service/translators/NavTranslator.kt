@@ -64,7 +64,7 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         else if (isTimeInfo(text) && !isDistanceInfo(text)) eta = text
 
         val candidates = listOf(bigText, title, text).filter { it.isNotEmpty() }
-        val contentSource = candidates.firstOrNull { str -> distanceRegex.containsMatchIn(str) } ?: if (title.isNotEmpty()) title else text
+        val contentSource = candidates.firstOrNull { str -> distanceRegex.containsMatchIn(str) } ?: title.ifEmpty { text }
 
         if (isDistanceInfo(contentSource)) {
             val match = distanceRegex.find(contentSource)

@@ -184,7 +184,7 @@
     <string name="nav_content_none">Vide</string>
     <string name="channel_active_islands">Bulles actives</string>
     <string name="cd_toggle_app">Basculer %s</string>
-    <string name="cd_configure_app">Configurer %1$s %2$s</string>
+    <string name="cd_configure_app">Configurer %1$s</string>
     <string name="cd_enable_type">Activer les %s notifications</string>
     <string name="cd_disable_type">Désactiver les %s notifications</string>
     <string name="cd_nav_edit">Modifier la disposition de navigation</string>

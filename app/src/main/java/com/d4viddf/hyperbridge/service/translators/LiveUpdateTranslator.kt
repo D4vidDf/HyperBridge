@@ -51,7 +51,7 @@ class LiveUpdateTranslator(
 
             val themeColorInt = try {
                 themeColorStr.toColorInt()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 original.color
             }
             builder.setColor(themeColorInt)
@@ -128,7 +128,7 @@ class LiveUpdateTranslator(
 
             // Extract Distance
             val candidates = listOf(bigText, title, text).filter { it.isNotEmpty() }
-            val contentSource = candidates.firstOrNull { str -> distanceRegex.containsMatchIn(str) } ?: if (title.isNotEmpty()) title else text
+            val contentSource = candidates.firstOrNull { str -> distanceRegex.containsMatchIn(str) } ?: title.ifEmpty { text }
 
             if (distanceRegex.containsMatchIn(contentSource)) {
                 distanceRegex.find(contentSource)?.let { distance = it.value }
