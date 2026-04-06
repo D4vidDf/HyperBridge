@@ -9,7 +9,10 @@ import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -36,6 +39,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Architecture
 import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Bolt
@@ -53,6 +57,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -65,6 +70,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -100,6 +107,8 @@ import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.ui.components.EngineOptionCard
 import com.d4viddf.hyperbridge.ui.components.EnginePreview
+import com.d4viddf.hyperbridge.ui.components.formatSeconds
+import com.d4viddf.hyperbridge.ui.components.timeoutSteps
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.util.DeviceUtils
 import com.d4viddf.hyperbridge.util.isNotificationServiceEnabled
@@ -111,7 +120,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit) {
     // 11 Pages
-    val pagerState = rememberPagerState(pageCount = { 11 })
+    val pagerState = rememberPagerState(pageCount = { 13 })
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val prefs = remember { AppPreferences(context) }
@@ -161,7 +170,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val currentPage = pagerState.currentPage
-                val isLastPage = currentPage == 10
+                val isLastPage = currentPage == 13
 
                 if (currentPage == 0) {
                     Button(
@@ -255,6 +264,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 9 -> EngineConfigPage(prefs)
                 10 -> PriorityEducationPage(prefs)
                 11 -> BehaviorConfigPage(prefs)
+                12 -> AutoHideConfigPage(prefs)
             }
         }
     }
@@ -595,7 +605,7 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
 
     OnboardingPageLayout(
         title = stringResource(R.string.island_behavior),
-        description = stringResource(R.string.behavior_desc_hide_long),
+        description = stringResource(R.string.behavior_desc_glob_config),
         icon = Icons.Default.Settings,
         iconColor = MaterialTheme.colorScheme.primary
     ) {
@@ -639,6 +649,90 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun AutoHideConfigPage(prefs: AppPreferences) {
+    val config by prefs.globalConfigFlow.collectAsState(initial = IslandConfig())
+    val scope = rememberCoroutineScope()
+    val isOverridden = config.isFloat != null
+
+    // Timeout is "Enabled" if it's > 0
+    val currentTimeout = config.timeout ?: 10
+    val isTimeoutEnabled = currentTimeout > 0
+
+    OnboardingPageLayout(
+        title = stringResource(R.string.island_behavior),
+        description = stringResource(R.string.behavior_desc_hide_long),
+        icon = Icons.Rounded.Timer,
+        iconColor = MaterialTheme.colorScheme.primary
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                // Header with Switch
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.AccessTime, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(20.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.auto_hide_island), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                        Text(
+                            text = if (isTimeoutEnabled) stringResource(R.string.hides_after_a_set_time) else stringResource(
+                                R.string.behavior_hide_desc
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = isTimeoutEnabled,
+                        onCheckedChange = { enabled ->
+                            // When changing this, we also ensure isFloat is set to track the override
+                            val newTimeout = if (enabled) 5 else 0
+                            val currentIsFloat = config.isFloat ?:  true
+                            scope.launch { prefs.updateGlobalConfig(config.copy(timeout = newTimeout, isFloat = currentIsFloat)) }
+                        }
+                    )
+                }
+
+                // Expandable Slider Section
+                AnimatedVisibility(
+                    visible = isTimeoutEnabled,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
+                    Column {
+                        Spacer(Modifier.height(16.dp))
+
+                        // Time Display Label
+                        Text(
+                            text = formatSeconds(currentTimeout),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        // Slider mapping to our steps list
+                        val currentIndex = timeoutSteps.indexOf(currentTimeout).coerceAtLeast(0).toFloat()
+
+                        Slider(
+                            value = currentIndex,
+                            onValueChange = { index ->
+                                val selectedSeconds = timeoutSteps[index.toInt()]
+                                val currentIsFloat = config.isFloat ?: true
+                                scope.launch { prefs.updateGlobalConfig(config.copy(timeout = selectedSeconds, isFloat = currentIsFloat))}
+                            },
+                            valueRange = 0f..(timeoutSteps.size - 1).toFloat(),
+                            steps = timeoutSteps.size - 2
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -1122,5 +1216,13 @@ fun EngineConfigPagePreview() {
 fun OptimizationPagePreview() {
     HyperBridgeTheme {
         OptimizationPage(context = LocalContext.current)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AutoHidePagePreview(){
+    HyperBridgeTheme {
+        AutoHideConfigPage(prefs = AppPreferences(LocalContext.current))
     }
 }
