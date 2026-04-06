@@ -42,8 +42,8 @@ fun mainNavGraph(
             scope.launch {
                 preferences.setSetupComplete(true)
                 preferences.setLastSeenVersion(currentVersionCode)
-                preferences.setPriorityEduShown(true)
-                navigator.navigate(Screen.Home)
+
+                navigator.finishOnboarding(Screen.Home)
             }
         }
     }

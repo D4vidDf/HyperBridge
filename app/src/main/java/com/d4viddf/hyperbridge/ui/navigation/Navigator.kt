@@ -36,4 +36,24 @@ class Navigator<T : NavKey>(val state: NavigationState<T>) {
             return true
         }
     }
+
+    /**
+     * Specifically handles the transition from Onboarding to Home.
+     * Ensures the app doesn't close by adding the Home screen BEFORE clearing Onboarding.
+     */
+    fun finishOnboarding(homeRoute: T) {
+        val homeStack = state.backStacks[homeRoute]
+            ?: error("Home route $homeRoute not found in backStacks")
+
+
+        if (homeStack.isEmpty()) {
+            homeStack.add(homeRoute)
+        }
+
+        state.topLevelRoute = homeRoute
+
+        if (state.startRoute != homeRoute) {
+            state.backStacks[state.startRoute]?.clear()
+        }
+    }
 }

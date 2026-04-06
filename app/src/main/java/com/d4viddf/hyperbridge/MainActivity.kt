@@ -114,12 +114,12 @@ private fun MainNavigationContent(
 
     var showChangelog by remember { mutableStateOf(false) }
 
-    val startRoute = if (isSetupComplete) Screen.Home else Screen.Onboarding
-    val topLevelRoutes = if (isSetupComplete) setOf(Screen.Home) else setOf(Screen.Onboarding, Screen.Home)
+    val initialStartRoute = remember { if (isSetupComplete) Screen.Home else Screen.Onboarding }
+    val allPossibleTopLevel = remember { setOf(Screen.Onboarding, Screen.Home) }
 
     val navigationState = rememberNavigationState(
-        startRoute = startRoute,
-        topLevelRoutes = topLevelRoutes
+        startRoute = initialStartRoute,
+        topLevelRoutes = allPossibleTopLevel
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
 

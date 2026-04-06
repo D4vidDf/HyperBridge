@@ -36,9 +36,9 @@ class AppPreferences(context: Context) {
             try {
                 // Force Onboarding reset for version 0.5.0 (versionCode 17)
                 val lastResetVersion = dao.getSetting("onboarding_reset_version")?.toIntOrNull() ?: 0
-                if (lastResetVersion < 17) {
+                if (lastResetVersion < 18) {
                     dao.insert(AppSetting(SettingsKeys.SETUP_COMPLETE, "false"))
-                    dao.insert(AppSetting("onboarding_reset_version", "17"))
+                    dao.insert(AppSetting("onboarding_reset_version", "18"))
                 }
 
                 val isMigrated = dao.getSetting(SettingsKeys.MIGRATION_COMPLETE) == "true"

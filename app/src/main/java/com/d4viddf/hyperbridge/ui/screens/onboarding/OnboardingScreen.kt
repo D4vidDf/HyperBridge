@@ -170,7 +170,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val currentPage = pagerState.currentPage
-                val isLastPage = currentPage == 13
+                val isLastPage = currentPage == 12
 
                 if (currentPage == 0) {
                     Button(
@@ -657,8 +657,6 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
 fun AutoHideConfigPage(prefs: AppPreferences) {
     val config by prefs.globalConfigFlow.collectAsState(initial = IslandConfig())
     val scope = rememberCoroutineScope()
-    val isOverridden = config.isFloat != null
-
     // Timeout is "Enabled" if it's > 0
     val currentTimeout = config.timeout ?: 10
     val isTimeoutEnabled = currentTimeout > 0
