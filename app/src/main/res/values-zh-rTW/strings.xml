@@ -607,8 +607,10 @@
     <string name="live_updates">即時更新</string>
     <string name="remove_original_notification">移除預設通知</string>
     <string name="remove_original_notification_desc">當即時更新處於啟用狀態時，自動關閉通知來源。</string>
-    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
-    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
-    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
-    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
+    <string name="onboarding_can_be_changed">您稍後可以在「設定」和「主題配置器」中變更這些選項。</string>
+    <string name="onboarding_widget_desc">在您的超級島上添加Android 小工具，以便快速存取。</string>
+    <string name="onboard_theme_desc">完全自訂超級島的顏色、形狀和圖示。</string>
+    <string name="onboard_design_desc">利用不同的自訂選項拓展可能性</string>
+    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
+    <string name="widget_layout_snapshot">Preview of the widget</string>
 </resources>

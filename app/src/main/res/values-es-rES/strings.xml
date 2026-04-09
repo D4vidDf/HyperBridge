@@ -135,6 +135,7 @@
     <string name="island_appearance">Apariencia de Isla</string>
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
+    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
     <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificación. Si está desactivada, solo aparece como una isla.</string>
     <string name="setting_timeout">Retraso de cierre automático</string>
@@ -607,8 +608,14 @@
     <string name="trigger_override">Anular desencadenantes</string>
     <string name="trigger_app_desc">Selecciona qué eventos activan la isla para esta aplicación.</string>
     <string name="enable_triggers">Habilitar eventos específicos</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="live_updates">Live updates</string>
+    <string name="remove_original_notification">Remove original notification</string>
+    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
     <string name="onboarding_can_be_changed">Puedes cambiar estas opciones más tarde en Ajustes y el Configurador de Temas.</string>
     <string name="onboarding_widget_desc">Añade widgets estándar de Android a tu isla para un acceso rápido.</string>
     <string name="onboard_theme_desc">Personaliza completamente los colores, formas e iconos de tu isla.</string>
     <string name="onboard_design_desc">Amplía las posibilidades con diferentes opciones de personalización</string>
+    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
+    <string name="widget_layout_snapshot">Preview of the widget</string>
 </resources>

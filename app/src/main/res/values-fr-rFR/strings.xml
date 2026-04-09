@@ -135,7 +135,7 @@
     <string name="island_appearance">Apparence des bulles de notifications</string>
     <string name="setting_float">Popup de notification flottante</string>
     <string name="setting_float_desc">Afficher brièvement la bannière de notification complète avant de minimiser la bulle.</string>
-    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
+    <string name="setting_float_timeout_desc">Pendant combien de temps la fenêtre flottante reste visible.</string>
     <string name="setting_shade">Panneau des notifications</string>
     <string name="setting_shade_desc">Garder la notification visible dans le panneau de notification. Si désactivé, elle n\'apparaît que dans une bulle.</string>
     <string name="setting_timeout">Délai de fermeture automatique</string>
@@ -608,12 +608,14 @@
     <string name="trigger_override">Remplacement du déclencheur</string>
     <string name="trigger_app_desc">Sélectionnez quels événements déclenchent les bulles de notification pour cette application.</string>
     <string name="enable_triggers">Activer des déclencheurs spécifiques</string>
-    <string name="open_source_licenses">Open Source Licenses</string>
-    <string name="live_updates">Live updates</string>
-    <string name="remove_original_notification">Remove original notification</string>
-    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
-    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
-    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
-    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
-    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
+    <string name="open_source_licenses">Licences Open Source</string>
+    <string name="live_updates">Mises à jour en temps réel</string>
+    <string name="remove_original_notification">Supprimer la notification originale</string>
+    <string name="remove_original_notification_desc">Ignorer automatiquement la notification source quand une mise à jour en direct est active.</string>
+    <string name="onboarding_can_be_changed">Vous pourrez modifier ces options plus tard dans Paramètres et Configurateur de thèmes.</string>
+    <string name="onboarding_widget_desc">Ajoutez des widgets standard Android à votre bulle de notification pour un accès rapide.</string>
+    <string name="onboard_theme_desc">Personnalisez entièrement les couleurs, les formes et les icônes de votre bulle de notification.</string>
+    <string name="onboard_design_desc">Augmentez les possibilités avec différentes options de personnalisation</string>
+    <string name="behavior_desc_glob_config">Détermine le comportement de la bulle de notification.</string>
+    <string name="widget_layout_snapshot">Aperçu du widget</string>
 </resources>

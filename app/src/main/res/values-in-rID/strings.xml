@@ -606,4 +606,6 @@ Penulisan ulang total logika inti untuk stabilitas yang lebih baik.\n
     <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
     <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
+    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
+    <string name="widget_layout_snapshot">Preview of the widget</string>
 </resources>
