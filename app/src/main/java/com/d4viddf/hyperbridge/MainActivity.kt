@@ -195,7 +195,7 @@ private fun MainNavigationContent(
     if (showChangelog) {
         ChangelogSheet(
             currentVersionName = currentVersionName,
-            changelogText = stringResource(R.string.changelog_0_4_2),
+            changelogText = stringResource(R.string.changelog_0_5_0_beta),
             onDismiss = {
                 showChangelog = false
                 scope.launch {
