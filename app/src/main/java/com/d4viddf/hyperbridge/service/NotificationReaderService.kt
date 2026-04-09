@@ -480,7 +480,7 @@ class NotificationReaderService : NotificationListenerService() {
                     navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second, activeTheme)
                 }
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig, activeTheme)
-                NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme)
+                NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
                 else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
             }
