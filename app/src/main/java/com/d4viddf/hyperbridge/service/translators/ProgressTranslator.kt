@@ -26,7 +26,8 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
         title: String,
         picKey: String,
         config: IslandConfig,
-        theme: HyperTheme?
+        theme: HyperTheme?,
+        isUpdate: Boolean
     ): HyperIslandData {
 
         // [FIX] Prioritize Progress Colors -> Global Highlight -> Default
@@ -39,10 +40,13 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
         val customTick = getThemeBitmap(theme, "tick_icon")
 
         val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
-        builder.setEnableFloat(config.isFloat ?: false)
 
         builder.setShowNotification(config.isShowShade ?: true)
-        builder.setIslandFirstFloat(config.isFloat ?: false)
+        
+        // Always enable float if the user wants it, but only "First Float" (expand) on the initial appearance
+        val isFloatEnabled = config.isFloat ?: false
+        builder.setEnableFloat(isFloatEnabled)
+        builder.setIslandFirstFloat(isFloatEnabled && !isUpdate)
 
         val extras = sbn.notification.extras
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
@@ -84,8 +88,8 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
 
         if (isFinished) {
             builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, PicInfo(1, hiddenKey), TextInfo("", "")),
-                right = ImageTextInfoRight(1, PicInfo(1, tickKey), TextInfo("Finished", title))
+                left = ImageTextInfoLeft(1, PicInfo(1, hiddenKey)),
+                right = ImageTextInfoRight(2, PicInfo(1, tickKey))
             )
             builder.setSmallIsland(tickKey)
             builder.setIslandConfig(timeout = config.timeout , dismissible = true, expandedTimeMs = config.floatTimeout)
