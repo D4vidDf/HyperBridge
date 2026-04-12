@@ -41,8 +41,6 @@ fun mainNavGraph(
         OnboardingScreen {
             scope.launch {
                 preferences.setSetupComplete(true)
-                preferences.setLastSeenVersion(currentVersionCode)
-
                 navigator.finishOnboarding(Screen.Home)
             }
         }

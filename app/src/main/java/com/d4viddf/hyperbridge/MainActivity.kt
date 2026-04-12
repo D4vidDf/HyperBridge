@@ -110,7 +110,8 @@ private fun MainNavigationContent(
     currentVersionName: String,
     onExit: () -> Unit
 ) {
-    val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = currentVersionCode)
+    val isInitiallySetup = remember { isSetupComplete }
+    val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = -1)
 
     var showChangelog by remember { mutableStateOf(false) }
 
@@ -123,8 +124,8 @@ private fun MainNavigationContent(
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
 
-    LaunchedEffect(isSetupComplete) {
-        if (isSetupComplete) {
+    LaunchedEffect(isSetupComplete, lastSeenVersion) {
+        if (isSetupComplete && isInitiallySetup && lastSeenVersion != -1) {
             if (currentVersionCode > lastSeenVersion) {
                 showChangelog = true
             }
