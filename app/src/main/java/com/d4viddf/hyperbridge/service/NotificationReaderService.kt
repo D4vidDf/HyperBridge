@@ -154,8 +154,8 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        if (intent.action == "ACTION_TEST_WIDGET") {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "ACTION_TEST_WIDGET") {
             val widgetId = intent.getIntExtra("WIDGET_ID", -1)
             if (widgetId != -1) {
                 dismissedWidgetIds.remove(widgetId)
@@ -164,7 +164,7 @@ class NotificationReaderService : NotificationListenerService() {
                     processSingleWidget(widgetId, config)
                 }
             }
-        } else if (intent.action == ACTION_RELOAD_THEME) {
+        } else if (intent?.action == ACTION_RELOAD_THEME) {
             serviceScope.launch {
                 val themeId = preferences.activeThemeIdFlow.first()
                 if (themeId != null) {
