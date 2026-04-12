@@ -45,8 +45,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
         
         // Always enable float if the user wants it, but only "First Float" (expand) on the initial appearance
         val isFloatEnabled = config.isFloat ?: false
-        builder.setEnableFloat(isFloatEnabled)
-        builder.setIslandFirstFloat(isFloatEnabled && !isUpdate)
+        builder.setEnableFloat(isFloatEnabled && !isUpdate)
 
         val extras = sbn.notification.extras
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
