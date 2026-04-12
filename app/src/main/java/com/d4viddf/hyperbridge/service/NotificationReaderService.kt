@@ -154,8 +154,8 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        if (intent.action == "ACTION_TEST_WIDGET") {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "ACTION_TEST_WIDGET") {
             val widgetId = intent.getIntExtra("WIDGET_ID", -1)
             if (widgetId != -1) {
                 dismissedWidgetIds.remove(widgetId)
@@ -164,7 +164,7 @@ class NotificationReaderService : NotificationListenerService() {
                     processSingleWidget(widgetId, config)
                 }
             }
-        } else if (intent.action == ACTION_RELOAD_THEME) {
+        } else if (intent?.action == ACTION_RELOAD_THEME) {
             serviceScope.launch {
                 val themeId = preferences.activeThemeIdFlow.first()
                 if (themeId != null) {
@@ -573,7 +573,7 @@ class NotificationReaderService : NotificationListenerService() {
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("Active Island")
+            .setContentText(getString(R.string.notification_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -637,7 +637,7 @@ class NotificationReaderService : NotificationListenerService() {
     private fun postWidgetNotification(notificationId: Int, data: HyperIslandData) {
         val builder = NotificationCompat.Builder(this, WIDGET_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Widget Overlay").setContentText("Active")
+            .setContentTitle("Widget Overlay").setContentText(getString(R.string.widget_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_LOW).setOngoing(true)
             .setOnlyAlertOnce(true).addExtras(data.resources)
 
