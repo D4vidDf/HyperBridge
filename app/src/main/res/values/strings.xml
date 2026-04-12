@@ -742,4 +742,6 @@
 • Nav 3: Faster and smoother app transitions.
 </string>
     <string name="title_0_5_0">The Live Update</string>
+    <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
+    <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
 </resources>

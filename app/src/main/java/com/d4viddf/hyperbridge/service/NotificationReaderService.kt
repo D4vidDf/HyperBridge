@@ -573,7 +573,7 @@ class NotificationReaderService : NotificationListenerService() {
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("Active Island")
+            .setContentText(getString(R.string.notification_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -637,7 +637,7 @@ class NotificationReaderService : NotificationListenerService() {
     private fun postWidgetNotification(notificationId: Int, data: HyperIslandData) {
         val builder = NotificationCompat.Builder(this, WIDGET_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Widget Overlay").setContentText("Active")
+            .setContentTitle("Widget Overlay").setContentText(getString(R.string.widget_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_LOW).setOngoing(true)
             .setOnlyAlertOnce(true).addExtras(data.resources)
 
