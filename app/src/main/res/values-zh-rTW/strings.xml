@@ -611,6 +611,20 @@
     <string name="onboarding_widget_desc">在您的超級島上添加Android 小工具，以便快速存取。</string>
     <string name="onboard_theme_desc">完全自訂超級島的顏色、形狀和圖示。</string>
     <string name="onboard_design_desc">利用不同的自訂選項拓展可能性</string>
-    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
-    <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="behavior_desc_glob_config">決定超級島的呈現方式。</string>
+    <string name="widget_layout_snapshot">預覽小工具</string>
+    <string name="changelog_0_5_0_beta">**原生即時更新**\n
+• 國銀ROM支援：超級島現已支援HyperOS中國版。 \n
+• 新引擎：透過預設設定使用系統原生動畫。 \n\n
+**主題引擎**\n
+• 引擎選擇：可針對單一應用程式或預設的引擎。 \n
+• HSL選擇器：在Creator中實現超精確的顏色控制。 \n
+• 行為控制：自訂逾時和彈出時間。 \n\n
+**系統**\n
+• 啟動修復：服務現在會在手機重新啟動後立即啟動。 \n
+• 全新引導：更輕鬆的設定相關權限。 \n
+• Nav 3：更快更流暢的應用過渡。</string>
+    <string name="title_0_5_0">即時更新</string>
+    <string name="notification_went_wrong">如果您看到此訊息，說明出現錯誤！</string>
+    <string name="widget_went_wrong">如果您看到此訊息，表示出錯了！系統無法顯示該小工具</string>
 </resources>

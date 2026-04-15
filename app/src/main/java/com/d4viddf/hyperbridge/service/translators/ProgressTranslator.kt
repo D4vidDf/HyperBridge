@@ -91,7 +91,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
                 right = ImageTextInfoRight(2, PicInfo(1, tickKey))
             )
             builder.setSmallIsland(tickKey)
-            builder.setIslandConfig(timeout = config.timeout , dismissible = true, expandedTimeMs = config.floatTimeout)
+            builder.setIslandConfig(timeout = config.timeout , dismissible = true, expandedTimeMs = if (isFloatEnabled) config.floatTimeout else null)
         } else {
             if (indeterminate) {
                 builder.setBigIslandInfo(

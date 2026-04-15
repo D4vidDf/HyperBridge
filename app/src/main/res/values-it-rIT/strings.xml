@@ -612,10 +612,24 @@
     <string name="live_updates">Aggiornamenti in tempo reale</string>
     <string name="remove_original_notification">Rimuovi notifica originale</string>
     <string name="remove_original_notification_desc">Rimuovi automaticamente la notifica di origine quando è attivo un Live Update.</string>
-    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
-    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
-    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
-    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
-    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
-    <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="onboarding_can_be_changed">Puoi modificare queste opzioni in seguito in Impostazioni e Configuratore del tema.</string>
+    <string name="onboarding_widget_desc">Aggiungi widget Android standard alla tua isola per un accesso rapido.</string>
+    <string name="onboard_theme_desc">Personalizza completamente colori, forme e icone della tua isola.</string>
+    <string name="onboard_design_desc">Espandi le possibilità con diverse opzioni di personalizzazione</string>
+    <string name="behavior_desc_glob_config">Determina come si comporta l\'isola.</string>
+    <string name="widget_layout_snapshot">Anteprima widget</string>
+    <string name="changelog_0_5_0_beta">**Aggiornamenti dal vivo nativi**\n
+• Supporto ROM CN: le isole ora lavorano su HyperOS CN.\n
+• Nuovo Motore: Usa animazioni native di sistema tramite Impostazioni Globali.\n\n
+**Theme Engine**\n
+• Selezione motore: Scegli i motori per app o globalmente.\n
+• Selettore HSL: Controllo del colore ultra preciso nel Creatore.\n
+• Comportamento Controls: Timeout personalizzati e logica popup.\n\n
+**Sistema**\n
+• Correzione di avvio: il servizio inizia subito dopo il riavvio.\n
+• Nuovo Onboarding: Configurazione più facile per i permessi critici.\n
+• Nav 3: Transizioni delle app più veloci e più facili.</string>
+    <string name="title_0_5_0">Il Live Update</string>
+    <string name="notification_went_wrong">Se stai vedendo questo, qualcosa è andato storto!</string>
+    <string name="widget_went_wrong">Se stai vedendo questo, qualcosa è andato storto! Il sistema non ha potuto mostrare il widget</string>
 </resources>

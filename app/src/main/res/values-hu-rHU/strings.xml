@@ -617,4 +617,18 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_0_beta">**Native Live Updates**\n
+• CN ROM Support: Islands now work on HyperOS CN.\n
+• New Engine: Use system-native animations via Global Settings.\n\n
+**Theme Engine**\n
+• Engine Selection: Choose engines per-app or globally.\n
+• HSL Selector: Ultra-precise color control in the Creator.\n
+• Behavior Controls: Custom timeouts and popup logic.\n\n
+**System**\n
+• Boot Fix: Service now starts immediately after restart.\n
+• New Onboarding: Easier setup for critical permissions.\n
+• Nav 3: Faster and smoother app transitions.</string>
+    <string name="title_0_5_0">The Live Update</string>
+    <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
+    <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
 </resources>
