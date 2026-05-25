@@ -5,7 +5,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -65,6 +68,9 @@ class NotificationReaderService : NotificationListenerService() {
     private var currentMode = IslandLimitMode.MOST_RECENT
     private var appPriorityList = emptyList<String>()
     private var globalBlockedTerms: Set<String> = emptySet()
+    
+    private var isDndModeEnabled = false
+    private var autoDetectDnd = true
 
     // --- CACHES ---
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
@@ -96,9 +102,21 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var widgetTranslator: WidgetTranslator
     private lateinit var liveUpdateTranslator: LiveUpdateTranslator
 
+    private val userUnlockedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_USER_UNLOCKED) {
+                WidgetManager.init(this@NotificationReaderService)
+            }
+        }
+    }
+
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onCreate() {
         super.onCreate()
+        
+        val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
+        registerReceiver(userUnlockedReceiver, filter)
+        
         preferences = AppPreferences(applicationContext)
         createChannels()
 
@@ -117,12 +135,17 @@ class NotificationReaderService : NotificationListenerService() {
         mediaTranslator = MediaTranslator(this)
         widgetTranslator = WidgetTranslator(this)
 
-        WidgetManager.init(this)
+        val userManager = getSystemService(android.content.Context.USER_SERVICE) as android.os.UserManager
+        if (userManager.isUserUnlocked) {
+            WidgetManager.init(this)
+        }
 
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
+        serviceScope.launch { preferences.isDndModeEnabledFlow.collectLatest { isDndModeEnabled = it } }
+        serviceScope.launch { preferences.autoDetectDndFlow.collectLatest { autoDetectDnd = it } }
 
         // Listen for Theme Changes
         serviceScope.launch {
@@ -360,6 +383,15 @@ class NotificationReaderService : NotificationListenerService() {
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private suspend fun processStandardNotification(rawSbn: StatusBarNotification) {
+        val manager = getSystemService(NotificationManager::class.java)
+        val isSystemDndActive = manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
+        val dndActive = isDndModeEnabled || (autoDetectDnd && isSystemDndActive)
+
+        if (dndActive) {
+            Log.d(TAG, "DND active. Skipping notification ${rawSbn.packageName}")
+            return
+        }
+
         val sbn = ensureValidSbn(rawSbn)
 
         try {
@@ -457,7 +489,7 @@ class NotificationReaderService : NotificationListenerService() {
 
                 if (isUpdate && previous != null && previous.lastContentHash == newContentHash) return
 
-                NotificationManagerCompat.from(this).notify(bridgeId, notification)
+                com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
 
                 activeTranslations[sbn.key] = bridgeId
                 reverseTranslations[bridgeId] = sbn.key
@@ -588,7 +620,7 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
-        NotificationManagerCompat.from(this).notify(bridgeId, notification)
+        com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
 
         activeTranslations[sbn.key] = bridgeId
         reverseTranslations[bridgeId] = sbn.key
@@ -647,15 +679,50 @@ class NotificationReaderService : NotificationListenerService() {
 
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
-        NotificationManagerCompat.from(this).notify(notificationId, notification)
+        com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, notificationId, notification)
     }
 
     private fun handleLimitReached(newType: NotificationType, newPkg: String) {
-        if (currentMode == IslandLimitMode.MOST_RECENT) {
-            val oldest = activeIslands.minByOrNull { it.value.postTime }
-            oldest?.let {
-                NotificationManagerCompat.from(this).cancel(it.value.id)
-                cleanupCache(it.key)
+        val oldest = activeIslands.minByOrNull { it.value.postTime } ?: return
+
+        when (currentMode) {
+            IslandLimitMode.FIRST_COME -> {
+                // Ignore the new notification by removing it immediately (or simply returning, but returning here means the caller won't add it)
+                // The logic in the caller says:
+                // if (!isUpdate && activeIslands.size >= MAX_ISLANDS) {
+                //    handleLimitReached(type, sbn.packageName)
+                //    if (activeIslands.size >= MAX_ISLANDS) return
+                // }
+                // So if we do nothing here, the size remains >= MAX_ISLANDS, and the caller will return.
+                return
+            }
+            IslandLimitMode.MOST_RECENT -> {
+                NotificationManagerCompat.from(this).cancel(oldest.value.id)
+                cleanupCache(oldest.key)
+            }
+            IslandLimitMode.PRIORITY -> {
+                // Check if newPkg has higher priority than existing ones.
+                // Priority is determined by its index in appPriorityList (lower index = higher priority).
+                // If it's not in the list, it has the lowest priority (Int.MAX_VALUE).
+                val newPriority = appPriorityList.indexOf(newPkg).let { if (it == -1) Int.MAX_VALUE else it }
+                
+                // Find the existing active island with the lowest priority (highest index value)
+                val lowestPriorityIsland = activeIslands.maxByOrNull {
+                    appPriorityList.indexOf(it.value.packageName).let { idx -> if (idx == -1) Int.MAX_VALUE else idx }
+                }
+
+                if (lowestPriorityIsland != null) {
+                    val lowestPriority = appPriorityList.indexOf(lowestPriorityIsland.value.packageName).let { if (it == -1) Int.MAX_VALUE else it }
+                    if (newPriority <= lowestPriority) {
+                        // The new notification has equal or higher priority than the lowest existing one.
+                        // Remove the lowest priority existing notification.
+                        NotificationManagerCompat.from(this).cancel(lowestPriorityIsland.value.id)
+                        cleanupCache(lowestPriorityIsland.key)
+                    } else {
+                        // The new notification has lower priority than all existing ones. Do nothing, which will ignore it.
+                        return
+                    }
+                }
             }
         }
     }
@@ -688,5 +755,9 @@ class NotificationReaderService : NotificationListenerService() {
     private fun isAppAllowed(packageName: String): Boolean = allowedPackageSet.contains(packageName)
 
     override fun onListenerConnected() { Log.i(TAG, "HyperBridge Service Connected") }
-    override fun onDestroy() { super.onDestroy(); serviceScope.cancel() }
+    override fun onDestroy() { 
+        super.onDestroy()
+        unregisterReceiver(userUnlockedReceiver)
+        serviceScope.cancel() 
+    }
 }

@@ -366,13 +366,31 @@ class AppPreferences(context: Context) {
     // ========================================================================
 
     private val USE_NATIVE_ENGINE = "use_native_live_updates"
+    private val IS_SHIZUKU_WORKAROUND_ENABLED = "is_shizuku_workaround_enabled"
 
     val useNativeLiveUpdates: Flow<Boolean> = dao.getSettingFlow(USE_NATIVE_ENGINE)
+        .map { it?.toBoolean() ?: false }
+
+    val isShizukuWorkaroundEnabled: Flow<Boolean> = dao.getSettingFlow(IS_SHIZUKU_WORKAROUND_ENABLED)
         .map { it?.toBoolean() ?: false }
 
     suspend fun setUseNativeLiveUpdates(value: Boolean) {
         save(USE_NATIVE_ENGINE, value.toString())
     }
+
+    suspend fun setShizukuWorkaroundEnabled(value: Boolean) {
+        save(IS_SHIZUKU_WORKAROUND_ENABLED, value.toString())
+    }
+
+    // ========================================================================
+    //                        DND / GAME MODE CONFIGURATION
+    // ========================================================================
+
+    val isDndModeEnabledFlow: Flow<Boolean> = dao.getSettingFlow("dnd_mode_enabled").map { it.toBoolean(false) }
+    suspend fun setDndModeEnabled(isEnabled: Boolean) = save("dnd_mode_enabled", isEnabled.toString())
+
+    val autoDetectDndFlow: Flow<Boolean> = dao.getSettingFlow("auto_detect_dnd").map { it.toBoolean(true) }
+    suspend fun setAutoDetectDnd(autoDetect: Boolean) = save("auto_detect_dnd", autoDetect.toString())
 
     // --- APP-SPECIFIC ENGINE OVERRIDES ---
 

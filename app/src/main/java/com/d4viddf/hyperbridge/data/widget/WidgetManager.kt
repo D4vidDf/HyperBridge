@@ -29,13 +29,24 @@ object WidgetManager {
     private val _widgetUpdates = MutableSharedFlow<Int>(replay = 0, extraBufferCapacity = 10)
     val widgetUpdates: SharedFlow<Int> = _widgetUpdates.asSharedFlow()
 
-    fun init(ctx: Context) {
-        if (context != null) return
-        context = ctx.applicationContext
-        appWidgetManager = AppWidgetManager.getInstance(context)
+    private var isListening = false
 
-        appWidgetHost = HyperAppWidgetHost(context!!, HOST_ID)
-        appWidgetHost?.startListening()
+    fun init(ctx: Context) {
+        if (context == null) {
+            context = ctx.applicationContext
+            appWidgetManager = AppWidgetManager.getInstance(context)
+            appWidgetHost = HyperAppWidgetHost(context!!, HOST_ID)
+        }
+
+        if (!isListening) {
+            try {
+                appWidgetHost?.startListening()
+                isListening = true
+            } catch (e: IllegalStateException) {
+                // Thrown if the device is not unlocked yet
+                e.printStackTrace()
+            }
+        }
     }
 
     // --- ID MANAGEMENT ---

@@ -114,16 +114,28 @@ import com.d4viddf.hyperbridge.util.DeviceUtils
 import com.d4viddf.hyperbridge.util.isNotificationServiceEnabled
 import com.d4viddf.hyperbridge.util.isPostNotificationsEnabled
 import com.d4viddf.hyperbridge.util.toBitmap
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit) {
-    // 11 Pages
-    val pagerState = rememberPagerState(pageCount = { 13 })
-    val scope = rememberCoroutineScope()
+    val isCN = remember { DeviceUtils.isCNRom }
+    val isXiaomi = remember { DeviceUtils.isXiaomi }
+    val isCompatibleOS = remember { DeviceUtils.isCompatibleOS() }
+    val canProceedCompat = isXiaomi && isCompatibleOS
+    
     val context = LocalContext.current
     val prefs = remember { AppPreferences(context) }
+    val useNativeLiveUpdates by prefs.useNativeLiveUpdates.collectAsState(initial = false)
+    val needsShizuku = !useNativeLiveUpdates
+
+    val isShizukuWorkaroundEnabled by prefs.isShizukuWorkaroundEnabled.collectAsState(initial = false)
+    val isShizukuPermissionGranted by com.d4viddf.hyperbridge.util.ShizukuManager.isPermissionGranted.collectAsState()
+
+    val totalPages = if (needsShizuku) 14 else 13
+    val pagerState = rememberPagerState(pageCount = { totalPages })
+    val scope = rememberCoroutineScope()
 
     // Handle Hardware Back Button
     BackHandler(enabled = pagerState.currentPage > 1) {
@@ -135,9 +147,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     var isPostGranted by remember { mutableStateOf(isPostNotificationsEnabled(context)) }
 
     // --- Compatibility Logic ---
-    val isXiaomi = remember { DeviceUtils.isXiaomi }
-    val isCompatibleOS = remember { DeviceUtils.isCompatibleOS() }
-    val canProceedCompat = isXiaomi && isCompatibleOS
+    // Moved up
 
     // --- Permission Launcher ---
     val postPermissionLauncher = rememberLauncherForActivityResult(
@@ -170,7 +180,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val currentPage = pagerState.currentPage
-                val isLastPage = currentPage == 12
+                val isLastPage = currentPage == totalPages - 1
 
                 if (currentPage == 0) {
                     Button(
@@ -188,11 +198,24 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                         )
                     }
                 } else {
-                    val canProceed = when (currentPage) {
-                        1 -> canProceedCompat || BuildConfig.DEBUG
-                        2 -> isPostGranted
-                        3 -> isListenerGranted
-                        else -> true
+                    val canProceed = if (needsShizuku) {
+                        when (currentPage) {
+                            1 -> canProceedCompat || BuildConfig.DEBUG
+                            2 -> isPostGranted
+                            3 -> isListenerGranted
+                            10 -> {
+                                // If they turn the workaround off, they can proceed without permission
+                                !isShizukuWorkaroundEnabled || isShizukuPermissionGranted || BuildConfig.DEBUG
+                            }
+                            else -> true
+                        }
+                    } else {
+                        when (currentPage) {
+                            1 -> canProceedCompat || BuildConfig.DEBUG
+                            2 -> isPostGranted
+                            3 -> isListenerGranted
+                            else -> true
+                        }
                     }
 
                     if (currentPage > 1) {
@@ -246,25 +269,31 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 .fillMaxSize(),
             userScrollEnabled = false
         ) { page ->
-            when (page) {
-                0 -> WelcomePage()
-                1 -> CompatibilityPage()
-                2 -> PostPermissionPage(
-                    isGranted = isPostGranted,
-                    onRequest = {
-                        postPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                )
-                3 -> ListenerPermissionPage(context, isListenerGranted)
-                4 -> OptimizationPage(context)
-                5 -> ExplanationPage()
-                6 -> PrivacyPage()
-                7 -> CustomizationPage()
-                8 -> TriggersConfigPage(prefs)
-                9 -> EngineConfigPage(prefs)
-                10 -> PriorityEducationPage(prefs)
-                11 -> BehaviorConfigPage(prefs)
-                12 -> AutoHideConfigPage(prefs)
+            val adjustedPage = if (needsShizuku && page > 10) page - 1 else page
+            
+            if (needsShizuku && page == 10) {
+                ShizukuPage(prefs)
+            } else {
+                when (adjustedPage) {
+                    0 -> WelcomePage()
+                    1 -> CompatibilityPage()
+                    2 -> PostPermissionPage(
+                        isGranted = isPostGranted,
+                        onRequest = {
+                            postPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    )
+                    3 -> ListenerPermissionPage(context, isListenerGranted)
+                    4 -> OptimizationPage(context)
+                    5 -> ExplanationPage()
+                    6 -> PrivacyPage()
+                    7 -> CustomizationPage()
+                    8 -> TriggersConfigPage(prefs)
+                    9 -> EngineConfigPage(prefs)
+                    10 -> PriorityEducationPage(prefs)
+                    11 -> BehaviorConfigPage(prefs)
+                    12 -> AutoHideConfigPage(prefs)
+                }
             }
         }
     }
@@ -957,6 +986,94 @@ fun CompatibilityPage() {
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ShizukuPage(prefs: AppPreferences) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
+    val isShizukuInstalled = remember { com.d4viddf.hyperbridge.util.ShizukuManager.isShizukuInstalled(context) }
+    val isShizukuRunning by com.d4viddf.hyperbridge.util.ShizukuManager.isShizukuRunning.collectAsState()
+    val isPermissionGranted by com.d4viddf.hyperbridge.util.ShizukuManager.isPermissionGranted.collectAsState()
+    val isWorkaroundEnabled by prefs.isShizukuWorkaroundEnabled.collectAsState(initial = false)
+
+    OnboardingPageLayout(
+        title = stringResource(R.string.shizuku_workaround_title),
+        description = stringResource(R.string.shizuku_workaround_desc),
+        icon = Icons.Default.Construction,
+        iconColor = MaterialTheme.colorScheme.primary
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Enable Workaround",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            androidx.compose.material3.Switch(
+                checked = isWorkaroundEnabled,
+                onCheckedChange = { scope.launch { prefs.setShizukuWorkaroundEnabled(it) } },
+                enabled = isShizukuInstalled
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (!isShizukuInstalled) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        stringResource(R.string.shizuku_not_installed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+            }
+        } else if (isWorkaroundEnabled) {
+            ListOptionCard(
+                title = stringResource(if (isPermissionGranted) R.string.shizuku_permission_granted else R.string.shizuku_status_running),
+                subtitle = stringResource(if (isPermissionGranted) R.string.shizuku_status_running else R.string.shizuku_permission_denied),
+                icon = if (isPermissionGranted) Icons.Default.Security else Icons.Default.Warning,
+                shape = RoundedCornerShape(24.dp),
+                onClick = {},
+                trailingContent = {}
+            )
+        }
+
+        if (isShizukuInstalled && isWorkaroundEnabled) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = { 
+                    if (!isPermissionGranted) {
+                        com.d4viddf.hyperbridge.util.ShizukuManager.requestPermission(context, 1)
+                    }
+                },
+                enabled = !isPermissionGranted,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                )
+            ) {
+                Text(
+                    stringResource(if (isPermissionGranted) R.string.perm_granted else R.string.shizuku_request_permission),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }

@@ -22,4 +22,5 @@ sealed interface Screen : NavKey {
     @Serializable data object GlobalBlocklist : Screen
     @Serializable data object BlocklistApps : Screen
     @Serializable data object IslandSettings : Screen
+    @Serializable data object DndSettings : Screen
 }

@@ -44,7 +44,8 @@ fun LicensesScreen(onBack: () -> Unit) {
         Library("AndroidX Room", "Google", "Apache 2.0", "https://developer.android.com/training/data-storage/room"),
         Library("Gson", "Google", "Apache 2.0", "https://github.com/google/gson"),
         Library("Kotlin Coroutines", "JetBrains", "Apache 2.0", "https://github.com/Kotlin/kotlinx.coroutines"),
-        Library("Kotlin Serialization", "JetBrains", "Apache 2.0", "https://github.com/Kotlin/kotlinx.serialization")
+        Library("Kotlin Serialization", "JetBrains", "Apache 2.0", "https://github.com/Kotlin/kotlinx.serialization"),
+        Library("Shizuku API", "RikkaApps", "Apache 2.0", "https://github.com/RikkaApps/Shizuku-API")
     ).sortedBy { it.name }
 
     Scaffold(

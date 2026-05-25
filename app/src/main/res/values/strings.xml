@@ -276,6 +276,15 @@
     <string name="warning_cn_rom_title">China ROM Detected</string>
     <string name="warning_cn_rom_desc">Your device appears to be running a Chinese firmware. Xiaomi modifies notification internals significantly on CN ROMs. Features might be unstable or not work at all.</string>
 
+    <string name="shizuku_workaround_title">Shizuku Workaround</string>
+    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
+    <string name="shizuku_status_running">Shizuku is running</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_permission_granted">Permission Granted</string>
+    <string name="shizuku_permission_denied">Permission Denied</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
+
     <string name="system_version">System Version</string>
 
     <string name="call_incoming">Incoming Call</string>
@@ -694,6 +703,13 @@
     <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
     <string name="engine">Engine</string>
     <string name="engine_desc">Live Updates vs Xiaomi Island</string>
+    
+    <string name="dnd_mode_title">Do Not Disturb</string>
+    <string name="dnd_mode_desc">Manage island visibility during DND</string>
+    <string name="dnd_manual_toggle">Pause Islands</string>
+    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
+    <string name="dnd_auto_detect">Auto-detect System DND</string>
+    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
     <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
     <string name="global_behavior">Global Behavior</string>

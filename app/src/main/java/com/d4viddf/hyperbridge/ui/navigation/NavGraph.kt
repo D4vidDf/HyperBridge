@@ -68,8 +68,12 @@ fun mainNavGraph(
             onBack = { navigator.goBack() },
             onNavSettingsClick = { navigator.navigate(Screen.NavCustomization(null)) },
             onIslandSettingsClick = { navigator.navigate(Screen.IslandSettings) },
-            onEngineSettingsClick = { navigator.navigate(Screen.EngineSettings) }
+            onEngineSettingsClick = { navigator.navigate(Screen.EngineSettings) },
+            onDndSettingsClick = { navigator.navigate(Screen.DndSettings) }
         )
+    }
+    entry<Screen.DndSettings> {
+        com.d4viddf.hyperbridge.ui.screens.settings.DndSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.NavCustomization> { key ->
         NavCustomizationScreen(
