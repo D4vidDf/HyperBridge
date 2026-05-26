@@ -14,9 +14,9 @@ android {
     defaultConfig {
         applicationId = "com.d4viddf.hyperbridge"
         minSdk = 35
-        targetSdk = 36
-        versionCode = 19
-        versionName = "0.5.0-beta02"
+        targetSdk = 37
+        versionCode = 20
+        versionName = "0.5.0-beta03"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
