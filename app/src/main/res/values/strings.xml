@@ -745,6 +745,8 @@
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
     <string name="changelog_0_5_0_beta">
+        <b>CN Support</b>/n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n
         <b>Native Live Updates</b>\n
             • CN ROM Support: Islands now work on HyperOS CN.\n
             • New Engine: Use system-native animations via Global Settings.\n\n

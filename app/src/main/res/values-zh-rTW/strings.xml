@@ -33,7 +33,7 @@
     <string name="open_settings">開啟設定</string>
     <string name="keep_alive">保持背景執行</string>
     <string name="optimization_desc">HyperOS 會自動關閉背景程式。請開啟「自啟動」並將省電策略設為「無限制」，以維持超級島運作。</string>
-    <string name="enable_autostart">1. 開啟自啟動</string>
+    <string name="enable_autostart">1. 開啟後台啟動管理</string>
     <string name="set_battery_no_restrictions">2. 將省電策略設為「無限制」</string>
     <string name="tab_active">已啟用</string>
     <string name="tab_library">資料庫</string>

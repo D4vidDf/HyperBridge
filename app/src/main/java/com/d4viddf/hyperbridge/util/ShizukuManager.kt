@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 object ShizukuManager {
     
@@ -48,7 +52,7 @@ object ShizukuManager {
                 _isShizukuRunning.value = true
                 updatePermissionState()
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _isShizukuRunning.value = false
         }
     }
@@ -57,7 +61,7 @@ object ShizukuManager {
         return try {
             context.packageManager.getPackageInfo("moe.shizuku.privileged.api", 0)
             true
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (_: PackageManager.NameNotFoundException) {
             false
         }
     }
@@ -65,7 +69,7 @@ object ShizukuManager {
     private fun updatePermissionState() {
         _isPermissionGranted.value = try {
             Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -84,20 +88,36 @@ object ShizukuManager {
         }
     }
 
+    private var restoreNetworkJob: Job? = null
+    private val notifyMutex = Mutex()
+
+    @androidx.annotation.RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS)
     fun notify(context: Context, id: Int, notification: Notification) {
         CoroutineScope(Dispatchers.IO).launch {
             val prefs = AppPreferences(context)
             val workaroundEnabled = prefs.isShizukuWorkaroundEnabled.first()
             
             if (_isPermissionGranted.value && workaroundEnabled) {
-                // Briefly disable XMSF network to bypass MIUI/HyperOS interception
-                XmsfNetworkHelper.setXmsfNetworkingEnabled(context, false)
-                
-                // Dispatch notification
-                NotificationManagerCompat.from(context).notify(id, notification)
-                
-                // Restore XMSF network
-                XmsfNetworkHelper.setXmsfNetworkingEnabled(context, true)
+                notifyMutex.withLock  {
+                    // Cancel any pending restore job so we don't enable the network too early 
+                    // if another notification comes in before the 1 second delay is up.
+                    restoreNetworkJob?.cancel()
+
+                    // Briefly disable XMSF network to bypass MIUI/HyperOS interception
+                    XmsfNetworkHelper.setXmsfNetworkingEnabled(context, false)
+                    
+                    // Wait briefly to ensure the network command takes effect
+                    delay(50)
+                    
+                    // Dispatch notification
+                    NotificationManagerCompat.from(context).notify(id, notification)
+                    
+                    // Schedule network restore after 1 second
+                    restoreNetworkJob = launch {
+                        delay(1000)
+                        XmsfNetworkHelper.setXmsfNetworkingEnabled(context, true)
+                    }
+                }
             } else {
                 // Fallback to standard NotificationManagerCompat
                 NotificationManagerCompat.from(context).notify(id, notification)
