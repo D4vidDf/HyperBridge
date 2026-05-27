@@ -13,3 +13,11 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Custom untracked files
+caps_build.txt
+/.idea/markdown.xml
+/.idea/planningMode.xml
+/.idea/inspectionProfiles/
+/.idea/deploymentTargetSelector.xml
+gradle/gradle-daemon-jvm.properties
