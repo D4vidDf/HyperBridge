@@ -621,11 +621,14 @@
     <string name="changelog_0_5_0_beta">**Native Live Updates**\n
 • CN ROM Support: Islands now work on HyperOS CN.\n
 • New Engine: Use system-native animations via Global Settings.\n\n
-**Theme Engine**\n
-• Engine Selection: Choose engines per-app or globally.\n
-• HSL Selector: Ultra-precise color control in the Creator.\n
-• Behavior Controls: Custom timeouts and popup logic.\n\n
-**System**\n
+  **Theme Engine**\n
+  • Engine Selection: Choose engines per-app or globally.\n
+  • HSL Selector: Ultra-precise color control in the Creator.\n
+  • Behavior Controls: Custom timeouts and popup logic.\n\n
+  **Isla Permanente**\n
+  • Siempre Visible: Mantén la isla en la pantalla incluso sin notificaciones activas.\n
+  • Ancho Personalizado: Ajusta el tamaño de la isla vacía para que coincida con tu configuración.\n\n
+  **System**\n
 • Boot Fix: Service now starts immediately after restart.\n
 • New Onboarding: Easier setup for critical permissions.\n
 • Nav 3: Faster and smoother app transitions.</string>

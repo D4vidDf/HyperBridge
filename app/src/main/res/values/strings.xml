@@ -760,6 +760,9 @@
             • Engine Selection: Choose engines per-app or globally.\n
             • HSL Selector: Ultra-precise color control in the Creator.\n
             • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Permanent Island</b>\n
+            • Always Visible: Keep the island on screen even without active notifications.\n
+            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
         <b>System</b>\n
             • Boot Fix: Service now starts immediately after restart.\n
             • New Onboarding: Easier setup for critical permissions.\n
