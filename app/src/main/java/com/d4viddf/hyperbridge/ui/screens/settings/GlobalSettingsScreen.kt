@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.DisplaySettings
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Navigation
 import androidx.compose.material.icons.outlined.DoNotDisturbOn
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -34,7 +35,8 @@ fun GlobalSettingsScreen(
     onNavSettingsClick: () -> Unit,
     onIslandSettingsClick: () -> Unit,
     onEngineSettingsClick: () -> Unit,
-    onDndSettingsClick: () -> Unit
+    onDndSettingsClick: () -> Unit,
+    onPermanentIslandClick: () -> Unit
 ) {
 
     Scaffold(
@@ -59,7 +61,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.engine),
                 subtitle = stringResource(R.string.engine_desc),
                 icon = Icons.Outlined.Memory,
-                shape = getExpressiveShape(4, 0, ShapeStyle.Large),
+                shape = getExpressiveShape(5, 0, ShapeStyle.Large),
                 onClick = onEngineSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -67,7 +69,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.island_behavior_title),
                 subtitle = stringResource(R.string.island_behavior_desc),
                 icon = Icons.Outlined.DisplaySettings,
-                shape = getExpressiveShape(4, 1, ShapeStyle.Large),
+                shape = getExpressiveShape(5, 1, ShapeStyle.Large),
                 onClick = onIslandSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -75,7 +77,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.dnd_mode_title),
                 subtitle = stringResource(R.string.dnd_mode_desc),
                 icon = Icons.Outlined.DoNotDisturbOn,
-                shape = getExpressiveShape(4, 2, ShapeStyle.Large),
+                shape = getExpressiveShape(5, 2, ShapeStyle.Large),
                 onClick = onDndSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -83,8 +85,16 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.nav_layout_title),
                 subtitle = stringResource(R.string.nav_layout_desc),
                 icon = Icons.Outlined.Navigation,
-                shape = getExpressiveShape(4, 3, ShapeStyle.Large),
+                shape = getExpressiveShape(5, 3, ShapeStyle.Large),
                 onClick = onNavSettingsClick
+            )
+            Spacer(Modifier.height(2.dp))
+            ListOptionCard(
+                title = stringResource(R.string.permanent_island_title),
+                subtitle = stringResource(R.string.permanent_island_desc),
+                icon = Icons.Outlined.PushPin,
+                shape = getExpressiveShape(5, 4, ShapeStyle.Large),
+                onClick = onPermanentIslandClick
             )
         }
     }

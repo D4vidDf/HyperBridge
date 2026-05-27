@@ -407,4 +407,25 @@ class AppPreferences(context: Context) {
             remove(key)
         }
     }
+
+    // ========================================================================
+    //                        PERMANENT ISLAND CONFIGURATION
+    // ========================================================================
+
+    private val SHOW_PERMANENT_ISLAND = "show_permanent_island"
+    private val PERMANENT_ISLAND_WIDTH = "permanent_island_width"
+
+    val isPermanentIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow(SHOW_PERMANENT_ISLAND)
+        .map { it?.toBoolean() ?: false }
+
+    val permanentIslandWidthFlow: Flow<Int> = dao.getSettingFlow(PERMANENT_ISLAND_WIDTH)
+        .map { it?.toIntOrNull() ?: 0 }
+
+    suspend fun setPermanentIslandEnabled(value: Boolean) {
+        save(SHOW_PERMANENT_ISLAND, value.toString())
+    }
+
+    suspend fun setPermanentIslandWidth(value: Int) {
+        save(PERMANENT_ISLAND_WIDTH, value.toString())
+    }
 }

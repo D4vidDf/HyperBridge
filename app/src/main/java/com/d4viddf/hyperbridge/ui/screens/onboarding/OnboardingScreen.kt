@@ -107,6 +107,7 @@ import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.ui.components.EngineOptionCard
 import com.d4viddf.hyperbridge.ui.components.EnginePreview
+import com.d4viddf.hyperbridge.ui.components.PermanentIslandPreview
 import com.d4viddf.hyperbridge.ui.components.formatSeconds
 import com.d4viddf.hyperbridge.ui.components.timeoutSteps
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
@@ -114,7 +115,6 @@ import com.d4viddf.hyperbridge.util.DeviceUtils
 import com.d4viddf.hyperbridge.util.isNotificationServiceEnabled
 import com.d4viddf.hyperbridge.util.isPostNotificationsEnabled
 import com.d4viddf.hyperbridge.util.toBitmap
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -133,7 +133,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     val isShizukuWorkaroundEnabled by prefs.isShizukuWorkaroundEnabled.collectAsState(initial = false)
     val isShizukuPermissionGranted by com.d4viddf.hyperbridge.util.ShizukuManager.isPermissionGranted.collectAsState()
 
-    val totalPages = if (needsShizuku) 14 else 13
+    val totalPages = if (needsShizuku) 15 else 14
     val pagerState = rememberPagerState(pageCount = { totalPages })
     val scope = rememberCoroutineScope()
 
@@ -293,6 +293,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     10 -> PriorityEducationPage(prefs)
                     11 -> BehaviorConfigPage(prefs)
                     12 -> AutoHideConfigPage(prefs)
+                    13 -> PermanentIslandConfigPage(prefs)
                 }
             }
         }
@@ -1007,7 +1008,7 @@ fun ShizukuPage(prefs: AppPreferences) {
         icon = Icons.Default.Construction,
         iconColor = MaterialTheme.colorScheme.primary
     ) {
-        androidx.compose.foundation.layout.Row(
+        Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -1017,7 +1018,7 @@ fun ShizukuPage(prefs: AppPreferences) {
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-            androidx.compose.material3.Switch(
+            Switch(
                 checked = isWorkaroundEnabled,
                 onCheckedChange = { scope.launch { prefs.setShizukuWorkaroundEnabled(it) } },
                 enabled = isShizukuInstalled
@@ -1230,7 +1231,7 @@ fun OptimizationPage(context: Context) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun OnboardingScreenPreview() {
     HyperBridgeTheme {
@@ -1238,7 +1239,7 @@ fun OnboardingScreenPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun WelcomePagePreview() {
     HyperBridgeTheme {
@@ -1246,7 +1247,7 @@ fun WelcomePagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun ExplanationPagePreview() {
     HyperBridgeTheme {
@@ -1254,7 +1255,7 @@ fun ExplanationPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun PrivacyPagePreview() {
     HyperBridgeTheme {
@@ -1262,7 +1263,7 @@ fun PrivacyPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun CompatibilityPagePreview() {
     HyperBridgeTheme {
@@ -1270,7 +1271,7 @@ fun CompatibilityPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun PostPermissionPagePreview() {
     HyperBridgeTheme {
@@ -1278,7 +1279,7 @@ fun PostPermissionPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun ListenerPermissionPagePreview() {
     HyperBridgeTheme {
@@ -1286,7 +1287,7 @@ fun ListenerPermissionPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun TriggersConfigPagePreview() {
     HyperBridgeTheme {
@@ -1294,7 +1295,7 @@ fun TriggersConfigPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun PriorityEducationPagePreview() {
     HyperBridgeTheme {
@@ -1302,7 +1303,7 @@ fun PriorityEducationPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun BehaviorConfigPagePreview() {
     HyperBridgeTheme {
@@ -1310,7 +1311,7 @@ fun BehaviorConfigPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun CustomizationPagePreview() {
     HyperBridgeTheme {
@@ -1318,7 +1319,7 @@ fun CustomizationPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun EngineConfigPagePreview() {
     HyperBridgeTheme {
@@ -1326,7 +1327,7 @@ fun EngineConfigPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun OptimizationPagePreview() {
     HyperBridgeTheme {
@@ -1334,10 +1335,89 @@ fun OptimizationPagePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 36)
 @Composable
 fun AutoHidePagePreview(){
     HyperBridgeTheme {
         AutoHideConfigPage(prefs = AppPreferences(LocalContext.current))
+    }
+}
+
+@Composable
+fun PermanentIslandConfigPage(prefs: AppPreferences) {
+    val isEnabled by prefs.isPermanentIslandEnabledFlow.collectAsState(initial = false)
+    val islandWidth by prefs.permanentIslandWidthFlow.collectAsState(initial = 0)
+    
+    var sliderValue by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    var isDragging by androidx.compose.runtime.remember { mutableStateOf(false) }
+
+    androidx.compose.runtime.LaunchedEffect(islandWidth) {
+        if (!isDragging) {
+            sliderValue = islandWidth.toFloat()
+        }
+    }
+    
+    val scope = rememberCoroutineScope()
+
+    OnboardingPageLayout(
+        title = stringResource(R.string.permanent_island_title),
+        description = stringResource(R.string.permanent_island_desc),
+        iconColor = MaterialTheme.colorScheme.primary
+    ) {
+        PermanentIslandPreview(islandWidthValue = if (isDragging) sliderValue.toInt() else islandWidth)
+
+        Spacer(Modifier.height(24.dp))
+        
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.permanent_island_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                    }
+                    Switch(
+                        checked = isEnabled,
+                        onCheckedChange = { checked ->
+                            scope.launch { prefs.setPermanentIslandEnabled(checked) }
+                        }
+                    )
+                }
+                
+                if (isEnabled) {
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.permanent_island_width),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    androidx.compose.material3.Slider(
+                        value = sliderValue,
+                        onValueChange = { value ->
+                            isDragging = true
+                            sliderValue = value
+                            scope.launch {
+                                prefs.setPermanentIslandWidth(value.toInt())
+                            }
+                        },
+                        onValueChangeFinished = {
+                            isDragging = false
+                        },
+                        valueRange = 0f..20f
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, apiLevel = 36)
+@Composable
+fun PermanentIslandConfigPagePreview() {
+    HyperBridgeTheme {
+        PermanentIslandConfigPage(prefs = AppPreferences(LocalContext.current))
     }
 }

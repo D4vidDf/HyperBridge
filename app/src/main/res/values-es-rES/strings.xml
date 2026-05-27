@@ -632,4 +632,10 @@
     <string name="title_0_5_0">La actualización en vivo</string>
     <string name="notification_went_wrong">¡Si ves esto, algo salió mal!</string>
     <string name="widget_went_wrong">¡Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
+
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Isla Permanente</string>
+    <string name="permanent_island_desc">Mantener la Isla Dinámica permanentemente visible en la pantalla cuando no haya notificaciones activas.</string>
+    <string name="permanent_island_screen_desc">Cuando esté activado, se mostrará una Isla Dinámica vacía de forma permanente en la pantalla. Se ocultará automáticamente cuando lleguen notificaciones reales y volverá a aparecer cuando se borren todas las notificaciones. No será visible en el panel de notificaciones.</string>
+    <string name="permanent_island_width">Ancho de la Isla</string>
 </resources>

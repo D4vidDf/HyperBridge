@@ -78,6 +78,7 @@ class NotificationReaderService : NotificationListenerService() {
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
     private val processingJobs = ConcurrentHashMap<String, Job>()
     private val timeoutJobs = ConcurrentHashMap<String, Job>()
+    private lateinit var permanentIslandManager: PermanentIslandManager
     private val intentionallyRemovedKeys = ConcurrentHashMap.newKeySet<String>()
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
@@ -135,10 +136,12 @@ class NotificationReaderService : NotificationListenerService() {
         mediaTranslator = MediaTranslator(this)
         widgetTranslator = WidgetTranslator(this)
 
-        val userManager = getSystemService(android.content.Context.USER_SERVICE) as android.os.UserManager
+        val userManager = getSystemService(USER_SERVICE) as android.os.UserManager
         if (userManager.isUserUnlocked) {
             WidgetManager.init(this)
         }
+
+        permanentIslandManager = PermanentIslandManager(this, serviceScope, preferences)
 
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
@@ -334,6 +337,7 @@ class NotificationReaderService : NotificationListenerService() {
         if (hyperId != null) {
             reverseTranslations.remove(hyperId)
         }
+        permanentIslandManager.onActiveNotificationsChanged(activeIslands.size)
     }
 
     private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType, isLiveUpdate: Boolean) {
@@ -498,7 +502,8 @@ class NotificationReaderService : NotificationListenerService() {
                     packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
                     subText = "LiveUpdate", lastContentHash = newContentHash
                 )
-                
+                permanentIslandManager.onActiveNotificationsChanged(activeIslands.size)
+
                 handlePostNotificationSideEffects(key, bridgeId, finalConfig, type, true)
                 return
             }
@@ -528,6 +533,7 @@ class NotificationReaderService : NotificationListenerService() {
                 packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
                 subText = "", lastContentHash = newContentHash
             )
+            permanentIslandManager.onActiveNotificationsChanged(activeIslands.size)
 
             handlePostNotificationSideEffects(key, bridgeId, finalConfig, type, false)
 

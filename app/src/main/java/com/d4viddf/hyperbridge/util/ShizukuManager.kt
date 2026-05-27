@@ -124,4 +124,26 @@ object ShizukuManager {
             }
         }
     }
+
+    fun cancel(context: Context, id: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val prefs = AppPreferences(context)
+            val workaroundEnabled = prefs.isShizukuWorkaroundEnabled.first()
+            
+            if (_isPermissionGranted.value && workaroundEnabled) {
+                notifyMutex.withLock {
+                    restoreNetworkJob?.cancel()
+                    XmsfNetworkHelper.setXmsfNetworkingEnabled(context, false)
+                    delay(50)
+                    NotificationManagerCompat.from(context).cancel(id)
+                    restoreNetworkJob = launch {
+                        delay(1000)
+                        XmsfNetworkHelper.setXmsfNetworkingEnabled(context, true)
+                    }
+                }
+            } else {
+                NotificationManagerCompat.from(context).cancel(id)
+            }
+        }
+    }
 }
