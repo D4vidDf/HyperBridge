@@ -35,6 +35,7 @@ import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
 import com.d4viddf.hyperbridge.service.translators.MediaTranslator
 import com.d4viddf.hyperbridge.service.translators.NavTranslator
 import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
+import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
 import com.d4viddf.hyperbridge.service.translators.StandardTranslator
 import com.d4viddf.hyperbridge.service.translators.TimerTranslator
 import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
@@ -98,6 +99,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var navTranslator: NavTranslator
     private lateinit var timerTranslator: TimerTranslator
     private lateinit var progressTranslator: ProgressTranslator
+    private lateinit var downloadTranslator: DownloadTranslator
     private lateinit var standardTranslator: StandardTranslator
     private lateinit var mediaTranslator: MediaTranslator
     private lateinit var widgetTranslator: WidgetTranslator
@@ -130,6 +132,7 @@ class NotificationReaderService : NotificationListenerService() {
         navTranslator = NavTranslator(this, themeRepository)
         timerTranslator = TimerTranslator(this, themeRepository)
         progressTranslator = ProgressTranslator(this, themeRepository)
+        downloadTranslator = DownloadTranslator(this, themeRepository)
         standardTranslator = StandardTranslator(this, themeRepository)
         liveUpdateTranslator = LiveUpdateTranslator(this, themeRepository)
 
@@ -208,12 +211,19 @@ class NotificationReaderService : NotificationListenerService() {
 
     private suspend fun getEffectiveTypes(pkg: String): Set<String> {
         val themeOverride = themeRepository.activeTheme.value?.apps?.get(pkg)
-        if (themeOverride?.activeNotificationTypes != null) return themeOverride.activeNotificationTypes
+        val rawTypes = if (themeOverride?.activeNotificationTypes != null) {
+            themeOverride.activeNotificationTypes
+        } else {
+            val localPref = preferences.getAppConfigFlow(pkg).first()
+            localPref ?: preferences.globalNotificationTypesFlow.first()
+        }
 
-        val localPref = preferences.getAppConfigFlow(pkg).first()
-        if (localPref != null) return localPref
-
-        return preferences.globalNotificationTypesFlow.first()
+        // Fallback: if PROGRESS is enabled but DOWNLOAD is missing, implicitly enable DOWNLOAD
+        return if (rawTypes.contains("PROGRESS") && !rawTypes.contains("DOWNLOAD")) {
+            rawTypes + "DOWNLOAD"
+        } else {
+            rawTypes
+        }
     }
 
     private suspend fun getEffectiveEngine(pkg: String): Boolean {
@@ -418,8 +428,7 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             // [LOGIC] 3. Hard Stop
-            val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
-                    extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+            val hasProgress = hasProgressNotification(sbn, effectiveTitle, effectiveText)
 
             if (effectiveTitle.isEmpty() && !hasProgress) return
 
@@ -518,6 +527,7 @@ class NotificationReaderService : NotificationListenerService() {
                 }
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig, activeTheme)
                 NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
+                NotificationType.DOWNLOAD -> downloadTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
                 else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
             }
@@ -540,6 +550,71 @@ class NotificationReaderService : NotificationListenerService() {
         } catch (e: Exception) {
             Log.e(TAG, "💥 Error processing standard notification", e)
         }
+    }
+
+    private fun isDownloadNotification(sbn: StatusBarNotification, title: String, text: String): Boolean {
+        val pkg = sbn.packageName.lowercase()
+        val titleLower = title.lowercase()
+        val textLower = text.lowercase()
+        val channelId = sbn.notification.channelId?.lowercase() ?: ""
+        
+        val isMatch = if (pkg.contains("download") || pkg.contains("downloader") || pkg.contains("chrome") || 
+            pkg.contains("browser") || pkg.contains("firefox") || pkg.contains("market") || 
+            pkg.contains("vending") || pkg.contains("play.store") || pkg.contains("playstore") || 
+            pkg.contains("store") || pkg.contains("fdroid") || pkg.contains("samsungapps") || 
+            pkg.contains("mipicks") || pkg.contains("venezia") || pkg.contains("packageinstaller") || 
+            pkg.contains("installer") || pkg.contains("gms") || channelId.contains("download") || 
+            channelId.contains("install")) {
+            true
+        } else {
+            val extras = sbn.notification.extras
+            val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.lowercase() ?: ""
+            val infoText = extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()?.lowercase() ?: ""
+            
+            val downloadKeywords = listOf(
+                // English
+                "download", "install", "update", "updat", "upload", "transfer",
+                // Spanish / Portuguese / Italian / French
+                "descarg", "baix", "telecharg", "instal", "actuali", "carg", "subi", "transf",
+                // German
+                "laden", "gelad", "aktualis",
+                // Polish
+                "pobier", "pobran", "aktual",
+                // Russian / Ukrainian
+                "скач", "загруз", "устан", "обнов"
+            )
+            downloadKeywords.any { 
+                titleLower.contains(it) || 
+                textLower.contains(it) || 
+                subText.contains(it) || 
+                infoText.contains(it) 
+            }
+        }
+
+        Log.d(TAG, "🔍 isDownloadNotification check: pkg=$pkg, channelId='$channelId', title='$title', text='$text', resolved=$isMatch")
+        return isMatch
+    }
+
+    private fun hasProgressNotification(sbn: StatusBarNotification, title: String, text: String): Boolean {
+        val extras = sbn.notification.extras
+        val isDownload = isDownloadNotification(sbn, title, text)
+        return extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
+                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE) ||
+                (isDownload && extractTextPercentage(title, text) != null)
+    }
+
+    private fun extractTextPercentage(title: String?, text: String?): Int? {
+        val pattern = Regex("""\b(\d{1,3})\s*%""")
+        val textMatch = text?.let { pattern.find(it) }
+        val titleMatch = title?.let { pattern.find(it) }
+        val match = textMatch ?: titleMatch
+        if (match != null) {
+            val value = match.groupValues[1].toIntOrNull()
+            if (value != null && value in 0..100) {
+                return value
+            }
+        }
+        return null
     }
 
     private fun resolveTitle(sbn: StatusBarNotification): String {
@@ -565,12 +640,11 @@ class NotificationReaderService : NotificationListenerService() {
 
     private suspend fun ensureValidSbn(sbn: StatusBarNotification): StatusBarNotification {
         val extras = sbn.notification.extras
-        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
-                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
-        if (hasProgress) return sbn
-
         val title = resolveTitle(sbn)
         val text = resolveText(extras)
+        val hasProgress = hasProgressNotification(sbn, title, text)
+        if (hasProgress) return sbn
+
         val pkg = sbn.packageName
 
         val isSuspicious = title.isEmpty() || text.equals(pkg, ignoreCase = true)
@@ -590,18 +664,28 @@ class NotificationReaderService : NotificationListenerService() {
         val n = sbn.notification
         val extras = n.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE) ?: ""
-        val isCall = n.category == Notification.CATEGORY_CALL || template == $$"android.app.Notification$CallStyle"
+        val isCall = n.category == Notification.CATEGORY_CALL || template == "android.app.Notification\$CallStyle"
         val isNav = n.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.let { it.contains("maps") || it.contains("waze") }
         val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || n.category == Notification.CATEGORY_ALARM) && n.`when` > 0
         val isMedia = template.contains("MediaStyle") || n.category == Notification.CATEGORY_TRANSPORT
-        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0
+        
+        val title = resolveTitle(sbn)
+        val text = resolveText(extras)
+        val isDownload = isDownloadNotification(sbn, title, text)
+        val hasProgress = hasProgressNotification(sbn, title, text)
 
         return when {
             isCall -> NotificationType.CALL
             isNav -> NotificationType.NAVIGATION
             isTimer -> NotificationType.TIMER
             isMedia -> NotificationType.MEDIA
-            hasProgress -> NotificationType.PROGRESS
+            hasProgress -> {
+                if (isDownload) {
+                    NotificationType.DOWNLOAD
+                } else {
+                    NotificationType.PROGRESS
+                }
+            }
             else -> NotificationType.STANDARD
         }
     }
@@ -741,7 +825,7 @@ class NotificationReaderService : NotificationListenerService() {
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
 
-        val hasProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 || extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+        val hasProgress = hasProgressNotification(sbn, title, text)
         val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT || notification.category == Notification.CATEGORY_CALL ||
                 notification.category == Notification.CATEGORY_NAVIGATION || extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
         if (hasProgress || isSpecial) return false

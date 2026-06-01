@@ -100,7 +100,8 @@
 
     <string name="select_active_notifs">Select active notifications</string>
     <string name="type_standard">Messages &amp; General</string>
-    <string name="type_progress">Downloads &amp; Progress</string>
+    <string name="type_progress">Progress &amp; Tasks</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">Music &amp; Media</string>
     <string name="type_nav">Maps &amp; GPS</string>
     <string name="type_call">Calls</string>
@@ -728,7 +729,8 @@
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
-    <string name="type_progress_desc">Downloads, uploads, and ongoing tasks</string>
+    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
     <string name="type_nav_desc">Turn-by-turn directions and ETA</string>
     <string name="type_call_desc">Incoming and ongoing phone calls</string>
@@ -751,15 +753,19 @@
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
     <string name="changelog_0_5_0_beta">
-        <b>CN Support</b>/n
-            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n
+        <b>CN Support</b>\n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
         <b>Native Live Updates</b>\n
             • CN ROM Support: Islands now work on HyperOS CN.\n
             • New Engine: Use system-native animations via Global Settings.\n\n
         <b>Theme Engine</b>\n
             • Engine Selection: Choose engines per-app or globally.\n
-            • HSL Selector: Ultra-precise color control in the Creator.\n
+            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
             • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. "12%") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
         <b>Permanent Island</b>\n
             • Always Visible: Keep the island on screen even without active notifications.\n
             • Custom Width: Adjust the size of the empty island to match your setup.\n\n

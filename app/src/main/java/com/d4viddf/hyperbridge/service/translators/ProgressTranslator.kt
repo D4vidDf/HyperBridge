@@ -46,14 +46,21 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
         // Always enable float if the user wants it, but only "First Float" (expand) on the initial appearance
         val isFloatEnabled = config.isFloat ?: false
         builder.setEnableFloat(isFloatEnabled && !isUpdate)
+        builder.setIslandFirstFloat(config.isFloat ?: false)
 
         val extras = sbn.notification.extras
         val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
         val current = extras.getInt(Notification.EXTRA_PROGRESS, 0)
         val indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
-        val textContent = (extras.getString(Notification.EXTRA_TEXT) ?: "")
+        val textContent = (extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "")
 
-        val percent = if (max > 0) ((current.toFloat() / max.toFloat()) * 100).toInt() else 0
+        val textPercent = extractTextPercentage(title, textContent)
+        val percent = if (max > 0) {
+            ((current.toFloat() / max.toFloat()) * 100).toInt()
+        } else {
+            textPercent ?: 0
+        }
+        val isIndeterminate = indeterminate && textPercent == null
         val isTextFinished = finishKeywords.any { textContent.contains(it, ignoreCase = true) }
         val isFinished = percent >= 100 || isTextFinished
 
@@ -81,7 +88,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
             appPkg = sbn.packageName
         )
 
-        if (!isFinished && !indeterminate) {
+        if (!isFinished && !isIndeterminate) {
             builder.setProgressBar(percent, themeProgressColor)
         }
 
@@ -93,7 +100,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
             builder.setSmallIsland(tickKey)
             builder.setIslandConfig(timeout = config.timeout , dismissible = true, expandedTimeMs = if (isFloatEnabled) config.floatTimeout else null)
         } else {
-            if (indeterminate) {
+            if (isIndeterminate) {
                 builder.setBigIslandInfo(
                     left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
                     right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, "Processing..."))

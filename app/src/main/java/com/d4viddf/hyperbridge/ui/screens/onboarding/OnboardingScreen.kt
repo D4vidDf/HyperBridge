@@ -492,6 +492,7 @@ fun TriggersConfigPage(prefs: AppPreferences) {
                                     val descRes = when (type) {
                                         NotificationType.STANDARD -> R.string.type_standard_desc
                                         NotificationType.PROGRESS -> R.string.type_progress_desc
+                                        NotificationType.DOWNLOAD -> R.string.type_download_desc
                                         NotificationType.MEDIA -> R.string.type_media_desc
                                         NotificationType.NAVIGATION -> R.string.type_nav_desc
                                         NotificationType.CALL -> R.string.type_call_desc

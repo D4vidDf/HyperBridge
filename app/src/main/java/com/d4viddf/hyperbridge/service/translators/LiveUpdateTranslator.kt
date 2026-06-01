@@ -145,7 +145,9 @@ class LiveUpdateTranslator(
         }
 
         // Standard Progress Fallback (Only applied if NOT Navigation)
+        val textPercent = extractTextPercentage(title, text)
         if (max > 0) return "${(progress * 100) / max}%"
+        if (textPercent != null) return "$textPercent%"
 
         // Timer Fallback
         val timeRegex = Regex("(\\d+\\s*(min|m))", RegexOption.IGNORE_CASE)
