@@ -36,7 +36,7 @@ class CallTranslator(
         theme: HyperTheme?
     ): HyperIslandData {
         val extras = sbn.notification.extras
-        val title = extras.getString(Notification.EXTRA_TITLE) ?: "Call"
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: "Call"
 
         val isChronometerShown = extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER)
         val baseTime = sbn.notification.`when`

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -141,7 +142,8 @@ fun NotificationTypesContent() {
         NotificationType.entries.forEachIndexed { index, type ->
             val (icon, subtitle) = when (type) {
                 NotificationType.STANDARD -> Icons.AutoMirrored.Outlined.Message to stringResource(R.string.type_standard_desc)
-                NotificationType.PROGRESS -> Icons.Outlined.CloudDownload to stringResource(R.string.type_progress_desc)
+                NotificationType.PROGRESS -> Icons.Outlined.HourglassEmpty to stringResource(R.string.type_progress_desc)
+                NotificationType.DOWNLOAD -> Icons.Outlined.CloudDownload to stringResource(R.string.type_download_desc)
                 NotificationType.MEDIA -> Icons.Outlined.MusicNote to stringResource(R.string.type_media_desc)
                 NotificationType.NAVIGATION -> Icons.Outlined.Map to stringResource(R.string.type_nav_desc)
                 NotificationType.CALL -> Icons.Outlined.Call to stringResource(R.string.type_call_desc)

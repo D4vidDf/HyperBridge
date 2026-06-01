@@ -442,6 +442,20 @@ abstract class BaseTranslator(
         }
     }
 
+    protected fun extractTextPercentage(title: String?, text: String?): Int? {
+        val pattern = Regex("""\b(\d{1,3})\s*%""")
+        val textMatch = text?.let { pattern.find(it) }
+        val titleMatch = title?.let { pattern.find(it) }
+        val match = textMatch ?: titleMatch
+        if (match != null) {
+            val value = match.groupValues[1].toIntOrNull()
+            if (value != null && value in 0..100) {
+                return value
+            }
+        }
+        return null
+    }
+
     protected fun createFallbackBitmap(): Bitmap = createBitmap(1, 1)
 
     protected fun Drawable.toBitmap(width: Int? = null, height: Int? = null): Bitmap {

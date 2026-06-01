@@ -56,6 +56,36 @@ class AppPreferences(context: Context) {
                     }
                     dao.insert(AppSetting(SettingsKeys.MIGRATION_COMPLETE, "true"))
                 }
+
+                // Grant DOWNLOAD notification type if PROGRESS was previously enabled
+                val isDownloadMigrated = dao.getSetting("download_type_migration_complete") == "true"
+                if (!isDownloadMigrated) {
+                    // 1. Global notification types migration
+                    val globalTypesStr = dao.getSetting(GLOBAL_NOTIFICATION_TYPES_KEY)
+                    if (globalTypesStr != null) {
+                        val globalTypes = globalTypesStr.deserializeSet()
+                        if (globalTypes.contains("PROGRESS") && !globalTypes.contains("DOWNLOAD")) {
+                            val newGlobalTypes = globalTypes + "DOWNLOAD"
+                            dao.insert(AppSetting(GLOBAL_NOTIFICATION_TYPES_KEY, newGlobalTypes.serialize()))
+                        }
+                    }
+
+                    // 2. App-specific notification types migration
+                    val suffixes = listOf("_float", "_shade", "_timeout", "_float_timeout", "_remove_notif", "_blocked", "_nav_left", "_nav_right", "_use_native")
+                    val allSettings = dao.getAllSync()
+                    allSettings.forEach { setting ->
+                        val key = setting.key
+                        if (key.startsWith("config_") && suffixes.none { key.endsWith(it) }) {
+                            val types = setting.value.deserializeSet()
+                            if (types.contains("PROGRESS") && !types.contains("DOWNLOAD")) {
+                                val newTypes = types + "DOWNLOAD"
+                                dao.insert(AppSetting(key, newTypes.serialize()))
+                            }
+                        }
+                    }
+
+                    dao.insert(AppSetting("download_type_migration_complete", "true"))
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
