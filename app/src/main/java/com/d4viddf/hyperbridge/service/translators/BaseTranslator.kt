@@ -167,8 +167,50 @@ abstract class BaseTranslator(
     }
 
     protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
-        val originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
+        var originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
+        if (isBitmapDarkAndMonochrome(originalBitmap)) {
+            originalBitmap = tintBitmap(originalBitmap, Color.WHITE)
+        }
         return HyperPicture(picKey, originalBitmap)
+    }
+
+    protected fun isBitmapDarkAndMonochrome(bitmap: Bitmap): Boolean {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width == 0 || height == 0) return false
+
+        var darkPixels = 0
+        var totalPixels = 0
+        var isMonochrome = true
+
+        val stepX = maxOf(1, width / 20)
+        val stepY = maxOf(1, height / 20)
+
+        for (x in 0 until width step stepX) {
+            for (y in 0 until height step stepY) {
+                val pixel = bitmap.getPixel(x, y)
+                val alpha = Color.alpha(pixel)
+                if (alpha > 50) {
+                    totalPixels++
+                    val r = Color.red(pixel)
+                    val g = Color.green(pixel)
+                    val b = Color.blue(pixel)
+
+                    val diff = abs(r - g) + abs(g - b) + abs(b - r)
+                    if (diff > 45) {
+                        isMonochrome = false
+                    }
+
+                    val luminance = (0.299 * r + 0.587 * g + 0.114 * b)
+                    if (luminance < 80) {
+                        darkPixels++
+                    }
+                }
+            }
+        }
+
+        if (totalPixels == 0 || !isMonochrome) return false
+        return (darkPixels.toFloat() / totalPixels) > 0.7f
     }
 
     // --- THEME APPLICATION LOGIC ---
@@ -344,6 +386,21 @@ abstract class BaseTranslator(
         try {
             val picture = extras.getParcelableCompat<Bitmap>(Notification.EXTRA_PICTURE)
             if (picture != null) return picture
+
+            val template = extras.getString(Notification.EXTRA_TEMPLATE)
+            if (template == "android.app.Notification\$MessagingStyle") {
+                val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+                if (messages != null && messages.isNotEmpty()) {
+                    val lastMessage = messages.last() as? Bundle
+                    if (lastMessage != null) {
+                        val senderPerson = lastMessage.getParcelableCompat<Person>("sender_person")
+                        if (senderPerson?.icon != null) {
+                            val bitmap = loadIconBitmap(senderPerson.icon!!, pkg)
+                            if (bitmap != null) return bitmap
+                        }
+                    }
+                }
+            }
 
             if (sbn.notification.category == Notification.CATEGORY_CALL) {
                 val person = extras.getParcelableCompat<Person>(Notification.EXTRA_MESSAGING_PERSON)

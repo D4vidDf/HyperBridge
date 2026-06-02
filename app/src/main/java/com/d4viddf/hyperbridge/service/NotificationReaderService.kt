@@ -492,6 +492,9 @@ class NotificationReaderService : NotificationListenerService() {
 
                 builder.extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
 
+                val shouldAlertOnce = isUpdate && (type == NotificationType.PROGRESS || type == NotificationType.DOWNLOAD || type == NotificationType.MEDIA)
+                builder.setOnlyAlertOnce(shouldAlertOnce)
+
                 val notification = builder.build()
 
                 val actualProgress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
@@ -538,8 +541,10 @@ class NotificationReaderService : NotificationListenerService() {
             val newContentHash = data.jsonParam.hashCode()
             if (isUpdate && previous != null && previous.lastContentHash == newContentHash) return
 
+            val shouldAlertOnce = isUpdate && (type == NotificationType.PROGRESS || type == NotificationType.DOWNLOAD || type == NotificationType.MEDIA)
+
             Log.i(TAG, " POSTING Island -> ID: $bridgeId, Type: $type, FinalTitle: '$effectiveTitle', FinalText: '$effectiveText'")
-            postStandardNotification(sbn, bridgeId, data)
+            postStandardNotification(sbn, bridgeId, data, shouldAlertOnce)
 
             activeIslands[key] = ActiveIsland(
                 id = bridgeId, type = type, postTime = System.currentTimeMillis(),
@@ -694,14 +699,14 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private fun postStandardNotification(sbn: StatusBarNotification, bridgeId: Int, data: HyperIslandData) {
+    private fun postStandardNotification(sbn: StatusBarNotification, bridgeId: Int, data: HyperIslandData, shouldAlertOnce: Boolean) {
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.notification_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
-            .setOnlyAlertOnce(true)
+            .setOnlyAlertOnce(shouldAlertOnce)
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
@@ -713,7 +718,11 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
-        com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
+        if (!shouldAlertOnce) {
+            com.d4viddf.hyperbridge.util.ShizukuManager.notifyWithCancel(this, bridgeId, notification)
+        } else {
+            com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
+        }
 
         activeTranslations[sbn.key] = bridgeId
         reverseTranslations[bridgeId] = sbn.key
@@ -837,7 +846,13 @@ class NotificationReaderService : NotificationListenerService() {
         if (title.isEmpty() && text.isEmpty()) return true
         if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)) return true
         if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true
-        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
+
+        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) {
+            // We previously blocked GROUP_ALERT_CHILDREN, but some apps like Telegram 
+            // use it while silencing their actual children, leading to no alerts at all.
+            // Let's just allow group summaries if they have actual text.
+            if (text.isEmpty() || title.isEmpty()) return true
+        }
 
         return false
     }
