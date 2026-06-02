@@ -1,4 +1,4 @@
-package com.d4viddf.hyperbridge.ui.screens.theme.content
+package com.d4viddf.hyperbridge.ui.screens.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -35,7 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
+import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
 
 // --- SHARED PREVIEW CAROUSEL ---
 @Composable

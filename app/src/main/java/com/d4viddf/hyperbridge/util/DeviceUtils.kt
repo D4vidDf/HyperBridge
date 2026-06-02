@@ -37,9 +37,7 @@ object DeviceUtils {
 
         // 2. HyperOS 3 on Android 15 (API 35)
         val version = getSystemProperty("ro.mi.os.version.name")
-        if (version.startsWith("OS3", ignoreCase = true)) return true
-
-        return false
+        return version.startsWith("OS3", ignoreCase = true)
     }
 
     val isCNRom: Boolean
@@ -54,7 +52,7 @@ object DeviceUtils {
             val process = Runtime.getRuntime().exec("getprop $key")
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             reader.readLine()?.trim() ?: ""
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             ""
         }
     }

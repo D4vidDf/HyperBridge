@@ -70,7 +70,7 @@ class RulesEngine {
 
         // 4. External State (Plugins) - Placeholder for now
         if (!cond.externalStateKey.isNullOrEmpty()) {
-            // In future: Check against a StateManager.currentState map
+            // In the future: Check against a StateManager.currentState map
             // For now, if a rule requires external state, we fail it safely
             return false
         }

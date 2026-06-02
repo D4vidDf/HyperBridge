@@ -173,7 +173,7 @@ class WidgetOverlayService : Service() {
         // Pass JSON param for the Island UI
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
-        NotificationManagerCompat.from(this).notify(notificationId, notification)
+        com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, notificationId, notification)
     }
 
     private fun createWidgetChannel() {

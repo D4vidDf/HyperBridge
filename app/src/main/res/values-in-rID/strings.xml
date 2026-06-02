@@ -28,7 +28,7 @@
     <string name="perm_post_desc">Kami butuh izin untuk memunculkan notifikasi \'Island\' di layar Anda.</string>
     <string name="perm_granted">Izin Diberikan</string>
     <string name="allow_notifications">Izinkan Notifikasi</string>
-    <string name="read_data">Baca Data</string>
+    <string name="read_data">Baca Notifikasi</string>
     <string name="perm_listener_desc">Untuk menjembatani aplikasi Anda, kami perlu membaca notifikasinya (Musik, Peta, Timer).</string>
     <string name="open_settings">Buka Pengaturan</string>
     <string name="keep_alive">Tetap Aktif</string>
@@ -51,6 +51,11 @@
     <string name="group_configuration">Konfigurasi</string>
     <string name="system_setup">Pengaturan Sistem</string>
     <string name="system_setup_subtitle">Perbaiki izin &amp; baterai</string>
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Permanent Island</string>
+    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
+    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
+    <string name="permanent_island_width">Island Width</string>
     <string name="group_about">Tentang</string>
     <string name="developer">Pengembang</string>
     <string name="developer_subtitle">Kunjungi d4viddf.com</string>
@@ -80,7 +85,8 @@
     <string name="cat_other">Lainnya</string>
     <string name="select_active_notifs">Pilih notifikasi aktif</string>
     <string name="type_standard">Pesan &amp; Umum</string>
-    <string name="type_progress">Unduhan &amp; Progres</string>
+    <string name="type_progress">Progress &amp; Tasks</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">Musik &amp; Media</string>
     <string name="type_nav">Peta &amp; GPS</string>
     <string name="type_call">Panggilan</string>
@@ -95,7 +101,7 @@
     <string name="unknown_caller">Penelepon Tidak Diketahui</string>
     <string name="incoming_call">Panggilan</string>
     <string name="maps_title">Peta</string>
-    <string name="timer_title">Timer</string>
+    <string name="timer_title">Pengatur waktu</string>
     <string-array name="progress_finish_keywords">
         <item>diunduh</item>
         <item>sukses</item>
@@ -113,7 +119,7 @@
     <string name="status_incoming_call">Panggilan Masuk</string>
     <string name="caller_unknown">Penelepon Tidak Diketahui</string>
     <string name="fallback_maps">Peta</string>
-    <string name="fallback_timer">Timer</string>
+    <string name="fallback_timer">Pengatur waktu</string>
     <string name="fallback_stopwatch">Stopwatch</string>
     <string name="whats_new_title">Apa yang Baru di %s</string>
     <string name="awesome">Keren!</string>
@@ -135,6 +141,7 @@
     <string name="island_appearance">Tampilan Island</string>
     <string name="setting_float">Pop-up Heads-up</string>
     <string name="setting_float_desc">Tampilkan banner notifikasi penuh sejenak sebelum dikecilkan ke Island.</string>
+    <string name="setting_float_timeout_desc">Berapa lama pop-up pemberitahuan tetap terlihat.</string>
     <string name="setting_shade">Panel Notifikasi</string>
     <string name="setting_shade_desc">Tetap tampilkan notifikasi di panel notifikasi. Jika dinonaktifkan, notifikasi hanya akan muncul sebagai Island.</string>
     <string name="setting_timeout">Penundaan Tutup Otomatis</string>
@@ -143,11 +150,11 @@
     <string name="customize_app">Kustomisasi</string>
     <string name="override_settings">Timpa Pengaturan</string>
     <string-array name="nav_arrival_keywords">
-        <item>arrival</item>
-        <item>arrive</item>
-        <item>eta</item>
-        <item>reaching</item>
-        <item>destination</item>
+        <item>kedatangan</item>
+        <item>tiba</item>
+        <item>est</item>
+        <item>dekat</item>
+        <item>tujuan</item>
     </string-array>
     <string name="hint_options">Opsi</string>
     <string name="version_history">Riwayat Versi</string>
@@ -217,7 +224,7 @@
     <string name="no_active_rules">Tidak ada aturan aktif</string>
     <string name="setup_health_title">Kompatibilitas Sistem</string>
     <string name="check_device">Perangkat: %s</string>
-    <string name="check_os_version">OS: %s</string>
+    <string name="check_os_version">SO: %s</string>
     <string name="req_hyperos">Membutuhkan HyperOS 3.0+ (Android 15+)</string>
     <string name="req_xiaomi">Perangkat Xiaomi/Redmi/Poco diperlukan</string>
     <string name="check_autostart">Mulai Otomatis (Background)</string>
@@ -228,6 +235,14 @@
     <string name="status_unknown">Tidak Diketahui</string>
     <string name="warning_cn_rom_title">ROM China Terdeteksi</string>
     <string name="warning_cn_rom_desc">Perangkat Anda tampaknya menjalankan firmware China. Xiaomi memodifikasi internal notifikasi secara signifikan pada ROM CN. Fitur mungkin tidak stabil atau tidak berfungsi sama sekali.</string>
+    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
+    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
+    <string name="shizuku_status_running">Shizuku is running</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_permission_granted">Permission Granted</string>
+    <string name="shizuku_permission_denied">Permission Denied</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
     <string name="system_version">Versi Sistem</string>
     <string name="call_incoming">Panggilan Masuk</string>
     <string name="call_ongoing">Panggilan Aktif</string>
@@ -242,7 +257,7 @@
         <item>terima</item>
     </string-array>
     <string-array name="call_keywords_speaker">
-        <item>speaker</item>
+        <item>pengeras suara</item>
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">Pembaruan Global</string>
@@ -394,7 +409,7 @@
     <string name="theme_sheet_action_find">Cari</string>
     <string name="theme_sheet_action_import">Impor dari File</string>
     <string name="theme_action_import_short">Impor</string>
-    <string name="theme_card_action_edit">Edit</string>
+    <string name="theme_card_action_edit">Sunting</string>
     <string name="theme_card_action_export">Ekspor</string>
     <string name="creator_title_new">Buat Tema</string>
     <string name="creator_title_edit">Edit Tema</string>
@@ -537,4 +552,105 @@ Penulisan ulang total logika inti untuk stabilitas yang lebih baik.\n
 • Menambahkan dukungan untuk 🇮🇩 bahasa Indonesia dan 🇹🇷 Turki.\n\n
 
 <i>Catatan: Rilis ini mencakup perubahan arsitektur yang signifikan. Silakan laporkan bug apa pun di GitHub.</i>    </string>
+    <string name="title_0_4_2">Pembaruan Hotfix</string>
+    <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
+        •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
+    </string>
+    <string name="colors_label_hue">Hue</string>
+    <string name="colors_label_saturation">Saturasi</string>
+    <string name="colors_label_lightness">Lightness</string>
+    <string name="colors_label_dynamic_modes">Warna Dinamis</string>
+    <string name="colors_label_material_you">Material You (System)</string>
+    <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
+    <string name="filter_compatible_widgets">Show Island Compatible Only</string>
+    <string name="kill_all_widgets">Kill Active Widgets</string>
+    <string name="permission_reminder_title">Update Notice</string>
+    <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
+    <string name="got_it">Mengerti</string>
+    <string name="recommended">Direkomendasikan</string>
+    <string name="all">Semua</string>
+    <string name="favorites">Favorit</string>
+    <string name="settings_live_updates_title">Pembaruan Langsung Android Asli</string>
+    <string name="settings_live_updates_desc">Ubah notifikasi menjadi notifikasi tugas standar Android 16 alih-alih menggantinya dengan Xiaomi Islands kustom.</string>
+    <string name="channel_live_updates">Pembaruan Langsung Asli</string>
+    <string name="engine_preview_title">Pratinjau</string>
+    <string name="engine_design_section">Desain Notifikasi</string>
+    <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
+    <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
+    <string name="engine_native_title">Desain Pembaruan Langsung</string>
+    <string name="engine_native_desc">Desain notifikasi Android asli, hanya bekerja di ROM China (CN).</string>
+    <string name="engine_config_title">Konfigurasi mesin</string>
+    <string name="engine_section_preview">Pratinjau</string>
+    <string name="engine_section_design">Desain Notifikasi</string>
+    <string name="good_to_know">Bagus untuk diketahui</string>
+    <string name="nav_layout_info">• Tata letak navigasi akan sepenuhnya terintegrasi ke dalam Mesin Tema pada pembaruan mendatang.\n• Saat menggunakan Mesin Desain Pembaruan Langsung hanya konten Sisi Kanan yang terlihat.</string>
+    <string name="xiaomi_featured_notifications">Fitur Notifikasi Xiaomi</string>
+    <string name="island_behavior_title">Island Behavior</string>
+    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
+    <string name="engine">Engine</string>
+    <string name="engine_desc">Pembaruan Langsung Android vs Xiaomi Island</string>
+    <string name="dnd_mode_title">Do Not Disturb</string>
+    <string name="dnd_mode_desc">Manage island visibility during DND</string>
+    <string name="dnd_manual_toggle">Pause Islands</string>
+    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
+    <string name="dnd_auto_detect">Auto-detect System DND</string>
+    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
+    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
+    <string name="global_behavior">Global Behavior</string>
+    <string name="auto_hide_island">Auto-hide Island</string>
+    <string name="hides_after_a_set_time">Hides after a set time</string>
+    <string name="behavior_hide_desc">Visible until manually dismissed</string>
+    <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
+    <string name="managed_by_theme_desc">Behavior managed by active theme.</string>
+    <string name="use_global_default_engine">Use the default value for the notification engine</string>
+    <string name="active_triggers">Active Triggers</string>
+    <string name="active_triggers_global_desc">Select which global events trigger the island</string>
+    <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
+    <string name="type_media_desc">Music and video playback controls</string>
+    <string name="type_nav_desc">Turn-by-turn directions and ETA</string>
+    <string name="type_call_desc">Incoming and ongoing phone calls</string>
+    <string name="type_timer_desc">Active timers and stopwatches</string>
+    <string name="select_triggered_events">Select triggered events</string>
+    <string name="override_global_triggers">Override Global Triggers</string>
+    <string name="override_global_trigger_desc">Set custom allowed notifications for this app</string>
+    <string name="trigger_override">Trigger Override</string>
+    <string name="trigger_app_desc">Select which events trigger the island for this app.</string>
+    <string name="enable_triggers">Enable specific triggers</string>
+    <string name="open_source_licenses">Kumpulan lisensi kode sumber terbuka</string>
+    <string name="live_updates">Pembaruan langsung</string>
+    <string name="remove_original_notification">Remove original notification</string>
+    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
+    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
+    <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
+        <b>Native Live Updates</b>\n
+            • CN ROM Support: Islands now work on HyperOS CN.\n
+            • New Engine: Use system-native animations via Global Settings.\n\n
+        <b>Theme Engine</b>\n
+            • Engine Selection: Choose engines per-app or globally.\n
+            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
+            • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
+        <b>Permanent Island</b>\n
+            • Always Visible: Keep the island on screen even without active notifications.\n
+            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
+        <b>System</b>\n
+            • Boot Fix: Service now starts immediately after restart.\n
+            • New Onboarding: Easier setup for critical permissions.\n
+            • Nav 3: Faster and smoother app transitions.
+    </string>
+    <string name="title_0_5_0">The Live Update</string>
+    <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
+    <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
 </resources>

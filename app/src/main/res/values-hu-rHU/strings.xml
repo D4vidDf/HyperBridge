@@ -51,6 +51,11 @@
     <string name="group_configuration">Konfiguráció</string>
     <string name="system_setup">Rendszerbeállítás</string>
     <string name="system_setup_subtitle">Engedélyek és akkumulátor javítása</string>
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Permanent Island</string>
+    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
+    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
+    <string name="permanent_island_width">Island Width</string>
     <string name="group_about">Alkalmazásról</string>
     <string name="developer">Fejlesztő</string>
     <string name="developer_subtitle">Keresd fel d4viddf.com</string>
@@ -80,7 +85,8 @@
     <string name="cat_other">Egyéb</string>
     <string name="select_active_notifs">Aktív értesítések kiválasztása</string>
     <string name="type_standard">Üzenetek és általános információk</string>
-    <string name="type_progress">Letöltések és folyamatok</string>
+    <string name="type_progress">Progress &amp; Tasks</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">Zene és média</string>
     <string name="type_nav">Térképek és GPS</string>
     <string name="type_call">Hívások</string>
@@ -135,6 +141,7 @@
     <string name="island_appearance">Island megjelenése</string>
     <string name="setting_float">Felugró ablak</string>
     <string name="setting_float_desc">A minimálisra csökkentés előtt rövid ideig mutassa meg a teljes értesítési sávot az Islandon.</string>
+    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Értesítési panel</string>
     <string name="setting_shade_desc">Tartsa láthatóvá az értesítést az értesítési panelen. Ha letiltja, akkor csak Island-on jelenik meg.</string>
     <string name="setting_timeout">Automatikus bezárás késleltetése</string>
@@ -143,11 +150,11 @@
     <string name="customize_app">Testreszabás</string>
     <string name="override_settings">Beállítások felülírása</string>
     <string-array name="nav_arrival_keywords">
-        <item>arrival</item>
-        <item>arrive</item>
-        <item>eta</item>
-        <item>reaching</item>
-        <item>destination</item>
+        <item>érkezés</item>
+        <item>érkezés</item>
+        <item>évi</item>
+        <item>elér</item>
+        <item>cél</item>
     </string-array>
     <string name="hint_options">Lehetőségek</string>
     <string name="version_history">Verzióelőzmények</string>
@@ -230,11 +237,19 @@
     <string name="status_unknown">Ismeretlen</string>
     <string name="warning_cn_rom_title">Kínai ROM észlelve</string>
     <string name="warning_cn_rom_desc">Úgy tűnik, hogy az eszközön kínai rendszer fut. A Xiaomi jelentősen módosítja az értesítések belső működését a CN ROM-okon. A funkciók instabilak lehetnek, vagy egyáltalán nem működnek.</string>
+    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
+    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
+    <string name="shizuku_status_running">Shizuku is running</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_permission_granted">Permission Granted</string>
+    <string name="shizuku_permission_denied">Permission Denied</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
     <string name="system_version">Rendszerverzió</string>
     <string name="call_incoming">Bejövő hívás</string>
     <string name="call_ongoing">Aktív hívás</string>
     <string-array name="call_keywords_hangup">
-        <item>hang</item>
+        <item>lerak</item>
         <item>vége</item>
         <item>elutasítás</item>
         <item>elutasít</item>
@@ -245,7 +260,7 @@
     </string-array>
     <string-array name="call_keywords_speaker">
         <item>hangszóró</item>
-        <item>audio</item>
+        <item>Hang</item>
     </string-array>
     <string name="title_0_3_0">Az általános frissítés</string>
     <string name="changelog_0_3_0">        <b>Rejtett értesítések 👻</b>\n
@@ -546,4 +561,105 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
         • Hozzáadott támogatás 🇮🇩 indonéz és 🇹🇷 török nyelvekhez.\n\n
 
         <i>Megjegyzés: Ez a kiadás jelentős architektúraváltozásokat tartalmaz. A hibákat a GitHubon jelentsd!</i></string>
+    <string name="title_0_4_2">Hibaijavító frissítés</string>
+    <string name="changelog_0_4_2">        •&lt;b&gt;Hibajavítás:&lt;/b&gt; Kijavítottunk egy kritikus hibát, amely miatt az alkalmazás összeomlott, amikor a beállítások menüt hagyományos kínai nyelven nyitották meg.\n
+        •&lt;b&gt;Háttérmunkák:&lt;/b&gt; Általános hibajavítások és stabilitási fejlesztések, hogy az island-od zökkenőmentesen működjön.
+    </string>
+    <string name="colors_label_hue">Árnyalat</string>
+    <string name="colors_label_saturation">Telítettség</string>
+    <string name="colors_label_lightness">Fényesség</string>
+    <string name="colors_label_dynamic_modes">Dinamikus színek</string>
+    <string name="colors_label_material_you">Material You (Rendszer)</string>
+    <string name="colors_desc_material_you">A háttérképed színeit használja</string>
+    <string name="filter_compatible_widgets">Csak Island kompatibilisek megjelenítése</string>
+    <string name="kill_all_widgets">Aktív modulok megölése</string>
+    <string name="permission_reminder_title">Frissítési értesítés</string>
+    <string name="permission_reminder_desc">HyperBridge frissítve lett! Ellenőrizd, hogy az Automatikus indítás és a Háttérben való futás nem lett-e csendben elvéve a rendszer által, hogy a modulok továbbra is folyékonyan tudjanak működni.</string>
+    <string name="got_it">Értem</string>
+    <string name="recommended">Ajánlott</string>
+    <string name="all">Mind</string>
+    <string name="favorites">Kedvencek</string>
+    <string name="settings_live_updates_title">Natív Android élő frissítések</string>
+    <string name="settings_live_updates_desc">Ahelyett, hogy az értesítéseket egyedi Xiaomi Islands-ekkel felülírnád, alakítsd át őket szabványos Android 16-os háttérfeladatokká.</string>
+    <string name="channel_live_updates">Natív élő frissítések</string>
+    <string name="engine_preview_title">Előnézet</string>
+    <string name="engine_design_section">Értesítés kinézete</string>
+    <string name="engine_xiaomi_title">Xiaomi kiemelt kinézet</string>
+    <string name="engine_xiaomi_desc">Modern HyperOS elrendezés a Xiaomi-nak a tervezett kinézete.</string>
+    <string name="engine_native_title">Élő frissítéses kinézet</string>
+    <string name="engine_native_desc">Natív android értesítés kinézet, Kínai ROM-on működik.</string>
+    <string name="engine_config_title">Motor beállítás</string>
+    <string name="engine_section_preview">Előnézet</string>
+    <string name="engine_section_design">Értesítés kinézete</string>
+    <string name="good_to_know">Érdemes tudni</string>
+    <string name="nav_layout_info">• A navigációs elrendezések egy közelgő frissítéssel teljes mértékben beépülnek a témamotorba.\n• A Natív élő frissítési motor használata esetén csak a jobb oldali tartalom látható.</string>
+    <string name="xiaomi_featured_notifications">Xiaomi kiemelt értesítés</string>
+    <string name="island_behavior_title">Island működése</string>
+    <string name="island_behavior_desc"><![CDATA[Időkorlátok, duplikációk és láthatóság]]></string>
+    <string name="engine">Motor</string>
+    <string name="engine_desc">Élő frissítések vagy Xiaomi Island</string>
+    <string name="dnd_mode_title">Do Not Disturb</string>
+    <string name="dnd_mode_desc">Manage island visibility during DND</string>
+    <string name="dnd_manual_toggle">Pause Islands</string>
+    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
+    <string name="dnd_auto_detect">Auto-detect System DND</string>
+    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
+    <string name="behaviour_triggers"><![CDATA[Működés és aktiváláso]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Motor, időkorlátok és aktiválások]]></string>
+    <string name="global_behavior">Általános működés</string>
+    <string name="auto_hide_island">Island automatikus elrejtése</string>
+    <string name="hides_after_a_set_time">Megadott idő után eltűnik</string>
+    <string name="behavior_hide_desc">Látható a kézi eltüntetésig</string>
+    <string name="behavior_desc_hide_long">Meghatározza, hogy az Island mennyi ideig marad a képernyőn, mielőtt automatikusan eltűnik.</string>
+    <string name="managed_by_theme_desc">Működés kezelve az aktív téma által.</string>
+    <string name="use_global_default_engine">Alapértelmezett érték használata az értesítési motorhoz</string>
+    <string name="active_triggers">Aktív aktiválók</string>
+    <string name="active_triggers_global_desc">Válaszd ki melyik általános események aktiválják az Island-ot</string>
+    <string name="type_standard_desc">Általános üzenetek, emailek, értesítések</string>
+    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
+    <string name="type_media_desc">Zene- és videólejátszás vezérlői</string>
+    <string name="type_nav_desc">Lépésről lépésre szóló útvonalterv és ÉVI</string>
+    <string name="type_call_desc">Bejövő és folyamatban lévő telefonhívások</string>
+    <string name="type_timer_desc">Aktív időzítők és stopperek</string>
+    <string name="select_triggered_events">Válassz aktivált műveleteket</string>
+    <string name="override_global_triggers">Általános aktiválások felülírása</string>
+    <string name="override_global_trigger_desc">Állíts be egyedi engedélyezett értesítést ehhez az apphoz</string>
+    <string name="trigger_override">Aktiválás felülírása</string>
+    <string name="trigger_app_desc">Válaszd ki, hogy melyik esemény aktiválja a szigetet ehhez az apphoz.</string>
+    <string name="enable_triggers">Bizonyos aktiválók engedélyezése</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="live_updates">Live updates</string>
+    <string name="remove_original_notification">Remove original notification</string>
+    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
+    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
+    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
+    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
+    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
+    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
+    <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
+        <b>Native Live Updates</b>\n
+            • CN ROM Support: Islands now work on HyperOS CN.\n
+            • New Engine: Use system-native animations via Global Settings.\n\n
+        <b>Theme Engine</b>\n
+            • Engine Selection: Choose engines per-app or globally.\n
+            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
+            • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
+        <b>Permanent Island</b>\n
+            • Always Visible: Keep the island on screen even without active notifications.\n
+            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
+        <b>System</b>\n
+            • Boot Fix: Service now starts immediately after restart.\n
+            • New Onboarding: Easier setup for critical permissions.\n
+            • Nav 3: Faster and smoother app transitions.
+    </string>
+    <string name="title_0_5_0">The Live Update</string>
+    <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
+    <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
 </resources>

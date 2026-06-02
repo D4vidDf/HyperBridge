@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
+import androidx.core.graphics.scale
 
 class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -69,6 +70,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     var selectedColorHex by mutableStateOf("#3DDA82")
     var colorMode by mutableStateOf(ColorMode.CUSTOM)
+
     var isDarkThemePreview by mutableStateOf(true)
 
     var selectedShapeId by mutableStateOf("circle")
@@ -82,6 +84,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var callDeclineShapeId by mutableStateOf("circle")
 
     var themeDefaultActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
+
+    // [FIX] Make state nullable
+    var themeUseNativeLiveUpdates by mutableStateOf<Boolean?>(null)
 
     // --- APP-SPECIFIC EDITING STATE (Buffers) ---
     var editingAppPackage by mutableStateOf<String?>(null)
@@ -103,6 +108,10 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     var appActions by mutableStateOf<Map<String, ActionConfig>>(emptyMap())
 
+    // NEW: App-specific Behavior Overrides
+    var appUseNativeLiveUpdates by mutableStateOf<Boolean?>(null)
+    var appEnabledNotificationTypes by mutableStateOf<Set<String>?>(null)
+
     private val _tempAssets = mutableMapOf<String, Uri>()
 
     val shareTheme: String = application.getString(R.string.share_theme)
@@ -112,7 +121,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         loadInstalledApps()
     }
 
-    enum class ShapeOption(val id: String, @StringRes val labelRes: Int) {
+    enum class ShapeOption(val id: String, @param:StringRes val labelRes: Int) {
         CIRCLE("circle", R.string.shape_circle),
         SQUARE("square", R.string.shape_square),
         COOKIE_4("cookie", R.string.shape_cookie),
@@ -227,6 +236,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         appCallDeclineUri = null
 
         appActions = override?.actions ?: emptyMap()
+
+        appUseNativeLiveUpdates = override?.useNativeLiveUpdates
+        appEnabledNotificationTypes = override?.activeNotificationTypes
     }
 
     fun saveAppChanges() {
@@ -255,7 +267,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                     ThemeResource(ResourceType.LOCAL_FILE, "icons/$key.png")
                 } else existingOverride?.callConfig?.declineIcon
             )
-        } else null
+        } else existingOverride?.callConfig // [FIX] Prevent existing call configs from being wiped if only Live Updates were changed!
 
         val newOverride = AppThemeOverride(
             highlightColor = appHighlightColor,
@@ -266,7 +278,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             callConfig = callModule,
             actions = appActions.ifEmpty { null },
             progress = existingOverride?.progress,
-            navigation = existingOverride?.navigation
+            navigation = existingOverride?.navigation,
+            useNativeLiveUpdates = appUseNativeLiveUpdates,
+            activeNotificationTypes = appEnabledNotificationTypes
         )
 
         updateAppOverride(pkg, newOverride)
@@ -306,6 +320,9 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             callAnswerShapeId = theme.callConfig.answerShapeId
             callDeclineShapeId = theme.callConfig.declineShapeId
 
+            // [FIX] Load the global engine selection
+            themeUseNativeLiveUpdates = theme.global.useNativeLiveUpdates
+
             _appOverrides.value = theme.apps
             themeDefaultActions = theme.defaultActions
         }
@@ -332,10 +349,16 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         callAnswerShapeId = "circle"
         callDeclineShapeId = "circle"
 
+        // [FIX] Reset to null instead of false
+        themeUseNativeLiveUpdates = null
+
         appHighlightColor = null
         appColorMode = null
         appCallAnswerShapeId = null
         appCallDeclineShapeId = null
+
+        appUseNativeLiveUpdates = null
+        appEnabledNotificationTypes = null
 
         _appOverrides.value = emptyMap()
         themeDefaultActions = emptyMap()
@@ -370,7 +393,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         context.contentResolver.openInputStream(themeIconUri!!)?.use { input ->
                             val originalBitmap = BitmapFactory.decodeStream(input)
                             if (originalBitmap != null) {
-                                val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 512, 512, true)
+                                val scaledBitmap = originalBitmap.scale(512, 512)
                                 val iconFile = File(iconsDir, "theme_thumb.png")
                                 iconFile.outputStream().use { out -> scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
                                 themeIconRes = ThemeResource(ResourceType.LOCAL_FILE, "icons/theme_thumb.png")
@@ -419,7 +442,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         colorMode = colorMode,
                         iconShapeId = selectedShapeId,
                         iconPaddingPercent = iconPaddingPercent,
-                        backgroundColor = "#202124"
+                        backgroundColor = "#202124",
+                        useNativeLiveUpdates = themeUseNativeLiveUpdates // [FIX] Save to Theme JSON
                     ),
                     callConfig = CallModule(
                         answerIcon = answerRes,
@@ -450,6 +474,20 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             action = NotificationReaderService.ACTION_RELOAD_THEME
         }
         context.startService(intent)
+    }
+
+    val useNativeLiveUpdates = prefs.useNativeLiveUpdates
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    fun setUseNativeLiveUpdates(value: Boolean) {
+        viewModelScope.launch {
+            prefs.setUseNativeLiveUpdates(value)
+            reloadNotificationService()
+        }
     }
 }
 

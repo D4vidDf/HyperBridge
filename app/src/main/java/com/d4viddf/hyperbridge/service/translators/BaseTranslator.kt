@@ -16,7 +16,6 @@ import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.service.notification.StatusBarNotification
@@ -50,21 +49,11 @@ abstract class BaseTranslator(
     private val appColorCache = ConcurrentHashMap<String, String>()
 
     protected inline fun <reified T : Parcelable> Bundle.getParcelableCompat(key: String): T? {
-        return if (Build.VERSION.SDK_INT >= 33) {
-            getParcelable(key, T::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            getParcelable(key)
-        }
+        return getParcelable(key, T::class.java)
     }
 
     protected inline fun <reified T : Parcelable> Bundle.getParcelableArrayListCompat(key: String): ArrayList<T>? {
-        return if (Build.VERSION.SDK_INT >= 33) {
-            getParcelableArrayList(key, T::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            getParcelableArrayList(key)
-        }
+        return getParcelableArrayList(key, T::class.java)
     }
 
     // --- THEME HELPERS ---
@@ -178,8 +167,50 @@ abstract class BaseTranslator(
     }
 
     protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
-        val originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
+        var originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
+        if (isBitmapDarkAndMonochrome(originalBitmap)) {
+            originalBitmap = tintBitmap(originalBitmap, Color.WHITE)
+        }
         return HyperPicture(picKey, originalBitmap)
+    }
+
+    protected fun isBitmapDarkAndMonochrome(bitmap: Bitmap): Boolean {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width == 0 || height == 0) return false
+
+        var darkPixels = 0
+        var totalPixels = 0
+        var isMonochrome = true
+
+        val stepX = maxOf(1, width / 20)
+        val stepY = maxOf(1, height / 20)
+
+        for (x in 0 until width step stepX) {
+            for (y in 0 until height step stepY) {
+                val pixel = bitmap.getPixel(x, y)
+                val alpha = Color.alpha(pixel)
+                if (alpha > 50) {
+                    totalPixels++
+                    val r = Color.red(pixel)
+                    val g = Color.green(pixel)
+                    val b = Color.blue(pixel)
+
+                    val diff = abs(r - g) + abs(g - b) + abs(b - r)
+                    if (diff > 45) {
+                        isMonochrome = false
+                    }
+
+                    val luminance = (0.299 * r + 0.587 * g + 0.114 * b)
+                    if (luminance < 80) {
+                        darkPixels++
+                    }
+                }
+            }
+        }
+
+        if (totalPixels == 0 || !isMonochrome) return false
+        return (darkPixels.toFloat() / totalPixels) > 0.7f
     }
 
     // --- THEME APPLICATION LOGIC ---
@@ -356,6 +387,21 @@ abstract class BaseTranslator(
             val picture = extras.getParcelableCompat<Bitmap>(Notification.EXTRA_PICTURE)
             if (picture != null) return picture
 
+            val template = extras.getString(Notification.EXTRA_TEMPLATE)
+            if (template == "android.app.Notification\$MessagingStyle") {
+                val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+                if (messages != null && messages.isNotEmpty()) {
+                    val lastMessage = messages.last() as? Bundle
+                    if (lastMessage != null) {
+                        val senderPerson = lastMessage.getParcelableCompat<Person>("sender_person")
+                        if (senderPerson?.icon != null) {
+                            val bitmap = loadIconBitmap(senderPerson.icon!!, pkg)
+                            if (bitmap != null) return bitmap
+                        }
+                    }
+                }
+            }
+
             if (sbn.notification.category == Notification.CATEGORY_CALL) {
                 val person = extras.getParcelableCompat<Person>(Notification.EXTRA_MESSAGING_PERSON)
                     ?: extras.getParcelableArrayListCompat<Person>(Notification.EXTRA_PEOPLE_LIST)?.firstOrNull()
@@ -451,6 +497,20 @@ abstract class BaseTranslator(
         } catch (e: Exception) {
             null
         }
+    }
+
+    protected fun extractTextPercentage(title: String?, text: String?): Int? {
+        val pattern = Regex("""\b(\d{1,3})\s*%""")
+        val textMatch = text?.let { pattern.find(it) }
+        val titleMatch = title?.let { pattern.find(it) }
+        val match = textMatch ?: titleMatch
+        if (match != null) {
+            val value = match.groupValues[1].toIntOrNull()
+            if (value != null && value in 0..100) {
+                return value
+            }
+        }
+        return null
     }
 
     protected fun createFallbackBitmap(): Bitmap = createBitmap(1, 1)

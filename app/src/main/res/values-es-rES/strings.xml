@@ -7,28 +7,28 @@
     <string name="done">Hecho</string>
     <string name="logo_desc">Logo de la App</string>
     <string name="settings">Ajustes</string>
-    <string name="info">Info</string>
+    <string name="info">Información</string>
     <string name="configure">Configurar</string>
     <string name="clear">Borrar</string>
     <string name="sort_order">Orden</string>
     <string name="welcome_title">Bienvenido a\nHyper Bridge</string>
-    <string name="welcome_subtitle">Integra HyperIslands perfectamente en tu experiencia HyperOS.</string>
+    <string name="welcome_subtitle">Integra Hyper Islands perfectamente en tu experiencia HyperOS.</string>
     <string name="get_started">Empezar</string>
     <string name="how_it_works">Cómo funciona</string>
-    <string name="how_it_works_desc">Selecciona tus aplicaciones favoritas (Spotify, Maps, Timer). HyperBridge transforma sus notificaciones en una elegante HyperIsland.</string>
+    <string name="how_it_works_desc">Selecciona tus aplicaciones favoritas (Spotify, Navegación, Relojes). Hyper Bridge transforma sus notificaciones en una elegante Hyper Island.</string>
     <string name="early_development">Desarrollo Temprano</string>
     <string name="beta_warning">Nota: Esta app está en Beta. Puedes encontrar errores o información visual incorrecta.</string>
     <string name="device_compatible">Dispositivo Compatible</string>
     <string name="unsupported_device">Dispositivo No Soportado</string>
     <string name="compatible_msg">Tu dispositivo parece ejecutar HyperOS/MIUI. ¡Todo listo!</string>
-    <string name="incompatible_msg">HyperBridge depende de funciones específicas de HyperOS. Tu fabricante no parece ser Xiaomi/POCO/Redmi.</string>
+    <string name="incompatible_msg">Hype rBridge depende de funciones específicas de HyperOS. Tu fabricante no parece ser Xiaomi/POCO/Redmi.</string>
     <string name="system_detected">✅ Sistema Detectado</string>
     <string name="app_wont_work">⚠️ La app podría no funcionar</string>
     <string name="show_island">Mostrar Isla</string>
     <string name="perm_post_desc">Necesitamos permiso para mostrar la notificación \'Isla\' en tu pantalla.</string>
     <string name="perm_granted">Permiso Concedido</string>
     <string name="allow_notifications">Permitir Notificaciones</string>
-    <string name="read_data">Leer Datos</string>
+    <string name="read_data">Leer Notificaciones</string>
     <string name="perm_listener_desc">Para conectar tus aplicaciones, necesitamos leer sus notificaciones (Música, Mapas, Temporizadores).</string>
     <string name="open_settings">Abrir Ajustes</string>
     <string name="keep_alive">Mantener Activo</string>
@@ -51,6 +51,11 @@
     <string name="group_configuration">Configuración</string>
     <string name="system_setup">Configuración del Sistema</string>
     <string name="system_setup_subtitle">Arreglar permisos y batería</string>
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Isla Permanente</string>
+    <string name="permanent_island_desc">Mantener la Isla Dinámica permanentemente visible en la pantalla cuando no haya notificaciones activas.</string>
+    <string name="permanent_island_screen_desc">Cuando esté activado, se mostrará una Isla Dinámica vacía de forma permanente en la pantalla. Se ocultará automáticamente cuando lleguen notificaciones reales y volverá a aparecer cuando se borren todas las notificaciones. No será visible en el panel de notificaciones.</string>
+    <string name="permanent_island_width">Ancho de la Isla</string>
     <string name="group_about">Sobre la aplicación</string>
     <string name="developer">Desarrollador</string>
     <string name="developer_subtitle">Visita d4viddf.com</string>
@@ -80,7 +85,8 @@
     <string name="cat_other">Otros</string>
     <string name="select_active_notifs">Notificaciones activas</string>
     <string name="type_standard">Mensajes y General</string>
-    <string name="type_progress">Descargas y Progreso</string>
+    <string name="type_progress">Progress &amp; Tasks</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">Música y Multimedia</string>
     <string name="type_nav">Mapas y GPS</string>
     <string name="type_call">Llamadas</string>
@@ -135,6 +141,7 @@
     <string name="island_appearance">Apariencia de Isla</string>
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
+    <string name="setting_float_timeout_desc">Cuánto tiempo la ventana emergente se mantiene visible.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
     <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificación. Si está desactivada, solo aparece como una isla.</string>
     <string name="setting_timeout">Retraso de cierre automático</string>
@@ -166,8 +173,8 @@
         • &lt;b&gt;Nueva Biblioteca:&lt;/b&gt; Filtra aplicaciones por categoría y orden.\n
         • &lt;b&gt;Idiomas:&lt;/b&gt; Soporte completo para Español.
     </string>
-    <string name="priority_edu_title">Nuevo: Controla la Isla</string>
-    <string name="priority_edu_desc">HyperBridge ahora gestiona cómo se comportan múltiples notificaciones cuando se alcanza el límite de 9.\n\n&lt;b&gt;Por Defecto: Más Reciente&lt;/b&gt;\nLas nuevas notificaciones reemplazan a las más antiguas automáticamente.</string>
+    <string name="priority_edu_title">Controla la Isla</string>
+    <string name="priority_edu_desc">Elige cómo debe comportarse la isla cuando hay varias notificaciones activas al mismo tiempo.</string>
     <string name="keep_default">Mantener</string>
     <string name="configure_now">Configurar</string>
     <string name="badge_new">NUEVO</string>
@@ -230,6 +237,15 @@
     <string name="status_unknown">Desconocido</string>
     <string name="warning_cn_rom_title">ROM China Detectada</string>
     <string name="warning_cn_rom_desc">Tu dispositivo parece ejecutar un firmware chino. Xiaomi modifica drásticamente las notificaciones en estas ROMs. Las funciones podrían ser inestables o no funcionar.</string>
+    <string name="shizuku_workaround_title">Habilitar parche de Shizuku</string>
+    <string name="shizuku_enable_workaround">Habilitar parche</string>
+    <string name="shizuku_workaround_desc">Si estás en una ROM China, debes habilitar el parche de Shizuku para que las notificaciones se activen correctamente.</string>
+    <string name="shizuku_status_running">Shizuku está en ejecución</string>
+    <string name="shizuku_status_not_running">Shizuku no está en ejecución</string>
+    <string name="shizuku_permission_granted">Permiso concedido</string>
+    <string name="shizuku_permission_denied">Permiso denegado</string>
+    <string name="shizuku_request_permission">Otorgar permiso de Shizuku</string>
+    <string name="shizuku_not_installed">La aplicación Shizuku no está instalada o en ejecución. Por favor, instala e inicia Shizuku primero.</string>
     <string name="system_version">Versión del Sistema</string>
     <string name="call_incoming">Llamada Entrante</string>
     <string name="call_ongoing">Llamada en Curso</string>
@@ -551,21 +567,101 @@
     <string name="changelog_0_4_2">        •&lt;b&gt;Corrección de errores:&lt;/b&gt; Se solucionó un error crítico que provocaba el cierre de la aplicación al abrir la configuración en Chino Tradicional.\n
         •&lt;b&gt;Mejoras generales:&lt;/b&gt; Corrección de errores menores y mejoras de estabilidad para que la Isla funcione sin problemas.
     </string>
-
     <string name="colors_label_hue">Tono</string>
     <string name="colors_label_saturation">Saturación</string>
     <string name="colors_label_lightness">Claridad</string>
-
+    <string name="colors_label_dynamic_modes">Colores Dinámicos</string>
     <string name="colors_label_material_you">Material You (Sistema)</string>
     <string name="colors_desc_material_you">Extrae los colores de tu fondo de pantalla actual.</string>
-
     <string name="filter_compatible_widgets">Mostrar solo compatibles con la Isla</string>
     <string name="kill_all_widgets">Detener widgets activos</string>
     <string name="permission_reminder_title">Aviso de actualización</string>
     <string name="permission_reminder_desc">¡HyperBridge se ha actualizado! Por favor, asegúrate de que los permisos de Inicio automático y Batería en segundo plano no hayan sido revocados silenciosamente por el sistema para que tus widgets sigan funcionando sin problemas.</string>
     <string name="got_it">Entendido</string>
-
     <string name="recommended">Recomendados</string>
     <string name="all">Todos</string>
     <string name="favorites">Favoritos</string>
+    <string name="settings_live_updates_title">Actualizaciones nativas en vivo de Android</string>
+    <string name="settings_live_updates_desc">Transforma las notificaciones en las notificaciones en vivo de Android 16 en lugar del diseño de Xiaomi.</string>
+    <string name="channel_live_updates">Actualizaciones nativas en vivo</string>
+    <string name="engine_preview_title">Vista previa</string>
+    <string name="engine_design_section">Diseño de notificaciones</string>
+    <string name="engine_xiaomi_title">Diseño destacado de Xiaomi</string>
+    <string name="engine_xiaomi_desc">Diseño moderno de HyperOS de Xiaomi.</string>
+    <string name="engine_native_title">Actualización en vivo</string>
+    <string name="engine_native_desc">Diseño de notificaciones de Android, funciona en CN ROM.</string>
+    <string name="engine_config_title">Configuación del motor</string>
+    <string name="engine_section_preview">Vista previa</string>
+    <string name="engine_section_design">Diseño de notificaciones</string>
+    <string name="good_to_know">A tener en cuenta</string>
+    <string name="nav_layout_info">• Los diseños de navegación se integrarán completamente en el Motor de Temas en una próxima actualización.\n• Al usar el motor nativo de Live Updates, solo el contenido del Lado Derecho es visible.</string>
+    <string name="xiaomi_featured_notifications">Notificaciones Destacadas de Xiaomi</string>
+    <string name="island_behavior_title">Comportamiento de la Isla</string>
+    <string name="island_behavior_desc"><![CDATA[Tiempos de espera, duplicados y visibilidad]]></string>
+    <string name="engine">Motor</string>
+    <string name="engine_desc">Live Updates vs Isla de Xiaomi</string>
+    <string name="dnd_mode_title">No molestar</string>
+    <string name="dnd_mode_desc">Gestionar la visibilidad de la isla durante No molestar</string>
+    <string name="dnd_manual_toggle">Pausar islas</string>
+    <string name="dnd_manual_toggle_desc">Pausar manualmente todas las islas hasta que vuelvas a activarlo</string>
+    <string name="dnd_auto_detect">Autodetectar No molestar del sistema</string>
+    <string name="dnd_auto_detect_desc">Pausar automáticamente las islas cuando tu teléfono esté en modo No molestar</string>
+    <string name="behaviour_triggers"><![CDATA[Comportamiento y Activadores]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Motor, tiempos de espera y activadores]]></string>
+    <string name="global_behavior">Comportamiento Global</string>
+    <string name="auto_hide_island">Ocultar automáticamente la isla</string>
+    <string name="hides_after_a_set_time">Se oculta tras un tiempo establecido</string>
+    <string name="behavior_hide_desc">Visible hasta que se descarte manualmente</string>
+    <string name="behavior_desc_hide_long">Determina cuánto tiempo permanece la isla en pantalla antes de desaparecer automáticamente.</string>
+    <string name="managed_by_theme_desc">Comportamiento gestionado por el tema activo.</string>
+    <string name="use_global_default_engine">Usar el valor predeterminado para el motor de notificaciones</string>
+    <string name="active_triggers">Desencadenantes Activos</string>
+    <string name="active_triggers_global_desc">Selecciona qué eventos globales activan la isla</string>
+    <string name="type_standard_desc">Mensajes normales, correos electrónicos y alertas</string>
+    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
+    <string name="type_media_desc">Controles de reproducción de música y video</string>
+    <string name="type_nav_desc">Indicaciones paso a paso y tiempo estimado (ETA)</string>
+    <string name="type_call_desc">Llamadas telefónicas entrantes y en curso</string>
+    <string name="type_timer_desc">Temporizadores activos y cronómetros</string>
+    <string name="select_triggered_events">Seleccionar eventos desencadenantes</string>
+    <string name="override_global_triggers">Anular Desencadenantes Globales</string>
+    <string name="override_global_trigger_desc">Establecer notificaciones permitidas personalizadas para esta aplicación</string>
+    <string name="trigger_override">Anular desencadenantes</string>
+    <string name="trigger_app_desc">Selecciona qué eventos activan la isla para esta aplicación.</string>
+    <string name="enable_triggers">Habilitar eventos específicos</string>
+    <string name="open_source_licenses">Licencias de código abierto</string>
+    <string name="live_updates">Actualizaciones en tiempo real</string>
+    <string name="remove_original_notification">Eliminar notificación original</string>
+    <string name="remove_original_notification_desc">Descartar automáticamente la notificación original cuando una Live Update está activa.</string>
+    <string name="onboarding_can_be_changed">Puedes cambiar estas opciones más tarde en Ajustes y el Configurador de Temas.</string>
+    <string name="onboarding_widget_desc">Añade widgets estándar de Android a tu isla para un acceso rápido.</string>
+    <string name="onboard_theme_desc">Personaliza completamente los colores, formas e iconos de tu isla.</string>
+    <string name="onboard_design_desc">Amplía las posibilidades con diferentes opciones de personalización</string>
+    <string name="behavior_desc_glob_config">Determina el comportamiento de la isla.</string>
+    <string name="widget_layout_snapshot">Vista previa del widget</string>
+    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
+        <b>Native Live Updates</b>\n
+            • CN ROM Support: Islands now work on HyperOS CN.\n
+            • New Engine: Use system-native animations via Global Settings.\n\n
+        <b>Theme Engine</b>\n
+            • Engine Selection: Choose engines per-app or globally.\n
+            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
+            • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
+        <b>Permanent Island</b>\n
+            • Always Visible: Keep the island on screen even without active notifications.\n
+            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
+        <b>System</b>\n
+            • Boot Fix: Service now starts immediately after restart.\n
+            • New Onboarding: Easier setup for critical permissions.\n
+            • Nav 3: Faster and smoother app transitions.
+    </string>
+    <string name="title_0_5_0">La actualización en vivo</string>
+    <string name="notification_went_wrong">¡Si ves esto, algo salió mal!</string>
+    <string name="widget_went_wrong">¡Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
 </resources>

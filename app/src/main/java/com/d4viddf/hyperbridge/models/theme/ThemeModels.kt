@@ -32,6 +32,7 @@ data class ThemeMetadata(
 data class GlobalConfig(
     @SerialName("highlight_color") val highlightColor: String? = null,
     @SerialName("background_color") val backgroundColor: String? = null,
+    @SerialName("use_native_live_updates") val useNativeLiveUpdates: Boolean? = null,
     @SerialName("text_color") val textColor: String? = "#FFFFFF",
 
     @Deprecated("Use colorMode instead. Kept for backward compatibility with v0.4.x themes.")
@@ -77,12 +78,17 @@ data class AppThemeOverride(
     @SerialName("call_config") val callConfig: CallModule? = null,
     val actions: Map<String, ActionConfig>? = null,
     val progress: ProgressModule? = null,
-    val navigation: NavigationModule? = null
+    val navigation: NavigationModule? = null,
+
+    // [NEW] App-specific behavior overrides
+    @SerialName("use_native_live_updates") val useNativeLiveUpdates: Boolean? = null,
+    @SerialName("active_notification_types") val activeNotificationTypes: Set<String>? = null
 ) {
     // Safe getter: reads new enum, falls back to legacy boolean if present, else returns null (uses global)
     val activeColorMode: ColorMode?
         get() = colorMode ?: useAppColors?.let { if (it) ColorMode.APP_ICON else ColorMode.CUSTOM }
 }
+
 @Serializable
 data class ActionConfig(
     val mode: ActionButtonMode = ActionButtonMode.ICON,

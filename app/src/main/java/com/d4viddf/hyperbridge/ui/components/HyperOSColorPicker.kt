@@ -1,14 +1,9 @@
 package com.d4viddf.hyperbridge.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
@@ -59,44 +54,3 @@ fun GradientSlider(
         )
     }
 }
-
-// Reusable circular color bubble
-@Composable
-fun ColorBubble(
-    color: Color,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    backgroundBrush: Brush? = null,
-    content: @Composable BoxScope.() -> Unit = {}
-) {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        // Outer selection ring
-        if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .border(2.dp, Color(0xFF3B82F6), CircleShape) // HyperOS Blue ring
-            )
-        }
-
-        // Inner color circle
-        Box(
-            modifier = Modifier
-                .size(if (isSelected) 44.dp else 48.dp) // Shrinks slightly when selected
-                .clip(CircleShape)
-                .then(
-                    if (backgroundBrush != null) Modifier.background(backgroundBrush)
-                    else Modifier.background(color)
-                ),
-            contentAlignment = Alignment.Center,
-            content = content
-        )
-    }
-}
-

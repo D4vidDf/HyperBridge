@@ -34,6 +34,13 @@ class AppPreferences(context: Context) {
         // --- MIGRATION LOGIC ---
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // Force Onboarding reset for version 0.5.0 (versionCode 17)
+                val lastResetVersion = dao.getSetting("onboarding_reset_version")?.toIntOrNull() ?: 0
+                if (lastResetVersion < 18) {
+                    dao.insert(AppSetting(SettingsKeys.SETUP_COMPLETE, "false"))
+                    dao.insert(AppSetting("onboarding_reset_version", "18"))
+                }
+
                 val isMigrated = dao.getSetting(SettingsKeys.MIGRATION_COMPLETE) == "true"
                 if (!isMigrated) {
                     val legacyPrefs = legacyDataStore.data.first().asMap()
@@ -48,6 +55,36 @@ class AppPreferences(context: Context) {
                         legacyDataStore.edit { it.clear() }
                     }
                     dao.insert(AppSetting(SettingsKeys.MIGRATION_COMPLETE, "true"))
+                }
+
+                // Grant DOWNLOAD notification type if PROGRESS was previously enabled
+                val isDownloadMigrated = dao.getSetting("download_type_migration_complete") == "true"
+                if (!isDownloadMigrated) {
+                    // 1. Global notification types migration
+                    val globalTypesStr = dao.getSetting(GLOBAL_NOTIFICATION_TYPES_KEY)
+                    if (globalTypesStr != null) {
+                        val globalTypes = globalTypesStr.deserializeSet()
+                        if (globalTypes.contains("PROGRESS") && !globalTypes.contains("DOWNLOAD")) {
+                            val newGlobalTypes = globalTypes + "DOWNLOAD"
+                            dao.insert(AppSetting(GLOBAL_NOTIFICATION_TYPES_KEY, newGlobalTypes.serialize()))
+                        }
+                    }
+
+                    // 2. App-specific notification types migration
+                    val suffixes = listOf("_float", "_shade", "_timeout", "_float_timeout", "_remove_notif", "_blocked", "_nav_left", "_nav_right", "_use_native")
+                    val allSettings = dao.getAllSync()
+                    allSettings.forEach { setting ->
+                        val key = setting.key
+                        if (key.startsWith("config_") && suffixes.none { key.endsWith(it) }) {
+                            val types = setting.value.deserializeSet()
+                            if (types.contains("PROGRESS") && !types.contains("DOWNLOAD")) {
+                                val newTypes = types + "DOWNLOAD"
+                                dao.insert(AppSetting(key, newTypes.serialize()))
+                            }
+                        }
+                    }
+
+                    dao.insert(AppSetting("download_type_migration_complete", "true"))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -76,7 +113,6 @@ class AppPreferences(context: Context) {
     val allowedPackagesFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.ALLOWED_PACKAGES).map { it.deserializeSet() }
     val isSetupComplete: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.SETUP_COMPLETE).map { it.toBoolean(false) }
     val lastSeenVersion: Flow<Int> = dao.getSettingFlow(SettingsKeys.LAST_VERSION).map { it.toInt(0) }
-    val isPriorityEduShown: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.PRIORITY_EDU).map { it.toBoolean(false) }
 
     suspend fun setSetupComplete(isComplete: Boolean) = save(SettingsKeys.SETUP_COMPLETE, isComplete.toString())
     suspend fun setLastSeenVersion(versionCode: Int) = save(SettingsKeys.LAST_VERSION, versionCode.toString())
@@ -90,13 +126,9 @@ class AppPreferences(context: Context) {
     }
 
     // ========================================================================
-    //                        THEME ENGINE (NEW)
+    //                        THEME ENGINE
     // ========================================================================
 
-    /**
-     * Holds the ID (folder name) of the currently active theme.
-     * Null means the system default (no theme).
-     */
     val activeThemeIdFlow: Flow<String?> = dao.getSettingFlow("active_theme_id")
 
     suspend fun setActiveThemeId(id: String?) {
@@ -107,11 +139,9 @@ class AppPreferences(context: Context) {
         }
     }
 
-    // ========================================================================
-
     // --- LIMITS & PRIORITY ---
     val limitModeFlow: Flow<IslandLimitMode> = dao.getSettingFlow("limit_mode").map {
-        try { IslandLimitMode.valueOf(it ?: IslandLimitMode.MOST_RECENT.name) } catch(e: Exception) { IslandLimitMode.MOST_RECENT }
+        try { IslandLimitMode.valueOf(it ?: IslandLimitMode.MOST_RECENT.name) } catch(_: Exception) { IslandLimitMode.MOST_RECENT }
     }
     val appPriorityListFlow: Flow<List<String>> = dao.getSettingFlow(SettingsKeys.PRIORITY_ORDER).map { it.deserializeList() }
 
@@ -126,14 +156,6 @@ class AppPreferences(context: Context) {
         }
     }
 
-    suspend fun updateAppConfig(packageName: String, type: NotificationType, isEnabled: Boolean) {
-        val key = "config_$packageName"
-        val currentStr = dao.getSetting(key)
-        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
-        val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
-        save(key, newSet.serialize())
-    }
-
     // --- ISLAND CONFIG (Standard Notifications) ---
     private fun sanitizeTimeout(raw: Long?): Long {
         val value = raw ?: 5L
@@ -143,27 +165,41 @@ class AppPreferences(context: Context) {
     val globalConfigFlow: Flow<IslandConfig> = combine(
         dao.getSettingFlow(SettingsKeys.GLOBAL_FLOAT),
         dao.getSettingFlow(SettingsKeys.GLOBAL_SHADE),
-        dao.getSettingFlow(SettingsKeys.GLOBAL_TIMEOUT)
-    ) { f, s, t ->
-        IslandConfig(f.toBoolean(true), s.toBoolean(true), t?.toIntOrNull())
+        dao.getSettingFlow(SettingsKeys.GLOBAL_TIMEOUT),
+        dao.getSettingFlow(SettingsKeys.GLOBAL_FLOAT_TIMEOUT),
+        dao.getSettingFlow(SettingsKeys.GLOBAL_REMOVE_NOTIF)
+    ) { f, s, t, ft, rn ->
+        IslandConfig(
+            f.toBoolean(true),
+            s.toBoolean(true),
+            t?.toIntOrNull(),
+            ft?.toIntOrNull(),
+            rn?.toBoolean()
+        )
     }
 
     suspend fun updateGlobalConfig(config: IslandConfig) {
         config.isFloat?.let { save(SettingsKeys.GLOBAL_FLOAT, it.toString()) }
         config.isShowShade?.let { save(SettingsKeys.GLOBAL_SHADE, it.toString()) }
         config.timeout?.let { save(SettingsKeys.GLOBAL_TIMEOUT, it.toString()) }
+        config.floatTimeout?.let { save(SettingsKeys.GLOBAL_FLOAT_TIMEOUT, it.toString()) }
+        config.removeOriginalNotification?.let { save(SettingsKeys.GLOBAL_REMOVE_NOTIF, it.toString()) }
     }
 
     fun getAppIslandConfig(packageName: String): Flow<IslandConfig> {
         return combine(
             dao.getSettingFlow("config_${packageName}_float"),
             dao.getSettingFlow("config_${packageName}_shade"),
-            dao.getSettingFlow("config_${packageName}_timeout")
-        ) { f, s, t ->
+            dao.getSettingFlow("config_${packageName}_timeout"),
+            dao.getSettingFlow("config_${packageName}_float_timeout"),
+            dao.getSettingFlow("config_${packageName}_remove_notif")
+        ) { f, s, t, ft, rn ->
             IslandConfig(
                 f?.toBoolean(),
                 s?.toBoolean(),
-                t?.toIntOrNull()
+                t?.toIntOrNull(),
+                ft?.toIntOrNull(),
+                rn?.toBoolean()
             )
         }
     }
@@ -172,10 +208,14 @@ class AppPreferences(context: Context) {
         val fKey = "config_${packageName}_float"
         val sKey = "config_${packageName}_shade"
         val tKey = "config_${packageName}_timeout"
+        val ftKey = "config_${packageName}_float_timeout"
+        val rnKey = "config_${packageName}_remove_notif"
 
         if (config.isFloat != null) save(fKey, config.isFloat.toString()) else remove(fKey)
         if (config.isShowShade != null) save(sKey, config.isShowShade.toString()) else remove(sKey)
         if (config.timeout != null) save(tKey, config.timeout.toString()) else remove(tKey)
+        if (config.floatTimeout != null) save(ftKey, config.floatTimeout.toString()) else remove(ftKey)
+        if (config.removeOriginalNotification != null) save(rnKey, config.removeOriginalNotification.toString()) else remove(rnKey)
     }
 
     // --- NAVIGATION ---
@@ -193,8 +233,8 @@ class AppPreferences(context: Context) {
         dao.getSettingFlow(SettingsKeys.NAV_LEFT),
         dao.getSettingFlow(SettingsKeys.NAV_RIGHT)
     ) { l, r ->
-        val left = try { NavContent.valueOf(l ?: NavContent.DISTANCE_ETA.name) } catch (e: Exception) { NavContent.DISTANCE_ETA }
-        val right = try { NavContent.valueOf(r ?: NavContent.INSTRUCTION.name) } catch (e: Exception) { NavContent.INSTRUCTION }
+        val left = try { NavContent.valueOf(l ?: NavContent.DISTANCE_ETA.name) } catch (_: Exception) { NavContent.DISTANCE_ETA }
+        val right = try { NavContent.valueOf(r ?: NavContent.INSTRUCTION.name) } catch (_: Exception) { NavContent.INSTRUCTION }
         left to right
     }
 
@@ -208,8 +248,8 @@ class AppPreferences(context: Context) {
             dao.getSettingFlow("config_${packageName}_nav_left"),
             dao.getSettingFlow("config_${packageName}_nav_right")
         ) { l, r ->
-            val left = l?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
-            val right = r?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} }
+            val left = l?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} }
+            val right = r?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} }
             left to right
         }
     }
@@ -220,8 +260,8 @@ class AppPreferences(context: Context) {
             dao.getSettingFlow("config_${packageName}_nav_right"),
             globalNavLayoutFlow
         ) { appL, appR, global ->
-            val left = appL?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} } ?: global.first
-            val right = appR?.let { try { NavContent.valueOf(it) } catch(e: Exception){null} } ?: global.second
+            val left = appL?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} } ?: global.first
+            val right = appR?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} } ?: global.second
             left to right
         }
     }
@@ -239,19 +279,11 @@ class AppPreferences(context: Context) {
 
     private val WIDGET_IDS_DB_KEY = "saved_widget_ids_list"
 
-    /**
-     * Provides a Flow of all currently saved Widget IDs.
-     */
     val savedWidgetIdsFlow: Flow<List<Int>> = dao.getSettingFlow(WIDGET_IDS_DB_KEY).map { str ->
         str?.split(",")?.mapNotNull { it.toIntOrNull() } ?: emptyList()
     }
 
-    /**
-     * Gets configuration specific to a single Widget ID.
-     * Returns the clean WidgetConfig class.
-     */
     fun getWidgetConfigFlow(id: Int): Flow<WidgetConfig> {
-        // [FIX] 'combine' only supports up to 5 args nicely. For 6+, it returns an Array<T>.
         return combine(
             dao.getSettingFlow("widget_${id}_shown"),
             dao.getSettingFlow("widget_${id}_timeout"),
@@ -260,7 +292,6 @@ class AppPreferences(context: Context) {
             dao.getSettingFlow("widget_${id}_auto_update"),
             dao.getSettingFlow("widget_${id}_update_interval")
         ) { args: Array<String?> ->
-            // Manually unpack the array
             val shown = args[0]
             val timeout = args[1]
             val sizeStr = args[2]
@@ -268,12 +299,12 @@ class AppPreferences(context: Context) {
             val autoStr = args[4]
             val intervalStr = args[5]
 
-            val sizeEnum = try { WidgetSize.valueOf(sizeStr ?: WidgetSize.MEDIUM.name) } catch (e: Exception) { WidgetSize.MEDIUM }
-            val modeEnum = try { WidgetRenderMode.valueOf(modeStr ?: WidgetRenderMode.INTERACTIVE.name) } catch (e: Exception) { WidgetRenderMode.INTERACTIVE }
+            val sizeEnum = try { WidgetSize.valueOf(sizeStr ?: WidgetSize.MEDIUM.name) } catch (_: Exception) { WidgetSize.MEDIUM }
+            val modeEnum = try { WidgetRenderMode.valueOf(modeStr ?: WidgetRenderMode.INTERACTIVE.name) } catch (_: Exception) { WidgetRenderMode.INTERACTIVE }
 
             WidgetConfig(
                 isShowShade = shown.toBoolean(true),
-                timeout = timeout.toInt(5),
+                timeout = timeout.toInt(10),
                 size = sizeEnum,
                 renderMode = modeEnum,
                 autoUpdate = autoStr.toBoolean(false),
@@ -282,9 +313,6 @@ class AppPreferences(context: Context) {
         }
     }
 
-    /**
-     * Saves configuration for a specific widget ID.
-     */
     suspend fun saveWidgetConfig(
         id: Int,
         config: WidgetConfig
@@ -327,5 +355,107 @@ class AppPreferences(context: Context) {
         val currentSet = currentStr.deserializeSet()
         val newSet = if (isFavorite) currentSet + packageName else currentSet - packageName
         save("favorite_widget_apps", newSet.serialize())
+    }
+
+    // ========================================================================
+    //                        Global Notification Types
+    // ========================================================================
+
+    val GLOBAL_NOTIFICATION_TYPES_KEY = "global_notification_types"
+
+    val globalNotificationTypesFlow: Flow<Set<String>> = dao.getSettingFlow(GLOBAL_NOTIFICATION_TYPES_KEY).map { str ->
+        str?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+    }
+
+    suspend fun updateGlobalNotificationType(type: NotificationType, isEnabled: Boolean) {
+        val currentStr = dao.getSetting(GLOBAL_NOTIFICATION_TYPES_KEY)
+        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
+        save(GLOBAL_NOTIFICATION_TYPES_KEY, newSet.serialize())
+    }
+
+    // --- APP-SPECIFIC NOTIFICATION TYPES ---
+
+    fun getAppConfigFlow(packageName: String): Flow<Set<String>?> {
+        val legacyKey = "config_$packageName"
+        return dao.getSettingFlow(legacyKey).map { str ->
+            str?.deserializeSet()
+        }
+    }
+
+    suspend fun updateAppConfig(packageName: String, type: NotificationType, isEnabled: Boolean) {
+        val key = "config_$packageName"
+        val currentStr = dao.getSetting(key)
+        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
+        save(key, newSet.serialize())
+    }
+
+    // ========================================================================
+    //                        THEME ENGINE CONFIGURATION
+    // ========================================================================
+
+    private val USE_NATIVE_ENGINE = "use_native_live_updates"
+    private val IS_SHIZUKU_WORKAROUND_ENABLED = "is_shizuku_workaround_enabled"
+
+    val useNativeLiveUpdates: Flow<Boolean> = dao.getSettingFlow(USE_NATIVE_ENGINE)
+        .map { it?.toBoolean() ?: false }
+
+    val isShizukuWorkaroundEnabled: Flow<Boolean> = dao.getSettingFlow(IS_SHIZUKU_WORKAROUND_ENABLED)
+        .map { it?.toBoolean() ?: false }
+
+    suspend fun setUseNativeLiveUpdates(value: Boolean) {
+        save(USE_NATIVE_ENGINE, value.toString())
+    }
+
+    suspend fun setShizukuWorkaroundEnabled(value: Boolean) {
+        save(IS_SHIZUKU_WORKAROUND_ENABLED, value.toString())
+    }
+
+    // ========================================================================
+    //                        DND / GAME MODE CONFIGURATION
+    // ========================================================================
+
+    val isDndModeEnabledFlow: Flow<Boolean> = dao.getSettingFlow("dnd_mode_enabled").map { it.toBoolean(false) }
+    suspend fun setDndModeEnabled(isEnabled: Boolean) = save("dnd_mode_enabled", isEnabled.toString())
+
+    val autoDetectDndFlow: Flow<Boolean> = dao.getSettingFlow("auto_detect_dnd").map { it.toBoolean(true) }
+    suspend fun setAutoDetectDnd(autoDetect: Boolean) = save("auto_detect_dnd", autoDetect.toString())
+
+    // --- APP-SPECIFIC ENGINE OVERRIDES ---
+
+    fun getAppEnginePreferenceFlow(packageName: String): Flow<Boolean?> {
+        val key = "config_${packageName}_use_native"
+        return dao.getSettingFlow(key).map { it?.toBooleanStrictOrNull() }
+    }
+
+    suspend fun updateAppEnginePreference(packageName: String, useNative: Boolean?) {
+        val key = "config_${packageName}_use_native"
+        if (useNative != null) {
+            save(key, useNative.toString())
+        } else {
+            remove(key)
+        }
+    }
+
+    // ========================================================================
+    //                        PERMANENT ISLAND CONFIGURATION
+    // ========================================================================
+
+    private val SHOW_PERMANENT_ISLAND = "show_permanent_island"
+    private val PERMANENT_ISLAND_WIDTH = "permanent_island_width"
+
+    val isPermanentIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow(SHOW_PERMANENT_ISLAND)
+        .map { it?.toBoolean() ?: false }
+
+    val permanentIslandWidthFlow: Flow<Int> = dao.getSettingFlow(PERMANENT_ISLAND_WIDTH)
+        .map { it?.toIntOrNull() ?: 0 }
+
+    suspend fun setPermanentIslandEnabled(value: Boolean) {
+        save(SHOW_PERMANENT_ISLAND, value.toString())
+    }
+
+    suspend fun setPermanentIslandWidth(value: Int) {
+        save(PERMANENT_ISLAND_WIDTH, value.toString())
     }
 }

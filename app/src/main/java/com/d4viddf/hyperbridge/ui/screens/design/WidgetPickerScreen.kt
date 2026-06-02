@@ -116,7 +116,7 @@ fun WidgetPickerScreen(
     var allGroups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
     var tabIndex by remember { mutableIntStateOf(0) } // 0 = Recommended, 1 = All
-    var pendingWidgetId by remember { mutableStateOf(-1) }
+    var pendingWidgetId by remember { mutableIntStateOf(-1) }
 
     val bindLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -140,7 +140,7 @@ fun WidgetPickerScreen(
                     val appName = context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(pkg, 0)).toString()
                     val icon = context.packageManager.getApplicationIcon(pkg)
                     WidgetAppGroup(pkg, appName, icon, list)
-                } catch (e: Exception) { null }
+                } catch (_: Exception) { null }
             }.sortedBy { it.appName }
 
             allGroups = uiGroups
@@ -151,11 +151,7 @@ fun WidgetPickerScreen(
         val filteredWidgets = if (tabIndex == 0) {
             group.widgets.filter { w ->
                 // Filter specifically for 1x4 and 2x4 layouts (Compatible with Island sizes)
-                if (android.os.Build.VERSION.SDK_INT >= 31) {
-                    w.targetCellWidth == 4 && (w.targetCellHeight == 1 || w.targetCellHeight == 2)
-                } else {
-                    w.minWidth >= 200 && w.minHeight <= 150 // Rough estimation for older Android versions
-                }
+                w.targetCellWidth == 4 && (w.targetCellHeight == 1 || w.targetCellHeight == 2)
             }
         } else group.widgets
 
@@ -408,17 +404,9 @@ fun WidgetChildItem(
     val label = info.loadLabel(context.packageManager)
 
     // Convert dp dimensions to Android Grid Proportions (e.g., 4x1, 2x2)
-    val cols = if (android.os.Build.VERSION.SDK_INT >= 31) {
-        info.targetCellWidth
-    } else {
-        maxOf(1, Math.ceil((info.minWidth + 30) / 70.0).toInt())
-    }
+    val cols = info.targetCellWidth
 
-    val rows = if (android.os.Build.VERSION.SDK_INT >= 31) {
-        info.targetCellHeight
-    } else {
-        maxOf(1, Math.ceil((info.minHeight + 30) / 70.0).toInt())
-    }
+    val rows = info.targetCellHeight
 
     val dims = "$cols × $rows"
 
@@ -427,7 +415,7 @@ fun WidgetChildItem(
         withContext(Dispatchers.IO) {
             preview = try {
                 info.loadPreviewImage(context, 0) ?: info.loadIcon(context, 0)
-            } catch (e: Exception) { null }
+            } catch (_: Exception) { null }
         }
     }
 

@@ -11,7 +11,7 @@ import androidx.core.content.edit
 /**
  * Persists App Names and Icons so they can be displayed even after the app is uninstalled.
  */
-class AppCacheManager(private val context: Context) {
+class AppCacheManager(context: Context) {
 
     private val prefs = context.getSharedPreferences("app_metadata_cache", Context.MODE_PRIVATE)
     private val iconsDir = File(context.filesDir, "cached_icons").apply { mkdirs() }
@@ -24,7 +24,7 @@ class AppCacheManager(private val context: Context) {
         if (icon != null) {
             try {
                 val file = File(iconsDir, "$packageName.png")
-                // Only save if it doesn't exist or we want to update it (optional optimization)
+                // Only save if it doesn't exist, or we want to update it (optional optimization)
                 if (!file.exists()) {
                     FileOutputStream(file).use { out ->
                         icon.compress(Bitmap.CompressFormat.PNG, 100, out)
@@ -45,7 +45,7 @@ class AppCacheManager(private val context: Context) {
         return if (file.exists()) {
             try {
                 BitmapFactory.decodeFile(file.absolutePath)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         } else {

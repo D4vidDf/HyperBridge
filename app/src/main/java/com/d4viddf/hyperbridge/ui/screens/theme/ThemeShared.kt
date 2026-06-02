@@ -29,9 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.graphics.shapes.RoundedPolygon
-import android.graphics.Color as AndroidColor
 import androidx.core.graphics.toColorInt
+import androidx.graphics.shapes.RoundedPolygon
 
 // --- SHAPES ---
 
@@ -49,7 +48,7 @@ fun getShapeFromId(id: String): RoundedPolygon {
 
 // --- COLORS ---
 fun safeParseColor(hex: String): Color {
-    return try { Color(hex.toColorInt()) } catch (e: Exception) { Color.White }
+    return try { Color(hex.toColorInt()) } catch (_: Exception) { Color.White }
 }
 
 // --- COMPONENTS ---

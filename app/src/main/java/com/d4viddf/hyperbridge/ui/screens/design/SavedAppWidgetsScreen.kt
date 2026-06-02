@@ -61,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 
 // --- DATA MODEL ---
 data class SavedWidgetGroup(
@@ -92,7 +93,7 @@ fun SavedAppWidgetsScreen(
     var tabIndex by remember { mutableIntStateOf(1) } // 0 = Favorites, 1 = All
 
     var showPermissionReminder by remember { mutableStateOf(false) }
-    val refreshTrigger = remember { mutableStateOf(0) }
+    val refreshTrigger = remember { mutableIntStateOf(0) }
 
     val pullState = rememberPullToRefreshState()
     val isRefreshing = isLoading && allGroups.isNotEmpty()
@@ -107,11 +108,11 @@ fun SavedAppWidgetsScreen(
         if (lastVersion in 1 until currentVersion) {
             showPermissionReminder = true
         }
-        sharedPrefs.edit().putInt("last_seen_version", currentVersion).apply()
+        sharedPrefs.edit { putInt("last_seen_version", currentVersion) }
     }
 
     // Fetch Saved Widgets (Reacts to new widgets being added dynamically)
-    LaunchedEffect(savedIds, refreshTrigger.value) {
+    LaunchedEffect(savedIds, refreshTrigger.intValue) {
         if (savedIds == null) return@LaunchedEffect
 
         isLoading = true
@@ -127,11 +128,11 @@ fun SavedAppWidgetsScreen(
                 val appName = try {
                     val appInfo = context.packageManager.getApplicationInfo(pkg, 0)
                     context.packageManager.getApplicationLabel(appInfo).toString()
-                } catch (e: Exception) { pkg }
+                } catch (_: Exception) { pkg }
 
                 val icon = try {
                     context.packageManager.getApplicationIcon(pkg)
-                } catch (e: Exception) { null }
+                } catch (_: Exception) { null }
 
                 SavedWidgetGroup(pkg, appName, icon, ids)
             }.sortedBy { it.appName }
@@ -318,7 +319,7 @@ fun SavedAppWidgetsScreen(
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 PullToRefreshBox(
                     isRefreshing = isRefreshing,
-                    onRefresh = { refreshTrigger.value++ },
+                    onRefresh = { refreshTrigger.intValue++ },
                     state = pullState,
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.TopCenter,
@@ -368,7 +369,7 @@ fun SavedAppWidgetsScreen(
                                             // 2. Remove from database and refresh UI
                                             scope.launch {
                                                 preferences.removeWidgetId(widgetId)
-                                                refreshTrigger.value++
+                                                refreshTrigger.intValue++
                                             }
                                         }
                                     )

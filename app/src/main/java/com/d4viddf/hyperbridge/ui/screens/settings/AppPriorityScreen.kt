@@ -123,7 +123,7 @@ fun AppPriorityScreen(onBack: () -> Unit) {
                     val appInfo = packageManager.getApplicationInfo(pkg, 0)
                     val name = packageManager.getApplicationLabel(appInfo).toString()
                     PriorityAppInfo(name, pkg)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     PriorityAppInfo(pkg, pkg) // Fallback
                 }
             }
@@ -306,7 +306,7 @@ fun DraggableLazyList(
 
             val isDragging = index == draggingIndex
 
-            // Visual Feedback: Lift up and scale
+            // Visual Feedback: Lift and scale
             val elevation by animateDpAsState(if (isDragging) 12.dp else 0.dp, label = "elevation")
             val scale by animateFloatAsState(if (isDragging) 1.05f else 1f, label = "scale")
             val alpha = if (isDragging) 0.9f else 1f
@@ -443,7 +443,7 @@ fun AppIconLoader(packageName: String, contentDescription: String) {
             try {
                 val drawable = context.packageManager.getApplicationIcon(packageName)
                 iconBitmap = drawable.toBitmap()
-            } catch (e: Exception) { /* Ignore */ }
+            } catch (_: Exception) { /* Ignore */ }
         }
     }
 

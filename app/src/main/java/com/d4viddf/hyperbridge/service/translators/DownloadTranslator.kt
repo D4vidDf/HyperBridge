@@ -1,0 +1,123 @@
+package com.d4viddf.hyperbridge.service.translators
+
+import android.app.Notification
+import android.content.Context
+import android.service.notification.StatusBarNotification
+import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.theme.ThemeRepository
+import com.d4viddf.hyperbridge.models.HyperIslandData
+import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
+import io.github.d4viddf.hyperisland_kit.models.PicInfo
+import io.github.d4viddf.hyperisland_kit.models.TextInfo
+
+class DownloadTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(context, repo) {
+
+    private val finishKeywords by lazy {
+        context.resources.getStringArray(R.array.progress_finish_keywords).toList()
+    }
+
+    fun translate(
+        sbn: StatusBarNotification,
+        title: String,
+        picKey: String,
+        config: IslandConfig,
+        theme: HyperTheme?,
+        isUpdate: Boolean
+    ): HyperIslandData {
+
+        val themeProgressColor = theme?.defaultProgress?.activeColor
+            ?: resolveColor(theme, sbn.packageName, "#007AFF")
+
+        val themeFinishColor = theme?.defaultProgress?.finishedColor
+            ?: resolveColor(theme, sbn.packageName, "#34C759")
+
+        val customTick = getThemeBitmap(theme, "tick_icon")
+
+        val builder = HyperIslandNotification.Builder(context, "bridge_${sbn.packageName}", title)
+
+        builder.setShowNotification(config.isShowShade ?: true)
+        
+        val isFloatEnabled = config.isFloat ?: false
+        builder.setEnableFloat(isFloatEnabled && !isUpdate)
+        builder.setIslandFirstFloat(config.isFloat ?: false)
+
+        val extras = sbn.notification.extras
+        val max = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
+        val current = extras.getInt(Notification.EXTRA_PROGRESS, 0)
+        val indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)
+        val textContent = (extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "")
+
+        val textPercent = extractTextPercentage(title, textContent)
+        val percent = if (max > 0) {
+            ((current.toFloat() / max.toFloat()) * 100).toInt()
+        } else {
+            textPercent ?: 0
+        }
+        val isIndeterminate = indeterminate && textPercent == null
+        val isTextFinished = finishKeywords.any { textContent.contains(it, ignoreCase = true) }
+        val isFinished = percent >= 100 || isTextFinished
+
+        val tickKey = "${picKey}_tick"
+        val hiddenKey = "hidden_pixel"
+
+        builder.addPicture(resolveIcon(sbn, picKey))
+        builder.addPicture(getTransparentPicture(hiddenKey))
+
+        if (isFinished) {
+            if (customTick != null) {
+                builder.addPicture(HyperPicture(tickKey, customTick))
+            } else {
+                builder.addPicture(getColoredPicture(tickKey, R.drawable.rounded_check_circle_24, themeFinishColor))
+            }
+        }
+
+        val actions = extractBridgeActions(sbn, theme)
+
+        builder.setChatInfo(
+            title = title,
+            content = if (isFinished) context.getString(R.string.download_complete) else textContent,
+            pictureKey = picKey,
+            appPkg = sbn.packageName
+        )
+
+        if (!isFinished && !isIndeterminate) {
+            builder.setProgressBar(percent, themeProgressColor)
+        }
+
+        if (isFinished) {
+            builder.setBigIslandInfo(
+                left = ImageTextInfoLeft(1, PicInfo(1, hiddenKey)),
+                right = ImageTextInfoRight(2, PicInfo(1, tickKey))
+            )
+            builder.setSmallIsland(tickKey)
+            builder.setIslandConfig(timeout = config.timeout , dismissible = true, expandedTimeMs = if (isFloatEnabled) config.floatTimeout else null)
+        } else {
+            if (isIndeterminate) {
+                builder.setBigIslandInfo(
+                    left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
+                    right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, context.getString(R.string.downloading)))
+                )
+                builder.setSmallIsland(picKey)
+            } else {
+                builder.setBigIslandProgressCircle(picKey, "", percent, themeProgressColor, true)
+                builder.setSmallIslandCircularProgress(picKey, percent, themeProgressColor, isCCW = true)
+            }
+        }
+
+        val highlight = resolveColor(theme, sbn.packageName, themeProgressColor)
+        builder.setIslandConfig(timeout = config.timeout, highlightColor = highlight, expandedTimeMs = config.floatTimeout)
+        actions.forEach { it.actionImage?.let { pic -> builder.addPicture(pic) } }
+        val hyperActions = actions.map { it.action }.toTypedArray()
+        hyperActions.forEach {
+            builder.addAction(it)
+        }
+        hyperActions.forEach { builder.addHiddenAction(it) }
+
+        return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
+    }
+}
