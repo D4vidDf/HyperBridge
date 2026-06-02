@@ -15,8 +15,8 @@ android {
         applicationId = "com.d4viddf.hyperbridge"
         minSdk = 35
         targetSdk = 37
-        versionCode = 22
-        versionName = "0.5.0-beta05"
+        versionCode = 23
+        versionName = "0.5.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -77,8 +77,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     // Shizuku
-    implementation("dev.rikka.shizuku:api:13.1.5")
-    implementation("dev.rikka.shizuku:provider:13.1.5")
+    implementation(libs.api)
+    implementation(libs.provider)
 }
 
 configurations.all {
