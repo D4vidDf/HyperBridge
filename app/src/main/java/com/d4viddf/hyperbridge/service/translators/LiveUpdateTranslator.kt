@@ -36,7 +36,6 @@ class LiveUpdateTranslator(
             .setContentTitle(title)
             .setContentText(text)
             .setOngoing(true)
-            .setOnlyAlertOnce(true)
             .setCategory(original.category)
 
         original.contentIntent?.let { builder.setContentIntent(it) }
