@@ -844,8 +844,9 @@ class NotificationReaderService : NotificationListenerService() {
         if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true
 
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) {
-            if (notification.groupAlertBehavior == Notification.GROUP_ALERT_CHILDREN) return true
-            // Some group summaries have no text, just act as a container. We can ignore those.
+            // We previously blocked GROUP_ALERT_CHILDREN, but some apps like Telegram 
+            // use it while silencing their actual children, leading to no alerts at all.
+            // Let's just allow group summaries if they have actual text.
             if (text.isEmpty() || title.isEmpty()) return true
         }
 
