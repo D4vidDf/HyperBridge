@@ -58,6 +58,7 @@ object ShizukuManager {
     }
 
     fun isShizukuInstalled(context: Context): Boolean {
+        if (rikka.sui.Sui.isSui()) return true
         return try {
             context.packageManager.getPackageInfo("moe.shizuku.privileged.api", 0)
             true

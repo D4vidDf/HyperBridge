@@ -14,7 +14,7 @@ class ShizukuNotWorkException(cause: Throwable? = null) : Exception("Shizuku is 
 suspend fun <T> requireShizukuPermissionGranted(action: suspend () -> T): T {
     callbackFlow {
         try {
-            // Sui.init(BuildConfig.APPLICATION_ID) // Only if Sui dependency is added
+            rikka.sui.Sui.init(BuildConfig.APPLICATION_ID)
         } catch (e: Exception) {}
         
         if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
