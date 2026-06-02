@@ -1015,7 +1015,7 @@ fun ShizukuPage(prefs: AppPreferences) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Enable Workaround",
+                text = stringResource(R.string.shizuku_enable_workaround),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
