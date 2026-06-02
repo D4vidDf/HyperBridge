@@ -167,6 +167,11 @@ fun ThemeCreatorScreen(
             onBack()
         }
 
+        BackHandler(enabled = currentRoute == CreatorRoute.MAIN_MENU) {
+            viewModel.currentEditingThemeId = null
+            onBack()
+        }
+
         Scaffold(
             topBar = {
                 TopAppBar(
