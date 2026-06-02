@@ -393,7 +393,7 @@ abstract class BaseTranslator(
                 if (messages != null && messages.isNotEmpty()) {
                     val lastMessage = messages.last() as? Bundle
                     if (lastMessage != null) {
-                        val senderPerson = lastMessage.getParcelableCompat<Person>(Notification.EXTRA_MESSAGING_PERSON)
+                        val senderPerson = lastMessage.getParcelableCompat<Person>("sender_person")
                         if (senderPerson?.icon != null) {
                             val bitmap = loadIconBitmap(senderPerson.icon!!, pkg)
                             if (bitmap != null) return bitmap
