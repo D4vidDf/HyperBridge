@@ -641,30 +641,30 @@
     <string name="behavior_desc_glob_config">Determina el comportamiento de la isla.</string>
     <string name="widget_layout_snapshot">Vista previa del widget</string>
     <string name="changelog_0_5_0">
-        <b>CN ROM Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
-        <b>Theme Engine Improvements</b>\n
-            • Engine Selection: You can now choose animation engines per-app or globally.\n
-            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
-            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
-        <b>Intelligent Permanent Island</b>\n
-            • Always Visible: Keep the island on screen even without active notifications.\n
-            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
-        <b>Smart Icon Tinting</b>\n
-            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. "12%") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Messaging Fixes</b>\n
-            • Fixed missing sender avatars in apps like Telegram (now correctly extracts "sender_person" data).\n
-            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
-            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>System &amp; Onboarding</b>\n
-            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
-            • Boot Fix: Service now starts immediately and reliably after restart.\n
-            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Navigation: Faster and smoother app transitions.
+        <b>Soporte para ROMs CN</b>\n
+            • Habilita la nueva solución Sui &amp; Shizuku para disfrutar de Hyper Islands en tus dispositivos con ROMs HyperOS CN (China) sin soporte nativo.\n\n
+        <b>Mejoras del Motor de Temas</b>\n
+            • Selección de Motor: Ahora puedes elegir motores de animación por aplicación o globalmente.\n
+            • Solución Shizuku: Opción agregada directamente a la pestaña Motor del Editor de Temas.\n
+            • Controles de Comportamiento: Tiempos de espera personalizados y lógica de ventanas emergentes son ahora totalmente compatibles.\n\n
+        <b>Isla Permanente Inteligente</b>\n
+            • Siempre Visible: Mantén la isla en pantalla incluso sin notificaciones activas.\n
+            • Ocultar Automáticamente: La isla permanente ahora se oculta automáticamente cuando se muestra un widget activo en la pantalla.\n\n
+        <b>Tintado Inteligente de Iconos</b>\n
+            • El nuevo sistema de detección analiza automáticamente los iconos de notificación extraídos y los tiñe inteligentemente de blanco si son oscuros o monocromáticos.\n\n
+        <b>Descargas y Progreso</b>\n
+            • Nuevo Diseño Dedicado para Descargas: Diseños de descarga y progreso separados con diseños visuales dedicados.\n
+            • Soporte de Progreso de Texto: Texto de porcentaje analizado (por ejemplo, "12%") para actualizaciones de aplicaciones incluso sin barras de progreso nativas.\n
+            • Filtrado Inteligente: Verificación de progreso basada en texto restringida a descargas de tiendas e instaladores para evitar activaciones falsas en otras notificaciones de estado.\n\n
+        <b>Correcciones de Mensajería</b>\n
+            • Se corrigió la falta de avatares del remitente en aplicaciones como Telegram (ahora extrae correctamente los datos "sender_person").\n
+            • Se resolvieron problemas con notificaciones agrupadas (resúmenes de chat) que no activaban las islas.\n
+            • Se corrigieron errores de desaparición de la isla causados por condiciones de carrera en la actualización de notificaciones.\n\n
+        <b>Sistema y Configuración Inicial</b>\n
+            • Nueva Pantalla de Bienvenida: Un proceso de configuración completamente nuevo y más fácil para los permisos críticos.\n
+            • Corrección de Inicio: El servicio ahora se inicia inmediata y confiablemente después de reiniciar.\n
+            • Alertas más Inteligentes: Las descargas y medios se actualizan silenciosamente, mientras que las actualizaciones de mensajes activan animaciones emergentes de manera confiable.\n
+            • Navegación: Transiciones de aplicaciones más rápidas y fluidas.
     </string>
     <string name="title_0_5_0">La actualización en vivo</string>
     <string name="notification_went_wrong">¡Si ves esto, algo salió mal!</string>
