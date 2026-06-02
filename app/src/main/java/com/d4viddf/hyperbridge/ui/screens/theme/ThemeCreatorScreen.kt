@@ -162,6 +162,11 @@ fun ThemeCreatorScreen(
             handleBackNavigation()
         }
 
+        BackHandler(enabled = currentRoute == CreatorRoute.MAIN_MENU) {
+            viewModel.currentEditingThemeId = null
+            onBack()
+        }
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -368,7 +373,6 @@ fun SaveDialog(viewModel: ThemeViewModel, editThemeId: String?, activeThemeId: S
         }
     )
 }
-
 @Composable
 fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Unit, onEditSettings: () -> Unit) {
     Column(modifier = Modifier
