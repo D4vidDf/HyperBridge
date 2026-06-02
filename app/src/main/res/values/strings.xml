@@ -754,8 +754,12 @@
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
     <string name="changelog_0_5_0">
-        <b>Sui &amp; Shizuku Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices without native HyperOS.\n\n
+        <b>CN ROM Support</b>\n
+            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
+        <b>Theme Engine Improvements</b>\n
+            • Engine Selection: You can now choose animation engines per-app or globally.\n
+            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
+            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
         <b>Intelligent Permanent Island</b>\n
             • Always Visible: Keep the island on screen even without active notifications.\n
             • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
@@ -769,12 +773,14 @@
             • Fixed missing sender avatars in apps like Telegram (now correctly extracts "sender_person" data).\n
             • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
             • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>Native Live Updates &amp; System</b>\n
+        <b>System &amp; Onboarding</b>\n
+            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
+            • Boot Fix: Service now starts immediately and reliably after restart.\n
             • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Theme Engine: Shizuku Workaround toggle added directly to the Theme Editor Engine tab.\n
             • Navigation: Faster and smoother app transitions.
     </string>
     <string name="title_0_5_0">The Live Update</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
     <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
 </resources>
+
