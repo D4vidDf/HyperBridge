@@ -650,28 +650,35 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
-    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
-            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
-        <b>Native Live Updates</b>\n
-            • CN ROM Support: Islands now work on HyperOS CN.\n
-            • New Engine: Use system-native animations via Global Settings.\n\n
-        <b>Theme Engine</b>\n
-            • Engine Selection: Choose engines per-app or globally.\n
-            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
-            • Behavior Controls: Custom timeouts and popup logic.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Permanent Island</b>\n
+    <string name="changelog_0_5_0">
+        <b>CN ROM Support</b>\n
+            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
+        <b>Theme Engine Improvements</b>\n
+            • Engine Selection: You can now choose animation engines per-app or globally.\n
+            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
+            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
+        <b>Intelligent Permanent Island</b>\n
             • Always Visible: Keep the island on screen even without active notifications.\n
-            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
-        <b>System</b>\n
-            • Boot Fix: Service now starts immediately after restart.\n
-            • New Onboarding: Easier setup for critical permissions.\n
-            • Nav 3: Faster and smoother app transitions.
+            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
+        <b>Smart Icon Tinting</b>\n
+            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. "12%") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
+        <b>Messaging Fixes</b>\n
+            • Fixed missing sender avatars in apps like Telegram (now correctly extracts "sender_person" data).\n
+            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
+            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
+        <b>System &amp; Onboarding</b>\n
+            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
+            • Boot Fix: Service now starts immediately and reliably after restart.\n
+            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
+            • Navigation: Faster and smoother app transitions.
     </string>
     <string name="title_0_5_0">The Live Update</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
     <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
 </resources>
+
+

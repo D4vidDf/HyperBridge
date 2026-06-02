@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.4.2-blue?style=for-the-badge&logo=github" alt="Version 0.4.2" />
+  <img src="https://img.shields.io/badge/version-0.5.0-blue?style=for-the-badge&logo=github" alt="Version 0.5.0" />
   <img src="https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
   <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
   <img src="https://img.shields.io/badge/Material%20Design-757575?style=for-the-badge&logo=material-design&logoColor=white" alt="Material Design" />
@@ -31,18 +31,21 @@
 ## 🚀 Features
 
 * **Native Visuals:** Transforms notifications into HyperOS system-style islands.
-* **🎨 Theme Engine (New):** Customize every pixel.
+* **🎨 Theme Engine:** Customize every pixel.
     * **Theme Creator:** Built-in editor to design your own themes with real-time previews.
     * **Smart Colors:** Automatically extract vibrant brand colors from app icons.
     * **Icon Shaping:** Choose between shapes like *Squircle*, *Clover*, *Arch*, and *Cookie*.
     * **Granular Control:** Per-app overrides for colors, icons, and action styles.
-* **🧩 Widgets (New):** Pin standard Android widgets to the island layer for quick access—even on the Lockscreen!
+    * **Smart Icon Tinting:** Intelligently tints dark/monochrome icons to remain visible.
+* **🧩 Widgets:** Pin standard Android widgets to the island layer for quick access—even on the Lockscreen!
+* **🧠 Intelligent Permanent Island:** The permanent island now automatically hides itself whenever an active widget is shown on the screen, preventing awkward overlaps.
 * **Smart Integration:**
     * **🎵 Media:** Show album art and "Now Playing" status with visualizer support.
     * **🧭 Navigation:** Real-time turn-by-turn instructions (Google Maps, Waze).
-    * **⬇️ Downloads:** Circular progress ring with a satisfying "Green Tick" animation upon completion.
+    * **⬇️ Downloads:** Dedicated circular progress layout with a satisfying "Green Tick" animation upon completion.
     * **📞 Calls:** Dedicated layout for incoming and active calls with timers.
 * **🛡️ Spoiler Protection:** Define blocked terms globally or per-app to prevent specific notifications (e.g., message spoilers) from popping up on the Island.
+* **Sui & Shizuku Support:** Fully supports Sui and Shizuku for enhanced network operations and seamless integration on rooted devices.
 * **Total Control:** Choose exactly which apps trigger the island, customize timeouts, and toggle floating behavior per app.
 
 ## 👩‍💻 For Developers: Create Themes
