@@ -83,6 +83,7 @@ class NotificationReaderService : NotificationListenerService() {
     private val intentionallyRemovedKeys = ConcurrentHashMap.newKeySet<String>()
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
+    private val activeWidgets = ConcurrentHashMap.newKeySet<Int>()
     private val appLabelCache = ConcurrentHashMap<String, String>()
 
     private val MAX_ISLANDS = 9
@@ -273,6 +274,8 @@ class NotificationReaderService : NotificationListenerService() {
                 if (notifId >= WIDGET_ID_BASE) {
                     val widgetId = notifId - WIDGET_ID_BASE
                     dismissedWidgetIds.add(widgetId)
+                    activeWidgets.remove(widgetId)
+                    permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
                     return
                 }
 
@@ -347,7 +350,7 @@ class NotificationReaderService : NotificationListenerService() {
         if (hyperId != null) {
             reverseTranslations.remove(hyperId)
         }
-        permanentIslandManager.onActiveNotificationsChanged(activeIslands.size)
+        permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
     }
 
     private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType, isLiveUpdate: Boolean) {
@@ -511,7 +514,7 @@ class NotificationReaderService : NotificationListenerService() {
                     packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
                     subText = "LiveUpdate", lastContentHash = newContentHash
                 )
-                permanentIslandManager.onActiveNotificationsChanged(activeIslands.size)
+                permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
 
                 handlePostNotificationSideEffects(key, bridgeId, finalConfig, type, true)
                 return
@@ -543,7 +546,7 @@ class NotificationReaderService : NotificationListenerService() {
                 packageName = sbn.packageName, title = effectiveTitle, text = effectiveText,
                 subText = "", lastContentHash = newContentHash
             )
-            permanentIslandManager.onActiveNotificationsChanged(activeIslands.size)
+            permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
 
             handlePostNotificationSideEffects(key, bridgeId, finalConfig, type, false)
 
@@ -752,6 +755,8 @@ class NotificationReaderService : NotificationListenerService() {
         try {
             val data = widgetTranslator.translate(widgetId)
             postWidgetNotification(WIDGET_ID_BASE + widgetId, data)
+            activeWidgets.add(widgetId)
+            permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
         } catch (e: Exception) { Log.e(TAG, "Failed widget $widgetId", e) }
     }
 
