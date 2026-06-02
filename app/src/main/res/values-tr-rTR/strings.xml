@@ -51,6 +51,11 @@
     <string name="group_configuration">Configuration</string>
     <string name="system_setup">System Setup</string>
     <string name="system_setup_subtitle">Fix permissions &amp; battery</string>
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Permanent Island</string>
+    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
+    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
+    <string name="permanent_island_width">Island Width</string>
     <string name="group_about">About</string>
     <string name="developer">Developer</string>
     <string name="developer_subtitle">Visit d4viddf.com</string>
@@ -80,7 +85,8 @@
     <string name="cat_other">Other</string>
     <string name="select_active_notifs">Select active notifications</string>
     <string name="type_standard">Messages &amp; General</string>
-    <string name="type_progress">Downloads &amp; Progress</string>
+    <string name="type_progress">Progress &amp; Tasks</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">Music &amp; Media</string>
     <string name="type_nav">Maps &amp; GPS</string>
     <string name="type_call">Calls</string>
@@ -231,6 +237,14 @@
     <string name="status_unknown">Unknown</string>
     <string name="warning_cn_rom_title">China ROM Detected</string>
     <string name="warning_cn_rom_desc">Your device appears to be running a Chinese firmware. Xiaomi modifies notification internals significantly on CN ROMs. Features might be unstable or not work at all.</string>
+    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
+    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
+    <string name="shizuku_status_running">Shizuku is running</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_permission_granted">Permission Granted</string>
+    <string name="shizuku_permission_denied">Permission Denied</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
     <string name="system_version">System Version</string>
     <string name="call_incoming">Incoming Call</string>
     <string name="call_ongoing">Active Call</string>
@@ -585,6 +599,12 @@
     <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
     <string name="engine">Engine</string>
     <string name="engine_desc">Live Updates vs Xiaomi Island</string>
+    <string name="dnd_mode_title">Do Not Disturb</string>
+    <string name="dnd_mode_desc">Manage island visibility during DND</string>
+    <string name="dnd_manual_toggle">Pause Islands</string>
+    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
+    <string name="dnd_auto_detect">Auto-detect System DND</string>
+    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
     <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
     <string name="global_behavior">Global Behavior</string>
@@ -597,7 +617,8 @@
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
-    <string name="type_progress_desc">Downloads, uploads, and ongoing tasks</string>
+    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
     <string name="type_nav_desc">Turn-by-turn directions and ETA</string>
     <string name="type_call_desc">Incoming and ongoing phone calls</string>
@@ -618,17 +639,27 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
-    <string name="changelog_0_5_0_beta">**Native Live Updates**\n
-• CN ROM Support: Islands now work on HyperOS CN.\n
-• New Engine: Use system-native animations via Global Settings.\n\n
-**Theme Engine**\n
-• Engine Selection: Choose engines per-app or globally.\n
-• HSL Selector: Ultra-precise color control in the Creator.\n
-• Behavior Controls: Custom timeouts and popup logic.\n\n
-**System**\n
-• Boot Fix: Service now starts immediately after restart.\n
-• New Onboarding: Easier setup for critical permissions.\n
-• Nav 3: Faster and smoother app transitions.</string>
+    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
+        <b>Native Live Updates</b>\n
+            • CN ROM Support: Islands now work on HyperOS CN.\n
+            • New Engine: Use system-native animations via Global Settings.\n\n
+        <b>Theme Engine</b>\n
+            • Engine Selection: Choose engines per-app or globally.\n
+            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
+            • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
+        <b>Permanent Island</b>\n
+            • Always Visible: Keep the island on screen even without active notifications.\n
+            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
+        <b>System</b>\n
+            • Boot Fix: Service now starts immediately after restart.\n
+            • New Onboarding: Easier setup for critical permissions.\n
+            • Nav 3: Faster and smoother app transitions.
+    </string>
     <string name="title_0_5_0">The Live Update</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
     <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>

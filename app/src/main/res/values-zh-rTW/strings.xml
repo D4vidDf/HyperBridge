@@ -51,6 +51,11 @@
     <string name="group_configuration">設定</string>
     <string name="system_setup">系統設定</string>
     <string name="system_setup_subtitle">修正權限 &amp; 電池設定</string>
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Permanent Island</string>
+    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
+    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
+    <string name="permanent_island_width">Island Width</string>
     <string name="group_about">關於</string>
     <string name="developer">開發者</string>
     <string name="developer_subtitle">造訪 d4viddf.com</string>
@@ -80,7 +85,8 @@
     <string name="cat_other">其他</string>
     <string name="select_active_notifs">選擇要顯示的通知</string>
     <string name="type_standard">訊息 &amp; 一般通知</string>
-    <string name="type_progress">下載 &amp; 進度</string>
+    <string name="type_progress">Progress &amp; Tasks</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">音樂 &amp; 媒體</string>
     <string name="type_nav">地圖 &amp; GPS</string>
     <string name="type_call">通話</string>
@@ -231,6 +237,14 @@
     <string name="status_unknown">未知</string>
     <string name="warning_cn_rom_title">偵測到中國版 ROM / 韌體</string>
     <string name="warning_cn_rom_desc">您的裝置似乎正在執行中國版韌體。小米在中國版 ROM 上大幅修改了通知系統底層，功能可能不穩定或無法運作。</string>
+    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
+    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
+    <string name="shizuku_status_running">Shizuku is running</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_permission_granted">Permission Granted</string>
+    <string name="shizuku_permission_denied">Permission Denied</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
     <string name="system_version">系統版本</string>
     <string name="call_incoming">來電</string>
     <string name="call_ongoing">通話中</string>
@@ -580,6 +594,12 @@
     <string name="island_behavior_desc"><![CDATA[超時、重複項及可見性]]></string>
     <string name="engine">引擎</string>
     <string name="engine_desc">即時更新 vs. 小米超級島</string>
+    <string name="dnd_mode_title">Do Not Disturb</string>
+    <string name="dnd_mode_desc">Manage island visibility during DND</string>
+    <string name="dnd_manual_toggle">Pause Islands</string>
+    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
+    <string name="dnd_auto_detect">Auto-detect System DND</string>
+    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
     <string name="behaviour_triggers"><![CDATA[行為 & 觸發]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[引擎、超時及觸發]]></string>
     <string name="global_behavior">預設行為</string>
@@ -592,7 +612,8 @@
     <string name="active_triggers">執行中的程式通知</string>
     <string name="active_triggers_global_desc">選擇哪一個全域條件來觸發超級島</string>
     <string name="type_standard_desc">預設的訊息、郵件及鬧鐘</string>
-    <string name="type_progress_desc">下載、上傳及正在進行的任務</string>
+    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">音樂及影片的播放控制</string>
     <string name="type_nav_desc">逐嚮導航和預計到達時間</string>
     <string name="type_call_desc">來電與通話</string>
@@ -613,17 +634,27 @@
     <string name="onboard_design_desc">利用不同的自訂選項拓展可能性</string>
     <string name="behavior_desc_glob_config">決定超級島的呈現方式。</string>
     <string name="widget_layout_snapshot">預覽小工具</string>
-    <string name="changelog_0_5_0_beta">**原生即時更新**\n
-• 國銀ROM支援：超級島現已支援HyperOS中國版。 \n
-• 新引擎：透過預設設定使用系統原生動畫。 \n\n
-**主題引擎**\n
-• 引擎選擇：可針對單一應用程式或預設的引擎。 \n
-• HSL選擇器：在Creator中實現超精確的顏色控制。 \n
-• 行為控制：自訂逾時和彈出時間。 \n\n
-**系統**\n
-• 啟動修復：服務現在會在手機重新啟動後立即啟動。 \n
-• 全新引導：更輕鬆的設定相關權限。 \n
-• Nav 3：更快更流暢的應用過渡。</string>
+    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
+        <b>Native Live Updates</b>\n
+            • CN ROM Support: Islands now work on HyperOS CN.\n
+            • New Engine: Use system-native animations via Global Settings.\n\n
+        <b>Theme Engine</b>\n
+            • Engine Selection: Choose engines per-app or globally.\n
+            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
+            • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
+        <b>Permanent Island</b>\n
+            • Always Visible: Keep the island on screen even without active notifications.\n
+            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
+        <b>System</b>\n
+            • Boot Fix: Service now starts immediately after restart.\n
+            • New Onboarding: Easier setup for critical permissions.\n
+            • Nav 3: Faster and smoother app transitions.
+    </string>
     <string name="title_0_5_0">即時更新</string>
     <string name="notification_went_wrong">如果您看到此訊息，說明出現錯誤！</string>
     <string name="widget_went_wrong">如果您看到此訊息，表示出錯了！系統無法顯示該小工具</string>

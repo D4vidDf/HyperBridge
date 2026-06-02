@@ -51,6 +51,11 @@
     <string name="group_configuration">Configuração</string>
     <string name="system_setup">Configuração do Sistema</string>
     <string name="system_setup_subtitle">Corrigir permissões e bateria</string>
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Permanent Island</string>
+    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
+    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
+    <string name="permanent_island_width">Island Width</string>
     <string name="group_about">Sobre</string>
     <string name="developer">Desenvolvedor</string>
     <string name="developer_subtitle">Visite d4viddf.com</string>
@@ -81,6 +86,7 @@
     <string name="select_active_notifs">Selecionar notificações ativas</string>
     <string name="type_standard">Mensagens e Geral</string>
     <string name="type_progress">Downloads e Progresso</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">Música e Mídia</string>
     <string name="type_nav">Mapas e GPS</string>
     <string name="type_call">Chamadas</string>
@@ -232,6 +238,14 @@ Novas notificações substituem as mais antigas automaticamente.</string>
     <string name="status_unknown">Desconhecido</string>
     <string name="warning_cn_rom_title">ROM China Detectada</string>
     <string name="warning_cn_rom_desc">Seu dispositivo parece estar rodando uma firmware chinesa. A Xiaomi modifica significativamente as entranhas das notificações em ROMs CN. Os recursos podem ser instáveis ou não funcionar.</string>
+    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
+    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
+    <string name="shizuku_status_running">Shizuku is running</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_permission_granted">Permission Granted</string>
+    <string name="shizuku_permission_denied">Permission Denied</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
     <string name="system_version">Versão do Sistema</string>
     <string name="call_incoming">Chamada Recebida</string>
     <string name="call_ongoing">Chamada Ativa</string>
@@ -593,6 +607,12 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
     <string name="engine">Engine</string>
     <string name="engine_desc">Live Updates vs Xiaomi Island</string>
+    <string name="dnd_mode_title">Do Not Disturb</string>
+    <string name="dnd_mode_desc">Manage island visibility during DND</string>
+    <string name="dnd_manual_toggle">Pause Islands</string>
+    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
+    <string name="dnd_auto_detect">Auto-detect System DND</string>
+    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
     <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
     <string name="global_behavior">Global Behavior</string>
@@ -606,6 +626,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
     <string name="type_progress_desc">Downloads, uploads, and ongoing tasks</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
     <string name="type_nav_desc">Turn-by-turn directions and ETA</string>
     <string name="type_call_desc">Incoming and ongoing phone calls</string>

@@ -51,6 +51,11 @@
     <string name="group_configuration">Configuración</string>
     <string name="system_setup">Configuración del Sistema</string>
     <string name="system_setup_subtitle">Arreglar permisos y batería</string>
+    <!-- Permanent Island -->
+    <string name="permanent_island_title">Permanent Island</string>
+    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
+    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
+    <string name="permanent_island_width">Island Width</string>
     <string name="group_about">Sobre la aplicación</string>
     <string name="developer">Desarrollador</string>
     <string name="developer_subtitle">Visita d4viddf.com</string>
@@ -80,8 +85,8 @@
     <string name="cat_other">Otros</string>
     <string name="select_active_notifs">Notificaciones activas</string>
     <string name="type_standard">Mensajes y General</string>
-    <string name="type_progress">Progreso y Tareas</string>
-    <string name="type_download">Descargas</string>
+    <string name="type_progress">Progress &amp; Tasks</string>
+    <string name="type_download">Downloads</string>
     <string name="type_media">Música y Multimedia</string>
     <string name="type_nav">Mapas y GPS</string>
     <string name="type_call">Llamadas</string>
@@ -232,6 +237,14 @@
     <string name="status_unknown">Desconocido</string>
     <string name="warning_cn_rom_title">ROM China Detectada</string>
     <string name="warning_cn_rom_desc">Tu dispositivo parece ejecutar un firmware chino. Xiaomi modifica drásticamente las notificaciones en estas ROMs. Las funciones podrían ser inestables o no funcionar.</string>
+    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
+    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
+    <string name="shizuku_status_running">Shizuku is running</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_permission_granted">Permission Granted</string>
+    <string name="shizuku_permission_denied">Permission Denied</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
     <string name="system_version">Versión del Sistema</string>
     <string name="call_incoming">Llamada Entrante</string>
     <string name="call_ongoing">Llamada en Curso</string>
@@ -586,6 +599,12 @@
     <string name="island_behavior_desc"><![CDATA[Tiempos de espera, duplicados y visibilidad]]></string>
     <string name="engine">Motor</string>
     <string name="engine_desc">Live Updates vs Isla de Xiaomi</string>
+    <string name="dnd_mode_title">Do Not Disturb</string>
+    <string name="dnd_mode_desc">Manage island visibility during DND</string>
+    <string name="dnd_manual_toggle">Pause Islands</string>
+    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
+    <string name="dnd_auto_detect">Auto-detect System DND</string>
+    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
     <string name="behaviour_triggers"><![CDATA[Comportamiento y Activadores]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[Motor, tiempos de espera y activadores]]></string>
     <string name="global_behavior">Comportamiento Global</string>
@@ -598,8 +617,8 @@
     <string name="active_triggers">Desencadenantes Activos</string>
     <string name="active_triggers_global_desc">Selecciona qué eventos globales activan la isla</string>
     <string name="type_standard_desc">Mensajes normales, correos electrónicos y alertas</string>
-    <string name="type_progress_desc">Tareas en curso, procesamiento y operaciones</string>
-    <string name="type_download_desc">Descargas, subidas y transferencias de archivos</string>
+    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
+    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Controles de reproducción de música y video</string>
     <string name="type_nav_desc">Indicaciones paso a paso y tiempo estimado (ETA)</string>
     <string name="type_call_desc">Llamadas telefónicas entrantes y en curso</string>
@@ -620,33 +639,28 @@
     <string name="onboard_design_desc">Amplía las posibilidades con diferentes opciones de personalización</string>
     <string name="behavior_desc_glob_config">Determina el comportamiento de la isla.</string>
     <string name="widget_layout_snapshot">Vista previa del widget</string>
-    <string name="changelog_0_5_0_beta"><b>Soporte para CN</b>\n
-  • Shizuku y root: Activa la nueva solución Shizuku para disfrutar de Hyper Islands en tus dispositivos.\n\n
-  <b>Native Live Updates</b>\n
-  • Compatibilidad con ROM CN: Las islas ahora funcionan en HyperOS CN.\n
-  • Nuevo motor: Utiliza animaciones nativas del sistema mediante los Ajustes Globales.\n\n
-  <b>Motor de temas</b>\n
-  • Selección de motor: Elige motores por aplicación o de forma global.\n
-  • Selector HSL: Control de color ultra preciso en el Creador de Temas.\n
-  • Controles de comportamiento: Tiempos de espera personalizados y lógica de ventanas emergentes.\n\n
-  <b>Descargas y progreso</b>\n
-  • Nuevo tipo de descarga: Separación de diseños y lógica para progreso y descargas con estilos visuales dedicados.\n
-  • Progreso por texto: Muestra porcentajes en texto (ej. "12%") para actualizaciones de aplicaciones incluso sin barra de progreso nativa.\n
-  • Filtrado inteligente: Restricción del progreso por texto a tiendas y descargadores para evitar activaciones falsas en otras notificaciones de estado (como clima o batería).\n\n
-  <b>Isla permanente</b>\n
-  • Siempre visible: Mantén la isla en pantalla incluso sin notificaciones activas.\n
-  • Ancho personalizado: Ajusta el tamaño de la isla vacía para adaptarla a tu diseño.\n\n
-  <b>Sistema</b>\n
-  • Corrección de arranque: El servicio ahora se inicia inmediatamente después del reinicio.\n
-  • Nuevo onboarding: Configuración más sencilla para una mejor experiencia con Hyper Bridge.\n
-  • Nav 3: Transiciones de aplicaciones más rápidas y fluidas.</string>
+    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
+            • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
+        <b>Native Live Updates</b>\n
+            • CN ROM Support: Islands now work on HyperOS CN.\n
+            • New Engine: Use system-native animations via Global Settings.\n\n
+        <b>Theme Engine</b>\n
+            • Engine Selection: Choose engines per-app or globally.\n
+            • HSL Selector: Ultra-precise color control in the Theme Creator.\n
+            • Behavior Controls: Custom timeouts and popup logic.\n\n
+        <b>Downloads &amp; Progress</b>\n
+            • New Download Type: Separated download and progress layouts with dedicated visual designs.\n
+            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
+            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
+        <b>Permanent Island</b>\n
+            • Always Visible: Keep the island on screen even without active notifications.\n
+            • Custom Width: Adjust the size of the empty island to match your setup.\n\n
+        <b>System</b>\n
+            • Boot Fix: Service now starts immediately after restart.\n
+            • New Onboarding: Easier setup for critical permissions.\n
+            • Nav 3: Faster and smoother app transitions.
+    </string>
     <string name="title_0_5_0">La actualización en vivo</string>
     <string name="notification_went_wrong">¡Si ves esto, algo salió mal!</string>
     <string name="widget_went_wrong">¡Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
-
-    <!-- Permanent Island -->
-    <string name="permanent_island_title">Isla Permanente</string>
-    <string name="permanent_island_desc">Mantener la Isla Dinámica permanentemente visible en la pantalla cuando no haya notificaciones activas.</string>
-    <string name="permanent_island_screen_desc">Cuando esté activado, se mostrará una Isla Dinámica vacía de forma permanente en la pantalla. Se ocultará automáticamente cuando lleguen notificaciones reales y volverá a aparecer cuando se borren todas las notificaciones. No será visible en el panel de notificaciones.</string>
-    <string name="permanent_island_width">Ancho de la Isla</string>
 </resources>
