@@ -842,7 +842,12 @@ class NotificationReaderService : NotificationListenerService() {
         if (title.isEmpty() && text.isEmpty()) return true
         if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)) return true
         if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true
-        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) return true
+
+        if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) {
+            if (notification.groupAlertBehavior == Notification.GROUP_ALERT_CHILDREN) return true
+            // Some group summaries have no text, just act as a container. We can ignore those.
+            if (text.isEmpty() || title.isEmpty()) return true
+        }
 
         return false
     }
