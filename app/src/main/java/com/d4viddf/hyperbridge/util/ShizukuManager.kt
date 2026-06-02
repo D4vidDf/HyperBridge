@@ -147,4 +147,31 @@ object ShizukuManager {
             }
         }
     }
+
+    @androidx.annotation.RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+    fun notifyWithCancel(context: Context, id: Int, notification: Notification) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val prefs = AppPreferences(context)
+            val workaroundEnabled = prefs.isShizukuWorkaroundEnabled.first()
+            
+            if (_isPermissionGranted.value && workaroundEnabled) {
+                notifyMutex.withLock {
+                    restoreNetworkJob?.cancel()
+                    XmsfNetworkHelper.setXmsfNetworkingEnabled(context, false)
+                    delay(50)
+                    NotificationManagerCompat.from(context).cancel(id)
+                    delay(20) // Give it a moment to clear
+                    NotificationManagerCompat.from(context).notify(id, notification)
+                    restoreNetworkJob = launch {
+                        delay(1000)
+                        XmsfNetworkHelper.setXmsfNetworkingEnabled(context, true)
+                    }
+                }
+            } else {
+                NotificationManagerCompat.from(context).cancel(id)
+                delay(20)
+                NotificationManagerCompat.from(context).notify(id, notification)
+            }
+        }
+    }
 }

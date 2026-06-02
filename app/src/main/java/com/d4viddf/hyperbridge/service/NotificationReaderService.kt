@@ -718,7 +718,11 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
-        com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
+        if (!shouldAlertOnce) {
+            com.d4viddf.hyperbridge.util.ShizukuManager.notifyWithCancel(this, bridgeId, notification)
+        } else {
+            com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
+        }
 
         activeTranslations[sbn.key] = bridgeId
         reverseTranslations[bridgeId] = sbn.key
