@@ -315,4 +315,17 @@ class AppPreferences(context: Context) {
         dao.delete("widget_${id}_auto_update")
         dao.delete("widget_${id}_update_interval")
     }
+
+    // ========================================================================
+    //                        FAVORITE WIDGET APPS
+    // ========================================================================
+
+    val favoriteWidgetAppsFlow: Flow<Set<String>> = dao.getSettingFlow("favorite_widget_apps").map { it.deserializeSet() }
+
+    suspend fun toggleFavoriteWidgetApp(packageName: String, isFavorite: Boolean) {
+        val currentStr = dao.getSetting("favorite_widget_apps")
+        val currentSet = currentStr.deserializeSet()
+        val newSet = if (isFavorite) currentSet + packageName else currentSet - packageName
+        save("favorite_widget_apps", newSet.serialize())
+    }
 }

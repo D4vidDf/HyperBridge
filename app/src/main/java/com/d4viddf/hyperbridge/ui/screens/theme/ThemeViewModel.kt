@@ -22,6 +22,7 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.models.theme.AppThemeOverride
 import com.d4viddf.hyperbridge.models.theme.CallModule
+import com.d4viddf.hyperbridge.models.theme.ColorMode
 import com.d4viddf.hyperbridge.models.theme.GlobalConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
@@ -67,7 +68,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var customShareLink by mutableStateOf("")
 
     var selectedColorHex by mutableStateOf("#3DDA82")
-    var useAppColors by mutableStateOf(false)
+    var colorMode by mutableStateOf(ColorMode.CUSTOM)
     var isDarkThemePreview by mutableStateOf(true)
 
     var selectedShapeId by mutableStateOf("circle")
@@ -87,7 +88,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var editingAppLabel by mutableStateOf("")
 
     var appHighlightColor by mutableStateOf<String?>(null)
-    var appUseAppColors by mutableStateOf<Boolean?>(null)
+    var appColorMode by mutableStateOf<ColorMode?>(null)
 
     var appShapeId by mutableStateOf<String?>(null)
     var appPaddingPercent by mutableStateOf<Int?>(null)
@@ -104,7 +105,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _tempAssets = mutableMapOf<String, Uri>()
 
-    // [FIX] Use application context to get string resource
     val shareTheme: String = application.getString(R.string.share_theme)
 
     init {
@@ -169,7 +169,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                // [FIX] Use the pre-loaded string
                 val chooser = Intent.createChooser(intent, shareTheme)
                 chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(chooser)
@@ -214,7 +213,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         editingAppLabel = label
 
         appHighlightColor = override?.highlightColor
-        appUseAppColors = override?.useAppColors
+        appColorMode = override?.activeColorMode
 
         appShapeId = override?.iconShapeId
         appPaddingPercent = override?.iconPaddingPercent
@@ -260,7 +259,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
         val newOverride = AppThemeOverride(
             highlightColor = appHighlightColor,
-            useAppColors = appUseAppColors,
+            useAppColors = appColorMode?.let { it == ColorMode.APP_ICON },
+            colorMode = appColorMode,
             iconShapeId = appShapeId,
             iconPaddingPercent = appPaddingPercent,
             callConfig = callModule,
@@ -298,7 +298,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             customShareLink = theme.meta.customShareLink ?: ""
 
             selectedColorHex = theme.global.highlightColor ?: "#3DDA82"
-            useAppColors = theme.global.useAppColors
+            colorMode = theme.global.activeColorMode
             selectedShapeId = theme.global.iconShapeId
             iconPaddingPercent = theme.global.iconPaddingPercent
             callAnswerColor = theme.callConfig.answerColor ?: "#34C759"
@@ -314,8 +314,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun clearCreatorState() {
         currentEditingThemeId = UUID.randomUUID().toString()
 
-        // [FIX] Extract "My Theme" string
-        themeName = "" // Let the UI handle the "My Theme" placeholder or logic
+        themeName = ""
         themeAuthor = ""
         themeDescription = ""
         themeIconUri = null
@@ -323,7 +322,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         customShareLink = ""
 
         selectedColorHex = "#3DDA82"
-        useAppColors = false
+        colorMode = ColorMode.CUSTOM
         selectedShapeId = "circle"
         iconPaddingPercent = 15
         callAnswerUri = null
@@ -334,7 +333,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
         callDeclineShapeId = "circle"
 
         appHighlightColor = null
-        appUseAppColors = null
+        appColorMode = null
         appCallAnswerShapeId = null
         appCallDeclineShapeId = null
 
@@ -402,7 +401,6 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                 val declineRes = if (callDeclineUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_decline.png")
                 else getThemeById(themeId)?.callConfig?.declineIcon
 
-                // [FIX] Use extracted string for default theme name
                 val defaultThemeName = getApplication<Application>().getString(R.string.my_theme)
 
                 val newTheme = HyperTheme(
@@ -417,7 +415,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                     ),
                     global = GlobalConfig(
                         highlightColor = selectedColorHex,
-                        useAppColors = useAppColors,
+                        useAppColors = (colorMode == ColorMode.APP_ICON), // Fallback saving
+                        colorMode = colorMode,
                         iconShapeId = selectedShapeId,
                         iconPaddingPercent = iconPaddingPercent,
                         backgroundColor = "#202124"
