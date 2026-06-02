@@ -647,7 +647,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
-    <string name="changelog_0_5_0_beta">**Native Live Updates**\n
+    <string name="changelog_0_5_0">**Native Live Updates**\n
 • CN ROM Support: Islands now work on HyperOS CN.\n
 • New Engine: Use system-native animations via Global Settings.\n\n
 **Theme Engine**\n

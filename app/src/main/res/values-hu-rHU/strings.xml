@@ -638,7 +638,7 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
-    <string name="changelog_0_5_0_beta">        <b>CN Support</b>\n
+    <string name="changelog_0_5_0">        <b>CN Support</b>\n
             • Shizuku and root: Enable the new Shizuku work around to enjoy the Hyper Islands in your devices\n\n
         <b>Native Live Updates</b>\n
             • CN ROM Support: Islands now work on HyperOS CN.\n
