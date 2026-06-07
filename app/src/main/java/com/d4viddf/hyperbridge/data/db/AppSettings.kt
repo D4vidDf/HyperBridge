@@ -26,6 +26,7 @@ object SettingsKeys {
     const val GLOBAL_TIMEOUT = "global_timeout"
     const val GLOBAL_FLOAT_TIMEOUT = "global_float_timeout"
     const val GLOBAL_REMOVE_NOTIF = "global_remove_original_notif"
+    const val GLOBAL_DISMISS_WITH_ORIGINAL = "global_dismiss_with_original"
     const val GLOBAL_BLOCKED_TERMS = "global_blocked_terms"
 
     // Nav

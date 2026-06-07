@@ -634,6 +634,8 @@
     <string name="live_updates">Mises à jour en temps réel</string>
     <string name="remove_original_notification">Supprimer la notification originale</string>
     <string name="remove_original_notification_desc">Ignorer automatiquement la notification source quand une mise à jour en direct est active.</string>
+    <string name="dismiss_with_original">Dismiss with original</string>
+    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
     <string name="onboarding_can_be_changed">Vous pourrez modifier ces options plus tard dans Paramètres et Configurateur de thèmes.</string>
     <string name="onboarding_widget_desc">Ajoutez des widgets standard Android à votre bulle de notification pour un accès rapide.</string>
     <string name="onboard_theme_desc">Personnalisez entièrement les couleurs, les formes et les icônes de votre bulle de notification.</string>

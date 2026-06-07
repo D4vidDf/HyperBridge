@@ -233,7 +233,25 @@ fun IslandSettingsControl(
                 val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
                 onUpdate(config.copy(removeOriginalNotification = it, isFloat = currentIsFloat)) 
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        )
+
+        // Only allow changing dismissWithOriginal if removeOriginalNotification is OFF
+        // (if it's ON, there's no original notification to dismiss with anyway).
+        val removeOriginalOn = displayConfig.removeOriginalNotification == true
+        SettingsToggleCard(
+            title = stringResource(R.string.dismiss_with_original),
+            subtitle = stringResource(R.string.dismiss_with_original_desc),
+            icon = Icons.Default.DeleteSweep, // Use appropriate icon, maybe same or another
+            checked = if (removeOriginalOn) true else (displayConfig.dismissWithOriginal ?: false),
+            enabled = !removeOriginalOn,
+            onCheckedChange = { 
+                if (!removeOriginalOn) {
+                    val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
+                    onUpdate(config.copy(dismissWithOriginal = it, isFloat = currentIsFloat)) 
+                }
+            },
+            shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
         )
     }
 }
@@ -252,10 +270,11 @@ fun formatSeconds(seconds: Int): String {
 @Composable
 fun SettingsToggleCard(
     title: String, subtitle: String, icon: ImageVector,
-    checked: Boolean, shape: Shape, onCheckedChange: (Boolean) -> Unit
+    checked: Boolean, enabled: Boolean = true, shape: Shape, onCheckedChange: (Boolean) -> Unit
 ) {
     Card(
-        onClick = { onCheckedChange(!checked) },
+        onClick = { if (enabled) onCheckedChange(!checked) },
+        enabled = enabled,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = shape,
         modifier = Modifier.fillMaxWidth()
@@ -270,7 +289,7 @@ fun SettingsToggleCard(
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Switch(checked = checked, onCheckedChange = onCheckedChange)
+            Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
         }
     }
 }
@@ -286,7 +305,8 @@ fun IslandSettingsControlPreview() {
                     timeout = 5,
                     floatTimeout = 5,
                     isShowShade = true,
-                    removeOriginalNotification = false
+                    removeOriginalNotification = false,
+                    dismissWithOriginal = false
                 ),
                 onUpdate = {}
             )

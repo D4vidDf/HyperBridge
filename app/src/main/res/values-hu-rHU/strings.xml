@@ -633,6 +633,8 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="live_updates">Live updates</string>
     <string name="remove_original_notification">Remove original notification</string>
     <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
+    <string name="dismiss_with_original">Dismiss with original</string>
+    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
     <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
     <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
     <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>

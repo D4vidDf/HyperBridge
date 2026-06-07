@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Architecture
 import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Construction
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LowPriority
 import androidx.compose.material.icons.filled.NotificationAdd
@@ -641,6 +642,7 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
         iconColor = MaterialTheme.colorScheme.primary
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            val removeOriginalOn = config.removeOriginalNotification == true
             ListOptionCard(
                 title = stringResource(R.string.remove_original_notification),
                 subtitle = stringResource(R.string.remove_original_notification_desc),
@@ -653,6 +655,27 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
                 },
                 trailingContent = {
                     Checkbox(checked = config.removeOriginalNotification ?: false, onCheckedChange = null)
+                }
+            )
+
+            ListOptionCard(
+                title = stringResource(R.string.dismiss_with_original),
+                subtitle = stringResource(R.string.dismiss_with_original_desc),
+                icon = Icons.Default.DeleteSweep,
+                shape = RoundedCornerShape(4.dp),
+                onClick = {
+                    if (!removeOriginalOn) {
+                        scope.launch {
+                            prefs.updateGlobalConfig(config.copy(dismissWithOriginal = !(config.dismissWithOriginal ?: false)))
+                        }
+                    }
+                },
+                trailingContent = {
+                    Checkbox(
+                        checked = if (removeOriginalOn) true else (config.dismissWithOriginal ?: false),
+                        enabled = !removeOriginalOn,
+                        onCheckedChange = null
+                    )
                 }
             )
 

@@ -634,6 +634,8 @@
     <string name="live_updates">Aggiornamenti in tempo reale</string>
     <string name="remove_original_notification">Rimuovi notifica originale</string>
     <string name="remove_original_notification_desc">Rimuovi automaticamente la notifica di origine quando è attivo un Live Update.</string>
+    <string name="dismiss_with_original">Dismiss with original</string>
+    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
     <string name="onboarding_can_be_changed">Puoi modificare queste opzioni in seguito in Impostazioni e Configuratore del tema.</string>
     <string name="onboarding_widget_desc">Aggiungi widget Android standard alla tua isola per un accesso rapido.</string>
     <string name="onboard_theme_desc">Personalizza completamente colori, forme e icone della tua isola.</string>

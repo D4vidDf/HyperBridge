@@ -6,7 +6,7 @@ data class IslandConfig(
     val timeout: Int? = null,
     val floatTimeout: Int? = null,
     val removeOriginalNotification: Boolean? = null,
-
+    val dismissWithOriginal: Boolean? = null,
 ) {
     // Merges this config (App) with a default config (Global)
     fun mergeWith(global: IslandConfig): IslandConfig {
@@ -16,6 +16,7 @@ data class IslandConfig(
             timeout = this.timeout ?: global.timeout ?: 10,
             floatTimeout = this.floatTimeout ?: global.floatTimeout ?: 5,
             removeOriginalNotification = this.removeOriginalNotification ?: global.removeOriginalNotification ?: false,
+            dismissWithOriginal = this.dismissWithOriginal ?: global.dismissWithOriginal ?: false,
         )
     }
 }

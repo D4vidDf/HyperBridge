@@ -33,15 +33,19 @@ class PermanentIslandManager(
     init {
         scope.launch {
             preferences.isPermanentIslandEnabledFlow.collectLatest { enabled ->
-                isPermanentIslandEnabled = enabled
-                updateState()
+                if (isPermanentIslandEnabled != enabled) {
+                    isPermanentIslandEnabled = enabled
+                    updateState()
+                }
             }
         }
         scope.launch  {
             preferences.permanentIslandWidthFlow.collectLatest { width ->
-                currentWidth = width
-                if (isIslandActive) {
-                    dispatchPermanentIsland()
+                if (currentWidth != width) {
+                    currentWidth = width
+                    if (isIslandActive) {
+                        dispatchPermanentIsland()
+                    }
                 }
             }
         }

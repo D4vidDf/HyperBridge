@@ -295,11 +295,19 @@ class NotificationReaderService : NotificationListenerService() {
             if (activeTranslations.containsKey(notifKey)) {
                 val hyperId = activeTranslations[notifKey] ?: return
 
-                try {
-                    NotificationManagerCompat.from(this).cancel(hyperId)
-                } catch (_: Exception) {}
+                serviceScope.launch(Dispatchers.IO) {
+                    val appConfig = preferences.getAppIslandConfig(sbn.packageName).first()
+                    val globalConfig = preferences.globalConfigFlow.first()
+                    val finalConfig = appConfig.mergeWith(globalConfig)
 
-                cleanupCache(notifKey)
+                    if (finalConfig.dismissWithOriginal == true) {
+                        try {
+                            NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
+                        } catch (_: Exception) {}
+
+                        cleanupCache(notifKey)
+                    }
+                }
             }
         }
     }
@@ -355,7 +363,7 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType, isLiveUpdate: Boolean) {
         // 1. Remove original if enabled (EXCEPT for Media)
-        if (config.removeOriginalNotification == true && type != NotificationType.MEDIA) {
+        if (config.removeOriginalNotification == true && type != NotificationType.MEDIA && type != NotificationType.CALL) {
             intentionallyRemovedKeys.add(originalKey)
             cancelNotification(originalKey)
         }

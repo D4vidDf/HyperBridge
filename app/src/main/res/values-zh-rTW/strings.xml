@@ -594,13 +594,13 @@
     <string name="island_behavior_title">超級島行為</string>
     <string name="island_behavior_desc"><![CDATA[超時、重複項及可見性]]></string>
     <string name="engine">引擎</string>
-    <string name="engine_desc">即時更新 vs. 小米超級島</string>
-    <string name="dnd_mode_title">零打擾</string>
-    <string name="dnd_mode_desc">在零打擾模式中啟用超級島</string>
+    <string name="engine_desc">原生即時更新 vs. 小米超級島</string>
+    <string name="dnd_mode_title">勿擾模式</string>
+    <string name="dnd_mode_desc">在勿擾模式中選擇啟用超級島</string>
     <string name="dnd_manual_toggle">暫停超級島</string>
     <string name="dnd_manual_toggle_desc">手動暫停所有超級島，直到您重新開啟此功能</string>
-    <string name="dnd_auto_detect">自動偵測零打擾模式</string>
-    <string name="dnd_auto_detect_desc">當您的手機處於零打擾模式時，自動暫停超級島功能</string>
+    <string name="dnd_auto_detect">自動偵測勿擾模式</string>
+    <string name="dnd_auto_detect_desc">當您的手機處於勿擾模式時，自動暫停小米超級島功能</string>
     <string name="behaviour_triggers"><![CDATA[行為 & 觸發]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[引擎、超時及觸發]]></string>
     <string name="global_behavior">預設行為</string>
@@ -609,7 +609,7 @@
     <string name="behavior_hide_desc">手動關閉前一直可見</string>
     <string name="behavior_desc_hide_long">決定超級島在螢幕上停留的時間，之後會自動消失。</string>
     <string name="managed_by_theme_desc">由活動主題管理的行為。</string>
-    <string name="use_global_default_engine">使用預設值來當作通知引擎</string>
+    <string name="use_global_default_engine">使用預設設定來當作通知引擎</string>
     <string name="active_triggers">執行中的程式通知</string>
     <string name="active_triggers_global_desc">選擇哪一個全域條件來觸發超級島</string>
     <string name="type_standard_desc">預設的訊息、郵件及鬧鐘</string>
@@ -629,6 +629,8 @@
     <string name="live_updates">即時更新</string>
     <string name="remove_original_notification">移除預設通知</string>
     <string name="remove_original_notification_desc">當即時更新處於啟用狀態時，自動關閉通知來源。</string>
+    <string name="dismiss_with_original">Dismiss with original</string>
+    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
     <string name="onboarding_can_be_changed">您稍後可以在「設定」和「主題配置器」中變更這些選項。</string>
     <string name="onboarding_widget_desc">在您的超級島上添加Android 小工具，以便快速存取。</string>
     <string name="onboard_theme_desc">完全自訂超級島的顏色、形狀和圖示。</string>
