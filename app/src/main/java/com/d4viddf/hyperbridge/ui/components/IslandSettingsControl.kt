@@ -216,7 +216,7 @@ fun IslandSettingsControl(
         Spacer(Modifier.height(14.dp))
 
         Text(
-            text = stringResource(R.string.live_updates),
+            text = stringResource(R.string.notification_management),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 4.dp)

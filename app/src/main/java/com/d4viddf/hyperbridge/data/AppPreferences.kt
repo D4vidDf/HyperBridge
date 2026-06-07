@@ -118,6 +118,9 @@ class AppPreferences(context: Context) {
     suspend fun setLastSeenVersion(versionCode: Int) = save(SettingsKeys.LAST_VERSION, versionCode.toString())
     suspend fun setPriorityEduShown(shown: Boolean) = save(SettingsKeys.PRIORITY_EDU, shown.toString())
 
+    val featuredPermissionWarningFlow: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.FEATURED_PERMISSION_WARNING).map { it.toBoolean(false) }
+    suspend fun setFeaturedPermissionWarning(show: Boolean) = save(SettingsKeys.FEATURED_PERMISSION_WARNING, show.toString())
+
     suspend fun toggleApp(packageName: String, isEnabled: Boolean) {
         val currentString = dao.getSetting(SettingsKeys.ALLOWED_PACKAGES)
         val currentSet = currentString.deserializeSet()

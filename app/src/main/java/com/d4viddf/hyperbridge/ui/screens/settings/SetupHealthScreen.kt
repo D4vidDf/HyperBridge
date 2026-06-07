@@ -64,6 +64,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.util.DeviceUtils
+import com.d4viddf.hyperbridge.util.XiaomiNotificationHelper
 import com.d4viddf.hyperbridge.util.isNotificationServiceEnabled
 import com.d4viddf.hyperbridge.util.isPostNotificationsEnabled
 import com.d4viddf.hyperbridge.util.openAutoStartSettings
@@ -82,6 +83,7 @@ fun SetupHealthScreen(onBack: () -> Unit) {
     var isListenerGranted by remember { mutableStateOf(isNotificationServiceEnabled(context)) }
     var isPostGranted by remember { mutableStateOf(isPostNotificationsEnabled(context)) }
     var isBatteryOptimized by remember { mutableStateOf(isIgnoringBatteryOptimizations(context)) }
+    var isFeaturedGranted by remember { mutableStateOf(false) }
 
     // --- LIFECYCLE ---
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -91,6 +93,7 @@ fun SetupHealthScreen(onBack: () -> Unit) {
                 isListenerGranted = isNotificationServiceEnabled(context)
                 isPostGranted = isPostNotificationsEnabled(context)
                 isBatteryOptimized = isIgnoringBatteryOptimizations(context)
+                isFeaturedGranted = XiaomiNotificationHelper.hasFocusPermission(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -197,9 +200,26 @@ fun SetupHealthScreen(onBack: () -> Unit) {
                             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                             intent.data = "package:${context.packageName}".toUri()
                             context.startActivity(intent)
-                        } catch (e: Exception) { }
+                        } catch (_: Exception) { }
                     }
                 )
+
+                val isSupported = XiaomiNotificationHelper.isSupportIsland()
+                if (isXiaomi && isSupported) {
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
+                    HealthItem(
+                        title = stringResource(R.string.xiaomi_featured_notifications),
+                        subtitle = stringResource(R.string.featured_notifications_open_settings),
+                        icon = Icons.Default.Smartphone,
+                        isGranted = isFeaturedGranted,
+                        onClick = {
+                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            }
+                            context.startActivity(intent)
+                        }
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(24.dp))
 

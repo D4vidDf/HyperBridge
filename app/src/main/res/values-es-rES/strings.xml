@@ -642,6 +642,22 @@
     <string name="onboard_design_desc">Amplía las posibilidades con diferentes opciones de personalización</string>
     <string name="behavior_desc_glob_config">Determina el comportamiento de la isla.</string>
     <string name="widget_layout_snapshot">Vista previa del widget</string>
+    <string name="changelog_0_5_1">
+        <b>Correcciones y Estabilidad</b>\n
+              Corrección de Duplicados en WhatsApp: Resuelto un problema que causaba que aparecieran notificaciones duplicadas de WhatsApp.\n
+              Corrección de Parpadeos y Cierres: Solucionado un cierre inesperado causado al recibir múltiples notificaciones en un corto período. La aplicación ahora actualiza las notificaciones de manera segura, eliminando el parpadeo y mejorando la estabilidad.\n
+              Intenciones Restauradas: Corregido un problema donde al hacer clic en una notificación destacada, la app te dirigía incorrectamente a la pantalla de solución de problemas en lugar de abrir la aplicación original.\n\n
+        <b>Características y Mejoras</b>\n
+              Eliminar Isla al Descartar: Añadida una nueva opción para eliminar automáticamente la isla si se descarta la notificación original del sistema.\n
+              Diagnóstico de Notificaciones: Añadida una nueva pantalla de verificación durante la configuración inicial para comprobar si tu dispositivo Xiaomi es compatible con las Notificaciones Destacadas.\n
+              Integración de Estado del Sistema: El estado de los permisos de Notificaciones Destacadas ahora se monitoriza continuamente y se muestra dentro de la pantalla de Estado del Sistema.\n
+              Pantalla de Solución de Problemas: Añadida una pantalla dedicada que guía a los usuarios sobre cómo habilitar los permisos ocultos del sistema (o usar Shizuku).\n
+              Terminología Más Clara: Renombrada la sección de "Actualizaciones en Vivo" en el menú de ajustes a "Gestión de Notificaciones" para reflejar mejor su propósito.\n
+              Pulido de Interfaz en Ajustes: Restauradas las esquinas redondeadas faltantes en la opción "Isla Permanente" en la lista de Ajustes Globales.\n
+              Traducciones al Español: Añadidas traducciones completas al español para todos los nuevos diálogos de solución de problemas, verificaciones del sistema y ajustes.
+    </string>
+    <string name="title_0_5_1">Correcciones y Mejoras</string>
+
     <string name="changelog_0_5_0"><b>Soporte para ROMs CN</b>\n
             • Habilita la nueva solución Sui &amp; Shizuku para disfrutar de Hyper Islands en tus dispositivos con ROMs HyperOS CN (China) sin soporte nativo.\n\n
         <b>Mejoras del Motor de Temas</b>\n
@@ -667,6 +683,24 @@
             • Alertas más Inteligentes: Las descargas y medios se actualizan silenciosamente, mientras que las actualizaciones de mensajes activan animaciones emergentes de manera confiable.\n
             • Navegación: Transiciones de aplicaciones más rápidas y fluidas    </string>
     <string name="title_0_5_0">La actualización en vivo</string>
-    <string name="notification_went_wrong">¡Si ves esto, algo salió mal!</string>
-    <string name="widget_went_wrong">¡Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
+    <string name="notification_went_wrong">¡Si ves esto, algo salió mal! Haz clic aquí para ver cómo solucionarlo.</string>
+    <string name="widget_went_wrong">Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
+    <string name="troubleshoot_featured_notification">Solucionar</string>
+
+    <string name="featured_notifications_check">Test Notificaciones Destacadas</string>
+    <string name="featured_notifications_check_desc">Vamos a verificar si tu sistema está configurado correctamente para mostrar las islas de HyperBridge.</string>
+    <string name="featured_notifications_supported">Soportado</string>
+    <string name="featured_notifications_not_supported">No Soportado</string>
+    <string name="featured_notifications_enabled">Habilitado</string>
+    <string name="featured_notifications_disabled">Deshabilitado</string>
+    <string name="featured_notifications_open_settings">Abrir Ajustes del Sistema</string>
+    <string name="featured_notifications_banner_warning">Las notificaciones destacadas están deshabilitadas. Las islas no se mostrarán correctamente.</string>
+    <string name="featured_notifications_troubleshoot_title">¿Por qué esto no es una isla?</string>
+    <string name="featured_notifications_troubleshoot_desc">Tu dispositivo Xiaomi interceptó la notificación pero no pudo mostrarla como una isla destacada porque el permiso está deshabilitado en los ajustes del sistema.\n\nPara solucionar esto:\n1. Toca "Abrir Ajustes del Sistema"\n2. Desplázate hacia abajo hasta "Notificaciones Destacadas" (o similar)\n3. Habilítalo para HyperBridge.</string>
+    <string name="featured_notifications_shizuku_alternative">Alternativa: Usar Shizuku</string>
+    <string name="featured_notifications_shizuku_desc">Si tu sistema no muestra el ajuste o está restringido, puedes eludir la lista blanca de Xiaomi completamente configurando Shizuku. HyperBridge usará Shizuku para publicar las islas directamente.</string>
+    <string name="system_config_info">Información de Configuración del Sistema</string>
+    <string name="system_config_info_supported_label">Soportado: %1$s</string>
+    <string name="system_config_info_permission_label">Permiso: %1$s</string>
+    <string name="notification_management">Gestión de Notificaciones</string>
 </resources>

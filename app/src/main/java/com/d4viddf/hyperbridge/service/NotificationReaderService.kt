@@ -503,6 +503,25 @@ class NotificationReaderService : NotificationListenerService() {
                 val shouldAlertOnce = isUpdate && (type == NotificationType.PROGRESS || type == NotificationType.DOWNLOAD || type == NotificationType.MEDIA)
                 builder.setOnlyAlertOnce(shouldAlertOnce)
 
+                val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
+                if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
+                    serviceScope.launch {
+                        preferences.setFeaturedPermissionWarning(true)
+                    }
+                    val intent = Intent(this, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        putExtra("open_troubleshoot", true)
+                    }
+                    val pendingIntent = PendingIntent.getActivity(
+                        this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    builder.addAction(
+                        android.R.drawable.ic_dialog_info,
+                        getString(R.string.troubleshoot_featured_notification),
+                        pendingIntent
+                    )
+                }
+
                 val notification = builder.build()
 
                 val actualProgress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
@@ -721,7 +740,24 @@ class NotificationReaderService : NotificationListenerService() {
         builder.addExtras(extras)
         builder.addExtras(data.resources)
 
-        sbn.notification.contentIntent?.let { builder.setContentIntent(it) }
+        val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
+        if (!hasPermission) {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                putExtra("open_troubleshoot", true)
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.setContentIntent(pendingIntent)
+            builder.addAction(
+                android.R.drawable.ic_dialog_info,
+                getString(R.string.troubleshoot_featured_notification),
+                pendingIntent
+            )
+        } else {
+            sbn.notification.contentIntent?.let { builder.setContentIntent(it) }
+        }
 
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)

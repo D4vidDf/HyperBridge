@@ -109,6 +109,9 @@ fun GlobalSettingsScreen(
                 shape = getExpressiveShape(5, 4, ShapeStyle.Large),
                 onClick = onPermanentIslandClick
             )
+            Spacer(Modifier.height(16.dp))
+            
+
         }
     }
 }

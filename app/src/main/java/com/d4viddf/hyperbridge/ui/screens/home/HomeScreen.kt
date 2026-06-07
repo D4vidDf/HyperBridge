@@ -15,11 +15,14 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.ToggleOn
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.ToggleOff
@@ -40,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
@@ -128,148 +132,230 @@ fun HomeScreen(
                 }
             }
         ) { padding ->
-            Box(modifier = Modifier.padding(bottom = padding.calculateBottomPadding())) {
-                when (selectedTab) {
-                    0 -> {
-                        AnimatedContent(
-                            targetState = designRoute,
-                            transitionSpec = {
-                                if (targetState.ordinal > initialState.ordinal) {
-                                    slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it / 3 } + fadeOut()
-                                } else {
-                                    slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it / 3 } + fadeOut()
-                                }
-                            },
-                            label = "DesignTabNav"
-                        ) { route ->
-                            when (route) {
-                                DesignRoute.DASHBOARD -> {
-                                    DesignScreen(
-                                        onNavigateToWidgets = { designRoute = DesignRoute.WIDGET_LIST },
-                                        onNavigateToThemes = { designRoute = DesignRoute.THEME_MANAGER },
-                                        onEditTheme = { themeId ->
-                                            editingThemeId = themeId
-                                            designRoute = DesignRoute.THEME_CREATOR
-                                        },
-                                        onLaunchPicker = { showWidgetPicker = true },
-                                        onSettingsClick = onSettingsClick
+            androidx.compose.foundation.layout.Column(
+                modifier = Modifier
+                    .padding(bottom = padding.calculateBottomPadding())
+                    .fillMaxSize()
+            ) {
+                val prefs = remember { com.d4viddf.hyperbridge.data.AppPreferences(context) }
+                val showWarning by prefs.featuredPermissionWarningFlow.collectAsState(initial = false)
+
+                if (showWarning) {
+                    androidx.compose.material3.Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        onClick = {
+                            val intent =
+                                Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(
+                                        android.provider.Settings.EXTRA_APP_PACKAGE,
+                                        context.packageName
                                     )
                                 }
-                                DesignRoute.WIDGET_LIST -> {
-                                    SavedAppWidgetsScreen(
-                                        onBack = { designRoute = DesignRoute.DASHBOARD },
-                                        onEditWidget = { id -> editingWidgetId = id },
-                                        onAddMore = { showWidgetPicker = true }
-                                    )
-                                }
-                                DesignRoute.THEME_MANAGER -> {
-                                    ThemeManagerScreen(
-                                        onBack = { designRoute = DesignRoute.DASHBOARD },
-                                        onFindThemes = {
-                                            val query = "HyperBridge Theme"
-                                            try {
-                                                val intent = Intent(Intent.ACTION_VIEW, "market://search?q=$query&c=apps".toUri())
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                context.startActivity(intent)
-                                            } catch (_: Exception) {
-                                                val intent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/search?q=$query&c=apps".toUri())
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                context.startActivity(intent)
-                                            }
-                                        },
-                                        onCreateTheme = {
-                                            editingThemeId = null
-                                            designRoute = DesignRoute.THEME_CREATOR
-                                        },
-                                        onEditTheme = { id ->
-                                            editingThemeId = id
-                                            designRoute = DesignRoute.THEME_CREATOR
-                                        }
-                                    )
-                                }
-                                DesignRoute.THEME_CREATOR -> {
-                                    ThemeCreatorScreen(
-                                        editThemeId = editingThemeId,
-                                        onBack = {
-                                            designRoute = DesignRoute.THEME_MANAGER
-                                            editingThemeId = null
-                                        },
-                                        onThemeCreated = {
-                                            designRoute = DesignRoute.THEME_MANAGER
-                                            editingThemeId = null
-                                        }
-                                    )
-                                }
+                            context.startActivity(intent)
+                        }
+                    ) {
+                        androidx.compose.foundation.layout.Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            androidx.compose.foundation.layout.Spacer(Modifier.width(12.dp))
+                            androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(R.string.featured_notifications_troubleshoot_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                Text(
+                                    stringResource(R.string.featured_notifications_troubleshoot_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
                             }
                         }
                     }
-                    1 -> ActiveAppsPage(
-                        apps = activeApps,
-                        isLoading = isLoading,
-                        viewModel = viewModel,
-                        onConfig = { configApp = it },
-                        onSettingsClick = onSettingsClick
-                    )
-                    2 -> LibraryPage(
-                        apps = libraryApps,
-                        isLoading = isLoading,
-                        viewModel = viewModel,
-                        onConfig = { configApp = it },
-                        onSettingsClick = onSettingsClick
-                    )
+                }
+
+                Box(modifier = Modifier.weight(1f)) {
+                    when (selectedTab) {
+                        0 -> {
+                            AnimatedContent(
+                                targetState = designRoute,
+                                transitionSpec = {
+                                    if (targetState.ordinal > initialState.ordinal) {
+                                        slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it / 3 } + fadeOut()
+                                    } else {
+                                        slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it / 3 } + fadeOut()
+                                    }
+                                },
+                                label = "DesignTabNav"
+                            ) { route ->
+                                when (route) {
+                                    DesignRoute.DASHBOARD -> {
+                                        DesignScreen(
+                                            onNavigateToWidgets = {
+                                                designRoute = DesignRoute.WIDGET_LIST
+                                            },
+                                            onNavigateToThemes = {
+                                                designRoute = DesignRoute.THEME_MANAGER
+                                            },
+                                            onEditTheme = { themeId ->
+                                                editingThemeId = themeId
+                                                designRoute = DesignRoute.THEME_CREATOR
+                                            },
+                                            onLaunchPicker = { showWidgetPicker = true },
+                                            onSettingsClick = onSettingsClick
+                                        )
+                                    }
+
+                                    DesignRoute.WIDGET_LIST -> {
+                                        SavedAppWidgetsScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onEditWidget = { id -> editingWidgetId = id },
+                                            onAddMore = { showWidgetPicker = true }
+                                        )
+                                    }
+
+                                    DesignRoute.THEME_MANAGER -> {
+                                        ThemeManagerScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onFindThemes = {
+                                                val query = "HyperBridge Theme"
+                                                try {
+                                                    val intent = Intent(
+                                                        Intent.ACTION_VIEW,
+                                                        "market://search?q=$query&c=apps".toUri()
+                                                    )
+                                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                    context.startActivity(intent)
+                                                } catch (_: Exception) {
+                                                    val intent = Intent(
+                                                        Intent.ACTION_VIEW,
+                                                        "https://play.google.com/store/search?q=$query&c=apps".toUri()
+                                                    )
+                                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                    context.startActivity(intent)
+                                                }
+                                            },
+                                            onCreateTheme = {
+                                                editingThemeId = null
+                                                designRoute = DesignRoute.THEME_CREATOR
+                                            },
+                                            onEditTheme = { id ->
+                                                editingThemeId = id
+                                                designRoute = DesignRoute.THEME_CREATOR
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.THEME_CREATOR -> {
+                                        ThemeCreatorScreen(
+                                            editThemeId = editingThemeId,
+                                            onBack = {
+                                                designRoute = DesignRoute.THEME_MANAGER
+                                                editingThemeId = null
+                                            },
+                                            onThemeCreated = {
+                                                designRoute = DesignRoute.THEME_MANAGER
+                                                editingThemeId = null
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        1 -> ActiveAppsPage(
+                            apps = activeApps,
+                            isLoading = isLoading,
+                            viewModel = viewModel,
+                            onConfig = { configApp = it },
+                            onSettingsClick = onSettingsClick
+                        )
+
+                        2 -> LibraryPage(
+                            apps = libraryApps,
+                            isLoading = isLoading,
+                            viewModel = viewModel,
+                            onConfig = { configApp = it },
+                            onSettingsClick = onSettingsClick
+                        )
+                    }
                 }
             }
-        }
 
-        // --- OVERLAYS ---
-        AnimatedVisibility(
-            visible = showWidgetPicker,
-            enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(400)) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(400)) + fadeOut(),
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-        ) {
-            WidgetPickerScreen(
-                onBack = { showWidgetPicker = false },
-                onWidgetSelected = { newId ->
-                    showWidgetPicker = false
-                    editingWidgetId = newId
-                }
-            )
-        }
-
-        AnimatedVisibility(
-            visible = editingWidgetId != null,
-            enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(400)) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(400)) + fadeOut(),
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-        ) {
-            if (editingWidgetId != null) {
-                WidgetConfigScreen(
-                    widgetId = editingWidgetId!!,
-                    onBack = { editingWidgetId = null }
+            // --- OVERLAYS ---
+            AnimatedVisibility(
+                visible = showWidgetPicker,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(400)
+                ) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(400)
+                ) + fadeOut(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                WidgetPickerScreen(
+                    onBack = { showWidgetPicker = false },
+                    onWidgetSelected = { newId ->
+                        showWidgetPicker = false
+                        editingWidgetId = newId
+                    }
                 )
             }
-        }
 
-        // [FIXED] Safe handling of nullable state
-        if (configApp != null) {
-            // Capture the non-null value locally for the lambda scope
-            val currentConfigApp = configApp!!
-
-            AppConfigBottomSheet(
-                app = currentConfigApp,
-                viewModel = viewModel,
-                onDismiss = { configApp = null },
-                onNavConfigClick = {
-                    // Use the LOCAL variable, not the mutable state which might have changed
-                    onNavConfigClick(currentConfigApp.packageName)
-                    configApp = null
+            AnimatedVisibility(
+                visible = editingWidgetId != null,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(400)
+                ) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(400)
+                ) + fadeOut(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                if (editingWidgetId != null) {
+                    WidgetConfigScreen(
+                        widgetId = editingWidgetId!!,
+                        onBack = { editingWidgetId = null }
+                    )
                 }
-            )
+            }
+
+            // [FIXED] Safe handling of nullable state
+            if (configApp != null) {
+                // Capture the non-null value locally for the lambda scope
+                val currentConfigApp = configApp!!
+
+                AppConfigBottomSheet(
+                    app = currentConfigApp,
+                    viewModel = viewModel,
+                    onDismiss = { configApp = null },
+                    onNavConfigClick = {
+                        // Use the LOCAL variable, not the mutable state which might have changed
+                        onNavConfigClick(currentConfigApp.packageName)
+                        configApp = null
+                    }
+
+                )
+            }
         }
     }
 }

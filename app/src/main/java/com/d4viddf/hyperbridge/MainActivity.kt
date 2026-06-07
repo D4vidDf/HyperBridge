@@ -16,6 +16,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -114,6 +115,11 @@ private fun MainNavigationContent(
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = -1)
 
     var showChangelog by remember { mutableStateOf(false) }
+    
+    // Check for Troubleshoot Intent
+    val activity = context as? androidx.appcompat.app.AppCompatActivity
+    val shouldOpenTroubleshoot = activity?.intent?.getBooleanExtra("open_troubleshoot", false) ?: false
+    var showTroubleshootDialog by remember { mutableStateOf(shouldOpenTroubleshoot) }
 
     val initialStartRoute = remember(isSetupComplete) { if (isSetupComplete) Screen.Home else Screen.Onboarding }
     val allPossibleTopLevel = remember(isSetupComplete) { setOf(Screen.Onboarding, Screen.Home) }
@@ -201,6 +207,48 @@ private fun MainNavigationContent(
                 showChangelog = false
                 scope.launch {
                     preferences.setLastSeenVersion(currentVersionCode)
+                }
+            }
+        )
+    }
+
+    if (showTroubleshootDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showTroubleshootDialog = false },
+            title = {
+                androidx.compose.material3.Text(stringResource(R.string.featured_notifications_troubleshoot_title))
+            },
+            text = {
+                androidx.compose.foundation.layout.Column {
+                    androidx.compose.material3.Text(stringResource(R.string.featured_notifications_troubleshoot_desc))
+                    androidx.compose.foundation.layout.Spacer(Modifier.height(16.dp))
+                    androidx.compose.material3.Text(
+                        stringResource(R.string.featured_notifications_shizuku_alternative),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    androidx.compose.foundation.layout.Spacer(Modifier.height(4.dp))
+                    androidx.compose.material3.Text(
+                        stringResource(R.string.featured_notifications_shizuku_desc),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        val intent = android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                        showTroubleshootDialog = false
+                    }
+                ) {
+                    androidx.compose.material3.Text(stringResource(R.string.featured_notifications_open_settings))
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showTroubleshootDialog = false }) {
+                    androidx.compose.material3.Text(stringResource(android.R.string.ok))
                 }
             }
         )

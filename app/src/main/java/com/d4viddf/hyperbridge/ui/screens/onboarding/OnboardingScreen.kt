@@ -134,7 +134,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     val isShizukuWorkaroundEnabled by prefs.isShizukuWorkaroundEnabled.collectAsState(initial = false)
     val isShizukuPermissionGranted by com.d4viddf.hyperbridge.util.ShizukuManager.isPermissionGranted.collectAsState()
 
-    val totalPages = if (needsShizuku) 15 else 14
+    val totalPages = if (needsShizuku) 16 else 15
     val pagerState = rememberPagerState(pageCount = { totalPages })
     val scope = rememberCoroutineScope()
 
@@ -204,7 +204,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                             1 -> canProceedCompat || BuildConfig.DEBUG
                             2 -> isPostGranted
                             3 -> isListenerGranted
-                            10 -> {
+                            11 -> {
                                 // If they turn the workaround off, they can proceed without permission
                                 !isShizukuWorkaroundEnabled || isShizukuPermissionGranted || BuildConfig.DEBUG
                             }
@@ -270,9 +270,9 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 .fillMaxSize(),
             userScrollEnabled = false
         ) { page ->
-            val adjustedPage = if (needsShizuku && page > 10) page - 1 else page
+            val adjustedPage = if (needsShizuku && page > 11) page - 1 else page
             
-            if (needsShizuku && page == 10) {
+            if (needsShizuku && page == 11) {
                 ShizukuPage(prefs)
             } else {
                 when (adjustedPage) {
@@ -285,16 +285,17 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                         }
                     )
                     3 -> ListenerPermissionPage(context, isListenerGranted)
-                    4 -> OptimizationPage(context)
-                    5 -> ExplanationPage()
-                    6 -> PrivacyPage()
-                    7 -> CustomizationPage()
-                    8 -> TriggersConfigPage(prefs)
-                    9 -> EngineConfigPage(prefs)
-                    10 -> PriorityEducationPage(prefs)
-                    11 -> BehaviorConfigPage(prefs)
-                    12 -> AutoHideConfigPage(prefs)
-                    13 -> PermanentIslandConfigPage(prefs)
+                    4 -> FeaturedNotificationCheckPage(context)
+                    5 -> OptimizationPage(context)
+                    6 -> ExplanationPage()
+                    7 -> PrivacyPage()
+                    8 -> CustomizationPage()
+                    9 -> TriggersConfigPage(prefs)
+                    10 -> EngineConfigPage(prefs)
+                    11 -> PriorityEducationPage(prefs)
+                    12 -> BehaviorConfigPage(prefs)
+                    13 -> AutoHideConfigPage(prefs)
+                    14 -> PermanentIslandConfigPage(prefs)
                 }
             }
         }
@@ -1201,6 +1202,79 @@ fun ListenerPermissionPage(context: Context, isGranted: Boolean) {
                 stringResource(if (isGranted) R.string.perm_granted else R.string.open_settings),
                 style = MaterialTheme.typography.titleMedium
             )
+        }
+    }
+}
+
+@Composable
+fun FeaturedNotificationCheckPage(context: Context) {
+    val isSupported = remember { com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland() }
+    
+    // We want to re-check when returning to this page, so we use a LaunchedEffect
+    var isGranted by remember { mutableStateOf(false) }
+    
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        while (true) {
+            isGranted = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(context)
+            kotlinx.coroutines.delay(1000)
+        }
+    }
+
+    OnboardingPageLayout(
+        title = stringResource(R.string.featured_notifications_check),
+        description = stringResource(R.string.featured_notifications_check_desc),
+        icon = Icons.Default.Info,
+        iconColor = MaterialTheme.colorScheme.tertiary
+    ) {
+        if (!isSupported) {
+            Text(
+                stringResource(R.string.featured_notifications_not_supported),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.titleMedium
+            )
+        } else {
+            Button(
+                onClick = {
+                    if (!isGranted) {
+                        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                    }
+                },
+                enabled = !isGranted,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                )
+            ) {
+                Text(
+                    stringResource(if (isGranted) R.string.featured_notifications_enabled else R.string.featured_notifications_open_settings),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            if (!isGranted) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Architecture, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.featured_notifications_shizuku_alternative), style = MaterialTheme.typography.titleSmall)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(stringResource(R.string.featured_notifications_shizuku_desc), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
         }
     }
 }
