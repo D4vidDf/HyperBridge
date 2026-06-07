@@ -719,7 +719,7 @@ class NotificationReaderService : NotificationListenerService() {
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
         if (!shouldAlertOnce) {
-            com.d4viddf.hyperbridge.util.ShizukuManager.notifyWithCancel(this, bridgeId, notification)
+            com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
         } else {
             com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
         }
@@ -851,6 +851,7 @@ class NotificationReaderService : NotificationListenerService() {
             // We previously blocked GROUP_ALERT_CHILDREN, but some apps like Telegram 
             // use it while silencing their actual children, leading to no alerts at all.
             // Let's just allow group summaries if they have actual text.
+            if (pkg.contains("whatsapp", ignoreCase = true)) return true
             if (text.isEmpty() || title.isEmpty()) return true
         }
 
