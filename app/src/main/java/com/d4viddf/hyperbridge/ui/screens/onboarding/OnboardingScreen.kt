@@ -24,10 +24,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,7 +42,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Architecture
 import androidx.compose.material.icons.filled.BatteryStd
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Info
@@ -87,7 +86,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -115,7 +113,6 @@ import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.util.DeviceUtils
 import com.d4viddf.hyperbridge.util.isNotificationServiceEnabled
 import com.d4viddf.hyperbridge.util.isPostNotificationsEnabled
-import com.d4viddf.hyperbridge.util.toBitmap
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -308,11 +305,6 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 
 @Composable
 fun WelcomePage() {
-    val context = LocalContext.current
-    val appIconBitmap = remember(context) {
-        try { context.packageManager.getApplicationIcon(context.packageName).toBitmap().asImageBitmap() } catch (_: Exception) { null }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -322,20 +314,11 @@ fun WelcomePage() {
     ) {
         Spacer(modifier = Modifier.weight(1f))
 
-        if (appIconBitmap != null) {
-            Image(
-                bitmap = appIconBitmap,
-                contentDescription = stringResource(R.string.logo_desc),
-                modifier = Modifier.size(140.dp)
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.Bolt,
-                contentDescription = stringResource(R.string.logo_desc),
-                modifier = Modifier.size(140.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
+        Image(
+            painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = stringResource(R.string.logo_desc),
+            modifier = Modifier.size(140.dp)
+        )
 
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -1120,7 +1103,7 @@ fun ListOptionCard(
         shape = shape,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 88.dp)
+            .defaultMinSize(minHeight = 88.dp)
     ) {
         Row(
             modifier = Modifier

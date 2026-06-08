@@ -410,12 +410,19 @@ fun WidgetChildItem(
 
     val dims = "$cols × $rows"
 
-    var preview by remember { mutableStateOf<Drawable?>(null) }
+    var previewBitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
     LaunchedEffect(info) {
         withContext(Dispatchers.IO) {
-            preview = try {
-                info.loadPreviewImage(context, 0) ?: info.loadIcon(context, 0)
-            } catch (_: Exception) { null }
+            try {
+                val d = info.loadPreviewImage(context, 0) ?: info.loadIcon(context, 0)
+                if (d != null) {
+                    val w = d.intrinsicWidth.takeIf { it > 0 } ?: 200
+                    val h = d.intrinsicHeight.takeIf { it > 0 } ?: 200
+                    val safeW = w.coerceIn(100, 1000)
+                    val safeH = h.coerceIn(100, 1000)
+                    previewBitmap = d.toBitmap(width = safeW, height = safeH).asImageBitmap()
+                }
+            } catch (_: Exception) { }
         }
     }
 
@@ -435,9 +442,9 @@ fun WidgetChildItem(
                 modifier = Modifier.padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (preview != null) {
+                if (previewBitmap != null) {
                     Image(
-                        bitmap = preview!!.toBitmap().asImageBitmap(),
+                        bitmap = previewBitmap!!,
                         contentDescription = null,
                         modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
                         alignment = Alignment.Center

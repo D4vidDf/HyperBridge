@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -213,7 +213,7 @@ fun AppOverrideCard(
         shape = shape,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 88.dp)
+            .defaultMinSize(minHeight = 88.dp)
     ) {
         Row(
             modifier = Modifier
@@ -356,7 +356,7 @@ fun AppSelectionCard(
         shape = RoundedCornerShape(16.dp), // Standard rounded card
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 72.dp)
+            .defaultMinSize(minHeight = 72.dp)
     ) {
         Row(
             modifier = Modifier

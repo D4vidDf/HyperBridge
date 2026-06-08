@@ -70,10 +70,15 @@ fun MainRootNavigation(onExit: () -> Unit) {
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context) }
 
-    val database = remember { AppDatabase.getDatabase(context) }
-    val backupManager = remember { BackupManager(context, preferences, database) }
+    // Let's use lazy delegates
+    val database by remember { lazy { AppDatabase.getDatabase(context) } }
+    val backupManager by remember { lazy { BackupManager(context, preferences, database) } }
 
-    val packageInfo = remember { try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (_: Exception) { null } }
+    val packageInfo by androidx.compose.runtime.produceState<android.content.pm.PackageInfo?>(initialValue = null) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (_: Exception) { null }
+        }
+    }
     @Suppress("DEPRECATION")
     val currentVersionCode = packageInfo?.longVersionCode?.toInt() ?: 0
     val currentVersionName = packageInfo?.versionName ?: "0.5.0"
@@ -117,7 +122,7 @@ private fun MainNavigationContent(
     var showChangelog by remember { mutableStateOf(false) }
     
     // Check for Troubleshoot Intent
-    val activity = context as? androidx.appcompat.app.AppCompatActivity
+    val activity = context as? AppCompatActivity
     val shouldOpenTroubleshoot = activity?.intent?.getBooleanExtra("open_troubleshoot", false) ?: false
     var showTroubleshootDialog by remember { mutableStateOf(shouldOpenTroubleshoot) }
 

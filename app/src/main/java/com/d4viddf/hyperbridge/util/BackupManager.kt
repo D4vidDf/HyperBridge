@@ -13,8 +13,6 @@ import com.d4viddf.hyperbridge.data.model.HyperBridgeBackup
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -81,17 +79,11 @@ class BackupManager(
 
     suspend fun readBackupFile(uri: Uri): Result<HyperBridgeBackup> = withContext(Dispatchers.IO) {
         try {
-            val stringBuilder = StringBuilder()
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                    var line = reader.readLine()
-                    while (line != null) {
-                        stringBuilder.append(line)
-                        line = reader.readLine()
-                    }
+            val backup = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                java.io.InputStreamReader(inputStream, Charsets.UTF_8).use { reader ->
+                    gson.fromJson(reader, HyperBridgeBackup::class.java)
                 }
-            }
-            val backup = gson.fromJson(stringBuilder.toString(), HyperBridgeBackup::class.java)
+            } ?: return@withContext Result.failure(Exception("Could not open input stream"))
 
             if (backup.metadata.packageName != context.packageName) {
                 return@withContext Result.failure(Exception("Package mismatch"))

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -244,7 +245,7 @@ fun SettingsOptionCard(item: SettingsItemData, shape: Shape) {
         onClick = item.onClick,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = shape,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)
+        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 72.dp)
     ) {
         Row(
             modifier = Modifier

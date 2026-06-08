@@ -112,7 +112,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var appUseNativeLiveUpdates by mutableStateOf<Boolean?>(null)
     var appEnabledNotificationTypes by mutableStateOf<Set<String>?>(null)
 
-    private val _tempAssets = mutableMapOf<String, Uri>()
+    private val _tempAssets = java.util.concurrent.ConcurrentHashMap<String, Uri>()
 
     val shareTheme: String = application.getString(R.string.share_theme)
 
@@ -404,7 +404,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 if (_tempAssets.isNotEmpty()) {
-                    _tempAssets.forEach { (key, uri) ->
+                    val assetsToProcess = _tempAssets.toMap()
+                    assetsToProcess.forEach { (key, uri) ->
                         try {
                             context.contentResolver.openInputStream(uri)?.use { input ->
                                 val bitmap = BitmapFactory.decodeStream(input)
@@ -416,7 +417,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                             }
                         } catch (e: Exception) { e.printStackTrace() }
                     }
-                    _tempAssets.clear()
+                    assetsToProcess.keys.forEach { _tempAssets.remove(it) }
                 }
 
                 val answerRes = if (callAnswerUri != null) ThemeResource(ResourceType.LOCAL_FILE, "icons/call_answer.png")

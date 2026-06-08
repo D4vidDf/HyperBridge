@@ -763,7 +763,7 @@ class NotificationReaderService : NotificationListenerService() {
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
         if (!shouldAlertOnce) {
-            com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
+            com.d4viddf.hyperbridge.util.ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
             com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
         }
