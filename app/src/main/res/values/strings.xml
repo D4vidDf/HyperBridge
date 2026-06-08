@@ -755,6 +755,17 @@
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
+    <string name="changelog_0_5_2">
+        <b>Play Store Crash Fixes &amp; Stability</b>\n
+              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
+              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
+              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
+              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
+              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
+              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
+    </string>
+    <string name="title_0_5_2">Performance &amp; Stability Update</string>
+
     <string name="changelog_0_5_1">
         <b>Fixes &amp; Stability</b>\n
               WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
