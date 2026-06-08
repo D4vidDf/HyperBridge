@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
+import android.app.PendingIntent
 import android.app.Person
 import android.content.Context
 import android.graphics.Bitmap
@@ -38,6 +39,7 @@ import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
+import androidx.core.graphics.get
 
 abstract class BaseTranslator(
     protected val context: Context,
@@ -188,7 +190,7 @@ abstract class BaseTranslator(
 
         for (x in 0 until width step stepX) {
             for (y in 0 until height step stepY) {
-                val pixel = bitmap.getPixel(x, y)
+                val pixel = bitmap[x, y]
                 val alpha = Color.alpha(pixel)
                 if (alpha > 50) {
                     totalPixels++
@@ -264,10 +266,9 @@ abstract class BaseTranslator(
 
     protected fun extractBridgeActions(
         sbn: StatusBarNotification,
+        config: com.d4viddf.hyperbridge.models.IslandConfig,
         theme: HyperTheme? = null,
-        mode: ActionDisplayMode = ActionDisplayMode.BOTH,
-        hideReplies: Boolean = true,
-        useAppOpenForReplies: Boolean = false
+        mode: ActionDisplayMode = ActionDisplayMode.BOTH
     ): List<BridgeAction> {
         val bridgeActions = mutableListOf<BridgeAction>()
         val actions = sbn.notification.actions ?: return emptyList()
@@ -284,25 +285,29 @@ abstract class BaseTranslator(
 
         actions.forEachIndexed { index, androidAction ->
             val hasRemoteInput = androidAction.remoteInputs != null && androidAction.remoteInputs!!.isNotEmpty()
-            if (hasRemoteInput && hideReplies) return@forEachIndexed
-
             val rawTitle = androidAction.title?.toString() ?: ""
+            val isMarkAsRead = androidAction.semanticAction == Notification.Action.SEMANTIC_ACTION_MARK_AS_READ || rawTitle.equals("mark as read", ignoreCase = true)
+
+            if (config.removeOriginalNotification == true && (hasRemoteInput || isMarkAsRead)) {
+                return@forEachIndexed
+            }
+
             val uniqueKey = "act_${sbn.key.hashCode()}_$index"
 
-            val config = resolveActionConfig(theme, sbn.packageName, rawTitle)
+            val actionConfig = resolveActionConfig(theme, sbn.packageName, rawTitle)
 
-            val finalBgColorInt = if (config?.backgroundColor != null) {
+            val finalBgColorInt = if (actionConfig?.backgroundColor != null) {
                 try {
-                    config.backgroundColor.toColorInt()
+                    actionConfig.backgroundColor.toColorInt()
                 } catch(e: Exception) { defaultActionBg }
             } else {
                 defaultActionBg
             }
 
             val finalBgColorHex = String.format("#%08X", (0xFFFFFFFF and finalBgColorInt.toLong()))
-            val finalTintColorHex = config?.tintColor ?: "#FFFFFF"
+            val finalTintColorHex = actionConfig?.tintColor ?: "#FFFFFF"
 
-            val effectiveMode = when (config?.mode) {
+            val effectiveMode = when (actionConfig?.mode) {
                 ActionButtonMode.ICON -> ActionDisplayMode.ICON
                 ActionButtonMode.TEXT -> ActionDisplayMode.TEXT
                 ActionButtonMode.BOTH -> ActionDisplayMode.BOTH
@@ -316,7 +321,7 @@ abstract class BaseTranslator(
             val shouldLoadIcon = (effectiveMode != ActionDisplayMode.TEXT)
 
             var bitmapToUse: Bitmap? = null
-            val configIconRes = config?.icon
+            val configIconRes = actionConfig?.icon
             if (configIconRes != null && configIconRes.type == ResourceType.LOCAL_FILE && repository != null) {
                 bitmapToUse = repository.getResourceBitmap(configIconRes)
             }
@@ -340,8 +345,22 @@ abstract class BaseTranslator(
                 hyperPic = HyperPicture("${uniqueKey}_icon", processedBitmap)
             }
 
-            val finalIntent = if (hasRemoteInput && useAppOpenForReplies) {
-                sbn.notification.contentIntent ?: androidAction.actionIntent
+            val finalIntent = if (hasRemoteInput) {
+                if (config.enableInlineReply != false) {
+                    val replyIntent = android.content.Intent(context, com.d4viddf.hyperbridge.receiver.InlineReplyReceiver::class.java).apply {
+                        putExtra("pending_intent", androidAction.actionIntent)
+                        putExtra("result_key", androidAction.remoteInputs!![0].resultKey)
+                        putExtra("package_name", sbn.packageName)
+                    }
+                    PendingIntent.getBroadcast(
+                        context,
+                        uniqueKey.hashCode(),
+                        replyIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                    )
+                } else {
+                    sbn.notification.contentIntent ?: androidAction.actionIntent
+                }
             } else {
                 androidAction.actionIntent
             }

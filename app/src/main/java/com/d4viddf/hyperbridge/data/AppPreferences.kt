@@ -184,7 +184,8 @@ class AppPreferences(context: Context) {
         dao.getSettingFlow(SettingsKeys.GLOBAL_TIMEOUT),
         dao.getSettingFlow(SettingsKeys.GLOBAL_FLOAT_TIMEOUT),
         dao.getSettingFlow(SettingsKeys.GLOBAL_REMOVE_NOTIF),
-        dao.getSettingFlow(SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL)
+        dao.getSettingFlow(SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL),
+        dao.getSettingFlow(SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY)
     ) { args: Array<String?> ->
         IslandConfig(
             args[0].toBoolean(true),
@@ -192,7 +193,8 @@ class AppPreferences(context: Context) {
             args[2]?.toIntOrNull(),
             args[3]?.toIntOrNull(),
             args[4]?.toBooleanStrictOrNull(),
-            args[5]?.toBooleanStrictOrNull()
+            args[5]?.toBooleanStrictOrNull(),
+            args[6]?.toBooleanStrictOrNull()
         )
     }
 
@@ -203,6 +205,7 @@ class AppPreferences(context: Context) {
         config.floatTimeout?.let { save(SettingsKeys.GLOBAL_FLOAT_TIMEOUT, it.toString()) }
         config.removeOriginalNotification?.let { save(SettingsKeys.GLOBAL_REMOVE_NOTIF, it.toString()) }
         config.dismissWithOriginal?.let { save(SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL, it.toString()) }
+        config.enableInlineReply?.let { save(SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY, it.toString()) }
     }
 
     fun getAppIslandConfig(packageName: String): Flow<IslandConfig> {
@@ -212,7 +215,8 @@ class AppPreferences(context: Context) {
             dao.getSettingFlow("config_${packageName}_timeout"),
             dao.getSettingFlow("config_${packageName}_float_timeout"),
             dao.getSettingFlow("config_${packageName}_remove_notif"),
-            dao.getSettingFlow("config_${packageName}_dismiss_with_original")
+            dao.getSettingFlow("config_${packageName}_dismiss_with_original"),
+            dao.getSettingFlow("config_${packageName}_enable_inline_reply")
         ) { args: Array<String?> ->
             IslandConfig(
                 args[0]?.toBooleanStrictOrNull(),
@@ -220,7 +224,8 @@ class AppPreferences(context: Context) {
                 args[2]?.toIntOrNull(),
                 args[3]?.toIntOrNull(),
                 args[4]?.toBooleanStrictOrNull(),
-                args[5]?.toBooleanStrictOrNull()
+                args[5]?.toBooleanStrictOrNull(),
+                args[6]?.toBooleanStrictOrNull()
             )
         }
     }
@@ -232,6 +237,7 @@ class AppPreferences(context: Context) {
         val ftKey = "config_${packageName}_float_timeout"
         val rnKey = "config_${packageName}_remove_notif"
         val dwoKey = "config_${packageName}_dismiss_with_original"
+        val eirKey = "config_${packageName}_enable_inline_reply"
 
         if (config.isFloat != null) save(fKey, config.isFloat.toString()) else remove(fKey)
         if (config.isShowShade != null) save(sKey, config.isShowShade.toString()) else remove(sKey)
@@ -239,6 +245,7 @@ class AppPreferences(context: Context) {
         if (config.floatTimeout != null) save(ftKey, config.floatTimeout.toString()) else remove(ftKey)
         if (config.removeOriginalNotification != null) save(rnKey, config.removeOriginalNotification.toString()) else remove(rnKey)
         if (config.dismissWithOriginal != null) save(dwoKey, config.dismissWithOriginal.toString()) else remove(dwoKey)
+        if (config.enableInlineReply != null) save(eirKey, config.enableInlineReply.toString()) else remove(eirKey)
     }
 
     // --- NAVIGATION ---
@@ -497,7 +504,8 @@ class AppPreferences(context: Context) {
             memoryCache["config_${packageName}_timeout"]?.toIntOrNull(),
             memoryCache["config_${packageName}_float_timeout"]?.toIntOrNull(),
             memoryCache["config_${packageName}_remove_notif"]?.toBooleanStrictOrNull(),
-            memoryCache["config_${packageName}_dismiss_with_original"]?.toBooleanStrictOrNull()
+            memoryCache["config_${packageName}_dismiss_with_original"]?.toBooleanStrictOrNull(),
+            memoryCache["config_${packageName}_enable_inline_reply"]?.toBooleanStrictOrNull()
         )
     }
 
@@ -508,7 +516,8 @@ class AppPreferences(context: Context) {
             memoryCache[SettingsKeys.GLOBAL_TIMEOUT]?.toIntOrNull(),
             memoryCache[SettingsKeys.GLOBAL_FLOAT_TIMEOUT]?.toIntOrNull(),
             memoryCache[SettingsKeys.GLOBAL_REMOVE_NOTIF]?.toBooleanStrictOrNull(),
-            memoryCache[SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL]?.toBooleanStrictOrNull()
+            memoryCache[SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL]?.toBooleanStrictOrNull(),
+            memoryCache[SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY]?.toBooleanStrictOrNull()
         )
     }
 

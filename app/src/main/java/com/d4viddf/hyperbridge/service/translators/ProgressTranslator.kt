@@ -79,7 +79,7 @@ class ProgressTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
             }
         }
 
-        val actions = extractBridgeActions(sbn, theme)
+        val actions = extractBridgeActions(sbn, config, theme)
 
         builder.setChatInfo(
             title = title,

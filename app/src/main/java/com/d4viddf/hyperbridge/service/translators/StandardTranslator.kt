@@ -59,9 +59,8 @@ class StandardTranslator(
 
         val bridgeActions = extractBridgeActions(
             sbn = sbn,
-            theme = theme,
-            hideReplies = false,
-            useAppOpenForReplies = true
+            config = config,
+            theme = theme
         )
 
         // Base Info (Shade)

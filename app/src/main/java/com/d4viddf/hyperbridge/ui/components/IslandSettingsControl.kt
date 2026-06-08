@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -224,11 +225,13 @@ fun IslandSettingsControl(
 
         Spacer(Modifier.height(8.dp))
 
+        val removeOriginalOn = displayConfig.removeOriginalNotification == true
+
         SettingsToggleCard(
             title = stringResource(R.string.remove_original_notification),
             subtitle = stringResource(R.string.remove_original_notification_desc),
             icon = Icons.Default.DeleteSweep,
-            checked = displayConfig.removeOriginalNotification ?: false,
+            checked = removeOriginalOn,
             onCheckedChange = { 
                 val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
                 onUpdate(config.copy(removeOriginalNotification = it, isFloat = currentIsFloat)) 
@@ -236,23 +239,46 @@ fun IslandSettingsControl(
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
         )
 
-        // Only allow changing dismissWithOriginal if removeOriginalNotification is OFF
-        // (if it's ON, there's no original notification to dismiss with anyway).
-        val removeOriginalOn = displayConfig.removeOriginalNotification == true
-        SettingsToggleCard(
-            title = stringResource(R.string.dismiss_with_original),
-            subtitle = stringResource(R.string.dismiss_with_original_desc),
-            icon = Icons.Default.DeleteSweep, // Use appropriate icon, maybe same or another
-            checked = if (removeOriginalOn) true else (displayConfig.dismissWithOriginal ?: false),
-            enabled = !removeOriginalOn,
-            onCheckedChange = { 
-                if (!removeOriginalOn) {
-                    val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
-                    onUpdate(config.copy(dismissWithOriginal = it, isFloat = currentIsFloat)) 
+        Column {
+                SettingsToggleCard(
+                    title = stringResource(R.string.dismiss_with_original),
+                    subtitle = stringResource(R.string.dismiss_with_original_desc),
+                    icon = Icons.Default.DeleteSweep, 
+                    checked = displayConfig.dismissWithOriginal ?: false,
+                    enabled = !removeOriginalOn,
+                    onCheckedChange = { 
+                        val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
+                        onUpdate(config.copy(dismissWithOriginal = it, isFloat = currentIsFloat)) 
+                    },
+                    shape = RoundedCornerShape(4.dp)
+                )
+                
+                SettingsToggleCard(
+                    title = stringResource(R.string.enable_inline_reply),
+                    subtitle = stringResource(R.string.enable_inline_reply_desc),
+                    icon = Icons.AutoMirrored.Filled.Reply,
+                    checked = displayConfig.enableInlineReply ?: true,
+                    enabled = !removeOriginalOn,
+                    onCheckedChange = { 
+                        val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
+                        onUpdate(config.copy(enableInlineReply = it, isFloat = currentIsFloat)) 
+                    },
+                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = if (removeOriginalOn) 4.dp else 24.dp, bottomEnd = if (removeOriginalOn) 4.dp else 24.dp)
+                )
+
+                AnimatedVisibility(
+                    visible = removeOriginalOn,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
+                    Text(
+                        text = stringResource(R.string.remove_original_notification_hidden_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)
+                    )
                 }
-            },
-            shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-        )
+            }
     }
 }
 

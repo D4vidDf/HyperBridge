@@ -112,6 +112,28 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     var appUseNativeLiveUpdates by mutableStateOf<Boolean?>(null)
     var appEnabledNotificationTypes by mutableStateOf<Set<String>?>(null)
 
+    // GLOBAL REPLY SETTINGS
+    var replyBackgroundColor by mutableStateOf<String?>(null)
+    var replySendIconUri by mutableStateOf<Uri?>(null)
+    var replySendColor by mutableStateOf<String?>(null)
+    var replyTextfieldBackgroundColor by mutableStateOf<String?>(null)
+    var replyTextColor by mutableStateOf<String?>(null)
+    var replyColorMode by mutableStateOf<ColorMode?>(null)
+    var replyUseBlur by mutableStateOf(false)
+    var replyTextfieldCornerRadius by mutableIntStateOf(24)
+    var replySendButtonCornerRadius by mutableIntStateOf(24)
+
+    // APP-SPECIFIC REPLY SETTINGS
+    var appReplyBackgroundColor by mutableStateOf<String?>(null)
+    var appReplySendIconUri by mutableStateOf<Uri?>(null)
+    var appReplySendColor by mutableStateOf<String?>(null)
+    var appReplyTextfieldBackgroundColor by mutableStateOf<String?>(null)
+    var appReplyTextColor by mutableStateOf<String?>(null)
+    var appReplyColorMode by mutableStateOf<ColorMode?>(null)
+    var appReplyUseBlur by mutableStateOf<Boolean?>(null)
+    var appReplyTextfieldCornerRadius by mutableStateOf<Int?>(null)
+    var appReplySendButtonCornerRadius by mutableStateOf<Int?>(null)
+
     private val _tempAssets = java.util.concurrent.ConcurrentHashMap<String, Uri>()
 
     val shareTheme: String = application.getString(R.string.share_theme)
@@ -239,6 +261,16 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
         appUseNativeLiveUpdates = override?.useNativeLiveUpdates
         appEnabledNotificationTypes = override?.activeNotificationTypes
+
+        appReplyBackgroundColor = override?.replyConfig?.backgroundColor
+        appReplySendIconUri = null
+        appReplySendColor = override?.replyConfig?.sendColor
+        appReplyTextfieldBackgroundColor = override?.replyConfig?.textfieldBackgroundColor
+        appReplyTextColor = override?.replyConfig?.textColor
+        appReplyColorMode = override?.replyConfig?.colorMode
+        appReplyUseBlur = override?.replyConfig?.useBlur
+        appReplyTextfieldCornerRadius = override?.replyConfig?.textfieldCornerRadius
+        appReplySendButtonCornerRadius = override?.replyConfig?.sendButtonCornerRadius
     }
 
     fun saveAppChanges() {
@@ -269,6 +301,31 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             )
         } else existingOverride?.callConfig // [FIX] Prevent existing call configs from being wiped if only Live Updates were changed!
 
+        val hasReplyChanges = appReplyBackgroundColor != null || appReplySendColor != null ||
+                appReplyTextfieldBackgroundColor != null || appReplyColorMode != null ||
+                appReplyTextColor != null ||
+                appReplyUseBlur != null ||
+                appReplyTextfieldCornerRadius != null || appReplySendButtonCornerRadius != null
+
+        val replyModule = if (hasReplyChanges) {
+            val existing = existingOverride?.replyConfig
+            com.d4viddf.hyperbridge.models.theme.ReplyModule(
+                backgroundColor = appReplyBackgroundColor ?: existing?.backgroundColor,
+                sendColor = appReplySendColor ?: existing?.sendColor,
+                textfieldBackgroundColor = appReplyTextfieldBackgroundColor ?: existing?.textfieldBackgroundColor,
+                textColor = appReplyTextColor ?: existing?.textColor,
+                colorMode = appReplyColorMode ?: existing?.colorMode,
+                useBlur = appReplyUseBlur ?: existing?.useBlur ?: false,
+                textfieldCornerRadius = appReplyTextfieldCornerRadius ?: existing?.textfieldCornerRadius ?: 24,
+                sendButtonCornerRadius = appReplySendButtonCornerRadius ?: existing?.sendButtonCornerRadius ?: 24,
+                sendIcon = if (appReplySendIconUri != null) {
+                    val key = "app_${pkg}_reply_send"
+                    stageAsset(key, appReplySendIconUri!!)
+                    ThemeResource(ResourceType.LOCAL_FILE, "icons/$key.png")
+                } else existing?.sendIcon
+            )
+        } else existingOverride?.replyConfig
+
         val newOverride = AppThemeOverride(
             highlightColor = appHighlightColor,
             useAppColors = appColorMode?.let { it == ColorMode.APP_ICON },
@@ -279,6 +336,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             actions = appActions.ifEmpty { null },
             progress = existingOverride?.progress,
             navigation = existingOverride?.navigation,
+            replyConfig = replyModule,
             useNativeLiveUpdates = appUseNativeLiveUpdates,
             activeNotificationTypes = appEnabledNotificationTypes
         )
@@ -323,6 +381,16 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             // [FIX] Load the global engine selection
             themeUseNativeLiveUpdates = theme.global.useNativeLiveUpdates
 
+            replyBackgroundColor = theme.defaultReply.backgroundColor
+            replySendIconUri = null
+            replySendColor = theme.defaultReply.sendColor
+            replyTextfieldBackgroundColor = theme.defaultReply.textfieldBackgroundColor
+            replyTextColor = theme.defaultReply.textColor
+            replyColorMode = theme.defaultReply.colorMode ?: ColorMode.CUSTOM
+            replyUseBlur = theme.defaultReply.useBlur
+            replyTextfieldCornerRadius = theme.defaultReply.textfieldCornerRadius
+            replySendButtonCornerRadius = theme.defaultReply.sendButtonCornerRadius
+
             _appOverrides.value = theme.apps
             themeDefaultActions = theme.defaultActions
         }
@@ -351,6 +419,16 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
         // [FIX] Reset to null instead of false
         themeUseNativeLiveUpdates = null
+
+        replyBackgroundColor = null
+        replySendIconUri = null
+        replySendColor = null
+        replyTextfieldBackgroundColor = null
+        replyTextColor = null
+        replyColorMode = ColorMode.CUSTOM
+        replyUseBlur = false
+        replyTextfieldCornerRadius = 24
+        replySendButtonCornerRadius = 24
 
         appHighlightColor = null
         appColorMode = null
@@ -453,6 +531,21 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
                         declineColor = callDeclineColor,
                         answerShapeId = callAnswerShapeId,
                         declineShapeId = callDeclineShapeId
+                    ),
+                    defaultReply = com.d4viddf.hyperbridge.models.theme.ReplyModule(
+                        backgroundColor = replyBackgroundColor,
+                        sendColor = replySendColor,
+                        textfieldBackgroundColor = replyTextfieldBackgroundColor,
+                        textColor = replyTextColor,
+                        colorMode = replyColorMode,
+                        useBlur = replyUseBlur,
+                        textfieldCornerRadius = replyTextfieldCornerRadius,
+                        sendButtonCornerRadius = replySendButtonCornerRadius,
+                        sendIcon = if (replySendIconUri != null) {
+                            val key = "theme_reply_send"
+                            stageAsset(key, replySendIconUri!!)
+                            ThemeResource(ResourceType.LOCAL_FILE, "icons/$key.png")
+                        } else getThemeById(themeId)?.defaultReply?.sendIcon
                     ),
                     defaultActions = themeDefaultActions,
                     apps = _appOverrides.value

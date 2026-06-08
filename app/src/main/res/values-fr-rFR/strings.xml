@@ -24,17 +24,17 @@
     <string name="incompatible_msg">HyperBridge s\'appuie sur des fonctionnalités spécifiques du système HyperOS. Le fabricant de votre appareil ne semble pas être Xiaomi/POCO/Redmi.</string>
     <string name="system_detected">✅ Système détecté</string>
     <string name="app_wont_work">⚠️ L\'appli peut ne pas fonctionner</string>
-    <string name="show_island">Afficher la bulle</string>
-    <string name="perm_post_desc">Nous avons besoin de la permission pour publier la notification \"Island\" sur votre écran.</string>
+    <string name="show_island">Affichage des notifications</string>
+    <string name="perm_post_desc">Nous avons besoin de la permission pour publier les notifications \"HyperIsland\" sur votre écran.</string>
     <string name="perm_granted">Permission accordée</string>
     <string name="allow_notifications">Autoriser les notifications</string>
     <string name="read_data">Lire les données</string>
     <string name="perm_listener_desc">Pour connecter vos applications, nous devons lire leurs notifications (Musique, Maps, Horloge).</string>
     <string name="open_settings">Ouvrir les paramètres</string>
     <string name="keep_alive">Garder actif</string>
-    <string name="optimization_desc">HyperOS tue les applications en arrière-plan. Activez le démarrage automatique et pas de restrictions pour garder l\'application active.</string>
-    <string name="enable_autostart">1. Activer le démarrage automatique</string>
-    <string name="set_battery_no_restrictions">2. Définir le mode de batterie sur \'Aucune restriction\'</string>
+    <string name="optimization_desc">HyperOS tue les applications en arrière-plan. Activez le démarrage automatique et sans restrictions pour garder l\'application active.</string>
+    <string name="enable_autostart">Activer le démarrage automatique en arrière-plan</string>
+    <string name="set_battery_no_restrictions">Définir le mode de batterie sur \'Pas de restriction\'</string>
     <string name="tab_active">Actif</string>
     <string name="tab_library">Bibliothèque</string>
     <string name="title_active_bridges">Applications actives</string>
@@ -53,9 +53,9 @@
     <string name="system_setup_subtitle">Corriger les permissions &amp; batterie</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Notification permanente</string>
-    <string name="permanent_island_desc">Gardez Dynamic Island visible en permanence à l\'écran lorsqu\'il n\'y a pas de notification active.</string>
-    <string name="permanent_island_screen_desc">Lorsque cette option est activée, une île dynamique vide sera affichée de façon permanente sur votre écran. Il se masquera automatiquement lorsque des notifications réelles arriveront et réapparaîtra lorsque toutes les notifications seront effacées. Elles ne seront pas visibles dans votre zone de notification.</string>
-    <string name="permanent_island_width">Largeur de l\'île</string>
+    <string name="permanent_island_desc">Gardez la zone de notification visible en permanence à l\'écran lorsqu\'il n\'y a pas de notification active.</string>
+    <string name="permanent_island_screen_desc">Lorsque cette option est activée, une zone de notification vide sera affichée de façon permanente sur votre écran. Elle se masquera automatiquement lorsque des notifications réelles arriveront et réapparaîtra lorsque toutes les notifications seront effacées. Elle ne sera pas visibles dans votre zone de notification.</string>
+    <string name="permanent_island_width">Largeur de la zone</string>
     <string name="group_about">A propos</string>
     <string name="developer">Développeur</string>
     <string name="developer_subtitle">Visiter d4viddf.com</string>
@@ -85,7 +85,7 @@
     <string name="cat_other">Autre</string>
     <string name="select_active_notifs">Sélectionner les notifications actives</string>
     <string name="type_standard">Messages &amp; Général</string>
-    <string name="type_progress">Téléchargements &amp; Progression</string>
+    <string name="type_progress">Avancements &amp; Tâches</string>
     <string name="type_download">Téléchargements</string>
     <string name="type_media">Musique &amp; Média</string>
     <string name="type_nav">Cartes &amp; GPS</string>
@@ -174,7 +174,7 @@
         • &lt;b&gt;Localisation :&lt;/b&gt; Ajout de la langue espagnole
     </string>
     <string name="priority_edu_title">Nouveau : Contrôler la bulle de notification</string>
-    <string name="priority_edu_desc">HyperBridge peut maintenant gérer le comportement de plusieurs notifications lorsque la limite de 9 bulles est atteinte.\n\n&lt;b&gt;Par défaut : Les plus récentes&lt;/b&gt;\nLes nouvelles notifications remplacent automatiquement les plus anciennes.</string>
+    <string name="priority_edu_desc">Choisissez comment l\'île devrait se comporter lorsque plusieurs notifications sont actives en même temps.</string>
     <string name="keep_default">Conserver la valeur par défaut</string>
     <string name="configure_now">Configurer maintenant</string>
     <string name="badge_new">NOUVEAU</string>
@@ -285,7 +285,7 @@
         • Écran de vérification de compatibilité amélioré avec des informations détaillées sur l\'appareil
     </string>
     <string name="privacy_title">100% hors ligne &amp; sécurisé</string>
-    <string name="privacy_desc">Hyper Bridge traite tout directement via le processeur de votre téléphone.\n\nIl ne nécessite PAS un accès à Internet, ce qui signifie que vos notifications et vos données personnelles ne quittent jamais votre appareil.</string>
+    <string name="privacy_desc">Hyper Bridge traite tout directement via le processeur de votre téléphone.\n\nIl ne nécessite PAS d\'accès à Internet, ce qui signifie que vos notifications et vos données personnelles ne quittent jamais votre appareil.</string>
     <string name="language">Langue</string>
     <string name="language_desc">Changer la langue de l\'application</string>
     <string name="system_default">Par défaut (Système)</string>
@@ -538,30 +538,30 @@
         <item quantity="other">%1$d actions personnalisées</item>
     </plurals>
     <string name="title_0_4_0">La version de la personnalisation</string>
-    <string name="changelog_0_4_0">        &lt;b&gt;Système de thèmes :&lt;/b&gt;\n
+    <string name="changelog_0_4_0">       <b>Système de thèmes 🎨</b>\n
         La plus grande mise à jour ! Vous pouvez maintenant personnaliser pleinement l\'expérience visuelle des bulles de notification. \n
-        • &lt;b&gt;Créateur de Thèmes :&lt;/b&gt; Concevez des thèmes directement sur votre téléphone avec un aperçu en temps réel.\n
-        • &lt;b&gt;Paramétrage plus fin:&lt;/b&gt; Choisissez exactement comment les icônes sont affichées, personnalisez les couleurs et les formes des notifications, et configurer les remplacements des applications individuelles.\n
-        • &lt;b&gt;Couleurs intelligentes:&lt;/b&gt; Extraction automatique des couleurs des icônes d\'application.\n
-        • &lt;b&gt;Personnalisation par action (Bêta):&lt;/b&gt; &lt;/b&gt; Ajustement de l\'apparence de certaines notifications d\'actions spécifiques.\n
-        • &lt;b&gt;Partage :&lt;/b&gt; Exportez et importez des thèmes au format &lt;i&gt;.hbr&lt;/i&gt; .\n\n
+        • <b>Créateur de Thèmes :</b> Concevez des thèmes directement sur votre téléphone avec un aperçu en temps réel.\n
+        • <b>Paramétrage plus fin:</b>; Choisissez exactement comment les icônes sont affichées, personnalisez les couleurs et les formes des notifications, et configurer les remplacements des applications individuelles.\n
+        • <b>Couleurs intelligentes:</b>; Extraction automatique des couleurs des icônes d\'application.\n
+        •<b>Personnalisation par action (Bêta):</b>; Ajustement de l\'apparence de certaines notifications d\'actions spécifiques.\n
+        • <b>Partage :</b> Exportez et importez des thèmes au format <i>hbr</i> .\n\n
 
-        &lt;b&gt;Support des widget 🧩&lt;/b&gt;\n
-        Verrouillez les widgets standard d\'Android pour un accès rapide — même sur votre &lt;b&gt;écran verrouillé&lt;/b&gt;!\n
-        • Choisissez entre les modes  &lt;b&gt;interractifs&lt;/b&gt; pour la vitesse ou &lt;b&gt;instantané&lt;/b&gt; pour l\'efficacité de la batterie.\n\n
+        <b>Support des widget 🧩</b>\n
+        Verrouillez les widgets standard d\'Android pour un accès rapide — même sur votre <b>écran verrouillé</b>!\n
+        • Choisissez entre les modes <b>interractifs</b> pour la vitesse ou <b>instantané</b> pour l\'efficacité de la batterie.\n\n
 
-        &lt;b&gt;Moteur de notification 2.0⚡&lt;/b&gt;\n
+        <b>Moteur de notification 2.0⚡</b>\n
         Réécriture complète du moteur pour une meilleure stabilité:\n
-        • &lt;b&gt;Analyse intelligente : &lt;/b&gt; Résolutions de problèmes où les notifications affichaient les noms des paquets (par ex. : com.whatsapp) au lieu du contenu du message.\n
-        • &lt;b&gt;Anti-scintillement :&lt;/b&gt; La vérification de contenu empêche les notifications redondantes et les saccades.\n
-        • &lt;b&gt;Correction des fantômes :&lt;/b&gt; Résolution d\'un problème où les notifications persistaient après leur suppression.\n\n
+        • <b>Analyse intelligente : </b> Résolutions de problèmes où les notifications affichaient les noms des paquets (par ex. : com.whatsapp) au lieu du contenu du message.\n
+        • <b>Anti-scintillement :</b> La vérification de contenu empêche les notifications redondantes et les saccades.\n
+        • <b>Correction des fantômes :</b> Résolution d\'un problème où les notifications persistaient après leur suppression.\n\n
 
-        &lt;b&gt;Rafraîchissement visuel ✨&lt;/b&gt;\n
+        <b>Rafraîchissement visuel ✨</b>\n
         • Onglet \"Design\" redessiné pour plus de fluidité avec des blocs dynamiques.\n
         • Nouveaux boutons de textes pour des actions de notification plus claires.\n
         • Ajout du support pour l\'indonésien 🇮🇩 et le turque 🇹🇷.\n\n
 
-        &lt;i&gt;Note : Cette version comprend des changements architecturaux importants. Veuillez signaler tout bug sur GitHub !&lt;/i&gt;
+        <i>Note : Cette version comprend des changements architecturaux importants. Veuillez signaler tout bug sur GitHub !</i>
     </string>
     <string name="title_0_4_2">Mise à jour de corrections de bugs</string>
     <string name="changelog_0_4_2">        •&lt;b&gt;Correction d\'un crash :&lt;/b&gt; Résolution d\'un problème critique qui faisait planter l\'application lors de l\'ouverture du menu des paramètres en chinois traditionnel.\n
@@ -599,7 +599,7 @@
     <string name="island_behavior_title">Comportement de la bulle</string>
     <string name="island_behavior_desc"><![CDATA[Délai d’expiration, doublons et visibilité]]></string>
     <string name="engine">Moteur</string>
-    <string name="engine_desc">Notifications natives vs Xiaomi</string>
+    <string name="engine_desc">Notifications natives ou Xiaomi</string>
     <string name="dnd_mode_title">Ne pas déranger</string>
     <string name="dnd_mode_desc">Gérer la visibilité de l\'île pendant le NPD</string>
     <string name="dnd_manual_toggle">Suspendre les bulles de notifications</string>
@@ -609,22 +609,22 @@
     <string name="behaviour_triggers"><![CDATA[Comportement et Déclencheurs]]></string>
     <string name="engine_timeouts_triggers"><![CDATA[Moteur, délai d’expiration et déclencheurs]]></string>
     <string name="global_behavior">Comportement global</string>
-    <string name="auto_hide_island">Cacher automatiquement la bulle de notification</string>
-    <string name="hides_after_a_set_time">Masquer après une heure définie</string>
+    <string name="auto_hide_island">Cacher automatiquement la notification</string>
+    <string name="hides_after_a_set_time">Masquer après un temps défini</string>
     <string name="behavior_hide_desc">Visible jusqu\'au masquage manuel</string>
     <string name="behavior_desc_hide_long">Détermine combien de temps la bulle de notification reste à l\'écran avant de disparaître automatiquement.</string>
     <string name="managed_by_theme_desc">Comportement géré par le thème actif.</string>
     <string name="use_global_default_engine">Utiliser la valeur par défaut du moteur de notification</string>
     <string name="active_triggers">Déclencheurs actifs</string>
-    <string name="active_triggers_global_desc">Sélectionnez quels événements globaux déclenchent les notifications</string>
+    <string name="active_triggers_global_desc">Sélectionnez quels évènements déclenchent les notifications</string>
     <string name="type_standard_desc">Messages standards, emails et alertes</string>
-    <string name="type_progress_desc">Téléchargements, envois et tâches en cours</string>
+    <string name="type_progress_desc">Tâches, rendu et opérations en cours</string>
     <string name="type_download_desc">Téléchargements, envois et transferts de fichiers</string>
     <string name="type_media_desc">Contrôles de lecture de musique et de vidéo</string>
     <string name="type_nav_desc">Instructions de navigation et temps estimé d\'arrivée</string>
     <string name="type_call_desc">Appels entrants et en cours</string>
     <string name="type_timer_desc">Minuteurs et chronomètres actifs</string>
-    <string name="select_triggered_events">Sélectionner les événements déclenchés</string>
+    <string name="select_triggered_events">Sélectionner les évènements déclenchés</string>
     <string name="override_global_triggers">Outrepasser les déclencheurs globaux</string>
     <string name="override_global_trigger_desc">Définir des notifications personnalisées autorisées pour cette application</string>
     <string name="trigger_override">Remplacement du déclencheur</string>
@@ -634,14 +634,38 @@
     <string name="live_updates">Mises à jour en temps réel</string>
     <string name="remove_original_notification">Supprimer la notification originale</string>
     <string name="remove_original_notification_desc">Ignorer automatiquement la notification source quand une mise à jour en direct est active.</string>
-    <string name="dismiss_with_original">Dismiss with original</string>
-    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
+    <string name="dismiss_with_original">Rejeter avec l\'origine</string>
+    <string name="dismiss_with_original_desc">La bulle de notification disparaîtra lorsque vous effacerez la notification d\'origine.</string>
     <string name="onboarding_can_be_changed">Vous pourrez modifier ces options plus tard dans Paramètres et Configurateur de thèmes.</string>
-    <string name="onboarding_widget_desc">Ajoutez des widgets standard Android à votre bulle de notification pour un accès rapide.</string>
-    <string name="onboard_theme_desc">Personnalisez entièrement les couleurs, les formes et les icônes de votre bulle de notification.</string>
+    <string name="onboarding_widget_desc">Ajoutez des widgets Android à votre bulle de notification pour un accès rapide.</string>
+    <string name="onboard_theme_desc">Personnalisez entièrement les couleurs, les formes et les icônes de vos bulles de notification.</string>
     <string name="onboard_design_desc">Augmentez les possibilités avec différentes options de personnalisation</string>
     <string name="behavior_desc_glob_config">Détermine le comportement de la bulle de notification.</string>
     <string name="widget_layout_snapshot">Aperçu du widget</string>
+    <string name="changelog_0_5_2">        <b>Correction de crash du Play Store &amp; Stabilité</b>\n
+              ? <b>Créateur de thème :</b> Correction d\'un plantage lors de l\'analyse d\'un grand nombre d\'actifs personnalisés.\n
+              ? <b>Performances :</b> Résolution d\'un problème d’application qui ne répond plus (ANR) sur l’écran initial de bienvenue.\n
+              ? <b>Widget Picker:</b> Elimination de plantages et d\'erreurs Out-Of-Memory (OOM) causés par une prévisualisation de Widget extremement large.\n
+              ? <b>Dispositions de l\'interface utilisateur :</b> Correction des exceptions sur les contraintes de mise en page de composition de Jetpack qui plantaient l\'application lors du redimensionnement de certains menus.\n
+              ? <b>Sauvegardes :</b> Erreurs OOM résolues lors de l\'importation de gros fichiers de sauvegarde en optimisant l\'analyse JSON.\n
+              ? <b>Démarrage chaud :</b> Amélioration significative des vitesses de lancement des applications et élimination du blocage des piles d\'interface utilisateur sur les appareils de milieu de gamme.\n
+              ? <b>Service d\'arrière-plan :</b> Révision complète de l\'architecture du traitement d\'écoute, chute de la charge en arrière-plan à 0 % et amélioration de la durée de vie de la batterie.\n
+    </string>
+    <string name="title_0_5_2">Mise à jour de la stabilité &amp; des performances</string>
+    <string name="changelog_0_5_1">        <b>Corrections &amp; stabilité</b>\n
+              Correction des doublons WhatsApp : résolution d\'un problème qui entraînait l\'affichage de notifications WhatsApp en double.\n
+              Correction du scintillement des notifications &amp; des plantages : correction d\'un plantage provoqué par la réception de plusieurs notifications en peu de temps. L\'application met désormais à jour les notifications normalement et en toute sécurité, ce qui élimine le scintillement des notifications et améliore la stabilité.\n
+              Restauration des intentions de notification : correction d\'un problème où cliquer sur une notification mise en avant redirigeait à tort vers l\'écran de dépannage au lieu de l\'application d\'origine.\n\n
+        <b>Fonctionnalités &amp; améliorations</b>\n
+              Suppression de l\'îlot lors de la fermeture : ajout d\'une nouvelle option permettant de supprimer automatiquement l\'îlot si la notification système d\'origine est fermée.\n
+              Diagnostic des notifications en vedette : ajout d\'un nouvel écran de vérification lors de la configuration initiale pour vérifier si votre appareil Xiaomi prend en charge les notifications en vedette et si les autorisations requises sont activées.\n
+              Intégration à l\'état de la configuration : l\'état des autorisations pour les notifications en vedette est désormais surveillé en continu et affiché dans l\'écran d\'état de la configuration.\n
+              Écran de dépannage : ajout d\'un écran de dépannage dédié qui guide les utilisateurs sur la manière d\'activer les autorisations système cachées nécessaires (ou d\'utiliser Shizuku) pour que les bulles de notifications fonctionnent sur les ROM Xiaomi strictes.\n
+              Terminologie plus claire : la section « Mises à jour en direct » du menu des paramètres a été renommée « Gestion des notifications » afin de mieux refléter\n
+            Polissage de l\'Interface utilisateur : rétablissement des coins arrondis qui manquaient dans l\'option « bulles permanentes » de la liste des paramètres généraux.\n
+              Traductions en espagnol : ajout de traductions complètes en espagnol pour toutes les nouvelles boîtes de dialogue de dépannage, les contrôles d\'intégrité de la configuration et les paramètres de gestion des notifications.
+    </string>
+    <string name="title_0_5_1">Corrections &amp; Affinements</string>
     <string name="changelog_0_5_0">        <b>Support ROM CN</b>\n
             • Utilisez Sui &amp; Shizuku pour profiter des notifications Hyper Islands sur vos appareils exécutant des ROM HyperOS CN (chinois) sans prise en charge native.\n\n
         <b>Améliorations du moteur de thème</b>\n
@@ -670,4 +694,21 @@
     <string name="title_0_5_0">La mise à jour \"Live Update\"</string>
     <string name="notification_went_wrong">Si vous voyez cela, quelque chose s\'est mal passé !</string>
     <string name="widget_went_wrong">Si vous voyez ceci, quelque chose s\'est mal passé ! Le système n\'a pas pu afficher le widget</string>
+    <string name="troubleshoot_featured_notification">Résolution des problèmes</string>
+    <string name="featured_notifications_check">Vérification des notifications recommandées</string>
+    <string name="featured_notifications_check_desc">Vérifions si votre système est correctement configuré pour afficher les notifications HyperBridge.</string>
+    <string name="featured_notifications_supported">Pris en charge</string>
+    <string name="featured_notifications_not_supported">Non pris en charge</string>
+    <string name="featured_notifications_enabled">Activé</string>
+    <string name="featured_notifications_disabled">Désactivé</string>
+    <string name="featured_notifications_open_settings">Ouvrir les paramètres système</string>
+    <string name="featured_notifications_banner_warning">Les notifications recommandées sont désactivées. Les bulles de notifications ne s\'afficheront pas correctement.</string>
+    <string name="featured_notifications_troubleshoot_title">Pourquoi ce n\'est pas une bulle de notification ?</string>
+    <string name="featured_notifications_troubleshoot_desc">Votre appareil Xiaomi a intercepté la notification, mais n\'a pas réussi à l\'afficher en tant que notification recommandée car la permission est désactivée dans vos paramètres système.\n\nPour résoudre ceci:\n1. Appuyez sur \"Ouvrir les paramètres du système\"\n2. Faites défiler vers le bas jusqu\'à \"Notifications recommandées\" (ou similaires)\n3. Activez-le pour HyperBridge.</string>
+    <string name="featured_notifications_shizuku_alternative">Alternative : remplacement par Shizuku</string>
+    <string name="featured_notifications_shizuku_desc">Si votre système n\'affiche pas le paramètre ou s\'il est restreint, vous pouvez contourner entièrement la liste blanche de Xiaomi en configurant Shizuku. HyperBridge utilisera Shizuku pour afficher directement les bulles de notifications.</string>
+    <string name="system_config_info">Infos sur la configuration système</string>
+    <string name="system_config_info_supported_label">Pris en charge : %1$s</string>
+    <string name="system_config_info_permission_label">Permissions %1$s</string>
+    <string name="notification_management">Gestion des notifications</string>
 </resources>

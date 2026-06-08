@@ -42,6 +42,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Architecture
 import androidx.compose.material.icons.filled.BatteryStd
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Info
@@ -627,6 +628,7 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             val removeOriginalOn = config.removeOriginalNotification == true
+            
             ListOptionCard(
                 title = stringResource(R.string.remove_original_notification),
                 subtitle = stringResource(R.string.remove_original_notification_desc),
@@ -642,26 +644,62 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
                 }
             )
 
-            ListOptionCard(
-                title = stringResource(R.string.dismiss_with_original),
-                subtitle = stringResource(R.string.dismiss_with_original_desc),
-                icon = Icons.Default.DeleteSweep,
-                shape = RoundedCornerShape(4.dp),
-                onClick = {
-                    if (!removeOriginalOn) {
-                        scope.launch {
-                            prefs.updateGlobalConfig(config.copy(dismissWithOriginal = !(config.dismissWithOriginal ?: false)))
+            AnimatedVisibility(
+                visible = removeOriginalOn,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Text(
+                    text = stringResource(R.string.remove_original_notification_hidden_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
+
+            AnimatedVisibility(
+                visible = !removeOriginalOn,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column {
+                    ListOptionCard(
+                        title = stringResource(R.string.dismiss_with_original),
+                        subtitle = stringResource(R.string.dismiss_with_original_desc),
+                        icon = Icons.Default.DeleteSweep,
+                        shape = RoundedCornerShape(4.dp),
+                        onClick = {
+                            scope.launch {
+                                prefs.updateGlobalConfig(config.copy(dismissWithOriginal = !(config.dismissWithOriginal ?: false)))
+                            }
+                        },
+                        trailingContent = {
+                            Checkbox(
+                                checked = config.dismissWithOriginal ?: false,
+                                onCheckedChange = null
+                            )
                         }
-                    }
-                },
-                trailingContent = {
-                    Checkbox(
-                        checked = if (removeOriginalOn) true else (config.dismissWithOriginal ?: false),
-                        enabled = !removeOriginalOn,
-                        onCheckedChange = null
+                    )
+
+                    ListOptionCard(
+                        title = stringResource(R.string.enable_inline_reply),
+                        subtitle = stringResource(R.string.enable_inline_reply_desc),
+                        icon = Icons.AutoMirrored.Filled.Reply,
+                        shape = RoundedCornerShape(4.dp),
+                        onClick = {
+                            scope.launch {
+                                prefs.updateGlobalConfig(config.copy(enableInlineReply = !(config.enableInlineReply ?: true)))
+                            }
+                        },
+                        trailingContent = {
+                            Checkbox(
+                                checked = config.enableInlineReply ?: true,
+                                onCheckedChange = null
+                            )
+                        }
                     )
                 }
-            )
+            }
 
             ListOptionCard(
                 title = stringResource(R.string.config_shade_title),

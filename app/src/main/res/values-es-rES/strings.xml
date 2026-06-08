@@ -632,6 +632,33 @@
     <string name="enable_triggers">Habilitar eventos específicos</string>
     <string name="open_source_licenses">Licencias de código abierto</string>
     <string name="live_updates">Comportamiento de la notificación original</string>
+    <string name="enable_inline_reply_desc">Inicia la superposición de respuesta rápida al responder desde la isla.</string>
+    <string name="remove_original_notification_hidden_warning">Nota: Al estar activado, Hyper Bridge no puede responder o marcar mensajes como leídos. Las acciones Responder y Marcar como leído se ocultarán.</string>
+
+    <string name="color_mode">Modo de Color</string>
+    <string name="color_mode_select">Seleccionar Modo de Color</string>
+    <string name="color_mode_change_cd">Cambiar modo de color</string>
+    <string name="color_mode_default">Por Defecto</string>
+    <string name="color_mode_default_desc">Usar colores estándar</string>
+    <string name="color_mode_app">Colores de App</string>
+    <string name="color_mode_app_desc">Extraer colores del icono de la aplicación</string>
+    <string name="color_mode_material">Material You</string>
+    <string name="color_mode_material_desc">Adaptar al fondo de pantalla del sistema (Monet)</string>
+    <string name="color_mode_custom">Colores Personalizados</string>
+    <string name="color_mode_custom_desc">Elige tus propios colores manualmente</string>
+
+    <string name="reply_textfield_color">Color de Cuadro de Texto</string>
+    <string name="reply_textfield_color_desc">Fondo del cuadro de texto</string>
+    <string name="reply_text_color">Color del Texto</string>
+    <string name="reply_text_color_desc">Color del texto de respuesta</string>
+    <string name="reply_send_color">Color de Enviar</string>
+    <string name="reply_send_color_desc">Color del icono de enviar</string>
+
+    <string name="reply_appearance">Apariencia</string>
+    <string name="reply_blur_effect">Efecto Desenfocado</string>
+    <string name="reply_blur_effect_desc">Aplica desenfoque tipo cristal al fondo</string>
+    <string name="reply_textfield_radius">Borde del Cuadro de Texto</string>
+    <string name="reply_send_radius">Borde del Botón de Enviar</string>
     <string name="remove_original_notification">Eliminar notificación original</string>
     <string name="remove_original_notification_desc">Descartar automáticamente la notificación original cuando una Live Update está activa.</string>
     <string name="dismiss_with_original">Descartar con original</string>
@@ -642,20 +669,23 @@
     <string name="onboard_design_desc">Amplía las posibilidades con diferentes opciones de personalización</string>
     <string name="behavior_desc_glob_config">Determina el comportamiento de la isla.</string>
     <string name="widget_layout_snapshot">Vista previa del widget</string>
-
     <string name="changelog_0_5_2">
+        <b>¡Nueva Respuesta Rápida!</b>\n
+              • <b>Respuesta Rápida:</b> ¡Ahora puedes responder a los mensajes directamente desde la isla sin abrir la app!\n
+              • <b>Personalización:</b> Personaliza completamente el aspecto del nuevo editor de respuestas rápidas a nivel global o por aplicación.\n
+              • <b>Ajustes Globales:</b> Accede a la nueva sección de personalización de Respuestas directamente desde los Ajustes Globales -> Respuesta Rápida.\n
+        \n
         <b>Actualización de Rendimiento y Estabilidad</b>\n
               • <b>Creador de Temas:</b> Se resolvió un cierre inesperado al cargar conjuntos de iconos grandes.\n
-              • <b>Mejora en la Bienvenida:</b> Eliminado un error de "Aplicación no Responde" (ANR) en la primera pantalla.\n
+              • <b>Mejora en la Bienvenida:</b> Eliminado un error de \"Aplicación no Responde\" (ANR) en la primera pantalla.\n
               • <b>Selector de Widgets:</b> Prevenidos cierres y errores de falta de memoria (OOM) causados por vistas previas gigantes.\n
               • <b>Diseño Más Robusto:</b> Solucionados problemas de restricciones de diseño en Jetpack Compose al achicar menús.\n
               • <b>Copias de Seguridad:</b> Mejorado el análisis de JSON, evitando errores de OOM al restaurar archivos grandes.\n
               • <b>Inicio Rápido:</b> Reducción significativa de los bloqueos de la interfaz, acelerando el inicio de la app en dispositivos de gama media.\n
               • <b>Servicio en Segundo Plano:</b> Arquitectura de memoria del Notification Listener completamente rediseñada, reduciendo el consumo en segundo plano al 0% y mejorando la batería.\n
     </string>
-    <string name="title_0_5_2">Actualización de Rendimiento y Estabilidad</string>
-    <string name="changelog_0_5_1">
-        <b>Correcciones y Estabilidad</b>\n
+    <string name="title_0_5_2">Respuesta Rápida, Rendimiento y Estabilidad</string>
+    <string name="changelog_0_5_1">        <b>Correcciones y Estabilidad</b>\n
               Corrección de Duplicados en WhatsApp: Resuelto un problema que causaba que aparecieran notificaciones duplicadas de WhatsApp.\n
               Corrección de Parpadeos y Cierres: Solucionado un cierre inesperado causado al recibir múltiples notificaciones en un corto período. La aplicación ahora actualiza las notificaciones de manera segura, eliminando el parpadeo y mejorando la estabilidad.\n
               Intenciones Restauradas: Corregido un problema donde al hacer clic en una notificación destacada, la app te dirigía incorrectamente a la pantalla de solución de problemas en lugar de abrir la aplicación original.\n\n
@@ -664,12 +694,11 @@
               Diagnóstico de Notificaciones: Añadida una nueva pantalla de verificación durante la configuración inicial para comprobar si tu dispositivo Xiaomi es compatible con las Notificaciones Destacadas.\n
               Integración de Estado del Sistema: El estado de los permisos de Notificaciones Destacadas ahora se monitoriza continuamente y se muestra dentro de la pantalla de Estado del Sistema.\n
               Pantalla de Solución de Problemas: Añadida una pantalla dedicada que guía a los usuarios sobre cómo habilitar los permisos ocultos del sistema (o usar Shizuku).\n
-              Terminología Más Clara: Renombrada la sección de "Actualizaciones en Vivo" en el menú de ajustes a "Gestión de Notificaciones" para reflejar mejor su propósito.\n
-              Pulido de Interfaz en Ajustes: Restauradas las esquinas redondeadas faltantes en la opción "Isla Permanente" en la lista de Ajustes Globales.\n
+              Terminología Más Clara: Renombrada la sección de \"Actualizaciones en Vivo\" en el menú de ajustes a \"Gestión de Notificaciones\" para reflejar mejor su propósito.\n
+              Pulido de Interfaz en Ajustes: Restauradas las esquinas redondeadas faltantes en la opción \"Isla Permanente\" en la lista de Ajustes Globales.\n
               Traducciones al Español: Añadidas traducciones completas al español para todos los nuevos diálogos de solución de problemas, verificaciones del sistema y ajustes.
     </string>
     <string name="title_0_5_1">Correcciones y Mejoras</string>
-
     <string name="changelog_0_5_0"><b>Soporte para ROMs CN</b>\n
             • Habilita la nueva solución Sui &amp; Shizuku para disfrutar de Hyper Islands en tus dispositivos con ROMs HyperOS CN (China) sin soporte nativo.\n\n
         <b>Mejoras del Motor de Temas</b>\n
@@ -698,7 +727,6 @@
     <string name="notification_went_wrong">¡Si ves esto, algo salió mal! Haz clic aquí para ver cómo solucionarlo.</string>
     <string name="widget_went_wrong">Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
     <string name="troubleshoot_featured_notification">Solucionar</string>
-
     <string name="featured_notifications_check">Test Notificaciones Destacadas</string>
     <string name="featured_notifications_check_desc">Vamos a verificar si tu sistema está configurado correctamente para mostrar las islas de HyperBridge.</string>
     <string name="featured_notifications_supported">Soportado</string>
@@ -708,11 +736,15 @@
     <string name="featured_notifications_open_settings">Abrir Ajustes del Sistema</string>
     <string name="featured_notifications_banner_warning">Las notificaciones destacadas están deshabilitadas. Las islas no se mostrarán correctamente.</string>
     <string name="featured_notifications_troubleshoot_title">¿Por qué esto no es una isla?</string>
-    <string name="featured_notifications_troubleshoot_desc">Tu dispositivo Xiaomi interceptó la notificación pero no pudo mostrarla como una isla destacada porque el permiso está deshabilitado en los ajustes del sistema.\n\nPara solucionar esto:\n1. Toca "Abrir Ajustes del Sistema"\n2. Desplázate hacia abajo hasta "Notificaciones Destacadas" (o similar)\n3. Habilítalo para HyperBridge.</string>
+    <string name="featured_notifications_troubleshoot_desc">Tu dispositivo Xiaomi interceptó la notificación pero no pudo mostrarla como una isla destacada porque el permiso está deshabilitado en los ajustes del sistema.\n\nPara solucionar esto:\n1. Toca \"Abrir Ajustes del Sistema\"\n2. Desplázate hacia abajo hasta \"Notificaciones Destacadas\" (o similar)\n3. Habilítalo para HyperBridge.</string>
     <string name="featured_notifications_shizuku_alternative">Alternativa: Usar Shizuku</string>
     <string name="featured_notifications_shizuku_desc">Si tu sistema no muestra el ajuste o está restringido, puedes eludir la lista blanca de Xiaomi completamente configurando Shizuku. HyperBridge usará Shizuku para publicar las islas directamente.</string>
     <string name="system_config_info">Información de Configuración del Sistema</string>
     <string name="system_config_info_supported_label">Soportado: %1$s</string>
     <string name="system_config_info_permission_label">Permiso: %1$s</string>
     <string name="notification_management">Gestión de Notificaciones</string>
+    <string name="enable_inline_reply">Habilitar respuesta rápida</string>
+    <string name="inline_reply_title">Respuesta rápida</string>
+    <string name="customize_inline_reply">Personalizar el diseño de la respuesta</string>
+    <string name="reply_hint">Responder...</string>
 </resources>

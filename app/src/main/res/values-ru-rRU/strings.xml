@@ -653,6 +653,30 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
+              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
+              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
+              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
+              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
+              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
+              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
+              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
+    </string>
+    <string name="title_0_5_2">Performance &amp; Stability Update</string>
+    <string name="changelog_0_5_1">        <b>Fixes &amp; Stability</b>\n
+              WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
+              Notification Flicker &amp; Crashes Fixed: Fixed a crash caused by receiving multiple notifications in a short timeframe. The app now safely updates notifications normally, eliminating the notification flicker and improving stability.\n
+              Notification Intents Restored: Fixed an issue where clicking a featured notification would incorrectly route to the troubleshooting screen instead of the original app.\n\n
+        <b>Features &amp; Polish</b>\n
+              Remove Island on Dismiss: Added a new option to automatically remove the island if the original system notification is dismissed.\n
+              Featured Notifications Diagnostics: Added a new check screen during Onboarding to verify if your Xiaomi device supports Featured Notifications and if the required permissions are enabled.\n
+              Setup Health Integration: The Featured Notifications permission status is now continuously monitored and displayed inside the Setup Health screen.\n
+              Troubleshooting Screen: Added a dedicated Troubleshooting Screen that guides users on how to enable the necessary hidden system permissions (or use Shizuku) to get islands working on strict Xiaomi ROMs.\n
+              Clearer Terminology: Renamed the \"Live Updates\" section in the settings menu to \"Notification Management\" to better reflect its purpose.\n
+              Settings UI Polish: Restored the missing rounded corners on the \"Permanent Island\" option in the Global Settings list.\n
+              Spanish Translations: Added full Spanish translations for all the new troubleshooting dialogues, setup health checks, and notification management settings.
+    </string>
+    <string name="title_0_5_1">Fixes &amp; Refinements</string>
     <string name="changelog_0_5_0">        <b>CN ROM Support</b>\n
             • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
         <b>Theme Engine Improvements</b>\n
@@ -681,4 +705,21 @@
     <string name="title_0_5_0">The Live Update</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
     <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
+    <string name="troubleshoot_featured_notification">Troubleshoot</string>
+    <string name="featured_notifications_check">Featured Notifications Check</string>
+    <string name="featured_notifications_check_desc">Let\'s verify if your system is configured correctly to display HyperBridge islands.</string>
+    <string name="featured_notifications_supported">Supported</string>
+    <string name="featured_notifications_not_supported">Not Supported</string>
+    <string name="featured_notifications_enabled">Enabled</string>
+    <string name="featured_notifications_disabled">Disabled</string>
+    <string name="featured_notifications_open_settings">Open System Settings</string>
+    <string name="featured_notifications_banner_warning">Featured notifications are disabled. Islands will not show correctly.</string>
+    <string name="featured_notifications_troubleshoot_title">Why is this not an island?</string>
+    <string name="featured_notifications_troubleshoot_desc">Your Xiaomi device intercepted the notification but failed to display it as a featured island because the permission is disabled in your system settings.\n\nTo fix this:\n1. Tap \"Open System Settings\"\n2. Scroll down to \"Featured Notifications\" (or similar)\n3. Enable it for HyperBridge.</string>
+    <string name="featured_notifications_shizuku_alternative">Alternative: Shizuku Override</string>
+    <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. HyperBridge will use Shizuku to post islands directly.</string>
+    <string name="system_config_info">System Configuration Info</string>
+    <string name="system_config_info_supported_label">Supported: %1$s</string>
+    <string name="system_config_info_permission_label">Permission: %1$s</string>
+    <string name="notification_management">Notification Management</string>
 </resources>

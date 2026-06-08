@@ -629,14 +629,37 @@
     <string name="live_updates">即時更新</string>
     <string name="remove_original_notification">移除預設通知</string>
     <string name="remove_original_notification_desc">當即時更新處於啟用狀態時，自動關閉通知來源。</string>
-    <string name="dismiss_with_original">Dismiss with original</string>
-    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
+    <string name="dismiss_with_original">不使用預設</string>
+    <string name="dismiss_with_original_desc">超級島通知會在您刪除通知欄通知後消失。</string>
     <string name="onboarding_can_be_changed">您稍後可以在「設定」和「主題配置器」中變更這些選項。</string>
     <string name="onboarding_widget_desc">在您的超級島上添加Android 小工具，以便快速存取。</string>
     <string name="onboard_theme_desc">完全自訂超級島的顏色、形狀和圖示。</string>
     <string name="onboard_design_desc">利用不同的自訂選項拓展可能性</string>
     <string name="behavior_desc_glob_config">決定超級島的呈現方式。</string>
     <string name="widget_layout_snapshot">預覽小工具</string>
+    <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
+              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
+              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
+              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
+              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
+              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
+              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
+              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
+    </string>
+    <string name="title_0_5_2">Performance &amp; Stability Update</string>
+    <string name="changelog_0_5_1"><b>修復 &amp; 穩定</b>\n
+              WhatsApp 重複通知修復：解決了 WhatsApp 通知重複出現的問題。 \n
+              通知閃爍 &amp; 崩潰修復：修復了短時間內收到多個通知導致的崩潰問題。應用程式現在可以安全地正常更新通知，消除了通知閃爍並提高了穩定性。 \n
+              通知 Intent 恢復：修正了點擊精選通知時會錯誤地跳到故障排除畫面而不是原始應用程式的問題。 \n\n
+              <b>功能 &amp; 最佳化</b>\n
+              關閉通知時移除超級島通知：新增選項，當系統通知關閉時，超級島通知將自動移除。 \n
+              精選通知診斷：在引導過程中新增檢查介面，用於驗證您的小米設備是否支援精選通知以及是否已啟用所需權限。 \n
+              設定健康整合：精選通知的權限狀態現在會持續監控並顯示在設定健康介面中。 \n
+              故障排除介面：新增專門的故障排除介面，引導使用者啟用必要的隱藏系統權限（或使用Shizuku），以使超級島通知在嚴格的小米 ROM 上正常運作。 \n
+              更清晰的術語：將設定選單中的“即時更新”部分重新命名為“通知管理”，以更好地體現其用途。 \n
+              設定介面最​​佳化：恢復了預設設定清單中「永久通知島」選項的圓角效果。 \n
+              西班牙文翻譯：為所有新增的故障排除對話方塊、設定健康檢查和通知管理設定新增了完整的西班牙文翻譯    </string>
+    <string name="title_0_5_1">修復 &amp; 改進</string>
     <string name="changelog_0_5_0">        <b> 中國版ROM 支援 </b>\n
         • 啟用新的 Sui &amp; Shizuku 變通方案，即可在執行 HyperOS 中國版ROM 且不支援原生功能的裝置上體驗小米超級島。 \n\n
         <b>主題引擎改善</b>\n
@@ -664,4 +687,21 @@
     <string name="title_0_5_0">即時更新</string>
     <string name="notification_went_wrong">如果您看到此訊息，說明出現錯誤！</string>
     <string name="widget_went_wrong">如果您看到此訊息，表示出錯了！系統無法顯示該小工具</string>
+    <string name="troubleshoot_featured_notification">故障排除</string>
+    <string name="featured_notifications_check">精選通知檢查</string>
+    <string name="featured_notifications_check_desc">讓我們驗證一下您的系統是否已正確配置以顯示 HyperBridge 超級島。</string>
+    <string name="featured_notifications_supported">支援</string>
+    <string name="featured_notifications_not_supported">不支援</string>
+    <string name="featured_notifications_enabled">啟用</string>
+    <string name="featured_notifications_disabled">已停用</string>
+    <string name="featured_notifications_open_settings">開啟系統設定</string>
+    <string name="featured_notifications_banner_warning">精選通知已停用。超級島將無法正確顯示。</string>
+    <string name="featured_notifications_troubleshoot_title">為什麼沒有超級島？</string>
+    <string name="featured_notifications_troubleshoot_desc">您的小米設備攔截了通知，但由於系統設定中權限已停用，因此無法將其顯示為精選通知。 \n\n要解決此問題：\n1. 點選「開啟系統設定」\n2. 向下捲動至「精選通知」（或類似選項）\n3. 為 HyperBridge 啟用此權限。</string>
+    <string name="featured_notifications_shizuku_alternative">替代方案：Shizuku 方法</string>
+    <string name="featured_notifications_shizuku_desc">如果您的系統未顯示此設定或該設定受到限制，您可以透過設定 Shizuku 來完全繞過小米白名單。 HyperBridge 將使用 Shizuku 直接發布超級島通知。</string>
+    <string name="system_config_info">系統配置資訊</string>
+    <string name="system_config_info_supported_label">支持：%1$s</string>
+    <string name="system_config_info_permission_label">權限：%1$s</string>
+    <string name="notification_management">通知管理</string>
 </resources>

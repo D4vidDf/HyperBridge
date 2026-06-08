@@ -67,6 +67,7 @@ fun mainNavGraph(
         GlobalSettingsScreen(
             onBack = { navigator.goBack() },
             onNavSettingsClick = { navigator.navigate(Screen.NavCustomization(null)) },
+            onInlineReplyClick = { navigator.navigate(Screen.ReplyCustomization) },
             onIslandSettingsClick = { navigator.navigate(Screen.IslandSettings) },
             onEngineSettingsClick = { navigator.navigate(Screen.EngineSettings) },
             onDndSettingsClick = { navigator.navigate(Screen.DndSettings) },
@@ -78,6 +79,9 @@ fun mainNavGraph(
     }
     entry<Screen.PermanentIslandConfig> {
         com.d4viddf.hyperbridge.ui.screens.settings.PermanentIslandConfigScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.ReplyCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.theme.GlobalReplyCustomizationScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.NavCustomization> { key ->
         NavCustomizationScreen(

@@ -4,6 +4,7 @@ api = "13.1.5"
 datastorePreferences = "1.2.1"
 gson = "2.14.0"
 hyperislandKit = "0.4.4"
+haze = "1.1.1"
 kotlin = "2.3.21"
 kotlinxSerializationJson = "1.11.0"
 ksp = "2.3.2"
@@ -29,6 +30,8 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 api = { module = "dev.rikka.shizuku:api", version.ref = "api" }
+haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
+haze-materials = { group = "dev.chrisbanes.haze", name = "haze-materials", version.ref = "haze" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hyperisland-kit = { module = "io.github.d4viddf:hyperisland_kit", version.ref = "hyperislandKit" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

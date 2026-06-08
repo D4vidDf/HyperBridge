@@ -45,7 +45,7 @@ class TimerTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(
         builder.addPicture(resolveIcon(sbn, picKey))
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        val actions = extractBridgeActions(sbn)
+        val actions = extractBridgeActions(sbn, config, theme)
 
         builder.setChatInfo(
             title = title,

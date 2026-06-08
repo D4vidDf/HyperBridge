@@ -748,6 +748,35 @@
     <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
     <string name="dismiss_with_original">Dismiss with original</string>
     <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
+    <string name="enable_inline_reply">Enable inline reply</string>
+    <string name="enable_inline_reply_desc">Launch the custom inline reply overlay when replying from the island.</string>
+    <string name="remove_original_notification_hidden_warning">Note: When enabled, Hyper Bridge cannot respond or mark messages as read. Reply and Mark as Read actions will be hidden.</string>
+    
+    <string name="color_mode">Color Mode</string>
+    <string name="color_mode_select">Select Color Mode</string>
+    <string name="color_mode_change_cd">Change color mode</string>
+    <string name="color_mode_default">Default</string>
+    <string name="color_mode_default_desc">Use default standard colors</string>
+    <string name="color_mode_app">App Colors</string>
+    <string name="color_mode_app_desc">Extract colors from the app icon</string>
+    <string name="color_mode_material">Material You</string>
+    <string name="color_mode_material_desc">Match the system wallpaper (Monet)</string>
+    <string name="color_mode_custom">Custom Colors</string>
+    <string name="color_mode_custom_desc">Manually choose your own colors</string>
+    
+    <string name="reply_textfield_color">Textfield Color</string>
+    <string name="reply_textfield_color_desc">Inner text box background</string>
+    <string name="reply_text_color">Text Color</string>
+    <string name="reply_text_color_desc">Reply text color</string>
+    <string name="reply_send_color">Send Button Color</string>
+    <string name="reply_send_color_desc">Send icon color</string>
+    
+    <string name="reply_appearance">Appearance</string>
+    <string name="reply_blur_effect">Blur Effect</string>
+    <string name="reply_blur_effect_desc">Apply glassmorphism to textfield</string>
+    <string name="reply_textfield_radius">Textfield Corner Radius</string>
+    <string name="reply_send_radius">Send Button Corner Radius</string>
+    
     <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
     <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
     <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
@@ -756,16 +785,21 @@
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
     <string name="changelog_0_5_2">
+        <b>New Inline Reply Feature!</b>\n
+              • <b>Inline Reply:</b> You can now reply to messages directly from the island without opening the app!\n
+              • <b>Customization:</b> Fully customize the look of the new inline reply editor globally or per-app.\n
+              • <b>Global Settings:</b> Access the new Reply customization section directly from the Global Settings -> Inline reply.\n
+        \n
         <b>Play Store Crash Fixes &amp; Stability</b>\n
-              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
-              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
-              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
-              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
-              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
-              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
-              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
+              • <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
+              • <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
+              • <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
+              • <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
+              • <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
+              • <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
+              • <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
     </string>
-    <string name="title_0_5_2">Performance &amp; Stability Update</string>
+    <string name="title_0_5_2">Inline Reply, Performance &amp; Stability</string>
 
     <string name="changelog_0_5_1">
         <b>Fixes &amp; Stability</b>\n
@@ -830,5 +864,8 @@
     <string name="system_config_info_supported_label">Supported: %1$s</string>
     <string name="system_config_info_permission_label">Permission: %1$s</string>
     <string name="notification_management">Notification Management</string>
+    <string name="inline_reply_title">Inline Reply</string>
+    <string name="customize_inline_reply">Customize inline reply overlay</string>
+    <string name="reply_hint">Reply...</string>
 </resources>
 

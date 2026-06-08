@@ -77,7 +77,7 @@ import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 
 enum class AppEditorRoute {
-    MENU, BEHAVIOR_MENU, BEHAVIOR_ENGINE, BEHAVIOR_ISLAND, BEHAVIOR_TYPES, COLORS, ICONS, CALLS, NAVIGATION, ACTIONS
+    MENU, BEHAVIOR_MENU, BEHAVIOR_ENGINE, BEHAVIOR_ISLAND, BEHAVIOR_TYPES, COLORS, ICONS, CALLS, NAVIGATION, REPLY, ACTIONS
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -118,6 +118,7 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                                     AppEditorRoute.ICONS -> R.string.creator_nav_icons
                                     AppEditorRoute.CALLS -> R.string.creator_nav_calls
                                     AppEditorRoute.NAVIGATION -> R.string.nav_layout_title
+                                    AppEditorRoute.REPLY -> R.string.app_name // Fallback or explicit string if preferred
                                     AppEditorRoute.ACTIONS -> R.string.creator_nav_actions
                                     else -> R.string.app_name
                                 }
@@ -128,6 +129,12 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                         if (currentRoute == AppEditorRoute.MENU) {
                             Text(
                                 text = viewModel.editingAppLabel,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else if (currentRoute == AppEditorRoute.REPLY) {
+                            Text(
+                                text = "Inline Reply",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -232,6 +239,9 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                             showTopBar = false
                         )
                     }
+                    AppEditorRoute.REPLY -> Box(Modifier.fillMaxSize()) {
+                        com.d4viddf.hyperbridge.ui.screens.theme.content.ReplyStyleSheetContent(viewModel = viewModel)
+                    }
                     AppEditorRoute.ACTIONS -> Box(Modifier.fillMaxSize()) {
                         AppActionEditor(viewModel)
                     }
@@ -319,6 +329,7 @@ fun AppEditorMenu(
                 AppEditorRoute.ICONS,
                 AppEditorRoute.CALLS,
                 AppEditorRoute.NAVIGATION,
+                AppEditorRoute.REPLY,
                 AppEditorRoute.ACTIONS
             )
 
@@ -364,6 +375,13 @@ fun AppEditorMenu(
                         title = stringResource(R.string.nav_layout_title),
                         subtitle = stringResource(R.string.nav_layout_desc),
                         icon = Icons.Outlined.Map,
+                        shape = shape,
+                        onClick = { onNavigate(route) }
+                    )
+                    AppEditorRoute.REPLY -> CreatorOptionCard(
+                        title = stringResource(R.string.inline_reply_title),
+                        subtitle = stringResource(R.string.customize_inline_reply),
+                        icon = Icons.Outlined.Call, // Just use a call or generic icon for now
                         shape = shape,
                         onClick = { onNavigate(route) }
                     )

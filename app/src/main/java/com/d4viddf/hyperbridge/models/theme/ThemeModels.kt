@@ -12,6 +12,7 @@ data class HyperTheme(
     @SerialName("default_actions") val defaultActions: Map<String, ActionConfig> = emptyMap(),
     @SerialName("default_progress") val defaultProgress: ProgressModule = ProgressModule(),
     @SerialName("default_navigation") val defaultNavigation: NavigationModule = NavigationModule(),
+    @SerialName("default_reply") val defaultReply: ReplyModule = ReplyModule(),
     val apps: Map<String, AppThemeOverride> = emptyMap(),
     val rules: List<ThemeRule> = emptyList()
 )
@@ -79,6 +80,7 @@ data class AppThemeOverride(
     val actions: Map<String, ActionConfig>? = null,
     val progress: ProgressModule? = null,
     val navigation: NavigationModule? = null,
+    @SerialName("reply_config") val replyConfig: ReplyModule? = null,
 
     // [NEW] App-specific behavior overrides
     @SerialName("use_native_live_updates") val useNativeLiveUpdates: Boolean? = null,
@@ -136,11 +138,25 @@ data class RuleConditions(
 @Serializable
 data class ThemeResource(val type: ResourceType, val value: String)
 
+@Serializable
+data class ReplyModule(
+    @SerialName("background_color") val backgroundColor: String? = null,
+    @SerialName("send_color") val sendColor: String? = null,
+    @SerialName("send_icon") val sendIcon: ThemeResource? = null,
+    @SerialName("textfield_background_color") val textfieldBackgroundColor: String? = null,
+    @SerialName("text_color") val textColor: String? = null,
+    @SerialName("color_mode") val colorMode: ColorMode? = null,
+    @SerialName("use_blur") val useBlur: Boolean = false,
+    @SerialName("textfield_corner_radius") val textfieldCornerRadius: Int = 24,
+    @SerialName("send_button_corner_radius") val sendButtonCornerRadius: Int = 24
+)
+
 enum class ResourceType { PRESET_DRAWABLE, LOCAL_FILE, URI_CONTENT }
 
 enum class ActionButtonMode { ICON, TEXT, BOTH }
 
 enum class ColorMode {
+    DEFAULT,        // Uses default system/app theme colors without overrides
     CUSTOM,         // Uses selectedColorHex
     APP_ICON,       // Extracts color from the notification's app icon
     MATERIAL_YOU    // Extracts color from the system wallpaper (Monet)
