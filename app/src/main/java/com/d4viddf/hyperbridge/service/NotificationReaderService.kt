@@ -210,13 +210,13 @@ class NotificationReaderService : NotificationListenerService() {
     //  EFFECTIVE BEHAVIOR RESOLUTION (Theme > App > Global)
     // =========================================================================
 
-    private suspend fun getEffectiveTypes(pkg: String): Set<String> {
+    private fun getEffectiveTypes(pkg: String): Set<String> {
         val themeOverride = themeRepository.activeTheme.value?.apps?.get(pkg)
         val rawTypes = if (themeOverride?.activeNotificationTypes != null) {
             themeOverride.activeNotificationTypes
         } else {
-            val localPref = preferences.getAppConfigFlow(pkg).first()
-            localPref ?: preferences.globalNotificationTypesFlow.first()
+            val localPref = preferences.getAppConfigSync(pkg)
+            localPref ?: preferences.getGlobalNotificationTypesSync()
         }
 
         // Fallback: if PROGRESS is enabled but DOWNLOAD is missing, implicitly enable DOWNLOAD
@@ -227,7 +227,7 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    private suspend fun getEffectiveEngine(pkg: String): Boolean {
+    private fun getEffectiveEngine(pkg: String): Boolean {
         val activeTheme = themeRepository.activeTheme.value
 
         // 1. Theme App Override (Creator explicitly configured this app)
@@ -235,7 +235,7 @@ class NotificationReaderService : NotificationListenerService() {
         if (themeAppOverride != null) return themeAppOverride
 
         // 2. User App Override (User explicitly configured this app via Home Screen)
-        val userAppOverride = preferences.getAppEnginePreferenceFlow(pkg).first()
+        val userAppOverride = preferences.getAppEnginePreferenceSync(pkg)
         if (userAppOverride != null) return userAppOverride
 
         // 3. Theme Global Override (Creator explicitly forced an engine for the whole theme)
@@ -243,11 +243,11 @@ class NotificationReaderService : NotificationListenerService() {
         if (themeGlobalOverride != null) return themeGlobalOverride
 
         // 4. User Global Fallback (The main Engine Setting on the Home Screen!)
-        return preferences.useNativeLiveUpdates.first()
+        return preferences.useNativeLiveUpdatesSync()
     }
 
-    private suspend fun getEffectiveNav(pkg: String): Pair<NavContent, NavContent> {
-        return preferences.getEffectiveNavLayout(pkg).first()
+    private fun getEffectiveNav(pkg: String): Pair<NavContent, NavContent> {
+        return preferences.getEffectiveNavLayoutSync(pkg)
     }
 
     // =========================================================================
@@ -296,8 +296,8 @@ class NotificationReaderService : NotificationListenerService() {
                 val hyperId = activeTranslations[notifKey] ?: return
 
                 serviceScope.launch(Dispatchers.IO) {
-                    val appConfig = preferences.getAppIslandConfig(sbn.packageName).first()
-                    val globalConfig = preferences.globalConfigFlow.first()
+                    val appConfig = preferences.getAppIslandConfigSync(sbn.packageName)
+                    val globalConfig = preferences.getGlobalConfigSync()
                     val finalConfig = appConfig.mergeWith(globalConfig)
 
                     if (finalConfig.dismissWithOriginal == true) {
@@ -392,14 +392,13 @@ class NotificationReaderService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
             if (shouldIgnore(it.packageName)) return
+            if (!isAppAllowed(it.packageName)) return
 
             processingJobs[it.key]?.cancel()
 
             val job = serviceScope.launch {
-                if (isAppAllowed(it.packageName)) {
-                    if (isJunkNotification(it)) return@launch
-                    processStandardNotification(it)
-                }
+                if (isJunkNotification(it)) return@launch
+                processStandardNotification(it)
             }
             processingJobs[it.key] = job
             job.invokeOnCompletion { processingJobs.remove(sbn.key) }
@@ -443,7 +442,7 @@ class NotificationReaderService : NotificationListenerService() {
 
             if (effectiveTitle.isEmpty() && !hasProgress) return
 
-            val appBlockedTerms = preferences.getAppBlockedTerms(sbn.packageName).first()
+            val appBlockedTerms = preferences.getAppBlockedTermsSync(sbn.packageName)
             if (appBlockedTerms.isNotEmpty()) {
                 val content = "$effectiveTitle $effectiveText"
                 if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) return
@@ -474,8 +473,8 @@ class NotificationReaderService : NotificationListenerService() {
                 if (activeIslands.size >= MAX_ISLANDS) return
             }
 
-            val appIslandConfig = preferences.getAppIslandConfig(sbn.packageName).first()
-            val globalConfig = preferences.globalConfigFlow.first()
+            val appIslandConfig = preferences.getAppIslandConfigSync(sbn.packageName)
+            val globalConfig = preferences.getGlobalConfigSync()
             val finalConfig = appIslandConfig.mergeWith(globalConfig)
 
             val bridgeId = sbn.key.hashCode()

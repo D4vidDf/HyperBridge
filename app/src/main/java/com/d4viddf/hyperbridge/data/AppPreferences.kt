@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
 
 private val Context.legacyDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -30,7 +31,19 @@ class AppPreferences(context: Context) {
     private val dao = AppDatabase.getDatabase(context).settingsDao()
     private val legacyDataStore = context.applicationContext.legacyDataStore
 
+    private val memoryCache = ConcurrentHashMap<String, String>()
+
     init {
+        // --- MEMORY CACHE LOGIC ---
+        CoroutineScope(Dispatchers.IO).launch {
+            dao.getAllFlow().collect { list ->
+                val newCache = ConcurrentHashMap<String, String>()
+                list.forEach { newCache[it.key] = it.value }
+                memoryCache.clear()
+                memoryCache.putAll(newCache)
+            }
+        }
+
         // --- MIGRATION LOGIC ---
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -467,5 +480,70 @@ class AppPreferences(context: Context) {
 
     suspend fun setPermanentIslandWidth(value: Int) {
         save(PERMANENT_ISLAND_WIDTH, value.toString())
+    }
+
+    // ========================================================================
+    //                        SYNCHRONOUS CACHE GETTERS
+    // ========================================================================
+
+    fun getAppBlockedTermsSync(packageName: String): Set<String> {
+        return memoryCache["config_${packageName}_blocked"].deserializeSet()
+    }
+
+    fun getAppIslandConfigSync(packageName: String): IslandConfig {
+        return IslandConfig(
+            memoryCache["config_${packageName}_float"]?.toBooleanStrictOrNull(),
+            memoryCache["config_${packageName}_shade"]?.toBooleanStrictOrNull(),
+            memoryCache["config_${packageName}_timeout"]?.toIntOrNull(),
+            memoryCache["config_${packageName}_float_timeout"]?.toIntOrNull(),
+            memoryCache["config_${packageName}_remove_notif"]?.toBooleanStrictOrNull(),
+            memoryCache["config_${packageName}_dismiss_with_original"]?.toBooleanStrictOrNull()
+        )
+    }
+
+    fun getGlobalConfigSync(): IslandConfig {
+        return IslandConfig(
+            memoryCache[SettingsKeys.GLOBAL_FLOAT].toBoolean(true),
+            memoryCache[SettingsKeys.GLOBAL_SHADE].toBoolean(true),
+            memoryCache[SettingsKeys.GLOBAL_TIMEOUT]?.toIntOrNull(),
+            memoryCache[SettingsKeys.GLOBAL_FLOAT_TIMEOUT]?.toIntOrNull(),
+            memoryCache[SettingsKeys.GLOBAL_REMOVE_NOTIF]?.toBooleanStrictOrNull(),
+            memoryCache[SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL]?.toBooleanStrictOrNull()
+        )
+    }
+
+    fun getGlobalNavLayoutSync(): Pair<NavContent, NavContent> {
+        val l = memoryCache[SettingsKeys.NAV_LEFT]
+        val r = memoryCache[SettingsKeys.NAV_RIGHT]
+        val left = try { NavContent.valueOf(l ?: NavContent.DISTANCE_ETA.name) } catch (_: Exception) { NavContent.DISTANCE_ETA }
+        val right = try { NavContent.valueOf(r ?: NavContent.INSTRUCTION.name) } catch (_: Exception) { NavContent.INSTRUCTION }
+        return left to right
+    }
+
+    fun getEffectiveNavLayoutSync(packageName: String): Pair<NavContent, NavContent> {
+        val appL = memoryCache["config_${packageName}_nav_left"]
+        val appR = memoryCache["config_${packageName}_nav_right"]
+        val global = getGlobalNavLayoutSync()
+        val left = appL?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} } ?: global.first
+        val right = appR?.let { try { NavContent.valueOf(it) } catch(_: Exception){null} } ?: global.second
+        return left to right
+    }
+
+    fun getGlobalNotificationTypesSync(): Set<String> {
+        val str = memoryCache[GLOBAL_NOTIFICATION_TYPES_KEY]
+        return str?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+    }
+
+    fun getAppConfigSync(packageName: String): Set<String>? {
+        val str = memoryCache["config_$packageName"]
+        return str?.deserializeSet()
+    }
+
+    fun getAppEnginePreferenceSync(packageName: String): Boolean? {
+        return memoryCache["config_${packageName}_use_native"]?.toBooleanStrictOrNull()
+    }
+
+    fun useNativeLiveUpdatesSync(): Boolean {
+        return memoryCache[USE_NATIVE_ENGINE]?.toBoolean() ?: false
     }
 }

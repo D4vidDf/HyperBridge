@@ -556,6 +556,7 @@
               • <b>Diseño Más Robusto:</b> Solucionados problemas de restricciones de diseño en Jetpack Compose al achicar menús.\n
               • <b>Copias de Seguridad:</b> Mejorado el análisis de JSON, evitando errores de OOM al restaurar archivos grandes.\n
               • <b>Inicio Rápido:</b> Reducción significativa de los bloqueos de la interfaz, acelerando el inicio de la app en dispositivos de gama media.\n
+              • <b>Servicio en Segundo Plano:</b> Arquitectura de memoria del Notification Listener completamente rediseñada, reduciendo el consumo en segundo plano al 0% y mejorando la batería.\n
     </string>
     <string name="title_0_5_2">Actualización de Rendimiento y Estabilidad</string>
 </resources>

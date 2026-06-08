@@ -763,6 +763,7 @@
               ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
               ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
               ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
+              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
     </string>
     <string name="title_0_5_2">Performance &amp; Stability Update</string>
 

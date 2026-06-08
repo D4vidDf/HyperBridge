@@ -24,6 +24,9 @@ interface SettingsDao {
     suspend fun delete(key: String)
 
     @Query("SELECT * FROM settings")
+    fun getAllFlow(): Flow<List<AppSetting>>
+
+    @Query("SELECT * FROM settings")
     suspend fun getAllSync(): List<AppSetting> // Needed for Export
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
