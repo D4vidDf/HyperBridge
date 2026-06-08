@@ -51,9 +51,12 @@ import com.d4viddf.hyperbridge.util.BackupManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+import androidx.activity.enableEdgeToEdge
+
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             HyperBridgeTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -207,7 +210,7 @@ private fun MainNavigationContent(
     if (showChangelog) {
         ChangelogSheet(
             currentVersionName = currentVersionName,
-            changelogText = stringResource(R.string.changelog_0_5_0),
+            changelogText = stringResource(R.string.changelog_0_5_2),
             onDismiss = {
                 showChangelog = false
                 scope.launch {

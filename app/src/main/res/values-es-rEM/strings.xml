@@ -548,6 +548,16 @@
     <string name="shizuku_permission_denied">Permiso denegado</string>
     <string name="shizuku_request_permission">Otorgar permiso de Shizuku</string>
     <string name="shizuku_not_installed">La aplicación Shizuku no está instalada o en ejecución. Por favor, instala e inicia Shizuku primero.</string>
+    <string name="changelog_0_5_2">
+        <b>Actualización de Rendimiento y Estabilidad</b>\n
+              • <b>Creador de Temas:</b> Se resolvió un cierre inesperado al cargar conjuntos de iconos grandes.\n
+              • <b>Mejora en la Bienvenida:</b> Eliminado un error de "Aplicación no Responde" (ANR) en la primera pantalla.\n
+              • <b>Selector de Widgets:</b> Prevenidos cierres y errores de falta de memoria (OOM) causados por vistas previas gigantes.\n
+              • <b>Diseño Más Robusto:</b> Solucionados problemas de restricciones de diseño en Jetpack Compose al achicar menús.\n
+              • <b>Copias de Seguridad:</b> Mejorado el análisis de JSON, evitando errores de OOM al restaurar archivos grandes.\n
+              • <b>Inicio Rápido:</b> Reducción significativa de los bloqueos de la interfaz, acelerando el inicio de la app en dispositivos de gama media.\n
+    </string>
+    <string name="title_0_5_2">Actualización de Rendimiento y Estabilidad</string>
 </resources>
 
 
