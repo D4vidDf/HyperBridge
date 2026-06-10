@@ -53,11 +53,11 @@ class DownloadTranslator(context: Context, repo: ThemeRepository) : BaseTranslat
         val textContent = (extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "")
 
         val textPercent = extractTextPercentage(title, textContent)
-        val percent = if (max > 0) {
+        val percent = (if (max > 0) {
             ((current.toFloat() / max.toFloat()) * 100).toInt()
         } else {
             textPercent ?: 0
-        }
+        }).coerceIn(0, 100)
         val isIndeterminate = indeterminate && textPercent == null
         val isTextFinished = finishKeywords.any { textContent.contains(it, ignoreCase = true) }
         val isFinished = percent >= 100 || isTextFinished
