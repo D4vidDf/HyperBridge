@@ -2,7 +2,6 @@ package com.d4viddf.hyperbridge.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -40,7 +39,7 @@ fun DndSettingsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { AppPreferences(context) }
     val isDndModeEnabled by prefs.isDndModeEnabledFlow.collectAsState(initial = false)
-    val autoDetectDnd by prefs.autoDetectDndFlow.collectAsState(initial = true)
+    val autoDetectDnd by prefs.autoDetectDndFlow.collectAsState(initial = false)
     val scope = rememberCoroutineScope()
 
     Scaffold(

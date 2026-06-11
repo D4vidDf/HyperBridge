@@ -734,6 +734,9 @@
     <string name="featured_notifications_shizuku_alternative">Alternative: Shizuku Override</string>
     <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. HyperBridge will use Shizuku to post islands directly.</string>
     <string name="system_config_info">System Configuration Info</string>
+    <string name="migration_title">HyperBridge Update</string>
+    <string name="migration_message">Migrating database to Device Protected storage…</string>
+    <string name="migration_complete">Update Complete</string>
     <string name="system_config_info_supported_label">Supported: %1$s</string>
     <string name="system_config_info_permission_label">Permission: %1$s</string>
     <string name="notification_management">Notification Management</string>

@@ -47,6 +47,12 @@ class AppPreferences(context: Context) {
         // --- MIGRATION LOGIC ---
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // Wait for user unlock before attempting to migrate from legacy DataStore (CE storage)
+                val userManager = context.getSystemService(Context.USER_SERVICE) as android.os.UserManager
+                if (!userManager.isUserUnlocked) {
+                    return@launch 
+                }
+
                 // Force Onboarding reset for new permissions
                 val lastResetVersion = dao.getSetting("onboarding_reset_version")?.toIntOrNull() ?: 0
                 if (lastResetVersion < 19) {
@@ -449,7 +455,7 @@ class AppPreferences(context: Context) {
     val isDndModeEnabledFlow: Flow<Boolean> = dao.getSettingFlow("dnd_mode_enabled").map { it.toBoolean(false) }
     suspend fun setDndModeEnabled(isEnabled: Boolean) = save("dnd_mode_enabled", isEnabled.toString())
 
-    val autoDetectDndFlow: Flow<Boolean> = dao.getSettingFlow("auto_detect_dnd").map { it.toBoolean(true) }
+    val autoDetectDndFlow: Flow<Boolean> = dao.getSettingFlow("auto_detect_dnd").map { it.toBoolean(false) }
     suspend fun setAutoDetectDnd(autoDetect: Boolean) = save("auto_detect_dnd", autoDetect.toString())
 
     // --- APP-SPECIFIC ENGINE OVERRIDES ---

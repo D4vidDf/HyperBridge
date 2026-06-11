@@ -559,6 +559,11 @@
               • <b>Servicio en Segundo Plano:</b> Arquitectura de memoria del Notification Listener completamente rediseñada, reduciendo el consumo en segundo plano al 0% y mejorando la batería.\n
     </string>
     <string name="title_0_5_2">Actualización de Rendimiento y Estabilidad</string>
+
+    <string name="migration_title">Actualización de HyperBridge</string>
+    <string name="migration_message">Migrando la base de datos al almacenamiento protegido del dispositivo…</string>
+    <string name="migration_complete">Actualización completada</string>
+
     <string name="perm_display_title">Mostrar sobre otras aplicaciones</string>
     <string name="perm_display_onboard_desc">Requerido para mostrar la ventana de respuesta rápida.</string>
 </resources>

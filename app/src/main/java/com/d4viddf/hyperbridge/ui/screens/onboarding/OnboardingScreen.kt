@@ -116,6 +116,7 @@ import com.d4viddf.hyperbridge.util.DeviceUtils
 import com.d4viddf.hyperbridge.util.isNotificationServiceEnabled
 import com.d4viddf.hyperbridge.util.isPostNotificationsEnabled
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -133,7 +134,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     val isShizukuWorkaroundEnabled by prefs.isShizukuWorkaroundEnabled.collectAsState(initial = false)
     val isShizukuPermissionGranted by com.d4viddf.hyperbridge.util.ShizukuManager.isPermissionGranted.collectAsState()
 
-    val totalPages = if (needsShizuku) 17 else 16
+    val totalPages = if (needsShizuku) 18 else 17
     val pagerState = rememberPagerState(pageCount = { totalPages })
     val scope = rememberCoroutineScope()
 
@@ -298,10 +299,49 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     11 -> EngineConfigPage(prefs)
                     12 -> PriorityEducationPage(prefs)
                     13 -> BehaviorConfigPage(prefs)
-                    14 -> AutoHideConfigPage(prefs)
-                    15 -> PermanentIslandConfigPage(prefs)
+                    14 -> DndConfigPage(prefs)
+                    15 -> AutoHideConfigPage(prefs)
+                    16 -> PermanentIslandConfigPage(prefs)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DndConfigPage(prefs: AppPreferences) {
+    val autoDetect by prefs.autoDetectDndFlow.collectAsState(initial = false)
+    val isDndEnabled by prefs.isDndModeEnabledFlow.collectAsState(initial = false)
+    val scope = rememberCoroutineScope()
+
+    OnboardingPageLayout(
+        title = stringResource(R.string.dnd_mode_title),
+        description = stringResource(R.string.dnd_mode_desc),
+        icon = Icons.Default.Notifications,
+        iconColor = MaterialTheme.colorScheme.primary
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            ListOptionCard(
+                title = stringResource(R.string.dnd_auto_detect),
+                subtitle = stringResource(R.string.dnd_auto_detect_desc),
+                icon = Icons.Default.Settings,
+                shape = RoundedCornerShape(24.dp, 24.dp, 4.dp, 4.dp),
+                onClick = { scope.launch { prefs.setAutoDetectDnd(!autoDetect) } },
+                trailingContent = {
+                    Switch(checked = autoDetect, onCheckedChange = { scope.launch { prefs.setAutoDetectDnd(it) } })
+                }
+            )
+
+            ListOptionCard(
+                title = stringResource(R.string.dnd_manual_toggle),
+                subtitle = stringResource(R.string.dnd_manual_toggle_desc),
+                icon = Icons.Default.Notifications,
+                shape = RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp),
+                onClick = { scope.launch { prefs.setDndModeEnabled(!isDndEnabled) } },
+                trailingContent = {
+                    Switch(checked = isDndEnabled, onCheckedChange = { scope.launch { prefs.setDndModeEnabled(it) } })
+                }
+            )
         }
     }
 }
@@ -1243,7 +1283,7 @@ fun FeaturedNotificationCheckPage(context: Context) {
     androidx.compose.runtime.LaunchedEffect(Unit) {
         while (true) {
             isGranted = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(context)
-            kotlinx.coroutines.delay(1000)
+            kotlinx.coroutines.delay(1000.milliseconds)
         }
     }
 

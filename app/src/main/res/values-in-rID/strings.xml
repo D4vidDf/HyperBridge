@@ -723,6 +723,9 @@ Penulisan ulang total logika inti untuk stabilitas yang lebih baik.\n
     <string name="featured_notifications_shizuku_alternative">Alternatif: Penggantian Shizuku</string>
     <string name="featured_notifications_shizuku_desc">Jika sistem Anda tidak menampilkan pengaturan tersebut atau pengaturan tersebut dibatasi, Anda dapat melewati daftar putih Xiaomi sepenuhnya dengan mengatur Shizuku. HyperBridge akan menggunakan Shizuku untuk mengirimkan islands secara langsung.</string>
     <string name="system_config_info">Informasi Konfigurasi Sistem</string>
+    <string name="migration_title">HyperBridge Update</string>
+    <string name="migration_message">Migrating database to Device Protected storage…</string>
+    <string name="migration_complete">Update Complete</string>
     <string name="system_config_info_supported_label">Didukung: %1$s</string>
     <string name="system_config_info_permission_label">Izin: %1$s</string>
     <string name="notification_management">Pengelolaan Pemberitahuan</string>

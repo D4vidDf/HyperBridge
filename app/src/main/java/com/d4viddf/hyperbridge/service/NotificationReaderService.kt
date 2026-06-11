@@ -19,6 +19,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.d4viddf.hyperbridge.MainActivity
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.RulesEngine
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
@@ -39,6 +40,8 @@ import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
 import com.d4viddf.hyperbridge.service.translators.StandardTranslator
 import com.d4viddf.hyperbridge.service.translators.TimerTranslator
 import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
+import com.d4viddf.hyperbridge.util.ShizukuManager
+import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,11 +51,13 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 class NotificationReaderService : NotificationListenerService() {
 
     companion object {
         const val ACTION_RELOAD_THEME = "com.d4viddf.hyperbridge.ACTION_RELOAD_THEME"
+        const val ACTION_PERFORM_MIGRATION = "com.d4viddf.hyperbridge.ACTION_PERFORM_MIGRATION"
     }
 
     private val TAG = "HyperBridgeDebug"
@@ -71,7 +76,7 @@ class NotificationReaderService : NotificationListenerService() {
     private var globalBlockedTerms: Set<String> = emptySet()
     
     private var isDndModeEnabled = false
-    private var autoDetectDnd = true
+    private var autoDetectDnd = false
 
     // --- CACHES ---
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
@@ -202,8 +207,71 @@ class NotificationReaderService : NotificationListenerService() {
                     themeRepository.activateTheme(themeId)
                 }
             }
+        } else if (intent?.action == ACTION_PERFORM_MIGRATION) {
+            serviceScope.launch(Dispatchers.IO) {
+                AppDatabase.performMigration(applicationContext) { progress ->
+                    launch(Dispatchers.Main) {
+                        showMigrationProgress(progress)
+                    }
+                }
+            }
         }
         return START_STICKY
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun showMigrationProgress(progress: Int) {
+        val title = getString(R.string.migration_title)
+        val message = if (progress >= 100) getString(R.string.migration_complete) else getString(R.string.migration_message)
+        val bridgeId = "migration_update".hashCode()
+
+        serviceScope.launch {
+            val useNative = getEffectiveEngine(packageName)
+            
+            if (useNative) {
+                val notificationBuilder = liveUpdateTranslator.translateToLiveUpdate(
+                    sbn = null,
+                    channelId = LIVE_UPDATE_CHANNEL_ID,
+                    type = NotificationType.PROGRESS,
+                    navRight = null
+                )
+                notificationBuilder.setContentTitle(title)
+                notificationBuilder.setContentText(message)
+                notificationBuilder.setProgress(100, progress, progress < 0)
+                notificationBuilder.setOngoing(progress in 0..99)
+                notificationBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
+
+                val notification = notificationBuilder.build()
+                ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
+            } else {
+                val builder = HyperIslandNotification.Builder(this@NotificationReaderService, "migration", title)
+                builder.setProgressBar(progress, "#007AFF")
+                builder.setChatInfo(title, message, "migration_icon", packageName)
+                builder.setShowNotification(true)
+                builder.setIslandFirstFloat(true)
+
+                val data = HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
+
+                val notificationBuilder = NotificationCompat.Builder(this@NotificationReaderService, NOTIFICATION_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setOngoing(progress in 0..99)
+                    .setProgress(100, progress, progress < 0)
+                    .addExtras(data.resources)
+
+                val notification = notificationBuilder.build()
+                notification.extras.putString("miui.focus.param", data.jsonParam)
+
+                ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
+            }
+
+            if (progress >= 100) {
+                delay(3000)
+                NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
+            }
+        }
     }
 
     // =========================================================================
@@ -374,7 +442,7 @@ class NotificationReaderService : NotificationListenerService() {
             timeoutJobs[originalKey]?.cancel()
             if (timeoutSeconds > 0) {
                 timeoutJobs[originalKey] = serviceScope.launch {
-                    delay(timeoutSeconds * 1000L)
+                    delay((timeoutSeconds * 1000L).milliseconds)
                     Log.d(TAG, "Timeout reached for $originalKey, removing translated notification $bridgeId")
                     NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
                     cleanupCache(originalKey)
@@ -534,7 +602,7 @@ class NotificationReaderService : NotificationListenerService() {
 
                 if (isUpdate && previous != null && previous.lastContentHash == newContentHash) return
 
-                com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
+                ShizukuManager.notify(this, bridgeId, notification)
 
                 activeTranslations[sbn.key] = bridgeId
                 reverseTranslations[bridgeId] = sbn.key
@@ -684,7 +752,7 @@ class NotificationReaderService : NotificationListenerService() {
         val isSuspicious = title.isEmpty() || text.equals(pkg, ignoreCase = true)
 
         if (isSuspicious) {
-            delay(150)
+            delay(150.milliseconds)
             try {
                 val activeList = activeNotifications
                 val updatedSbn = activeList?.firstOrNull { it.key == sbn.key }
@@ -762,9 +830,9 @@ class NotificationReaderService : NotificationListenerService() {
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
         if (!shouldAlertOnce) {
-            com.d4viddf.hyperbridge.util.ShizukuManager.notifyWithCancel(this, bridgeId, notification)
+            ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
-            com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, bridgeId, notification)
+            ShizukuManager.notify(this, bridgeId, notification)
         }
 
         activeTranslations[sbn.key] = bridgeId
@@ -826,7 +894,7 @@ class NotificationReaderService : NotificationListenerService() {
 
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
-        com.d4viddf.hyperbridge.util.ShizukuManager.notify(this, notificationId, notification)
+        ShizukuManager.notify(this, notificationId, notification)
     }
 
     private fun handleLimitReached(newType: NotificationType, newPkg: String) {

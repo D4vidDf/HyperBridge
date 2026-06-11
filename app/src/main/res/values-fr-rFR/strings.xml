@@ -738,12 +738,15 @@
     <string name="featured_notifications_shizuku_alternative">Alternative : remplacement par Shizuku</string>
     <string name="featured_notifications_shizuku_desc">Si votre système n\'affiche pas le paramètre ou s\'il est restreint, vous pouvez contourner entièrement la liste blanche de Xiaomi en configurant Shizuku. HyperBridge utilisera Shizuku pour afficher directement les bulles de notifications.</string>
     <string name="system_config_info">Infos sur la configuration système</string>
+    <string name="migration_title">HyperBridge Update</string>
+    <string name="migration_message">Migrating database to Device Protected storage…</string>
+    <string name="migration_complete">Update Complete</string>
     <string name="system_config_info_supported_label">Pris en charge : %1$s</string>
     <string name="system_config_info_permission_label">Permissions %1$s</string>
     <string name="notification_management">Gestion des notifications</string>
     <string name="inline_reply_title">Réponse intégrée</string>
     <string name="customize_inline_reply">Personnaliser la zone de réponse intégrée</string>
     <string name="reply_hint">Répondre...</string>
-    <string name="perm_display_title">Afficher par-dessus les autres applications</string>
+    <string name="perm_display_title">Superposition sur d\'autres applis</string>
     <string name="perm_display_onboard_desc">Requis pour afficher le bloc de réponse intégrée.</string>
 </resources>

@@ -17,28 +17,28 @@ class LiveUpdateTranslator(
 ) : BaseTranslator(context, repo) {
 
     fun translateToLiveUpdate(
-        sbn: StatusBarNotification,
+        sbn: StatusBarNotification?,
         channelId: String,
         type: NotificationType,
         navRight: NavContent? = null
     ): NotificationCompat.Builder {
-        val original = sbn.notification
-        val extras = original.extras
+        val original = sbn?.notification
+        val extras = original?.extras
 
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
+        val title = extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
+        val text = extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
 
-        val progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
-        val progress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
-        val indeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
+        val progressMax = extras?.getInt(Notification.EXTRA_PROGRESS_MAX, 0) ?: 0
+        val progress = extras?.getInt(Notification.EXTRA_PROGRESS, 0) ?: 0
+        val indeterminate = extras?.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false) ?: false
 
         val builder = NotificationCompat.Builder(context, channelId)
             .setContentTitle(title)
             .setContentText(text)
             .setOngoing(true)
-            .setCategory(original.category)
+            .setCategory(original?.category)
 
-        original.contentIntent?.let { builder.setContentIntent(it) }
+        original?.contentIntent?.let { builder.setContentIntent(it) }
 
         // --- THEME COLOR & ICON INJECTION ---
         val theme = repository?.activeTheme?.value
@@ -46,12 +46,12 @@ class LiveUpdateTranslator(
         if (type == NotificationType.NAVIGATION) {
             // 1. Inject Theme Nav Color
             val themeColorStr = theme?.defaultNavigation?.progressBarColor
-                ?: resolveColor(theme, sbn.packageName, "#34C759") // Green fallback
+                ?: resolveColor(theme, sbn?.packageName, "#34C759") // Green fallback
 
             val themeColorInt = try {
                 themeColorStr.toColorInt()
             } catch (_: Exception) {
-                original.color
+                original?.color ?: 0
             }
             builder.setColor(themeColorInt)
 
@@ -60,16 +60,16 @@ class LiveUpdateTranslator(
             if (navStartBitmap != null) {
                 builder.setSmallIcon(IconCompat.createWithBitmap(navStartBitmap))
             } else {
-                builder.setSmallIcon(original.smallIcon?.let { IconCompat.createFromIcon(context, it) } ?: IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
+                builder.setSmallIcon(original?.smallIcon?.let { IconCompat.createFromIcon(context, it) } ?: IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
             }
         } else {
             // Standard fallback for non-navigation
-            builder.setColor(original.color)
-            builder.setSmallIcon(original.smallIcon?.let { IconCompat.createFromIcon(context, it) } ?: IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
+            builder.setColor(original?.color ?: 0)
+            builder.setSmallIcon(original?.smallIcon?.let { IconCompat.createFromIcon(context, it) } ?: IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
         }
 
         // --- ACTIONS ---
-        val rawActions = original.actions ?: emptyArray()
+        val rawActions = original?.actions ?: emptyArray()
         rawActions.forEach { action ->
             val iconCompat = if (action.getIcon() != null) {
                 IconCompat.createFromIcon(context, action.getIcon()!!)
@@ -104,13 +104,13 @@ class LiveUpdateTranslator(
         max: Int,
         type: NotificationType,
         navRight: NavContent?,
-        sbn: StatusBarNotification
+        sbn: StatusBarNotification?
     ): String {
 
         if (type == NotificationType.MEDIA) return title.ifBlank { "Media" }
 
         // Advanced Extraction for Navigation Layouts
-        if (type == NotificationType.NAVIGATION) {
+        if (type == NotificationType.NAVIGATION && sbn != null) {
             val extras = sbn.notification.extras
             val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""
             val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.replace("\n", " ")?.trim() ?: ""

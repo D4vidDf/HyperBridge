@@ -737,6 +737,9 @@
     <string name="featured_notifications_shizuku_alternative">Alternativa: Usar Shizuku</string>
     <string name="featured_notifications_shizuku_desc">Si tu sistema no muestra el ajuste o está restringido, puedes eludir la lista blanca de Xiaomi completamente configurando Shizuku. HyperBridge usará Shizuku para publicar las islas directamente.</string>
     <string name="system_config_info">Información de Configuración del Sistema</string>
+    <string name="migration_title">HyperBridge Update</string>
+    <string name="migration_message">Migrating database to Device Protected storage…</string>
+    <string name="migration_complete">Update Complete</string>
     <string name="system_config_info_supported_label">Soportado: %1$s</string>
     <string name="system_config_info_permission_label">Permiso: %1$s</string>
     <string name="notification_management">Gestión de Notificaciones</string>

@@ -14,14 +14,48 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
+            val storageContext = context.createDeviceProtectedStorageContext()
+            val dbName = "hyperbridge_db"
+
+            // Migration logic: Move DB from CE to DE storage if it exists in old location
+            if (!storageContext.getDatabasePath(dbName).exists()) {
+                val oldDb = context.getDatabasePath(dbName)
+                if (oldDb.exists()) {
+                    storageContext.moveDatabaseFrom(context, dbName)
+                }
+            }
+
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
-                    context.applicationContext,
+                    storageContext,
                     AppDatabase::class.java,
-                    "hyperbridge_db"
+                    dbName
                 )
                     .fallbackToDestructiveMigration(false)
                     .build().also { INSTANCE = it }
+            }
+        }
+
+        fun performMigration(context: Context, onProgress: (Int) -> Unit) {
+            val storageContext = context.createDeviceProtectedStorageContext()
+            val dbName = "hyperbridge_db"
+
+            if (!storageContext.getDatabasePath(dbName).exists()) {
+                val oldDb = context.getDatabasePath(dbName)
+                if (oldDb.exists()) {
+                    onProgress(10)
+                    try {
+                        storageContext.moveDatabaseFrom(context, dbName)
+                        onProgress(100)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        onProgress(-1) // Error state
+                    }
+                } else {
+                    onProgress(100) // Already in DE or fresh install
+                }
+            } else {
+                onProgress(100) // Already in DE
             }
         }
     }
