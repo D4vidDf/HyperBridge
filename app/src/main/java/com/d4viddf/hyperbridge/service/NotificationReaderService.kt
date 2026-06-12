@@ -407,11 +407,13 @@ class NotificationReaderService : NotificationListenerService() {
                     val finalConfig = appConfig.mergeWith(globalConfig)
 
                     if (finalConfig.dismissWithOriginal == true) {
-                        try {
-                            NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
-                        } catch (_: Exception) {}
-
-                        cleanupCache(notifKey)
+                        kotlinx.coroutines.delay(300)
+                        if (!activeTranslations.containsValue(hyperId)) {
+                            try {
+                                NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
+                            } catch (_: Exception) {}
+                            cleanupCache(notifKey)
+                        }
                     }
                 }
             }
@@ -581,6 +583,29 @@ class NotificationReaderService : NotificationListenerService() {
                     it.value.type == NotificationType.MESSAGE &&
                     it.value.packageName == sbn.packageName &&
                     it.value.groupKey == sbn.groupKey
+                }
+
+                if (existingEntry != null) {
+                    val oldKey = existingEntry.key
+                    bridgeId = existingEntry.value.id
+                    effectiveKey = oldKey
+                    isUpdate = true
+
+                    activeIslands.remove(oldKey)
+                    activeTranslations.remove(oldKey)
+                    timeoutJobs[oldKey]?.cancel()
+                    timeoutJobs.remove(oldKey)
+
+                    effectiveKey = key
+                    activeTranslations[effectiveKey] = bridgeId
+                    reverseTranslations[bridgeId] = effectiveKey
+                }
+            }
+
+            if (!isUpdate && (type == NotificationType.DOWNLOAD || type == NotificationType.PROGRESS)) {
+                val existingEntry = activeIslands.entries.find {
+                    it.value.packageName == sbn.packageName &&
+                    (it.value.type == NotificationType.DOWNLOAD || it.value.type == NotificationType.PROGRESS)
                 }
 
                 if (existingEntry != null) {
