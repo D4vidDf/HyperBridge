@@ -606,10 +606,15 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             if (!isUpdate && (type == NotificationType.DOWNLOAD || type == NotificationType.PROGRESS)) {
-                val existingEntry = activeIslands.entries.find {
+                val existingEntries = activeIslands.entries.filter {
                     it.value.packageName == sbn.packageName &&
-                    (it.value.type == NotificationType.DOWNLOAD || it.value.type == NotificationType.PROGRESS) &&
-                    it.value.title == effectiveTitle
+                    (it.value.type == NotificationType.DOWNLOAD || it.value.type == NotificationType.PROGRESS)
+                }
+                
+                val existingEntry = if (existingEntries.size == 1) {
+                    existingEntries.first()
+                } else {
+                    existingEntries.find { it.value.title == effectiveTitle }
                 }
 
                 if (existingEntry != null) {
