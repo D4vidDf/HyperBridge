@@ -7,7 +7,6 @@
     <string name="done">Rendben</string>
     <string name="logo_desc">Alkalmazás Logó</string>
     <string name="settings">Beállítások</string>
-    <string name="info">Információ</string>
     <string name="configure">Konfigurálás</string>
     <string name="clear">Törlés</string>
     <string name="sort_order">Rendezési sorrend</string>
@@ -16,14 +15,10 @@
     <string name="get_started">Kezdj hozzá</string>
     <string name="how_it_works">Hogyan működik</string>
     <string name="how_it_works_desc">Kiválaszthatod a kedvenc alkalmazásaid (Spotify, Térkép, Óra). A HyperBridge ezek értesítéseit stílusos HyperIsland-dé alakítja át.</string>
-    <string name="early_development">Kezdeti állapotú fejlesztés</string>
     <string name="beta_warning">Megjegyzés: Ez az alkalmazás béta verzióban van. Lehet, hogy hibákkal vagy helytelen vizuális információkkal találkozol.</string>
     <string name="device_compatible">Kompatibilis eszköz</string>
     <string name="unsupported_device">Nem támogatott eszköz</string>
     <string name="compatible_msg">Úgy tűnik, hogy az eszközön HyperOS/MIUI fut. Készen áll a használatra!</string>
-    <string name="incompatible_msg">A HyperBridge a HyperOS rendszer bizonyos funkcióira támaszkodik. Úgy tűnik, hogy készülékének gyártója nem a Xiaomi/POCO/Redmi.</string>
-    <string name="system_detected">✅ Rendszer észlelve</string>
-    <string name="app_wont_work">⚠️ Az app lehet nem fog működik</string>
     <string name="show_island">Sziget megjelenítése</string>
     <string name="perm_post_desc">Engedélyre van szükségünk ahhoz, hogy az „Island” értesítést megjelenítsük.</string>
     <string name="perm_granted">Engedély megadva</string>
@@ -31,21 +26,15 @@
     <string name="read_data">Adatok olvasása</string>
     <string name="perm_listener_desc">Az alkalmazások összekapcsolásához el kell olvasnunk azok értesítéseidet (zene, térképek, időzítők).</string>
     <string name="open_settings">Beállítások megnyitása</string>
-    <string name="keep_alive">Életben tartás</string>
     <string name="optimization_desc">A HyperOS leállítja a háttérben futó alkalmazásokat. Engedélyezd az Automatikus indítás a háttérben és a Nincs korlátozás funkciókat, hogy az Island aktív maradjon.</string>
     <string name="enable_autostart">1. Engedélyezd az Automatikus indítást</string>
     <string name="set_battery_no_restrictions">2. Állítsd be az Energiát „Nincs korlátozás” módra</string>
     <string name="tab_active">Aktív</string>
     <string name="tab_library">Könyvtár</string>
-    <string name="title_active_bridges">Aktív hidak</string>
-    <string name="title_library">Alkalmazás könyvtár</string>
     <string name="search_hint">Alkalmazások keresése…</string>
-    <string name="sort_az">Rendezés: A-Z</string>
-    <string name="sort_za">Rendezés: Z-A</string>
     <string name="no_active_bridges">Nincsenek aktív hidak</string>
     <string name="no_active_bridges_desc">Menj a Könyvtárba az alkalmazások engedélyezéséhez.</string>
     <string name="no_apps_found">Nincsenek alkalmazások</string>
-    <string name="about">Alkalmazásról</string>
     <string name="version_template">Verzió %s</string>
     <string name="developer_credit">D4vidDf készítette</string>
     <string name="group_configuration">Konfiguráció</string>
@@ -64,26 +53,21 @@
     <string name="licenses">Nyílt forráskód licenszek</string>
     <string name="licenses_subtitle">Harmadik féltől származó szoftverek</string>
     <string name="footer_made_with_love">❤️ készült Spanyolországban</string>
-    <string name="app_health">Alkalmazás állapota</string>
     <string name="app_health_desc">Győződj meg arról, hogy minden ellenőrzés zöld, hogy az alkalmazás megfelelően működjön a háttérben.</string>
     <string name="req_permissions">Szükséges engedélyek</string>
     <string name="notif_access">Hozzáférés az értesítésekhez</string>
     <string name="notif_access_desc">Az alkalmazás események olvasásához szükséges</string>
-    <string name="perm_display_desc">Az alkalmazások feletti megjelenítés engedélyezése</string>
     <string name="device_optimization">Eszköz optimalizálás</string>
     <string name="xiaomi_autostart">Xiaomi Automatikus indítás</string>
-    <string name="autostart_desc">Engedi az alkalmazás indítását a rendszer indításakor</string>
     <string name="battery_unrestricted">Korlátozatlan akkumulátor</string>
     <string name="battery_desc">Megakadályozza az alkalmazás leállását</string>
     <string name="recents_note">Megjegyzés: Zárd le az alkalmazást a „Előzmények” áttekintő menüben is.</string>
     <string name="status_active">Aktív</string>
-    <string name="action_needed">Intézkedés szükséges</string>
     <string name="cat_all">Mind</string>
     <string name="cat_music">Zene</string>
     <string name="cat_nav">Navigáció</string>
     <string name="cat_timer">Produktivitás</string>
     <string name="cat_other">Egyéb</string>
-    <string name="select_active_notifs">Aktív értesítések kiválasztása</string>
     <string name="type_standard">Üzenetek és általános információk</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
@@ -91,17 +75,9 @@
     <string name="type_nav">Térképek és GPS</string>
     <string name="type_call">Hívások</string>
     <string name="type_timer">Időzítők és ébresztők</string>
-    <string name="service_active">Aktív</string>
     <string name="download_complete">A letöltés befejeződött.</string>
-    <string name="pending">Függőben…</string>
-    <string name="finished">Befejezve</string>
     <string name="downloading">Letöltés alatt</string>
-    <string name="waiting">Várakozás…</string>
-    <string name="now_playing">Lejátszás alatt</string>
-    <string name="unknown_caller">Ismeretlen hívó</string>
-    <string name="incoming_call">Hívás</string>
     <string name="maps_title">Térképek</string>
-    <string name="timer_title">Időzítő</string>
     <string-array name="progress_finish_keywords">
         <item>letöltve</item>
         <item>elkészült</item>
@@ -111,16 +87,8 @@
         <item>sikeres</item>
         <item>sikeresen</item>
     </string-array>
-    <string name="status_download_complete">A letöltés befejeződött.</string>
-    <string name="status_downloading">Letöltés alatt</string>
-    <string name="status_pending">Függőben…</string>
-    <string name="status_finished">Befejezett</string>
     <string name="status_now_playing">Lejátszás alatt</string>
-    <string name="status_incoming_call">Bejövő hívás</string>
-    <string name="caller_unknown">Ismeretlen hívó</string>
-    <string name="fallback_maps">Térképek</string>
     <string name="fallback_timer">Időzítő</string>
-    <string name="fallback_stopwatch">Stopper</string>
     <string name="whats_new_title">Újdonságok a %s verzióban</string>
     <string name="awesome">Fantasztikus!</string>
     <string name="island_behavior">Island működése</string>
@@ -134,8 +102,6 @@
     <string name="mode_priority_desc">Határozd meg, mely típusok (pl. hívások) fontosabbak.</string>
     <string name="priority_order">Fontossági sorrend</string>
     <string name="priority_order_desc">A magasabb fontosságú (fentebbiek) felváltja az alacsonyabb fontosságút (lentebbiek).</string>
-    <string name="move_up">Mozgatás felfelé</string>
-    <string name="move_down">Mozgatás lefelé</string>
     <string name="configure_order">Alkalmazások sorrendjének beállítása</string>
     <string name="global_settings">Általános beállítások</string>
     <string name="island_appearance">Island megjelenése</string>
@@ -144,11 +110,8 @@
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Értesítési panel</string>
     <string name="setting_shade_desc">Tartsa láthatóvá az értesítést az értesítési panelen. Ha letiltja, akkor csak Island-on jelenik meg.</string>
-    <string name="setting_timeout">Automatikus bezárás késleltetése</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Általános beállítások használata</string>
-    <string name="customize_app">Testreszabás</string>
-    <string name="override_settings">Beállítások felülírása</string>
     <string-array name="nav_arrival_keywords">
         <item>érkezés</item>
         <item>érkezés</item>
@@ -156,7 +119,6 @@
         <item>elér</item>
         <item>cél</item>
     </string-array>
-    <string name="hint_options">Lehetőségek</string>
     <string name="version_history">Verzióelőzmények</string>
     <string name="title_0_2_0">Az információs frissítés</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;Részletes folyamatok:&lt;/b&gt; Hozzáadott támogatás a „Lépésenkénti előrehaladás” (pl. 1/3) és az ikonokkal ellátott előrehaladási sávok számára az értesítési sávon belül.\n
@@ -175,10 +137,7 @@
     </string>
     <string name="priority_edu_title">Újdonság: Vezéreld a Island-ot</string>
     <string name="priority_edu_desc">A HyperBridge mostantól kezelni tudja, hogy több értesítés hogyan viselkedik, amikor eléri a 9-szigetes korlátot.\n\n&lt;b&gt;Alapértelmezett: Legújabb&lt;/b&gt;\nAz új értesítések automatikusan felülírják a legrégebbieket.</string>
-    <string name="keep_default">Maradjon alapértelmezetten</string>
-    <string name="configure_now">Átállítás</string>
     <string name="badge_new">ÚJ</string>
-    <string name="custom_design">Egyedi dizájn</string>
     <string name="nav_layout_title">Navigációs elrendezés</string>
     <string name="nav_layout_desc">Információk megjelenési helyének kiválasztása</string>
     <string name="left_content">Bal oldalt</string>
@@ -189,8 +148,6 @@
     <string name="nav_content_distance_eta">Táv. és érk. idő</string>
     <string name="nav_content_none">Üres</string>
     <string name="channel_active_islands">Aktív Island-ek</string>
-    <string name="cd_toggle_app">Átállítás %s</string>
-    <string name="cd_configure_app">%s konfigurálása</string>
     <string name="cd_enable_type">%s értesítések engedélyezése</string>
     <string name="cd_disable_type">%s értesítések letiltása</string>
     <string name="cd_nav_edit">Navigációs elrendezés szerkesztése</string>
@@ -203,8 +160,6 @@
     <string name="cd_nav_preview">Navigációs előnézet: %1$s bal oldalt, %2$s jobb oldalt</string>
     <string name="cd_expand_changelog">Verzió részletek kibontása</string>
     <string name="cd_collapse_changelog">Verzió részletek elrejtése</string>
-    <string name="cd_configuration_group">Konfigurációs beállítások</string>
-    <string name="cd_about_group">Alkalmazás információk</string>
     <string name="nav_preview_instruction">Fordulj jobbra</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
@@ -213,7 +168,6 @@
     <string name="add_blocked_word">Szó hozzáadása (pl.: Leleplezés)</string>
     <string name="add">Hozzáad</string>
     <string name="remove">Töröl</string>
-    <string name="tap_to_configure_rules">Kattints egy alkalmazásra, hogy beállítsd a konkrét tiltási szabályokat.</string>
     <string name="spoiler_subtitle">Lepelezésvédelem és szűrők kezelése</string>
     <string name="active_notifications_title">Értesítési típusok</string>
     <string name="active_notifications_subtitle">%d aktív</string>
@@ -225,23 +179,14 @@
     <string name="blocked_terms_count">%d kifejezés tiltva</string>
     <string name="no_active_rules">Nincs aktív szabályok</string>
     <string name="setup_health_title">Rendszer-kompatibilitás</string>
-    <string name="check_device">Eszköz: %s</string>
-    <string name="check_os_version">Rendszer: %s</string>
     <string name="req_hyperos">HyperOS 3.0+ (Android 15+) szükséges</string>
     <string name="req_xiaomi">Xiaomi/Redmi/Poco eszköz szükséges</string>
-    <string name="check_autostart">Automatikus indítás a háttérben</string>
-    <string name="check_autostart_desc">Szükséges a szolgáltatás elindításához az újraindítás után.</string>
-    <string name="grant_permission">Engedélyez</string>
-    <string name="status_ok">Kompatibilis</string>
-    <string name="status_fail">Nem kompatibilis</string>
-    <string name="status_unknown">Ismeretlen</string>
     <string name="warning_cn_rom_title">Kínai ROM észlelve</string>
     <string name="warning_cn_rom_desc">Úgy tűnik, hogy az eszközön kínai rendszer fut. A Xiaomi jelentősen módosítja az értesítések belső működését a CN ROM-okon. A funkciók instabilak lehetnek, vagy egyáltalán nem működnek.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
     <string name="shizuku_status_running">Shizuku is running</string>
-    <string name="shizuku_status_not_running">Shizuku is not running</string>
     <string name="shizuku_permission_granted">Permission Granted</string>
     <string name="shizuku_permission_denied">Permission Denied</string>
     <string name="shizuku_request_permission">Grant Shizuku Permission</string>
@@ -305,8 +250,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="export_failed">Külvitel sikertelen: %s</string>
     <string name="import_success">Adatok sikeresen visszállítva</string>
     <string name="import_failed">Sikertelen behozatal: %s</string>
-    <string name="invalid_backup_file">Érvénytelen HyperBridge mentés fájl</string>
-    <string name="db_version_mismatch">Figyelem: Másik adatbázis verzióból készült mentés</string>
     <string name="autostart_manual_check">Az állapot nem ellenőrizhető automatikusan.\nEllenőrizd ezt manuálisan, hogy megbizonyosodj arról, hogy a szolgáltatás megfelelően működik.</string>
     <string name="backup_info_title">Mentés infomációi</string>
     <string name="backup_meta_date">Dátum</string>
@@ -316,7 +259,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="backup_empty_suffix"> (Üres)</string>
     <string name="action_restore_selected">Kiválasztott elemek visszaállítása</string>
     <string name="optimization_title">Eszköz optimalizálás</string>
-    <string name="no_restrictions">Beállítás \"Nincs korlátozás\"</string>
     <string name="privacy_card_title">Elsősorban offline</string>
     <string name="privacy_card_desc">Nincs szükség internetkapcsolatra.</string>
     <string name="title_0_3_1">Mentés és többnyelvű frissítés</string>
@@ -381,16 +323,13 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="app_uninstalled_badge">Eltávolítva</string>
     <string name="settings_action">Beállítások</string>
     <string name="saved_widgets_title">Elmentett modulok</string>
-    <string name="new_widget_fab">Új modul</string>
     <string name="no_saved_widgets">Nincsenek elmentett modulok</string>
     <string name="widget_id_fmt">Modul #%d</string>
     <string name="show_on_island">Megjelenítés az Island-on</string>
-    <string name="theme_installer_title">Téma behozatala</string>
     <string name="theme_installer_analyzing">Témacsomag elemzése...</string>
     <string name="theme_installer_success_title">Téma kész</string>
     <string name="theme_installer_author">Alkotó: %s</string>
     <string name="theme_installer_version">Verzió %d</string>
-    <string name="theme_installer_description_default">Leírás nincs megadva.</string>
     <string name="theme_installer_apply_question">Szeretnéd ezt a témát alkalmazni a HyperBridge-re?</string>
     <string name="theme_installer_action_apply">Téma alkalmazása</string>
     <string name="theme_installer_action_later">Mentés későbbre</string>
@@ -398,7 +337,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="theme_installer_error_generic">Nem sikerült ellenőrizni a téma fájlt.</string>
     <string name="theme_installer_btn_close">Bezár</string>
     <string name="theme_manager_title">Saját témáim</string>
-    <string name="theme_manager_cd_back">Vissza navigálás</string>
     <string name="theme_manager_cd_add">Új téma létrehozása</string>
     <string name="theme_card_author_format">%s alkotta</string>
     <string name="theme_card_cd_active">Aktív téma</string>
@@ -406,16 +344,8 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="theme_system_default_title">Alapértelmezett</string>
     <string name="theme_system_default_desc">Normál megjelenés</string>
     <string name="theme_sheet_title">Új téma létrehozása</string>
-    <string name="creator_title">Új téma</string>
-    <string name="creator_label_name">Téma neve</string>
-    <string name="creator_label_author">Alkotó neve</string>
-    <string name="creator_label_color">Kiemelő szín</string>
-    <string name="creator_preview">Előnézet</string>
-    <string name="creator_btn_save">Téma mentése</string>
-    <string name="creator_err_inputs">Add meg az alkotó nevét</string>
     <string name="theme_sheet_action_create">Új téma létrehozása</string>
     <string name="theme_sheet_action_find">Keresés</string>
-    <string name="theme_sheet_action_import">Behozatal fájlból</string>
     <string name="theme_action_import_short">Behozatal</string>
     <string name="theme_card_action_edit">Szerkesztés</string>
     <string name="theme_card_action_export">Külvitel</string>
@@ -443,8 +373,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="colors_label_custom_title">Egyedi szín</string>
     <string name="colors_cd_add_custom">Egyedi szín megadása</string>
     <string name="colors_dialog_title">Válassz színt</string>
-    <string name="colors_dialog_desc">Válassz egy egyedi színt a témádhoz.</string>
-    <string name="colors_label_hex">Hex kód</string>
     <string name="colors_action_done">Kész</string>
     <string name="icons_tab_style">Stílus</string>
     <string name="icons_tab_assets">Ikonok</string>
@@ -465,22 +393,7 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="shape_clover">Lóhere</string>
     <string name="calls_label_answer">Fogadás</string>
     <string name="calls_label_decline">Elutasítás</string>
-    <string name="calls_label_hex">Hex szín</string>
-    <string name="apps_title">Konfigurált appok</string>
     <string name="apps_empty">Nincsenek konfigurált appok</string>
-    <string name="apps_sheet_title">App konfigurálása</string>
-    <string name="apps_label_select">App kiválasztása</string>
-    <string name="apps_label_app">App</string>
-    <string name="apps_label_highlight">Kiemelő szín (Hex)</string>
-    <string name="apps_group_actions">Egyedi műveletek</string>
-    <string name="apps_label_keyword">Kulcsszó</string>
-    <string name="apps_desc_button_contains">Gomb tartalmaza a „%s”</string>
-    <string name="apps_action_save">Konfiguráció mentése</string>
-    <string name="apps_default_color">Alapértelmezett szín</string>
-    <plurals name="apps_action_count">
-        <item quantity="other">%d művelet</item>
-        <item quantity="one">%d művelet</item>
-    </plurals>
     <string name="design_hero_customization_title">Testreszabás</string>
     <string name="design_hero_customization_subtitle">Ismerd meg a témák létrehozásának módját</string>
     <string name="design_hero_pro_title">Haladó funkciók</string>
@@ -496,7 +409,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="design_system_widget_beta">Rendszer modul (Béta)</string>
     <string name="design_get_themes">Témák szerzése</string>
     <string name="design_empty_widget_title">Hozd létre az első modulod</string>
-    <string name="design_active_count">%d Aktív</string>
     <string name="design">Dizájn</string>
     <string name="creator_nav_actions">Általános műveletek</string>
     <string name="creator_sub_actions">Stílus gombok kulcsszóra</string>
@@ -572,7 +484,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="colors_label_dynamic_modes">Dinamikus színek</string>
     <string name="colors_label_material_you">Material You (Rendszer)</string>
     <string name="colors_desc_material_you">A háttérképed színeit használja</string>
-    <string name="filter_compatible_widgets">Csak Island kompatibilisek megjelenítése</string>
     <string name="kill_all_widgets">Aktív modulok megölése</string>
     <string name="permission_reminder_title">Frissítési értesítés</string>
     <string name="permission_reminder_desc">HyperBridge frissítve lett! Ellenőrizd, hogy az Automatikus indítás és a Háttérben való futás nem lett-e csendben elvéve a rendszer által, hogy a modulok továbbra is folyékonyan tudjanak működni.</string>
@@ -580,8 +491,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="recommended">Ajánlott</string>
     <string name="all">Mind</string>
     <string name="favorites">Kedvencek</string>
-    <string name="settings_live_updates_title">Natív Android élő frissítések</string>
-    <string name="settings_live_updates_desc">Ahelyett, hogy az értesítéseket egyedi Xiaomi Islands-ekkel felülírnád, alakítsd át őket szabványos Android 16-os háttérfeladatokká.</string>
     <string name="channel_live_updates">Natív élő frissítések</string>
     <string name="engine_preview_title">Előnézet</string>
     <string name="engine_design_section">Értesítés kinézete</string>
@@ -590,7 +499,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="engine_native_title">Élő frissítéses kinézet</string>
     <string name="engine_native_desc">Natív android értesítés kinézet, Kínai ROM-on működik.</string>
     <string name="engine_config_title">Motor beállítás</string>
-    <string name="engine_section_preview">Előnézet</string>
     <string name="engine_section_design">Értesítés kinézete</string>
     <string name="good_to_know">Érdemes tudni</string>
     <string name="nav_layout_info">• A navigációs elrendezések egy közelgő frissítéssel teljes mértékben beépülnek a témamotorba.\n• A Natív élő frissítési motor használata esetén csak a jobb oldali tartalom látható.</string>
@@ -612,8 +520,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="hides_after_a_set_time">Megadott idő után eltűnik</string>
     <string name="behavior_hide_desc">Látható a kézi eltüntetésig</string>
     <string name="behavior_desc_hide_long">Meghatározza, hogy az Island mennyi ideig marad a képernyőn, mielőtt automatikusan eltűnik.</string>
-    <string name="managed_by_theme_desc">Működés kezelve az aktív téma által.</string>
-    <string name="use_global_default_engine">Alapértelmezett érték használata az értesítési motorhoz</string>
     <string name="active_triggers">Aktív aktiválók</string>
     <string name="active_triggers_global_desc">Válaszd ki melyik általános események aktiválják az Island-ot</string>
     <string name="type_standard_desc">Általános üzenetek, emailek, értesítések</string>
@@ -630,7 +536,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="trigger_app_desc">Válaszd ki, hogy melyik esemény aktiválja a szigetet ehhez az apphoz.</string>
     <string name="enable_triggers">Bizonyos aktiválók engedélyezése</string>
     <string name="open_source_licenses">Open Source Licenses</string>
-    <string name="live_updates">Live updates</string>
     <string name="remove_original_notification">Remove original notification</string>
     <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
     <string name="dismiss_with_original">Dismiss with original</string>
@@ -721,22 +626,16 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="troubleshoot_featured_notification">Troubleshoot</string>
     <string name="featured_notifications_check">Featured Notifications Check</string>
     <string name="featured_notifications_check_desc">Let\'s verify if your system is configured correctly to display HyperBridge islands.</string>
-    <string name="featured_notifications_supported">Supported</string>
     <string name="featured_notifications_not_supported">Not Supported</string>
     <string name="featured_notifications_enabled">Enabled</string>
-    <string name="featured_notifications_disabled">Disabled</string>
     <string name="featured_notifications_open_settings">Open System Settings</string>
-    <string name="featured_notifications_banner_warning">Featured notifications are disabled. Islands will not show correctly.</string>
     <string name="featured_notifications_troubleshoot_title">Why is this not an island?</string>
     <string name="featured_notifications_troubleshoot_desc">Your Xiaomi device intercepted the notification but failed to display it as a featured island because the permission is disabled in your system settings.\n\nTo fix this:\n1. Tap \"Open System Settings\"\n2. Scroll down to \"Featured Notifications\" (or similar)\n3. Enable it for HyperBridge.</string>
     <string name="featured_notifications_shizuku_alternative">Alternative: Shizuku Override</string>
     <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. HyperBridge will use Shizuku to post islands directly.</string>
-    <string name="system_config_info">System Configuration Info</string>
     <string name="migration_title">HyperBridge Update</string>
     <string name="migration_message">Migrating database to Device Protected storage…</string>
     <string name="migration_complete">Update Complete</string>
-    <string name="system_config_info_supported_label">Supported: %1$s</string>
-    <string name="system_config_info_permission_label">Permission: %1$s</string>
     <string name="notification_management">Notification Management</string>
     <string name="inline_reply_title">Inline Reply</string>
     <string name="customize_inline_reply">Customize inline reply overlay</string>

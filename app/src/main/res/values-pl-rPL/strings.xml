@@ -7,7 +7,6 @@
     <string name="done">Gotowe</string>
     <string name="logo_desc">Logo aplikacji</string>
     <string name="settings">Ustawienia</string>
-    <string name="info">Informacje</string>
     <string name="configure">Skonfiguruj</string>
     <string name="clear">Wyczyść</string>
     <string name="sort_order">Kolejność sortowania</string>
@@ -16,14 +15,10 @@
     <string name="get_started">Rozpocznij</string>
     <string name="how_it_works">Jak to działa?</string>
     <string name="how_it_works_desc">Wybierz swoje ulubione aplikacje (np. Spotify, Mapy czy Timer), a Hyper Bridge przekształci ich powiadomienia w elegancką wyspę HyperIsland.</string>
-    <string name="early_development">Wczesny rozwój</string>
     <string name="beta_warning">Uwaga: aplikacja jest w fazie Beta. Możesz napotkać błędy lub nieprawidłowe informacje wizualne.</string>
     <string name="device_compatible">Urządzenie kompatybilne</string>
     <string name="unsupported_device">Nieobsługiwane urządzenie</string>
     <string name="compatible_msg">Twoje urządzenie działa na HyperOS/MIUI. Możesz korzystać z aplikacji!</string>
-    <string name="incompatible_msg">HyperBridge opiera się na specyficznych funkcjach nakładki HyperOS. Producent Twojego urządzenia to nie Xiaomi/POCO/Redmi.</string>
-    <string name="system_detected">✅ Wykryto nakładkę</string>
-    <string name="app_wont_work">⚠️ Aplikacja może nie działać</string>
     <string name="show_island">Wyświetlanie wysp</string>
     <string name="perm_post_desc">Aby wyświetlać powiadomienia z wysp na Twoim ekranie, potrzebujemy uprawnienia.</string>
     <string name="perm_granted">✅ Przyznano uprawnienie</string>
@@ -31,21 +26,15 @@
     <string name="read_data">Odczyt danych</string>
     <string name="perm_listener_desc">Aby połączyć Twoje aplikacje z wyspą, musimy odczytać ich powiadomienia.</string>
     <string name="open_settings">Otwórz ustawienia</string>
-    <string name="keep_alive">Utrzymaj aktywność</string>
     <string name="optimization_desc">HyperOS wyłącza aplikacje działające w tle. Aby wyspa była aktywna, włącz Autostart i zmień ustawienia baterii.</string>
     <string name="enable_autostart">1. Włącz autostart</string>
     <string name="set_battery_no_restrictions">2. Ustaw \"Brak ograniczeń\"</string>
     <string name="tab_active">Aktywne</string>
     <string name="tab_library">Biblioteka</string>
-    <string name="title_active_bridges">Aktywne mosty</string>
-    <string name="title_library">Biblioteka aplikacji</string>
     <string name="search_hint">Szukaj aplikacji…</string>
-    <string name="sort_az">Sortuj: A-Z</string>
-    <string name="sort_za">Sortuj: Z-A</string>
     <string name="no_active_bridges">Brak aktywnych mostów</string>
     <string name="no_active_bridges_desc">Aby włączyć wyspy dla aplikacji, przejdź do Biblioteki.</string>
     <string name="no_apps_found">Nie znaleziono aplikacji</string>
-    <string name="about">O aplikacji</string>
     <string name="version_template">Wersja %s</string>
     <string name="developer_credit">autor: D4vidDf</string>
     <string name="group_configuration">Konfiguracja</string>
@@ -64,26 +53,21 @@
     <string name="licenses">Licencje open source</string>
     <string name="licenses_subtitle">Oprogramowanie stron trzecich</string>
     <string name="footer_made_with_love">Zrobione z ❤️ w Hiszpanii</string>
-    <string name="app_health">Stan aplikacji</string>
     <string name="app_health_desc">Aby aplikacja działała poprawnie w tle, upewnij się, że wszystkie ustawienia są zaznaczone na zielono.</string>
     <string name="req_permissions">Wymagane uprawnienia</string>
     <string name="notif_access">Dostęp do powiadomień</string>
     <string name="notif_access_desc">Wymagany do odczytu zdarzeń aplikacji</string>
-    <string name="perm_display_desc">Wyświetlanie nad innymi aplikacjami</string>
     <string name="device_optimization">Optymalizacja urządzenia</string>
     <string name="xiaomi_autostart">Autostart</string>
-    <string name="autostart_desc">Zezwól aplikacji na uruchamianie się przy uruchamianiu urządzenia</string>
     <string name="battery_unrestricted">Brak ograniczeń baterii</string>
     <string name="battery_desc">Zapobiegaj zabijaniu aplikacji przez system</string>
     <string name="recents_note">Uwaga: Zablokuj również aplikację w menu Ostatnio otwartych aplikacji (kłódką).</string>
     <string name="status_active">OK</string>
-    <string name="action_needed">Wymagane działanie</string>
     <string name="cat_all">Wszystkie</string>
     <string name="cat_music">Muzyka</string>
     <string name="cat_nav">Nawigacja</string>
     <string name="cat_timer">Produktywność</string>
     <string name="cat_other">Inne</string>
-    <string name="select_active_notifs">Wybierz aktywne powiadomienia</string>
     <string name="type_standard">Wiadomości i ogólne</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
@@ -91,17 +75,9 @@
     <string name="type_nav">Mapy i GPS</string>
     <string name="type_call">Połączenia</string>
     <string name="type_timer">Minutniki i alarmy</string>
-    <string name="service_active">Aktywna</string>
     <string name="download_complete">Pobieranie zakończone</string>
-    <string name="pending">Oczekiwanie...</string>
-    <string name="finished">Zakończone</string>
     <string name="downloading">Pobieranie</string>
-    <string name="waiting">Oczekiwanie...</string>
-    <string name="now_playing">Teraz odtwarzane</string>
-    <string name="unknown_caller">Nieznany rozmówca</string>
-    <string name="incoming_call">Połączenie</string>
     <string name="maps_title">Mapy</string>
-    <string name="timer_title">Minutnik</string>
     <string-array name="progress_finish_keywords">
         <item>pobrano</item>
         <item>ukończono</item>
@@ -111,16 +87,8 @@
         <item>udane</item>
         <item>powodzenie</item>
     </string-array>
-    <string name="status_download_complete">Pobieranie ukończone</string>
-    <string name="status_downloading">Pobieranie</string>
-    <string name="status_pending">Oczekiwanie…</string>
-    <string name="status_finished">Zakończone</string>
     <string name="status_now_playing">Teraz odtwarzane</string>
-    <string name="status_incoming_call">Połączenie</string>
-    <string name="caller_unknown">Nieznany rozmówca</string>
-    <string name="fallback_maps">Mapy</string>
     <string name="fallback_timer">Minutnik</string>
-    <string name="fallback_stopwatch">Stoper</string>
     <string name="whats_new_title">Co nowego w %s?</string>
     <string name="awesome">Świetnie!</string>
     <string name="island_behavior">Zachowanie wysp</string>
@@ -134,8 +102,6 @@
     <string name="mode_priority_desc">Określ, które typy (np. połączenia) są ważniejsze.</string>
     <string name="priority_order">Kolejność priorytetów</string>
     <string name="priority_order_desc">Wysoki priorytet (góra) zastępuje niski priorytet (dół).</string>
-    <string name="move_up">Przesuń w górę</string>
-    <string name="move_down">Przesuń w dół</string>
     <string name="configure_order">Konfiguruj kolejność aplikacji</string>
     <string name="global_settings">Ustawienia globalne</string>
     <string name="island_appearance">Pojawianie się wysp</string>
@@ -144,11 +110,8 @@
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Panel powiadomień</string>
     <string name="setting_shade_desc">Zachowaj powiadomienie w Panelu powiadomień. Jeśli opcja jest wyłączona, pojawi się ono tylko jako wyspa.</string>
-    <string name="setting_timeout">Opóźnienie automatycznego zamknięcia</string>
     <string name="seconds_suffix">%d s</string>
     <string name="use_global_default">Użyj ustawień globalnych</string>
-    <string name="customize_app">Dostosuj</string>
-    <string name="override_settings">Nadpisz ustawienia</string>
     <string-array name="nav_arrival_keywords">
         <item>arrival</item>
         <item>arrive</item>
@@ -156,7 +119,6 @@
         <item>reaching</item>
         <item>destination</item>
     </string-array>
-    <string name="hint_options">Opcje</string>
     <string name="version_history">Historia wersji</string>
     <string name="title_0_2_0">Aktualizacja informacji</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;Zaawansowany progres:&lt;/b&gt; Dodano wsparcie dla \"Postępu krokowego\" (np. 1 z 3) oraz pasków postępu z ikonami wewnątrz panelu powiadomień.\n
@@ -175,10 +137,7 @@
     </string>
     <string name="priority_edu_title">Nowość: Kontrola wysp</string>
     <string name="priority_edu_desc">HyperBridge może teraz zarządzać zachowaniem powiadomień, gdy osiągnięty zostanie limit 9 wysp.\n\n&lt;b&gt;Domyślnie: Najnowsze&lt;/b&gt;\nNowe powiadomienia automatycznie zastępują najstarsze.</string>
-    <string name="keep_default">Zachowaj domyślne</string>
-    <string name="configure_now">Skonfiguruj</string>
     <string name="badge_new">NOWA</string>
-    <string name="custom_design">Własny wygląd</string>
     <string name="nav_layout_title">Układ wyspy nawigacji</string>
     <string name="nav_layout_desc">Wybierz informację, która pojawi się w danej części wyspy</string>
     <string name="left_content">Lewa strona</string>
@@ -189,8 +148,6 @@
     <string name="nav_content_distance_eta">Odległość i czas</string>
     <string name="nav_content_none">Puste</string>
     <string name="channel_active_islands">Aktywne wyspy</string>
-    <string name="cd_toggle_app">Przełącz %s</string>
-    <string name="cd_configure_app">Konfiguruj %s</string>
     <string name="cd_enable_type">Włącz powiadomienia %s</string>
     <string name="cd_disable_type">Wyłącz powiadomienia %s</string>
     <string name="cd_nav_edit">Edytuj układ nawigacji</string>
@@ -203,8 +160,6 @@
     <string name="cd_nav_preview">Podgląd nawigacji: %1$s po lewej, %2$s po prawej</string>
     <string name="cd_expand_changelog">Rozwiń szczegóły wersji</string>
     <string name="cd_collapse_changelog">Zwiń szczegóły wersji</string>
-    <string name="cd_configuration_group">Ustawienia konfiguracji</string>
-    <string name="cd_about_group">Informacje o aplikacji</string>
     <string name="nav_preview_instruction">Skręć w prawo</string>
     <string name="nav_preview_distance">200 m</string>
     <string name="nav_preview_time">10:30</string>
@@ -213,7 +168,6 @@
     <string name="add_blocked_word">Dodaj słowo (np. \"Spoiler\")</string>
     <string name="add">Dodaj</string>
     <string name="remove">Usuń</string>
-    <string name="tap_to_configure_rules">Dotknij aplikacji, aby skonfigurować konkretne zasady blokowania.</string>
     <string name="spoiler_subtitle">Zarządzaj ochroną przed spoilerami i filtrami</string>
     <string name="active_notifications_title">Typy powiadomień</string>
     <string name="active_notifications_subtitle">Aktywne: %d</string>
@@ -225,23 +179,14 @@
     <string name="blocked_terms_count">Zablokowane frazy: %d</string>
     <string name="no_active_rules">Brak aktywnych reguł</string>
     <string name="setup_health_title">Kompatybilność systemu</string>
-    <string name="check_device">Urządzenie: %s</string>
-    <string name="check_os_version">OS: %s</string>
     <string name="req_hyperos">Wymaga HyperOS 3.0+ (Android 15+)</string>
     <string name="req_xiaomi">Wymagane urządzenie Xiaomi/Redmi/POCO</string>
-    <string name="check_autostart">Autostart w tle</string>
-    <string name="check_autostart_desc">Wymagany, aby usługa uruchomiła się ponownie po restarcie urządzenia.</string>
-    <string name="grant_permission">Przyznaj</string>
-    <string name="status_ok">Kompatybilny</string>
-    <string name="status_fail">Niekompatybilny</string>
-    <string name="status_unknown">Nieznany</string>
     <string name="warning_cn_rom_title">Wykryto ROM China</string>
     <string name="warning_cn_rom_desc">Twoje urządzenie prawdopodobnie działa na ROM-ie China. W tej wersji Xiaomi znacznie modyfikuje działanie powiadomień. Funkcje mogą być niestabilne lub w ogóle nie działać.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
     <string name="shizuku_status_running">Shizuku is running</string>
-    <string name="shizuku_status_not_running">Shizuku is not running</string>
     <string name="shizuku_permission_granted">Permission Granted</string>
     <string name="shizuku_permission_denied">Permission Denied</string>
     <string name="shizuku_request_permission">Grant Shizuku Permission</string>
@@ -305,8 +250,6 @@
     <string name="export_failed">Błąd eksportu: %s</string>
     <string name="import_success">Dane zostały pomyślnie przywrócone</string>
     <string name="import_failed">Błąd importu: %s</string>
-    <string name="invalid_backup_file">Nieprawidłowy plik kopii zapasowej HyperBridge</string>
-    <string name="db_version_mismatch">Ostrzeżenie: Kopia zapasowa pochodzi z innej wersji bazy danych</string>
     <string name="autostart_manual_check">Nie można automatycznie zweryfikować statusu.\nAby usługa dzialała poprawnie, sprawdź go ręcznie</string>
     <string name="backup_info_title">Informacje o kopii zapasowej</string>
     <string name="backup_meta_date">Data</string>
@@ -316,7 +259,6 @@
     <string name="backup_empty_suffix"> (Puste)</string>
     <string name="action_restore_selected">Przywróć wybrane dane</string>
     <string name="optimization_title">Optymalizacja urządzenia</string>
-    <string name="no_restrictions">Ustaw „Brak ograniczeń”</string>
     <string name="privacy_card_title">Działa offline</string>
     <string name="privacy_card_desc">Połączenie z Internetem nie jest wymagane.</string>
     <string name="title_0_3_1">Aktualizacja: Kopia zapasowa i Wielojęzyczność</string>
@@ -387,16 +329,13 @@
     <string name="app_uninstalled_badge">Odinstalowano</string>
     <string name="settings_action">Ustawienia</string>
     <string name="saved_widgets_title">Zapisane widżety</string>
-    <string name="new_widget_fab">Nowy widżet</string>
     <string name="no_saved_widgets">Brak zapisanych widżetów.</string>
     <string name="widget_id_fmt">Widżet #%d</string>
     <string name="show_on_island">Pokaż na wyspie</string>
-    <string name="theme_installer_title">Zaimportuj motyw</string>
     <string name="theme_installer_analyzing">Analizowanie pakietu motywu...</string>
     <string name="theme_installer_success_title">Motyw gotowy</string>
     <string name="theme_installer_author">Autor: %s</string>
     <string name="theme_installer_version">Wersja %d</string>
-    <string name="theme_installer_description_default">Brak opisu.</string>
     <string name="theme_installer_apply_question">Czy chcesz teraz zastosować ten motyw w HyperBridge?</string>
     <string name="theme_installer_action_apply">Zastosuj motyw</string>
     <string name="theme_installer_action_later">Zapisz na później</string>
@@ -404,7 +343,6 @@
     <string name="theme_installer_error_generic">Nie można zweryfikować pliku motywu.</string>
     <string name="theme_installer_btn_close">Zamknij</string>
     <string name="theme_manager_title">Moje motywy</string>
-    <string name="theme_manager_cd_back">Przejdź wstecz</string>
     <string name="theme_manager_cd_add">Dodaj nowy motyw</string>
     <string name="theme_card_author_format">od %s</string>
     <string name="theme_card_cd_active">Aktywny motyw</string>
@@ -412,16 +350,8 @@
     <string name="theme_system_default_title">Domyślny (systemowy)</string>
     <string name="theme_system_default_desc">Standardowy wygląd</string>
     <string name="theme_sheet_title">Dodaj nowy motyw</string>
-    <string name="creator_title">Nowy motyw</string>
-    <string name="creator_label_name">Nazwa motywu</string>
-    <string name="creator_label_author">Autor</string>
-    <string name="creator_label_color">Kolor podświetlenia</string>
-    <string name="creator_preview">Podgląd</string>
-    <string name="creator_btn_save">Zapisz motyw</string>
-    <string name="creator_err_inputs">Wprowadź nazwę motywu i jego autora</string>
     <string name="theme_sheet_action_create">Utwórz nowy motyw</string>
     <string name="theme_sheet_action_find">Znajdź</string>
-    <string name="theme_sheet_action_import">Importuj z pliku</string>
     <string name="theme_action_import_short">Importuj</string>
     <string name="theme_card_action_edit">Edytuj</string>
     <string name="theme_card_action_export">Eksportuj</string>
@@ -449,8 +379,6 @@
     <string name="colors_label_custom_title">Własny kolor</string>
     <string name="colors_cd_add_custom">Dodaj własny kolor</string>
     <string name="colors_dialog_title">Wybierz kolor</string>
-    <string name="colors_dialog_desc">Wybierz własny kolor dla swojego motywu.</string>
-    <string name="colors_label_hex">Kod szesnastkowy</string>
     <string name="colors_action_done">Gotowe</string>
     <string name="icons_tab_style">Styl</string>
     <string name="icons_tab_assets">Ikony</string>
@@ -471,24 +399,7 @@
     <string name="shape_clover">Koniczyna</string>
     <string name="calls_label_answer">Odbierz</string>
     <string name="calls_label_decline">Odrzuć</string>
-    <string name="calls_label_hex">Kolor szesnastkowy</string>
-    <string name="apps_title">Skonfigurowane aplikacje</string>
     <string name="apps_empty">Brak skonfigurowanych aplikacji</string>
-    <string name="apps_sheet_title">Skonfiguruj aplikację</string>
-    <string name="apps_label_select">Wybierz aplikację</string>
-    <string name="apps_label_app">Aplikacja</string>
-    <string name="apps_label_highlight">Kolor podświetlenia (hex)</string>
-    <string name="apps_group_actions">Niestandardowe akcje</string>
-    <string name="apps_label_keyword">Słowo kluczowe</string>
-    <string name="apps_desc_button_contains">Przycisk zawierający \'%s\'</string>
-    <string name="apps_action_save">Zapisz konfigurację</string>
-    <string name="apps_default_color">Domyślny kolor</string>
-    <plurals name="apps_action_count">
-        <item quantity="many">%d akcji</item>
-        <item quantity="other">%d akcji</item>
-        <item quantity="one">%d akcja</item>
-        <item quantity="few">%d akcje</item>
-    </plurals>
     <string name="design_hero_customization_title">Personalizacja</string>
     <string name="design_hero_customization_subtitle">Dowiedz się, jak tworzyć motywy</string>
     <string name="design_hero_pro_title">Funkcje Pro</string>
@@ -504,7 +415,6 @@
     <string name="design_system_widget_beta">Widżet systemowy (beta)</string>
     <string name="design_get_themes">Uzyskaj motywy</string>
     <string name="design_empty_widget_title">Dodaj swój pierwszy widżet</string>
-    <string name="design_active_count">Aktywne: %d</string>
     <string name="design">Wygląd</string>
     <string name="creator_nav_actions">Globalne akcje</string>
     <string name="creator_sub_actions">Style przycisków w oparciu o słowa kluczowe</string>
@@ -583,7 +493,6 @@
     <string name="colors_label_dynamic_modes">Dynamic Colors</string>
     <string name="colors_label_material_you">Material You (System)</string>
     <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
-    <string name="filter_compatible_widgets">Show Island Compatible Only</string>
     <string name="kill_all_widgets">Kill Active Widgets</string>
     <string name="permission_reminder_title">Update Notice</string>
     <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
@@ -591,8 +500,6 @@
     <string name="recommended">Recommended</string>
     <string name="all">All</string>
     <string name="favorites">Favorites</string>
-    <string name="settings_live_updates_title">Native Android Live Updates</string>
-    <string name="settings_live_updates_desc">Transform notifications into standard Android 16 ongoing tasks instead of overriding them with custom Xiaomi Islands.</string>
     <string name="channel_live_updates">Native Live Updates</string>
     <string name="engine_preview_title">Preview</string>
     <string name="engine_design_section">Notification Design</string>
@@ -601,7 +508,6 @@
     <string name="engine_native_title">Live Update Design</string>
     <string name="engine_native_desc">Native android notification designs, works on CN ROM.</string>
     <string name="engine_config_title">Engine Configuration</string>
-    <string name="engine_section_preview">Preview</string>
     <string name="engine_section_design">Notification Design</string>
     <string name="good_to_know">Good to know</string>
     <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
@@ -623,8 +529,6 @@
     <string name="hides_after_a_set_time">Hides after a set time</string>
     <string name="behavior_hide_desc">Visible until manually dismissed</string>
     <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
-    <string name="managed_by_theme_desc">Behavior managed by active theme.</string>
-    <string name="use_global_default_engine">Use the default value for the notification engine</string>
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
@@ -641,7 +545,6 @@
     <string name="trigger_app_desc">Select which events trigger the island for this app.</string>
     <string name="enable_triggers">Enable specific triggers</string>
     <string name="open_source_licenses">Open Source Licenses</string>
-    <string name="live_updates">Live updates</string>
     <string name="remove_original_notification">Remove original notification</string>
     <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
     <string name="dismiss_with_original">Dismiss with original</string>
@@ -732,22 +635,16 @@
     <string name="troubleshoot_featured_notification">Troubleshoot</string>
     <string name="featured_notifications_check">Featured Notifications Check</string>
     <string name="featured_notifications_check_desc">Let\'s verify if your system is configured correctly to display HyperBridge islands.</string>
-    <string name="featured_notifications_supported">Supported</string>
     <string name="featured_notifications_not_supported">Not Supported</string>
     <string name="featured_notifications_enabled">Enabled</string>
-    <string name="featured_notifications_disabled">Disabled</string>
     <string name="featured_notifications_open_settings">Open System Settings</string>
-    <string name="featured_notifications_banner_warning">Featured notifications are disabled. Islands will not show correctly.</string>
     <string name="featured_notifications_troubleshoot_title">Why is this not an island?</string>
     <string name="featured_notifications_troubleshoot_desc">Your Xiaomi device intercepted the notification but failed to display it as a featured island because the permission is disabled in your system settings.\n\nTo fix this:\n1. Tap \"Open System Settings\"\n2. Scroll down to \"Featured Notifications\" (or similar)\n3. Enable it for HyperBridge.</string>
     <string name="featured_notifications_shizuku_alternative">Alternative: Shizuku Override</string>
     <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. HyperBridge will use Shizuku to post islands directly.</string>
-    <string name="system_config_info">System Configuration Info</string>
     <string name="migration_title">HyperBridge Update</string>
     <string name="migration_message">Migrating database to Device Protected storage…</string>
     <string name="migration_complete">Update Complete</string>
-    <string name="system_config_info_supported_label">Supported: %1$s</string>
-    <string name="system_config_info_permission_label">Permission: %1$s</string>
     <string name="notification_management">Notification Management</string>
     <string name="inline_reply_title">Inline Reply</string>
     <string name="customize_inline_reply">Customize inline reply overlay</string>
