@@ -803,9 +803,11 @@ class NotificationReaderService : NotificationListenerService() {
     private fun hasProgressNotification(sbn: StatusBarNotification, title: String, text: String): Boolean {
         val extras = sbn.notification.extras
         val isDownload = isDownloadNotification(sbn, title, text)
+        val isOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
         return extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
                 extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE) ||
-                (isDownload && extractTextPercentage(title, text) != null)
+                (isDownload && extractTextPercentage(title, text) != null) ||
+                (isDownload && isOngoing)
     }
 
     private fun extractTextPercentage(title: String?, text: String?): Int? {
