@@ -667,6 +667,14 @@
     <string name="onboard_design_desc">Amplía las posibilidades con diferentes opciones de personalización</string>
     <string name="behavior_desc_glob_config">Determina el comportamiento de la isla.</string>
     <string name="widget_layout_snapshot">Vista previa del widget</string>
+    <string name="changelog_0_5_5">
+        <b>Renovación de Agrupación de Mensajes</b>\n
+              • <b>Desduplicación:</b> Se ha rediseñado por completo la forma en que se agrupan las notificaciones de mensajería (como WhatsApp) para evitar islas duplicadas.\n\n
+        <b>Correcciones y Estabilidad</b>\n
+              • <b>Migración de Actualización:</b> Se ha solucionado un error crítico por el que la actualización de la aplicación no activaba correctamente la lógica de migración de la base de datos.\n
+              • <b>Valores predeterminados:</b> Se ha desactivado \"Mostrar en panel\" por defecto en la pantalla de inicio.\n
+    </string>
+    <string name="title_0_5_5">Mensajería y Correcciones</string>
     <string name="changelog_0_5_2">        <b>¡Nueva Respuesta Rápida!</b>\n
               • <b>Respuesta Rápida:</b> ¡Ahora puedes responder a los mensajes directamente desde la isla sin abrir la app!\n
               • <b>Personalización:</b> Personaliza completamente el aspecto del nuevo editor de respuestas rápidas a nivel global o por aplicación.\n

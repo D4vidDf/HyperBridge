@@ -5,6 +5,7 @@ data class ActiveIsland(
     val type: NotificationType,
     val postTime: Long,
     val packageName: String,
+    val groupKey: String?,
     // Content Diffing Fields
     val title: String,
     val text: String,

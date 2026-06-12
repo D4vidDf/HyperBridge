@@ -148,6 +148,7 @@ fun NotificationTypesContent() {
                 NotificationType.NAVIGATION -> Icons.Outlined.Map to stringResource(R.string.type_nav_desc)
                 NotificationType.CALL -> Icons.Outlined.Call to stringResource(R.string.type_call_desc)
                 NotificationType.TIMER -> Icons.Outlined.Timer to stringResource(R.string.type_timer_desc)
+                NotificationType.MESSAGE -> Icons.AutoMirrored.Outlined.Message to stringResource(R.string.type_message_desc)
             }
 
             // Calculate expressive rounded corners to group them beautifully

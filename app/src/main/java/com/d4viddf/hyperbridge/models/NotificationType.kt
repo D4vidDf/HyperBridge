@@ -5,6 +5,7 @@ import com.d4viddf.hyperbridge.R
 
 enum class NotificationType(@StringRes val labelRes: Int) {
     STANDARD(R.string.type_standard),
+    MESSAGE(R.string.type_message),
     PROGRESS(R.string.type_progress),
     DOWNLOAD(R.string.type_download),
     MEDIA(R.string.type_media),

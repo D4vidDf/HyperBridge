@@ -99,7 +99,8 @@
     <string name="cat_other">Other</string>
 
     <string name="select_active_notifs">Select active notifications</string>
-    <string name="type_standard">Messages &amp; General</string>
+    <string name="type_standard">General Alerts</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
     <string name="type_media">Music &amp; Media</string>
@@ -729,7 +730,8 @@
     <string name="use_global_default_engine">Use the default value for the notification engine</string>
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
-    <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_standard_desc">General alerts and notifications</string>
+    <string name="type_message_desc">Messages, chats, and conversations</string>
     <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
     <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
@@ -783,6 +785,15 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+
+    <string name="changelog_0_5_5">
+        <b>Messaging Grouping Overhaul</b>\n
+              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
+        <b>Fixes &amp; Stability</b>\n
+              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
+              • <b>Defaults:</b> Disabled "Show in shade" by default on the onboarding screen.\n
+    </string>
+    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
 
     <string name="changelog_0_5_2">
         <b>New Inline Reply Feature!</b>\n

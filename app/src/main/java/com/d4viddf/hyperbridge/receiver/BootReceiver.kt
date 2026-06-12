@@ -9,6 +9,12 @@ import android.service.notification.NotificationListenerService
 import android.util.Log
 import com.d4viddf.hyperbridge.service.NotificationReaderService
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.d4viddf.hyperbridge.data.db.AppDatabase
+
 class BootReceiver : BroadcastReceiver() {
 
     companion object {
@@ -34,27 +40,43 @@ class BootReceiver : BroadcastReceiver() {
 
         Log.d("HyperBridge", "Trigger event detected: $action")
 
-        // 2. Migration Logic (Major or Test only)
-        if (isMajor || isTest) {
-            val migrationIntent = Intent(context, NotificationReaderService::class.java).apply {
-                this.action = NotificationReaderService.ACTION_PERFORM_MIGRATION
-            }
-            context.startService(migrationIntent)
-        }
+        val pendingResult = goAsync()
 
-        // 3. Re-bind Logic
-        if (isMajor) {
-            val now = System.currentTimeMillis()
-            if (now - lastToggleTime > 5000) {
-                lastToggleTime = now
-                Log.d("HyperBridge", "Major trigger: Toggling NLS component state.")
-                toggleNotificationListener(context)
-            } else {
-                Log.d("HyperBridge", "Major trigger: Cooldown active, skipping toggle.")
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // 2. Migration Logic (Major or Test only)
+                if (isMajor || isTest) {
+                    Log.d("HyperBridge", "Major trigger: Performing database migration.")
+                    AppDatabase.performMigration(context) { progress ->
+                        Log.d("HyperBridge", "Migration progress: $progress%")
+                    }
+                    // Trigger AppPreferences initialization to run SharedPreferences migrations
+                    com.d4viddf.hyperbridge.data.AppPreferences(context)
+                }
+            } catch (e: Exception) {
+                Log.e("HyperBridge", "Error during migration in BootReceiver", e)
+            } finally {
+                // 3. Re-bind Logic
+                withContext(Dispatchers.Main) {
+                    try {
+                        if (isMajor) {
+                            val now = System.currentTimeMillis()
+                            if (now - lastToggleTime > 5000) {
+                                lastToggleTime = now
+                                Log.d("HyperBridge", "Major trigger: Toggling NLS component state.")
+                                toggleNotificationListener(context)
+                            } else {
+                                Log.d("HyperBridge", "Major trigger: Cooldown active, skipping toggle.")
+                            }
+                        } else if (isMinor) {
+                            Log.d("HyperBridge", "Minor trigger: Requesting official re-bind.")
+                            requestRebind(context)
+                        }
+                    } finally {
+                        pendingResult.finish()
+                    }
+                }
             }
-        } else if (isMinor) {
-            Log.d("HyperBridge", "Minor trigger: Requesting official re-bind.")
-            requestRebind(context)
         }
     }
 

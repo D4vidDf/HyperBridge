@@ -288,7 +288,7 @@ abstract class BaseTranslator(
             val rawTitle = androidAction.title?.toString() ?: ""
             val isMarkAsRead = androidAction.semanticAction == Notification.Action.SEMANTIC_ACTION_MARK_AS_READ || rawTitle.equals("mark as read", ignoreCase = true)
 
-            if (config.removeOriginalNotification == true && (hasRemoteInput || isMarkAsRead)) {
+            if (config.removeOriginalNotification == true && hasRemoteInput) {
                 return@forEachIndexed
             }
 

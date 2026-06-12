@@ -105,6 +105,34 @@ class AppPreferences(context: Context) {
 
                     dao.insert(AppSetting("download_type_migration_complete", "true"))
                 }
+
+                // Grant DOWNLOAD and MESSAGE to all active apps and globally
+                val isDownloadMessageMigrated = dao.getSetting("download_message_migration_complete") == "true"
+                if (!isDownloadMessageMigrated) {
+                    // 1. Global notification types migration
+                    val globalTypesStr = dao.getSetting(GLOBAL_NOTIFICATION_TYPES_KEY)
+                    if (globalTypesStr != null) {
+                        val globalTypes = globalTypesStr.deserializeSet()
+                        val newGlobalTypes = globalTypes + "DOWNLOAD" + "MESSAGE"
+                        dao.insert(AppSetting(GLOBAL_NOTIFICATION_TYPES_KEY, newGlobalTypes.serialize()))
+                    }
+
+                    // 2. Active apps migration
+                    val allowedPackagesStr = dao.getSetting(SettingsKeys.ALLOWED_PACKAGES)
+                    val allowedPackages = allowedPackagesStr.deserializeSet()
+                    
+                    allowedPackages.forEach { packageName ->
+                        val key = "config_$packageName"
+                        val configStr = dao.getSetting(key)
+                        if (configStr != null) {
+                            val types = configStr.deserializeSet()
+                            val newTypes = types + "DOWNLOAD" + "MESSAGE"
+                            dao.insert(AppSetting(key, newTypes.serialize()))
+                        }
+                    }
+
+                    dao.insert(AppSetting("download_message_migration_complete", "true"))
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -195,7 +223,7 @@ class AppPreferences(context: Context) {
     ) { args: Array<String?> ->
         IslandConfig(
             args[0].toBoolean(true),
-            args[1].toBoolean(true),
+            args[1].toBoolean(false),
             args[2]?.toIntOrNull(),
             args[3]?.toIntOrNull(),
             args[4]?.toBooleanStrictOrNull(),
@@ -518,7 +546,7 @@ class AppPreferences(context: Context) {
     fun getGlobalConfigSync(): IslandConfig {
         return IslandConfig(
             memoryCache[SettingsKeys.GLOBAL_FLOAT].toBoolean(true),
-            memoryCache[SettingsKeys.GLOBAL_SHADE].toBoolean(true),
+            memoryCache[SettingsKeys.GLOBAL_SHADE].toBoolean(false),
             memoryCache[SettingsKeys.GLOBAL_TIMEOUT]?.toIntOrNull(),
             memoryCache[SettingsKeys.GLOBAL_FLOAT_TIMEOUT]?.toIntOrNull(),
             memoryCache[SettingsKeys.GLOBAL_REMOVE_NOTIF]?.toBooleanStrictOrNull(),

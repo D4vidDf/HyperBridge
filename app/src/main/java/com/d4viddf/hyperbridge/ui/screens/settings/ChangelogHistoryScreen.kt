@@ -31,7 +31,8 @@ data class VersionLog(val version: String, val titleRes: Int, val textRes: Int, 
 fun ChangelogHistoryScreen(onBack: () -> Unit) {
     // Define history here (Newest first)
     val history = listOf(
-        VersionLog("0.5.2", R.string.title_0_5_2, R.string.changelog_0_5_2, isLatest = true),
+        VersionLog("0.5.5", R.string.title_0_5_5, R.string.changelog_0_5_5, isLatest = true),
+        VersionLog("0.5.2", R.string.title_0_5_2, R.string.changelog_0_5_2),
         VersionLog("0.5.1", R.string.title_0_5_1, R.string.changelog_0_5_1),
         VersionLog("0.5.0", R.string.title_0_5_0, R.string.changelog_0_5_0),
         VersionLog("0.4.2", R.string.title_0_4_2, R.string.changelog_0_4_2),

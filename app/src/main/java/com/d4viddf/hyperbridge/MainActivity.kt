@@ -95,16 +95,18 @@ fun MainRootNavigation(onExit: () -> Unit) {
             CircularProgressIndicator()
         }
     } else {
-        MainNavigationContent(
-            isSetupComplete = isSetupComplete!!,
-            context = context,
-            scope = scope,
-            preferences = preferences,
-            backupManager = backupManager,
-            currentVersionCode = currentVersionCode,
-            currentVersionName = currentVersionName,
-            onExit = onExit
-        )
+        androidx.compose.runtime.key(isSetupComplete) {
+            MainNavigationContent(
+                isSetupComplete = isSetupComplete!!,
+                context = context,
+                scope = scope,
+                preferences = preferences,
+                backupManager = backupManager,
+                currentVersionCode = currentVersionCode,
+                currentVersionName = currentVersionName,
+                onExit = onExit
+            )
+        }
     }
 }
 
@@ -210,7 +212,7 @@ private fun MainNavigationContent(
     if (showChangelog) {
         ChangelogSheet(
             currentVersionName = currentVersionName,
-            changelogText = stringResource(R.string.changelog_0_5_2),
+            changelogText = stringResource(R.string.changelog_0_5_5),
             onDismiss = {
                 showChangelog = false
                 scope.launch {

@@ -38,6 +38,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Architecture
@@ -352,6 +354,12 @@ fun DndConfigPage(prefs: AppPreferences) {
 
 @Composable
 fun WelcomePage() {
+    val context = LocalContext.current
+    val appIconBitmap = remember(context) {
+        try { context.packageManager.getApplicationIcon(context.packageName).toBitmap().asImageBitmap() }
+        catch (_: Exception) { null }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -361,11 +369,19 @@ fun WelcomePage() {
     ) {
         Spacer(modifier = Modifier.weight(1f))
 
-        Image(
-            painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_logo_foreground),
-            contentDescription = stringResource(R.string.logo_desc),
-            modifier = Modifier.size(140.dp)
-        )
+        if (appIconBitmap != null) {
+            Image(
+                bitmap = appIconBitmap,
+                contentDescription = stringResource(R.string.logo_desc),
+                modifier = Modifier.size(140.dp)
+            )
+        } else {
+            Image(
+                painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_logo_foreground),
+                contentDescription = stringResource(R.string.logo_desc),
+                modifier = Modifier.size(140.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -529,6 +545,7 @@ fun TriggersConfigPage(prefs: AppPreferences) {
                                         NotificationType.NAVIGATION -> R.string.type_nav_desc
                                         NotificationType.CALL -> R.string.type_call_desc
                                         NotificationType.TIMER -> R.string.type_timer_desc
+                                        NotificationType.MESSAGE -> R.string.type_message_desc
                                     }
                                     Text(
                                         stringResource(descRes),
@@ -754,11 +771,11 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
                 shape = RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp),
                 onClick = {
                     scope.launch {
-                        prefs.updateGlobalConfig(config.copy(isShowShade = !(config.isShowShade ?: true)))
+                        prefs.updateGlobalConfig(config.copy(isShowShade = !(config.isShowShade ?: false)))
                     }
                 },
                 trailingContent = {
-                    Checkbox(checked = config.isShowShade ?: true, onCheckedChange = null)
+                    Checkbox(checked = config.isShowShade ?: false, onCheckedChange = null)
                 }
             )
 

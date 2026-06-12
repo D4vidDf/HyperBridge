@@ -79,7 +79,7 @@ class PermanentIslandManager(
             
             // Should not be dismissible and shouldn't show in shade
             builder.setEnableFloat(false)
-            builder.setIslandConfig(timeout = 0, dismissible = false, highlightColor = "#FFFFFF", expandedTimeMs = 0)
+            builder.setIslandConfig(timeout = 86400000, dismissible = false, highlightColor = "#FFFFFF", expandedTimeMs = 0)
             builder.setShowNotification(false)
             builder.setReopen(true)
             builder.setIslandFirstFloat(false)

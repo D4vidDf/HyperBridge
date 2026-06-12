@@ -206,7 +206,7 @@ fun IslandSettingsControl(
             title = stringResource(R.string.setting_shade),
             subtitle = stringResource(R.string.setting_shade_desc),
             icon = Icons.Default.Layers,
-            checked = displayConfig.isShowShade ?: true,
+            checked = displayConfig.isShowShade ?: false,
             onCheckedChange = { 
                 val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
                 onUpdate(config.copy(isShowShade = it, isFloat = currentIsFloat)) 
