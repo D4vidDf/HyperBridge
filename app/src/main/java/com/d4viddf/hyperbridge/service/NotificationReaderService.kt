@@ -695,7 +695,11 @@ class NotificationReaderService : NotificationListenerService() {
 
                 if (isUpdate && previous != null && previous.lastContentHash == newContentHash) return
 
-                ShizukuManager.notify(this, bridgeId, notification)
+                if (!shouldAlertOnce) {
+                    ShizukuManager.notify(this, bridgeId, notification)
+                } else {
+                    NotificationManagerCompat.from(this).notify(bridgeId, notification)
+                }
 
                 activeTranslations[effectiveKey] = bridgeId
                 reverseTranslations[bridgeId] = effectiveKey
@@ -946,7 +950,7 @@ class NotificationReaderService : NotificationListenerService() {
         if (!shouldAlertOnce) {
             ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
-            ShizukuManager.notify(this, bridgeId, notification)
+            NotificationManagerCompat.from(this).notify(bridgeId, notification)
         }
 
         activeTranslations[sbn.key] = bridgeId
