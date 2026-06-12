@@ -80,6 +80,7 @@ class NotificationReaderService : NotificationListenerService() {
     private var autoDetectDnd = false
 
     // --- CACHES ---
+    private val recentlyRemovedKeys = ConcurrentHashMap<String, Long>()
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
@@ -364,7 +365,7 @@ class NotificationReaderService : NotificationListenerService() {
     //  NOTIFICATION REMOVAL LOGIC
     // =========================================================================
 
-    override fun onNotificationRemoved(sbn: StatusBarNotification?) {
+    override fun onNotificationRemoved(sbn: StatusBarNotification?, rankingMap: RankingMap?, reason: Int) {
         sbn?.let {
             val isOurApp = it.packageName == packageName
             val notifId = it.id
@@ -374,6 +375,8 @@ class NotificationReaderService : NotificationListenerService() {
                 return
             }
 
+            recentlyRemovedKeys[notifKey] = System.currentTimeMillis()
+
             processingJobs[notifKey]?.cancel()
             processingJobs.remove(notifKey)
 
@@ -381,6 +384,12 @@ class NotificationReaderService : NotificationListenerService() {
             timeoutJobs.remove(notifKey)
 
             if (isOurApp) {
+                // Only process user-initiated dismissals for our notifications. 
+                // Ignore programmatic cancels (e.g., during updates or Shizuku workarounds).
+                if (reason != REASON_CANCEL && reason != REASON_CANCEL_ALL) {
+                    return
+                }
+
                 if (notifId >= WIDGET_ID_BASE) {
                     val widgetId = notifId - WIDGET_ID_BASE
                     dismissedWidgetIds.add(widgetId)
@@ -397,6 +406,11 @@ class NotificationReaderService : NotificationListenerService() {
                 if (originalKey != null) {
                     Log.d(TAG, "Our notification $notifId removed. Cleaning up cache for $originalKey")
                     // [FIX] We no longer kill the source notification when our Island is dismissed or timed out
+                    try {
+                        activeIslands[originalKey]?.deleteIntent?.send()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error sending delete intent for original notification", e)
+                    }
                     cleanupCache(originalKey)
                 }
                 return
@@ -416,7 +430,10 @@ class NotificationReaderService : NotificationListenerService() {
                                        islandType == NotificationType.NAVIGATION
 
                     if (finalConfig.dismissWithOriginal == true || forceDismiss) {
-                        kotlinx.coroutines.delay(300)
+                        // Debounce updates if the app canceled it programmatically
+                        if (reason == REASON_APP_CANCEL) {
+                            kotlinx.coroutines.delay(300)
+                        }
                         try {
                             NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
                         } catch (_: Exception) {}
@@ -719,7 +736,7 @@ class NotificationReaderService : NotificationListenerService() {
                 activeIslands[effectiveKey] = ActiveIsland(
                     id = bridgeId, type = type, postTime = System.currentTimeMillis(),
                     packageName = sbn.packageName, groupKey = sbn.groupKey, title = effectiveTitle, text = effectiveText,
-                    subText = "LiveUpdate", lastContentHash = newContentHash
+                    subText = "LiveUpdate", lastContentHash = newContentHash, deleteIntent = sbn.notification.deleteIntent
                 )
                 permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
 
@@ -746,6 +763,14 @@ class NotificationReaderService : NotificationListenerService() {
             val newContentHash = data.jsonParam.hashCode()
             if (isUpdate && previous != null && previous.lastContentHash == newContentHash) return
 
+            kotlinx.coroutines.yield()
+
+            val removedTime = recentlyRemovedKeys[rawSbn.key]
+            if (removedTime != null && System.currentTimeMillis() - removedTime < 2000) {
+                Log.d(TAG, "Skipping post because notification was recently removed: ${rawSbn.key}")
+                return
+            }
+
             val shouldAlertOnce = isUpdate && (type == NotificationType.PROGRESS || type == NotificationType.DOWNLOAD || type == NotificationType.MEDIA)
 
             Log.i(TAG, " POSTING Island -> ID: $bridgeId, Type: $type, FinalTitle: '$effectiveTitle', FinalText: '$effectiveText'")
@@ -754,7 +779,7 @@ class NotificationReaderService : NotificationListenerService() {
             activeIslands[effectiveKey] = ActiveIsland(
                 id = bridgeId, type = type, postTime = System.currentTimeMillis(),
                 packageName = sbn.packageName, groupKey = sbn.groupKey, title = effectiveTitle, text = effectiveText,
-                subText = "", lastContentHash = newContentHash
+                subText = "", lastContentHash = newContentHash, deleteIntent = sbn.notification.deleteIntent
             )
             permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
 
@@ -1121,6 +1146,9 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun syncNotifications() {
+        val now = System.currentTimeMillis()
+        recentlyRemovedKeys.entries.removeIf { now - it.value > 10000 }
+
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val currentNotifications = activeNotifications ?: return@launch

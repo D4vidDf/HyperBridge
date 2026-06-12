@@ -11,5 +11,6 @@ data class ActiveIsland(
     val text: String,
     val subText: String,
     // Used for Deduplication
-    val lastContentHash: Int
+    val lastContentHash: Int,
+    val deleteIntent: android.app.PendingIntent? = null
 )
