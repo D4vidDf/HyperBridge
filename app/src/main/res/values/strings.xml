@@ -694,6 +694,9 @@
         <b>Messaging Grouping Overhaul</b>\n
               • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
         <b>Fixes &amp; Stability</b>\n
+              • <b>Instant Removal:</b> Islands now respond instantly when you dismiss a notification from your phone or watch.\n
+              • <b>Live Updates:</b> Swiping away Live Update islands now correctly stops their background tasks.\n
+              • <b>Ghost Islands:</b> Fixed stuck islands for calls, media, and Chrome downloads.\n
               • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
               • <b>Defaults:</b> Disabled "Show in shade" by default on the onboarding screen.\n
     </string>
