@@ -114,10 +114,12 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var widgetTranslator: WidgetTranslator
     private lateinit var liveUpdateTranslator: LiveUpdateTranslator
 
-    private val userUnlockedReceiver = object : BroadcastReceiver() {
+    private val systemReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_USER_UNLOCKED) {
                 WidgetManager.init(this@NotificationReaderService)
+            } else if (intent.action == Intent.ACTION_SCREEN_ON) {
+                syncNotifications()
             }
         }
     }
@@ -154,7 +156,8 @@ class NotificationReaderService : NotificationListenerService() {
         super.onCreate()
         
         val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
-        registerReceiver(userUnlockedReceiver, filter)
+        filter.addAction(Intent.ACTION_SCREEN_ON)
+        registerReceiver(systemReceiver, filter)
         
         val clickFilter = IntentFilter("com.d4viddf.hyperbridge.ISLAND_CLICKED")
         androidx.core.content.ContextCompat.registerReceiver(
@@ -407,7 +410,12 @@ class NotificationReaderService : NotificationListenerService() {
                     val globalConfig = preferences.getGlobalConfigSync()
                     val finalConfig = appConfig.mergeWith(globalConfig)
 
-                    if (finalConfig.dismissWithOriginal == true) {
+                    val islandType = activeIslands[notifKey]?.type
+                    val forceDismiss = islandType == NotificationType.CALL || 
+                                       islandType == NotificationType.MEDIA || 
+                                       islandType == NotificationType.NAVIGATION
+
+                    if (finalConfig.dismissWithOriginal == true || forceDismiss) {
                         kotlinx.coroutines.delay(300)
                         try {
                             NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
@@ -1099,11 +1107,63 @@ class NotificationReaderService : NotificationListenerService() {
     private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
     private fun isAppAllowed(packageName: String): Boolean = allowedPackageSet.contains(packageName)
 
-    override fun onListenerConnected() { Log.i(TAG, "HyperBridge Service Connected") }
+    private var syncJob: Job? = null
+
+    override fun onListenerConnected() { 
+        Log.i(TAG, "HyperBridge Service Connected")
+        syncJob?.cancel()
+        syncJob = serviceScope.launch {
+            while (true) {
+                delay(60_000) // 1 minute periodic sync
+                syncNotifications()
+            }
+        }
+    }
+
+    private fun syncNotifications() {
+        serviceScope.launch(Dispatchers.IO) {
+            try {
+                val currentNotifications = activeNotifications ?: return@launch
+                val currentKeys = currentNotifications.map { it.key }.toSet()
+                
+                val keysToRemove = mutableListOf<String>()
+                for ((originalKey, activeIsland) in activeIslands) {
+                    if (!currentKeys.contains(originalKey)) {
+                        val appConfig = preferences.getAppIslandConfigSync(activeIsland.packageName)
+                        val globalConfig = preferences.getGlobalConfigSync()
+                        val finalConfig = appConfig.mergeWith(globalConfig)
+
+                        val forceDismiss = activeIsland.type == NotificationType.CALL || 
+                                           activeIsland.type == NotificationType.MEDIA || 
+                                           activeIsland.type == NotificationType.NAVIGATION
+
+                        if (finalConfig.dismissWithOriginal == true || forceDismiss) {
+                            keysToRemove.add(originalKey)
+                        }
+                    }
+                }
+
+                for (key in keysToRemove) {
+                    Log.d(TAG, "Sync: Found stuck notification $key, removing.")
+                    val hyperId = activeTranslations[key]
+                    if (hyperId != null) {
+                        try {
+                            NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
+                        } catch (_: Exception) {}
+                    }
+                    cleanupCache(key)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error syncing notifications", e)
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(userUnlockedReceiver)
+        unregisterReceiver(systemReceiver)
         unregisterReceiver(islandClickReceiver)
+        syncJob?.cancel()
         serviceScope.cancel() 
     }
 }
