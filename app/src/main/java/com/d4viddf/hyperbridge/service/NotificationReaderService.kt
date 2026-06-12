@@ -605,6 +605,32 @@ class NotificationReaderService : NotificationListenerService() {
                 }
             }
 
+            if (!isUpdate && (type == NotificationType.DOWNLOAD || type == NotificationType.PROGRESS)) {
+                val existingEntry = activeIslands.entries.find {
+                    it.value.packageName == sbn.packageName &&
+                    (it.value.type == NotificationType.DOWNLOAD || it.value.type == NotificationType.PROGRESS) &&
+                    it.value.title == effectiveTitle
+                }
+
+                if (existingEntry != null) {
+                    val oldKey = existingEntry.key
+                    bridgeId = existingEntry.value.id
+                    effectiveKey = oldKey
+                    isUpdate = true
+
+                    activeIslands.remove(oldKey)
+                    activeTranslations.remove(oldKey)
+                    timeoutJobs[oldKey]?.cancel()
+                    timeoutJobs.remove(oldKey)
+                    removalJobs[oldKey]?.cancel()
+                    removalJobs.remove(oldKey)
+
+                    effectiveKey = key
+                    activeTranslations[effectiveKey] = bridgeId
+                    reverseTranslations[bridgeId] = effectiveKey
+                }
+            }
+
             if (!isUpdate && activeIslands.size >= MAX_ISLANDS) {
                 handleLimitReached(type, sbn.packageName)
                 if (activeIslands.size >= MAX_ISLANDS) return
