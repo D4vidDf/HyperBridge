@@ -1137,6 +1137,11 @@ class NotificationReaderService : NotificationListenerService() {
                                            activeIsland.type == NotificationType.MEDIA || 
                                            activeIsland.type == NotificationType.NAVIGATION
 
+                        // If the app intentionally removes the original notification, it's expected to be missing from currentKeys.
+                        if (!forceDismiss && finalConfig.removeOriginalNotification == true) {
+                            continue
+                        }
+
                         if (finalConfig.dismissWithOriginal == true || forceDismiss) {
                             keysToRemove.add(originalKey)
                         }
