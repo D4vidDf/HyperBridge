@@ -85,6 +85,7 @@ class NotificationReaderService : NotificationListenerService() {
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
     private val processingJobs = ConcurrentHashMap<String, Job>()
     private val timeoutJobs = ConcurrentHashMap<String, Job>()
+    private val removalJobs = ConcurrentHashMap<String, Job>()
     private lateinit var permanentIslandManager: PermanentIslandManager
     private val intentionallyRemovedKeys = ConcurrentHashMap.newKeySet<String>()
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
@@ -401,21 +402,21 @@ class NotificationReaderService : NotificationListenerService() {
             if (activeTranslations.containsKey(notifKey)) {
                 val hyperId = activeTranslations[notifKey] ?: return
 
-                serviceScope.launch(Dispatchers.IO) {
+                val job = serviceScope.launch(Dispatchers.IO) {
                     val appConfig = preferences.getAppIslandConfigSync(sbn.packageName)
                     val globalConfig = preferences.getGlobalConfigSync()
                     val finalConfig = appConfig.mergeWith(globalConfig)
 
                     if (finalConfig.dismissWithOriginal == true) {
                         kotlinx.coroutines.delay(300)
-                        if (!activeTranslations.containsValue(hyperId)) {
-                            try {
-                                NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
-                            } catch (_: Exception) {}
-                            cleanupCache(notifKey)
-                        }
+                        try {
+                            NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
+                        } catch (_: Exception) {}
+                        cleanupCache(notifKey)
                     }
+                    removalJobs.remove(notifKey)
                 }
+                removalJobs[notifKey] = job
             }
         }
     }
@@ -575,6 +576,8 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             var effectiveKey = key
+            removalJobs[effectiveKey]?.cancel()
+            removalJobs.remove(effectiveKey)
             var isUpdate = activeIslands.containsKey(effectiveKey)
             var bridgeId = sbn.key.hashCode()
 
