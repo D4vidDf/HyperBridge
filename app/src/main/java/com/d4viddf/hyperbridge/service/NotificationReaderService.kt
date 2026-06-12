@@ -121,12 +121,47 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
+    private val islandClickReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "com.d4viddf.hyperbridge.ISLAND_CLICKED") {
+                val sbnKey = intent.getStringExtra("sbn_key")
+                val bridgeId = intent.getIntExtra("bridge_id", -1)
+                @Suppress("DEPRECATION")
+                val originalIntent = intent.getParcelableExtra<PendingIntent>("original_intent")
+
+                if (originalIntent != null) {
+                    try {
+                        originalIntent.send()
+                    } catch (e: PendingIntent.CanceledException) {
+                        Log.e("HyperBridge", "PendingIntent canceled", e)
+                    }
+                }
+
+                if (sbnKey != null) {
+                    cancelNotification(sbnKey)
+                }
+
+                if (bridgeId != -1) {
+                    ShizukuManager.cancel(context, bridgeId)
+                }
+            }
+        }
+    }
+
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onCreate() {
         super.onCreate()
         
         val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
         registerReceiver(userUnlockedReceiver, filter)
+        
+        val clickFilter = IntentFilter("com.d4viddf.hyperbridge.ISLAND_CLICKED")
+        androidx.core.content.ContextCompat.registerReceiver(
+            this,
+            islandClickReceiver,
+            clickFilter,
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         
         preferences = AppPreferences(applicationContext)
         createChannels()
@@ -853,7 +888,25 @@ class NotificationReaderService : NotificationListenerService() {
                 pendingIntent
             )
         } else {
-            sbn.notification.contentIntent?.let { builder.setContentIntent(it) }
+            sbn.notification.contentIntent?.let { originalIntent ->
+                if (detectNotificationType(sbn) == NotificationType.MESSAGE) {
+                    val clickIntent = Intent("com.d4viddf.hyperbridge.ISLAND_CLICKED").apply {
+                        setPackage(packageName)
+                        putExtra("sbn_key", sbn.key)
+                        putExtra("bridge_id", bridgeId)
+                        putExtra("original_intent", originalIntent)
+                    }
+                    val clickPendingIntent = PendingIntent.getBroadcast(
+                        this,
+                        bridgeId,
+                        clickIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    builder.setContentIntent(clickPendingIntent)
+                } else {
+                    builder.setContentIntent(originalIntent)
+                }
+            }
         }
 
         val notification = builder.build()
@@ -1005,9 +1058,10 @@ class NotificationReaderService : NotificationListenerService() {
     private fun isAppAllowed(packageName: String): Boolean = allowedPackageSet.contains(packageName)
 
     override fun onListenerConnected() { Log.i(TAG, "HyperBridge Service Connected") }
-    override fun onDestroy() { 
+    override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(userUnlockedReceiver)
+        unregisterReceiver(islandClickReceiver)
         serviceScope.cancel() 
     }
 }
