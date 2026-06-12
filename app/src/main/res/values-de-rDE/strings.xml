@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hyper Bridge</string>
-    <string name="back">Zurück</string>
+    <string name="back">ZurÃ¼ck</string>
     <string name="next">Weiter</string>
     <string name="finish">Fertigstellen</string>
     <string name="done">Fertig</string>
     <string name="logo_desc">App-Logo</string>
     <string name="settings">Einstellungen</string>
     <string name="configure">Konfigurieren</string>
-    <string name="clear">Löschen</string>
+    <string name="clear">LÃ¶schen</string>
     <string name="sort_order">Sortierreihenfolge</string>
     <string name="welcome_title">Willkommen bei\nHyper Bridge</string>
     <string name="welcome_subtitle">Integriere HyperIslands nahtlos in dein HyperOS-Erlebnis.</string>
-    <string name="get_started">Los geht’s</string>
+    <string name="get_started">Los gehtâ€™s</string>
     <string name="how_it_works">Wie es funktioniert</string>
-    <string name="how_it_works_desc">Wähle deine Lieblings-Apps (Spotify, Karten, Timer). HyperBridge verwandelt deren Benachrichtigungen in eine elegante HyperIsland.</string>
-    <string name="beta_warning">Hinweis: Diese App befindet sich in der Beta-Phase. Fehler oder falsche visuelle Inhalte können auftreten.</string>
-    <string name="device_compatible">Kompatibles Gerät</string>
-    <string name="unsupported_device">Nicht unterstütztes Gerät</string>
-    <string name="compatible_msg">Dein Gerät scheint HyperOS/MIUI auszuführen. Alles bereit!</string>
+    <string name="how_it_works_desc">WÃ¤hle deine Lieblings-Apps (Spotify, Karten, Timer). HyperBridge verwandelt deren Benachrichtigungen in eine elegante HyperIsland.</string>
+    <string name="beta_warning">Hinweis: Diese App befindet sich in der Beta-Phase. Fehler oder falsche visuelle Inhalte kÃ¶nnen auftreten.</string>
+    <string name="device_compatible">Kompatibles GerÃ¤t</string>
+    <string name="unsupported_device">Nicht unterstÃ¼tztes GerÃ¤t</string>
+    <string name="compatible_msg">Dein GerÃ¤t scheint HyperOS/MIUI auszufÃ¼hren. Alles bereit!</string>
     <string name="show_island">Island anzeigen</string>
-    <string name="perm_post_desc">Wir benötigen die Berechtigung, die „Island“-Benachrichtigung auf deinem Bildschirm anzuzeigen.</string>
-    <string name="perm_granted">✅ Berechtigung erteilt</string>
+    <string name="perm_post_desc">Wir benÃ¶tigen die Berechtigung, die â€žIslandâ€œ-Benachrichtigung auf deinem Bildschirm anzuzeigen.</string>
+    <string name="perm_granted">âœ… Berechtigung erteilt</string>
     <string name="allow_notifications">Benachrichtigungen erlauben</string>
     <string name="read_data">Daten lesen</string>
-    <string name="perm_listener_desc">Um deine Apps zu verbinden, müssen wir deren Benachrichtigungen lesen (Musik, Karten, Timer).</string>
-    <string name="open_settings">Einstellungen öffnen</string>
-    <string name="optimization_desc">HyperOS beendet Hintergrund-Apps. Aktiviere Autostart und „Keine Einschränkungen“, damit die Island aktiv bleibt.</string>
+    <string name="perm_listener_desc">Um deine Apps zu verbinden, mÃ¼ssen wir deren Benachrichtigungen lesen (Musik, Karten, Timer).</string>
+    <string name="open_settings">Einstellungen Ã¶ffnen</string>
+    <string name="optimization_desc">HyperOS beendet Hintergrund-Apps. Aktiviere Autostart und â€žKeine EinschrÃ¤nkungenâ€œ, damit die Island aktiv bleibt.</string>
     <string name="enable_autostart">1. Autostart aktivieren</string>
-    <string name="set_battery_no_restrictions">2. Akku: „Keine Einschränkungen“</string>
+    <string name="set_battery_no_restrictions">2. Akku: â€žKeine EinschrÃ¤nkungenâ€œ</string>
     <string name="tab_active">Aktiv</string>
     <string name="tab_library">Bibliothek</string>
     <string name="search_hint">Search apps…</string>
     <string name="no_active_bridges">Keine aktiven Bridges</string>
-    <string name="no_active_bridges_desc">Öffne die Bibliothek, um Apps zu aktivieren.</string>
+    <string name="no_active_bridges_desc">Ã–ffne die Bibliothek, um Apps zu aktivieren.</string>
     <string name="no_apps_found">Keine Apps gefunden</string>
     <string name="version_template">Version %s</string>
     <string name="developer_credit">von D4vidDf</string>
@@ -45,7 +45,7 @@
     <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
     <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
     <string name="permanent_island_width">Island Width</string>
-    <string name="group_about">Über</string>
+    <string name="group_about">Ãœber</string>
     <string name="developer">Entwickler</string>
     <string name="developer_subtitle">Besuche d4viddf.com</string>
     <string name="source_code">Quellcode</string>
@@ -53,22 +53,23 @@
     <string name="licenses">Open-Source-Lizenzen</string>
     <string name="licenses_subtitle">Software von Drittanbietern</string>
     <string name="footer_made_with_love">Mit ❤️ in Spanien erstellt</string>
-    <string name="app_health_desc">Stelle sicher, dass alle Prüfungen grün sind, damit die App korrekt im Hintergrund läuft.</string>
+    <string name="app_health_desc">Stelle sicher, dass alle PrÃ¼fungen grÃ¼n sind, damit die App korrekt im Hintergrund lÃ¤uft.</string>
     <string name="req_permissions">Erforderliche Berechtigungen</string>
     <string name="notif_access">Benachrichtigungszugriff</string>
     <string name="notif_access_desc">Erforderlich zum Lesen von App-Ereignissen</string>
-    <string name="device_optimization">Geräteoptimierung</string>
+    <string name="device_optimization">GerÃ¤teoptimierung</string>
     <string name="xiaomi_autostart">Xiaomi-Autostart</string>
-    <string name="battery_unrestricted">Akku ohne Einschränkungen</string>
+    <string name="battery_unrestricted">Akku ohne EinschrÃ¤nkungen</string>
     <string name="battery_desc">Verhindert, dass das System die App beendet</string>
-    <string name="recents_note">Hinweis: Fixiere die App zusätzlich im „Zuletzt verwendet“-Menü.</string>
+    <string name="recents_note">Hinweis: Fixiere die App zusÃ¤tzlich im â€žZuletzt verwendetâ€œ-MenÃ¼.</string>
     <string name="status_active">Aktiv</string>
     <string name="cat_all">Alle</string>
     <string name="cat_music">Musik</string>
     <string name="cat_nav">Navigation</string>
-    <string name="cat_timer">Produktivität</string>
+    <string name="cat_timer">ProduktivitÃ¤t</string>
     <string name="cat_other">Andere</string>
     <string name="type_standard">Nachrichten &amp; Allgemein</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
     <string name="type_media">Musik &amp; Medien</string>
@@ -87,7 +88,7 @@
         <item>successful</item>
         <item>succeeded</item>
     </string-array>
-    <string name="status_now_playing">Jetzt läuft</string>
+    <string name="status_now_playing">Jetzt lÃ¤uft</string>
     <string name="fallback_timer">Timer</string>
     <string name="whats_new_title">Neu in %s</string>
     <string name="awesome">Super!</string>
@@ -95,18 +96,18 @@
     <string name="limit_strategy">Grenzstrategie</string>
     <string name="limit_desc">Was passiert, wenn 9 Islands erreicht sind?</string>
     <string name="mode_fcfs_title">First Come, First Served</string>
-    <string name="mode_fcfs_desc">Behält die ersten 9 Benachrichtigungen. Neue werden ignoriert, bis Platz frei wird.</string>
+    <string name="mode_fcfs_desc">BehÃ¤lt die ersten 9 Benachrichtigungen. Neue werden ignoriert, bis Platz frei wird.</string>
     <string name="mode_recent_title">Neueste zuerst (Standard)</string>
-    <string name="mode_recent_desc">Neue Benachrichtigungen ersetzen die ältesten.</string>
-    <string name="mode_priority_title">Eigene Priorität</string>
+    <string name="mode_recent_desc">Neue Benachrichtigungen ersetzen die Ã¤ltesten.</string>
+    <string name="mode_priority_title">Eigene PrioritÃ¤t</string>
     <string name="mode_priority_desc">Bestimme, welche Typen (z. B. Anrufe) wichtiger sind.</string>
-    <string name="priority_order">Prioritätsreihenfolge</string>
-    <string name="priority_order_desc">Hohe Priorität (oben) ersetzt niedrige (unten).</string>
+    <string name="priority_order">PrioritÃ¤tsreihenfolge</string>
+    <string name="priority_order_desc">Hohe PrioritÃ¤t (oben) ersetzt niedrige (unten).</string>
     <string name="configure_order">Reihenfolge anpassen</string>
     <string name="global_settings">Globale Einstellungen</string>
     <string name="island_appearance">Island-Aussehen</string>
     <string name="setting_float">Heads-Up-Popup</string>
-    <string name="setting_float_desc">Zeigt kurz das vollständige Banner an, bevor es minimiert wird.</string>
+    <string name="setting_float_desc">Zeigt kurz das vollstÃ¤ndige Banner an, bevor es minimiert wird.</string>
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
     <string name="setting_shade">Benachrichtigungsleiste</string>
     <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
@@ -135,11 +136,11 @@
         • &lt;b&gt;Neue Bibliothek:&lt;/b&gt; Filter nach Kategorien und Sortierung.\n
         • &lt;b&gt;Lokalisierung:&lt;/b&gt; Spanische Übersetzung hinzugefügt.\n
     </string>
-    <string name="priority_edu_title">Neu: Kontrolle über die Island</string>
-    <string name="priority_edu_desc">HyperBridge kann jetzt steuern, wie mehrere Benachrichtigungen behandelt werden, wenn der 9-Island-Grenzwert erreicht ist.\n\n&lt;b&gt;Standard: Neueste&lt;/b&gt;\nNeue Benachrichtigungen ersetzen automatisch ältere.</string>
+    <string name="priority_edu_title">Neu: Kontrolle Ã¼ber die Island</string>
+    <string name="priority_edu_desc">HyperBridge kann jetzt steuern, wie mehrere Benachrichtigungen behandelt werden, wenn der 9-Island-Grenzwert erreicht ist.\n\n&lt;b&gt;Standard: Neueste&lt;/b&gt;\nNeue Benachrichtigungen ersetzen automatisch Ã¤ltere.</string>
     <string name="badge_new">NEU</string>
     <string name="nav_layout_title">Navigationslayout</string>
-    <string name="nav_layout_desc">Wähle, wo Informationen angezeigt werden</string>
+    <string name="nav_layout_desc">WÃ¤hle, wo Informationen angezeigt werden</string>
     <string name="left_content">Linke Seite</string>
     <string name="right_content">Rechte Seite</string>
     <string name="nav_content_instruction">Anweisung</string>
@@ -148,41 +149,41 @@
     <string name="nav_content_distance_eta">Entfernung &amp; Zeit</string>
     <string name="nav_content_none">Leer</string>
     <string name="channel_active_islands">Aktive Islands</string>
-    <string name="cd_enable_type">Benachrichtigungen „%s“ aktivieren</string>
-    <string name="cd_disable_type">Benachrichtigungen „%s“ deaktivieren</string>
+    <string name="cd_enable_type">Benachrichtigungen â€ž%sâ€œ aktivieren</string>
+    <string name="cd_disable_type">Benachrichtigungen â€ž%sâ€œ deaktivieren</string>
     <string name="cd_nav_edit">Navigationslayout bearbeiten</string>
     <string name="cd_app_state_active">Aktiv</string>
     <string name="cd_app_state_inactive">Inaktiv</string>
     <string name="cd_move_up">Element nach oben</string>
     <string name="cd_move_down">Element nach unten</string>
     <string name="cd_drag_handle">Ziehgriff. Doppelt tippen und halten, um neu anzuordnen, oder Aktionen verwenden.</string>
-    <string name="cd_app_icon">App-Symbol für %s</string>
+    <string name="cd_app_icon">App-Symbol fÃ¼r %s</string>
     <string name="cd_nav_preview">Navigation: links %1$s, rechts %2$s</string>
-    <string name="cd_expand_changelog">Versionsdetails öffnen</string>
-    <string name="cd_collapse_changelog">Versionsdetails schließen</string>
+    <string name="cd_expand_changelog">Versionsdetails Ã¶ffnen</string>
+    <string name="cd_collapse_changelog">Versionsdetails schlieÃŸen</string>
     <string name="nav_preview_instruction">Rechts abbiegen</string>
     <string name="nav_preview_distance">200 m</string>
     <string name="nav_preview_time">10:30</string>
     <string name="blocked_terms">Blockierte Begriffe</string>
-    <string name="blocked_terms_desc">Benachrichtigungen mit diesen Wörtern werden ignoriert.</string>
-    <string name="add_blocked_word">Wort hinzufügen (z. B. „Spoiler“)</string>
-    <string name="add">Hinzufügen</string>
+    <string name="blocked_terms_desc">Benachrichtigungen mit diesen WÃ¶rtern werden ignoriert.</string>
+    <string name="add_blocked_word">Wort hinzufÃ¼gen (z. B. â€žSpoilerâ€œ)</string>
+    <string name="add">HinzufÃ¼gen</string>
     <string name="remove">Entfernen</string>
     <string name="spoiler_subtitle">Spoiler-Schutz &amp; Filter verwalten</string>
     <string name="active_notifications_title">Benachrichtigungstypen</string>
     <string name="active_notifications_subtitle">%d aktiv</string>
-    <string name="appearance_use_defaults_desc">Systemstandards für Animation und Verhalten werden verwendet.</string>
+    <string name="appearance_use_defaults_desc">Systemstandards fÃ¼r Animation und Verhalten werden verwendet.</string>
     <string name="blocked_terms_active_count">%d aktive Regeln</string>
     <string name="global_rules">Globale Regeln</string>
     <string name="app_specific_rules">App-spezifische Regeln</string>
-    <string name="manage_app_rules_desc">Filter für einzelne Apps anpassen</string>
+    <string name="manage_app_rules_desc">Filter fÃ¼r einzelne Apps anpassen</string>
     <string name="blocked_terms_count">%d blockierte Begriffe</string>
     <string name="no_active_rules">Keine aktiven Regeln</string>
-    <string name="setup_health_title">Systemkompatibilität</string>
+    <string name="setup_health_title">SystemkompatibilitÃ¤t</string>
     <string name="req_hyperos">Erfordert HyperOS 3.0+ (Android 15+)</string>
-    <string name="req_xiaomi">Xiaomi/Redmi/Poco-Gerät erforderlich</string>
+    <string name="req_xiaomi">Xiaomi/Redmi/Poco-GerÃ¤t erforderlich</string>
     <string name="warning_cn_rom_title">Chinesische ROM erkannt</string>
-    <string name="warning_cn_rom_desc">Dein Gerät scheint eine chinesische Firmware zu verwenden. Xiaomi verändert dort die Benachrichtigungslogik stark. Funktionen können instabil sein oder nicht funktionieren.</string>
+    <string name="warning_cn_rom_desc">Dein GerÃ¤t scheint eine chinesische Firmware zu verwenden. Xiaomi verÃ¤ndert dort die Benachrichtigungslogik stark. Funktionen kÃ¶nnen instabil sein oder nicht funktionieren.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
@@ -193,7 +194,7 @@
     <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
     <string name="system_version">Systemversion</string>
     <string name="call_incoming">Eingehender Anruf</string>
-    <string name="call_ongoing">Aktives Gespräch</string>
+    <string name="call_ongoing">Aktives GesprÃ¤ch</string>
     <string-array name="call_keywords_hangup">
         <item>hang</item>
         <item>end</item>
@@ -231,35 +232,35 @@
         • Verbesserte Kompatibilitätsprüfung mit detaillierten Geräteinformationen.
     </string>
     <string name="privacy_title">100% Offline &amp; Sicher</string>
-    <string name="privacy_desc">Hyper Bridge verarbeitet alles direkt auf dem Prozessor Ihres Telefons.\n\nEs benötigt KEINEN Internetzugang, was bedeutet, dass Ihre Benachrichtigungen und persönlichen Daten Ihr Gerät niemals verlassen.</string>
+    <string name="privacy_desc">Hyper Bridge verarbeitet alles direkt auf dem Prozessor Ihres Telefons.\n\nEs benÃ¶tigt KEINEN Internetzugang, was bedeutet, dass Ihre Benachrichtigungen und persÃ¶nlichen Daten Ihr GerÃ¤t niemals verlassen.</string>
     <string name="language">Sprache</string>
-    <string name="language_desc">Anwendungssprache ändern</string>
+    <string name="language_desc">Anwendungssprache Ã¤ndern</string>
     <string name="system_default">Systemsprache</string>
     <string name="save">Speichern</string>
     <string name="backup_restore_title">Backup &amp; Wiederherstellung</string>
     <string name="backup_section_title">Datenverwaltung</string>
-    <string name="backup_options_subtitle">Wählen Sie die Daten aus, die in den Vorgang aufgenommen werden sollen</string>
+    <string name="backup_options_subtitle">WÃ¤hlen Sie die Daten aus, die in den Vorgang aufgenommen werden sollen</string>
     <string name="option_app_settings">App-Einstellungen</string>
     <string name="option_app_settings_desc">Einrichtungsstatus, Theme, Verhaltensmodi</string>
     <string name="option_blocklist">Blocklisten-Datenbank</string>
-    <string name="option_blocklist_desc">Ihre benutzerdefinierten blockierten Schlüsselwörter und Apps</string>
-    <string name="option_priorities">Prioritätsregeln</string>
-    <string name="option_priorities_desc">Benutzerdefinierte Prioritätskonfigurationen für Benachrichtigungen</string>
+    <string name="option_blocklist_desc">Ihre benutzerdefinierten blockierten SchlÃ¼sselwÃ¶rter und Apps</string>
+    <string name="option_priorities">PrioritÃ¤tsregeln</string>
+    <string name="option_priorities_desc">Benutzerdefinierte PrioritÃ¤tskonfigurationen fÃ¼r Benachrichtigungen</string>
     <string name="action_export">Backup erstellen</string>
     <string name="action_import">Backup wiederherstellen</string>
     <string name="export_success">Backup erfolgreich gespeichert</string>
     <string name="export_failed">Backup fehlgeschlagen: %s</string>
     <string name="import_success">Daten erfolgreich wiederhergestellt</string>
     <string name="import_failed">Wiederherstellung fehlgeschlagen: %s</string>
-    <string name="autostart_manual_check">Status kann nicht automatisch überprüft werden.\nBitte prüfen Sie dies manuell, um einen ordnungsgemäßen Betrieb des Dienstes sicherzustellen</string>
+    <string name="autostart_manual_check">Status kann nicht automatisch Ã¼berprÃ¼ft werden.\nBitte prÃ¼fen Sie dies manuell, um einen ordnungsgemÃ¤ÃŸen Betrieb des Dienstes sicherzustellen</string>
     <string name="backup_info_title">Backup-Informationen</string>
     <string name="backup_meta_date">Datum</string>
-    <string name="backup_meta_device">Gerät</string>
+    <string name="backup_meta_device">GerÃ¤t</string>
     <string name="backup_meta_version">Version</string>
     <string name="backup_meta_keys">Gesamtanzahl</string>
     <string name="backup_empty_suffix"> (Leer)</string>
-    <string name="action_restore_selected">Ausgewählte Daten wiederherstellen</string>
-    <string name="optimization_title">Geräteoptimierung</string>
+    <string name="action_restore_selected">AusgewÃ¤hlte Daten wiederherstellen</string>
+    <string name="optimization_title">GerÃ¤teoptimierung</string>
     <string name="privacy_card_title">Offline zuerst</string>
     <string name="privacy_card_desc">Keine Internetverbindung erforderlich.</string>
     <string name="title_0_3_1">Sicherung &amp; Polyglott-Update</string>
@@ -525,6 +526,7 @@
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_message_desc">Messages, chats, and conversations</string>
     <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
     <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
@@ -573,6 +575,13 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_5">        <b>Messaging Grouping Overhaul</b>\n
+              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
+        <b>Fixes &amp; Stability</b>\n
+              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
+              • <b>Defaults:</b> Disabled \"Show in shade\" by default on the onboarding screen.\n
+    </string>
+    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
     <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
               ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
               ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n

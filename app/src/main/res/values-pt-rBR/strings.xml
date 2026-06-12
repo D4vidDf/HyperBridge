@@ -2,85 +2,86 @@
 <resources>
     <string name="app_name">Hyper Bridge</string>
     <string name="back">Voltar</string>
-    <string name="next">Próximo</string>
+    <string name="next">PrÃ³ximo</string>
     <string name="finish">Finalizar</string>
     <string name="done">Pronto</string>
     <string name="logo_desc">Logo do App</string>
-    <string name="settings">Configurações</string>
+    <string name="settings">ConfiguraÃ§Ãµes</string>
     <string name="configure">Configurar</string>
     <string name="clear">Limpar</string>
-    <string name="sort_order">Ordem de Classificação</string>
+    <string name="sort_order">Ordem de ClassificaÃ§Ã£o</string>
     <string name="welcome_title">Bem-vindo(a) ao\nHyper Bridge</string>
-    <string name="welcome_subtitle">Integre Ilhas Dinâmicas perfeitamente à sua experiência no HyperOS.</string>
-    <string name="get_started">Começar</string>
+    <string name="welcome_subtitle">Integre Ilhas DinÃ¢micas perfeitamente Ã  sua experiÃªncia no HyperOS.</string>
+    <string name="get_started">ComeÃ§ar</string>
     <string name="how_it_works">Como Funciona</string>
-    <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Mapas, Timer). HyperBridge transforma as notificações em uma elegante Ilha Dinâmica.</string>
-    <string name="beta_warning">Nota: Este app está em Beta. Você pode encontrar bugs ou falhas visuais durante o uso.</string>
-    <string name="device_compatible">Dispositivo Compatível</string>
-    <string name="unsupported_device">Dispositivo Incompatível</string>
-    <string name="compatible_msg">Seu dispositivo parece estar executando a HyperOS/MIUI. Você está pronto para começar!</string>
+    <string name="how_it_works_desc">Selecione seus apps favoritos (Spotify, Mapas, Timer). HyperBridge transforma as notificaÃ§Ãµes em uma elegante Ilha DinÃ¢mica.</string>
+    <string name="beta_warning">Nota: Este app estÃ¡ em Beta. VocÃª pode encontrar bugs ou falhas visuais durante o uso.</string>
+    <string name="device_compatible">Dispositivo CompatÃ­vel</string>
+    <string name="unsupported_device">Dispositivo IncompatÃ­vel</string>
+    <string name="compatible_msg">Seu dispositivo parece estar executando a HyperOS/MIUI. VocÃª estÃ¡ pronto para comeÃ§ar!</string>
     <string name="show_island">Mostrar Ilha</string>
-    <string name="perm_post_desc">Precisamos da permissão para mostrar a notificação da \'Ilha\' na sua tela.</string>
-    <string name="perm_granted">Permissão Concedida</string>
-    <string name="allow_notifications">Permitir Notificações</string>
+    <string name="perm_post_desc">Precisamos da permissÃ£o para mostrar a notificaÃ§Ã£o da \'Ilha\' na sua tela.</string>
+    <string name="perm_granted">PermissÃ£o Concedida</string>
+    <string name="allow_notifications">Permitir NotificaÃ§Ãµes</string>
     <string name="read_data">Ler Dados</string>
-    <string name="perm_listener_desc">Para conectar seus aplicativos, precisamos ler suas notificações (Música, Mapas, Timers).</string>
-    <string name="open_settings">Abrir Configurações</string>
-    <string name="optimization_desc">A HyperOS encerra apps em segundo plano. Habilite o Início Automático e Nenhuma Restrição para manter a ilha ativa.</string>
-    <string name="enable_autostart">1. Ativar Início Automático</string>
-    <string name="set_battery_no_restrictions">2. Definir Bateria como \'Nenhuma restrição\'</string>
+    <string name="perm_listener_desc">Para conectar seus aplicativos, precisamos ler suas notificaÃ§Ãµes (MÃºsica, Mapas, Timers).</string>
+    <string name="open_settings">Abrir ConfiguraÃ§Ãµes</string>
+    <string name="optimization_desc">A HyperOS encerra apps em segundo plano. Habilite o InÃ­cio AutomÃ¡tico e Nenhuma RestriÃ§Ã£o para manter a ilha ativa.</string>
+    <string name="enable_autostart">1. Ativar InÃ­cio AutomÃ¡tico</string>
+    <string name="set_battery_no_restrictions">2. Definir Bateria como \'Nenhuma restriÃ§Ã£o\'</string>
     <string name="tab_active">Ativo</string>
     <string name="tab_library">Biblioteca</string>
     <string name="search_hint">Pesquisar apps...</string>
     <string name="no_active_bridges">Nenhuma Ponte Ativa</string>
-    <string name="no_active_bridges_desc">Vá para a Biblioteca para ativar os apps.</string>
+    <string name="no_active_bridges_desc">VÃ¡ para a Biblioteca para ativar os apps.</string>
     <string name="no_apps_found">Nenhum app encontrado</string>
-    <string name="version_template">Versão %s</string>
+    <string name="version_template">VersÃ£o %s</string>
     <string name="developer_credit">por D4vidDf</string>
-    <string name="group_configuration">Configuração</string>
-    <string name="system_setup">Configuração do Sistema</string>
-    <string name="system_setup_subtitle">Corrigir permissões e bateria</string>
+    <string name="group_configuration">ConfiguraÃ§Ã£o</string>
+    <string name="system_setup">ConfiguraÃ§Ã£o do Sistema</string>
+    <string name="system_setup_subtitle">Corrigir permissÃµes e bateria</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Ilha Permanente</string>
-    <string name="permanent_island_desc">Mantenha a Ilha Dinâmica permanentemente visível na tela quando não houver notificações ativas.</string>
-    <string name="permanent_island_screen_desc">Quando ativada, uma Ilha Dinâmica vazia será exibida permanentemente na sua tela. Ela se ocultará automaticamente quando notificações reais chegarem e reaparecerá quando todas as notificações forem apagadas. Ela não ficará visível na sua área de notificações.</string>
+    <string name="permanent_island_desc">Mantenha a Ilha DinÃ¢mica permanentemente visÃ­vel na tela quando nÃ£o houver notificaÃ§Ãµes ativas.</string>
+    <string name="permanent_island_screen_desc">Quando ativada, uma Ilha DinÃ¢mica vazia serÃ¡ exibida permanentemente na sua tela. Ela se ocultarÃ¡ automaticamente quando notificaÃ§Ãµes reais chegarem e reaparecerÃ¡ quando todas as notificaÃ§Ãµes forem apagadas. Ela nÃ£o ficarÃ¡ visÃ­vel na sua Ã¡rea de notificaÃ§Ãµes.</string>
     <string name="permanent_island_width">Largura da ilha</string>
     <string name="group_about">Sobre</string>
     <string name="developer">Desenvolvedor</string>
     <string name="developer_subtitle">Visite d4viddf.com</string>
-    <string name="source_code">Código Fonte</string>
-    <string name="source_code_subtitle">Repositório GitHub</string>
-    <string name="licenses">Licenças de Código Aberto</string>
+    <string name="source_code">CÃ³digo Fonte</string>
+    <string name="source_code_subtitle">RepositÃ³rio GitHub</string>
+    <string name="licenses">LicenÃ§as de CÃ³digo Aberto</string>
     <string name="licenses_subtitle">Software de terceiros</string>
     <string name="footer_made_with_love">Feito com ❤️ na Espanha</string>
-    <string name="app_health_desc">Certifique-se de que todas as verificações estejam verdes para que o app funcione corretamente em segundo plano.</string>
-    <string name="req_permissions">Permissões Necessárias</string>
-    <string name="notif_access">Acesso às Notificações</string>
-    <string name="notif_access_desc">Necessário para ler eventos de apps</string>
-    <string name="device_optimization">Otimização do Dispositivo</string>
-    <string name="xiaomi_autostart">Início Automático Xiaomi</string>
-    <string name="battery_unrestricted">Bateria Sem Restrições</string>
+    <string name="app_health_desc">Certifique-se de que todas as verificaÃ§Ãµes estejam verdes para que o app funcione corretamente em segundo plano.</string>
+    <string name="req_permissions">PermissÃµes NecessÃ¡rias</string>
+    <string name="notif_access">Acesso Ã s NotificaÃ§Ãµes</string>
+    <string name="notif_access_desc">NecessÃ¡rio para ler eventos de apps</string>
+    <string name="device_optimization">OtimizaÃ§Ã£o do Dispositivo</string>
+    <string name="xiaomi_autostart">InÃ­cio AutomÃ¡tico Xiaomi</string>
+    <string name="battery_unrestricted">Bateria Sem RestriÃ§Ãµes</string>
     <string name="battery_desc">Evitar que o sistema encerre o app</string>
-    <string name="recents_note">Nota: Também bloqueie o app no menu de \'Recentes\'.</string>
+    <string name="recents_note">Nota: TambÃ©m bloqueie o app no menu de \'Recentes\'.</string>
     <string name="status_active">Ativo</string>
     <string name="cat_all">Tudo</string>
-    <string name="cat_music">Música</string>
-    <string name="cat_nav">Navegação</string>
+    <string name="cat_music">MÃºsica</string>
+    <string name="cat_nav">NavegaÃ§Ã£o</string>
     <string name="cat_timer">Produtividade</string>
     <string name="cat_other">Outros</string>
     <string name="type_standard">Mensagens e Geral</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Downloads e Progresso</string>
-    <string name="type_download">Transferências</string>
-    <string name="type_media">Música e Mídia</string>
+    <string name="type_download">TransferÃªncias</string>
+    <string name="type_media">MÃºsica e MÃ­dia</string>
     <string name="type_nav">Mapas e GPS</string>
     <string name="type_call">Chamadas</string>
     <string name="type_timer">Temporizadores e Alarmes</string>
-    <string name="download_complete">Download Concluído</string>
+    <string name="download_complete">Download ConcluÃ­do</string>
     <string name="downloading">Baixando</string>
     <string name="maps_title">Mapas</string>
     <string-array name="progress_finish_keywords">
         <item>baixado</item>
-        <item>concluído</item>
+        <item>concluÃ­do</item>
         <item>finalizado</item>
         <item>instalado</item>
         <item>pronto</item>
@@ -89,29 +90,29 @@
     </string-array>
     <string name="status_now_playing">Reproduzindo Agora</string>
     <string name="fallback_timer">Temporizador</string>
-    <string name="whats_new_title">O que há de novo na %s</string>
-    <string name="awesome">Incrível!</string>
+    <string name="whats_new_title">O que hÃ¡ de novo na %s</string>
+    <string name="awesome">IncrÃ­vel!</string>
     <string name="island_behavior">Comportamento da Ilha</string>
-    <string name="limit_strategy">Estratégia de Limite</string>
-    <string name="limit_desc">O que acontece quando você atinge 9 ilhas?</string>
+    <string name="limit_strategy">EstratÃ©gia de Limite</string>
+    <string name="limit_desc">O que acontece quando vocÃª atinge 9 ilhas?</string>
     <string name="mode_fcfs_title">Ordem de Chegada</string>
-    <string name="mode_fcfs_desc">Mantém os primeiros 9 aplicativos. Novos aplicativos serão ignorados até haver espaço.</string>
-    <string name="mode_recent_title">Mais Recentes (Padrão)</string>
-    <string name="mode_recent_desc">Novas notificações substituem as mais antigas.</string>
+    <string name="mode_fcfs_desc">MantÃ©m os primeiros 9 aplicativos. Novos aplicativos serÃ£o ignorados atÃ© haver espaÃ§o.</string>
+    <string name="mode_recent_title">Mais Recentes (PadrÃ£o)</string>
+    <string name="mode_recent_desc">Novas notificaÃ§Ãµes substituem as mais antigas.</string>
     <string name="mode_priority_title">Prioridade Personalizada</string>
-    <string name="mode_priority_desc">Defina quais tipos (ex: Chamadas) são mais importantes.</string>
+    <string name="mode_priority_desc">Defina quais tipos (ex: Chamadas) sÃ£o mais importantes.</string>
     <string name="priority_order">Ordem de Prioridade</string>
     <string name="priority_order_desc">Alta prioridade (Topo) substitui Baixa prioridade (Base).</string>
     <string name="configure_order">Configurar ordem dos apps</string>
-    <string name="global_settings">Configurações Globais</string>
-    <string name="island_appearance">Aparência da Ilha</string>
+    <string name="global_settings">ConfiguraÃ§Ãµes Globais</string>
+    <string name="island_appearance">AparÃªncia da Ilha</string>
     <string name="setting_float">Pop-up Flutuante</string>
-    <string name="setting_float_desc">Mostra o banner completo da notificação brevemente antes de minimizar para a Ilha.</string>
-    <string name="setting_float_timeout_desc">Por quanto tempo o pop-up de aviso permanece visível.</string>
-    <string name="setting_shade">Painel de Notificação</string>
-    <string name="setting_shade_desc">Mantém a notificação visível no painel do sistema. Se desativado, ela aparecerá apenas como uma Ilha.</string>
+    <string name="setting_float_desc">Mostra o banner completo da notificaÃ§Ã£o brevemente antes de minimizar para a Ilha.</string>
+    <string name="setting_float_timeout_desc">Por quanto tempo o pop-up de aviso permanece visÃ­vel.</string>
+    <string name="setting_shade">Painel de NotificaÃ§Ã£o</string>
+    <string name="setting_shade_desc">MantÃ©m a notificaÃ§Ã£o visÃ­vel no painel do sistema. Se desativado, ela aparecerÃ¡ apenas como uma Ilha.</string>
     <string name="seconds_suffix">%ds</string>
-    <string name="use_global_default">Usar Padrões Globais</string>
+    <string name="use_global_default">Usar PadrÃµes Globais</string>
     <string-array name="nav_arrival_keywords">
         <item>chegada</item>
         <item>chegar</item>
@@ -119,14 +120,14 @@
         <item>chegando</item>
         <item>destino</item>
     </string-array>
-    <string name="version_history">Histórico de Versões</string>
-    <string name="title_0_2_0">A Atualização de Informações</string>
+    <string name="version_history">HistÃ³rico de VersÃµes</string>
+    <string name="title_0_2_0">A AtualizaÃ§Ã£o de InformaÃ§Ãµes</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;Progresso Avançado:&lt;/b&gt; Suporte para \"Passos\" (ex.: 1 de 3) e barras de progresso com ícones no painel de notificações.\n
         • &lt;b&gt;Sistema de Prioridade:&lt;/b&gt; Novos ajustes de \"Comportamento\". Define a ordem de aparição das ilhas.\n
         • &lt;b&gt;Filtros Inteligentes:&lt;/b&gt; Detecção melhorada de duplicados.\n
         • &lt;b&gt;Melhorias Visuais:&lt;/b&gt; Corrigido problemas de layout nas instruções de navegação.\n
         • &lt;b&gt;Configuração por Aplicativo:&lt;/b&gt; Customize o tempo limite e o comportamento de flutuação para cada aplicativo.</string>
-    <string name="title_0_1_0">A Atualização Expressiva</string>
+    <string name="title_0_1_0">A AtualizaÃ§Ã£o Expressiva</string>
     <string name="changelog_0_1_0">        • &lt;b&gt;Grandes mudanças na IU:&lt;/b&gt; Hyper Bridge agora usa o Material 3 Expressive com novas animações suaves.\n
         • &lt;b&gt;Melhorias na HyperIsland:&lt;/b&gt; O texto agora aparece à direita e mostra um tick verde para downloads completos.\n
         • &lt;b&gt;Configuração por aplicativo:&lt;/b&gt; Agora você pode personalizar que tipo de notificação você quer mostrar para cada aplicativo.\n
@@ -134,71 +135,71 @@
         • &lt;b&gt;Nova Biblioteca:&lt;/b&gt; Filtra aplicativos por categoria e ordem.\n
         • &lt;b&gt;Idiomas:&lt;/b&gt; Suporte completo para Espanhol.</string>
     <string name="priority_edu_title">Novo: Controle a Ilha</string>
-    <string name="priority_edu_desc">O HyperBridge agora pode gerenciar como várias notificações se comportam quando o limite de 9 ilhas é atingido.
+    <string name="priority_edu_desc">O HyperBridge agora pode gerenciar como vÃ¡rias notificaÃ§Ãµes se comportam quando o limite de 9 ilhas Ã© atingido.
 
-&lt;b&gt;Padrão: Mais Recentes&lt;/b&gt;
-Novas notificações substituem as mais antigas automaticamente.</string>
+&lt;b&gt;PadrÃ£o: Mais Recentes&lt;/b&gt;
+Novas notificaÃ§Ãµes substituem as mais antigas automaticamente.</string>
     <string name="badge_new">NOVO</string>
-    <string name="nav_layout_title">Layout de Navegação</string>
-    <string name="nav_layout_desc">Escolha onde as informações aparecem</string>
+    <string name="nav_layout_title">Layout de NavegaÃ§Ã£o</string>
+    <string name="nav_layout_desc">Escolha onde as informaÃ§Ãµes aparecem</string>
     <string name="left_content">Lado Esquerdo</string>
     <string name="right_content">Lado Direito</string>
-    <string name="nav_content_instruction">Instrução</string>
-    <string name="nav_content_distance">Distância</string>
+    <string name="nav_content_instruction">InstruÃ§Ã£o</string>
+    <string name="nav_content_distance">DistÃ¢ncia</string>
     <string name="nav_content_eta">Hora de Chegada</string>
     <string name="nav_content_distance_eta">Dist. e Tempo</string>
     <string name="nav_content_none">Vazio</string>
     <string name="channel_active_islands">Ilhas Ativas</string>
-    <string name="cd_enable_type">Ativar notificações de %s</string>
-    <string name="cd_disable_type">Desativar notificações de %s</string>
-    <string name="cd_nav_edit">Editar layout de navegação</string>
+    <string name="cd_enable_type">Ativar notificaÃ§Ãµes de %s</string>
+    <string name="cd_disable_type">Desativar notificaÃ§Ãµes de %s</string>
+    <string name="cd_nav_edit">Editar layout de navegaÃ§Ã£o</string>
     <string name="cd_app_state_active">Ativo</string>
     <string name="cd_app_state_inactive">Inativo</string>
     <string name="cd_move_up">Mover item para cima</string>
     <string name="cd_move_down">Mover item para baixo</string>
-    <string name="cd_drag_handle">Alça de arraste. Toque duas vezes e segure para reordenar, ou use as ações para mover.</string>
-    <string name="cd_app_icon">Ícone do app para %s</string>
-    <string name="cd_nav_preview">Prévia da Navegação: %1$s à esquerda, %2$s à direita</string>
-    <string name="cd_expand_changelog">Expandir detalhes da versão</string>
-    <string name="cd_collapse_changelog">Recolher detalhes da versão</string>
-    <string name="nav_preview_instruction">Vire à Direita</string>
+    <string name="cd_drag_handle">AlÃ§a de arraste. Toque duas vezes e segure para reordenar, ou use as aÃ§Ãµes para mover.</string>
+    <string name="cd_app_icon">Ãcone do app para %s</string>
+    <string name="cd_nav_preview">PrÃ©via da NavegaÃ§Ã£o: %1$s Ã  esquerda, %2$s Ã  direita</string>
+    <string name="cd_expand_changelog">Expandir detalhes da versÃ£o</string>
+    <string name="cd_collapse_changelog">Recolher detalhes da versÃ£o</string>
+    <string name="nav_preview_instruction">Vire Ã  Direita</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
     <string name="blocked_terms">Termos Bloqueados</string>
-    <string name="blocked_terms_desc">Notificações contendo estas palavras serão ignoradas.</string>
+    <string name="blocked_terms_desc">NotificaÃ§Ãµes contendo estas palavras serÃ£o ignoradas.</string>
     <string name="add_blocked_word">Adicionar palavra (ex: Spoiler)</string>
     <string name="add">Adicionar</string>
     <string name="remove">Remover</string>
-    <string name="spoiler_subtitle">Gerenciar proteção contra spoilers e filtros</string>
-    <string name="active_notifications_title">Tipos de Notificação</string>
+    <string name="spoiler_subtitle">Gerenciar proteÃ§Ã£o contra spoilers e filtros</string>
+    <string name="active_notifications_title">Tipos de NotificaÃ§Ã£o</string>
     <string name="active_notifications_subtitle">%d ativos</string>
-    <string name="appearance_use_defaults_desc">Usando padrões do sistema para velocidade de animação e comportamento flutuante.</string>
+    <string name="appearance_use_defaults_desc">Usando padrÃµes do sistema para velocidade de animaÃ§Ã£o e comportamento flutuante.</string>
     <string name="blocked_terms_active_count">%d regras ativas</string>
     <string name="global_rules">Regras Globais</string>
-    <string name="app_specific_rules">Regras Específicas do App</string>
-    <string name="manage_app_rules_desc">Personalizar filtros para aplicativos específicos</string>
+    <string name="app_specific_rules">Regras EspecÃ­ficas do App</string>
+    <string name="manage_app_rules_desc">Personalizar filtros para aplicativos especÃ­ficos</string>
     <string name="blocked_terms_count">%d termos bloqueados</string>
     <string name="no_active_rules">Nenhuma regra ativa</string>
     <string name="setup_health_title">Compatibilidade do Sistema</string>
     <string name="req_hyperos">Requer HyperOS 3.0+ (Android 15+)</string>
-    <string name="req_xiaomi">Dispositivo Xiaomi/Redmi/Poco necessário</string>
+    <string name="req_xiaomi">Dispositivo Xiaomi/Redmi/Poco necessÃ¡rio</string>
     <string name="warning_cn_rom_title">ROM China Detectada</string>
-    <string name="warning_cn_rom_desc">Seu dispositivo parece estar rodando uma firmware chinesa. A Xiaomi modifica significativamente as entranhas das notificações em ROMs CN. Os recursos podem ser instáveis ou não funcionar.</string>
+    <string name="warning_cn_rom_desc">Seu dispositivo parece estar rodando uma firmware chinesa. A Xiaomi modifica significativamente as entranhas das notificaÃ§Ãµes em ROMs CN. Os recursos podem ser instÃ¡veis ou nÃ£o funcionar.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
-    <string name="shizuku_status_running">Membro Médico Shizuku</string>
+    <string name="shizuku_status_running">Membro MÃ©dico Shizuku</string>
     <string name="shizuku_permission_granted">Permission Granted</string>
     <string name="shizuku_permission_denied">Permission Denied</string>
     <string name="shizuku_request_permission">Grant Shizuku Permission</string>
     <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
-    <string name="system_version">Versão do Sistema</string>
+    <string name="system_version">VersÃ£o do Sistema</string>
     <string name="call_incoming">Chamada Recebida</string>
     <string name="call_ongoing">Chamada Ativa</string>
     <string-array name="call_keywords_hangup">
         <item>pendurar</item>
         <item>fim</item>
-        <item>declínio</item>
+        <item>declÃ­nio</item>
         <item>rejeitar</item>
     </string-array>
     <string-array name="call_keywords_answer">
@@ -207,9 +208,9 @@ Novas notificações substituem as mais antigas automaticamente.</string>
     </string-array>
     <string-array name="call_keywords_speaker">
         <item>palestrante</item>
-        <item>áudio</item>
+        <item>Ã¡udio</item>
     </string-array>
-    <string name="title_0_3_0">A Atualização Global</string>
+    <string name="title_0_3_0">A AtualizaÃ§Ã£o Global</string>
     <string name="changelog_0_3_0">        <b>Notificações Ocultas 👻</b>\n
         Nova opção para ocultar notificações do painel do sistema enquanto mantém a Ilha ativa. Verifique as Configurações Globais!\n\n
         <b>Novos Idiomas 🌍</b>\n
@@ -233,39 +234,39 @@ Novas notificações substituem as mais antigas automaticamente.</string>
     <string name="privacy_title">100% Offline e Seguro</string>
     <string name="privacy_desc">O Hyper Bridge processa tudo diretamente no processador do seu telefone.
 
-NÃO requer acesso à internet, o que significa que suas notificações e dados pessoais nunca saem do seu dispositivo.</string>
+NÃƒO requer acesso Ã  internet, o que significa que suas notificaÃ§Ãµes e dados pessoais nunca saem do seu dispositivo.</string>
     <string name="language">Idioma</string>
     <string name="language_desc">Alterar idioma do aplicativo</string>
-    <string name="system_default">Padrão do Sistema</string>
+    <string name="system_default">PadrÃ£o do Sistema</string>
     <string name="save">Salvar</string>
-    <string name="backup_restore_title">Backup e Restauração</string>
+    <string name="backup_restore_title">Backup e RestauraÃ§Ã£o</string>
     <string name="backup_section_title">Gerenciar Dados</string>
-    <string name="backup_options_subtitle">Selecione os dados para incluir na operação</string>
-    <string name="option_app_settings">Configurações do App</string>
-    <string name="option_app_settings_desc">Status de configuração, tema, modos de comportamento</string>
+    <string name="backup_options_subtitle">Selecione os dados para incluir na operaÃ§Ã£o</string>
+    <string name="option_app_settings">ConfiguraÃ§Ãµes do App</string>
+    <string name="option_app_settings_desc">Status de configuraÃ§Ã£o, tema, modos de comportamento</string>
     <string name="option_blocklist">Banco de Dados da Blocklist</string>
     <string name="option_blocklist_desc">Suas palavras-chave e apps bloqueados</string>
     <string name="option_priorities">Regras de Prioridade</string>
-    <string name="option_priorities_desc">Configurações de prioridade de notificação personalizadas</string>
+    <string name="option_priorities_desc">ConfiguraÃ§Ãµes de prioridade de notificaÃ§Ã£o personalizadas</string>
     <string name="action_export">Criar Backup</string>
     <string name="action_import">Restaurar Backup</string>
     <string name="export_success">Backup salvo com sucesso</string>
     <string name="export_failed">Exportação falhou: %s</string>
     <string name="import_success">Dados restaurados com sucesso</string>
     <string name="import_failed">Importação falhou: %s</string>
-    <string name="autostart_manual_check">O status não pode ser verificado automaticamente.
-Por favor, verifique manualmente para garantir que o serviço funcione corretamente.</string>
-    <string name="backup_info_title">Informações do Backup</string>
+    <string name="autostart_manual_check">O status nÃ£o pode ser verificado automaticamente.
+Por favor, verifique manualmente para garantir que o serviÃ§o funcione corretamente.</string>
+    <string name="backup_info_title">InformaÃ§Ãµes do Backup</string>
     <string name="backup_meta_date">Data</string>
     <string name="backup_meta_device">Dispositivo</string>
-    <string name="backup_meta_version">Versão</string>
+    <string name="backup_meta_version">VersÃ£o</string>
     <string name="backup_meta_keys">Total de Itens</string>
     <string name="backup_empty_suffix">(Vazio)</string>
     <string name="action_restore_selected">Restaurar Dados Selecionados</string>
-    <string name="optimization_title">Otimização do Dispositivo</string>
+    <string name="optimization_title">OtimizaÃ§Ã£o do Dispositivo</string>
     <string name="privacy_card_title">Totalmente Offline</string>
-    <string name="privacy_card_desc">Sem conexão de internet necessária.</string>
-    <string name="title_0_3_1">Atualização de Backup e Poliglota</string>
+    <string name="privacy_card_desc">Sem conexÃ£o de internet necessÃ¡ria.</string>
+    <string name="title_0_3_1">AtualizaÃ§Ã£o de Backup e Poliglota</string>
     <string name="changelog_0_3_1"> &lt;b&gt;Backup e Restauração 📦&lt;/b&gt;
  Novo recurso para usuários avançados! Exporte com segurança suas configurações, listas de bloqueio e prioridades de apps para um arquivo .hbr e restaure-os a qualquer momento.
 
@@ -291,7 +292,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="close">Fechar</string>
     <string name="search">Pesquisar</string>
     <string name="widget_updated_toast">Widget atualizado</string>
-    <string name="widget_settings_error">Não é possível editar as configurações deste widget</string>
+    <string name="widget_settings_error">NÃ£o Ã© possÃ­vel editar as configuraÃ§Ãµes deste widget</string>
     <string name="widget_picker_title">Adicionar Widget</string>
     <string name="search_apps_placeholder">Pesquisar apps...</string>
     <plurals name="widget_count_fmt">
@@ -299,37 +300,37 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
         <item quantity="one">Um</item>
     </plurals>
     <string name="widget_config_title">Configurar Widget</string>
-    <string name="widget_settings_button">Configurações do Widget</string>
-    <string name="config_tab_appearance">Aparência</string>
+    <string name="widget_settings_button">ConfiguraÃ§Ãµes do Widget</string>
+    <string name="config_tab_appearance">AparÃªncia</string>
     <string name="config_tab_behavior">Comportamento</string>
-    <string name="config_render_mode_label">Modo de Renderização</string>
-    <string name="config_container_size_label">Tamanho do Contêiner</string>
+    <string name="config_render_mode_label">Modo de RenderizaÃ§Ã£o</string>
+    <string name="config_container_size_label">Tamanho do ContÃªiner</string>
     <string name="config_shade_title">Mostrar no Painel</string>
-    <string name="config_shade_desc">Visível no painel de notificações</string>
+    <string name="config_shade_desc">VisÃ­vel no painel de notificaÃ§Ãµes</string>
     <string name="config_timeout_title">Fechar Automaticamente</string>
-    <string name="config_timeout_desc">Fechar ilha após um atraso</string>
+    <string name="config_timeout_desc">Fechar ilha apÃ³s um atraso</string>
     <plurals name="config_timeout_fmt">
         <item quantity="other">outro</item>
         <item quantity="one">um</item>
     </plurals>
-    <string name="config_refresh_title">Atualização Automática</string>
+    <string name="config_refresh_title">AtualizaÃ§Ã£o AutomÃ¡tica</string>
     <string name="config_refresh_desc">Atualizar snapshot periodicamente</string>
     <plurals name="config_refresh_fmt">
         <item quantity="other">outro</item>
         <item quantity="one">um</item>
     </plurals>
-    <string name="config_refresh_warning">Frequência mais alta usa mais bateria.</string>
+    <string name="config_refresh_warning">FrequÃªncia mais alta usa mais bateria.</string>
     <string name="render_interactive_label">Interativo</string>
-    <string name="render_interactive_desc">Os botões funcionam. Ideal para Música e Controles.</string>
-    <string name="render_snapshot_label">Instantâneo</string>
+    <string name="render_interactive_desc">Os botÃµes funcionam. Ideal para MÃºsica e Controles.</string>
+    <string name="render_snapshot_label">InstantÃ¢neo</string>
     <string name="render_snapshot_desc">Corrige listas vazias. Ideal para Agenda e Gmail.</string>
     <string name="size_original">Original</string>
     <string name="size_small">Pequeno (100dp)</string>
-    <string name="size_medium">Médio (180dp)</string>
+    <string name="size_medium">MÃ©dio (180dp)</string>
     <string name="size_large">Grande (280dp)</string>
     <string name="size_xlarge">Extra Grande (380dp)</string>
     <string name="app_uninstalled_badge">Desinstalado</string>
-    <string name="settings_action">Configurações</string>
+    <string name="settings_action">ConfiguraÃ§Ãµes</string>
     <string name="saved_widgets_title">Widgets Salvos</string>
     <string name="no_saved_widgets">Nenhum widget salvo encontrado.</string>
     <string name="widget_id_fmt">Widget</string>
@@ -337,20 +338,20 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="theme_installer_analyzing">Analisando pacote do tema...</string>
     <string name="theme_installer_success_title">Tema Pronto</string>
     <string name="theme_installer_author">Criado por %s</string>
-    <string name="theme_installer_version">Versão %d</string>
+    <string name="theme_installer_version">VersÃ£o %d</string>
     <string name="theme_installer_apply_question">Deseja aplicar este tema ao HyperBridge agora?</string>
     <string name="theme_installer_action_apply">Aplicar Tema</string>
     <string name="theme_installer_action_later">Salvar para Depois</string>
-    <string name="theme_installer_error_title">Importação Falhou</string>
-    <string name="theme_installer_error_generic">Não foi possível verificar o arquivo do tema.</string>
+    <string name="theme_installer_error_title">ImportaÃ§Ã£o Falhou</string>
+    <string name="theme_installer_error_generic">NÃ£o foi possÃ­vel verificar o arquivo do tema.</string>
     <string name="theme_installer_btn_close">Fechar</string>
     <string name="theme_manager_title">Meus Temas</string>
     <string name="theme_manager_cd_add">Adicionar Novo Tema</string>
     <string name="theme_card_author_format">por %s</string>
     <string name="theme_card_cd_active">Tema Ativo</string>
     <string name="theme_card_cd_delete">Excluir Tema</string>
-    <string name="theme_system_default_title">Padrão do Sistema</string>
-    <string name="theme_system_default_desc">Visual Padrão</string>
+    <string name="theme_system_default_title">PadrÃ£o do Sistema</string>
+    <string name="theme_system_default_desc">Visual PadrÃ£o</string>
     <string name="theme_sheet_title">Adicionar Novo Tema</string>
     <string name="theme_sheet_action_create">Criar Novo Tema</string>
     <string name="theme_sheet_action_find">Procurar</string>
@@ -360,41 +361,41 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="creator_title_new">Criar Tema</string>
     <string name="creator_title_edit">Editar Tema</string>
     <string name="creator_nav_colors">Cores</string>
-    <string name="creator_nav_icons">Ícones e Formas</string>
+    <string name="creator_nav_icons">Ãcones e Formas</string>
     <string name="creator_nav_calls">Estilo de Chamada</string>
     <string name="creator_nav_apps">Config. de Apps</string>
     <string name="creator_action_save">Salvar</string>
     <string name="creator_btn_edit_info">Editar Info do Tema</string>
     <string name="creator_sub_colors">Paletas e contraste</string>
     <string name="creator_sub_icons">Forma e preenchimento</string>
-    <string name="creator_sub_calls">Botões de atender e recusar</string>
-    <string name="creator_sub_apps">Sobreposições por app</string>
+    <string name="creator_sub_calls">BotÃµes de atender e recusar</string>
+    <string name="creator_sub_apps">SobreposiÃ§Ãµes por app</string>
     <string name="meta_title">Info do Tema</string>
     <string name="meta_label_name">Nome do Tema</string>
     <string name="meta_label_author">Nome do Autor</string>
-    <string name="meta_action_done">Concluído</string>
-    <string name="colors_tab_presets">Predefinições</string>
+    <string name="meta_action_done">ConcluÃ­do</string>
+    <string name="colors_tab_presets">PredefiniÃ§Ãµes</string>
     <string name="colors_tab_custom">Personalizada</string>
-    <string name="colors_label_presets">Predefinições</string>
+    <string name="colors_label_presets">PredefiniÃ§Ãµes</string>
     <string name="colors_label_use_app_colors">Usar Cores do App</string>
     <string name="colors_desc_use_app_colors">Adaptar cores dos apps instalados</string>
     <string name="colors_label_custom_title">Cor Personalizada</string>
     <string name="colors_cd_add_custom">Adicionar Cor Personalizada</string>
     <string name="colors_dialog_title">Escolher uma Cor</string>
-    <string name="colors_action_done">Concluído</string>
+    <string name="colors_action_done">ConcluÃ­do</string>
     <string name="icons_tab_style">Estilo</string>
-    <string name="icons_tab_assets">Ícones</string>
+    <string name="icons_tab_assets">Ãcones</string>
     <string name="icons_tab_shape">Forma</string>
-    <string name="icons_label_size">Tamanho do Ícone</string>
+    <string name="icons_label_size">Tamanho do Ãcone</string>
     <string name="icons_label_full">Completo</string>
-    <string name="icons_label_minimal">Mínimo</string>
-    <string name="icons_group_nav">Navegação</string>
-    <string name="icons_btn_start">Início</string>
+    <string name="icons_label_minimal">MÃ­nimo</string>
+    <string name="icons_group_nav">NavegaÃ§Ã£o</string>
+    <string name="icons_btn_start">InÃ­cio</string>
     <string name="icons_btn_end">Fim</string>
     <string name="icons_group_progress">Progresso</string>
     <string name="icons_btn_success">Sucesso</string>
-    <string name="icons_label_shape_title">Forma do Ícone</string>
-    <string name="shape_circle">Círculo</string>
+    <string name="icons_label_shape_title">Forma do Ãcone</string>
+    <string name="shape_circle">CÃ­rculo</string>
     <string name="shape_square">Quadrado</string>
     <string name="shape_cookie">Cookie</string>
     <string name="shape_arch">Arco</string>
@@ -402,7 +403,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="calls_label_answer">Atender</string>
     <string name="calls_label_decline">Recusar</string>
     <string name="apps_empty">Nenhum app configurado</string>
-    <string name="design_hero_customization_title">Customização</string>
+    <string name="design_hero_customization_title">CustomizaÃ§Ã£o</string>
     <string name="design_hero_customization_subtitle">Aprenda a criar temas</string>
     <string name="design_hero_pro_title">Recursos Pro</string>
     <string name="design_hero_pro_subtitle">Desbloqueie mais poder</string>
@@ -413,51 +414,51 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="design_browse_more">Ver Mais</string>
     <string name="design_add_new">Adicionar Novo</string>
     <string name="design_add_design">Adicionar Design</string>
-    <string name="design_add_to_island">Customização</string>
+    <string name="design_add_to_island">CustomizaÃ§Ã£o</string>
     <string name="design_system_widget_beta">Widget do Sistema (Beta)</string>
     <string name="design_get_themes">Obter Temas</string>
     <string name="design_empty_widget_title">Adicione seu primeiro Widget</string>
     <string name="design">Projeto</string>
-    <string name="creator_nav_actions">Ações Globais</string>
-    <string name="creator_sub_actions">Estilizar botões por palavra-chave</string>
-    <string name="action_sheet_title">Configurar Ação</string>
+    <string name="creator_nav_actions">AÃ§Ãµes Globais</string>
+    <string name="creator_sub_actions">Estilizar botÃµes por palavra-chave</string>
+    <string name="action_sheet_title">Configurar AÃ§Ã£o</string>
     <string name="action_label_keyword">Palavra-chave (ex: \'Responder\')</string>
     <string name="action_label_bg_color">Cor de Fundo</string>
-    <string name="action_label_tint_color">Cor do Ícone/Texto</string>
-    <string name="action_preview">Pré-visualização ao vivo</string>
-    <string name="action_mode_icon">Apenas Ícone</string>
+    <string name="action_label_tint_color">Cor do Ãcone/Texto</string>
+    <string name="action_preview">PrÃ©-visualizaÃ§Ã£o ao vivo</string>
+    <string name="action_mode_icon">Apenas Ãcone</string>
     <string name="action_mode_text">Texto</string>
     <string name="action_mode_both">Ambos</string>
-    <string name="actions_empty_title">Sem Ações Personalizadas</string>
-    <string name="actions_empty_desc">Adicione regras para estilizar botões de notificação com base no texto (ex: Responder, Arquivar).</string>
-    <string name="action_default_preview_text">Ação</string>
-    <string name="actions_search_hint">Pesquisar ações...</string>
-    <string name="actions_search_empty_fmt">Nenhuma ação encontrada para %1$s</string>
-    <string name="action_wip_warning">Este recurso é um trabalho em andamento. A correspondência de palavras-chave depende de como os aplicativos estruturam suas notificações e pode não funcionar para todos.</string>
+    <string name="actions_empty_title">Sem AÃ§Ãµes Personalizadas</string>
+    <string name="actions_empty_desc">Adicione regras para estilizar botÃµes de notificaÃ§Ã£o com base no texto (ex: Responder, Arquivar).</string>
+    <string name="action_default_preview_text">AÃ§Ã£o</string>
+    <string name="actions_search_hint">Pesquisar aÃ§Ãµes...</string>
+    <string name="actions_search_empty_fmt">Nenhuma aÃ§Ã£o encontrada para %1$s</string>
+    <string name="action_wip_warning">Este recurso Ã© um trabalho em andamento. A correspondÃªncia de palavras-chave depende de como os aplicativos estruturam suas notificaÃ§Ãµes e pode nÃ£o funcionar para todos.</string>
     <string name="creator_dialog_apply_title">Aplicar Tema?</string>
     <string name="creator_dialog_apply_desc">Deseja aplicar este tema agora?</string>
     <string name="creator_dialog_action_save_apply">Salvar e Aplicar</string>
     <string name="creator_dialog_action_save_only">Apenas Salvar</string>
-    <string name="select_icon">Selecione o ícone</string>
-    <string name="change_icon">Alterar ícone</string>
+    <string name="select_icon">Selecione o Ã­cone</string>
+    <string name="change_icon">Alterar Ã­cone</string>
     <string name="action_add">Adicionar aplicativo</string>
     <string name="apps_sheet_select_title">Selecione o aplicativo</string>
     <string name="edit_app">Editar aplicativo</string>
     <string name="creator_sub_colors_custom">Conjunto de cores personalizado</string>
-    <string name="creator_sub_colors_default">Usando o padrão global</string>
+    <string name="creator_sub_colors_default">Usando o padrÃ£o global</string>
     <string name="creator_sub_icons_custom">Conjunto de Formas Personalizadas</string>
-    <string name="creator_sub_icons_default">Usando o padrão global</string>
-    <string name="app_customization_desc">Adicione um aplicativo para personalizar sua aparência especificamente.</string>
+    <string name="creator_sub_icons_default">Usando o padrÃ£o global</string>
+    <string name="app_customization_desc">Adicione um aplicativo para personalizar sua aparÃªncia especificamente.</string>
     <string name="discard">Descartar</string>
-    <string name="unsaved_changes">Alterações não salvas</string>
-    <string name="unsaved_changes_desc">Você tem alterações não salvas neste aplicativo. Deseja salvá-las antes de sair?</string>
+    <string name="unsaved_changes">AlteraÃ§Ãµes nÃ£o salvas</string>
+    <string name="unsaved_changes_desc">VocÃª tem alteraÃ§Ãµes nÃ£o salvas neste aplicativo. Deseja salvÃ¡-las antes de sair?</string>
     <string name="share_theme">Compartilhar tema</string>
     <string name="my_theme">Meu tema</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">ação personalizada</item>
-        <item quantity="other">ações personalizadas</item>
+        <item quantity="one">aÃ§Ã£o personalizada</item>
+        <item quantity="other">aÃ§Ãµes personalizadas</item>
     </plurals>
-    <string name="title_0_4_0">A Atualização da Customização</string>
+    <string name="title_0_4_0">A AtualizaÃ§Ã£o da CustomizaÃ§Ã£o</string>
     <string name="changelog_0_4_0">        <b>Engine de Tema</b>\n
         A maior atualização até agora! Agora você pode personalizar totalmente a experiência visual das Ilhas Dinâmicas.\n
         • <b>Criador de Tema:</b>  Crie temas diretamente do seu celular com prévias em tempo real.\n
@@ -483,19 +484,19 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
 
         <i>Nota: Esta atualização inclui mudanças significativas na arquitetura do app. Por favor reporte qualquer bug no GitHub!</i>
     </string>
-    <string name="title_0_4_2">Atualização de correção</string>
+    <string name="title_0_4_2">AtualizaÃ§Ã£o de correÃ§Ã£o</string>
     <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
         •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
     </string>
     <string name="colors_label_hue">Matiz</string>
-    <string name="colors_label_saturation">Saturação</string>
+    <string name="colors_label_saturation">SaturaÃ§Ã£o</string>
     <string name="colors_label_lightness">Luminosidade</string>
-    <string name="colors_label_dynamic_modes">Cores dinâmicas</string>
+    <string name="colors_label_dynamic_modes">Cores dinÃ¢micas</string>
     <string name="colors_label_material_you">Material You (Sistema)</string>
     <string name="colors_desc_material_you">Extrai as cores do seu papel de parede atual.</string>
     <string name="kill_all_widgets">Encerrar todos os widgets ativos</string>
-    <string name="permission_reminder_title">Aviso de atualização</string>
-    <string name="permission_reminder_desc">HyperBridge atualizou! Por favor, certifique-se de que o auto início e as configurações de bateria não foram alteradas pelo sistema para manter seus widgets rodando tranquilamente.</string>
+    <string name="permission_reminder_title">Aviso de atualizaÃ§Ã£o</string>
+    <string name="permission_reminder_desc">HyperBridge atualizou! Por favor, certifique-se de que o auto inÃ­cio e as configuraÃ§Ãµes de bateria nÃ£o foram alteradas pelo sistema para manter seus widgets rodando tranquilamente.</string>
     <string name="got_it">Certo</string>
     <string name="recommended">Recomendado</string>
     <string name="all">Tudo</string>
@@ -532,6 +533,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_message_desc">Messages, chats, and conversations</string>
     <string name="type_progress_desc">Downloads, uploads, and ongoing tasks</string>
     <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
@@ -580,6 +582,13 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_5">        <b>Messaging Grouping Overhaul</b>\n
+              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
+        <b>Fixes &amp; Stability</b>\n
+              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
+              • <b>Defaults:</b> Disabled \"Show in shade\" by default on the onboarding screen.\n
+    </string>
+    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
     <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
               ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
               ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
@@ -645,7 +654,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="migration_title">HyperBridge Update</string>
     <string name="migration_message">Migrating database to Device Protected storage…</string>
     <string name="migration_complete">Update Complete</string>
-    <string name="notification_management">Gestão de notificações</string>
+    <string name="notification_management">GestÃ£o de notificaÃ§Ãµes</string>
     <string name="inline_reply_title">Inline Reply</string>
     <string name="customize_inline_reply">Customize inline reply overlay</string>
     <string name="reply_hint">Reply...</string>

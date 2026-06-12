@@ -1,117 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hyper Bridge</string>
-    <string name="back">Späť</string>
-    <string name="next">Ďalej</string>
-    <string name="finish">Ukončiť</string>
+    <string name="back">SpÃ¤Å¥</string>
+    <string name="next">ÄŽalej</string>
+    <string name="finish">UkonÄiÅ¥</string>
     <string name="done">Hotovo</string>
-    <string name="logo_desc">Logo aplikácie</string>
+    <string name="logo_desc">Logo aplikÃ¡cie</string>
     <string name="settings">Nastavenia</string>
-    <string name="configure">Konfigurácia</string>
-    <string name="clear">Vyčistiť</string>
-    <string name="sort_order">Zoraď podľa</string>
+    <string name="configure">KonfigurÃ¡cia</string>
+    <string name="clear">VyÄistiÅ¥</string>
+    <string name="sort_order">ZoraÄ podÄ¾a</string>
     <string name="welcome_title">Vitajte v\nHyper Bridge</string>
-    <string name="welcome_subtitle">Bezproblémová integrácia dynamických notifikácii HyperIslands do Vášho zariadenia s HyperOS.</string>
-    <string name="get_started">Začíname</string>
+    <string name="welcome_subtitle">BezproblÃ©movÃ¡ integrÃ¡cia dynamickÃ½ch notifikÃ¡cii HyperIslands do VÃ¡Å¡ho zariadenia s HyperOS.</string>
+    <string name="get_started">ZaÄÃ­name</string>
     <string name="how_it_works">Ako to funguje</string>
-    <string name="how_it_works_desc">Vyberte si Vaše obľúbené aplikácie (Spotify, Mapy, Časovač). HyperBridge premení ich notifikácie na elegantný HyperIsland.</string>
-    <string name="beta_warning">Poznámka: Táto aplikácia je v Beta vývoji. Môžete naraziť na rôzne chyby alebo nepresné vizuálne informácie.</string>
-    <string name="device_compatible">Kompatibilné zariadenie</string>
-    <string name="unsupported_device">Nepodporované zariadenie</string>
-    <string name="compatible_msg">Zdá sa, že vaše zariadenie používa systém HyperOS/MIUI. Môžete začať!</string>
-    <string name="show_island">Zobraz ukážku</string>
-    <string name="perm_post_desc">Potrebujeme povolenie na zverejnenie „Island“ notifikácie na vašej obrazovke.</string>
-    <string name="perm_granted">Povolenie udelené</string>
-    <string name="allow_notifications">Povoliť notifikácie</string>
-    <string name="read_data">Načítať dáta</string>
-    <string name="perm_listener_desc">Aby sme premostili Vaše aplikácie, potrebujeme čítať ich notifikácie (Hudba, Mapy, Časovač).</string>
-    <string name="open_settings">Otvoriť Nastavenia</string>
-    <string name="optimization_desc">HyperOS ukončuje aplikácie na pozadí. Povoľte Autoštart a Žiadne obmedzenia, aby ste udržali HyperIsland aktívny.</string>
-    <string name="enable_autostart">1. Povoliť Autoštart</string>
-    <string name="set_battery_no_restrictions">2. Nastavte Žiadne obmedzenia v nastaveniach batérie</string>
-    <string name="tab_active">Aktívny</string>
-    <string name="tab_library">Knižnica</string>
+    <string name="how_it_works_desc">Vyberte si VaÅ¡e obÄ¾ÃºbenÃ© aplikÃ¡cie (Spotify, Mapy, ÄŒasovaÄ). HyperBridge premenÃ­ ich notifikÃ¡cie na elegantnÃ½ HyperIsland.</string>
+    <string name="beta_warning">PoznÃ¡mka: TÃ¡to aplikÃ¡cia je v Beta vÃ½voji. MÃ´Å¾ete naraziÅ¥ na rÃ´zne chyby alebo nepresnÃ© vizuÃ¡lne informÃ¡cie.</string>
+    <string name="device_compatible">KompatibilnÃ© zariadenie</string>
+    <string name="unsupported_device">NepodporovanÃ© zariadenie</string>
+    <string name="compatible_msg">ZdÃ¡ sa, Å¾e vaÅ¡e zariadenie pouÅ¾Ã­va systÃ©m HyperOS/MIUI. MÃ´Å¾ete zaÄaÅ¥!</string>
+    <string name="show_island">Zobraz ukÃ¡Å¾ku</string>
+    <string name="perm_post_desc">Potrebujeme povolenie na zverejnenie â€žIslandâ€œ notifikÃ¡cie na vaÅ¡ej obrazovke.</string>
+    <string name="perm_granted">Povolenie udelenÃ©</string>
+    <string name="allow_notifications">PovoliÅ¥ notifikÃ¡cie</string>
+    <string name="read_data">NaÄÃ­taÅ¥ dÃ¡ta</string>
+    <string name="perm_listener_desc">Aby sme premostili VaÅ¡e aplikÃ¡cie, potrebujeme ÄÃ­taÅ¥ ich notifikÃ¡cie (Hudba, Mapy, ÄŒasovaÄ).</string>
+    <string name="open_settings">OtvoriÅ¥ Nastavenia</string>
+    <string name="optimization_desc">HyperOS ukonÄuje aplikÃ¡cie na pozadÃ­. PovoÄ¾te AutoÅ¡tart a Å½iadne obmedzenia, aby ste udrÅ¾ali HyperIsland aktÃ­vny.</string>
+    <string name="enable_autostart">1. PovoliÅ¥ AutoÅ¡tart</string>
+    <string name="set_battery_no_restrictions">2. Nastavte Å½iadne obmedzenia v nastaveniach batÃ©rie</string>
+    <string name="tab_active">AktÃ­vny</string>
+    <string name="tab_library">KniÅ¾nica</string>
     <string name="search_hint">Vyhľadať aplikácie…</string>
-    <string name="no_active_bridges">Žiadne aktívne mosty</string>
-    <string name="no_active_bridges_desc">Prejdite do knižnice a povoľte aplikácie.</string>
-    <string name="no_apps_found">Žiadne aplikácie nájdené</string>
+    <string name="no_active_bridges">Å½iadne aktÃ­vne mosty</string>
+    <string name="no_active_bridges_desc">Prejdite do kniÅ¾nice a povoÄ¾te aplikÃ¡cie.</string>
+    <string name="no_apps_found">Å½iadne aplikÃ¡cie nÃ¡jdenÃ©</string>
     <string name="version_template">Verzia %s</string>
-    <string name="developer_credit">vytvorené D4vidDfom</string>
-    <string name="group_configuration">Konfigurácia</string>
-    <string name="system_setup">Nastavenie systému</string>
-    <string name="system_setup_subtitle">Oprava povolení &amp; batérie</string>
+    <string name="developer_credit">vytvorenÃ© D4vidDfom</string>
+    <string name="group_configuration">KonfigurÃ¡cia</string>
+    <string name="system_setup">Nastavenie systÃ©mu</string>
+    <string name="system_setup_subtitle">Oprava povolenÃ­ &amp; batÃ©rie</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Permanent Island</string>
     <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
     <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
     <string name="permanent_island_width">Island Width</string>
-    <string name="group_about">O nás</string>
-    <string name="developer">Vývojár</string>
-    <string name="developer_subtitle">Navštívte d4viddf.com</string>
-    <string name="source_code">Zdrojový kód</string>
-    <string name="source_code_subtitle">GitHub Repozitár</string>
+    <string name="group_about">O nÃ¡s</string>
+    <string name="developer">VÃ½vojÃ¡r</string>
+    <string name="developer_subtitle">NavÅ¡tÃ­vte d4viddf.com</string>
+    <string name="source_code">ZdrojovÃ½ kÃ³d</string>
+    <string name="source_code_subtitle">GitHub RepozitÃ¡r</string>
     <string name="licenses">Licencie Oper Source</string>
-    <string name="licenses_subtitle">Aplikácia tretích strán</string>
+    <string name="licenses_subtitle">AplikÃ¡cia tretÃ­ch strÃ¡n</string>
     <string name="footer_made_with_love">Vytvorené s ❤️ v Španielsku</string>
-    <string name="app_health_desc">Uistite sa, že všetky zaškrtávacie políčka sú zelené, aby aplikácia správne fungovala na pozadí.</string>
-    <string name="req_permissions">Požadované povolenia</string>
-    <string name="notif_access">Prístup k upozorneniam</string>
-    <string name="notif_access_desc">Vyžaduje sa čítanie udalostí aplikácie</string>
-    <string name="device_optimization">Optimalizácia zariadenia</string>
-    <string name="xiaomi_autostart">Automatické spustenie Xiaomi</string>
-    <string name="battery_unrestricted">Žiadne obmedzenia batérie</string>
-    <string name="battery_desc">Zabrániť systému ukončovať aplikácie</string>
-    <string name="recents_note">Poznámka: Aplikáciu môžete tiež uzamknúť v prehľadnom menu „Nedávne“.</string>
-    <string name="status_active">Aktívny</string>
-    <string name="cat_all">Všetko</string>
+    <string name="app_health_desc">Uistite sa, Å¾e vÅ¡etky zaÅ¡krtÃ¡vacie polÃ­Äka sÃº zelenÃ©, aby aplikÃ¡cia sprÃ¡vne fungovala na pozadÃ­.</string>
+    <string name="req_permissions">PoÅ¾adovanÃ© povolenia</string>
+    <string name="notif_access">PrÃ­stup k upozorneniam</string>
+    <string name="notif_access_desc">VyÅ¾aduje sa ÄÃ­tanie udalostÃ­ aplikÃ¡cie</string>
+    <string name="device_optimization">OptimalizÃ¡cia zariadenia</string>
+    <string name="xiaomi_autostart">AutomatickÃ© spustenie Xiaomi</string>
+    <string name="battery_unrestricted">Å½iadne obmedzenia batÃ©rie</string>
+    <string name="battery_desc">ZabrÃ¡niÅ¥ systÃ©mu ukonÄovaÅ¥ aplikÃ¡cie</string>
+    <string name="recents_note">PoznÃ¡mka: AplikÃ¡ciu mÃ´Å¾ete tieÅ¾ uzamknÃºÅ¥ v prehÄ¾adnom menu â€žNedÃ¡vneâ€œ.</string>
+    <string name="status_active">AktÃ­vny</string>
+    <string name="cat_all">VÅ¡etko</string>
     <string name="cat_music">Hudba</string>
-    <string name="cat_nav">Navigácia</string>
+    <string name="cat_nav">NavigÃ¡cia</string>
     <string name="cat_timer">Produktivita</string>
-    <string name="cat_other">Ostatné</string>
-    <string name="type_standard">Správy &amp; Všeobecné</string>
+    <string name="cat_other">OstatnÃ©</string>
+    <string name="type_standard">SprÃ¡vy &amp; VÅ¡eobecnÃ©</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
-    <string name="type_media">Hudba &amp; Médiá</string>
+    <string name="type_media">Hudba &amp; MÃ©diÃ¡</string>
     <string name="type_nav">Mapy &amp; GPS</string>
     <string name="type_call">Hovory</string>
-    <string name="type_timer">Časovače &amp; Budíky</string>
-    <string name="download_complete">Sťahovanie dokončené</string>
-    <string name="downloading">Sťahovanie</string>
+    <string name="type_timer">ÄŒasovaÄe &amp; BudÃ­ky</string>
+    <string name="download_complete">SÅ¥ahovanie dokonÄenÃ©</string>
+    <string name="downloading">SÅ¥ahovanie</string>
     <string name="maps_title">Mapy</string>
     <string-array name="progress_finish_keywords">
-        <item>stiahnuté</item>
-        <item>dokončené</item>
-        <item>ukončené</item>
-        <item>nainštalované</item>
+        <item>stiahnutÃ©</item>
+        <item>dokonÄenÃ©</item>
+        <item>ukonÄenÃ©</item>
+        <item>nainÅ¡talovanÃ©</item>
         <item>hotovo</item>
-        <item>úspešný</item>
-        <item>úspešne</item>
+        <item>ÃºspeÅ¡nÃ½</item>
+        <item>ÃºspeÅ¡ne</item>
     </string-array>
-    <string name="status_now_playing">Práve sa prehráva</string>
-    <string name="fallback_timer">Časovač</string>
-    <string name="whats_new_title">Čo je nové v %s</string>
-    <string name="awesome">Úžasné!</string>
-    <string name="island_behavior">Správanie Islandu</string>
-    <string name="limit_strategy">Stratégia Limitu</string>
-    <string name="limit_desc">Čo sa stane, keď dosiahnete 9 ostrovov?</string>
-    <string name="mode_fcfs_title">Prvý Príde, Prvý Obslúžený</string>
-    <string name="mode_fcfs_desc">Udržuj prvých 9 aplikácií. Nové aplikácie sú ignorované, dokým sa neuvoľní miesto.</string>
-    <string name="mode_recent_title">Najnovšie (Predvolené)</string>
-    <string name="mode_recent_desc">Nové upozornenia nahradia tie najstaršie.</string>
-    <string name="mode_priority_title">Vlastná Priorita</string>
-    <string name="mode_priority_desc">Definujte, ktoré typy (napr. Hovory) sú dôležitejšie.</string>
-    <string name="priority_order">Poradie Priorít</string>
-    <string name="priority_order_desc">Vysoká priorita (Najvyššia) nahrádza Nízku prioritu (Spodná).</string>
-    <string name="configure_order">Nastavte poradie aplikácií</string>
-    <string name="global_settings">Globálne nastavenia</string>
-    <string name="island_appearance">Vzhľad Islandu</string>
-    <string name="setting_float">Vyskakovacie okno s upozornením</string>
-    <string name="setting_float_desc">Krátko zobrazí celý notifikačný banner pred minimalizáciou Islandu.</string>
+    <string name="status_now_playing">PrÃ¡ve sa prehrÃ¡va</string>
+    <string name="fallback_timer">ÄŒasovaÄ</string>
+    <string name="whats_new_title">ÄŒo je novÃ© v %s</string>
+    <string name="awesome">ÃšÅ¾asnÃ©!</string>
+    <string name="island_behavior">SprÃ¡vanie Islandu</string>
+    <string name="limit_strategy">StratÃ©gia Limitu</string>
+    <string name="limit_desc">ÄŒo sa stane, keÄ dosiahnete 9 ostrovov?</string>
+    <string name="mode_fcfs_title">PrvÃ½ PrÃ­de, PrvÃ½ ObslÃºÅ¾enÃ½</string>
+    <string name="mode_fcfs_desc">UdrÅ¾uj prvÃ½ch 9 aplikÃ¡ciÃ­. NovÃ© aplikÃ¡cie sÃº ignorovanÃ©, dokÃ½m sa neuvoÄ¾nÃ­ miesto.</string>
+    <string name="mode_recent_title">NajnovÅ¡ie (PredvolenÃ©)</string>
+    <string name="mode_recent_desc">NovÃ© upozornenia nahradia tie najstarÅ¡ie.</string>
+    <string name="mode_priority_title">VlastnÃ¡ Priorita</string>
+    <string name="mode_priority_desc">Definujte, ktorÃ© typy (napr. Hovory) sÃº dÃ´leÅ¾itejÅ¡ie.</string>
+    <string name="priority_order">Poradie PriorÃ­t</string>
+    <string name="priority_order_desc">VysokÃ¡ priorita (NajvyÅ¡Å¡ia) nahrÃ¡dza NÃ­zku prioritu (SpodnÃ¡).</string>
+    <string name="configure_order">Nastavte poradie aplikÃ¡ciÃ­</string>
+    <string name="global_settings">GlobÃ¡lne nastavenia</string>
+    <string name="island_appearance">VzhÄ¾ad Islandu</string>
+    <string name="setting_float">Vyskakovacie okno s upozornenÃ­m</string>
+    <string name="setting_float_desc">KrÃ¡tko zobrazÃ­ celÃ½ notifikaÄnÃ½ banner pred minimalizÃ¡ciou Islandu.</string>
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
-    <string name="setting_shade">Panel oznámení</string>
-    <string name="setting_shade_desc">Udržuje upozornenie viditeľné v paneli oznámení. Ak je vypnuté, zobrazí sa iba ako Ostrov.</string>
+    <string name="setting_shade">Panel oznÃ¡menÃ­</string>
+    <string name="setting_shade_desc">UdrÅ¾uje upozornenie viditeÄ¾nÃ© v paneli oznÃ¡menÃ­. Ak je vypnutÃ©, zobrazÃ­ sa iba ako Ostrov.</string>
     <string name="seconds_suffix">%ds</string>
-    <string name="use_global_default">Použiť globálne predvolené nastavenia</string>
+    <string name="use_global_default">PouÅ¾iÅ¥ globÃ¡lne predvolenÃ© nastavenia</string>
     <string-array name="nav_arrival_keywords">
         <item>arrival</item>
         <item>arrive</item>
@@ -119,15 +120,15 @@
         <item>reaching</item>
         <item>destination</item>
     </string-array>
-    <string name="version_history">História verzií</string>
-    <string name="title_0_2_0">Informácia o aktualizácii</string>
+    <string name="version_history">HistÃ³ria verziÃ­</string>
+    <string name="title_0_2_0">InformÃ¡cia o aktualizÃ¡cii</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;Pokročilý pokrok:&lt;/b&gt; Pridaná podpora pre „Postup krokov“ (napr. 1 z 3) a indikátory priebehu s ikonami vo vnútri panela upozornení.\n
         • &lt;b&gt;Systém priorít:&lt;/b&gt; Nové nastavenie \"Správanie Islandu\". Vyberte si medzi zoznamom „Najnovšie“, „Ktorí prví prídu“ alebo vlastným zoznamom „Priorita aplikácií“..\n
         • &lt;b&gt;Inteligentné filtrovanie:&lt;/b&gt; Vylepšená detekcia duplicitných upozornení a zoskupených sťahovaní.\n
         • &lt;b&gt;Vizuálne vylepšenia:&lt;/b&gt; Opravené problémy s rozložením navigačných pokynov.\n
         • &lt;b&gt;Konfigurácia pre jednotlivé aplikácie:&lt;/b&gt; Prispôsobte si časový limit a správanie pohyblivého umiestnenia pre každú aplikáciu.
     </string>
-    <string name="title_0_1_0">Expresívna aktualizácia</string>
+    <string name="title_0_1_0">ExpresÃ­vna aktualizÃ¡cia</string>
     <string name="changelog_0_1_0">        • &lt;b&gt;Hlavná rekonštrukcia používateľského rozhrania:&lt;/b&gt; Nový \"Material 3\" Expresívny dizajn s plynulými animáciami.\n
         • &lt;b&gt;Lepší Island:&lt;/b&gt; Text sa teraz zobrazuje na pravej strane. Pridaná zelená šípka pre dokončené sťahovania.\n
         • &lt;b&gt;Konfigurácia pre jednotlivé aplikácie:&lt;/b&gt; Vyberte konkrétne typy upozornení (Hudba, Mapy, Hovory) pre každú aplikáciu.\n
@@ -135,54 +136,54 @@
         • &lt;b&gt;Nová knižnica:&lt;/b&gt; Filtrovať aplikácie podľa kategórie a zoradiť podľa poradia.\n
         • &lt;b&gt;Lokalizácia:&lt;/b&gt; Pridaná podpora španielčiny.
     </string>
-    <string name="priority_edu_title">Novinka: Ovládajte Ostrov</string>
-    <string name="priority_edu_desc">HyperBridge teraz dokáže spravovať správanie viacerých upozornení po dosiahnutí limitu 9 ostrovov.\n\n&lt;b&gt;Predvolené: Najnovšie&lt;/b&gt;\nNové oznámenia automaticky nahradia tie najstaršie.</string>
-    <string name="badge_new">NOVÝ</string>
-    <string name="nav_layout_title">Rozloženie navigácie</string>
-    <string name="nav_layout_desc">Vyberte, kde sa informácie zobrazia</string>
-    <string name="left_content">Ľavá strana</string>
-    <string name="right_content">Pravá strana</string>
-    <string name="nav_content_instruction">Inštrukcia</string>
-    <string name="nav_content_distance">Vzdialenosť</string>
-    <string name="nav_content_eta">Čas príchodu</string>
-    <string name="nav_content_distance_eta">Vzdialenosť &amp; Čas</string>
-    <string name="nav_content_none">Prázdny</string>
-    <string name="channel_active_islands">Aktívne Ostrovy</string>
-    <string name="cd_enable_type">Povoliť %s upozornenia</string>
-    <string name="cd_disable_type">Zakázať %s upozornenia</string>
-    <string name="cd_nav_edit">Upraviť rozloženie navigácie</string>
-    <string name="cd_app_state_active">Aktívne</string>
-    <string name="cd_app_state_inactive">Neaktívne</string>
-    <string name="cd_move_up">Posunúť položku nahor</string>
-    <string name="cd_move_down">Posunúť položku nadol</string>
-    <string name="cd_drag_handle">Potiahnite položku. Dvojitým klepnutím a podržaním zmeníte poradie alebo pomocou akcií presuňte.</string>
-    <string name="cd_app_icon">Ikona aplikácie pre %s</string>
-    <string name="cd_nav_preview">Náhľad navigácie: %1$s naľavo, %2$s napravo</string>
-    <string name="cd_expand_changelog">Rozbaliť podrobnosti o verzii</string>
-    <string name="cd_collapse_changelog">Zbaliť podrobnosti verzie</string>
-    <string name="nav_preview_instruction">Otočiť doprava</string>
+    <string name="priority_edu_title">Novinka: OvlÃ¡dajte Ostrov</string>
+    <string name="priority_edu_desc">HyperBridge teraz dokÃ¡Å¾e spravovaÅ¥ sprÃ¡vanie viacerÃ½ch upozornenÃ­ po dosiahnutÃ­ limitu 9 ostrovov.\n\n&lt;b&gt;PredvolenÃ©: NajnovÅ¡ie&lt;/b&gt;\nNovÃ© oznÃ¡menia automaticky nahradia tie najstarÅ¡ie.</string>
+    <string name="badge_new">NOVÃ</string>
+    <string name="nav_layout_title">RozloÅ¾enie navigÃ¡cie</string>
+    <string name="nav_layout_desc">Vyberte, kde sa informÃ¡cie zobrazia</string>
+    <string name="left_content">Ä½avÃ¡ strana</string>
+    <string name="right_content">PravÃ¡ strana</string>
+    <string name="nav_content_instruction">InÅ¡trukcia</string>
+    <string name="nav_content_distance">VzdialenosÅ¥</string>
+    <string name="nav_content_eta">ÄŒas prÃ­chodu</string>
+    <string name="nav_content_distance_eta">VzdialenosÅ¥ &amp; ÄŒas</string>
+    <string name="nav_content_none">PrÃ¡zdny</string>
+    <string name="channel_active_islands">AktÃ­vne Ostrovy</string>
+    <string name="cd_enable_type">PovoliÅ¥ %s upozornenia</string>
+    <string name="cd_disable_type">ZakÃ¡zaÅ¥ %s upozornenia</string>
+    <string name="cd_nav_edit">UpraviÅ¥ rozloÅ¾enie navigÃ¡cie</string>
+    <string name="cd_app_state_active">AktÃ­vne</string>
+    <string name="cd_app_state_inactive">NeaktÃ­vne</string>
+    <string name="cd_move_up">PosunÃºÅ¥ poloÅ¾ku nahor</string>
+    <string name="cd_move_down">PosunÃºÅ¥ poloÅ¾ku nadol</string>
+    <string name="cd_drag_handle">Potiahnite poloÅ¾ku. DvojitÃ½m klepnutÃ­m a podrÅ¾anÃ­m zmenÃ­te poradie alebo pomocou akciÃ­ presuÅˆte.</string>
+    <string name="cd_app_icon">Ikona aplikÃ¡cie pre %s</string>
+    <string name="cd_nav_preview">NÃ¡hÄ¾ad navigÃ¡cie: %1$s naÄ¾avo, %2$s napravo</string>
+    <string name="cd_expand_changelog">RozbaliÅ¥ podrobnosti o verzii</string>
+    <string name="cd_collapse_changelog">ZbaliÅ¥ podrobnosti verzie</string>
+    <string name="nav_preview_instruction">OtoÄiÅ¥ doprava</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
-    <string name="blocked_terms">Blokované výrazy</string>
-    <string name="blocked_terms_desc">Upozornenia obsahujúce tieto slová budú ignorované.</string>
-    <string name="add_blocked_word">Pridať slovo (napr. Spoiler)</string>
-    <string name="add">Pridať</string>
-    <string name="remove">Odstrániť</string>
+    <string name="blocked_terms">BlokovanÃ© vÃ½razy</string>
+    <string name="blocked_terms_desc">Upozornenia obsahujÃºce tieto slovÃ¡ budÃº ignorovanÃ©.</string>
+    <string name="add_blocked_word">PridaÅ¥ slovo (napr. Spoiler)</string>
+    <string name="add">PridaÅ¥</string>
+    <string name="remove">OdstrÃ¡niÅ¥</string>
     <string name="spoiler_subtitle">Spravujte filtre a ochranu pred spoilermi</string>
-    <string name="active_notifications_title">Typy oznámení</string>
-    <string name="active_notifications_subtitle">%d aktívny</string>
-    <string name="appearance_use_defaults_desc">Používanie predvolených systémových nastavení pre rýchlosť animácie a správanie vznášajúceho sa elementu.</string>
-    <string name="blocked_terms_active_count">%d pravidlá aktívne</string>
-    <string name="global_rules">Globálne pravidlá</string>
-    <string name="app_specific_rules">Špecifické pravidlá aplikácie</string>
-    <string name="manage_app_rules_desc">Prispôsobte filtre pre konkrétne aplikácie</string>
-    <string name="blocked_terms_count">%d zablokovaných výrazov</string>
-    <string name="no_active_rules">Žiadne aktívne pravidlá</string>
-    <string name="setup_health_title">Kompatibilita systému</string>
-    <string name="req_hyperos">Vyžaduje HyperOS 3.0+ (Android 15+)</string>
-    <string name="req_xiaomi">Vyžaduje sa zariadenie Xiaomi/Redmi/Poco</string>
-    <string name="warning_cn_rom_title">Zistená čínska ROM</string>
-    <string name="warning_cn_rom_desc">Zdá sa, že vaše zariadenie používa čínsky firmvér. Xiaomi výrazne upravuje vnútorné funkcie upozornení na CN ROM. Funkcie môžu byť nestabilné alebo nemusia vôbec fungovať.</string>
+    <string name="active_notifications_title">Typy oznÃ¡menÃ­</string>
+    <string name="active_notifications_subtitle">%d aktÃ­vny</string>
+    <string name="appearance_use_defaults_desc">PouÅ¾Ã­vanie predvolenÃ½ch systÃ©movÃ½ch nastavenÃ­ pre rÃ½chlosÅ¥ animÃ¡cie a sprÃ¡vanie vznÃ¡Å¡ajÃºceho sa elementu.</string>
+    <string name="blocked_terms_active_count">%d pravidlÃ¡ aktÃ­vne</string>
+    <string name="global_rules">GlobÃ¡lne pravidlÃ¡</string>
+    <string name="app_specific_rules">Å pecifickÃ© pravidlÃ¡ aplikÃ¡cie</string>
+    <string name="manage_app_rules_desc">PrispÃ´sobte filtre pre konkrÃ©tne aplikÃ¡cie</string>
+    <string name="blocked_terms_count">%d zablokovanÃ½ch vÃ½razov</string>
+    <string name="no_active_rules">Å½iadne aktÃ­vne pravidlÃ¡</string>
+    <string name="setup_health_title">Kompatibilita systÃ©mu</string>
+    <string name="req_hyperos">VyÅ¾aduje HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">VyÅ¾aduje sa zariadenie Xiaomi/Redmi/Poco</string>
+    <string name="warning_cn_rom_title">ZistenÃ¡ ÄÃ­nska ROM</string>
+    <string name="warning_cn_rom_desc">ZdÃ¡ sa, Å¾e vaÅ¡e zariadenie pouÅ¾Ã­va ÄÃ­nsky firmvÃ©r. Xiaomi vÃ½razne upravuje vnÃºtornÃ© funkcie upozornenÃ­ na CN ROM. Funkcie mÃ´Å¾u byÅ¥ nestabilnÃ© alebo nemusia vÃ´bec fungovaÅ¥.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
@@ -191,24 +192,24 @@
     <string name="shizuku_permission_denied">Permission Denied</string>
     <string name="shizuku_request_permission">Grant Shizuku Permission</string>
     <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
-    <string name="system_version">Verzia systému</string>
-    <string name="call_incoming">Prichádzajúci hovor</string>
-    <string name="call_ongoing">Aktívny hovor</string>
+    <string name="system_version">Verzia systÃ©mu</string>
+    <string name="call_incoming">PrichÃ¡dzajÃºci hovor</string>
+    <string name="call_ongoing">AktÃ­vny hovor</string>
     <string-array name="call_keywords_hangup">
-        <item>zložiť</item>
-        <item>ukončiť</item>
-        <item>odmietnuť</item>
-        <item>odmietnuť</item>
+        <item>zloÅ¾iÅ¥</item>
+        <item>ukonÄiÅ¥</item>
+        <item>odmietnuÅ¥</item>
+        <item>odmietnuÅ¥</item>
     </string-array>
     <string-array name="call_keywords_answer">
-        <item>odpovedať</item>
-        <item>prijať</item>
+        <item>odpovedaÅ¥</item>
+        <item>prijaÅ¥</item>
     </string-array>
     <string-array name="call_keywords_speaker">
         <item>reproduktor</item>
         <item>audio</item>
     </string-array>
-    <string name="title_0_3_0">Globálna aktualizácia</string>
+    <string name="title_0_3_0">GlobÃ¡lna aktualizÃ¡cia</string>
     <string name="changelog_0_3_0">        <b>Skryté upozornenia 👻</b>\n
         Nová možnosť skryť upozornenia na systémovom paneli a zároveň ponechať ostrov aktívny. Skontrolujte globálne nastavenia.!\n\n
         <b>Nové jazyky 🌍</b>\n
@@ -229,39 +230,39 @@
         • Prepracovaný hárok konfigurácie aplikácie pre lepšiu použiteľnosť.\n
         • Vylepšená obrazovka kontroly kompatibility s podrobnými informáciami o zariadení.
     </string>
-    <string name="privacy_title">100% Offline &amp; Bezpečný</string>
-    <string name="privacy_desc">Hyper Bridge spracováva všetko priamo na procesore vášho telefónu.\n\nNEVYŽADUJE prístup na internet, čo znamená, že vaše upozornenia a osobné údaje nikdy neopustia vaše zariadenie.</string>
+    <string name="privacy_title">100% Offline &amp; BezpeÄnÃ½</string>
+    <string name="privacy_desc">Hyper Bridge spracovÃ¡va vÅ¡etko priamo na procesore vÃ¡Å¡ho telefÃ³nu.\n\nNEVYÅ½ADUJE prÃ­stup na internet, Äo znamenÃ¡, Å¾e vaÅ¡e upozornenia a osobnÃ© Ãºdaje nikdy neopustia vaÅ¡e zariadenie.</string>
     <string name="language">Jazyk</string>
-    <string name="language_desc">Zmeniť jazyk aplikácie</string>
-    <string name="system_default">Predvolené nastavenie systému</string>
-    <string name="save">Uložiť</string>
-    <string name="backup_restore_title">Zálohovanie &amp; Obnovenie</string>
-    <string name="backup_section_title">Správa údajov</string>
-    <string name="backup_options_subtitle">Vyberte údaje, ktoré chcete zahrnúť do operácie</string>
-    <string name="option_app_settings">Nastavenia aplikácie</string>
-    <string name="option_app_settings_desc">Stav nastavenia, téma, režimy správania</string>
-    <string name="option_blocklist">Databáza blokovaných zoznamov</string>
-    <string name="option_blocklist_desc">Vaše vlastné blokované kľúčové slová a aplikácie</string>
-    <string name="option_priorities">Pravidlá priorít</string>
-    <string name="option_priorities_desc">Konfigurácie vlastnej priority upozornení</string>
-    <string name="action_export">Vytvoriť zálohu</string>
-    <string name="action_import">Obnoviť zálohu</string>
+    <string name="language_desc">ZmeniÅ¥ jazyk aplikÃ¡cie</string>
+    <string name="system_default">PredvolenÃ© nastavenie systÃ©mu</string>
+    <string name="save">UloÅ¾iÅ¥</string>
+    <string name="backup_restore_title">ZÃ¡lohovanie &amp; Obnovenie</string>
+    <string name="backup_section_title">SprÃ¡va Ãºdajov</string>
+    <string name="backup_options_subtitle">Vyberte Ãºdaje, ktorÃ© chcete zahrnÃºÅ¥ do operÃ¡cie</string>
+    <string name="option_app_settings">Nastavenia aplikÃ¡cie</string>
+    <string name="option_app_settings_desc">Stav nastavenia, tÃ©ma, reÅ¾imy sprÃ¡vania</string>
+    <string name="option_blocklist">DatabÃ¡za blokovanÃ½ch zoznamov</string>
+    <string name="option_blocklist_desc">VaÅ¡e vlastnÃ© blokovanÃ© kÄ¾ÃºÄovÃ© slovÃ¡ a aplikÃ¡cie</string>
+    <string name="option_priorities">PravidlÃ¡ priorÃ­t</string>
+    <string name="option_priorities_desc">KonfigurÃ¡cie vlastnej priority upozornenÃ­</string>
+    <string name="action_export">VytvoriÅ¥ zÃ¡lohu</string>
+    <string name="action_import">ObnoviÅ¥ zÃ¡lohu</string>
     <string name="export_success">Záloha bola úspešne uložená</string>
     <string name="export_failed">Export zlyhal: %s</string>
-    <string name="import_success">Dáta boli úspešne obnovené</string>
+    <string name="import_success">DÃ¡ta boli ÃºspeÅ¡ne obnovenÃ©</string>
     <string name="import_failed">Import zlyhal: %s</string>
-    <string name="autostart_manual_check">Stav nie je možné overiť automaticky.\nSkontrolujte to manuálne, aby ste sa uistili, že služba funguje správne</string>
-    <string name="backup_info_title">Informácie o zálohe</string>
-    <string name="backup_meta_date">Dátum</string>
+    <string name="autostart_manual_check">Stav nie je moÅ¾nÃ© overiÅ¥ automaticky.\nSkontrolujte to manuÃ¡lne, aby ste sa uistili, Å¾e sluÅ¾ba funguje sprÃ¡vne</string>
+    <string name="backup_info_title">InformÃ¡cie o zÃ¡lohe</string>
+    <string name="backup_meta_date">DÃ¡tum</string>
     <string name="backup_meta_device">Zariadenie</string>
     <string name="backup_meta_version">Verzia</string>
-    <string name="backup_meta_keys">Celkový počet položiek</string>
-    <string name="backup_empty_suffix"> (Prázdny)</string>
-    <string name="action_restore_selected">Obnoviť vybrané údaje</string>
-    <string name="optimization_title">Optimalizácia zariadenia</string>
+    <string name="backup_meta_keys">CelkovÃ½ poÄet poloÅ¾iek</string>
+    <string name="backup_empty_suffix"> (PrÃ¡zdny)</string>
+    <string name="action_restore_selected">ObnoviÅ¥ vybranÃ© Ãºdaje</string>
+    <string name="optimization_title">OptimalizÃ¡cia zariadenia</string>
     <string name="privacy_card_title">Najprv offline</string>
-    <string name="privacy_card_desc">Nie je potrebné pripojenie na internet.</string>
-    <string name="title_0_3_1">Zálohovanie &amp; Aktualizácia Polyglot</string>
+    <string name="privacy_card_desc">Nie je potrebnÃ© pripojenie na internet.</string>
+    <string name="title_0_3_1">ZÃ¡lohovanie &amp; AktualizÃ¡cia Polyglot</string>
     <string name="changelog_0_3_1">        <b>Zálohovanie &amp; Obnovenie 📦</b>\n
         Nová funkcia pre náročných používateľov! Bezpečne exportujte svoje nastavenia, zoznamy blokovaných položiek a priority aplikácií do súboru .hbr a kedykoľvek ich obnovte..\n\n
         <b>Nové jazyky 🌍</b>\n
@@ -280,184 +281,184 @@
         • Opravené tlačidlo „Ukončiť“ v navigačnom ostrovčeku, ktoré sa zobrazovalo ako ikona namiesto textu..\n
         • Opravené načítavanie ikony aplikácie v Nastaveniach.\n
     </string>
-    <string name="close">Zatvoriť</string>
-    <string name="search">Hľadať</string>
-    <string name="widget_updated_toast">Widget aktualizovaný</string>
-    <string name="widget_settings_error">Nastavenia tohto widgetu nie je možné upraviť</string>
-    <string name="widget_picker_title">Pridať Widget</string>
-    <string name="search_apps_placeholder">Hľadať aplikácie...</string>
+    <string name="close">ZatvoriÅ¥</string>
+    <string name="search">HÄ¾adaÅ¥</string>
+    <string name="widget_updated_toast">Widget aktualizovanÃ½</string>
+    <string name="widget_settings_error">Nastavenia tohto widgetu nie je moÅ¾nÃ© upraviÅ¥</string>
+    <string name="widget_picker_title">PridaÅ¥ Widget</string>
+    <string name="search_apps_placeholder">HÄ¾adaÅ¥ aplikÃ¡cie...</string>
     <plurals name="widget_count_fmt">
         <item quantity="many">%d widgets</item>
         <item quantity="other">%d widgets</item>
         <item quantity="one">%d widget</item>
         <item quantity="few">%d widgets</item>
     </plurals>
-    <string name="widget_config_title">Konfigurovať widget</string>
+    <string name="widget_config_title">KonfigurovaÅ¥ widget</string>
     <string name="widget_settings_button">Nastavenia widgetu</string>
-    <string name="config_tab_appearance">Vzhľad</string>
-    <string name="config_tab_behavior">Správanie</string>
-    <string name="config_render_mode_label">Režim vykresľovania</string>
-    <string name="config_container_size_label">Veľkosť kontajnera</string>
-    <string name="config_shade_title">Zobraziť v tieni</string>
-    <string name="config_shade_desc">Viditeľné v paneli oznámení</string>
-    <string name="config_timeout_title">Automatické zatvorenie</string>
-    <string name="config_timeout_desc">Zatvoriť ostrov po oneskorení</string>
+    <string name="config_tab_appearance">VzhÄ¾ad</string>
+    <string name="config_tab_behavior">SprÃ¡vanie</string>
+    <string name="config_render_mode_label">ReÅ¾im vykresÄ¾ovania</string>
+    <string name="config_container_size_label">VeÄ¾kosÅ¥ kontajnera</string>
+    <string name="config_shade_title">ZobraziÅ¥ v tieni</string>
+    <string name="config_shade_desc">ViditeÄ¾nÃ© v paneli oznÃ¡menÃ­</string>
+    <string name="config_timeout_title">AutomatickÃ© zatvorenie</string>
+    <string name="config_timeout_desc">ZatvoriÅ¥ ostrov po oneskorenÃ­</string>
     <plurals name="config_timeout_fmt">
-        <item quantity="many">%d sekúnd</item>
-        <item quantity="other">%d sekúnd</item>
+        <item quantity="many">%d sekÃºnd</item>
+        <item quantity="other">%d sekÃºnd</item>
         <item quantity="one">%d sekunda</item>
-        <item quantity="few">%d sekúnd</item>
+        <item quantity="few">%d sekÃºnd</item>
     </plurals>
-    <string name="config_refresh_title">Automatické obnovenie</string>
-    <string name="config_refresh_desc">Pravidelne aktualizujte snímku</string>
+    <string name="config_refresh_title">AutomatickÃ© obnovenie</string>
+    <string name="config_refresh_desc">Pravidelne aktualizujte snÃ­mku</string>
     <plurals name="config_refresh_fmt">
-        <item quantity="many">Každých %d minút</item>
-        <item quantity="other">Každých %d minút</item>
-        <item quantity="one">Každá minúta</item>
-        <item quantity="few">Každých %d minút</item>
+        <item quantity="many">KaÅ¾dÃ½ch %d minÃºt</item>
+        <item quantity="other">KaÅ¾dÃ½ch %d minÃºt</item>
+        <item quantity="one">KaÅ¾dÃ¡ minÃºta</item>
+        <item quantity="few">KaÅ¾dÃ½ch %d minÃºt</item>
     </plurals>
-    <string name="config_refresh_warning">Vyššia frekvencia spotrebuje viac batérie.</string>
-    <string name="render_interactive_label">Interaktívne</string>
-    <string name="render_interactive_desc">Tlačidlá fungujú. Najlepšie na hudbu, ovládanie.</string>
-    <string name="render_snapshot_label">Snímka</string>
-    <string name="render_snapshot_desc">Opravuje prázdne zoznamy. Najlepšie pre Kalendár a Gmail.</string>
-    <string name="size_original">Originál</string>
-    <string name="size_small">Malá (100dp)</string>
-    <string name="size_medium">Stredná (180dp)</string>
-    <string name="size_large">Veľká (280dp)</string>
-    <string name="size_xlarge">Extra veľká (380dp)</string>
-    <string name="app_uninstalled_badge">Odinštalované</string>
+    <string name="config_refresh_warning">VyÅ¡Å¡ia frekvencia spotrebuje viac batÃ©rie.</string>
+    <string name="render_interactive_label">InteraktÃ­vne</string>
+    <string name="render_interactive_desc">TlaÄidlÃ¡ fungujÃº. NajlepÅ¡ie na hudbu, ovlÃ¡danie.</string>
+    <string name="render_snapshot_label">SnÃ­mka</string>
+    <string name="render_snapshot_desc">Opravuje prÃ¡zdne zoznamy. NajlepÅ¡ie pre KalendÃ¡r a Gmail.</string>
+    <string name="size_original">OriginÃ¡l</string>
+    <string name="size_small">MalÃ¡ (100dp)</string>
+    <string name="size_medium">StrednÃ¡ (180dp)</string>
+    <string name="size_large">VeÄ¾kÃ¡ (280dp)</string>
+    <string name="size_xlarge">Extra veÄ¾kÃ¡ (380dp)</string>
+    <string name="app_uninstalled_badge">OdinÅ¡talovanÃ©</string>
     <string name="settings_action">Nastavenia</string>
-    <string name="saved_widgets_title">Uložené widgety</string>
-    <string name="no_saved_widgets">Nenašli sa žiadne uložené widgety.</string>
+    <string name="saved_widgets_title">UloÅ¾enÃ© widgety</string>
+    <string name="no_saved_widgets">NenaÅ¡li sa Å¾iadne uloÅ¾enÃ© widgety.</string>
     <string name="widget_id_fmt">Widget #%d</string>
-    <string name="show_on_island">Zobraziť na ostrove</string>
-    <string name="theme_installer_analyzing">Analýza balíka tém...</string>
-    <string name="theme_installer_success_title">Téma pripravená</string>
-    <string name="theme_installer_author">Vytvorené používateľom %s</string>
+    <string name="show_on_island">ZobraziÅ¥ na ostrove</string>
+    <string name="theme_installer_analyzing">AnalÃ½za balÃ­ka tÃ©m...</string>
+    <string name="theme_installer_success_title">TÃ©ma pripravenÃ¡</string>
+    <string name="theme_installer_author">VytvorenÃ© pouÅ¾Ã­vateÄ¾om %s</string>
     <string name="theme_installer_version">Verzia %d</string>
-    <string name="theme_installer_apply_question">Chcete teraz použiť túto tému na HyperBridge?</string>
-    <string name="theme_installer_action_apply">Použiť tému</string>
-    <string name="theme_installer_action_later">Uložiť na neskôr</string>
+    <string name="theme_installer_apply_question">Chcete teraz pouÅ¾iÅ¥ tÃºto tÃ©mu na HyperBridge?</string>
+    <string name="theme_installer_action_apply">PouÅ¾iÅ¥ tÃ©mu</string>
+    <string name="theme_installer_action_later">UloÅ¾iÅ¥ na neskÃ´r</string>
     <string name="theme_installer_error_title">Import zlyhal</string>
-    <string name="theme_installer_error_generic">Nepodarilo sa overiť súbor s témou.</string>
-    <string name="theme_installer_btn_close">Zavrieť</string>
-    <string name="theme_manager_title">Moje témy</string>
-    <string name="theme_manager_cd_add">Pridať novú tému</string>
+    <string name="theme_installer_error_generic">Nepodarilo sa overiÅ¥ sÃºbor s tÃ©mou.</string>
+    <string name="theme_installer_btn_close">ZavrieÅ¥</string>
+    <string name="theme_manager_title">Moje tÃ©my</string>
+    <string name="theme_manager_cd_add">PridaÅ¥ novÃº tÃ©mu</string>
     <string name="theme_card_author_format">od %s</string>
-    <string name="theme_card_cd_active">Aktívna téma</string>
-    <string name="theme_card_cd_delete">Odstrániť tému</string>
-    <string name="theme_system_default_title">Predvolené nastavenie systému</string>
-    <string name="theme_system_default_desc">Štandardný vzhľad</string>
-    <string name="theme_sheet_title">Pridať novú tému</string>
-    <string name="theme_sheet_action_create">Vytvoriť novú tému</string>
-    <string name="theme_sheet_action_find">Vyhľadať</string>
+    <string name="theme_card_cd_active">AktÃ­vna tÃ©ma</string>
+    <string name="theme_card_cd_delete">OdstrÃ¡niÅ¥ tÃ©mu</string>
+    <string name="theme_system_default_title">PredvolenÃ© nastavenie systÃ©mu</string>
+    <string name="theme_system_default_desc">Å tandardnÃ½ vzhÄ¾ad</string>
+    <string name="theme_sheet_title">PridaÅ¥ novÃº tÃ©mu</string>
+    <string name="theme_sheet_action_create">VytvoriÅ¥ novÃº tÃ©mu</string>
+    <string name="theme_sheet_action_find">VyhÄ¾adaÅ¥</string>
     <string name="theme_action_import_short">Import</string>
-    <string name="theme_card_action_edit">Upraviť</string>
+    <string name="theme_card_action_edit">UpraviÅ¥</string>
     <string name="theme_card_action_export">Export</string>
-    <string name="creator_title_new">Vytvoriť tému</string>
-    <string name="creator_title_edit">Upraviť tému</string>
+    <string name="creator_title_new">VytvoriÅ¥ tÃ©mu</string>
+    <string name="creator_title_edit">UpraviÅ¥ tÃ©mu</string>
     <string name="creator_nav_colors">Farby</string>
     <string name="creator_nav_icons">Ikony &amp; Tvary</string>
-    <string name="creator_nav_calls">Štýl hovoru</string>
-    <string name="creator_nav_apps">Konfigurácia aplikácie</string>
-    <string name="creator_action_save">Uložiť</string>
-    <string name="creator_btn_edit_info">Upraviť informácie o téme</string>
+    <string name="creator_nav_calls">Å tÃ½l hovoru</string>
+    <string name="creator_nav_apps">KonfigurÃ¡cia aplikÃ¡cie</string>
+    <string name="creator_action_save">UloÅ¾iÅ¥</string>
+    <string name="creator_btn_edit_info">UpraviÅ¥ informÃ¡cie o tÃ©me</string>
     <string name="creator_sub_colors">Palety &amp; kontrast</string>
-    <string name="creator_sub_icons">Tvar &amp; výplň</string>
-    <string name="creator_sub_calls">Tlačidlá na prijatie &amp; odmietnutie</string>
-    <string name="creator_sub_apps">Prepísania pre jednotlivé aplikácie</string>
-    <string name="meta_title">Informácie o téme</string>
-    <string name="meta_label_name">Názov témy</string>
+    <string name="creator_sub_icons">Tvar &amp; vÃ½plÅˆ</string>
+    <string name="creator_sub_calls">TlaÄidlÃ¡ na prijatie &amp; odmietnutie</string>
+    <string name="creator_sub_apps">PrepÃ­sania pre jednotlivÃ© aplikÃ¡cie</string>
+    <string name="meta_title">InformÃ¡cie o tÃ©me</string>
+    <string name="meta_label_name">NÃ¡zov tÃ©my</string>
     <string name="meta_label_author">Meno autora</string>
     <string name="meta_action_done">Hotovo</string>
-    <string name="colors_tab_presets">Predvoľby</string>
-    <string name="colors_tab_custom">Vlastné</string>
-    <string name="colors_label_presets">Predvoľby</string>
-    <string name="colors_label_use_app_colors">Použi farby aplikácie</string>
-    <string name="colors_desc_use_app_colors">Prispôsob farby z nainštalovaných aplikácií</string>
-    <string name="colors_label_custom_title">Vlastná farba</string>
-    <string name="colors_cd_add_custom">Pridať vlastnú farbu</string>
+    <string name="colors_tab_presets">PredvoÄ¾by</string>
+    <string name="colors_tab_custom">VlastnÃ©</string>
+    <string name="colors_label_presets">PredvoÄ¾by</string>
+    <string name="colors_label_use_app_colors">PouÅ¾i farby aplikÃ¡cie</string>
+    <string name="colors_desc_use_app_colors">PrispÃ´sob farby z nainÅ¡talovanÃ½ch aplikÃ¡ciÃ­</string>
+    <string name="colors_label_custom_title">VlastnÃ¡ farba</string>
+    <string name="colors_cd_add_custom">PridaÅ¥ vlastnÃº farbu</string>
     <string name="colors_dialog_title">Vyberte farbu</string>
     <string name="colors_action_done">Hotovo</string>
-    <string name="icons_tab_style">Štýl</string>
+    <string name="icons_tab_style">Å tÃ½l</string>
     <string name="icons_tab_assets">Ikony</string>
     <string name="icons_tab_shape">Tvar</string>
-    <string name="icons_label_size">Veľkosť ikony</string>
-    <string name="icons_label_full">Plný</string>
-    <string name="icons_label_minimal">Minimálny</string>
-    <string name="icons_group_nav">Navigácia</string>
-    <string name="icons_btn_start">Štart</string>
+    <string name="icons_label_size">VeÄ¾kosÅ¥ ikony</string>
+    <string name="icons_label_full">PlnÃ½</string>
+    <string name="icons_label_minimal">MinimÃ¡lny</string>
+    <string name="icons_group_nav">NavigÃ¡cia</string>
+    <string name="icons_btn_start">Å tart</string>
     <string name="icons_btn_end">Koniec</string>
     <string name="icons_group_progress">Pokrok</string>
-    <string name="icons_btn_success">Úspech</string>
+    <string name="icons_btn_success">Ãšspech</string>
     <string name="icons_label_shape_title">Tvar ikony</string>
     <string name="shape_circle">Kruh</string>
-    <string name="shape_square">Štvorec</string>
+    <string name="shape_square">Å tvorec</string>
     <string name="shape_cookie">Keks</string>
-    <string name="shape_arch">Oblúk</string>
-    <string name="shape_clover">Ďatelina</string>
-    <string name="calls_label_answer">Odpoveď</string>
-    <string name="calls_label_decline">Zamietnuť</string>
-    <string name="apps_empty">Žiadne nakonfigurované aplikácie</string>
-    <string name="design_hero_customization_title">Prispôsobenie</string>
-    <string name="design_hero_customization_subtitle">Naučte sa, ako vytvárať témy</string>
+    <string name="shape_arch">OblÃºk</string>
+    <string name="shape_clover">ÄŽatelina</string>
+    <string name="calls_label_answer">OdpoveÄ</string>
+    <string name="calls_label_decline">ZamietnuÅ¥</string>
+    <string name="apps_empty">Å½iadne nakonfigurovanÃ© aplikÃ¡cie</string>
+    <string name="design_hero_customization_title">PrispÃ´sobenie</string>
+    <string name="design_hero_customization_subtitle">NauÄte sa, ako vytvÃ¡raÅ¥ tÃ©my</string>
     <string name="design_hero_pro_title">Pro Funkcie</string>
     <string name="design_hero_pro_subtitle">Odomknite viac sily</string>
     <string name="design_hero_community_title">Komunita</string>
-    <string name="design_hero_community_subtitle">Pridajte sa k nášmu GitHubu</string>
-    <string name="design_section_themes">Témy</string>
+    <string name="design_hero_community_subtitle">Pridajte sa k nÃ¡Å¡mu GitHubu</string>
+    <string name="design_section_themes">TÃ©my</string>
     <string name="design_section_widgets">Widgety</string>
-    <string name="design_browse_more">Prehliadať viac</string>
-    <string name="design_add_new">Pridať nový</string>
-    <string name="design_add_design">Pridať dizajn</string>
-    <string name="design_add_to_island">Prispôsobenie</string>
-    <string name="design_system_widget_beta">Systémový widget (beta verzia)</string>
-    <string name="design_get_themes">Získaj témy</string>
-    <string name="design_empty_widget_title">Pridaj svoj prvý widget</string>
+    <string name="design_browse_more">PrehliadaÅ¥ viac</string>
+    <string name="design_add_new">PridaÅ¥ novÃ½</string>
+    <string name="design_add_design">PridaÅ¥ dizajn</string>
+    <string name="design_add_to_island">PrispÃ´sobenie</string>
+    <string name="design_system_widget_beta">SystÃ©movÃ½ widget (beta verzia)</string>
+    <string name="design_get_themes">ZÃ­skaj tÃ©my</string>
+    <string name="design_empty_widget_title">Pridaj svoj prvÃ½ widget</string>
     <string name="design">Dizajn</string>
-    <string name="creator_nav_actions">Globálne akcie</string>
-    <string name="creator_sub_actions">Štýlové tlačidlá podľa kľúčového slova</string>
-    <string name="action_sheet_title">Konfigurovať akciu</string>
-    <string name="action_label_keyword">Kľúčové slovo (napr. „Odpovedať“)</string>
+    <string name="creator_nav_actions">GlobÃ¡lne akcie</string>
+    <string name="creator_sub_actions">Å tÃ½lovÃ© tlaÄidlÃ¡ podÄ¾a kÄ¾ÃºÄovÃ©ho slova</string>
+    <string name="action_sheet_title">KonfigurovaÅ¥ akciu</string>
+    <string name="action_label_keyword">KÄ¾ÃºÄovÃ© slovo (napr. â€žOdpovedaÅ¥â€œ)</string>
     <string name="action_label_bg_color">Farba pozadia</string>
     <string name="action_label_tint_color">Farba ikony/textu</string>
-    <string name="action_preview">Náhľad naživo</string>
+    <string name="action_preview">NÃ¡hÄ¾ad naÅ¾ivo</string>
     <string name="action_mode_icon">Iba ikona</string>
     <string name="action_mode_text">Text</string>
     <string name="action_mode_both">Oboje</string>
-    <string name="actions_empty_title">Žiadne vlastné akcie</string>
-    <string name="actions_empty_desc">Pridajte pravidlá pre úpravu štýlov tlačidiel upozornení na základe ich textu (napr. „Odpovedať“, „Archívovať“).</string>
+    <string name="actions_empty_title">Å½iadne vlastnÃ© akcie</string>
+    <string name="actions_empty_desc">Pridajte pravidlÃ¡ pre Ãºpravu Å¡tÃ½lov tlaÄidiel upozornenÃ­ na zÃ¡klade ich textu (napr. â€žOdpovedaÅ¥â€œ, â€žArchÃ­vovaÅ¥â€œ).</string>
     <string name="action_default_preview_text">Akcia</string>
-    <string name="actions_search_hint">Hľadanie akcie...</string>
-    <string name="actions_search_empty_fmt">Pre „%1$s“ sa nenašli žiadne akcie</string>
-    <string name="action_wip_warning">Táto funkcia je stále v procese vývoja. Priraďovanie kľúčových slov závisí od toho, ako aplikácie štruktúrujú svoje upozornenia, a nemusí fungovať pre každú aplikáciu.</string>
-    <string name="creator_dialog_apply_title">Použiť tému?</string>
-    <string name="creator_dialog_apply_desc">Chcete túto tému použiť teraz?</string>
-    <string name="creator_dialog_action_save_apply">Uložiť &amp; Použiť</string>
-    <string name="creator_dialog_action_save_only">Iba Uložiť</string>
-    <string name="select_icon">Vybrať ikonu</string>
-    <string name="change_icon">Zmeniť ikonu</string>
-    <string name="action_add">Pridať aplikáciu</string>
-    <string name="apps_sheet_select_title">Vybrať aplikáciu</string>
-    <string name="edit_app">Upraviť aplikáciu</string>
-    <string name="creator_sub_colors_custom">Vlastná sada farieb</string>
-    <string name="creator_sub_colors_default">Používanie globálneho predvoleného nastavenia</string>
-    <string name="creator_sub_icons_custom">Sada vlastných tvarov</string>
-    <string name="creator_sub_icons_default">Používanie globálneho predvoleného nastavenia</string>
-    <string name="app_customization_desc">Pridajte aplikáciu na prispôsobenie jeho vzhľadu.</string>
-    <string name="discard">Zahodiť</string>
-    <string name="unsaved_changes">Neuložené zmeny</string>
-    <string name="unsaved_changes_desc">Máte neuložené zmeny pre túto aplikáciu. Chcete ich uložiť pred ukončením?</string>
-    <string name="share_theme">Zdieľať tému</string>
-    <string name="my_theme">Moje témy</string>
+    <string name="actions_search_hint">HÄ¾adanie akcie...</string>
+    <string name="actions_search_empty_fmt">Pre â€ž%1$sâ€œ sa nenaÅ¡li Å¾iadne akcie</string>
+    <string name="action_wip_warning">TÃ¡to funkcia je stÃ¡le v procese vÃ½voja. PriraÄovanie kÄ¾ÃºÄovÃ½ch slov zÃ¡visÃ­ od toho, ako aplikÃ¡cie Å¡truktÃºrujÃº svoje upozornenia, a nemusÃ­ fungovaÅ¥ pre kaÅ¾dÃº aplikÃ¡ciu.</string>
+    <string name="creator_dialog_apply_title">PouÅ¾iÅ¥ tÃ©mu?</string>
+    <string name="creator_dialog_apply_desc">Chcete tÃºto tÃ©mu pouÅ¾iÅ¥ teraz?</string>
+    <string name="creator_dialog_action_save_apply">UloÅ¾iÅ¥ &amp; PouÅ¾iÅ¥</string>
+    <string name="creator_dialog_action_save_only">Iba UloÅ¾iÅ¥</string>
+    <string name="select_icon">VybraÅ¥ ikonu</string>
+    <string name="change_icon">ZmeniÅ¥ ikonu</string>
+    <string name="action_add">PridaÅ¥ aplikÃ¡ciu</string>
+    <string name="apps_sheet_select_title">VybraÅ¥ aplikÃ¡ciu</string>
+    <string name="edit_app">UpraviÅ¥ aplikÃ¡ciu</string>
+    <string name="creator_sub_colors_custom">VlastnÃ¡ sada farieb</string>
+    <string name="creator_sub_colors_default">PouÅ¾Ã­vanie globÃ¡lneho predvolenÃ©ho nastavenia</string>
+    <string name="creator_sub_icons_custom">Sada vlastnÃ½ch tvarov</string>
+    <string name="creator_sub_icons_default">PouÅ¾Ã­vanie globÃ¡lneho predvolenÃ©ho nastavenia</string>
+    <string name="app_customization_desc">Pridajte aplikÃ¡ciu na prispÃ´sobenie jeho vzhÄ¾adu.</string>
+    <string name="discard">ZahodiÅ¥</string>
+    <string name="unsaved_changes">NeuloÅ¾enÃ© zmeny</string>
+    <string name="unsaved_changes_desc">MÃ¡te neuloÅ¾enÃ© zmeny pre tÃºto aplikÃ¡ciu. Chcete ich uloÅ¾iÅ¥ pred ukonÄenÃ­m?</string>
+    <string name="share_theme">ZdieÄ¾aÅ¥ tÃ©mu</string>
+    <string name="my_theme">Moje tÃ©my</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d vlastná akcia</item>
-        <item quantity="few">%1$d vlastné akcie</item>
-        <item quantity="other">%1$d vlastné akcie</item>
-        <item quantity="many">%1$d vlastné akcie</item>
+        <item quantity="one">%1$d vlastnÃ¡ akcia</item>
+        <item quantity="few">%1$d vlastnÃ© akcie</item>
+        <item quantity="other">%1$d vlastnÃ© akcie</item>
+        <item quantity="many">%1$d vlastnÃ© akcie</item>
     </plurals>
-    <string name="title_0_4_0">Aktualizácia prispôsobenia</string>
+    <string name="title_0_4_0">AktualizÃ¡cia prispÃ´sobenia</string>
     <string name="changelog_0_4_0">        <b>Tématický engine 🎨</b>\n
         Zatiaľ najväčšia aktualizácia! Teraz si môžete plne prispôsobiť vizuálny zážitok z Dynamického ostrova..\n
         • <b>Vytváranie tém:</b> Navrhujte témy priamo v telefóne s ukážkami v reálnom čase.\n
@@ -532,6 +533,7 @@
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_message_desc">Messages, chats, and conversations</string>
     <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
     <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
@@ -580,6 +582,13 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_5">        <b>Messaging Grouping Overhaul</b>\n
+              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
+        <b>Fixes &amp; Stability</b>\n
+              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
+              • <b>Defaults:</b> Disabled \"Show in shade\" by default on the onboarding screen.\n
+    </string>
+    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
     <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
               ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
               ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n

@@ -1,83 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hyper Bridge</string>
-    <string name="back">뒤로</string>
-    <string name="next">다음</string>
-    <string name="finish">완료</string>
-    <string name="done">완료됨</string>
-    <string name="logo_desc">앱 로고</string>
-    <string name="settings">설정</string>
-    <string name="configure">설정하기</string>
-    <string name="clear">지우기</string>
-    <string name="sort_order">정렬 순서</string>
-    <string name="welcome_title">Hyper Bridge에 오신 것을\n환영합니다</string>
-    <string name="welcome_subtitle">HyperIslands를 HyperOS 시스템에 쉽게 통합하세요.</string>
-    <string name="get_started">시작하기</string>
-    <string name="how_it_works">작동 방식</string>
-    <string name="how_it_works_desc">좋아하는 앱(Spotify, 지도, 타이머)을 선택하세요. HyperBridge가 알림을 아름다운 HyperIsland로 변환합니다.</string>
-    <string name="beta_warning">참고: 이 앱은 베타 버전입니다. 오류나 시각적 문제가 발생할 수 있습니다.</string>
-    <string name="device_compatible">호환되는 기기</string>
-    <string name="unsupported_device">지원되지 않는 기기</string>
-    <string name="compatible_msg">기기가 HyperOS/MIUI에서 실행 중인 것으로 보입니다. 준비 완료!</string>
-    <string name="show_island">섬 표시</string>
-    <string name="perm_post_desc">화면에 ‘섬’ 알림을 표시하려면 권한이 필요합니다.</string>
-    <string name="perm_granted">✅ 권한 허용됨</string>
-    <string name="allow_notifications">알림 허용</string>
-    <string name="read_data">데이터 읽기</string>
-    <string name="perm_listener_desc">앱을 연결하려면 해당 앱의 알림(음악, 지도, 타이머)을 읽을 수 있어야 합니다.</string>
-    <string name="open_settings">설정 열기</string>
-    <string name="optimization_desc">HyperOS는 백그라운드 앱을 중지합니다. 자동 실행과 “제한 없음”을 켜서 섬을 유지하세요.</string>
-    <string name="enable_autostart">1. 자동 실행 켜기</string>
-    <string name="set_battery_no_restrictions">2. 배터리 절약: “제한 없음”</string>
-    <string name="tab_active">활성</string>
-    <string name="tab_library">라이브러리</string>
+    <string name="back">ë’¤ë¡œ</string>
+    <string name="next">ë‹¤ìŒ</string>
+    <string name="finish">ì™„ë£Œ</string>
+    <string name="done">ì™„ë£Œë¨</string>
+    <string name="logo_desc">ì•± ë¡œê³ </string>
+    <string name="settings">ì„¤ì •</string>
+    <string name="configure">ì„¤ì •í•˜ê¸°</string>
+    <string name="clear">ì§€ìš°ê¸°</string>
+    <string name="sort_order">ì •ë ¬ ìˆœì„œ</string>
+    <string name="welcome_title">Hyper Bridgeì— ì˜¤ì‹  ê²ƒì„\ní™˜ì˜í•©ë‹ˆë‹¤</string>
+    <string name="welcome_subtitle">HyperIslandsë¥¼ HyperOS ì‹œìŠ¤í…œì— ì‰½ê²Œ í†µí•©í•˜ì„¸ìš”.</string>
+    <string name="get_started">ì‹œìž‘í•˜ê¸°</string>
+    <string name="how_it_works">ìž‘ë™ ë°©ì‹</string>
+    <string name="how_it_works_desc">ì¢‹ì•„í•˜ëŠ” ì•±(Spotify, ì§€ë„, íƒ€ì´ë¨¸)ì„ ì„ íƒí•˜ì„¸ìš”. HyperBridgeê°€ ì•Œë¦¼ì„ ì•„ë¦„ë‹¤ìš´ HyperIslandë¡œ ë³€í™˜í•©ë‹ˆë‹¤.</string>
+    <string name="beta_warning">ì°¸ê³ : ì´ ì•±ì€ ë² íƒ€ ë²„ì „ìž…ë‹ˆë‹¤. ì˜¤ë¥˜ë‚˜ ì‹œê°ì  ë¬¸ì œê°€ ë°œìƒí•  ìˆ˜ ìžˆìŠµë‹ˆë‹¤.</string>
+    <string name="device_compatible">í˜¸í™˜ë˜ëŠ” ê¸°ê¸°</string>
+    <string name="unsupported_device">ì§€ì›ë˜ì§€ ì•ŠëŠ” ê¸°ê¸°</string>
+    <string name="compatible_msg">ê¸°ê¸°ê°€ HyperOS/MIUIì—ì„œ ì‹¤í–‰ ì¤‘ì¸ ê²ƒìœ¼ë¡œ ë³´ìž…ë‹ˆë‹¤. ì¤€ë¹„ ì™„ë£Œ!</string>
+    <string name="show_island">ì„¬ í‘œì‹œ</string>
+    <string name="perm_post_desc">í™”ë©´ì— â€˜ì„¬â€™ ì•Œë¦¼ì„ í‘œì‹œí•˜ë ¤ë©´ ê¶Œí•œì´ í•„ìš”í•©ë‹ˆë‹¤.</string>
+    <string name="perm_granted">âœ… ê¶Œí•œ í—ˆìš©ë¨</string>
+    <string name="allow_notifications">ì•Œë¦¼ í—ˆìš©</string>
+    <string name="read_data">ë°ì´í„° ì½ê¸°</string>
+    <string name="perm_listener_desc">ì•±ì„ ì—°ê²°í•˜ë ¤ë©´ í•´ë‹¹ ì•±ì˜ ì•Œë¦¼(ìŒì•…, ì§€ë„, íƒ€ì´ë¨¸)ì„ ì½ì„ ìˆ˜ ìžˆì–´ì•¼ í•©ë‹ˆë‹¤.</string>
+    <string name="open_settings">ì„¤ì • ì—´ê¸°</string>
+    <string name="optimization_desc">HyperOSëŠ” ë°±ê·¸ë¼ìš´ë“œ ì•±ì„ ì¤‘ì§€í•©ë‹ˆë‹¤. ìžë™ ì‹¤í–‰ê³¼ â€œì œí•œ ì—†ìŒâ€ì„ ì¼œì„œ ì„¬ì„ ìœ ì§€í•˜ì„¸ìš”.</string>
+    <string name="enable_autostart">1. ìžë™ ì‹¤í–‰ ì¼œê¸°</string>
+    <string name="set_battery_no_restrictions">2. ë°°í„°ë¦¬ ì ˆì•½: â€œì œí•œ ì—†ìŒâ€</string>
+    <string name="tab_active">í™œì„±</string>
+    <string name="tab_library">ë¼ì´ë¸ŒëŸ¬ë¦¬</string>
     <string name="search_hint">Search apps…</string>
-    <string name="no_active_bridges">활성 브리지가 없습니다</string>
-    <string name="no_active_bridges_desc">라이브러리에서 앱을 활성화하세요.</string>
-    <string name="no_apps_found">앱을 찾을 수 없습니다</string>
-    <string name="version_template">버전 %s</string>
-    <string name="developer_credit">D4vidDf 제작</string>
-    <string name="group_configuration">구성</string>
-    <string name="system_setup">시스템 설정</string>
-    <string name="system_setup_subtitle">권한 및 배터리 문제 해결</string>
+    <string name="no_active_bridges">í™œì„± ë¸Œë¦¬ì§€ê°€ ì—†ìŠµë‹ˆë‹¤</string>
+    <string name="no_active_bridges_desc">ë¼ì´ë¸ŒëŸ¬ë¦¬ì—ì„œ ì•±ì„ í™œì„±í™”í•˜ì„¸ìš”.</string>
+    <string name="no_apps_found">ì•±ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤</string>
+    <string name="version_template">ë²„ì „ %s</string>
+    <string name="developer_credit">D4vidDf ì œìž‘</string>
+    <string name="group_configuration">êµ¬ì„±</string>
+    <string name="system_setup">ì‹œìŠ¤í…œ ì„¤ì •</string>
+    <string name="system_setup_subtitle">ê¶Œí•œ ë° ë°°í„°ë¦¬ ë¬¸ì œ í•´ê²°</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Permanent Island</string>
     <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
     <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
     <string name="permanent_island_width">Island Width</string>
-    <string name="group_about">앱 정보</string>
-    <string name="developer">개발자</string>
-    <string name="developer_subtitle">d4viddf.com 방문</string>
-    <string name="source_code">소스 코드</string>
-    <string name="source_code_subtitle">GitHub 저장소</string>
-    <string name="licenses">오픈소스 라이선스</string>
-    <string name="licenses_subtitle">서드파티 소프트웨어</string>
+    <string name="group_about">ì•± ì •ë³´</string>
+    <string name="developer">ê°œë°œìž</string>
+    <string name="developer_subtitle">d4viddf.com ë°©ë¬¸</string>
+    <string name="source_code">ì†ŒìŠ¤ ì½”ë“œ</string>
+    <string name="source_code_subtitle">GitHub ì €ìž¥ì†Œ</string>
+    <string name="licenses">ì˜¤í”ˆì†ŒìŠ¤ ë¼ì´ì„ ìŠ¤</string>
+    <string name="licenses_subtitle">ì„œë“œíŒŒí‹° ì†Œí”„íŠ¸ì›¨ì–´</string>
     <string name="footer_made_with_love">스페인에서 ❤️로 제작됨</string>
-    <string name="app_health_desc">백그라운드 작동을 위해 모든 항목이 초록색인지 확인하세요.</string>
-    <string name="req_permissions">필수 권한</string>
-    <string name="notif_access">알림 접근</string>
-    <string name="notif_access_desc">앱 이벤트를 읽기 위해 필요합니다</string>
-    <string name="device_optimization">기기 최적화</string>
-    <string name="xiaomi_autostart">Xiaomi 자동 실행</string>
-    <string name="battery_unrestricted">배터리 제한 없음</string>
-    <string name="battery_desc">시스템이 앱을 중지하지 않도록 방지합니다</string>
-    <string name="recents_note">참고: 최근 앱 화면에서 앱을 고정(자물쇠)하세요.</string>
-    <string name="status_active">활성</string>
-    <string name="cat_all">전체</string>
-    <string name="cat_music">음악</string>
-    <string name="cat_nav">내비게이션</string>
-    <string name="cat_timer">생산성</string>
-    <string name="cat_other">기타</string>
-    <string name="type_standard">메시지 및 일반</string>
+    <string name="app_health_desc">ë°±ê·¸ë¼ìš´ë“œ ìž‘ë™ì„ ìœ„í•´ ëª¨ë“  í•­ëª©ì´ ì´ˆë¡ìƒ‰ì¸ì§€ í™•ì¸í•˜ì„¸ìš”.</string>
+    <string name="req_permissions">í•„ìˆ˜ ê¶Œí•œ</string>
+    <string name="notif_access">ì•Œë¦¼ ì ‘ê·¼</string>
+    <string name="notif_access_desc">ì•± ì´ë²¤íŠ¸ë¥¼ ì½ê¸° ìœ„í•´ í•„ìš”í•©ë‹ˆë‹¤</string>
+    <string name="device_optimization">ê¸°ê¸° ìµœì í™”</string>
+    <string name="xiaomi_autostart">Xiaomi ìžë™ ì‹¤í–‰</string>
+    <string name="battery_unrestricted">ë°°í„°ë¦¬ ì œí•œ ì—†ìŒ</string>
+    <string name="battery_desc">ì‹œìŠ¤í…œì´ ì•±ì„ ì¤‘ì§€í•˜ì§€ ì•Šë„ë¡ ë°©ì§€í•©ë‹ˆë‹¤</string>
+    <string name="recents_note">ì°¸ê³ : ìµœê·¼ ì•± í™”ë©´ì—ì„œ ì•±ì„ ê³ ì •(ìžë¬¼ì‡ )í•˜ì„¸ìš”.</string>
+    <string name="status_active">í™œì„±</string>
+    <string name="cat_all">ì „ì²´</string>
+    <string name="cat_music">ìŒì•…</string>
+    <string name="cat_nav">ë‚´ë¹„ê²Œì´ì…˜</string>
+    <string name="cat_timer">ìƒì‚°ì„±</string>
+    <string name="cat_other">ê¸°íƒ€</string>
+    <string name="type_standard">ë©”ì‹œì§€ ë° ì¼ë°˜</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
-    <string name="type_media">음악 및 미디어</string>
-    <string name="type_nav">지도 및 GPS</string>
-    <string name="type_call">통화</string>
-    <string name="type_timer">타이머 및 알람</string>
-    <string name="download_complete">다운로드 완료</string>
-    <string name="downloading">다운로드 중</string>
-    <string name="maps_title">지도</string>
+    <string name="type_media">ìŒì•… ë° ë¯¸ë””ì–´</string>
+    <string name="type_nav">ì§€ë„ ë° GPS</string>
+    <string name="type_call">í†µí™”</string>
+    <string name="type_timer">íƒ€ì´ë¨¸ ë° ì•ŒëžŒ</string>
+    <string name="download_complete">ë‹¤ìš´ë¡œë“œ ì™„ë£Œ</string>
+    <string name="downloading">ë‹¤ìš´ë¡œë“œ ì¤‘</string>
+    <string name="maps_title">ì§€ë„</string>
     <string-array name="progress_finish_keywords">
         <item>downloaded</item>
         <item>completed</item>
@@ -87,31 +88,31 @@
         <item>successful</item>
         <item>succeeded</item>
     </string-array>
-    <string name="status_now_playing">재생 중</string>
-    <string name="fallback_timer">타이머</string>
-    <string name="whats_new_title">%s의 새로운 기능</string>
-    <string name="awesome">멋져요!</string>
-    <string name="island_behavior">섬 동작 방식</string>
-    <string name="limit_strategy">제한 도달</string>
-    <string name="limit_desc">섬 개수 제한(9개)을 초과하면 어떻게 될까요?</string>
-    <string name="mode_fcfs_title">선착순 유지</string>
-    <string name="mode_fcfs_desc">처음 9개의 앱을 유지하며, 자리가 생길 때까지 새로운 알림은 무시됩니다.</string>
-    <string name="mode_recent_title">가장 최신 (기본값)</string>
-    <string name="mode_recent_desc">새 알림이 가장 오래된 알림을 교체합니다.</string>
-    <string name="mode_priority_title">사용자 우선순위</string>
-    <string name="mode_priority_desc">어떤 유형(예: 전화)이 더 중요한지 지정하세요.</string>
-    <string name="priority_order">우선순위 순서</string>
-    <string name="priority_order_desc">상위 우선순위가 하위 우선순위를 대체합니다.</string>
-    <string name="configure_order">순서 설정</string>
-    <string name="global_settings">전역 설정</string>
-    <string name="island_appearance">섬 외형</string>
-    <string name="setting_float">플로팅 섬 표시</string>
-    <string name="setting_float_desc">팝업 알림 표시</string>
+    <string name="status_now_playing">ìž¬ìƒ ì¤‘</string>
+    <string name="fallback_timer">íƒ€ì´ë¨¸</string>
+    <string name="whats_new_title">%sì˜ ìƒˆë¡œìš´ ê¸°ëŠ¥</string>
+    <string name="awesome">ë©‹ì ¸ìš”!</string>
+    <string name="island_behavior">ì„¬ ë™ìž‘ ë°©ì‹</string>
+    <string name="limit_strategy">ì œí•œ ë„ë‹¬</string>
+    <string name="limit_desc">ì„¬ ê°œìˆ˜ ì œí•œ(9ê°œ)ì„ ì´ˆê³¼í•˜ë©´ ì–´ë–»ê²Œ ë ê¹Œìš”?</string>
+    <string name="mode_fcfs_title">ì„ ì°©ìˆœ ìœ ì§€</string>
+    <string name="mode_fcfs_desc">ì²˜ìŒ 9ê°œì˜ ì•±ì„ ìœ ì§€í•˜ë©°, ìžë¦¬ê°€ ìƒê¸¸ ë•Œê¹Œì§€ ìƒˆë¡œìš´ ì•Œë¦¼ì€ ë¬´ì‹œë©ë‹ˆë‹¤.</string>
+    <string name="mode_recent_title">ê°€ìž¥ ìµœì‹  (ê¸°ë³¸ê°’)</string>
+    <string name="mode_recent_desc">ìƒˆ ì•Œë¦¼ì´ ê°€ìž¥ ì˜¤ëž˜ëœ ì•Œë¦¼ì„ êµì²´í•©ë‹ˆë‹¤.</string>
+    <string name="mode_priority_title">ì‚¬ìš©ìž ìš°ì„ ìˆœìœ„</string>
+    <string name="mode_priority_desc">ì–´ë–¤ ìœ í˜•(ì˜ˆ: ì „í™”)ì´ ë” ì¤‘ìš”í•œì§€ ì§€ì •í•˜ì„¸ìš”.</string>
+    <string name="priority_order">ìš°ì„ ìˆœìœ„ ìˆœì„œ</string>
+    <string name="priority_order_desc">ìƒìœ„ ìš°ì„ ìˆœìœ„ê°€ í•˜ìœ„ ìš°ì„ ìˆœìœ„ë¥¼ ëŒ€ì²´í•©ë‹ˆë‹¤.</string>
+    <string name="configure_order">ìˆœì„œ ì„¤ì •</string>
+    <string name="global_settings">ì „ì—­ ì„¤ì •</string>
+    <string name="island_appearance">ì„¬ ì™¸í˜•</string>
+    <string name="setting_float">í”Œë¡œíŒ… ì„¬ í‘œì‹œ</string>
+    <string name="setting_float_desc">íŒì—… ì•Œë¦¼ í‘œì‹œ</string>
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
-    <string name="setting_shade">알림창에 표시</string>
+    <string name="setting_shade">ì•Œë¦¼ì°½ì— í‘œì‹œ</string>
     <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
     <string name="seconds_suffix">%d초</string>
-    <string name="use_global_default">전역 설정 사용</string>
+    <string name="use_global_default">ì „ì—­ ì„¤ì • ì‚¬ìš©</string>
     <string-array name="nav_arrival_keywords">
         <item>arrival</item>
         <item>arrive</item>
@@ -119,15 +120,15 @@
         <item>reaching</item>
         <item>destination</item>
     </string-array>
-    <string name="version_history">버전 기록</string>
-    <string name="title_0_2_0">The Information 업데이트</string>
+    <string name="version_history">ë²„ì „ ê¸°ë¡</string>
+    <string name="title_0_2_0">The Information ì—…ë°ì´íŠ¸</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;고급 진행률 표시줄:&lt;/b&gt; \"단계별 진행\"(예: 1/3) 및 알림창 내 아이콘이 포함된 진행률 표시줄 지원이 추가되었습니다.\n
         • &lt;b&gt;우선순위 시스템:&lt;/b&gt; 새로운 \"아일랜드 동작\" 설정. \"최신순\", \"선착순\", 또는 사용자 지정 \"앱 우선순위\" 목록 중에서 선택하세요.\n
         • &lt;b&gt;스마트 필터링:&lt;/b&gt; 중복 알림 및 그룹화된 다운로드 감지 기능이 개선되었습니다.\n
         • &lt;b&gt;시각적 개선:&lt;/b&gt; 내비게이션 안내의 레이아웃 문제를 수정했습니다.\n
         • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 시간 제한 및 플로팅 동작을 사용자가 지정할 수 있습니다.
     </string>
-    <string name="title_0_1_0">The Expressive 업데이트</string>
+    <string name="title_0_1_0">The Expressive ì—…ë°ì´íŠ¸</string>
     <string name="changelog_0_1_0">        • &lt;b&gt;주요 UI 개편:&lt;/b&gt; 부드러운 애니메이션이 적용된 새로운 Material 3 Expressive 디자인.\n
         • &lt;b&gt;향상된 아일랜드:&lt;/b&gt; 이제 텍스트가 오른쪽에 표시됩니다. 완료된 다운로드에 녹색 체크 표시가 추가되었습니다.\n
         • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 특정 알림 유형(음악, 지도, 통화)을 선택할 수 있습니다.\n
@@ -135,54 +136,54 @@
         • &lt;b&gt;새로운 라이브러리:&lt;/b&gt; 카테고리별로 앱을 필터링하고 정렬 순서를 변경할 수 있습니다.\n
         • &lt;b&gt;현지화:&lt;/b&gt; 스페인어 지원이 추가되었습니다.
     </string>
-    <string name="priority_edu_title">새 기능: 섬 제어</string>
-    <string name="priority_edu_desc">HyperBridge는 이제 9개 제한에 도달했을 때 여러 알림을 어떻게 처리할지 관리할 수 있습니다.\n\n<b>기본값: 최신순</b>\n새로운 알림이 오래된 알림을 자동으로 대체합니다.</string>
-    <string name="badge_new">신규</string>
-    <string name="nav_layout_title">내비게이션 레이아웃</string>
-    <string name="nav_layout_desc">표시할 정보를 선택하세요</string>
-    <string name="left_content">왼쪽</string>
-    <string name="right_content">오른쪽</string>
-    <string name="nav_content_instruction">안내</string>
-    <string name="nav_content_distance">거리</string>
-    <string name="nav_content_eta">도착 시간</string>
-    <string name="nav_content_distance_eta">거리 + 시간</string>
-    <string name="nav_content_none">없음</string>
-    <string name="channel_active_islands">활성 섬</string>
-    <string name="cd_enable_type">%s 알림 켜기</string>
-    <string name="cd_disable_type">%s 알림 끄기</string>
-    <string name="cd_nav_edit">내비게이션 레이아웃 편집</string>
-    <string name="cd_app_state_active">활성</string>
-    <string name="cd_app_state_inactive">비활성</string>
-    <string name="cd_move_up">위로 이동</string>
-    <string name="cd_move_down">아래로 이동</string>
-    <string name="cd_drag_handle">드래그 핸들. 두 번 탭 후 길게 눌러 순서를 변경하거나 이동 작업을 사용하세요.</string>
-    <string name="cd_app_icon">%s 앱 아이콘</string>
-    <string name="cd_nav_preview">내비게이션 미리보기: 왼쪽 %1$s, 오른쪽 %2$s</string>
-    <string name="cd_expand_changelog">버전 기록 펼치기</string>
-    <string name="cd_collapse_changelog">버전 기록 접기</string>
-    <string name="nav_preview_instruction">우회전</string>
+    <string name="priority_edu_title">ìƒˆ ê¸°ëŠ¥: ì„¬ ì œì–´</string>
+    <string name="priority_edu_desc">HyperBridgeëŠ” ì´ì œ 9ê°œ ì œí•œì— ë„ë‹¬í–ˆì„ ë•Œ ì—¬ëŸ¬ ì•Œë¦¼ì„ ì–´ë–»ê²Œ ì²˜ë¦¬í• ì§€ ê´€ë¦¬í•  ìˆ˜ ìžˆìŠµë‹ˆë‹¤.\n\n<b>ê¸°ë³¸ê°’: ìµœì‹ ìˆœ</b>\nìƒˆë¡œìš´ ì•Œë¦¼ì´ ì˜¤ëž˜ëœ ì•Œë¦¼ì„ ìžë™ìœ¼ë¡œ ëŒ€ì²´í•©ë‹ˆë‹¤.</string>
+    <string name="badge_new">ì‹ ê·œ</string>
+    <string name="nav_layout_title">ë‚´ë¹„ê²Œì´ì…˜ ë ˆì´ì•„ì›ƒ</string>
+    <string name="nav_layout_desc">í‘œì‹œí•  ì •ë³´ë¥¼ ì„ íƒí•˜ì„¸ìš”</string>
+    <string name="left_content">ì™¼ìª½</string>
+    <string name="right_content">ì˜¤ë¥¸ìª½</string>
+    <string name="nav_content_instruction">ì•ˆë‚´</string>
+    <string name="nav_content_distance">ê±°ë¦¬</string>
+    <string name="nav_content_eta">ë„ì°© ì‹œê°„</string>
+    <string name="nav_content_distance_eta">ê±°ë¦¬ + ì‹œê°„</string>
+    <string name="nav_content_none">ì—†ìŒ</string>
+    <string name="channel_active_islands">í™œì„± ì„¬</string>
+    <string name="cd_enable_type">%s ì•Œë¦¼ ì¼œê¸°</string>
+    <string name="cd_disable_type">%s ì•Œë¦¼ ë„ê¸°</string>
+    <string name="cd_nav_edit">ë‚´ë¹„ê²Œì´ì…˜ ë ˆì´ì•„ì›ƒ íŽ¸ì§‘</string>
+    <string name="cd_app_state_active">í™œì„±</string>
+    <string name="cd_app_state_inactive">ë¹„í™œì„±</string>
+    <string name="cd_move_up">ìœ„ë¡œ ì´ë™</string>
+    <string name="cd_move_down">ì•„ëž˜ë¡œ ì´ë™</string>
+    <string name="cd_drag_handle">ë“œëž˜ê·¸ í•¸ë“¤. ë‘ ë²ˆ íƒ­ í›„ ê¸¸ê²Œ ëˆŒëŸ¬ ìˆœì„œë¥¼ ë³€ê²½í•˜ê±°ë‚˜ ì´ë™ ìž‘ì—…ì„ ì‚¬ìš©í•˜ì„¸ìš”.</string>
+    <string name="cd_app_icon">%s ì•± ì•„ì´ì½˜</string>
+    <string name="cd_nav_preview">ë‚´ë¹„ê²Œì´ì…˜ ë¯¸ë¦¬ë³´ê¸°: ì™¼ìª½ %1$s, ì˜¤ë¥¸ìª½ %2$s</string>
+    <string name="cd_expand_changelog">ë²„ì „ ê¸°ë¡ íŽ¼ì¹˜ê¸°</string>
+    <string name="cd_collapse_changelog">ë²„ì „ ê¸°ë¡ ì ‘ê¸°</string>
+    <string name="nav_preview_instruction">ìš°íšŒì „</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
-    <string name="blocked_terms">차단된 단어</string>
-    <string name="blocked_terms_desc">이 단어를 포함하는 알림은 무시됩니다.</string>
-    <string name="add_blocked_word">단어 추가 (예: ‘스포일러’)</string>
-    <string name="add">추가</string>
-    <string name="remove">삭제</string>
-    <string name="spoiler_subtitle">스포일러 보호 및 필터 관리</string>
-    <string name="active_notifications_title">알림 유형</string>
-    <string name="active_notifications_subtitle">%d개 활성</string>
-    <string name="appearance_use_defaults_desc">애니메이션 속도 및 플로팅 동작은 시스템 설정을 따릅니다.</string>
-    <string name="blocked_terms_active_count">활성 규칙: %d</string>
-    <string name="global_rules">전역 규칙</string>
-    <string name="app_specific_rules">앱별 규칙</string>
-    <string name="manage_app_rules_desc">앱별 필터를 설정하세요</string>
-    <string name="blocked_terms_count">차단된 단어: %d</string>
-    <string name="no_active_rules">활성 규칙 없음</string>
-    <string name="setup_health_title">시스템 호환성</string>
-    <string name="req_hyperos">HyperOS 3.0+ (Android 15+) 필요</string>
-    <string name="req_xiaomi">Xiaomi/Redmi/Poco 기기 필요</string>
-    <string name="warning_cn_rom_title">중국(CN) 롬 감지됨</string>
-    <string name="warning_cn_rom_desc">기기가 중국 롬을 사용 중입니다. Xiaomi는 이 버전에서 알림 구조를 크게 수정하므로 기능이 불안정하거나 작동하지 않을 수 있습니다.</string>
+    <string name="blocked_terms">ì°¨ë‹¨ëœ ë‹¨ì–´</string>
+    <string name="blocked_terms_desc">ì´ ë‹¨ì–´ë¥¼ í¬í•¨í•˜ëŠ” ì•Œë¦¼ì€ ë¬´ì‹œë©ë‹ˆë‹¤.</string>
+    <string name="add_blocked_word">ë‹¨ì–´ ì¶”ê°€ (ì˜ˆ: â€˜ìŠ¤í¬ì¼ëŸ¬â€™)</string>
+    <string name="add">ì¶”ê°€</string>
+    <string name="remove">ì‚­ì œ</string>
+    <string name="spoiler_subtitle">ìŠ¤í¬ì¼ëŸ¬ ë³´í˜¸ ë° í•„í„° ê´€ë¦¬</string>
+    <string name="active_notifications_title">ì•Œë¦¼ ìœ í˜•</string>
+    <string name="active_notifications_subtitle">%dê°œ í™œì„±</string>
+    <string name="appearance_use_defaults_desc">ì• ë‹ˆë©”ì´ì…˜ ì†ë„ ë° í”Œë¡œíŒ… ë™ìž‘ì€ ì‹œìŠ¤í…œ ì„¤ì •ì„ ë”°ë¦…ë‹ˆë‹¤.</string>
+    <string name="blocked_terms_active_count">í™œì„± ê·œì¹™: %d</string>
+    <string name="global_rules">ì „ì—­ ê·œì¹™</string>
+    <string name="app_specific_rules">ì•±ë³„ ê·œì¹™</string>
+    <string name="manage_app_rules_desc">ì•±ë³„ í•„í„°ë¥¼ ì„¤ì •í•˜ì„¸ìš”</string>
+    <string name="blocked_terms_count">ì°¨ë‹¨ëœ ë‹¨ì–´: %d</string>
+    <string name="no_active_rules">í™œì„± ê·œì¹™ ì—†ìŒ</string>
+    <string name="setup_health_title">ì‹œìŠ¤í…œ í˜¸í™˜ì„±</string>
+    <string name="req_hyperos">HyperOS 3.0+ (Android 15+) í•„ìš”</string>
+    <string name="req_xiaomi">Xiaomi/Redmi/Poco ê¸°ê¸° í•„ìš”</string>
+    <string name="warning_cn_rom_title">ì¤‘êµ­(CN) ë¡¬ ê°ì§€ë¨</string>
+    <string name="warning_cn_rom_desc">ê¸°ê¸°ê°€ ì¤‘êµ­ ë¡¬ì„ ì‚¬ìš© ì¤‘ìž…ë‹ˆë‹¤. XiaomiëŠ” ì´ ë²„ì „ì—ì„œ ì•Œë¦¼ êµ¬ì¡°ë¥¼ í¬ê²Œ ìˆ˜ì •í•˜ë¯€ë¡œ ê¸°ëŠ¥ì´ ë¶ˆì•ˆì •í•˜ê±°ë‚˜ ìž‘ë™í•˜ì§€ ì•Šì„ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
@@ -191,9 +192,9 @@
     <string name="shizuku_permission_denied">Permission Denied</string>
     <string name="shizuku_request_permission">Grant Shizuku Permission</string>
     <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
-    <string name="system_version">시스템 버전</string>
-    <string name="call_incoming">수신 전화</string>
-    <string name="call_ongoing">통화 중</string>
+    <string name="system_version">ì‹œìŠ¤í…œ ë²„ì „</string>
+    <string name="call_incoming">ìˆ˜ì‹  ì „í™”</string>
+    <string name="call_ongoing">í†µí™” ì¤‘</string>
     <string-array name="call_keywords_hangup">
         <item>hang</item>
         <item>end</item>
@@ -208,7 +209,7 @@
         <item>speaker</item>
         <item>audio</item>
     </string-array>
-    <string name="title_0_3_0">The Hidden 업데이트</string>
+    <string name="title_0_3_0">The Hidden ì—…ë°ì´íŠ¸</string>
     <string name="changelog_0_3_0">            • &lt;b&gt;숨겨진 알림 👻:&lt;/b&gt; 알림 패널에는 숨기고, 아일랜드에서는 계속 표시되도록 하는 새로운 옵션이 추가되었습니다. 전역 설정에서 확인하세요.\n
             • &lt;b&gt;새로운 언어 🌍:&lt;/b&gt; 커뮤니티 번역에 감사드립니다:\n
                 • 🇧🇷 포르투갈어(브라질)\n
@@ -224,39 +225,39 @@
                 • 앱 구성 패널 디자인 개선\n
                 • 기기 정보를 포함한 호환성 검사 화면 개선\n
     </string>
-    <string name="privacy_title">100% 오프라인 &amp; 보안</string>
-    <string name="privacy_desc">Hyper Bridge는 모든 작업을 휴대폰의 프로세서에서 직접 처리합니다.\n\n인터넷 연결이 필요하지 않으며, 이는 알림과 개인 데이터가 절대 기기를 떠나지 않음을 의미합니다.</string>
-    <string name="language">언어</string>
-    <string name="language_desc">애플리케이션 언어 변경</string>
-    <string name="system_default">시스템 기본값</string>
-    <string name="save">저장</string>
-    <string name="backup_restore_title">백업 &amp; 복원</string>
-    <string name="backup_section_title">데이터 관리</string>
-    <string name="backup_options_subtitle">작업에 포함할 데이터를 선택하세요</string>
-    <string name="option_app_settings">앱 설정</string>
-    <string name="option_app_settings_desc">설정 상태, 테마, 동작 모드</string>
-    <string name="option_blocklist">차단 목록 데이터베이스</string>
-    <string name="option_blocklist_desc">사용자가 지정한 차단된 키워드 및 앱</string>
-    <string name="option_priorities">우선순위 규칙</string>
-    <string name="option_priorities_desc">사용자 지정 알림 우선순위 구성</string>
-    <string name="action_export">백업 생성</string>
-    <string name="action_import">백업 복원</string>
+    <string name="privacy_title">100% ì˜¤í”„ë¼ì¸ &amp; ë³´ì•ˆ</string>
+    <string name="privacy_desc">Hyper BridgeëŠ” ëª¨ë“  ìž‘ì—…ì„ íœ´ëŒ€í°ì˜ í”„ë¡œì„¸ì„œì—ì„œ ì§ì ‘ ì²˜ë¦¬í•©ë‹ˆë‹¤.\n\nì¸í„°ë„· ì—°ê²°ì´ í•„ìš”í•˜ì§€ ì•Šìœ¼ë©°, ì´ëŠ” ì•Œë¦¼ê³¼ ê°œì¸ ë°ì´í„°ê°€ ì ˆëŒ€ ê¸°ê¸°ë¥¼ ë– ë‚˜ì§€ ì•ŠìŒì„ ì˜ë¯¸í•©ë‹ˆë‹¤.</string>
+    <string name="language">ì–¸ì–´</string>
+    <string name="language_desc">ì• í”Œë¦¬ì¼€ì´ì…˜ ì–¸ì–´ ë³€ê²½</string>
+    <string name="system_default">ì‹œìŠ¤í…œ ê¸°ë³¸ê°’</string>
+    <string name="save">ì €ìž¥</string>
+    <string name="backup_restore_title">ë°±ì—… &amp; ë³µì›</string>
+    <string name="backup_section_title">ë°ì´í„° ê´€ë¦¬</string>
+    <string name="backup_options_subtitle">ìž‘ì—…ì— í¬í•¨í•  ë°ì´í„°ë¥¼ ì„ íƒí•˜ì„¸ìš”</string>
+    <string name="option_app_settings">ì•± ì„¤ì •</string>
+    <string name="option_app_settings_desc">ì„¤ì • ìƒíƒœ, í…Œë§ˆ, ë™ìž‘ ëª¨ë“œ</string>
+    <string name="option_blocklist">ì°¨ë‹¨ ëª©ë¡ ë°ì´í„°ë² ì´ìŠ¤</string>
+    <string name="option_blocklist_desc">ì‚¬ìš©ìžê°€ ì§€ì •í•œ ì°¨ë‹¨ëœ í‚¤ì›Œë“œ ë° ì•±</string>
+    <string name="option_priorities">ìš°ì„ ìˆœìœ„ ê·œì¹™</string>
+    <string name="option_priorities_desc">ì‚¬ìš©ìž ì§€ì • ì•Œë¦¼ ìš°ì„ ìˆœìœ„ êµ¬ì„±</string>
+    <string name="action_export">ë°±ì—… ìƒì„±</string>
+    <string name="action_import">ë°±ì—… ë³µì›</string>
     <string name="export_success">백업이 성공적으로 저장되었습니다</string>
     <string name="export_failed">백업 실패: %s</string>
-    <string name="import_success">데이터가 성공적으로 복원되었습니다</string>
+    <string name="import_success">ë°ì´í„°ê°€ ì„±ê³µì ìœ¼ë¡œ ë³µì›ë˜ì—ˆìŠµë‹ˆë‹¤</string>
     <string name="import_failed">복원 실패: %s</string>
-    <string name="autostart_manual_check">상태를 자동으로 확인할 수 없습니다.\n서비스가 정상적으로 동작하도록 직접 확인해 주세요</string>
-    <string name="backup_info_title">백업 정보</string>
-    <string name="backup_meta_date">날짜</string>
-    <string name="backup_meta_device">기기</string>
-    <string name="backup_meta_version">버전</string>
-    <string name="backup_meta_keys">전체 항목 수</string>
-    <string name="backup_empty_suffix"> (비어 있음)</string>
-    <string name="action_restore_selected">선택한 데이터 복원</string>
-    <string name="optimization_title">기기 최적화</string>
-    <string name="privacy_card_title">오프라인 우선</string>
-    <string name="privacy_card_desc">인터넷 연결이 필요 없습니다.</string>
-    <string name="title_0_3_1">백업 &amp; 다국어 업데이트</string>
+    <string name="autostart_manual_check">ìƒíƒœë¥¼ ìžë™ìœ¼ë¡œ í™•ì¸í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\nì„œë¹„ìŠ¤ê°€ ì •ìƒì ìœ¼ë¡œ ë™ìž‘í•˜ë„ë¡ ì§ì ‘ í™•ì¸í•´ ì£¼ì„¸ìš”</string>
+    <string name="backup_info_title">ë°±ì—… ì •ë³´</string>
+    <string name="backup_meta_date">ë‚ ì§œ</string>
+    <string name="backup_meta_device">ê¸°ê¸°</string>
+    <string name="backup_meta_version">ë²„ì „</string>
+    <string name="backup_meta_keys">ì „ì²´ í•­ëª© ìˆ˜</string>
+    <string name="backup_empty_suffix"> (ë¹„ì–´ ìžˆìŒ)</string>
+    <string name="action_restore_selected">ì„ íƒí•œ ë°ì´í„° ë³µì›</string>
+    <string name="optimization_title">ê¸°ê¸° ìµœì í™”</string>
+    <string name="privacy_card_title">ì˜¤í”„ë¼ì¸ ìš°ì„ </string>
+    <string name="privacy_card_desc">ì¸í„°ë„· ì—°ê²°ì´ í•„ìš” ì—†ìŠµë‹ˆë‹¤.</string>
+    <string name="title_0_3_1">ë°±ì—… &amp; ë‹¤êµ­ì–´ ì—…ë°ì´íŠ¸</string>
     <string name="changelog_0_3_1">            &lt;b&gt;백업 &amp; 복원 📦&lt;/b&gt;\n
             고급 사용자 기능 추가! 설정, 차단 목록, 앱 우선순위를 .hbr 파일로 안전하게 내보내고 언제든지 복원할 수 있습니다.\n\n
             &lt;b&gt;새로운 언어 🌍&lt;/b&gt;\n
@@ -515,6 +516,7 @@
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_message_desc">Messages, chats, and conversations</string>
     <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
     <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
@@ -563,6 +565,13 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_5">        <b>Messaging Grouping Overhaul</b>\n
+              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
+        <b>Fixes &amp; Stability</b>\n
+              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
+              • <b>Defaults:</b> Disabled \"Show in shade\" by default on the onboarding screen.\n
+    </string>
+    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
     <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
               ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
               ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n

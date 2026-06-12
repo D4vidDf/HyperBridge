@@ -2,132 +2,133 @@
 <resources>
     <string name="app_name">Hyper Bridge</string>
     <string name="back">Vissza</string>
-    <string name="next">Tovább</string>
-    <string name="finish">Befejezés</string>
+    <string name="next">TovÃ¡bb</string>
+    <string name="finish">BefejezÃ©s</string>
     <string name="done">Rendben</string>
-    <string name="logo_desc">Alkalmazás Logó</string>
-    <string name="settings">Beállítások</string>
-    <string name="configure">Konfigurálás</string>
-    <string name="clear">Törlés</string>
-    <string name="sort_order">Rendezési sorrend</string>
-    <string name="welcome_title">Üdvözlünk a\nHyper Bridge-nél</string>
-    <string name="welcome_subtitle">Integráld zökkenőmentesen a HyperIslands-t a HyperOS élményébe.</string>
-    <string name="get_started">Kezdj hozzá</string>
-    <string name="how_it_works">Hogyan működik</string>
-    <string name="how_it_works_desc">Kiválaszthatod a kedvenc alkalmazásaid (Spotify, Térkép, Óra). A HyperBridge ezek értesítéseit stílusos HyperIsland-dé alakítja át.</string>
-    <string name="beta_warning">Megjegyzés: Ez az alkalmazás béta verzióban van. Lehet, hogy hibákkal vagy helytelen vizuális információkkal találkozol.</string>
-    <string name="device_compatible">Kompatibilis eszköz</string>
-    <string name="unsupported_device">Nem támogatott eszköz</string>
-    <string name="compatible_msg">Úgy tűnik, hogy az eszközön HyperOS/MIUI fut. Készen áll a használatra!</string>
-    <string name="show_island">Sziget megjelenítése</string>
-    <string name="perm_post_desc">Engedélyre van szükségünk ahhoz, hogy az „Island” értesítést megjelenítsük.</string>
-    <string name="perm_granted">Engedély megadva</string>
-    <string name="allow_notifications">Értesítések engedélyezése</string>
-    <string name="read_data">Adatok olvasása</string>
-    <string name="perm_listener_desc">Az alkalmazások összekapcsolásához el kell olvasnunk azok értesítéseidet (zene, térképek, időzítők).</string>
-    <string name="open_settings">Beállítások megnyitása</string>
-    <string name="optimization_desc">A HyperOS leállítja a háttérben futó alkalmazásokat. Engedélyezd az Automatikus indítás a háttérben és a Nincs korlátozás funkciókat, hogy az Island aktív maradjon.</string>
-    <string name="enable_autostart">1. Engedélyezd az Automatikus indítást</string>
-    <string name="set_battery_no_restrictions">2. Állítsd be az Energiát „Nincs korlátozás” módra</string>
-    <string name="tab_active">Aktív</string>
-    <string name="tab_library">Könyvtár</string>
+    <string name="logo_desc">AlkalmazÃ¡s LogÃ³</string>
+    <string name="settings">BeÃ¡llÃ­tÃ¡sok</string>
+    <string name="configure">KonfigurÃ¡lÃ¡s</string>
+    <string name="clear">TÃ¶rlÃ©s</string>
+    <string name="sort_order">RendezÃ©si sorrend</string>
+    <string name="welcome_title">ÃœdvÃ¶zlÃ¼nk a\nHyper Bridge-nÃ©l</string>
+    <string name="welcome_subtitle">IntegrÃ¡ld zÃ¶kkenÅ‘mentesen a HyperIslands-t a HyperOS Ã©lmÃ©nyÃ©be.</string>
+    <string name="get_started">Kezdj hozzÃ¡</string>
+    <string name="how_it_works">Hogyan mÅ±kÃ¶dik</string>
+    <string name="how_it_works_desc">KivÃ¡laszthatod a kedvenc alkalmazÃ¡said (Spotify, TÃ©rkÃ©p, Ã“ra). A HyperBridge ezek Ã©rtesÃ­tÃ©seit stÃ­lusos HyperIsland-dÃ© alakÃ­tja Ã¡t.</string>
+    <string name="beta_warning">MegjegyzÃ©s: Ez az alkalmazÃ¡s bÃ©ta verziÃ³ban van. Lehet, hogy hibÃ¡kkal vagy helytelen vizuÃ¡lis informÃ¡ciÃ³kkal talÃ¡lkozol.</string>
+    <string name="device_compatible">Kompatibilis eszkÃ¶z</string>
+    <string name="unsupported_device">Nem tÃ¡mogatott eszkÃ¶z</string>
+    <string name="compatible_msg">Ãšgy tÅ±nik, hogy az eszkÃ¶zÃ¶n HyperOS/MIUI fut. KÃ©szen Ã¡ll a hasznÃ¡latra!</string>
+    <string name="show_island">Sziget megjelenÃ­tÃ©se</string>
+    <string name="perm_post_desc">EngedÃ©lyre van szÃ¼ksÃ©gÃ¼nk ahhoz, hogy az â€žIslandâ€ Ã©rtesÃ­tÃ©st megjelenÃ­tsÃ¼k.</string>
+    <string name="perm_granted">EngedÃ©ly megadva</string>
+    <string name="allow_notifications">Ã‰rtesÃ­tÃ©sek engedÃ©lyezÃ©se</string>
+    <string name="read_data">Adatok olvasÃ¡sa</string>
+    <string name="perm_listener_desc">Az alkalmazÃ¡sok Ã¶sszekapcsolÃ¡sÃ¡hoz el kell olvasnunk azok Ã©rtesÃ­tÃ©seidet (zene, tÃ©rkÃ©pek, idÅ‘zÃ­tÅ‘k).</string>
+    <string name="open_settings">BeÃ¡llÃ­tÃ¡sok megnyitÃ¡sa</string>
+    <string name="optimization_desc">A HyperOS leÃ¡llÃ­tja a hÃ¡ttÃ©rben futÃ³ alkalmazÃ¡sokat. EngedÃ©lyezd az Automatikus indÃ­tÃ¡s a hÃ¡ttÃ©rben Ã©s a Nincs korlÃ¡tozÃ¡s funkciÃ³kat, hogy az Island aktÃ­v maradjon.</string>
+    <string name="enable_autostart">1. EngedÃ©lyezd az Automatikus indÃ­tÃ¡st</string>
+    <string name="set_battery_no_restrictions">2. ÃllÃ­tsd be az EnergiÃ¡t â€žNincs korlÃ¡tozÃ¡sâ€ mÃ³dra</string>
+    <string name="tab_active">AktÃ­v</string>
+    <string name="tab_library">KÃ¶nyvtÃ¡r</string>
     <string name="search_hint">Alkalmazások keresése…</string>
-    <string name="no_active_bridges">Nincsenek aktív hidak</string>
-    <string name="no_active_bridges_desc">Menj a Könyvtárba az alkalmazások engedélyezéséhez.</string>
-    <string name="no_apps_found">Nincsenek alkalmazások</string>
-    <string name="version_template">Verzió %s</string>
-    <string name="developer_credit">D4vidDf készítette</string>
-    <string name="group_configuration">Konfiguráció</string>
-    <string name="system_setup">Rendszerbeállítás</string>
-    <string name="system_setup_subtitle">Engedélyek és akkumulátor javítása</string>
+    <string name="no_active_bridges">Nincsenek aktÃ­v hidak</string>
+    <string name="no_active_bridges_desc">Menj a KÃ¶nyvtÃ¡rba az alkalmazÃ¡sok engedÃ©lyezÃ©sÃ©hez.</string>
+    <string name="no_apps_found">Nincsenek alkalmazÃ¡sok</string>
+    <string name="version_template">VerziÃ³ %s</string>
+    <string name="developer_credit">D4vidDf kÃ©szÃ­tette</string>
+    <string name="group_configuration">KonfigurÃ¡ciÃ³</string>
+    <string name="system_setup">RendszerbeÃ¡llÃ­tÃ¡s</string>
+    <string name="system_setup_subtitle">EngedÃ©lyek Ã©s akkumulÃ¡tor javÃ­tÃ¡sa</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Permanent Island</string>
     <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
     <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
     <string name="permanent_island_width">Island Width</string>
-    <string name="group_about">Alkalmazásról</string>
-    <string name="developer">Fejlesztő</string>
+    <string name="group_about">AlkalmazÃ¡srÃ³l</string>
+    <string name="developer">FejlesztÅ‘</string>
     <string name="developer_subtitle">Keresd fel d4viddf.com</string>
-    <string name="source_code">Forráskód</string>
-    <string name="source_code_subtitle">GitHub adattároló</string>
-    <string name="licenses">Nyílt forráskód licenszek</string>
-    <string name="licenses_subtitle">Harmadik féltől származó szoftverek</string>
+    <string name="source_code">ForrÃ¡skÃ³d</string>
+    <string name="source_code_subtitle">GitHub adattÃ¡rolÃ³</string>
+    <string name="licenses">NyÃ­lt forrÃ¡skÃ³d licenszek</string>
+    <string name="licenses_subtitle">Harmadik fÃ©ltÅ‘l szÃ¡rmazÃ³ szoftverek</string>
     <string name="footer_made_with_love">❤️ készült Spanyolországban</string>
-    <string name="app_health_desc">Győződj meg arról, hogy minden ellenőrzés zöld, hogy az alkalmazás megfelelően működjön a háttérben.</string>
-    <string name="req_permissions">Szükséges engedélyek</string>
-    <string name="notif_access">Hozzáférés az értesítésekhez</string>
-    <string name="notif_access_desc">Az alkalmazás események olvasásához szükséges</string>
-    <string name="device_optimization">Eszköz optimalizálás</string>
-    <string name="xiaomi_autostart">Xiaomi Automatikus indítás</string>
-    <string name="battery_unrestricted">Korlátozatlan akkumulátor</string>
-    <string name="battery_desc">Megakadályozza az alkalmazás leállását</string>
-    <string name="recents_note">Megjegyzés: Zárd le az alkalmazást a „Előzmények” áttekintő menüben is.</string>
-    <string name="status_active">Aktív</string>
+    <string name="app_health_desc">GyÅ‘zÅ‘dj meg arrÃ³l, hogy minden ellenÅ‘rzÃ©s zÃ¶ld, hogy az alkalmazÃ¡s megfelelÅ‘en mÅ±kÃ¶djÃ¶n a hÃ¡ttÃ©rben.</string>
+    <string name="req_permissions">SzÃ¼ksÃ©ges engedÃ©lyek</string>
+    <string name="notif_access">HozzÃ¡fÃ©rÃ©s az Ã©rtesÃ­tÃ©sekhez</string>
+    <string name="notif_access_desc">Az alkalmazÃ¡s esemÃ©nyek olvasÃ¡sÃ¡hoz szÃ¼ksÃ©ges</string>
+    <string name="device_optimization">EszkÃ¶z optimalizÃ¡lÃ¡s</string>
+    <string name="xiaomi_autostart">Xiaomi Automatikus indÃ­tÃ¡s</string>
+    <string name="battery_unrestricted">KorlÃ¡tozatlan akkumulÃ¡tor</string>
+    <string name="battery_desc">MegakadÃ¡lyozza az alkalmazÃ¡s leÃ¡llÃ¡sÃ¡t</string>
+    <string name="recents_note">MegjegyzÃ©s: ZÃ¡rd le az alkalmazÃ¡st a â€žElÅ‘zmÃ©nyekâ€ Ã¡ttekintÅ‘ menÃ¼ben is.</string>
+    <string name="status_active">AktÃ­v</string>
     <string name="cat_all">Mind</string>
     <string name="cat_music">Zene</string>
-    <string name="cat_nav">Navigáció</string>
-    <string name="cat_timer">Produktivitás</string>
-    <string name="cat_other">Egyéb</string>
-    <string name="type_standard">Üzenetek és általános információk</string>
+    <string name="cat_nav">NavigÃ¡ciÃ³</string>
+    <string name="cat_timer">ProduktivitÃ¡s</string>
+    <string name="cat_other">EgyÃ©b</string>
+    <string name="type_standard">Ãœzenetek Ã©s Ã¡ltalÃ¡nos informÃ¡ciÃ³k</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
-    <string name="type_media">Zene és média</string>
-    <string name="type_nav">Térképek és GPS</string>
-    <string name="type_call">Hívások</string>
-    <string name="type_timer">Időzítők és ébresztők</string>
-    <string name="download_complete">A letöltés befejeződött.</string>
-    <string name="downloading">Letöltés alatt</string>
-    <string name="maps_title">Térképek</string>
+    <string name="type_media">Zene Ã©s mÃ©dia</string>
+    <string name="type_nav">TÃ©rkÃ©pek Ã©s GPS</string>
+    <string name="type_call">HÃ­vÃ¡sok</string>
+    <string name="type_timer">IdÅ‘zÃ­tÅ‘k Ã©s Ã©bresztÅ‘k</string>
+    <string name="download_complete">A letÃ¶ltÃ©s befejezÅ‘dÃ¶tt.</string>
+    <string name="downloading">LetÃ¶ltÃ©s alatt</string>
+    <string name="maps_title">TÃ©rkÃ©pek</string>
     <string-array name="progress_finish_keywords">
-        <item>letöltve</item>
-        <item>elkészült</item>
+        <item>letÃ¶ltve</item>
+        <item>elkÃ©szÃ¼lt</item>
         <item>befejezett</item>
-        <item>telepítve</item>
-        <item>kész</item>
+        <item>telepÃ­tve</item>
+        <item>kÃ©sz</item>
         <item>sikeres</item>
         <item>sikeresen</item>
     </string-array>
-    <string name="status_now_playing">Lejátszás alatt</string>
-    <string name="fallback_timer">Időzítő</string>
-    <string name="whats_new_title">Újdonságok a %s verzióban</string>
+    <string name="status_now_playing">LejÃ¡tszÃ¡s alatt</string>
+    <string name="fallback_timer">IdÅ‘zÃ­tÅ‘</string>
+    <string name="whats_new_title">ÃšjdonsÃ¡gok a %s verziÃ³ban</string>
     <string name="awesome">Fantasztikus!</string>
-    <string name="island_behavior">Island működése</string>
-    <string name="limit_strategy">Korlátok</string>
-    <string name="limit_desc">Mi történjen, ha eléred a 9 db island-et?</string>
-    <string name="mode_fcfs_title">Elsőként érkezők elsőbbséget élveznek</string>
-    <string name="mode_fcfs_desc">Az első 9 alkalmazást megtartja. Az új alkalmazásokat figyelmen kívül hagyja, amíg hely nem szabadul fel.</string>
-    <string name="mode_recent_title">Legújabb (alapértelmezett)</string>
-    <string name="mode_recent_desc">Az új értesítések felülírják a legrégebbieket.</string>
-    <string name="mode_priority_title">Egyedi fontossági sorrend</string>
-    <string name="mode_priority_desc">Határozd meg, mely típusok (pl. hívások) fontosabbak.</string>
-    <string name="priority_order">Fontossági sorrend</string>
-    <string name="priority_order_desc">A magasabb fontosságú (fentebbiek) felváltja az alacsonyabb fontosságút (lentebbiek).</string>
-    <string name="configure_order">Alkalmazások sorrendjének beállítása</string>
-    <string name="global_settings">Általános beállítások</string>
-    <string name="island_appearance">Island megjelenése</string>
-    <string name="setting_float">Felugró ablak</string>
-    <string name="setting_float_desc">A minimálisra csökkentés előtt rövid ideig mutassa meg a teljes értesítési sávot az Islandon.</string>
+    <string name="island_behavior">Island mÅ±kÃ¶dÃ©se</string>
+    <string name="limit_strategy">KorlÃ¡tok</string>
+    <string name="limit_desc">Mi tÃ¶rtÃ©njen, ha elÃ©red a 9 db island-et?</string>
+    <string name="mode_fcfs_title">ElsÅ‘kÃ©nt Ã©rkezÅ‘k elsÅ‘bbsÃ©get Ã©lveznek</string>
+    <string name="mode_fcfs_desc">Az elsÅ‘ 9 alkalmazÃ¡st megtartja. Az Ãºj alkalmazÃ¡sokat figyelmen kÃ­vÃ¼l hagyja, amÃ­g hely nem szabadul fel.</string>
+    <string name="mode_recent_title">LegÃºjabb (alapÃ©rtelmezett)</string>
+    <string name="mode_recent_desc">Az Ãºj Ã©rtesÃ­tÃ©sek felÃ¼lÃ­rjÃ¡k a legrÃ©gebbieket.</string>
+    <string name="mode_priority_title">Egyedi fontossÃ¡gi sorrend</string>
+    <string name="mode_priority_desc">HatÃ¡rozd meg, mely tÃ­pusok (pl. hÃ­vÃ¡sok) fontosabbak.</string>
+    <string name="priority_order">FontossÃ¡gi sorrend</string>
+    <string name="priority_order_desc">A magasabb fontossÃ¡gÃº (fentebbiek) felvÃ¡ltja az alacsonyabb fontossÃ¡gÃºt (lentebbiek).</string>
+    <string name="configure_order">AlkalmazÃ¡sok sorrendjÃ©nek beÃ¡llÃ­tÃ¡sa</string>
+    <string name="global_settings">ÃltalÃ¡nos beÃ¡llÃ­tÃ¡sok</string>
+    <string name="island_appearance">Island megjelenÃ©se</string>
+    <string name="setting_float">FelugrÃ³ ablak</string>
+    <string name="setting_float_desc">A minimÃ¡lisra csÃ¶kkentÃ©s elÅ‘tt rÃ¶vid ideig mutassa meg a teljes Ã©rtesÃ­tÃ©si sÃ¡vot az Islandon.</string>
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
-    <string name="setting_shade">Értesítési panel</string>
-    <string name="setting_shade_desc">Tartsa láthatóvá az értesítést az értesítési panelen. Ha letiltja, akkor csak Island-on jelenik meg.</string>
+    <string name="setting_shade">Ã‰rtesÃ­tÃ©si panel</string>
+    <string name="setting_shade_desc">Tartsa lÃ¡thatÃ³vÃ¡ az Ã©rtesÃ­tÃ©st az Ã©rtesÃ­tÃ©si panelen. Ha letiltja, akkor csak Island-on jelenik meg.</string>
     <string name="seconds_suffix">%ds</string>
-    <string name="use_global_default">Általános beállítások használata</string>
+    <string name="use_global_default">ÃltalÃ¡nos beÃ¡llÃ­tÃ¡sok hasznÃ¡lata</string>
     <string-array name="nav_arrival_keywords">
-        <item>érkezés</item>
-        <item>érkezés</item>
-        <item>évi</item>
-        <item>elér</item>
-        <item>cél</item>
+        <item>Ã©rkezÃ©s</item>
+        <item>Ã©rkezÃ©s</item>
+        <item>Ã©vi</item>
+        <item>elÃ©r</item>
+        <item>cÃ©l</item>
     </string-array>
-    <string name="version_history">Verzióelőzmények</string>
-    <string name="title_0_2_0">Az információs frissítés</string>
+    <string name="version_history">VerziÃ³elÅ‘zmÃ©nyek</string>
+    <string name="title_0_2_0">Az informÃ¡ciÃ³s frissÃ­tÃ©s</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;Részletes folyamatok:&lt;/b&gt; Hozzáadott támogatás a „Lépésenkénti előrehaladás” (pl. 1/3) és az ikonokkal ellátott előrehaladási sávok számára az értesítési sávon belül.\n
         • &lt;b&gt;Fontossági rendszer:&lt;/b&gt; Új „Island működési” beállítások. Választhatsz a „Legutóbbi”, „Elsőként érkezett” vagy egy egyedi „Alkalmazás fontossági” lista közül.\n
 • &lt;b&gt;Intelligens szűrés:&lt;/b&gt; Javított felismerés az ismétlődő értesítések és csoportos letöltések esetében.\n
 • &lt;b&gt;Vizuális fejlesztések:&lt;/b&gt; Javított elrendezési problémák a navigációs utasításoknál.\n
         • &lt;b&gt;Alkalmazásonkénti konfiguráció:&lt;/b&gt; Az időkorlát és a lebegő viselkedés alkalmazásonkénti testreszabása.
     </string>
-    <string name="title_0_1_0">A kifejező frissítés</string>
+    <string name="title_0_1_0">A kifejezÅ‘ frissÃ­tÃ©s</string>
     <string name="changelog_0_1_0">        • &lt;b&gt;A felhasználói felület jelentős átalakítása:&lt;/b&gt; Új Material 3 kifejező dizájn, sima animációkkal.\n
         • &lt;b&gt;Jobb Island:&lt;/b&gt; A szöveg most a jobb oldalon jelenik meg. Zöld pipa jelzi a befejezett letöltéseket.\n
         • &lt;b&gt;Alkalmazásonkénti beállítások:&lt;/b&gt; Alkalmazásonként kiválaszthatók az egyes értesítési típusok (zene, térképek, hívások).\n
@@ -135,54 +136,54 @@
         • &lt;b&gt;Új könyvtár:&lt;/b&gt; Az alkalmazások szűrése kategória és rendezési sorrend szerint.\n
         • &lt;b&gt;Fordítások:&lt;/b&gt; Hozzáadva a spanyol nyelv támogatása.
     </string>
-    <string name="priority_edu_title">Újdonság: Vezéreld a Island-ot</string>
-    <string name="priority_edu_desc">A HyperBridge mostantól kezelni tudja, hogy több értesítés hogyan viselkedik, amikor eléri a 9-szigetes korlátot.\n\n&lt;b&gt;Alapértelmezett: Legújabb&lt;/b&gt;\nAz új értesítések automatikusan felülírják a legrégebbieket.</string>
-    <string name="badge_new">ÚJ</string>
-    <string name="nav_layout_title">Navigációs elrendezés</string>
-    <string name="nav_layout_desc">Információk megjelenési helyének kiválasztása</string>
+    <string name="priority_edu_title">ÃšjdonsÃ¡g: VezÃ©reld a Island-ot</string>
+    <string name="priority_edu_desc">A HyperBridge mostantÃ³l kezelni tudja, hogy tÃ¶bb Ã©rtesÃ­tÃ©s hogyan viselkedik, amikor elÃ©ri a 9-szigetes korlÃ¡tot.\n\n&lt;b&gt;AlapÃ©rtelmezett: LegÃºjabb&lt;/b&gt;\nAz Ãºj Ã©rtesÃ­tÃ©sek automatikusan felÃ¼lÃ­rjÃ¡k a legrÃ©gebbieket.</string>
+    <string name="badge_new">ÃšJ</string>
+    <string name="nav_layout_title">NavigÃ¡ciÃ³s elrendezÃ©s</string>
+    <string name="nav_layout_desc">InformÃ¡ciÃ³k megjelenÃ©si helyÃ©nek kivÃ¡lasztÃ¡sa</string>
     <string name="left_content">Bal oldalt</string>
     <string name="right_content">Jobb oldalt</string>
-    <string name="nav_content_instruction">Utasítás</string>
-    <string name="nav_content_distance">Távolság</string>
-    <string name="nav_content_eta"> Érkezés ideje </string>
-    <string name="nav_content_distance_eta">Táv. és érk. idő</string>
-    <string name="nav_content_none">Üres</string>
-    <string name="channel_active_islands">Aktív Island-ek</string>
-    <string name="cd_enable_type">%s értesítések engedélyezése</string>
-    <string name="cd_disable_type">%s értesítések letiltása</string>
-    <string name="cd_nav_edit">Navigációs elrendezés szerkesztése</string>
-    <string name="cd_app_state_active">Aktív</string>
-    <string name="cd_app_state_inactive">Inaktív</string>
-    <string name="cd_move_up">Elem mozgatása felfelé</string>
-    <string name="cd_move_down">Elem mozgatása lefelé</string>
-    <string name="cd_drag_handle">Húzd a fogantyút. Kétszer érintsd meg és tartsd lenyomva az átrendezéshez, vagy használd a műveleteket az áthelyezéshez.</string>
-    <string name="cd_app_icon">Alkalmazás ikon a %s-nak/nek</string>
-    <string name="cd_nav_preview">Navigációs előnézet: %1$s bal oldalt, %2$s jobb oldalt</string>
-    <string name="cd_expand_changelog">Verzió részletek kibontása</string>
-    <string name="cd_collapse_changelog">Verzió részletek elrejtése</string>
+    <string name="nav_content_instruction">UtasÃ­tÃ¡s</string>
+    <string name="nav_content_distance">TÃ¡volsÃ¡g</string>
+    <string name="nav_content_eta"> Ã‰rkezÃ©s ideje </string>
+    <string name="nav_content_distance_eta">TÃ¡v. Ã©s Ã©rk. idÅ‘</string>
+    <string name="nav_content_none">Ãœres</string>
+    <string name="channel_active_islands">AktÃ­v Island-ek</string>
+    <string name="cd_enable_type">%s Ã©rtesÃ­tÃ©sek engedÃ©lyezÃ©se</string>
+    <string name="cd_disable_type">%s Ã©rtesÃ­tÃ©sek letiltÃ¡sa</string>
+    <string name="cd_nav_edit">NavigÃ¡ciÃ³s elrendezÃ©s szerkesztÃ©se</string>
+    <string name="cd_app_state_active">AktÃ­v</string>
+    <string name="cd_app_state_inactive">InaktÃ­v</string>
+    <string name="cd_move_up">Elem mozgatÃ¡sa felfelÃ©</string>
+    <string name="cd_move_down">Elem mozgatÃ¡sa lefelÃ©</string>
+    <string name="cd_drag_handle">HÃºzd a fogantyÃºt. KÃ©tszer Ã©rintsd meg Ã©s tartsd lenyomva az Ã¡trendezÃ©shez, vagy hasznÃ¡ld a mÅ±veleteket az Ã¡thelyezÃ©shez.</string>
+    <string name="cd_app_icon">AlkalmazÃ¡s ikon a %s-nak/nek</string>
+    <string name="cd_nav_preview">NavigÃ¡ciÃ³s elÅ‘nÃ©zet: %1$s bal oldalt, %2$s jobb oldalt</string>
+    <string name="cd_expand_changelog">VerziÃ³ rÃ©szletek kibontÃ¡sa</string>
+    <string name="cd_collapse_changelog">VerziÃ³ rÃ©szletek elrejtÃ©se</string>
     <string name="nav_preview_instruction">Fordulj jobbra</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
-    <string name="blocked_terms">Ignorált kifejezések</string>
-    <string name="blocked_terms_desc">Az ezeket a szavakat tartalmazó értesítéseket figyelmen kívül hagyjuk.</string>
-    <string name="add_blocked_word">Szó hozzáadása (pl.: Leleplezés)</string>
-    <string name="add">Hozzáad</string>
-    <string name="remove">Töröl</string>
-    <string name="spoiler_subtitle">Lepelezésvédelem és szűrők kezelése</string>
-    <string name="active_notifications_title">Értesítési típusok</string>
-    <string name="active_notifications_subtitle">%d aktív</string>
-    <string name="appearance_use_defaults_desc">Az animáció sebességére és lebegés működése a rendszer alapértelmezett beállításait használja.</string>
-    <string name="blocked_terms_active_count">%d szabály aktív</string>
-    <string name="global_rules">Általános szabályok</string>
-    <string name="app_specific_rules">Alkalmazás-specifikus szabályok</string>
-    <string name="manage_app_rules_desc">Szűrők testreszabása adott alkalmazásokhoz</string>
-    <string name="blocked_terms_count">%d kifejezés tiltva</string>
-    <string name="no_active_rules">Nincs aktív szabályok</string>
-    <string name="setup_health_title">Rendszer-kompatibilitás</string>
-    <string name="req_hyperos">HyperOS 3.0+ (Android 15+) szükséges</string>
-    <string name="req_xiaomi">Xiaomi/Redmi/Poco eszköz szükséges</string>
-    <string name="warning_cn_rom_title">Kínai ROM észlelve</string>
-    <string name="warning_cn_rom_desc">Úgy tűnik, hogy az eszközön kínai rendszer fut. A Xiaomi jelentősen módosítja az értesítések belső működését a CN ROM-okon. A funkciók instabilak lehetnek, vagy egyáltalán nem működnek.</string>
+    <string name="blocked_terms">IgnorÃ¡lt kifejezÃ©sek</string>
+    <string name="blocked_terms_desc">Az ezeket a szavakat tartalmazÃ³ Ã©rtesÃ­tÃ©seket figyelmen kÃ­vÃ¼l hagyjuk.</string>
+    <string name="add_blocked_word">SzÃ³ hozzÃ¡adÃ¡sa (pl.: LeleplezÃ©s)</string>
+    <string name="add">HozzÃ¡ad</string>
+    <string name="remove">TÃ¶rÃ¶l</string>
+    <string name="spoiler_subtitle">LepelezÃ©svÃ©delem Ã©s szÅ±rÅ‘k kezelÃ©se</string>
+    <string name="active_notifications_title">Ã‰rtesÃ­tÃ©si tÃ­pusok</string>
+    <string name="active_notifications_subtitle">%d aktÃ­v</string>
+    <string name="appearance_use_defaults_desc">Az animÃ¡ciÃ³ sebessÃ©gÃ©re Ã©s lebegÃ©s mÅ±kÃ¶dÃ©se a rendszer alapÃ©rtelmezett beÃ¡llÃ­tÃ¡sait hasznÃ¡lja.</string>
+    <string name="blocked_terms_active_count">%d szabÃ¡ly aktÃ­v</string>
+    <string name="global_rules">ÃltalÃ¡nos szabÃ¡lyok</string>
+    <string name="app_specific_rules">AlkalmazÃ¡s-specifikus szabÃ¡lyok</string>
+    <string name="manage_app_rules_desc">SzÅ±rÅ‘k testreszabÃ¡sa adott alkalmazÃ¡sokhoz</string>
+    <string name="blocked_terms_count">%d kifejezÃ©s tiltva</string>
+    <string name="no_active_rules">Nincs aktÃ­v szabÃ¡lyok</string>
+    <string name="setup_health_title">Rendszer-kompatibilitÃ¡s</string>
+    <string name="req_hyperos">HyperOS 3.0+ (Android 15+) szÃ¼ksÃ©ges</string>
+    <string name="req_xiaomi">Xiaomi/Redmi/Poco eszkÃ¶z szÃ¼ksÃ©ges</string>
+    <string name="warning_cn_rom_title">KÃ­nai ROM Ã©szlelve</string>
+    <string name="warning_cn_rom_desc">Ãšgy tÅ±nik, hogy az eszkÃ¶zÃ¶n kÃ­nai rendszer fut. A Xiaomi jelentÅ‘sen mÃ³dosÃ­tja az Ã©rtesÃ­tÃ©sek belsÅ‘ mÅ±kÃ¶dÃ©sÃ©t a CN ROM-okon. A funkciÃ³k instabilak lehetnek, vagy egyÃ¡ltalÃ¡n nem mÅ±kÃ¶dnek.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
@@ -191,24 +192,24 @@
     <string name="shizuku_permission_denied">Permission Denied</string>
     <string name="shizuku_request_permission">Grant Shizuku Permission</string>
     <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
-    <string name="system_version">Rendszerverzió</string>
-    <string name="call_incoming">Bejövő hívás</string>
-    <string name="call_ongoing">Aktív hívás</string>
+    <string name="system_version">RendszerverziÃ³</string>
+    <string name="call_incoming">BejÃ¶vÅ‘ hÃ­vÃ¡s</string>
+    <string name="call_ongoing">AktÃ­v hÃ­vÃ¡s</string>
     <string-array name="call_keywords_hangup">
         <item>lerak</item>
-        <item>vége</item>
-        <item>elutasítás</item>
-        <item>elutasít</item>
+        <item>vÃ©ge</item>
+        <item>elutasÃ­tÃ¡s</item>
+        <item>elutasÃ­t</item>
     </string-array>
     <string-array name="call_keywords_answer">
-        <item>fogadás</item>
-        <item>fogadás</item>
+        <item>fogadÃ¡s</item>
+        <item>fogadÃ¡s</item>
     </string-array>
     <string-array name="call_keywords_speaker">
-        <item>hangszóró</item>
+        <item>hangszÃ³rÃ³</item>
         <item>Hang</item>
     </string-array>
-    <string name="title_0_3_0">Az általános frissítés</string>
+    <string name="title_0_3_0">Az Ã¡ltalÃ¡nos frissÃ­tÃ©s</string>
     <string name="changelog_0_3_0">        <b>Rejtett értesítések 👻</b>\n
         Új opció az értesítések elrejtésére a rendszerpanelen, miközben az Island aktív marad. Ellenőrizd az általános beállításokat!\n\n
         <b>Új nyelvek 🌍</b>\n
@@ -229,39 +230,39 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
         • Átalakítva az alkalmazás konfigurációs lapja a jobb használhatóság érdekében.\n
         • Javítva a kompatibilitás-ellenőrző képernyő részletes eszközadatokkal.
     </string>
-    <string name="privacy_title">100% offline és biztonságos</string>
-    <string name="privacy_desc">A Hyper Bridge mindent közvetlenül a telefon processzorán dolgoz fel.\n\nNem igényel internet-hozzáférést, vagyis az értesítések és a személyes adatok soha nem hagyják el az eszközt.</string>
+    <string name="privacy_title">100% offline Ã©s biztonsÃ¡gos</string>
+    <string name="privacy_desc">A Hyper Bridge mindent kÃ¶zvetlenÃ¼l a telefon processzorÃ¡n dolgoz fel.\n\nNem igÃ©nyel internet-hozzÃ¡fÃ©rÃ©st, vagyis az Ã©rtesÃ­tÃ©sek Ã©s a szemÃ©lyes adatok soha nem hagyjÃ¡k el az eszkÃ¶zt.</string>
     <string name="language">Nyelv</string>
-    <string name="language_desc">Alkalmazás nyelvének kiválasztása</string>
-    <string name="system_default">Rendszer nyelvének használata</string>
-    <string name="save">Mentés</string>
-    <string name="backup_restore_title">Mentés és visszaállítás</string>
-    <string name="backup_section_title">Adatok kezelése</string>
-    <string name="backup_options_subtitle">Válaszd ki a műveletbe bevonni kívánt adatokat</string>
-    <string name="option_app_settings">Alkalmazásbeállítások</string>
-    <string name="option_app_settings_desc">Állapot, téma, viselkedési módok beállítása</string>
-    <string name="option_blocklist">Tiltólista adatbázis</string>
-    <string name="option_blocklist_desc">Az általad tiltott kulcsszavak és alkalmazások</string>
-    <string name="option_priorities">Fontossági szabályok</string>
-    <string name="option_priorities_desc">Egyedi értesítés fontossági beállítások</string>
-    <string name="action_export">Mentés létrehozása</string>
-    <string name="action_import">Mentés visszaállítása</string>
+    <string name="language_desc">AlkalmazÃ¡s nyelvÃ©nek kivÃ¡lasztÃ¡sa</string>
+    <string name="system_default">Rendszer nyelvÃ©nek hasznÃ¡lata</string>
+    <string name="save">MentÃ©s</string>
+    <string name="backup_restore_title">MentÃ©s Ã©s visszaÃ¡llÃ­tÃ¡s</string>
+    <string name="backup_section_title">Adatok kezelÃ©se</string>
+    <string name="backup_options_subtitle">VÃ¡laszd ki a mÅ±veletbe bevonni kÃ­vÃ¡nt adatokat</string>
+    <string name="option_app_settings">AlkalmazÃ¡sbeÃ¡llÃ­tÃ¡sok</string>
+    <string name="option_app_settings_desc">Ãllapot, tÃ©ma, viselkedÃ©si mÃ³dok beÃ¡llÃ­tÃ¡sa</string>
+    <string name="option_blocklist">TiltÃ³lista adatbÃ¡zis</string>
+    <string name="option_blocklist_desc">Az Ã¡ltalad tiltott kulcsszavak Ã©s alkalmazÃ¡sok</string>
+    <string name="option_priorities">FontossÃ¡gi szabÃ¡lyok</string>
+    <string name="option_priorities_desc">Egyedi Ã©rtesÃ­tÃ©s fontossÃ¡gi beÃ¡llÃ­tÃ¡sok</string>
+    <string name="action_export">MentÃ©s lÃ©trehozÃ¡sa</string>
+    <string name="action_import">MentÃ©s visszaÃ¡llÃ­tÃ¡sa</string>
     <string name="export_success">Mentés sikeresen visszaállítva</string>
     <string name="export_failed">Külvitel sikertelen: %s</string>
-    <string name="import_success">Adatok sikeresen visszállítva</string>
+    <string name="import_success">Adatok sikeresen visszÃ¡llÃ­tva</string>
     <string name="import_failed">Sikertelen behozatal: %s</string>
-    <string name="autostart_manual_check">Az állapot nem ellenőrizhető automatikusan.\nEllenőrizd ezt manuálisan, hogy megbizonyosodj arról, hogy a szolgáltatás megfelelően működik.</string>
-    <string name="backup_info_title">Mentés infomációi</string>
-    <string name="backup_meta_date">Dátum</string>
-    <string name="backup_meta_device">Eszköz</string>
-    <string name="backup_meta_version">Verzió</string>
-    <string name="backup_meta_keys">Összes elem</string>
-    <string name="backup_empty_suffix"> (Üres)</string>
-    <string name="action_restore_selected">Kiválasztott elemek visszaállítása</string>
-    <string name="optimization_title">Eszköz optimalizálás</string>
-    <string name="privacy_card_title">Elsősorban offline</string>
-    <string name="privacy_card_desc">Nincs szükség internetkapcsolatra.</string>
-    <string name="title_0_3_1">Mentés és többnyelvű frissítés</string>
+    <string name="autostart_manual_check">Az Ã¡llapot nem ellenÅ‘rizhetÅ‘ automatikusan.\nEllenÅ‘rizd ezt manuÃ¡lisan, hogy megbizonyosodj arrÃ³l, hogy a szolgÃ¡ltatÃ¡s megfelelÅ‘en mÅ±kÃ¶dik.</string>
+    <string name="backup_info_title">MentÃ©s infomÃ¡ciÃ³i</string>
+    <string name="backup_meta_date">DÃ¡tum</string>
+    <string name="backup_meta_device">EszkÃ¶z</string>
+    <string name="backup_meta_version">VerziÃ³</string>
+    <string name="backup_meta_keys">Ã–sszes elem</string>
+    <string name="backup_empty_suffix"> (Ãœres)</string>
+    <string name="action_restore_selected">KivÃ¡lasztott elemek visszaÃ¡llÃ­tÃ¡sa</string>
+    <string name="optimization_title">EszkÃ¶z optimalizÃ¡lÃ¡s</string>
+    <string name="privacy_card_title">ElsÅ‘sorban offline</string>
+    <string name="privacy_card_desc">Nincs szÃ¼ksÃ©g internetkapcsolatra.</string>
+    <string name="title_0_3_1">MentÃ©s Ã©s tÃ¶bbnyelvÅ± frissÃ­tÃ©s</string>
     <string name="changelog_0_3_1">        <b>Mentés és visszaállítás 📦</b>\n
         Új, haladó felhasználóknak szóló funkció! Biztonságosan külviteli beállításait, tiltási listáit és alkalmazásfontosságait egy .hbr fájlba, és bármikor visszaállíthatod őket.\n\n
         <b>Új nyelvek 🌍</b>\n
@@ -280,176 +281,176 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
         • Javítva a navigációs Island-on található „Kilépés” gomb, amely ikonként jelent meg szöveg helyett.\n
         • Javítva az alkalmazás ikonjának betöltése a Beállításokban.\n
     </string>
-    <string name="close">Bezár</string>
-    <string name="search">Keresés</string>
-    <string name="widget_updated_toast">Modul frissítve</string>
-    <string name="widget_settings_error">A modul beállításait nem lehet szerkeszteni.</string>
-    <string name="widget_picker_title">Modul hozzáadása</string>
-    <string name="search_apps_placeholder">Alkalmazások keresése...</string>
+    <string name="close">BezÃ¡r</string>
+    <string name="search">KeresÃ©s</string>
+    <string name="widget_updated_toast">Modul frissÃ­tve</string>
+    <string name="widget_settings_error">A modul beÃ¡llÃ­tÃ¡sait nem lehet szerkeszteni.</string>
+    <string name="widget_picker_title">Modul hozzÃ¡adÃ¡sa</string>
+    <string name="search_apps_placeholder">AlkalmazÃ¡sok keresÃ©se...</string>
     <plurals name="widget_count_fmt">
         <item quantity="other">%d modul</item>
         <item quantity="one">%d modul</item>
     </plurals>
-    <string name="widget_config_title">Modul testreszabása</string>
-    <string name="widget_settings_button">Modul beállításai</string>
-    <string name="config_tab_appearance">Megjelenés</string>
-    <string name="config_tab_behavior">Működés</string>
-    <string name="config_render_mode_label">Renderelési mód</string>
-    <string name="config_container_size_label">Tároló mérete</string>
-    <string name="config_shade_title">Megjelenítés árnyékban</string>
-    <string name="config_shade_desc">Látható az értesítési panelen</string>
-    <string name="config_timeout_title">Automatikus bezárás</string>
-    <string name="config_timeout_desc">Island bezárása késleltetéssel</string>
+    <string name="widget_config_title">Modul testreszabÃ¡sa</string>
+    <string name="widget_settings_button">Modul beÃ¡llÃ­tÃ¡sai</string>
+    <string name="config_tab_appearance">MegjelenÃ©s</string>
+    <string name="config_tab_behavior">MÅ±kÃ¶dÃ©s</string>
+    <string name="config_render_mode_label">RenderelÃ©si mÃ³d</string>
+    <string name="config_container_size_label">TÃ¡rolÃ³ mÃ©rete</string>
+    <string name="config_shade_title">MegjelenÃ­tÃ©s Ã¡rnyÃ©kban</string>
+    <string name="config_shade_desc">LÃ¡thatÃ³ az Ã©rtesÃ­tÃ©si panelen</string>
+    <string name="config_timeout_title">Automatikus bezÃ¡rÃ¡s</string>
+    <string name="config_timeout_desc">Island bezÃ¡rÃ¡sa kÃ©sleltetÃ©ssel</string>
     <plurals name="config_timeout_fmt">
-        <item quantity="other">%d másodperc</item>
-        <item quantity="one">%d másodperc</item>
+        <item quantity="other">%d mÃ¡sodperc</item>
+        <item quantity="one">%d mÃ¡sodperc</item>
     </plurals>
-    <string name="config_refresh_title">Automatikus frissítés</string>
-    <string name="config_refresh_desc">Rendszeresen frissíti a pillanatképet</string>
+    <string name="config_refresh_title">Automatikus frissÃ­tÃ©s</string>
+    <string name="config_refresh_desc">Rendszeresen frissÃ­ti a pillanatkÃ©pet</string>
     <plurals name="config_refresh_fmt">
         <item quantity="other">Minden %d. percben</item>
         <item quantity="one">Minden percben</item>
     </plurals>
-    <string name="config_refresh_warning">A magasabb gyakoriság több energiát fogyaszt.</string>
-    <string name="render_interactive_label">Interaktív</string>
-    <string name="render_interactive_desc">A gombok működnek. Legalkalmasabb zenelejátszáshoz, vezérléshez.</string>
-    <string name="render_snapshot_label">Pillanatkép</string>
-    <string name="render_snapshot_desc">Javítja az üres listákat. Legalkalmasabb a Naptár és a Gmail számára.</string>
+    <string name="config_refresh_warning">A magasabb gyakorisÃ¡g tÃ¶bb energiÃ¡t fogyaszt.</string>
+    <string name="render_interactive_label">InteraktÃ­v</string>
+    <string name="render_interactive_desc">A gombok mÅ±kÃ¶dnek. Legalkalmasabb zenelejÃ¡tszÃ¡shoz, vezÃ©rlÃ©shez.</string>
+    <string name="render_snapshot_label">PillanatkÃ©p</string>
+    <string name="render_snapshot_desc">JavÃ­tja az Ã¼res listÃ¡kat. Legalkalmasabb a NaptÃ¡r Ã©s a Gmail szÃ¡mÃ¡ra.</string>
     <string name="size_original">Eredeti</string>
     <string name="size_small">Kicsi (100dp)</string>
-    <string name="size_medium">Közepes (180dp)</string>
+    <string name="size_medium">KÃ¶zepes (180dp)</string>
     <string name="size_large">Nagy (280dp)</string>
     <string name="size_xlarge">Extra nagy (380dp)</string>
-    <string name="app_uninstalled_badge">Eltávolítva</string>
-    <string name="settings_action">Beállítások</string>
+    <string name="app_uninstalled_badge">EltÃ¡volÃ­tva</string>
+    <string name="settings_action">BeÃ¡llÃ­tÃ¡sok</string>
     <string name="saved_widgets_title">Elmentett modulok</string>
     <string name="no_saved_widgets">Nincsenek elmentett modulok</string>
     <string name="widget_id_fmt">Modul #%d</string>
-    <string name="show_on_island">Megjelenítés az Island-on</string>
-    <string name="theme_installer_analyzing">Témacsomag elemzése...</string>
-    <string name="theme_installer_success_title">Téma kész</string>
-    <string name="theme_installer_author">Alkotó: %s</string>
-    <string name="theme_installer_version">Verzió %d</string>
-    <string name="theme_installer_apply_question">Szeretnéd ezt a témát alkalmazni a HyperBridge-re?</string>
-    <string name="theme_installer_action_apply">Téma alkalmazása</string>
-    <string name="theme_installer_action_later">Mentés későbbre</string>
+    <string name="show_on_island">MegjelenÃ­tÃ©s az Island-on</string>
+    <string name="theme_installer_analyzing">TÃ©macsomag elemzÃ©se...</string>
+    <string name="theme_installer_success_title">TÃ©ma kÃ©sz</string>
+    <string name="theme_installer_author">AlkotÃ³: %s</string>
+    <string name="theme_installer_version">VerziÃ³ %d</string>
+    <string name="theme_installer_apply_question">SzeretnÃ©d ezt a tÃ©mÃ¡t alkalmazni a HyperBridge-re?</string>
+    <string name="theme_installer_action_apply">TÃ©ma alkalmazÃ¡sa</string>
+    <string name="theme_installer_action_later">MentÃ©s kÃ©sÅ‘bbre</string>
     <string name="theme_installer_error_title">Behozatal sikertelen</string>
-    <string name="theme_installer_error_generic">Nem sikerült ellenőrizni a téma fájlt.</string>
-    <string name="theme_installer_btn_close">Bezár</string>
-    <string name="theme_manager_title">Saját témáim</string>
-    <string name="theme_manager_cd_add">Új téma létrehozása</string>
+    <string name="theme_installer_error_generic">Nem sikerÃ¼lt ellenÅ‘rizni a tÃ©ma fÃ¡jlt.</string>
+    <string name="theme_installer_btn_close">BezÃ¡r</string>
+    <string name="theme_manager_title">SajÃ¡t tÃ©mÃ¡im</string>
+    <string name="theme_manager_cd_add">Ãšj tÃ©ma lÃ©trehozÃ¡sa</string>
     <string name="theme_card_author_format">%s alkotta</string>
-    <string name="theme_card_cd_active">Aktív téma</string>
-    <string name="theme_card_cd_delete">Téma törlése</string>
-    <string name="theme_system_default_title">Alapértelmezett</string>
-    <string name="theme_system_default_desc">Normál megjelenés</string>
-    <string name="theme_sheet_title">Új téma létrehozása</string>
-    <string name="theme_sheet_action_create">Új téma létrehozása</string>
-    <string name="theme_sheet_action_find">Keresés</string>
+    <string name="theme_card_cd_active">AktÃ­v tÃ©ma</string>
+    <string name="theme_card_cd_delete">TÃ©ma tÃ¶rlÃ©se</string>
+    <string name="theme_system_default_title">AlapÃ©rtelmezett</string>
+    <string name="theme_system_default_desc">NormÃ¡l megjelenÃ©s</string>
+    <string name="theme_sheet_title">Ãšj tÃ©ma lÃ©trehozÃ¡sa</string>
+    <string name="theme_sheet_action_create">Ãšj tÃ©ma lÃ©trehozÃ¡sa</string>
+    <string name="theme_sheet_action_find">KeresÃ©s</string>
     <string name="theme_action_import_short">Behozatal</string>
-    <string name="theme_card_action_edit">Szerkesztés</string>
-    <string name="theme_card_action_export">Külvitel</string>
-    <string name="creator_title_new">Téma létrehozása</string>
-    <string name="creator_title_edit">Téma szerkesztése</string>
-    <string name="creator_nav_colors">Színek</string>
-    <string name="creator_nav_icons">Ikonok és alakzatok</string>
-    <string name="creator_nav_calls">Hívás stílusa</string>
-    <string name="creator_nav_apps">Alkalmazás konfiguráció</string>
-    <string name="creator_action_save">Mentés</string>
-    <string name="creator_btn_edit_info">Téma infó szerkesztése</string>
-    <string name="creator_sub_colors">Paletták és kontraszt</string>
-    <string name="creator_sub_icons">Alakzat és kitöltés</string>
-    <string name="creator_sub_calls">Fogadás és elutasítás gombok</string>
-    <string name="creator_sub_apps">Alkalmazásonkénti felülírások</string>
-    <string name="meta_title">Téma infó</string>
-    <string name="meta_label_name">Téma neve</string>
-    <string name="meta_label_author">Alkotó neve</string>
-    <string name="meta_action_done">Kész</string>
-    <string name="colors_tab_presets">Sémák</string>
+    <string name="theme_card_action_edit">SzerkesztÃ©s</string>
+    <string name="theme_card_action_export">KÃ¼lvitel</string>
+    <string name="creator_title_new">TÃ©ma lÃ©trehozÃ¡sa</string>
+    <string name="creator_title_edit">TÃ©ma szerkesztÃ©se</string>
+    <string name="creator_nav_colors">SzÃ­nek</string>
+    <string name="creator_nav_icons">Ikonok Ã©s alakzatok</string>
+    <string name="creator_nav_calls">HÃ­vÃ¡s stÃ­lusa</string>
+    <string name="creator_nav_apps">AlkalmazÃ¡s konfigurÃ¡ciÃ³</string>
+    <string name="creator_action_save">MentÃ©s</string>
+    <string name="creator_btn_edit_info">TÃ©ma infÃ³ szerkesztÃ©se</string>
+    <string name="creator_sub_colors">PalettÃ¡k Ã©s kontraszt</string>
+    <string name="creator_sub_icons">Alakzat Ã©s kitÃ¶ltÃ©s</string>
+    <string name="creator_sub_calls">FogadÃ¡s Ã©s elutasÃ­tÃ¡s gombok</string>
+    <string name="creator_sub_apps">AlkalmazÃ¡sonkÃ©nti felÃ¼lÃ­rÃ¡sok</string>
+    <string name="meta_title">TÃ©ma infÃ³</string>
+    <string name="meta_label_name">TÃ©ma neve</string>
+    <string name="meta_label_author">AlkotÃ³ neve</string>
+    <string name="meta_action_done">KÃ©sz</string>
+    <string name="colors_tab_presets">SÃ©mÃ¡k</string>
     <string name="colors_tab_custom">Egyedi</string>
-    <string name="colors_label_presets">Sémák</string>
-    <string name="colors_label_use_app_colors">App színeinek használata</string>
-    <string name="colors_desc_use_app_colors">Színek átvétele az telepített appokból</string>
-    <string name="colors_label_custom_title">Egyedi szín</string>
-    <string name="colors_cd_add_custom">Egyedi szín megadása</string>
-    <string name="colors_dialog_title">Válassz színt</string>
-    <string name="colors_action_done">Kész</string>
-    <string name="icons_tab_style">Stílus</string>
+    <string name="colors_label_presets">SÃ©mÃ¡k</string>
+    <string name="colors_label_use_app_colors">App szÃ­neinek hasznÃ¡lata</string>
+    <string name="colors_desc_use_app_colors">SzÃ­nek Ã¡tvÃ©tele az telepÃ­tett appokbÃ³l</string>
+    <string name="colors_label_custom_title">Egyedi szÃ­n</string>
+    <string name="colors_cd_add_custom">Egyedi szÃ­n megadÃ¡sa</string>
+    <string name="colors_dialog_title">VÃ¡lassz szÃ­nt</string>
+    <string name="colors_action_done">KÃ©sz</string>
+    <string name="icons_tab_style">StÃ­lus</string>
     <string name="icons_tab_assets">Ikonok</string>
     <string name="icons_tab_shape">Alakzat</string>
-    <string name="icons_label_size">Ikon mérete</string>
+    <string name="icons_label_size">Ikon mÃ©rete</string>
     <string name="icons_label_full">Teljes</string>
-    <string name="icons_label_minimal">Minimális</string>
-    <string name="icons_group_nav">Navigáció</string>
-    <string name="icons_btn_start">Indít</string>
-    <string name="icons_btn_end">Vége</string>
+    <string name="icons_label_minimal">MinimÃ¡lis</string>
+    <string name="icons_group_nav">NavigÃ¡ciÃ³</string>
+    <string name="icons_btn_start">IndÃ­t</string>
+    <string name="icons_btn_end">VÃ©ge</string>
     <string name="icons_group_progress">Folyamat</string>
     <string name="icons_btn_success">Sikeres</string>
     <string name="icons_label_shape_title">Ikon alakja</string>
-    <string name="shape_circle">Kör</string>
-    <string name="shape_square">Négyzet</string>
-    <string name="shape_cookie">Süti</string>
-    <string name="shape_arch">Íves</string>
-    <string name="shape_clover">Lóhere</string>
-    <string name="calls_label_answer">Fogadás</string>
-    <string name="calls_label_decline">Elutasítás</string>
-    <string name="apps_empty">Nincsenek konfigurált appok</string>
-    <string name="design_hero_customization_title">Testreszabás</string>
-    <string name="design_hero_customization_subtitle">Ismerd meg a témák létrehozásának módját</string>
-    <string name="design_hero_pro_title">Haladó funkciók</string>
-    <string name="design_hero_pro_subtitle">Több hatalom feloldása</string>
-    <string name="design_hero_community_title">Közösség</string>
+    <string name="shape_circle">KÃ¶r</string>
+    <string name="shape_square">NÃ©gyzet</string>
+    <string name="shape_cookie">SÃ¼ti</string>
+    <string name="shape_arch">Ãves</string>
+    <string name="shape_clover">LÃ³here</string>
+    <string name="calls_label_answer">FogadÃ¡s</string>
+    <string name="calls_label_decline">ElutasÃ­tÃ¡s</string>
+    <string name="apps_empty">Nincsenek konfigurÃ¡lt appok</string>
+    <string name="design_hero_customization_title">TestreszabÃ¡s</string>
+    <string name="design_hero_customization_subtitle">Ismerd meg a tÃ©mÃ¡k lÃ©trehozÃ¡sÃ¡nak mÃ³djÃ¡t</string>
+    <string name="design_hero_pro_title">HaladÃ³ funkciÃ³k</string>
+    <string name="design_hero_pro_subtitle">TÃ¶bb hatalom feloldÃ¡sa</string>
+    <string name="design_hero_community_title">KÃ¶zÃ¶ssÃ©g</string>
     <string name="design_hero_community_subtitle">Csatlakozz a GitHub-unkhoz</string>
-    <string name="design_section_themes">Témák</string>
+    <string name="design_section_themes">TÃ©mÃ¡k</string>
     <string name="design_section_widgets">Modulok</string>
-    <string name="design_browse_more">Továbbiak felfedezése</string>
-    <string name="design_add_new">Új létrehozás</string>
-    <string name="design_add_design">Új dizájn</string>
-    <string name="design_add_to_island">Testreszabás</string>
-    <string name="design_system_widget_beta">Rendszer modul (Béta)</string>
-    <string name="design_get_themes">Témák szerzése</string>
-    <string name="design_empty_widget_title">Hozd létre az első modulod</string>
-    <string name="design">Dizájn</string>
-    <string name="creator_nav_actions">Általános műveletek</string>
-    <string name="creator_sub_actions">Stílus gombok kulcsszóra</string>
-    <string name="action_sheet_title">Művelet konfigurálása</string>
-    <string name="action_label_keyword">Kulcsszó (pl.: „Válasz”)</string>
-    <string name="action_label_bg_color">Háttérszín</string>
-    <string name="action_label_tint_color">Ikon/Szövegszín</string>
-    <string name="action_preview">Élő előnézet</string>
+    <string name="design_browse_more">TovÃ¡bbiak felfedezÃ©se</string>
+    <string name="design_add_new">Ãšj lÃ©trehozÃ¡s</string>
+    <string name="design_add_design">Ãšj dizÃ¡jn</string>
+    <string name="design_add_to_island">TestreszabÃ¡s</string>
+    <string name="design_system_widget_beta">Rendszer modul (BÃ©ta)</string>
+    <string name="design_get_themes">TÃ©mÃ¡k szerzÃ©se</string>
+    <string name="design_empty_widget_title">Hozd lÃ©tre az elsÅ‘ modulod</string>
+    <string name="design">DizÃ¡jn</string>
+    <string name="creator_nav_actions">ÃltalÃ¡nos mÅ±veletek</string>
+    <string name="creator_sub_actions">StÃ­lus gombok kulcsszÃ³ra</string>
+    <string name="action_sheet_title">MÅ±velet konfigurÃ¡lÃ¡sa</string>
+    <string name="action_label_keyword">KulcsszÃ³ (pl.: â€žVÃ¡laszâ€)</string>
+    <string name="action_label_bg_color">HÃ¡ttÃ©rszÃ­n</string>
+    <string name="action_label_tint_color">Ikon/SzÃ¶vegszÃ­n</string>
+    <string name="action_preview">Ã‰lÅ‘ elÅ‘nÃ©zet</string>
     <string name="action_mode_icon">Csak ikon</string>
-    <string name="action_mode_text">Szöveg</string>
-    <string name="action_mode_both">Mindkettő</string>
-    <string name="actions_empty_title">Nincsenek egyedi műveletek</string>
-    <string name="actions_empty_desc">Szabályok hozzáadása az értesítési gombok stílusához a szövegük alapján (pl. „Válasz”, „Archiválás”).</string>
-    <string name="action_default_preview_text">Művelet</string>
-    <string name="actions_search_hint">Keresési műveletek...</string>
-    <string name="actions_search_empty_fmt">Nem találhatóak műveletek „%1$s”-hez/höz</string>
-    <string name="action_wip_warning">Ez a funkció még fejlesztés alatt áll. A kulcsszavak egyezése attól függ, hogy az alkalmazások hogyan strukturálják értesítéseiket, és nem minden alkalmazásnál működik.</string>
-    <string name="creator_dialog_apply_title">Alkalmazod a témát?</string>
-    <string name="creator_dialog_apply_desc">Szerentéd alkalmazni ezt a témát?</string>
-    <string name="creator_dialog_action_save_apply">Mentés és alkalmazás</string>
-    <string name="creator_dialog_action_save_only">Csak mentés</string>
-    <string name="select_icon">Ikon kiválasztása</string>
-    <string name="change_icon">Ikon módosítása</string>
-    <string name="action_add">App hozzáadása</string>
-    <string name="apps_sheet_select_title">App kiválasztása</string>
-    <string name="edit_app">App szerkesztése</string>
-    <string name="creator_sub_colors_custom">Egyéni színbeállítás</string>
-    <string name="creator_sub_colors_default">Általános alapértelmezés használata</string>
-    <string name="creator_sub_icons_custom">Egyedi alakzatobeállítás</string>
-    <string name="creator_sub_icons_default">Általános alapértelmezés használata</string>
-    <string name="app_customization_desc">Adj hozzá egy alkalmazást, hogy annak megjelenését egyedileg testreszabhassa.</string>
-    <string name="discard">Elvetés</string>
-    <string name="unsaved_changes">Nem mentett módosítások</string>
-    <string name="unsaved_changes_desc">Van még mentetlen változás ebben az appban. Szeretnéd menteni őket kilépés előtt?</string>
-    <string name="share_theme">Téma megosztása</string>
-    <string name="my_theme">Saját téma</string>
+    <string name="action_mode_text">SzÃ¶veg</string>
+    <string name="action_mode_both">MindkettÅ‘</string>
+    <string name="actions_empty_title">Nincsenek egyedi mÅ±veletek</string>
+    <string name="actions_empty_desc">SzabÃ¡lyok hozzÃ¡adÃ¡sa az Ã©rtesÃ­tÃ©si gombok stÃ­lusÃ¡hoz a szÃ¶vegÃ¼k alapjÃ¡n (pl. â€žVÃ¡laszâ€, â€žArchivÃ¡lÃ¡sâ€).</string>
+    <string name="action_default_preview_text">MÅ±velet</string>
+    <string name="actions_search_hint">KeresÃ©si mÅ±veletek...</string>
+    <string name="actions_search_empty_fmt">Nem talÃ¡lhatÃ³ak mÅ±veletek â€ž%1$sâ€-hez/hÃ¶z</string>
+    <string name="action_wip_warning">Ez a funkciÃ³ mÃ©g fejlesztÃ©s alatt Ã¡ll. A kulcsszavak egyezÃ©se attÃ³l fÃ¼gg, hogy az alkalmazÃ¡sok hogyan strukturÃ¡ljÃ¡k Ã©rtesÃ­tÃ©seiket, Ã©s nem minden alkalmazÃ¡snÃ¡l mÅ±kÃ¶dik.</string>
+    <string name="creator_dialog_apply_title">Alkalmazod a tÃ©mÃ¡t?</string>
+    <string name="creator_dialog_apply_desc">SzerentÃ©d alkalmazni ezt a tÃ©mÃ¡t?</string>
+    <string name="creator_dialog_action_save_apply">MentÃ©s Ã©s alkalmazÃ¡s</string>
+    <string name="creator_dialog_action_save_only">Csak mentÃ©s</string>
+    <string name="select_icon">Ikon kivÃ¡lasztÃ¡sa</string>
+    <string name="change_icon">Ikon mÃ³dosÃ­tÃ¡sa</string>
+    <string name="action_add">App hozzÃ¡adÃ¡sa</string>
+    <string name="apps_sheet_select_title">App kivÃ¡lasztÃ¡sa</string>
+    <string name="edit_app">App szerkesztÃ©se</string>
+    <string name="creator_sub_colors_custom">EgyÃ©ni szÃ­nbeÃ¡llÃ­tÃ¡s</string>
+    <string name="creator_sub_colors_default">ÃltalÃ¡nos alapÃ©rtelmezÃ©s hasznÃ¡lata</string>
+    <string name="creator_sub_icons_custom">Egyedi alakzatobeÃ¡llÃ­tÃ¡s</string>
+    <string name="creator_sub_icons_default">ÃltalÃ¡nos alapÃ©rtelmezÃ©s hasznÃ¡lata</string>
+    <string name="app_customization_desc">Adj hozzÃ¡ egy alkalmazÃ¡st, hogy annak megjelenÃ©sÃ©t egyedileg testreszabhassa.</string>
+    <string name="discard">ElvetÃ©s</string>
+    <string name="unsaved_changes">Nem mentett mÃ³dosÃ­tÃ¡sok</string>
+    <string name="unsaved_changes_desc">Van mÃ©g mentetlen vÃ¡ltozÃ¡s ebben az appban. SzeretnÃ©d menteni Å‘ket kilÃ©pÃ©s elÅ‘tt?</string>
+    <string name="share_theme">TÃ©ma megosztÃ¡sa</string>
+    <string name="my_theme">SajÃ¡t tÃ©ma</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d egyedi művelet</item>
-        <item quantity="other">%1$d egyedi művelet</item>
+        <item quantity="one">%1$d egyedi mÅ±velet</item>
+        <item quantity="other">%1$d egyedi mÅ±velet</item>
     </plurals>
-    <string name="title_0_4_0">A testreszabás frissítés</string>
+    <string name="title_0_4_0">A testreszabÃ¡s frissÃ­tÃ©s</string>
     <string name="changelog_0_4_0">        <b>Téma motor 🎨</b>\n
         A legnagyobb frissítés eddig! Mostantól teljes mértékben testreszabhatod a Dynamic Island vizuális élményét.\n
         • <b>Témaalkotó:</b> Tervezz témákat közvetlenül a telefonodon, valós idejű előnézettel.\n
@@ -474,67 +475,68 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
         • Hozzáadott támogatás 🇮🇩 indonéz és 🇹🇷 török nyelvekhez.\n\n
 
         <i>Megjegyzés: Ez a kiadás jelentős architektúraváltozásokat tartalmaz. A hibákat a GitHubon jelentsd!</i></string>
-    <string name="title_0_4_2">Hibaijavító frissítés</string>
+    <string name="title_0_4_2">HibaijavÃ­tÃ³ frissÃ­tÃ©s</string>
     <string name="changelog_0_4_2">        •&lt;b&gt;Hibajavítás:&lt;/b&gt; Kijavítottunk egy kritikus hibát, amely miatt az alkalmazás összeomlott, amikor a beállítások menüt hagyományos kínai nyelven nyitották meg.\n
         •&lt;b&gt;Háttérmunkák:&lt;/b&gt; Általános hibajavítások és stabilitási fejlesztések, hogy az island-od zökkenőmentesen működjön.
     </string>
-    <string name="colors_label_hue">Árnyalat</string>
-    <string name="colors_label_saturation">Telítettség</string>
-    <string name="colors_label_lightness">Fényesség</string>
-    <string name="colors_label_dynamic_modes">Dinamikus színek</string>
+    <string name="colors_label_hue">Ãrnyalat</string>
+    <string name="colors_label_saturation">TelÃ­tettsÃ©g</string>
+    <string name="colors_label_lightness">FÃ©nyessÃ©g</string>
+    <string name="colors_label_dynamic_modes">Dinamikus szÃ­nek</string>
     <string name="colors_label_material_you">Material You (Rendszer)</string>
-    <string name="colors_desc_material_you">A háttérképed színeit használja</string>
-    <string name="kill_all_widgets">Aktív modulok megölése</string>
-    <string name="permission_reminder_title">Frissítési értesítés</string>
-    <string name="permission_reminder_desc">HyperBridge frissítve lett! Ellenőrizd, hogy az Automatikus indítás és a Háttérben való futás nem lett-e csendben elvéve a rendszer által, hogy a modulok továbbra is folyékonyan tudjanak működni.</string>
-    <string name="got_it">Értem</string>
-    <string name="recommended">Ajánlott</string>
+    <string name="colors_desc_material_you">A hÃ¡ttÃ©rkÃ©ped szÃ­neit hasznÃ¡lja</string>
+    <string name="kill_all_widgets">AktÃ­v modulok megÃ¶lÃ©se</string>
+    <string name="permission_reminder_title">FrissÃ­tÃ©si Ã©rtesÃ­tÃ©s</string>
+    <string name="permission_reminder_desc">HyperBridge frissÃ­tve lett! EllenÅ‘rizd, hogy az Automatikus indÃ­tÃ¡s Ã©s a HÃ¡ttÃ©rben valÃ³ futÃ¡s nem lett-e csendben elvÃ©ve a rendszer Ã¡ltal, hogy a modulok tovÃ¡bbra is folyÃ©konyan tudjanak mÅ±kÃ¶dni.</string>
+    <string name="got_it">Ã‰rtem</string>
+    <string name="recommended">AjÃ¡nlott</string>
     <string name="all">Mind</string>
     <string name="favorites">Kedvencek</string>
-    <string name="channel_live_updates">Natív élő frissítések</string>
-    <string name="engine_preview_title">Előnézet</string>
-    <string name="engine_design_section">Értesítés kinézete</string>
-    <string name="engine_xiaomi_title">Xiaomi kiemelt kinézet</string>
-    <string name="engine_xiaomi_desc">Modern HyperOS elrendezés a Xiaomi-nak a tervezett kinézete.</string>
-    <string name="engine_native_title">Élő frissítéses kinézet</string>
-    <string name="engine_native_desc">Natív android értesítés kinézet, Kínai ROM-on működik.</string>
-    <string name="engine_config_title">Motor beállítás</string>
-    <string name="engine_section_design">Értesítés kinézete</string>
-    <string name="good_to_know">Érdemes tudni</string>
+    <string name="channel_live_updates">NatÃ­v Ã©lÅ‘ frissÃ­tÃ©sek</string>
+    <string name="engine_preview_title">ElÅ‘nÃ©zet</string>
+    <string name="engine_design_section">Ã‰rtesÃ­tÃ©s kinÃ©zete</string>
+    <string name="engine_xiaomi_title">Xiaomi kiemelt kinÃ©zet</string>
+    <string name="engine_xiaomi_desc">Modern HyperOS elrendezÃ©s a Xiaomi-nak a tervezett kinÃ©zete.</string>
+    <string name="engine_native_title">Ã‰lÅ‘ frissÃ­tÃ©ses kinÃ©zet</string>
+    <string name="engine_native_desc">NatÃ­v android Ã©rtesÃ­tÃ©s kinÃ©zet, KÃ­nai ROM-on mÅ±kÃ¶dik.</string>
+    <string name="engine_config_title">Motor beÃ¡llÃ­tÃ¡s</string>
+    <string name="engine_section_design">Ã‰rtesÃ­tÃ©s kinÃ©zete</string>
+    <string name="good_to_know">Ã‰rdemes tudni</string>
     <string name="nav_layout_info">• A navigációs elrendezések egy közelgő frissítéssel teljes mértékben beépülnek a témamotorba.\n• A Natív élő frissítési motor használata esetén csak a jobb oldali tartalom látható.</string>
-    <string name="xiaomi_featured_notifications">Xiaomi kiemelt értesítés</string>
-    <string name="island_behavior_title">Island működése</string>
-    <string name="island_behavior_desc"><![CDATA[Időkorlátok, duplikációk és láthatóság]]></string>
+    <string name="xiaomi_featured_notifications">Xiaomi kiemelt Ã©rtesÃ­tÃ©s</string>
+    <string name="island_behavior_title">Island mÅ±kÃ¶dÃ©se</string>
+    <string name="island_behavior_desc"><![CDATA[IdÅ‘korlÃ¡tok, duplikÃ¡ciÃ³k Ã©s lÃ¡thatÃ³sÃ¡g]]></string>
     <string name="engine">Motor</string>
-    <string name="engine_desc">Élő frissítések vagy Xiaomi Island</string>
+    <string name="engine_desc">Ã‰lÅ‘ frissÃ­tÃ©sek vagy Xiaomi Island</string>
     <string name="dnd_mode_title">Do Not Disturb</string>
     <string name="dnd_mode_desc">Manage island visibility during DND</string>
     <string name="dnd_manual_toggle">Pause Islands</string>
     <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
     <string name="dnd_auto_detect">Auto-detect System DND</string>
     <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
-    <string name="behaviour_triggers"><![CDATA[Működés és aktiváláso]]></string>
-    <string name="engine_timeouts_triggers"><![CDATA[Motor, időkorlátok és aktiválások]]></string>
-    <string name="global_behavior">Általános működés</string>
-    <string name="auto_hide_island">Island automatikus elrejtése</string>
-    <string name="hides_after_a_set_time">Megadott idő után eltűnik</string>
-    <string name="behavior_hide_desc">Látható a kézi eltüntetésig</string>
-    <string name="behavior_desc_hide_long">Meghatározza, hogy az Island mennyi ideig marad a képernyőn, mielőtt automatikusan eltűnik.</string>
-    <string name="active_triggers">Aktív aktiválók</string>
-    <string name="active_triggers_global_desc">Válaszd ki melyik általános események aktiválják az Island-ot</string>
-    <string name="type_standard_desc">Általános üzenetek, emailek, értesítések</string>
+    <string name="behaviour_triggers"><![CDATA[MÅ±kÃ¶dÃ©s Ã©s aktivÃ¡lÃ¡so]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[Motor, idÅ‘korlÃ¡tok Ã©s aktivÃ¡lÃ¡sok]]></string>
+    <string name="global_behavior">ÃltalÃ¡nos mÅ±kÃ¶dÃ©s</string>
+    <string name="auto_hide_island">Island automatikus elrejtÃ©se</string>
+    <string name="hides_after_a_set_time">Megadott idÅ‘ utÃ¡n eltÅ±nik</string>
+    <string name="behavior_hide_desc">LÃ¡thatÃ³ a kÃ©zi eltÃ¼ntetÃ©sig</string>
+    <string name="behavior_desc_hide_long">MeghatÃ¡rozza, hogy az Island mennyi ideig marad a kÃ©pernyÅ‘n, mielÅ‘tt automatikusan eltÅ±nik.</string>
+    <string name="active_triggers">AktÃ­v aktivÃ¡lÃ³k</string>
+    <string name="active_triggers_global_desc">VÃ¡laszd ki melyik Ã¡ltalÃ¡nos esemÃ©nyek aktivÃ¡ljÃ¡k az Island-ot</string>
+    <string name="type_standard_desc">ÃltalÃ¡nos Ã¼zenetek, emailek, Ã©rtesÃ­tÃ©sek</string>
+    <string name="type_message_desc">Messages, chats, and conversations</string>
     <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
     <string name="type_download_desc">Downloads, uploads, and file transfers</string>
-    <string name="type_media_desc">Zene- és videólejátszás vezérlői</string>
-    <string name="type_nav_desc">Lépésről lépésre szóló útvonalterv és ÉVI</string>
-    <string name="type_call_desc">Bejövő és folyamatban lévő telefonhívások</string>
-    <string name="type_timer_desc">Aktív időzítők és stopperek</string>
-    <string name="select_triggered_events">Válassz aktivált műveleteket</string>
-    <string name="override_global_triggers">Általános aktiválások felülírása</string>
-    <string name="override_global_trigger_desc">Állíts be egyedi engedélyezett értesítést ehhez az apphoz</string>
-    <string name="trigger_override">Aktiválás felülírása</string>
-    <string name="trigger_app_desc">Válaszd ki, hogy melyik esemény aktiválja a szigetet ehhez az apphoz.</string>
-    <string name="enable_triggers">Bizonyos aktiválók engedélyezése</string>
+    <string name="type_media_desc">Zene- Ã©s videÃ³lejÃ¡tszÃ¡s vezÃ©rlÅ‘i</string>
+    <string name="type_nav_desc">LÃ©pÃ©srÅ‘l lÃ©pÃ©sre szÃ³lÃ³ Ãºtvonalterv Ã©s Ã‰VI</string>
+    <string name="type_call_desc">BejÃ¶vÅ‘ Ã©s folyamatban lÃ©vÅ‘ telefonhÃ­vÃ¡sok</string>
+    <string name="type_timer_desc">AktÃ­v idÅ‘zÃ­tÅ‘k Ã©s stopperek</string>
+    <string name="select_triggered_events">VÃ¡lassz aktivÃ¡lt mÅ±veleteket</string>
+    <string name="override_global_triggers">ÃltalÃ¡nos aktivÃ¡lÃ¡sok felÃ¼lÃ­rÃ¡sa</string>
+    <string name="override_global_trigger_desc">ÃllÃ­ts be egyedi engedÃ©lyezett Ã©rtesÃ­tÃ©st ehhez az apphoz</string>
+    <string name="trigger_override">AktivÃ¡lÃ¡s felÃ¼lÃ­rÃ¡sa</string>
+    <string name="trigger_app_desc">VÃ¡laszd ki, hogy melyik esemÃ©ny aktivÃ¡lja a szigetet ehhez az apphoz.</string>
+    <string name="enable_triggers">Bizonyos aktivÃ¡lÃ³k engedÃ©lyezÃ©se</string>
     <string name="open_source_licenses">Open Source Licenses</string>
     <string name="remove_original_notification">Remove original notification</string>
     <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
@@ -571,6 +573,13 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_5">        <b>Messaging Grouping Overhaul</b>\n
+              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
+        <b>Fixes &amp; Stability</b>\n
+              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
+              • <b>Defaults:</b> Disabled \"Show in shade\" by default on the onboarding screen.\n
+    </string>
+    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
     <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
               ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
               ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n

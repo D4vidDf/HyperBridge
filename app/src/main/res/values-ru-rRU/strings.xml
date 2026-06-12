@@ -1,83 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hyper Bridge</string>
-    <string name="back">Назад</string>
-    <string name="next">Далее</string>
-    <string name="finish">Завершить</string>
-    <string name="done">Готово</string>
-    <string name="logo_desc">Логотип приложения</string>
-    <string name="settings">Настройки</string>
-    <string name="configure">Настроить</string>
-    <string name="clear">Очистить</string>
-    <string name="sort_order">Порядок сортировки</string>
-    <string name="welcome_title">Добро пожаловать в\nHyper Bridge</string>
-    <string name="welcome_subtitle">Легко интегрируйте HyperIslands в вашу систему HyperOS.</string>
-    <string name="get_started">Начать</string>
-    <string name="how_it_works">Как это работает</string>
-    <string name="how_it_works_desc">Выберите любимые приложения (Spotify, Карты, Таймер). HyperBridge превратит их уведомления в элегантный HyperIsland.</string>
-    <string name="beta_warning">Примечание: Это приложение в бета-версии. Вы можете столкнуться с ошибками или некорректным визуальным отображением.</string>
-    <string name="device_compatible">Совместимое устройство</string>
-    <string name="unsupported_device">Устройство не поддерживается</string>
-    <string name="compatible_msg">Кажется, ваше устройство работает на HyperOS/MIUI. Всё готово к работе!</string>
-    <string name="show_island">Показать Остров</string>
-    <string name="perm_post_desc">Нам нужно разрешение, чтобы разместить уведомление \'Остров\' на вашем экране.</string>
-    <string name="perm_granted">✅ Разрешение предоставлено</string>
-    <string name="allow_notifications">Разрешить уведомления</string>
-    <string name="read_data">Чтение данных</string>
-    <string name="perm_listener_desc">Чтобы подключить ваши приложения, нам нужно читать их уведомления (Музыка, Карты, Таймеры).</string>
-    <string name="open_settings">Открыть настройки</string>
-    <string name="optimization_desc">HyperOS останавливает фоновые программы. Включите Автозапуск и «Без ограничений», чтобы Остров оставался активным.</string>
-    <string name="enable_autostart">1. Включить автозапуск</string>
-    <string name="set_battery_no_restrictions">2. Энергосбережение: «Без ограничений»</string>
-    <string name="tab_active">Активные</string>
-    <string name="tab_library">Библиотека</string>
+    <string name="back">ÐÐ°Ð·Ð°Ð´</string>
+    <string name="next">Ð”Ð°Ð»ÐµÐµ</string>
+    <string name="finish">Ð—Ð°Ð²ÐµÑ€ÑˆÐ¸Ñ‚ÑŒ</string>
+    <string name="done">Ð“Ð¾Ñ‚Ð¾Ð²Ð¾</string>
+    <string name="logo_desc">Ð›Ð¾Ð³Ð¾Ñ‚Ð¸Ð¿ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ</string>
+    <string name="settings">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸</string>
+    <string name="configure">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¸Ñ‚ÑŒ</string>
+    <string name="clear">ÐžÑ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ</string>
+    <string name="sort_order">ÐŸÐ¾Ñ€ÑÐ´Ð¾Ðº ÑÐ¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²ÐºÐ¸</string>
+    <string name="welcome_title">Ð”Ð¾Ð±Ñ€Ð¾ Ð¿Ð¾Ð¶Ð°Ð»Ð¾Ð²Ð°Ñ‚ÑŒ Ð²\nHyper Bridge</string>
+    <string name="welcome_subtitle">Ð›ÐµÐ³ÐºÐ¾ Ð¸Ð½Ñ‚ÐµÐ³Ñ€Ð¸Ñ€ÑƒÐ¹Ñ‚Ðµ HyperIslands Ð² Ð²Ð°ÑˆÑƒ ÑÐ¸ÑÑ‚ÐµÐ¼Ñƒ HyperOS.</string>
+    <string name="get_started">ÐÐ°Ñ‡Ð°Ñ‚ÑŒ</string>
+    <string name="how_it_works">ÐšÐ°Ðº ÑÑ‚Ð¾ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚</string>
+    <string name="how_it_works_desc">Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ð»ÑŽÐ±Ð¸Ð¼Ñ‹Ðµ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ (Spotify, ÐšÐ°Ñ€Ñ‚Ñ‹, Ð¢Ð°Ð¹Ð¼ÐµÑ€). HyperBridge Ð¿Ñ€ÐµÐ²Ñ€Ð°Ñ‚Ð¸Ñ‚ Ð¸Ñ… ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ Ð² ÑÐ»ÐµÐ³Ð°Ð½Ñ‚Ð½Ñ‹Ð¹ HyperIsland.</string>
+    <string name="beta_warning">ÐŸÑ€Ð¸Ð¼ÐµÑ‡Ð°Ð½Ð¸Ðµ: Ð­Ñ‚Ð¾ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ðµ Ð² Ð±ÐµÑ‚Ð°-Ð²ÐµÑ€ÑÐ¸Ð¸. Ð’Ñ‹ Ð¼Ð¾Ð¶ÐµÑ‚Ðµ ÑÑ‚Ð¾Ð»ÐºÐ½ÑƒÑ‚ÑŒÑÑ Ñ Ð¾ÑˆÐ¸Ð±ÐºÐ°Ð¼Ð¸ Ð¸Ð»Ð¸ Ð½ÐµÐºÐ¾Ñ€Ñ€ÐµÐºÑ‚Ð½Ñ‹Ð¼ Ð²Ð¸Ð·ÑƒÐ°Ð»ÑŒÐ½Ñ‹Ð¼ Ð¾Ñ‚Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸ÐµÐ¼.</string>
+    <string name="device_compatible">Ð¡Ð¾Ð²Ð¼ÐµÑÑ‚Ð¸Ð¼Ð¾Ðµ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð¾</string>
+    <string name="unsupported_device">Ð£ÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð¾ Ð½Ðµ Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶Ð¸Ð²Ð°ÐµÑ‚ÑÑ</string>
+    <string name="compatible_msg">ÐšÐ°Ð¶ÐµÑ‚ÑÑ, Ð²Ð°ÑˆÐµ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð¾ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ Ð½Ð° HyperOS/MIUI. Ð’ÑÑ‘ Ð³Ð¾Ñ‚Ð¾Ð²Ð¾ Ðº Ñ€Ð°Ð±Ð¾Ñ‚Ðµ!</string>
+    <string name="show_island">ÐŸÐ¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ ÐžÑÑ‚Ñ€Ð¾Ð²</string>
+    <string name="perm_post_desc">ÐÐ°Ð¼ Ð½ÑƒÐ¶Ð½Ð¾ Ñ€Ð°Ð·Ñ€ÐµÑˆÐµÐ½Ð¸Ðµ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ñ€Ð°Ð·Ð¼ÐµÑÑ‚Ð¸Ñ‚ÑŒ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ðµ \'ÐžÑÑ‚Ñ€Ð¾Ð²\' Ð½Ð° Ð²Ð°ÑˆÐµÐ¼ ÑÐºÑ€Ð°Ð½Ðµ.</string>
+    <string name="perm_granted">âœ… Ð Ð°Ð·Ñ€ÐµÑˆÐµÐ½Ð¸Ðµ Ð¿Ñ€ÐµÐ´Ð¾ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ð¾</string>
+    <string name="allow_notifications">Ð Ð°Ð·Ñ€ÐµÑˆÐ¸Ñ‚ÑŒ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ</string>
+    <string name="read_data">Ð§Ñ‚ÐµÐ½Ð¸Ðµ Ð´Ð°Ð½Ð½Ñ‹Ñ…</string>
+    <string name="perm_listener_desc">Ð§Ñ‚Ð¾Ð±Ñ‹ Ð¿Ð¾Ð´ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ Ð²Ð°ÑˆÐ¸ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ, Ð½Ð°Ð¼ Ð½ÑƒÐ¶Ð½Ð¾ Ñ‡Ð¸Ñ‚Ð°Ñ‚ÑŒ Ð¸Ñ… ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ (ÐœÑƒÐ·Ñ‹ÐºÐ°, ÐšÐ°Ñ€Ñ‚Ñ‹, Ð¢Ð°Ð¹Ð¼ÐµÑ€Ñ‹).</string>
+    <string name="open_settings">ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸</string>
+    <string name="optimization_desc">HyperOS Ð¾ÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ Ñ„Ð¾Ð½Ð¾Ð²Ñ‹Ðµ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ñ‹. Ð’ÐºÐ»ÑŽÑ‡Ð¸Ñ‚Ðµ ÐÐ²Ñ‚Ð¾Ð·Ð°Ð¿ÑƒÑÐº Ð¸ Â«Ð‘ÐµÐ· Ð¾Ð³Ñ€Ð°Ð½Ð¸Ñ‡ÐµÐ½Ð¸Ð¹Â», Ñ‡Ñ‚Ð¾Ð±Ñ‹ ÐžÑÑ‚Ñ€Ð¾Ð² Ð¾ÑÑ‚Ð°Ð²Ð°Ð»ÑÑ Ð°ÐºÑ‚Ð¸Ð²Ð½Ñ‹Ð¼.</string>
+    <string name="enable_autostart">1. Ð’ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ Ð°Ð²Ñ‚Ð¾Ð·Ð°Ð¿ÑƒÑÐº</string>
+    <string name="set_battery_no_restrictions">2. Ð­Ð½ÐµÑ€Ð³Ð¾ÑÐ±ÐµÑ€ÐµÐ¶ÐµÐ½Ð¸Ðµ: Â«Ð‘ÐµÐ· Ð¾Ð³Ñ€Ð°Ð½Ð¸Ñ‡ÐµÐ½Ð¸Ð¹Â»</string>
+    <string name="tab_active">ÐÐºÑ‚Ð¸Ð²Ð½Ñ‹Ðµ</string>
+    <string name="tab_library">Ð‘Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐ°</string>
     <string name="search_hint">Search apps…</string>
-    <string name="no_active_bridges">Нет активных мостов</string>
-    <string name="no_active_bridges_desc">Перейдите в Библиотеку, чтобы включить приложения.</string>
-    <string name="no_apps_found">Приложения не найдены</string>
-    <string name="version_template">Версия %s</string>
-    <string name="developer_credit">от D4vidDf</string>
-    <string name="group_configuration">Конфигурация</string>
-    <string name="system_setup">Настройки системы</string>
-    <string name="system_setup_subtitle">Исправить разрешения и питание</string>
+    <string name="no_active_bridges">ÐÐµÑ‚ Ð°ÐºÑ‚Ð¸Ð²Ð½Ñ‹Ñ… Ð¼Ð¾ÑÑ‚Ð¾Ð²</string>
+    <string name="no_active_bridges_desc">ÐŸÐµÑ€ÐµÐ¹Ð´Ð¸Ñ‚Ðµ Ð² Ð‘Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÑƒ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð²ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ.</string>
+    <string name="no_apps_found">ÐŸÑ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½Ñ‹</string>
+    <string name="version_template">Ð’ÐµÑ€ÑÐ¸Ñ %s</string>
+    <string name="developer_credit">Ð¾Ñ‚ D4vidDf</string>
+    <string name="group_configuration">ÐšÐ¾Ð½Ñ„Ð¸Ð³ÑƒÑ€Ð°Ñ†Ð¸Ñ</string>
+    <string name="system_setup">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ ÑÐ¸ÑÑ‚ÐµÐ¼Ñ‹</string>
+    <string name="system_setup_subtitle">Ð˜ÑÐ¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ Ñ€Ð°Ð·Ñ€ÐµÑˆÐµÐ½Ð¸Ñ Ð¸ Ð¿Ð¸Ñ‚Ð°Ð½Ð¸Ðµ</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Permanent Island</string>
     <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
     <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
     <string name="permanent_island_width">Island Width</string>
-    <string name="group_about">О приложении</string>
-    <string name="developer">Разработчик</string>
-    <string name="developer_subtitle">Посетить d4viddf.com</string>
-    <string name="source_code">Исходный код</string>
-    <string name="source_code_subtitle">Репозиторий GitHub</string>
-    <string name="licenses">Лицензии Open Source</string>
-    <string name="licenses_subtitle">Стороннее программное обеспечение</string>
+    <string name="group_about">Ðž Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¸</string>
+    <string name="developer">Ð Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚Ñ‡Ð¸Ðº</string>
+    <string name="developer_subtitle">ÐŸÐ¾ÑÐµÑ‚Ð¸Ñ‚ÑŒ d4viddf.com</string>
+    <string name="source_code">Ð˜ÑÑ…Ð¾Ð´Ð½Ñ‹Ð¹ ÐºÐ¾Ð´</string>
+    <string name="source_code_subtitle">Ð ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹ GitHub</string>
+    <string name="licenses">Ð›Ð¸Ñ†ÐµÐ½Ð·Ð¸Ð¸ Open Source</string>
+    <string name="licenses_subtitle">Ð¡Ñ‚Ð¾Ñ€Ð¾Ð½Ð½ÐµÐµ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ð½Ð¾Ðµ Ð¾Ð±ÐµÑÐ¿ÐµÑ‡ÐµÐ½Ð¸Ðµ</string>
     <string name="footer_made_with_love">Сделано с ❤️ в Испании</string>
-    <string name="app_health_desc">Убедитесь, что все пункты зелёные, чтобы приложение корректно работало в фоновом режиме.</string>
-    <string name="req_permissions">Необходимые разрешения</string>
-    <string name="notif_access">Доступ к уведомлениям</string>
-    <string name="notif_access_desc">Необходимо для чтения событий приложений</string>
-    <string name="device_optimization">Оптимизация устройства</string>
-    <string name="xiaomi_autostart">Автозапуск Xiaomi</string>
-    <string name="battery_unrestricted">Батарея без ограничений</string>
-    <string name="battery_desc">Предотвращает остановку приложения системой</string>
-    <string name="recents_note">Примечание: Также закрепите приложение (замочек) в меню обзора «Недавние».</string>
-    <string name="status_active">Активно</string>
-    <string name="cat_all">Все</string>
-    <string name="cat_music">Музыка</string>
-    <string name="cat_nav">Навигация</string>
-    <string name="cat_timer">Продуктивность</string>
-    <string name="cat_other">Другое</string>
-    <string name="type_standard">Сообщения и общее</string>
+    <string name="app_health_desc">Ð£Ð±ÐµÐ´Ð¸Ñ‚ÐµÑÑŒ, Ñ‡Ñ‚Ð¾ Ð²ÑÐµ Ð¿ÑƒÐ½ÐºÑ‚Ñ‹ Ð·ÐµÐ»Ñ‘Ð½Ñ‹Ðµ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ðµ ÐºÐ¾Ñ€Ñ€ÐµÐºÑ‚Ð½Ð¾ Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ð»Ð¾ Ð² Ñ„Ð¾Ð½Ð¾Ð²Ð¾Ð¼ Ñ€ÐµÐ¶Ð¸Ð¼Ðµ.</string>
+    <string name="req_permissions">ÐÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ñ‹Ðµ Ñ€Ð°Ð·Ñ€ÐµÑˆÐµÐ½Ð¸Ñ</string>
+    <string name="notif_access">Ð”Ð¾ÑÑ‚ÑƒÐ¿ Ðº ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸ÑÐ¼</string>
+    <string name="notif_access_desc">ÐÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ð¾ Ð´Ð»Ñ Ñ‡Ñ‚ÐµÐ½Ð¸Ñ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ð¹ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¹</string>
+    <string name="device_optimization">ÐžÐ¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð°Ñ†Ð¸Ñ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð°</string>
+    <string name="xiaomi_autostart">ÐÐ²Ñ‚Ð¾Ð·Ð°Ð¿ÑƒÑÐº Xiaomi</string>
+    <string name="battery_unrestricted">Ð‘Ð°Ñ‚Ð°Ñ€ÐµÑ Ð±ÐµÐ· Ð¾Ð³Ñ€Ð°Ð½Ð¸Ñ‡ÐµÐ½Ð¸Ð¹</string>
+    <string name="battery_desc">ÐŸÑ€ÐµÐ´Ð¾Ñ‚Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¾ÑÑ‚Ð°Ð½Ð¾Ð²ÐºÑƒ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ ÑÐ¸ÑÑ‚ÐµÐ¼Ð¾Ð¹</string>
+    <string name="recents_note">ÐŸÑ€Ð¸Ð¼ÐµÑ‡Ð°Ð½Ð¸Ðµ: Ð¢Ð°ÐºÐ¶Ðµ Ð·Ð°ÐºÑ€ÐµÐ¿Ð¸Ñ‚Ðµ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ðµ (Ð·Ð°Ð¼Ð¾Ñ‡ÐµÐº) Ð² Ð¼ÐµÐ½ÑŽ Ð¾Ð±Ð·Ð¾Ñ€Ð° Â«ÐÐµÐ´Ð°Ð²Ð½Ð¸ÐµÂ».</string>
+    <string name="status_active">ÐÐºÑ‚Ð¸Ð²Ð½Ð¾</string>
+    <string name="cat_all">Ð’ÑÐµ</string>
+    <string name="cat_music">ÐœÑƒÐ·Ñ‹ÐºÐ°</string>
+    <string name="cat_nav">ÐÐ°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ñ</string>
+    <string name="cat_timer">ÐŸÑ€Ð¾Ð´ÑƒÐºÑ‚Ð¸Ð²Ð½Ð¾ÑÑ‚ÑŒ</string>
+    <string name="cat_other">Ð”Ñ€ÑƒÐ³Ð¾Ðµ</string>
+    <string name="type_standard">Ð¡Ð¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ñ Ð¸ Ð¾Ð±Ñ‰ÐµÐµ</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Progress &amp; Tasks</string>
     <string name="type_download">Downloads</string>
-    <string name="type_media">Музыка и медиа</string>
-    <string name="type_nav">Карты и GPS</string>
-    <string name="type_call">Звонки</string>
-    <string name="type_timer">Таймеры и будильники</string>
-    <string name="download_complete">Загрузка завершена</string>
-    <string name="downloading">Загрузка</string>
-    <string name="maps_title">Карты</string>
+    <string name="type_media">ÐœÑƒÐ·Ñ‹ÐºÐ° Ð¸ Ð¼ÐµÐ´Ð¸Ð°</string>
+    <string name="type_nav">ÐšÐ°Ñ€Ñ‚Ñ‹ Ð¸ GPS</string>
+    <string name="type_call">Ð—Ð²Ð¾Ð½ÐºÐ¸</string>
+    <string name="type_timer">Ð¢Ð°Ð¹Ð¼ÐµÑ€Ñ‹ Ð¸ Ð±ÑƒÐ´Ð¸Ð»ÑŒÐ½Ð¸ÐºÐ¸</string>
+    <string name="download_complete">Ð—Ð°Ð³Ñ€ÑƒÐ·ÐºÐ° Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½Ð°</string>
+    <string name="downloading">Ð—Ð°Ð³Ñ€ÑƒÐ·ÐºÐ°</string>
+    <string name="maps_title">ÐšÐ°Ñ€Ñ‚Ñ‹</string>
     <string-array name="progress_finish_keywords">
         <item>downloaded</item>
         <item>completed</item>
@@ -87,31 +88,31 @@
         <item>successful</item>
         <item>succeeded</item>
     </string-array>
-    <string name="status_now_playing">Сейчас играет</string>
-    <string name="fallback_timer">Таймер</string>
-    <string name="whats_new_title">Что нового в %s</string>
-    <string name="awesome">Отлично!</string>
-    <string name="island_behavior">Поведение Острова</string>
-    <string name="limit_strategy">Достижение лимита</string>
-    <string name="limit_desc">Что происходит при достижении лимита в 9 Островов?</string>
-    <string name="mode_fcfs_title">Кто первый, тот и успел</string>
-    <string name="mode_fcfs_desc">Сохраняет первые 9 приложений. Новые игнорируются, пока не освободится место.</string>
-    <string name="mode_recent_title">Самые новые (по умолчанию)</string>
-    <string name="mode_recent_desc">Новые уведомления заменяют самые старые.</string>
-    <string name="mode_priority_title">Собственный приоритет</string>
-    <string name="mode_priority_desc">Определите, какие типы (напр. звонки) важнее.</string>
-    <string name="priority_order">Порядок приоритета</string>
-    <string name="priority_order_desc">Высокий приоритет (вверху) заменяет низкий (внизу).</string>
-    <string name="configure_order">Настроить порядок</string>
-    <string name="global_settings">Глобальные настройки</string>
-    <string name="island_appearance">Внешний вид Острова</string>
-    <string name="setting_float">Плавающий Остров</string>
-    <string name="setting_float_desc">Показывать всплывающее уведомление.</string>
+    <string name="status_now_playing">Ð¡ÐµÐ¹Ñ‡Ð°Ñ Ð¸Ð³Ñ€Ð°ÐµÑ‚</string>
+    <string name="fallback_timer">Ð¢Ð°Ð¹Ð¼ÐµÑ€</string>
+    <string name="whats_new_title">Ð§Ñ‚Ð¾ Ð½Ð¾Ð²Ð¾Ð³Ð¾ Ð² %s</string>
+    <string name="awesome">ÐžÑ‚Ð»Ð¸Ñ‡Ð½Ð¾!</string>
+    <string name="island_behavior">ÐŸÐ¾Ð²ÐµÐ´ÐµÐ½Ð¸Ðµ ÐžÑÑ‚Ñ€Ð¾Ð²Ð°</string>
+    <string name="limit_strategy">Ð”Ð¾ÑÑ‚Ð¸Ð¶ÐµÐ½Ð¸Ðµ Ð»Ð¸Ð¼Ð¸Ñ‚Ð°</string>
+    <string name="limit_desc">Ð§Ñ‚Ð¾ Ð¿Ñ€Ð¾Ð¸ÑÑ…Ð¾Ð´Ð¸Ñ‚ Ð¿Ñ€Ð¸ Ð´Ð¾ÑÑ‚Ð¸Ð¶ÐµÐ½Ð¸Ð¸ Ð»Ð¸Ð¼Ð¸Ñ‚Ð° Ð² 9 ÐžÑÑ‚Ñ€Ð¾Ð²Ð¾Ð²?</string>
+    <string name="mode_fcfs_title">ÐšÑ‚Ð¾ Ð¿ÐµÑ€Ð²Ñ‹Ð¹, Ñ‚Ð¾Ñ‚ Ð¸ ÑƒÑÐ¿ÐµÐ»</string>
+    <string name="mode_fcfs_desc">Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÑÐµÑ‚ Ð¿ÐµÑ€Ð²Ñ‹Ðµ 9 Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¹. ÐÐ¾Ð²Ñ‹Ðµ Ð¸Ð³Ð½Ð¾Ñ€Ð¸Ñ€ÑƒÑŽÑ‚ÑÑ, Ð¿Ð¾ÐºÐ° Ð½Ðµ Ð¾ÑÐ²Ð¾Ð±Ð¾Ð´Ð¸Ñ‚ÑÑ Ð¼ÐµÑÑ‚Ð¾.</string>
+    <string name="mode_recent_title">Ð¡Ð°Ð¼Ñ‹Ðµ Ð½Ð¾Ð²Ñ‹Ðµ (Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ)</string>
+    <string name="mode_recent_desc">ÐÐ¾Ð²Ñ‹Ðµ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ Ð·Ð°Ð¼ÐµÐ½ÑÑŽÑ‚ ÑÐ°Ð¼Ñ‹Ðµ ÑÑ‚Ð°Ñ€Ñ‹Ðµ.</string>
+    <string name="mode_priority_title">Ð¡Ð¾Ð±ÑÑ‚Ð²ÐµÐ½Ð½Ñ‹Ð¹ Ð¿Ñ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚</string>
+    <string name="mode_priority_desc">ÐžÐ¿Ñ€ÐµÐ´ÐµÐ»Ð¸Ñ‚Ðµ, ÐºÐ°ÐºÐ¸Ðµ Ñ‚Ð¸Ð¿Ñ‹ (Ð½Ð°Ð¿Ñ€. Ð·Ð²Ð¾Ð½ÐºÐ¸) Ð²Ð°Ð¶Ð½ÐµÐµ.</string>
+    <string name="priority_order">ÐŸÐ¾Ñ€ÑÐ´Ð¾Ðº Ð¿Ñ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚Ð°</string>
+    <string name="priority_order_desc">Ð’Ñ‹ÑÐ¾ÐºÐ¸Ð¹ Ð¿Ñ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚ (Ð²Ð²ÐµÑ€Ñ…Ñƒ) Ð·Ð°Ð¼ÐµÐ½ÑÐµÑ‚ Ð½Ð¸Ð·ÐºÐ¸Ð¹ (Ð²Ð½Ð¸Ð·Ñƒ).</string>
+    <string name="configure_order">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¸Ñ‚ÑŒ Ð¿Ð¾Ñ€ÑÐ´Ð¾Ðº</string>
+    <string name="global_settings">Ð“Ð»Ð¾Ð±Ð°Ð»ÑŒÐ½Ñ‹Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸</string>
+    <string name="island_appearance">Ð’Ð½ÐµÑˆÐ½Ð¸Ð¹ Ð²Ð¸Ð´ ÐžÑÑ‚Ñ€Ð¾Ð²Ð°</string>
+    <string name="setting_float">ÐŸÐ»Ð°Ð²Ð°ÑŽÑ‰Ð¸Ð¹ ÐžÑÑ‚Ñ€Ð¾Ð²</string>
+    <string name="setting_float_desc">ÐŸÐ¾ÐºÐ°Ð·Ñ‹Ð²Ð°Ñ‚ÑŒ Ð²ÑÐ¿Ð»Ñ‹Ð²Ð°ÑŽÑ‰ÐµÐµ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ðµ.</string>
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
-    <string name="setting_shade">Показывать в шторке</string>
+    <string name="setting_shade">ÐŸÐ¾ÐºÐ°Ð·Ñ‹Ð²Ð°Ñ‚ÑŒ Ð² ÑˆÑ‚Ð¾Ñ€ÐºÐµ</string>
     <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
     <string name="seconds_suffix">%dс</string>
-    <string name="use_global_default">Использовать глобальные настройки</string>
+    <string name="use_global_default">Ð˜ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÑŒ Ð³Ð»Ð¾Ð±Ð°Ð»ÑŒÐ½Ñ‹Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸</string>
     <string-array name="nav_arrival_keywords">
         <item>arrival</item>
         <item>arrive</item>
@@ -119,15 +120,15 @@
         <item>reaching</item>
         <item>destination</item>
     </string-array>
-    <string name="version_history">История версий</string>
-    <string name="title_0_2_0">Информационное обновление</string>
+    <string name="version_history">Ð˜ÑÑ‚Ð¾Ñ€Ð¸Ñ Ð²ÐµÑ€ÑÐ¸Ð¹</string>
+    <string name="title_0_2_0">Ð˜Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ðµ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;Расширенный прогресс:&lt;/b&gt; Добавлена поддержка «пошагового прогресса» (напр. 1 из 3) и индикаторов прогресса с иконками внутри шторки уведомлений.\n
         • &lt;b&gt;Система приоритетов:&lt;/b&gt; Новые настройки «Поведения Острова». Выбирайте между «Самые новые», «Кто первый» или собственным списком «Приоритет приложений».\n
         • &lt;b&gt;Умная фильтрация:&lt;/b&gt; Улучшено обнаружение дублированных уведомлений и сгруппированных загрузок.\n
         • &lt;b&gt;Визуальные улучшения:&lt;/b&gt; Исправлены проблемы с макетом навигационных инструкций.\n
         • &lt;b&gt;Настройки приложений:&lt;/b&gt; Настраивайте тайм-аут и поведение плавающего окна отдельно для каждого приложения.
     </string>
-    <string name="title_0_1_0">Экспрессивное обновление</string>
+    <string name="title_0_1_0">Ð­ÐºÑÐ¿Ñ€ÐµÑÑÐ¸Ð²Ð½Ð¾Ðµ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ</string>
     <string name="changelog_0_1_0">        • &lt;b&gt;Обновление интерфейса:&lt;/b&gt; Новый дизайн Material 3 Expressive с плавными анимациями.\n
         • &lt;b&gt;Лучший Остров:&lt;/b&gt; Текст теперь отображается справа. Добавлена зелёная галочка для завершённых загрузок.\n
         • &lt;b&gt;Настройки приложений:&lt;/b&gt; Выбор конкретных типов уведомлений (Музыка, Карты, Звонки) для каждого приложения.\n
@@ -135,54 +136,54 @@
         • &lt;b&gt;Новая библиотека:&lt;/b&gt; Фильтрация приложений по категории и порядку сортировки.\n
         • &lt;b&gt;Локализация:&lt;/b&gt; Добавлена поддержка испанского языка.
     </string>
-    <string name="priority_edu_title">Новое: Управляйте Островом</string>
-    <string name="priority_edu_desc">HyperBridge теперь может управлять поведением нескольких уведомлений при достижении лимита в 9 Островов.\n\n&lt;b&gt;По умолчанию: Самые новые&lt;/b&gt;\nНовые уведомления автоматически заменяют самые старые.</string>
-    <string name="badge_new">НОВОЕ</string>
-    <string name="nav_layout_title">Макет навигации</string>
-    <string name="nav_layout_desc">Выберите, где отображать информацию</string>
-    <string name="left_content">Левая сторона</string>
-    <string name="right_content">Правая сторона</string>
-    <string name="nav_content_instruction">Инструкция</string>
-    <string name="nav_content_distance">Расстояние</string>
-    <string name="nav_content_eta">Время прибытия</string>
-    <string name="nav_content_distance_eta">Расстояние и время</string>
-    <string name="nav_content_none">Пусто</string>
-    <string name="channel_active_islands">Активные Острова</string>
-    <string name="cd_enable_type">Включить уведомления %s</string>
-    <string name="cd_disable_type">Выключить уведомления %s</string>
-    <string name="cd_nav_edit">Редактировать макет навигации</string>
-    <string name="cd_app_state_active">Активно</string>
-    <string name="cd_app_state_inactive">Неактивно</string>
-    <string name="cd_move_up">Переместить вверх</string>
-    <string name="cd_move_down">Переместить вниз</string>
-    <string name="cd_drag_handle">Маркер перетаскивания. Дважды нажмите и удерживайте, чтобы изменить порядок, или используйте действия для перемещения.</string>
-    <string name="cd_app_icon">Иконка приложения %s</string>
-    <string name="cd_nav_preview">Предварительный просмотр навигации: %1$s слева, %2$s справа</string>
-    <string name="cd_expand_changelog">Развернуть детали версии</string>
-    <string name="cd_collapse_changelog">Свернуть детали версии</string>
-    <string name="nav_preview_instruction">Поворот направо</string>
+    <string name="priority_edu_title">ÐÐ¾Ð²Ð¾Ðµ: Ð£Ð¿Ñ€Ð°Ð²Ð»ÑÐ¹Ñ‚Ðµ ÐžÑÑ‚Ñ€Ð¾Ð²Ð¾Ð¼</string>
+    <string name="priority_edu_desc">HyperBridge Ñ‚ÐµÐ¿ÐµÑ€ÑŒ Ð¼Ð¾Ð¶ÐµÑ‚ ÑƒÐ¿Ñ€Ð°Ð²Ð»ÑÑ‚ÑŒ Ð¿Ð¾Ð²ÐµÐ´ÐµÐ½Ð¸ÐµÐ¼ Ð½ÐµÑÐºÐ¾Ð»ÑŒÐºÐ¸Ñ… ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ð¹ Ð¿Ñ€Ð¸ Ð´Ð¾ÑÑ‚Ð¸Ð¶ÐµÐ½Ð¸Ð¸ Ð»Ð¸Ð¼Ð¸Ñ‚Ð° Ð² 9 ÐžÑÑ‚Ñ€Ð¾Ð²Ð¾Ð².\n\n&lt;b&gt;ÐŸÐ¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ: Ð¡Ð°Ð¼Ñ‹Ðµ Ð½Ð¾Ð²Ñ‹Ðµ&lt;/b&gt;\nÐÐ¾Ð²Ñ‹Ðµ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð·Ð°Ð¼ÐµÐ½ÑÑŽÑ‚ ÑÐ°Ð¼Ñ‹Ðµ ÑÑ‚Ð°Ñ€Ñ‹Ðµ.</string>
+    <string name="badge_new">ÐÐžÐ’ÐžÐ•</string>
+    <string name="nav_layout_title">ÐœÐ°ÐºÐµÑ‚ Ð½Ð°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ð¸</string>
+    <string name="nav_layout_desc">Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ, Ð³Ð´Ðµ Ð¾Ñ‚Ð¾Ð±Ñ€Ð°Ð¶Ð°Ñ‚ÑŒ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸ÑŽ</string>
+    <string name="left_content">Ð›ÐµÐ²Ð°Ñ ÑÑ‚Ð¾Ñ€Ð¾Ð½Ð°</string>
+    <string name="right_content">ÐŸÑ€Ð°Ð²Ð°Ñ ÑÑ‚Ð¾Ñ€Ð¾Ð½Ð°</string>
+    <string name="nav_content_instruction">Ð˜Ð½ÑÑ‚Ñ€ÑƒÐºÑ†Ð¸Ñ</string>
+    <string name="nav_content_distance">Ð Ð°ÑÑÑ‚Ð¾ÑÐ½Ð¸Ðµ</string>
+    <string name="nav_content_eta">Ð’Ñ€ÐµÐ¼Ñ Ð¿Ñ€Ð¸Ð±Ñ‹Ñ‚Ð¸Ñ</string>
+    <string name="nav_content_distance_eta">Ð Ð°ÑÑÑ‚Ð¾ÑÐ½Ð¸Ðµ Ð¸ Ð²Ñ€ÐµÐ¼Ñ</string>
+    <string name="nav_content_none">ÐŸÑƒÑÑ‚Ð¾</string>
+    <string name="channel_active_islands">ÐÐºÑ‚Ð¸Ð²Ð½Ñ‹Ðµ ÐžÑÑ‚Ñ€Ð¾Ð²Ð°</string>
+    <string name="cd_enable_type">Ð’ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ %s</string>
+    <string name="cd_disable_type">Ð’Ñ‹ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ %s</string>
+    <string name="cd_nav_edit">Ð ÐµÐ´Ð°ÐºÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¼Ð°ÐºÐµÑ‚ Ð½Ð°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ð¸</string>
+    <string name="cd_app_state_active">ÐÐºÑ‚Ð¸Ð²Ð½Ð¾</string>
+    <string name="cd_app_state_inactive">ÐÐµÐ°ÐºÑ‚Ð¸Ð²Ð½Ð¾</string>
+    <string name="cd_move_up">ÐŸÐµÑ€ÐµÐ¼ÐµÑÑ‚Ð¸Ñ‚ÑŒ Ð²Ð²ÐµÑ€Ñ…</string>
+    <string name="cd_move_down">ÐŸÐµÑ€ÐµÐ¼ÐµÑÑ‚Ð¸Ñ‚ÑŒ Ð²Ð½Ð¸Ð·</string>
+    <string name="cd_drag_handle">ÐœÐ°Ñ€ÐºÐµÑ€ Ð¿ÐµÑ€ÐµÑ‚Ð°ÑÐºÐ¸Ð²Ð°Ð½Ð¸Ñ. Ð”Ð²Ð°Ð¶Ð´Ñ‹ Ð½Ð°Ð¶Ð¼Ð¸Ñ‚Ðµ Ð¸ ÑƒÐ´ÐµÑ€Ð¶Ð¸Ð²Ð°Ð¹Ñ‚Ðµ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¸Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¿Ð¾Ñ€ÑÐ´Ð¾Ðº, Ð¸Ð»Ð¸ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐ¹Ñ‚Ðµ Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸Ñ Ð´Ð»Ñ Ð¿ÐµÑ€ÐµÐ¼ÐµÑ‰ÐµÐ½Ð¸Ñ.</string>
+    <string name="cd_app_icon">Ð˜ÐºÐ¾Ð½ÐºÐ° Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ %s</string>
+    <string name="cd_nav_preview">ÐŸÑ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ð¹ Ð¿Ñ€Ð¾ÑÐ¼Ð¾Ñ‚Ñ€ Ð½Ð°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ð¸: %1$s ÑÐ»ÐµÐ²Ð°, %2$s ÑÐ¿Ñ€Ð°Ð²Ð°</string>
+    <string name="cd_expand_changelog">Ð Ð°Ð·Ð²ÐµÑ€Ð½ÑƒÑ‚ÑŒ Ð´ÐµÑ‚Ð°Ð»Ð¸ Ð²ÐµÑ€ÑÐ¸Ð¸</string>
+    <string name="cd_collapse_changelog">Ð¡Ð²ÐµÑ€Ð½ÑƒÑ‚ÑŒ Ð´ÐµÑ‚Ð°Ð»Ð¸ Ð²ÐµÑ€ÑÐ¸Ð¸</string>
+    <string name="nav_preview_instruction">ÐŸÐ¾Ð²Ð¾Ñ€Ð¾Ñ‚ Ð½Ð°Ð¿Ñ€Ð°Ð²Ð¾</string>
     <string name="nav_preview_distance">200м</string>
     <string name="nav_preview_time">10:30</string>
-    <string name="blocked_terms">Заблокированные слова</string>
-    <string name="blocked_terms_desc">Уведомления, содержащие эти слова, будут игнорироваться.</string>
-    <string name="add_blocked_word">Добавить слово (напр. \'Спойлер\')</string>
-    <string name="add">Добавить</string>
-    <string name="remove">Удалить</string>
-    <string name="spoiler_subtitle">Управление защитой от спойлеров и фильтрами</string>
-    <string name="active_notifications_title">Типы уведомлений</string>
-    <string name="active_notifications_subtitle">%d активных</string>
-    <string name="appearance_use_defaults_desc">Используются системные настройки скорости анимации и поведения плавающих окон.</string>
-    <string name="blocked_terms_active_count">%d активных правил</string>
-    <string name="global_rules">Глобальные правила</string>
-    <string name="app_specific_rules">Правила для отдельных приложений</string>
-    <string name="manage_app_rules_desc">Настройте фильтры для отдельных приложений</string>
-    <string name="blocked_terms_count">%d заблокированных слов</string>
-    <string name="no_active_rules">Нет активных правил</string>
-    <string name="setup_health_title">Совместимость системы</string>
-    <string name="req_hyperos">Требуется HyperOS 3.0+ (Android 15+)</string>
-    <string name="req_xiaomi">Требуется устройство Xiaomi/Redmi/Poco</string>
-    <string name="warning_cn_rom_title">Обнаружена китайская прошивка (CN ROM)</string>
-    <string name="warning_cn_rom_desc">Похоже, ваше устройство работает на китайской прошивке, в которой Xiaomi значительно изменяет внутреннюю структуру уведомлений. Функции могут быть нестабильными или вообще не работать.</string>
+    <string name="blocked_terms">Ð—Ð°Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ðµ ÑÐ»Ð¾Ð²Ð°</string>
+    <string name="blocked_terms_desc">Ð£Ð²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ, ÑÐ¾Ð´ÐµÑ€Ð¶Ð°Ñ‰Ð¸Ðµ ÑÑ‚Ð¸ ÑÐ»Ð¾Ð²Ð°, Ð±ÑƒÐ´ÑƒÑ‚ Ð¸Ð³Ð½Ð¾Ñ€Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒÑÑ.</string>
+    <string name="add_blocked_word">Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ»Ð¾Ð²Ð¾ (Ð½Ð°Ð¿Ñ€. \'Ð¡Ð¿Ð¾Ð¹Ð»ÐµÑ€\')</string>
+    <string name="add">Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ</string>
+    <string name="remove">Ð£Ð´Ð°Ð»Ð¸Ñ‚ÑŒ</string>
+    <string name="spoiler_subtitle">Ð£Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð·Ð°Ñ‰Ð¸Ñ‚Ð¾Ð¹ Ð¾Ñ‚ ÑÐ¿Ð¾Ð¹Ð»ÐµÑ€Ð¾Ð² Ð¸ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°Ð¼Ð¸</string>
+    <string name="active_notifications_title">Ð¢Ð¸Ð¿Ñ‹ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ð¹</string>
+    <string name="active_notifications_subtitle">%d Ð°ÐºÑ‚Ð¸Ð²Ð½Ñ‹Ñ…</string>
+    <string name="appearance_use_defaults_desc">Ð˜ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÑŽÑ‚ÑÑ ÑÐ¸ÑÑ‚ÐµÐ¼Ð½Ñ‹Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ ÑÐºÐ¾Ñ€Ð¾ÑÑ‚Ð¸ Ð°Ð½Ð¸Ð¼Ð°Ñ†Ð¸Ð¸ Ð¸ Ð¿Ð¾Ð²ÐµÐ´ÐµÐ½Ð¸Ñ Ð¿Ð»Ð°Ð²Ð°ÑŽÑ‰Ð¸Ñ… Ð¾ÐºÐ¾Ð½.</string>
+    <string name="blocked_terms_active_count">%d Ð°ÐºÑ‚Ð¸Ð²Ð½Ñ‹Ñ… Ð¿Ñ€Ð°Ð²Ð¸Ð»</string>
+    <string name="global_rules">Ð“Ð»Ð¾Ð±Ð°Ð»ÑŒÐ½Ñ‹Ðµ Ð¿Ñ€Ð°Ð²Ð¸Ð»Ð°</string>
+    <string name="app_specific_rules">ÐŸÑ€Ð°Ð²Ð¸Ð»Ð° Ð´Ð»Ñ Ð¾Ñ‚Ð´ÐµÐ»ÑŒÐ½Ñ‹Ñ… Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¹</string>
+    <string name="manage_app_rules_desc">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹Ñ‚Ðµ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ñ‹ Ð´Ð»Ñ Ð¾Ñ‚Ð´ÐµÐ»ÑŒÐ½Ñ‹Ñ… Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¹</string>
+    <string name="blocked_terms_count">%d Ð·Ð°Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ñ… ÑÐ»Ð¾Ð²</string>
+    <string name="no_active_rules">ÐÐµÑ‚ Ð°ÐºÑ‚Ð¸Ð²Ð½Ñ‹Ñ… Ð¿Ñ€Ð°Ð²Ð¸Ð»</string>
+    <string name="setup_health_title">Ð¡Ð¾Ð²Ð¼ÐµÑÑ‚Ð¸Ð¼Ð¾ÑÑ‚ÑŒ ÑÐ¸ÑÑ‚ÐµÐ¼Ñ‹</string>
+    <string name="req_hyperos">Ð¢Ñ€ÐµÐ±ÑƒÐµÑ‚ÑÑ HyperOS 3.0+ (Android 15+)</string>
+    <string name="req_xiaomi">Ð¢Ñ€ÐµÐ±ÑƒÐµÑ‚ÑÑ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð¾ Xiaomi/Redmi/Poco</string>
+    <string name="warning_cn_rom_title">ÐžÐ±Ð½Ð°Ñ€ÑƒÐ¶ÐµÐ½Ð° ÐºÐ¸Ñ‚Ð°Ð¹ÑÐºÐ°Ñ Ð¿Ñ€Ð¾ÑˆÐ¸Ð²ÐºÐ° (CN ROM)</string>
+    <string name="warning_cn_rom_desc">ÐŸÐ¾Ñ…Ð¾Ð¶Ðµ, Ð²Ð°ÑˆÐµ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð¾ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ Ð½Ð° ÐºÐ¸Ñ‚Ð°Ð¹ÑÐºÐ¾Ð¹ Ð¿Ñ€Ð¾ÑˆÐ¸Ð²ÐºÐµ, Ð² ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¹ Xiaomi Ð·Ð½Ð°Ñ‡Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾ Ð¸Ð·Ð¼ÐµÐ½ÑÐµÑ‚ Ð²Ð½ÑƒÑ‚Ñ€ÐµÐ½Ð½ÑŽÑŽ ÑÑ‚Ñ€ÑƒÐºÑ‚ÑƒÑ€Ñƒ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ð¹. Ð¤ÑƒÐ½ÐºÑ†Ð¸Ð¸ Ð¼Ð¾Ð³ÑƒÑ‚ Ð±Ñ‹Ñ‚ÑŒ Ð½ÐµÑÑ‚Ð°Ð±Ð¸Ð»ÑŒÐ½Ñ‹Ð¼Ð¸ Ð¸Ð»Ð¸ Ð²Ð¾Ð¾Ð±Ñ‰Ðµ Ð½Ðµ Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ñ‚ÑŒ.</string>
     <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
     <string name="shizuku_enable_workaround">Enable Workaround</string>
     <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
@@ -191,9 +192,9 @@
     <string name="shizuku_permission_denied">Permission Denied</string>
     <string name="shizuku_request_permission">Grant Shizuku Permission</string>
     <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
-    <string name="system_version">Версия системы</string>
-    <string name="call_incoming">Входящий звонок</string>
-    <string name="call_ongoing">Активный звонок</string>
+    <string name="system_version">Ð’ÐµÑ€ÑÐ¸Ñ ÑÐ¸ÑÑ‚ÐµÐ¼Ñ‹</string>
+    <string name="call_incoming">Ð’Ñ…Ð¾Ð´ÑÑ‰Ð¸Ð¹ Ð·Ð²Ð¾Ð½Ð¾Ðº</string>
+    <string name="call_ongoing">ÐÐºÑ‚Ð¸Ð²Ð½Ñ‹Ð¹ Ð·Ð²Ð¾Ð½Ð¾Ðº</string>
     <string-array name="call_keywords_hangup">
         <item>hang</item>
         <item>end</item>
@@ -208,7 +209,7 @@
         <item>speaker</item>
         <item>audio</item>
     </string-array>
-    <string name="title_0_3_0">Глобальное обновление</string>
+    <string name="title_0_3_0">Ð“Ð»Ð¾Ð±Ð°Ð»ÑŒÐ½Ð¾Ðµ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ</string>
     <string name="changelog_0_3_0">        <b>Скрытые уведомления 👻</b>\n
         Новая опция, позволяющая скрывать уведомления из системной панели, сохраняя Остров активным. Проверьте Глобальные настройки!\n\n
         <b>Новые языки 🌍</b>\n
@@ -230,39 +231,39 @@
         • Обновлён дизайн панели настройки приложений для более удобного использования.\n
         • Улучшён экран проверки совместимости с подробной информацией об устройстве.
     </string>
-    <string name="privacy_title">100% Оффлайн и Безопасно</string>
-    <string name="privacy_desc">Hyper Bridge обрабатывает всё напрямую на процессоре вашего телефона.\n\nПриложению НЕ требуется доступ к интернету, что означает: ваши уведомления и личные данные никогда не покидают устройство.</string>
-    <string name="language">Язык</string>
-    <string name="language_desc">Изменить язык приложения</string>
-    <string name="system_default">Системный язык</string>
-    <string name="save">Сохранить</string>
-    <string name="backup_restore_title">Резервное копирование и Восстановление</string>
-    <string name="backup_section_title">Управление Данными</string>
-    <string name="backup_options_subtitle">Выберите данные для включения в операцию</string>
-    <string name="option_app_settings">Настройки приложения</string>
-    <string name="option_app_settings_desc">Статус настройки, тема, режимы поведения</string>
-    <string name="option_blocklist">База блоклиста</string>
-    <string name="option_blocklist_desc">Ваши пользовательские заблокированные ключевые слова и приложения</string>
-    <string name="option_priorities">Правила Приоритетов</string>
-    <string name="option_priorities_desc">Пользовательские конфигурации приоритетов уведомлений</string>
-    <string name="action_export">Создать бекап</string>
-    <string name="action_import">Восстановить бекап</string>
+    <string name="privacy_title">100% ÐžÑ„Ñ„Ð»Ð°Ð¹Ð½ Ð¸ Ð‘ÐµÐ·Ð¾Ð¿Ð°ÑÐ½Ð¾</string>
+    <string name="privacy_desc">Hyper Bridge Ð¾Ð±Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÐµÑ‚ Ð²ÑÑ‘ Ð½Ð°Ð¿Ñ€ÑÐ¼ÑƒÑŽ Ð½Ð° Ð¿Ñ€Ð¾Ñ†ÐµÑÑÐ¾Ñ€Ðµ Ð²Ð°ÑˆÐµÐ³Ð¾ Ñ‚ÐµÐ»ÐµÑ„Ð¾Ð½Ð°.\n\nÐŸÑ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸ÑŽ ÐÐ• Ñ‚Ñ€ÐµÐ±ÑƒÐµÑ‚ÑÑ Ð´Ð¾ÑÑ‚ÑƒÐ¿ Ðº Ð¸Ð½Ñ‚ÐµÑ€Ð½ÐµÑ‚Ñƒ, Ñ‡Ñ‚Ð¾ Ð¾Ð·Ð½Ð°Ñ‡Ð°ÐµÑ‚: Ð²Ð°ÑˆÐ¸ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ Ð¸ Ð»Ð¸Ñ‡Ð½Ñ‹Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð½Ð¸ÐºÐ¾Ð³Ð´Ð° Ð½Ðµ Ð¿Ð¾ÐºÐ¸Ð´Ð°ÑŽÑ‚ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð¾.</string>
+    <string name="language">Ð¯Ð·Ñ‹Ðº</string>
+    <string name="language_desc">Ð˜Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ ÑÐ·Ñ‹Ðº Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ</string>
+    <string name="system_default">Ð¡Ð¸ÑÑ‚ÐµÐ¼Ð½Ñ‹Ð¹ ÑÐ·Ñ‹Ðº</string>
+    <string name="save">Ð¡Ð¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ</string>
+    <string name="backup_restore_title">Ð ÐµÐ·ÐµÑ€Ð²Ð½Ð¾Ðµ ÐºÐ¾Ð¿Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð¸ Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ</string>
+    <string name="backup_section_title">Ð£Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð”Ð°Ð½Ð½Ñ‹Ð¼Ð¸</string>
+    <string name="backup_options_subtitle">Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð´Ð»Ñ Ð²ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ñ Ð² Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸ÑŽ</string>
+    <string name="option_app_settings">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ</string>
+    <string name="option_app_settings_desc">Ð¡Ñ‚Ð°Ñ‚ÑƒÑ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸, Ñ‚ÐµÐ¼Ð°, Ñ€ÐµÐ¶Ð¸Ð¼Ñ‹ Ð¿Ð¾Ð²ÐµÐ´ÐµÐ½Ð¸Ñ</string>
+    <string name="option_blocklist">Ð‘Ð°Ð·Ð° Ð±Ð»Ð¾ÐºÐ»Ð¸ÑÑ‚Ð°</string>
+    <string name="option_blocklist_desc">Ð’Ð°ÑˆÐ¸ Ð¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÑÐºÐ¸Ðµ Ð·Ð°Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ðµ ÐºÐ»ÑŽÑ‡ÐµÐ²Ñ‹Ðµ ÑÐ»Ð¾Ð²Ð° Ð¸ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ</string>
+    <string name="option_priorities">ÐŸÑ€Ð°Ð²Ð¸Ð»Ð° ÐŸÑ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚Ð¾Ð²</string>
+    <string name="option_priorities_desc">ÐŸÐ¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÑÐºÐ¸Ðµ ÐºÐ¾Ð½Ñ„Ð¸Ð³ÑƒÑ€Ð°Ñ†Ð¸Ð¸ Ð¿Ñ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚Ð¾Ð² ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ð¹</string>
+    <string name="action_export">Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð±ÐµÐºÐ°Ð¿</string>
+    <string name="action_import">Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð±ÐµÐºÐ°Ð¿</string>
     <string name="export_success">Резервная копия успешно сохранена</string>
     <string name="export_failed">Ошибка экспорта: %s</string>
-    <string name="import_success">Данные успешно восстановлены</string>
+    <string name="import_success">Ð”Ð°Ð½Ð½Ñ‹Ðµ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð²Ð¾ÑÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½Ñ‹</string>
     <string name="import_failed">Ошибка импорта: %s</string>
-    <string name="autostart_manual_check">Статус невозможно проверить автоматически.\nПожалуйста, проверьте это вручную, чтобы обеспечить корректную работу сервиса</string>
-    <string name="backup_info_title">Информация о Резервной Копии</string>
-    <string name="backup_meta_date">Дата</string>
-    <string name="backup_meta_device">Устройство</string>
-    <string name="backup_meta_version">Версия</string>
-    <string name="backup_meta_keys">Всего элементов</string>
-    <string name="backup_empty_suffix"> (Пусто)</string>
-    <string name="action_restore_selected">Восстановить выбранные данные</string>
-    <string name="optimization_title">Оптимизация устройства</string>
-    <string name="privacy_card_title">Оффлайн-принцип</string>
-    <string name="privacy_card_desc">Подключение к интернету не требуется.</string>
-    <string name="title_0_3_1">Обновление: Резервирование и Полиглот</string>
+    <string name="autostart_manual_check">Ð¡Ñ‚Ð°Ñ‚ÑƒÑ Ð½ÐµÐ²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾ Ð¿Ñ€Ð¾Ð²ÐµÑ€Ð¸Ñ‚ÑŒ Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸.\nÐŸÐ¾Ð¶Ð°Ð»ÑƒÐ¹ÑÑ‚Ð°, Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑŒÑ‚Ðµ ÑÑ‚Ð¾ Ð²Ñ€ÑƒÑ‡Ð½ÑƒÑŽ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¾Ð±ÐµÑÐ¿ÐµÑ‡Ð¸Ñ‚ÑŒ ÐºÐ¾Ñ€Ñ€ÐµÐºÑ‚Ð½ÑƒÑŽ Ñ€Ð°Ð±Ð¾Ñ‚Ñƒ ÑÐµÑ€Ð²Ð¸ÑÐ°</string>
+    <string name="backup_info_title">Ð˜Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ñ Ð¾ Ð ÐµÐ·ÐµÑ€Ð²Ð½Ð¾Ð¹ ÐšÐ¾Ð¿Ð¸Ð¸</string>
+    <string name="backup_meta_date">Ð”Ð°Ñ‚Ð°</string>
+    <string name="backup_meta_device">Ð£ÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð¾</string>
+    <string name="backup_meta_version">Ð’ÐµÑ€ÑÐ¸Ñ</string>
+    <string name="backup_meta_keys">Ð’ÑÐµÐ³Ð¾ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð²</string>
+    <string name="backup_empty_suffix"> (ÐŸÑƒÑÑ‚Ð¾)</string>
+    <string name="action_restore_selected">Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð²Ñ‹Ð±Ñ€Ð°Ð½Ð½Ñ‹Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ</string>
+    <string name="optimization_title">ÐžÐ¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð°Ñ†Ð¸Ñ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð°</string>
+    <string name="privacy_card_title">ÐžÑ„Ñ„Ð»Ð°Ð¹Ð½-Ð¿Ñ€Ð¸Ð½Ñ†Ð¸Ð¿</string>
+    <string name="privacy_card_desc">ÐŸÐ¾Ð´ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ Ðº Ð¸Ð½Ñ‚ÐµÑ€Ð½ÐµÑ‚Ñƒ Ð½Ðµ Ñ‚Ñ€ÐµÐ±ÑƒÐµÑ‚ÑÑ.</string>
+    <string name="title_0_3_1">ÐžÐ±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ: Ð ÐµÐ·ÐµÑ€Ð²Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð¸ ÐŸÐ¾Ð»Ð¸Ð³Ð»Ð¾Ñ‚</string>
     <string name="changelog_0_3_1">            <b>Резервное копирование и Восстановление 📦</b>\n
             Новая функция для продвинутых пользователей! Безопасно экспортируйте ваши настройки, блоклисты и приоритеты приложений в файл .hbr и восстанавливайте их в любое время.\n\n
             <b>Новые Языки 🌍</b>\n
@@ -533,6 +534,7 @@
     <string name="active_triggers">Active Triggers</string>
     <string name="active_triggers_global_desc">Select which global events trigger the island</string>
     <string name="type_standard_desc">Regular messages, emails, and alerts</string>
+    <string name="type_message_desc">Messages, chats, and conversations</string>
     <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
     <string name="type_download_desc">Downloads, uploads, and file transfers</string>
     <string name="type_media_desc">Music and video playback controls</string>
@@ -581,6 +583,13 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
+    <string name="changelog_0_5_5">        <b>Messaging Grouping Overhaul</b>\n
+              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
+        <b>Fixes &amp; Stability</b>\n
+              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
+              • <b>Defaults:</b> Disabled \"Show in shade\" by default on the onboarding screen.\n
+    </string>
+    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
     <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
               ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
               ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
