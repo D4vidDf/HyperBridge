@@ -576,8 +576,12 @@
         <b>Renovación de Agrupación de Mensajes</b>\n
               • <b>Desduplicación:</b> Se ha rediseñado por completo la forma en que se agrupan las notificaciones de mensajería (como WhatsApp) para evitar islas duplicadas.\n\n
         <b>Correcciones y Estabilidad</b>\n
+              • <b>Isla Permanente:</b> Se oculta automáticamente cuando HyperOS muestra islas nativas (como multimedia o temporizadores del sistema) para evitar superposiciones.\n
+              • <b>Eliminación Instantánea:</b> Las islas ahora responden al instante cuando descartas una notificación desde tu teléfono o reloj.\n
+              • <b>Actualizaciones en Vivo:</b> Deslizar las islas de Actualización en Vivo ahora detiene correctamente sus tareas en segundo plano.\n
+              • <b>Islas Fantasma:</b> Se solucionaron las islas atascadas para llamadas, contenido multimedia y descargas de Chrome.\n
               • <b>Migración de Actualización:</b> Se ha solucionado un error crítico por el que la actualización de la aplicación no activaba correctamente la lógica de migración de la base de datos.\n
-              • <b>Valores predeterminados:</b> Se ha desactivado \"Mostrar en panel\" por defecto en la pantalla de inicio.\n
+              • <b>Valores predeterminados:</b> Se ha desactivado "Mostrar en panel" por defecto en la pantalla de inicio.\n
     </string>
     <string name="title_0_5_5">Mensajería y Correcciones</string>
     <string name="changelog_0_5_2">        <b>¡Nueva Respuesta Rápida!</b>\n

@@ -81,6 +81,7 @@ class NotificationReaderService : NotificationListenerService() {
 
     // --- CACHES ---
     private val recentlyRemovedKeys = ConcurrentHashMap<String, Long>()
+    private val nativeIslands = ConcurrentHashMap.newKeySet<String>()
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
@@ -367,6 +368,10 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?, rankingMap: RankingMap?, reason: Int) {
         sbn?.let {
+            if (nativeIslands.remove(it.key)) {
+                updatePermanentIsland()
+            }
+
             val isOurApp = it.packageName == packageName
             val notifId = it.id
             val notifKey = it.key
@@ -394,7 +399,7 @@ class NotificationReaderService : NotificationListenerService() {
                     val widgetId = notifId - WIDGET_ID_BASE
                     dismissedWidgetIds.add(widgetId)
                     activeWidgets.remove(widgetId)
-                    permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
+                    updatePermanentIsland()
                     return
                 }
 
@@ -492,7 +497,7 @@ class NotificationReaderService : NotificationListenerService() {
         if (hyperId != null) {
             reverseTranslations.remove(hyperId)
         }
-        permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
+        updatePermanentIsland()
     }
 
     private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType, isLiveUpdate: Boolean) {
@@ -518,6 +523,10 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
+    private fun updatePermanentIsland() {
+        permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size, nativeIslands.isNotEmpty())
+    }
+
     // =========================================================================
     //  STANDARD NOTIFICATION LOGIC
     // =========================================================================
@@ -525,6 +534,26 @@ class NotificationReaderService : NotificationListenerService() {
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
+            if (it.packageName != packageName) {
+                val extras = it.notification.extras
+                var isNative = false
+                if (extras != null) {
+                    if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
+                        isNative = true
+                    }
+                    val template = extras.getString(Notification.EXTRA_TEMPLATE)
+                    if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
+                        template == "android.app.Notification\$MediaStyle") {
+                        isNative = true
+                    }
+                }
+                if (isNative) {
+                    if (nativeIslands.add(it.key)) updatePermanentIsland()
+                } else {
+                    if (nativeIslands.remove(it.key)) updatePermanentIsland()
+                }
+            }
+
             if (shouldIgnore(it.packageName)) return
             if (!isAppAllowed(it.packageName)) return
 
@@ -738,7 +767,7 @@ class NotificationReaderService : NotificationListenerService() {
                     packageName = sbn.packageName, groupKey = sbn.groupKey, title = effectiveTitle, text = effectiveText,
                     subText = "LiveUpdate", lastContentHash = newContentHash, deleteIntent = sbn.notification.deleteIntent
                 )
-                permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
+                updatePermanentIsland()
 
                 handlePostNotificationSideEffects(effectiveKey, bridgeId, finalConfig, type, true)
                 return
@@ -781,7 +810,7 @@ class NotificationReaderService : NotificationListenerService() {
                 packageName = sbn.packageName, groupKey = sbn.groupKey, title = effectiveTitle, text = effectiveText,
                 subText = "", lastContentHash = newContentHash, deleteIntent = sbn.notification.deleteIntent
             )
-            permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
+            updatePermanentIsland()
 
             handlePostNotificationSideEffects(effectiveKey, bridgeId, finalConfig, type, false)
 
@@ -1034,7 +1063,7 @@ class NotificationReaderService : NotificationListenerService() {
             val data = widgetTranslator.translate(widgetId)
             postWidgetNotification(WIDGET_ID_BASE + widgetId, data)
             activeWidgets.add(widgetId)
-            permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size)
+            updatePermanentIsland()
         } catch (e: Exception) { Log.e(TAG, "Failed widget $widgetId", e) }
     }
 
@@ -1152,6 +1181,38 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val currentNotifications = activeNotifications ?: return@launch
+                val systemNotificationKeys = currentNotifications.map { it.key }.toSet()
+
+                var nativeChanged = false
+                for (sbn in currentNotifications) {
+                    if (sbn.packageName != packageName) {
+                        val extras = sbn.notification.extras
+                        var isNative = false
+                        if (extras != null) {
+                            if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
+                                isNative = true
+                            }
+                            val template = extras.getString(Notification.EXTRA_TEMPLATE)
+                            if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
+                                template == "android.app.Notification\$MediaStyle") {
+                                isNative = true
+                            }
+                        }
+                        if (isNative) {
+                            if (nativeIslands.add(sbn.key)) nativeChanged = true
+                        } else {
+                            if (nativeIslands.remove(sbn.key)) nativeChanged = true
+                        }
+                    }
+                }
+                val currentNatives = nativeIslands.toList()
+                for (key in currentNatives) {
+                    if (!systemNotificationKeys.contains(key)) {
+                        if (nativeIslands.remove(key)) nativeChanged = true
+                    }
+                }
+                if (nativeChanged) updatePermanentIsland()
+
                 val currentKeys = currentNotifications.map { it.key }.toSet()
                 
                 val keysToRemove = mutableListOf<String>()

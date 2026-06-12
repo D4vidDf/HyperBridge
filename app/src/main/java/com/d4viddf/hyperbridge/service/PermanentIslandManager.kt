@@ -28,6 +28,7 @@ class PermanentIslandManager(
     private var isPermanentIslandEnabled = false
     private var isIslandActive = false
     private var currentRealNotifications = 0
+    private var hasNativeIsland = false
     private var currentWidth = 0
 
     init {
@@ -51,13 +52,14 @@ class PermanentIslandManager(
         }
     }
 
-    fun onActiveNotificationsChanged(count: Int) {
+    fun onActiveNotificationsChanged(count: Int, hasNative: Boolean = false) {
         currentRealNotifications = count
+        hasNativeIsland = hasNative
         updateState()
     }
 
     private fun updateState() {
-        if (isPermanentIslandEnabled && currentRealNotifications == 0) {
+        if (isPermanentIslandEnabled && currentRealNotifications == 0 && !hasNativeIsland) {
             if (!isIslandActive) {
                 dispatchPermanentIsland()
                 isIslandActive = true
