@@ -20,7 +20,8 @@ class LiveUpdateTranslator(
         sbn: StatusBarNotification?,
         channelId: String,
         type: NotificationType,
-        navRight: NavContent? = null
+        navRight: NavContent? = null,
+        config: com.d4viddf.hyperbridge.models.IslandConfig? = null
     ): NotificationCompat.Builder {
         val original = sbn?.notification
         val extras = original?.extras
@@ -42,6 +43,11 @@ class LiveUpdateTranslator(
 
         // --- THEME COLOR & ICON INJECTION ---
         val theme = repository?.activeTheme?.value
+
+        val originalBitmap = sbn?.let { getNotificationBitmap(it) }
+        if (originalBitmap != null) {
+            builder.setLargeIcon(originalBitmap)
+        }
 
         if (type == NotificationType.NAVIGATION) {
             // 1. Inject Theme Nav Color
@@ -70,13 +76,36 @@ class LiveUpdateTranslator(
 
         // --- ACTIONS ---
         val rawActions = original?.actions ?: emptyArray()
-        rawActions.forEach { action ->
+        rawActions.forEachIndexed { index, action ->
             val iconCompat = if (action.getIcon() != null) {
                 IconCompat.createFromIcon(context, action.getIcon()!!)
             } else {
                 IconCompat.createWithResource(context, action.icon)
             }
-            builder.addAction(NotificationCompat.Action.Builder(iconCompat, action.title, action.actionIntent).build())
+            
+            val hasRemoteInput = action.remoteInputs != null && action.remoteInputs!!.isNotEmpty()
+            val finalIntent = if (hasRemoteInput) {
+                if (config?.enableInlineReply != false) {
+                    val uniqueKey = "act_${sbn?.key.hashCode()}_$index"
+                    val replyIntent = android.content.Intent(context, com.d4viddf.hyperbridge.receiver.InlineReplyReceiver::class.java).apply {
+                        putExtra("pending_intent", action.actionIntent)
+                        putExtra("result_key", action.remoteInputs!![0].resultKey)
+                        putExtra("package_name", sbn?.packageName)
+                    }
+                    android.app.PendingIntent.getBroadcast(
+                        context,
+                        uniqueKey.hashCode(),
+                        replyIntent,
+                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_MUTABLE
+                    )
+                } else {
+                    original?.contentIntent ?: action.actionIntent
+                }
+            } else {
+                action.actionIntent
+            }
+
+            builder.addAction(NotificationCompat.Action.Builder(iconCompat, action.title, finalIntent).build())
         }
 
         // --- APPLY STYLES ---

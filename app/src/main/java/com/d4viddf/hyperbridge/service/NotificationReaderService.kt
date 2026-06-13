@@ -277,7 +277,8 @@ class NotificationReaderService : NotificationListenerService() {
                     sbn = null,
                     channelId = LIVE_UPDATE_CHANNEL_ID,
                     type = NotificationType.PROGRESS,
-                    navRight = null
+                    navRight = null,
+                    config = null
                 )
                 notificationBuilder.setContentTitle(title)
                 notificationBuilder.setContentText(message)
@@ -714,7 +715,8 @@ class NotificationReaderService : NotificationListenerService() {
                     sbn = sbn,
                     channelId = LIVE_UPDATE_CHANNEL_ID,
                     type = type,
-                    navRight = navLayout?.second
+                    navRight = navLayout?.second,
+                    config = finalConfig
                 )
 
                 builder.extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
