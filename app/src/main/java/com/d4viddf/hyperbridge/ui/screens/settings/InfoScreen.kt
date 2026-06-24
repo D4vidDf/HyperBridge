@@ -299,6 +299,7 @@ fun LanguageSelectorDialog(onDismiss: () -> Unit) {
         "Português (BR)" to "pt-BR",
         "Polski" to "pl",
         "Slovenčina" to "sk",
+        "简体中文 (CN)" to "zh-CN",     // Added (Simplified Chinese)
         "繁體中文 (TW)" to "zh-TW",     // Added (Traditional Chinese)
         "Korean" to "ko",
         "Русский" to "ru",
