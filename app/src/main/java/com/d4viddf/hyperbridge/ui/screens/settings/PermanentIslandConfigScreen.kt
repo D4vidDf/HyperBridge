@@ -48,10 +48,12 @@ fun PermanentIslandConfigScreen(
     
     val isEnabled by prefs.isPermanentIslandEnabledFlow.collectAsState(initial = false)
     val islandWidth by prefs.permanentIslandWidthFlow.collectAsState(initial = 0)
+    val hideInLandscape by prefs.hidePermanentIslandLandscapeFlow.collectAsState(initial = false)
 
     PermanentIslandConfigContent(
         isEnabled = isEnabled,
         islandWidth = islandWidth,
+        hideInLandscape = hideInLandscape,
         onEnabledChange = { checked ->
             scope.launch {
                 prefs.setPermanentIslandEnabled(checked)
@@ -60,6 +62,11 @@ fun PermanentIslandConfigScreen(
         onWidthChange = { width ->
             scope.launch {
                 prefs.setPermanentIslandWidth(width)
+            }
+        },
+        onHideInLandscapeChange = { hide ->
+            scope.launch {
+                prefs.setHidePermanentIslandLandscape(hide)
             }
         },
         onBack = onBack
@@ -71,8 +78,10 @@ fun PermanentIslandConfigScreen(
 fun PermanentIslandConfigContent(
     isEnabled: Boolean,
     islandWidth: Int,
+    hideInLandscape: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     onWidthChange: (Int) -> Unit,
+    onHideInLandscapeChange: (Boolean) -> Unit,
     onBack: () -> Unit
 ) {
     var sliderValue by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
@@ -105,8 +114,6 @@ fun PermanentIslandConfigContent(
             PermanentIslandPreview(islandWidthValue = if (isDragging) sliderValue.toInt() else islandWidth)
 
             Spacer(Modifier.height(24.dp))
-            
-
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
@@ -125,7 +132,6 @@ fun PermanentIslandConfigContent(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
                             )
-
                         }
                         Switch(
                             checked = isEnabled,
@@ -152,6 +158,24 @@ fun PermanentIslandConfigContent(
                             },
                             valueRange = 0f..20f
                         )
+                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.permanent_island_hide_landscape),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                )
+                            }
+                            Switch(
+                                checked = hideInLandscape,
+                                onCheckedChange = onHideInLandscapeChange
+                            )
+                        }
                     }
                 }
             }
@@ -161,7 +185,6 @@ fun PermanentIslandConfigContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
         }
     }
 }
@@ -173,9 +196,13 @@ fun PermanentIslandConfigScreenPreview() {
         PermanentIslandConfigContent(
             isEnabled = true,
             islandWidth = 10,
+            hideInLandscape = false,
             onEnabledChange = {},
             onWidthChange = {},
+            onHideInLandscapeChange = {},
             onBack = {}
         )
     }
 }
+
+

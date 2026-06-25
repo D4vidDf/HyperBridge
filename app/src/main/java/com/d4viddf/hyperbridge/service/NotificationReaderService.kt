@@ -524,8 +524,23 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
+    private fun logStateChange(isLandscape: Boolean) {
+        val orientation = if (isLandscape) "Landscape" else "Portrait"
+        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || nativeIslands.isNotEmpty() || permanentIslandManager.isIslandActive()
+        val islandState = if (isIslandExhibited) "Showing Island" else "No Island"
+        Log.d(TAG, "State: $orientation | $islandState")
+    }
+
     private fun updatePermanentIsland() {
         permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size, nativeIslands.isNotEmpty())
+        val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        logStateChange(isLandscape)
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        permanentIslandManager.onOrientationChanged()
+        logStateChange(newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE)
     }
 
     // =========================================================================

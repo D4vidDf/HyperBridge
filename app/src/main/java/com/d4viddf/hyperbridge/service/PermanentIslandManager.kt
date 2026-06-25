@@ -28,14 +28,25 @@ class PermanentIslandManager(
     private var isPermanentIslandEnabled = false
     private var isIslandActive = false
     private var currentRealNotifications = 0
+
+    fun isIslandActive(): Boolean = isIslandActive
     private var hasNativeIsland = false
     private var currentWidth = 0
+    private var isHideInLandscapeEnabled = false
 
     init {
         scope.launch {
             preferences.isPermanentIslandEnabledFlow.collectLatest { enabled ->
                 if (isPermanentIslandEnabled != enabled) {
                     isPermanentIslandEnabled = enabled
+                    updateState()
+                }
+            }
+        }
+        scope.launch {
+            preferences.hidePermanentIslandLandscapeFlow.collectLatest { hide ->
+                if (isHideInLandscapeEnabled != hide) {
+                    isHideInLandscapeEnabled = hide
                     updateState()
                 }
             }
@@ -58,8 +69,19 @@ class PermanentIslandManager(
         updateState()
     }
 
+    fun onOrientationChanged() {
+        updateState()
+    }
     private fun updateState() {
-        if (isPermanentIslandEnabled && currentRealNotifications == 0 && !hasNativeIsland) {
+        val isLandscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val shouldShow = isPermanentIslandEnabled && 
+                         currentRealNotifications == 0 && 
+                         !hasNativeIsland && 
+                         !(isHideInLandscapeEnabled && isLandscape)
+
+        Log.d(TAG, "updateState: shouldShow=$shouldShow, isLandscape=$isLandscape, isHideInLandscapeEnabled=$isHideInLandscapeEnabled")
+
+        if (shouldShow) {
             if (!isIslandActive) {
                 dispatchPermanentIsland()
                 isIslandActive = true
@@ -71,7 +93,6 @@ class PermanentIslandManager(
             }
         }
     }
-
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun dispatchPermanentIsland() {
         try {
