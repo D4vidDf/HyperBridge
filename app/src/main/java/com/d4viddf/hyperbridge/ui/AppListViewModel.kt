@@ -211,6 +211,13 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun toggleAllApps(enable: Boolean) {
+        viewModelScope.launch {
+            val allPackageNames = libraryAppsState.value.map { it.packageName }
+            preferences.setAllApps(allPackageNames, enable)
+        }
+    }
+
     // Standard non-flow getter if needed by other parts of the app
     suspend fun getAppConfig(packageName: String) = preferences.getAppConfigFlow(packageName).first()
 

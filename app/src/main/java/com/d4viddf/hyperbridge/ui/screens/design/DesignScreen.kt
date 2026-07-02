@@ -255,14 +255,6 @@ fun DesignScreenContent(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onFabClick,
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.design_add_design))
-            }
         }
     ) { padding ->
         Column(
@@ -272,8 +264,6 @@ fun DesignScreenContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            HeroSection()
-
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -287,17 +277,6 @@ fun DesignScreenContent(
                 )
             }
 
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_widgets), onNavigateToWidgets)
-                WidgetsCarousel(
-                    savedCount = savedWidgetCount,
-                    icons = widgetIcons,
-                    onNavigateToWidgets = onNavigateToWidgets,
-                    onAddWidget = onFabClick
-                )
-            }
             Spacer(Modifier.height(24.dp))
         }
     }

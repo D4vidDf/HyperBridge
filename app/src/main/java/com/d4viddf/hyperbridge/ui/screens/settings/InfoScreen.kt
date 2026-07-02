@@ -1,6 +1,5 @@
 package com.d4viddf.hyperbridge.ui.screens.settings
 
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,13 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,16 +23,11 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,16 +38,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -90,8 +76,6 @@ fun InfoScreen(
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    var showLanguageDialog by remember { mutableStateOf(false) }
 
     val appVersion = remember {
         try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0.0" }
@@ -155,11 +139,6 @@ fun InfoScreen(
             }
 
             Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text(
-                text = stringResource(R.string.developer_credit),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.version_template, appVersion),
@@ -186,27 +165,13 @@ fun InfoScreen(
             SettingsSection(
                 title = stringResource(R.string.group_about),
                 items = listOf(
-                    SettingsItemData(Icons.Default.Language, stringResource(R.string.language), stringResource(R.string.language_desc)) { showLanguageDialog = true },
-                    SettingsItemData(Icons.Default.Person, stringResource(R.string.developer), stringResource(R.string.developer_subtitle)) { uriHandler.openUri("https://d4viddf.com") },
-                    SettingsItemData(Icons.Default.History, stringResource(R.string.version_history), "0.1.0 - $appVersion", onHistoryClick),
-                    SettingsItemData(Icons.Default.Code, stringResource(R.string.source_code), stringResource(R.string.source_code_subtitle)) { uriHandler.openUri("https://github.com/D4vidDf/HyperBridge") },
-                    SettingsItemData(Icons.Default.Description, stringResource(R.string.licenses), stringResource(R.string.licenses_subtitle), onLicensesClick)
+                    SettingsItemData(Icons.Default.Person, stringResource(R.string.build_by), "") {},
+                    SettingsItemData(Icons.Default.Code, stringResource(R.string.project_source), "", ) {}
                 )
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Text(
-                text = stringResource(R.string.footer_made_with_love).parseBold(),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.outline
-            )
             Spacer(modifier = Modifier.height(32.dp))
         }
-    }
-
-    if (showLanguageDialog) {
-        LanguageSelectorDialog(onDismiss = { showLanguageDialog = false})
     }
 }
 
@@ -280,88 +245,4 @@ fun getSettingsShape(groupSize: Int, index: Int): Shape {
         groupSize - 1 -> RoundedCornerShape(topStart = small, topEnd = small, bottomEnd = large, bottomStart = large)
         else -> RoundedCornerShape(small)
     }
-}
-
-// --- DIALOGS ---
-
-@Composable
-fun LanguageSelectorDialog(onDismiss: () -> Unit) {
-    val languages = mapOf(
-        stringResource(R.string.system_default) to "",
-        "Bahasa Indonesia" to "id",
-        "Čeština" to "cs",              // Added (Czech)
-        "Deutsch" to "de",
-        "English" to "en",
-        "Español" to "es",
-        "Français" to "fr",             // Added (French)
-        "Italiano" to "it",             // Added (Italian)
-        "Magyar" to "hu",               // Added (Hungarian)
-        "Português (BR)" to "pt-BR",
-        "Polski" to "pl",
-        "Slovenčina" to "sk",
-        "简体中文 (CN)" to "zh-CN",     // Added (Simplified Chinese)
-        "繁體中文 (TW)" to "zh-TW",     // Added (Traditional Chinese)
-        "Korean" to "ko",
-        "Русский" to "ru",
-        "Türkçe" to "tr",
-        "Українська" to "uk"
-    )
-    val currentAppLocales = AppCompatDelegate.getApplicationLocales()
-    val initialTag = if (!currentAppLocales.isEmpty) currentAppLocales.toLanguageTags().split(",")[0] else ""
-    val bestMatchKey = languages.entries.find { (_, tag) -> tag.isNotEmpty() && initialTag.startsWith(tag) }?.value ?: ""
-    var selectedTag by remember { mutableStateOf(bestMatchKey) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.Language, null, tint = MaterialTheme.colorScheme.primary) },
-        title = { Text(stringResource(R.string.language)) },
-        text = {
-            Column(Modifier.fillMaxWidth()) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Column(
-                    modifier = Modifier
-                        .heightIn(max = 300.dp)
-                        .verticalScroll(rememberScrollState())
-                        .selectableGroup()
-                ) {
-                    languages.forEach { (name, tag) ->
-                        val isSelected = (tag == selectedTag)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                                .selectable(
-                                    selected = isSelected,
-                                    onClick = { selectedTag = tag },
-                                    role = Role.RadioButton
-                                )
-                                .padding(horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(selected = isSelected, onClick = null)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    }
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val appLocale = if (selectedTag.isEmpty()) LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(selectedTag)
-                    AppCompatDelegate.setApplicationLocales(appLocale)
-                    onDismiss()
-                }
-            ) { Text(stringResource(R.string.save)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
-        }
-    )
 }

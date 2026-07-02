@@ -1045,7 +1045,6 @@ fun PrivacyPage() {
 fun CompatibilityPage() {
     val isXiaomi = DeviceUtils.isXiaomi
     val isCompatibleOS = DeviceUtils.isCompatibleOS()
-    val isCN = DeviceUtils.isCNRom
     val osVersion = DeviceUtils.getHyperOSVersion()
     val deviceName = DeviceUtils.getDeviceMarketName()
 
@@ -1078,25 +1077,6 @@ fun CompatibilityPage() {
                 onClick = {},
                 trailingContent = {}
             )
-
-            if (isCN && isXiaomi) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            stringResource(R.string.warning_cn_rom_title),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
         }
     }
 }

@@ -175,6 +175,14 @@ class AppPreferences(context: Context) {
         save(SettingsKeys.ALLOWED_PACKAGES, newSet.serialize())
     }
 
+    suspend fun setAllApps(packageNames: List<String>, enabled: Boolean) {
+        if (enabled) {
+            save(SettingsKeys.ALLOWED_PACKAGES, packageNames.toSet().serialize())
+        } else {
+            save(SettingsKeys.ALLOWED_PACKAGES, emptySet<String>().serialize())
+        }
+    }
+
     // ========================================================================
     //                        THEME ENGINE
     // ========================================================================
@@ -463,7 +471,7 @@ class AppPreferences(context: Context) {
     private val IS_SHIZUKU_WORKAROUND_ENABLED = "is_shizuku_workaround_enabled"
 
     val useNativeLiveUpdates: Flow<Boolean> = dao.getSettingFlow(USE_NATIVE_ENGINE)
-        .map { it?.toBoolean() ?: false }
+        .map { it?.toBoolean() ?: true }
 
     val isShizukuWorkaroundEnabled: Flow<Boolean> = dao.getSettingFlow(IS_SHIZUKU_WORKAROUND_ENABLED)
         .map { it?.toBoolean() ?: false }
@@ -587,6 +595,6 @@ class AppPreferences(context: Context) {
     }
 
     fun useNativeLiveUpdatesSync(): Boolean {
-        return memoryCache[USE_NATIVE_ENGINE]?.toBoolean() ?: false
+        return memoryCache[USE_NATIVE_ENGINE]?.toBoolean() ?: true
     }
 }

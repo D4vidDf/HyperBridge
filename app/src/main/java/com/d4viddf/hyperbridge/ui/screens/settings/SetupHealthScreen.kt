@@ -107,7 +107,6 @@ fun SetupHealthScreen(onBack: () -> Unit) {
     val isXiaomi = DeviceUtils.isXiaomi
     val isCompatibleOS = DeviceUtils.isCompatibleOS()
     val osVersionString = DeviceUtils.getHyperOSVersion()
-    val isCN = DeviceUtils.isCNRom
     val deviceModel = android.os.Build.MODEL
 
     Scaffold(
@@ -267,7 +266,7 @@ fun SetupHealthScreen(onBack: () -> Unit) {
             }
 
             // --- 4. WARNINGS ---
-            if (isCN && isXiaomi) {
+            if (isXiaomi) {
                 Spacer(Modifier.height(32.dp))
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
@@ -277,12 +276,6 @@ fun SetupHealthScreen(onBack: () -> Unit) {
                         Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.width(16.dp))
                         Column {
-                            Text(
-                                text = stringResource(R.string.warning_cn_rom_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = stringResource(R.string.warning_cn_rom_desc),

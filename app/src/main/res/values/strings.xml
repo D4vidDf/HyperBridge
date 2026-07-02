@@ -1,792 +1,660 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hyper Bridge</string>
-
-    <string name="back">Back</string>
-    <string name="next">Next</string>
-    <string name="finish">Finish</string>
-    <string name="done">Done</string>
-    <string name="logo_desc">App Logo</string>
-    <string name="settings">Settings</string>
-    <string name="configure">Configure</string>
-    <string name="clear">Clear</string>
-    <string name="sort_order">Sort Order</string>
-
-    <string name="welcome_title">Welcome to\nHyper Bridge</string>
-    <string name="welcome_subtitle">Seamlessly integrate HyperIslands into your HyperOS experience.</string>
-    <string name="get_started">Get Started</string>
-
-    <string name="how_it_works">How it Works</string>
-    <string name="how_it_works_desc">Select your favorite apps (Spotify, Maps, Timer). HyperBridge transforms their notifications into a sleek HyperIsland.</string>
-    <string name="beta_warning">Note: This app is in Beta. You may encounter bugs or incorrect visual information.</string>
-
-    <string name="device_compatible">Device Compatible</string>
-    <string name="unsupported_device">Unsupported Device</string>
-    <string name="compatible_msg">Your device appears to be running HyperOS/MIUI. You are good to go!</string>
-
-    <string name="show_island">Show Island</string>
-    <string name="perm_post_desc">We need permission to post the \'Island\' notification on your screen.</string>
-    <string name="perm_granted">Permission Granted</string>
-    <string name="allow_notifications">Allow Notifications</string>
-
-    <string name="read_data">Read Notifications</string>
-    <string name="perm_listener_desc">To bridge your apps, we need to read their notifications (Music, Maps, Timers).</string>
-    <string name="open_settings">Open Settings</string>
-
-    <string name="optimization_desc">HyperOS kills background apps. Enable Autostart and No Restrictions to keep the island active.</string>
-    <string name="enable_autostart">Allow Autostart</string>
-    <string name="set_battery_no_restrictions">Disable Restrictions</string>
-
-    <string name="tab_active">Active</string>
-    <string name="tab_library">Library</string>
-    <string name="search_hint">Search apps…</string>
-
-    <string name="no_active_bridges">No Active Bridges</string>
-    <string name="no_active_bridges_desc">Go to Library to enable apps.</string>
-    <string name="no_apps_found">No apps found</string>
-
-    <string name="version_template">Version %s</string>
-    <string name="developer_credit">by D4vidDf</string>
-
-    <string name="group_configuration">Configuration</string>
-    <string name="system_setup">System Setup</string>
-    <string name="system_setup_subtitle">Fix permissions &amp; battery</string>
-
+    <string name="app_name">米灵</string>
+    <string name="back">返回</string>
+    <string name="next">下一步</string>
+    <string name="finish">完成</string>
+    <string name="done">完成</string>
+    <string name="logo_desc">应用图标</string>
+    <string name="settings">设置</string>
+    <string name="configure">设置</string>
+    <string name="clear">清除</string>
+    <string name="sort_order">排序方式</string>
+    <string name="welcome_title">欢迎使用\n米灵</string>
+    <string name="welcome_subtitle">将 澎湃灵动岛 整合至你的 澎湃OS 使用体验中。</string>
+    <string name="get_started">开始使用</string>
+    <string name="how_it_works">如何运作</string>
+    <string name="how_it_works_desc">选择你常用的应用程序（Spotify、地图、计时器）。米灵 会将它们的通知转换为简洁利落的灵动岛。</string>
+    <string name="beta_warning">注意：此应用程序目前为 Beta 测试版，您可能会遇到程序错误或显示信息不正确的情况。</string>
+    <string name="device_compatible">兼容的设备</string>
+    <string name="unsupported_device">不支持此设备</string>
+    <string name="compatible_msg">检测到您的设备正在运行 澎湃OS/MIUI，一切就绪！</string>
+    <string name="show_island">显示灵动岛</string>
+    <string name="perm_post_desc">我们需要取得权限，才能在您的屏幕上显示"灵动岛"通知。</string>
+    <string name="perm_granted">✅ 已授予权限</string>
+    <string name="allow_notifications">允许通知权限</string>
+    <string name="read_data">访问数据权限</string>
+    <string name="perm_listener_desc">为了连接您的应用程序，我们需要访问通知内容（如：音乐、地图、计时器）。</string>
+    <string name="open_settings">打开设置</string>
+    <string name="optimization_desc">澎湃OS 会自动关闭后台程序。请开启"自启动"并将省电策略设为"无限制"，以维持灵动岛运行。</string>
+    <string name="enable_autostart">1. 开启后台启动管理</string>
+    <string name="set_battery_no_restrictions">2. 将省电策略设为"无限制"</string>
+    <string name="tab_active">已启用</string>
+    <string name="tab_library">数据库</string>
+    <string name="search_hint">搜索应用程序……</string>
+    <string name="no_active_bridges">尚无运行中的程序通知</string>
+    <string name="no_active_bridges_desc">请前往"应用程序库"以启用 App。</string>
+    <string name="no_apps_found">找不到应用程序</string>
+    <string name="version_template">版本 %s</string>
+    <string name="developer_credit">开发者：D4vidDf</string>
+    <string name="group_configuration">设置</string>
+    <string name="system_setup">系统设置</string>
+    <string name="system_setup_subtitle">修正权限 &amp; 电池设置</string>
     <!-- Permanent Island -->
-    <string name="permanent_island_title">Permanent Island</string>
-    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
-    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
-    <string name="permanent_island_width">Island Width</string>
-
-    <string name="group_about">About</string>
-    <string name="developer">Developer</string>
-    <string name="developer_subtitle">Visit d4viddf.com</string>
-    <string name="source_code">Source Code</string>
-    <string name="source_code_subtitle">GitHub Repository</string>
-    <string name="licenses">Open Source Licenses</string>
-    <string name="licenses_subtitle">Third-party software</string>
-    <string name="footer_made_with_love">Made with ❤️ in Spain</string>
-
-    <string name="app_health_desc">Ensure all checks are green for the app to work correctly in the background.</string>
-    <string name="req_permissions">Required Permissions</string>
-    <string name="notif_access">Notification Access</string>
-    <string name="notif_access_desc">Required to read app events</string>
-    <string name="device_optimization">Device Optimization</string>
-    <string name="xiaomi_autostart">Xiaomi Autostart</string>
-    <string name="battery_unrestricted">Battery Unrestricted</string>
-    <string name="battery_desc">Prevent system killing app</string>
-    <string name="recents_note">Note: Also lock the app in the \'Recents\' overview menu.</string>
-    <string name="status_active">Active</string>
-
-    <string name="cat_all">All</string>
-    <string name="cat_music">Music</string>
-    <string name="cat_nav">Navigation</string>
-    <string name="cat_timer">Productivity</string>
-    <string name="cat_other">Other</string>
-
-    <string name="type_standard">General Alerts</string>
-    <string name="type_message">Messages &amp; Chats</string>
-    <string name="type_progress">Progress &amp; Tasks</string>
-    <string name="type_download">Downloads</string>
-    <string name="type_media">Music &amp; Media</string>
-    <string name="type_nav">Maps &amp; GPS</string>
-    <string name="type_call">Calls</string>
-    <string name="type_timer">Timers &amp; Alarms</string>
-
-    <string name="download_complete">Download Complete</string>
-    <string name="downloading">Downloading</string>
-    <string name="maps_title">Maps</string>
-
+    <string name="permanent_island_title">永久灵动岛</string>
+    <string name="permanent_island_desc">当没有活动通知时，保持灵动岛在屏幕上永久可见。</string>
+    <string name="permanent_island_screen_desc">启用后，屏幕上将永久显示一个空白的灵动岛。当收到实际通知时，它会自动隐藏；当所有通知清除后，它会自动重新出现。此灵动岛不会显示在通知栏中。</string>
+    <string name="permanent_island_width">灵动岛宽度</string>
+    <string name="group_about">关于</string>
+    <string name="developer">开发者</string>
+    <string name="developer_subtitle">访问 d4viddf.com</string>
+    <string name="source_code">源代码</string>
+    <string name="source_code_subtitle">GitHub 仓库</string>
+    <string name="licenses">开源许可</string>
+    <string name="licenses_subtitle">第三方软件</string>
+    <string name="footer_made_with_love">在西班牙由 ❤️ 打造</string>
+    <string name="build_by">build by 抖音@杨家三郎</string>
+    <string name="project_source">来源于项目HyperBridge</string>
+    <string name="enable_all">全部打开</string>
+    <string name="disable_all">全部关闭</string>
+    <string name="app_health_desc">请确保所有检查项皆显示为绿色，以确保应用程序能在后台正常运行。</string>
+    <string name="req_permissions">必要的权限</string>
+    <string name="notif_access">通知访问权</string>
+    <string name="notif_access_desc">读取应用程序事件所需权限</string>
+    <string name="device_optimization">设备优化设置</string>
+    <string name="xiaomi_autostart">小米自启动</string>
+    <string name="battery_unrestricted">电池使用量不受限制</string>
+    <string name="battery_desc">防止系统自动关闭应用程序</string>
+    <string name="recents_note">注意：请同时在"最近任务"预览界面中锁定此应用程序。</string>
+    <string name="status_active">已启用</string>
+    <string name="cat_all">全部</string>
+    <string name="cat_music">音乐</string>
+    <string name="cat_nav">导航</string>
+    <string name="cat_timer">生产力</string>
+    <string name="cat_other">其他</string>
+    <string name="type_standard">消息 &amp; 一般通知</string>
+    <string name="type_message">消息 &amp; 聊天</string>
+    <string name="type_progress">进度 &amp; 任务</string>
+    <string name="type_download">下载</string>
+    <string name="type_media">音乐 &amp; 媒体</string>
+    <string name="type_nav">地图 &amp; GPS</string>
+    <string name="type_call">通话</string>
+    <string name="type_timer">计时器 &amp; 闹钟</string>
+    <string name="download_complete">下载完成</string>
+    <string name="downloading">正在下载</string>
+    <string name="maps_title">地图</string>
     <string-array name="progress_finish_keywords">
-        <item>downloaded</item>
-        <item>completed</item>
-        <item>finished</item>
-        <item>installed</item>
-        <item>done</item>
-        <item>successful</item>
-        <item>succeeded</item>
+        <item>已下载</item>
+        <item>已完成</item>
+        <item>已完成</item>
+        <item>已安装</item>
+        <item>完成</item>
+        <item>成功</item>
+        <item>完成</item>
     </string-array>
-
-    <string name="status_now_playing">Now Playing</string>
-
-    <string name="fallback_timer">Timer</string>
-
-    <string name="whats_new_title">What\'s New in %s</string>
-    <string name="awesome">Awesome!</string>
-
-
-    <string name="island_behavior">Island Behavior</string>
-    <string name="limit_strategy">Limit Strategy</string>
-    <string name="limit_desc">What happens when you reach 9 islands?</string>
-    <string name="mode_fcfs_title">First Come, First Served</string>
-    <string name="mode_fcfs_desc">Keeps the first 9 apps. New apps are ignored until space opens.</string>
-    <string name="mode_recent_title">Most Recent (Default)</string>
-    <string name="mode_recent_desc">New notifications replace the oldest ones.</string>
-    <string name="mode_priority_title">Custom Priority</string>
-    <string name="mode_priority_desc">Define which types (e.g. Calls) are more important.</string>
-    <string name="priority_order">Priority Order</string>
-    <string name="priority_order_desc">High priority (Top) replaces Low priority (Bottom).</string>
-    <string name="configure_order">Configure apps order</string>
-
-    <string name="global_settings">Global Settings</string>
-    <string name="island_appearance">Island Appearance</string>
-    <string name="setting_float">Heads-up Popup</string>
-    <string name="setting_float_desc">Show the full notification banner briefly before minimizing to the Island.</string>
-    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
-
-    <string name="setting_shade">Notification Panel</string>
-    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
-
-    <string name="seconds_suffix">%ds</string>
-
-    <string name="use_global_default">Use Global Defaults</string>
-
+    <string name="status_now_playing">正在播放</string>
+    <string name="fallback_timer">计时器</string>
+    <string name="whats_new_title">%s的新功能</string>
+    <string name="awesome">太棒了！</string>
+    <string name="island_behavior">灵动岛行为</string>
+    <string name="limit_strategy">限制策略</string>
+    <string name="limit_desc">当达到 9 个灵动岛通知时会发生什么事？</string>
+    <string name="mode_fcfs_title">依到达顺序处理</string>
+    <string name="mode_fcfs_desc">保留前 9 个 App。在空间释放前，系统会忽略新的 App。</string>
+    <string name="mode_recent_title">最近优先 (默认)</string>
+    <string name="mode_recent_desc">新的通知会替换掉最旧的通知。</string>
+    <string name="mode_priority_title">自定义优先顺序</string>
+    <string name="mode_priority_desc">定义哪些类型（例如：电话）比较重要。</string>
+    <string name="priority_order">优先级排序</string>
+    <string name="priority_order_desc">高优先级（顶部）会替换掉低优先级（底部）。</string>
+    <string name="configure_order">设置 App 排序</string>
+    <string name="global_settings">默认设置</string>
+    <string name="island_appearance">灵动岛外观</string>
+    <string name="setting_float">显示于灵动岛</string>
+    <string name="setting_float_desc">显示提前通知</string>
+    <string name="setting_float_timeout_desc">弹出提示框的显示时长。</string>
+    <string name="setting_shade">在通知栏中显示</string>
+    <string name="setting_shade_desc">在通知中心中保留</string>
+    <string name="seconds_suffix">%d秒</string>
+    <string name="use_global_default">使用默认设置</string>
     <string-array name="nav_arrival_keywords">
-        <item>arrival</item>
-        <item>arrive</item>
+        <item>到达</item>
+        <item>到达</item>
         <item>eta</item>
-        <item>reaching</item>
-        <item>destination</item>
+        <item>到达</item>
+        <item>目标</item>
     </string-array>
-
-    <string name="version_history">Version History</string>
-
-    <string name="title_0_2_0">The Information Update</string>
-    <string name="changelog_0_2_0">
-        • &lt;b&gt;Advanced Progress:&lt;/b&gt; Added support for "Step Progress" (e.g. 1 of 3) and progress bars with icons inside the notification shade.\n
-        • &lt;b&gt;Priority System:&lt;/b&gt; New "Island Behavior" settings. Choose between "Most Recent", "First Come", or a custom "App Priority" list.\n
-        • &lt;b&gt;Smart Filtering:&lt;/b&gt; Improved detection of duplicate notifications and grouped downloads.\n
-        • &lt;b&gt;Visual Improvements:&lt;/b&gt; Fixed layout issues with Navigation instructions.\n
-        • &lt;b&gt;Per-App Config:&lt;/b&gt; Customize Timeout and Floating behavior per app.
+    <string name="version_history">版本记录</string>
+    <string name="title_0_2_0">信息更新</string>
+    <string name="changelog_0_2_0">        •&lt;b&gt;高级进度显示：&lt;/b&gt;新增支持"分段进度"（例如：1/3）以及通知栏内含图标的进度条。\n
+        •&lt;b&gt;优先级系统：&lt;/b&gt;全新的"灵动岛行为"设置。可选择"最近优先"、"先到先得"或自定义"App 优先顺序"列表。\n
+        •&lt;b&gt;智能过滤：&lt;/b&gt;优化了重复通知与分组下载的检测机制。\n
+        •&lt;b&gt;视觉优化：&lt;/b&gt;修正了导航指令的布局问题。\n
+        •&lt;b&gt;单独 App 设置：&lt;/b&gt;可针对不同 App 自定义超时时间与悬浮行为。
     </string>
-
-    <string name="title_0_1_0">The Expressive Update</string>
-    <string name="changelog_0_1_0">
-        • &lt;b&gt;Major UI Overhaul:&lt;/b&gt; New Material 3 Expressive design with smooth animations.\n
-        • &lt;b&gt;Better Island:&lt;/b&gt; Text now appears on the right side. Added Green Tick for finished downloads.\n
-        • &lt;b&gt;Per-App Config:&lt;/b&gt; Select specific notification types (Music, Maps, Calls) per app.\n
-        • &lt;b&gt;Smart Filters:&lt;/b&gt; Blocks duplicate notifications and saves battery.\n
-        • &lt;b&gt;New Library:&lt;/b&gt; Filter apps by category and sort order.\n
-        • &lt;b&gt;Localization:&lt;/b&gt; Added Spanish support.
+    <string name="title_0_1_0">快速更新</string>
+    <string name="changelog_0_1_0">        •&lt;b&gt;界面大改版：&lt;/b&gt;全新的 Material 3 丰富表现设计，搭配流畅的动画效果。\n
+        •&lt;b&gt;灵动岛优化：&lt;/b&gt;文字现在会显示在右侧。新增下载完成时的绿色勾选图标。\n
+        •&lt;b&gt;单独 App 设置：&lt;/b&gt;可针对不同 App 选择特定的通知类型（音乐、地图、电话）。\n
+        •&lt;b&gt;智能过滤：&lt;/b&gt;阻止重复通知并节省电力。\n
+        •&lt;b&gt;全新数据库：&lt;/b&gt;可按类别过滤 App 并自定义排序方式。\n
+        •&lt;b&gt;本地化：&lt;/b&gt;新增西班牙语支持。
     </string>
-
-    <string name="priority_edu_title">Control the Island</string>
-    <string name="priority_edu_desc">Choose how the island should behave when multiple notifications are active at the same time.</string>
-
-    <string name="badge_new">NEW</string>
-
-    <string name="nav_layout_title">Navigation Layout</string>
-    <string name="nav_layout_desc">Choose where information appears</string>
-    <string name="left_content">Left Side</string>
-    <string name="right_content">Right Side</string>
-
-    <string name="nav_content_instruction">Instruction</string>
-    <string name="nav_content_distance">Distance</string>
-    <string name="nav_content_eta">Arrival Time</string>
-    <string name="nav_content_distance_eta">Dist. &amp; Time</string>
-    <string name="nav_content_none">Empty</string>
-
-    <string name="channel_active_islands">Active Islands</string>
-
-    <string name="cd_enable_type">Enable %s notifications</string>
-    <string name="cd_disable_type">Disable %s notifications</string>
-    <string name="cd_nav_edit">Edit navigation layout</string>
-    <string name="cd_app_state_active">Active</string>
-    <string name="cd_app_state_inactive">Inactive</string>
-
-    <string name="cd_move_up">Move item up</string>
-    <string name="cd_move_down">Move item down</string>
-    <string name="cd_drag_handle">Drag handle. Double tap and hold to reorder, or use actions to move.</string>
-    <string name="cd_app_icon">App Icon for %s</string>
-    <string name="cd_nav_preview">Navigation Preview: %1$s on left, %2$s on right</string>
-    <string name="cd_expand_changelog">Expand version details</string>
-    <string name="cd_collapse_changelog">Collapse version details</string>
-
-    <string name="nav_preview_instruction">Turn Right</string>
+    <string name="priority_edu_title">全新：灵动岛控制功能</string>
+    <string name="priority_edu_desc">米灵现在可以管理当达到 9 个灵动岛上限时，多个通知的处理方式。\n\n&lt;b&gt;设置：最近优先&lt;/b&gt;\n新的通知将会自动替换掉最旧的通知。</string>
+    <string name="badge_new">新功能</string>
+    <string name="nav_layout_title">导航设置</string>
+    <string name="nav_layout_desc">选择信息显示的位置</string>
+    <string name="left_content">左侧</string>
+    <string name="right_content">右侧</string>
+    <string name="nav_content_instruction">操作说明</string>
+    <string name="nav_content_distance">距离</string>
+    <string name="nav_content_eta">到达时间</string>
+    <string name="nav_content_distance_eta">距离 &amp; 时间</string>
+    <string name="nav_content_none">无</string>
+    <string name="channel_active_islands">启动灵动岛</string>
+    <string name="cd_enable_type">禁用 %s 通知</string>
+    <string name="cd_disable_type">禁用 %s 通知</string>
+    <string name="cd_nav_edit">编辑导航设置</string>
+    <string name="cd_app_state_active">已启用</string>
+    <string name="cd_app_state_inactive">禁用</string>
+    <string name="cd_move_up">将项目上移</string>
+    <string name="cd_move_down">将项目下移</string>
+    <string name="cd_drag_handle">拖动控制杆。双击并按住即可重新排序，或使用操作菜单移动位置。</string>
+    <string name="cd_app_icon">%s 的 App 图标</string>
+    <string name="cd_nav_preview">导航预览：左侧显示 %1$s，右侧显示 %2$s</string>
+    <string name="cd_expand_changelog">打开版本信息</string>
+    <string name="cd_collapse_changelog">折叠版本信息</string>
+    <string name="nav_preview_instruction">向右转</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
-
-    <string name="blocked_terms">Blocked Terms</string>
-    <string name="blocked_terms_desc">Notifications containing these words will be ignored.</string>
-    <string name="add_blocked_word">Add word (e.g. Spoiler)</string>
-    <string name="add">Add</string>
-    <string name="remove">Remove</string>
-    <string name="spoiler_subtitle">Manage spoiler protection and filters</string>
-
-    <string name="active_notifications_title">Notification Types</string>
-    <string name="active_notifications_subtitle">%d active</string>
-    <string name="appearance_use_defaults_desc">Using system defaults for animation speed and floating behavior.</string>
-    <string name="blocked_terms_active_count">%d rules active</string>
-
-    <string name="global_rules">Global Rules</string>
-    <string name="app_specific_rules">App Specific Rules</string>
-    <string name="manage_app_rules_desc">Customize filters for specific applications</string>
-    <string name="blocked_terms_count">%d terms blocked</string>
-    <string name="no_active_rules">No active rules</string>
-
-    <string name="setup_health_title">System Compatibility</string>
-    <string name="req_hyperos">Requires HyperOS 3.0+ (Android 15+)</string>
-    <string name="req_xiaomi">Xiaomi/Redmi/Poco device required</string>
-
-    <string name="warning_cn_rom_title">China ROM Detected</string>
-    <string name="warning_cn_rom_desc">Your device appears to be running a Chinese firmware. Xiaomi modifies notification internals significantly on CN ROMs. Features might be unstable or not work at all.</string>
-
-    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
-    <string name="shizuku_enable_workaround">Enable Workaround</string>
-    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
-    <string name="shizuku_status_running">Shizuku is running</string>
-    <string name="shizuku_permission_granted">Permission Granted</string>
-    <string name="shizuku_permission_denied">Permission Denied</string>
-    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
-    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
-
-    <string name="system_version">System Version</string>
-
-    <string name="call_incoming">Incoming Call</string>
-    <string name="call_ongoing">Active Call</string>
-
+    <string name="blocked_terms">屏蔽关键词</string>
+    <string name="blocked_terms_desc">包含这些关键词的通知将会被忽略。</string>
+    <string name="add_blocked_word">添加关键词（例如：剧透）</string>
+    <string name="add">添加</string>
+    <string name="remove">移除</string>
+    <string name="spoiler_subtitle">管理防剧透保护与过滤器</string>
+    <string name="active_notifications_title">通知类型</string>
+    <string name="active_notifications_subtitle">%d 个已启用</string>
+    <string name="appearance_use_defaults_desc">动画速度与悬浮行为正使用系统默认值。</string>
+    <string name="blocked_terms_active_count">%d 条规则已启用</string>
+    <string name="global_rules">默认规则</string>
+    <string name="app_specific_rules">单独 App 规则</string>
+    <string name="manage_app_rules_desc">为特定应用程序自定义过滤器</string>
+    <string name="blocked_terms_count">已屏蔽 %d 个关键词</string>
+    <string name="no_active_rules">无启用的规则</string>
+    <string name="setup_health_title">系统兼容性</string>
+    <string name="req_hyperos">需要 澎湃OS 3.0 以上版本 (Android 15+)</string>
+    <string name="req_xiaomi">仅支持 小米/红米/Poco 设备</string>
+    <string name="warning_cn_rom_title">检测到中国版 ROM / 固件</string>
+    <string name="warning_cn_rom_desc">小米在国内 ROM 上大幅修改了通知系统底层，功能可能不稳定或无法运行。</string>
+    <string name="shizuku_workaround_title">启用 Shizuku 方案</string>
+    <string name="shizuku_enable_workaround">启用解决方法</string>
+    <string name="shizuku_workaround_desc">必须启用 Shizuku 方案才能正确触发通知。</string>
+    <string name="shizuku_status_running">Shizuku 正在运行</string>
+    <string name="shizuku_permission_granted">✅ 已授予权限</string>
+    <string name="shizuku_permission_denied">权限被拒绝</string>
+    <string name="shizuku_request_permission">授予 Shizuku 权限</string>
+    <string name="shizuku_not_installed">Shizuku 应用未安装或运行。请先安装并启动 Shizuku。</string>
+    <string name="system_version">系统版本</string>
+    <string name="call_incoming">来电</string>
+    <string name="call_ongoing">通话中</string>
     <string-array name="call_keywords_hangup">
-        <item>hang</item>
-        <item>end</item>
-        <item>decline</item>
-        <item>reject</item>
+        <item>挂断</item>
+        <item>结束</item>
+        <item>拒接</item>
+        <item>挂断</item>
     </string-array>
     <string-array name="call_keywords_answer">
-        <item>answer</item>
-        <item>accept</item>
+        <item>接听</item>
+        <item>接受</item>
     </string-array>
     <string-array name="call_keywords_speaker">
-        <item>speaker</item>
-        <item>audio</item>
+        <item>扬声器</item>
+        <item>声音</item>
     </string-array>
-
-    <string name="title_0_3_0">The Global Update</string>
-    <string name="changelog_0_3_0">
-        <b>Hidden Notification 👻</b>\n
-        New option to hide notifications from the system panel while keeping the Island active. Check Global Settings!\n\n
-        <b>New Languages 🌍</b>\n
-        Special thanks to our community for these translations:\n
-        • 🇧🇷 Portuguese (Brazil)\n
-        • 🇵🇱 Polish\n
-        • 🇰🇷 Korean\n\n
-        • 🇺🇦 Ukranian\n\n
-        <b>Navigation Customization 🧭</b>\n
-        You can now choose what information appears on the Left and Right sides of the Navigation Island (Distance, ETA, Instruction).\n\n
-        <b>Spoiler Protection 🛡️</b>\n
-        New "Blocked Terms" feature. Define words globally or per-app to prevent specific notifications from showing up on the Island.\n\n
-        <b>Call Improvements 📞</b>\n
-        Improved detection logic to support a wider range of VoIP and Dialer applications.\n\n
-        <b>Fixes &amp; Improvements 🛠️</b>\n
-        • Fixed a critical bug where the app would get stuck loading after a reboot.\n
-        • Fixed notifications sometimes showing raw package names (e.g. "com.google...") instead of content.\n
-        • Redesigned App Configuration sheet for better usability.\n
-        • Improved Compatibility Check screen with detailed device info.
+    <string name="title_0_3_0">默认功能更新</string>
+    <string name="changelog_0_3_0">        <b>隐藏通知 👻</b>\n
+        新增可从系统面板隐藏通知，同时保持灵动岛运行的选项。请查看默认设置！\n\n
+        <b>新语言支持 🌍</b>\n
+        特别感谢社区提供的翻译贡献：\n
+        • 葡萄牙语（巴西）\n•
+        • 波兰语\n
+        • 韩语\n\n
+        • 乌克兰语\n\n
+        <b>导航自定义功能 🧭</b>\n
+        您现在可以选择导航时岛左侧与右侧显示的信息（距离、预计到达时间、导航指令）。\n\n
+        <b>防剧透保护 🛡️</b>\n
+        全新"屏蔽关键词"功能。可进行默认设置或针对单独 App 定义关键词，防止特定通知显示在灵动岛上。\n\n
+        <b>通话功能优化 📞</b>\n
+        优化检测逻辑，以支持更多种类的 VoIP 与拨号应用程序。\n\n
+        <b>修复 &amp; 优化 🛠️</b>\n
+        • 修正了设备重启后 App 可能卡在加载画面的重大错误。\n
+        • 修正了通知有时会显示原始包名（例如：com.google...）而非实际内容的问题。\n
+        • 重新设计 App 配置页面以提升易用性。\n
+        • 优化兼容性检查画面，提供更详细的设备信息。
     </string>
-
-    <string name="privacy_title">100% Offline &amp; Secure</string>
-    <string name="privacy_desc">Hyper Bridge processes everything directly on your phone\'s processor.\n\nIt does NOT require internet access, meaning your notifications and personal data never leave your device.</string>
-
-    <string name="language">Language</string>
-    <string name="language_desc">Change application language</string>
-    <string name="system_default">System Default</string>
-    <string name="save">Save</string>
-
-    <string name="backup_restore_title">Backup &amp; Restore</string>
-    <string name="backup_section_title">Manage Data</string>
-    <string name="backup_options_subtitle">Select data to include in the operation</string>
-
-    <string name="option_app_settings">App Settings</string>
-    <string name="option_app_settings_desc">Setup status, theme, behavior modes</string>
-
-    <string name="option_blocklist">Blocklist Database</string>
-    <string name="option_blocklist_desc">Your custom blocked keywords and apps</string>
-
-    <string name="option_priorities">Priority Rules</string>
-    <string name="option_priorities_desc">Custom notification priority configurations</string>
-
-    <string name="action_export">Create Backup</string>
-    <string name="action_import">Restore Backup</string>
-
-    <string name="export_success">Backup saved successfully</string>
-    <string name="export_failed">Export failed: %s</string>
-    <string name="import_success">Data restored successfully</string>
-    <string name="import_failed">Import failed: %s</string>
-
-    <string name="autostart_manual_check">Status cannot be verified automatically.\nPlease check this manually to ensure the service works proprely</string>
-
-    <string name="backup_info_title">Backup Information</string>
-    <string name="backup_meta_date">Date</string>
-    <string name="backup_meta_device">Device</string>
-    <string name="backup_meta_version">Version</string>
-    <string name="backup_meta_keys">Total Items</string>
-    <string name="backup_empty_suffix"> (Empty)</string>
-    <string name="action_restore_selected">Restore Selected Data</string>
-
-    <string name="optimization_title">Device Optimization</string>
-
-    <string name="privacy_card_title">Offline First</string>
-    <string name="privacy_card_desc">No internet connection required.</string>
-
-    <string name="title_0_3_1">Backup &amp; Polyglot Update</string>
-    <string name="changelog_0_3_1">
-        <b>Backup &amp; Restore 📦</b>\n
-        New power-user feature! Securely export your settings, blocklists, and app priorities to a .hbr file and restore them anytime.\n\n
-        <b>New Languages 🌍</b>\n
-        Added support for:\n
-        • 🇩🇪 German\n
-        • 🇷🇺 Russian\n
-        • 🇺🇦 Ukrainian (Improved)\n
-        <i>Plus: A new in-app Language Selector to change languages without affecting your system settings.</i>\n\n
-        <b>Visual Refresh 🎨</b>\n
-        The app has been updated with <b>Material 3 Expressive</b> design. Enjoy larger headers, rounder shapes, and a smoother experience.\n\n
-        <b>Privacy &amp; Setup 🛡️</b>\n
-        • Improved Onboarding with a dedicated Privacy page clarifying offline-first architecture.\n
-        • Stricter compatibility checks to ensure the best experience on HyperOS 3.0.\n\n
-        <b>Fixes 🛠️</b>\n
-        • Fixed a critical issue where settings were lost after device reboot (migrated to database).\n
-        • Fixed "Exit" button in Navigation island showing as an icon instead of text.\n
-        • Fixed App Icon loading in Settings.\n
+    <string name="privacy_title">100% 离线 &amp; 安全</string>
+    <string name="privacy_desc">米灵直接在您的手机处理器上处理所有信息。\n\n它完全不需连接网络，这意味着您的通知与个人数据绝不会离开您的设备。</string>
+    <string name="language">语言</string>
+    <string name="language_desc">更改应用程序语言</string>
+    <string name="system_default">系统默认</string>
+    <string name="save">保存</string>
+    <string name="backup_restore_title">备份 &amp; 恢复</string>
+    <string name="backup_section_title">数据维护</string>
+    <string name="backup_options_subtitle">选择要包含在操作中的数据</string>
+    <string name="option_app_settings">App 设置</string>
+    <string name="option_app_settings_desc">设置状态、主题、行为模式</string>
+    <string name="option_blocklist">屏蔽名单数据库</string>
+    <string name="option_blocklist_desc">您自定义的屏蔽关键词与 App</string>
+    <string name="option_priorities">优先级规则</string>
+    <string name="option_priorities_desc">自定义通知优先级设置</string>
+    <string name="action_export">创建备份</string>
+    <string name="action_import">恢复备份</string>
+    <string name="export_success">备份保存成功</string>
+    <string name="export_failed">导出失败：%s</string>
+    <string name="import_success">数据恢复成功</string>
+    <string name="import_failed">导入失败：%s</string>
+    <string name="autostart_manual_check">无法自动验证状态。\n请手动检查以确保服务正常运行</string>
+    <string name="backup_info_title">备份信息</string>
+    <string name="backup_meta_date">日期</string>
+    <string name="backup_meta_device">设备</string>
+    <string name="backup_meta_version">版本</string>
+    <string name="backup_meta_keys">项目总数</string>
+    <string name="backup_empty_suffix"> (无)</string>
+    <string name="action_restore_selected">恢复所选数据</string>
+    <string name="optimization_title">设备优化</string>
+    <string name="privacy_card_title">离线优先</string>
+    <string name="privacy_card_desc">无需连接网络。</string>
+    <string name="title_0_3_1">备份 &amp; 多语言更新</string>
+    <string name="changelog_0_3_1">        <b>备份 &amp; 恢复 📦</b>\n
+        全新的高级功能！现在可以安全地将您的设置、屏蔽名单与 App 优先顺序导出为 .hbr 文件，并能随时进行恢复。\n\n
+        <b>新语言支持 🌍</b>\n
+        新增支持：\n
+        • 🇩🇪 德语\n
+        • 🇷🇺 俄语\n •
+        🇺🇦 乌克兰语（已优化）\n
+        <i>外加：全新的内置语言切换器，让您可以直接更改 App 语言而不影响系统设置。</i>\n\n
+        <b>视觉翻新 🎨</b>\n
+        App 已更新为 <b>Material 3 丰富表现</b>设计。享受更大的标题、更圆润的形状以及更流畅的使用体验。\n\n
+        <b>隐私 &amp; 设置 🛡️</b>\n
+        • 优化了初始设置流程，新增专属的隐私页面以详细说明"离线优先"的架构。\n
+        • 执行更严格的兼容性检查，确保在 澎湃OS 3.0 上拥有最佳体验。\n\n
+        <b>修复 🛠️</b>\n
+        • 修正了设备重启后设置丢失的重大问题（已迁移至数据库）。
+        \n • 修正了导航岛中的"退出"按钮显示为图标而非文字的问题。
+        \n • 修正了设置页面中 App 图标加载的问题。\n
     </string>
-
-    <string name="close">Close</string>
-    <string name="search">Search</string>
-    <string name="widget_updated_toast">Widget updated</string>
-    <string name="widget_settings_error">Cannot edit this widget settings</string>
-
-    <string name="widget_picker_title">Add Widget</string>
-    <string name="search_apps_placeholder">Search apps...</string>
+    <string name="close">关闭</string>
+    <string name="search">搜索</string>
+    <string name="widget_updated_toast">小工具已更新</string>
+    <string name="widget_settings_error">无法编辑此小工具设置</string>
+    <string name="widget_picker_title">添加小工具</string>
+    <string name="search_apps_placeholder">搜索应用程序……</string>
     <plurals name="widget_count_fmt">
-        <item quantity="many">%d widgets</item>
-        <item quantity="other">%d widgets</item>
-        <item quantity="one">%d widget</item>
+        <item quantity="other">%d 个小工具</item>
     </plurals>
-
-    <string name="widget_config_title">Configure Widget</string>
-    <string name="widget_settings_button">Widget Settings</string>
-
-    <string name="config_tab_appearance">Appearance</string>
-    <string name="config_tab_behavior">Behavior</string>
-
-    <string name="config_render_mode_label">Render Mode</string>
-    <string name="config_container_size_label">Container Size</string>
-
-    <string name="config_shade_title">Show in Shade</string>
-    <string name="config_shade_desc">Visible in notification panel</string>
-
-    <string name="config_timeout_title">Auto Close</string>
-    <string name="config_timeout_desc">Close island after delay</string>
+    <string name="widget_config_title">设置小工具</string>
+    <string name="widget_settings_button">小工具设置</string>
+    <string name="config_tab_appearance">外观</string>
+    <string name="config_tab_behavior">行为</string>
+    <string name="config_render_mode_label">渲染模式</string>
+    <string name="config_container_size_label">小工具尺寸</string>
+    <string name="config_shade_title">在通知栏中显示</string>
+    <string name="config_shade_desc">在通知面板中可见</string>
+    <string name="config_timeout_title">自动关闭</string>
+    <string name="config_timeout_desc">延迟后关闭灵动岛</string>
     <plurals name="config_timeout_fmt">
-        <item quantity="many">%d seconds</item>
-        <item quantity="other">%d seconds</item>
-        <item quantity="one">%d second</item>
+        <item quantity="other">%d 秒</item>
     </plurals>
-
-    <string name="config_refresh_title">Auto Refresh</string>
-    <string name="config_refresh_desc">Update snapshot periodically</string>
-¡    <plurals name="config_refresh_fmt">
-        <item quantity="many">Every %d minutes</item>
-    <item quantity="other">Every %d minutes</item>
-    <item quantity="one">Every minute</item>
+    <string name="config_refresh_title">自动刷新</string>
+    <string name="config_refresh_desc">定期更新快照</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="other">每 %d 分钟</item>
     </plurals>
-    <string name="config_refresh_warning">Higher frequency uses more battery.</string>
-
-    <string name="render_interactive_label">Interactive</string>
-    <string name="render_interactive_desc">Buttons work. Best for Music, Controls.</string>
-    <string name="render_snapshot_label">Snapshot</string>
-    <string name="render_snapshot_desc">Fixes empty lists. Best for Calendar, Gmail.</string>
-
-    <string name="size_original">Original</string>
-    <string name="size_small">Small (100dp)</string>
-    <string name="size_medium">Medium (180dp)</string>
-    <string name="size_large">Large (280dp)</string>
-    <string name="size_xlarge">Extra Large (380dp)</string>
-
-    <string name="app_uninstalled_badge">Uninstalled</string>
-    <string name="settings_action">Settings</string>
-
-    <string name="saved_widgets_title">Saved Widgets</string>
-    <string name="no_saved_widgets">No saved widgets found.</string>
-    <string name="widget_id_fmt">Widget #%d</string>
-    <string name="show_on_island">Show on Island</string>
-
-    <string name="theme_installer_analyzing">Analyzing theme package...</string>
-    <string name="theme_installer_success_title">Theme Ready</string>
-    <string name="theme_installer_author">Created by %s</string>
-    <string name="theme_installer_version">Version %d</string>
-    <string name="theme_installer_apply_question">Do you want to apply this theme to HyperBridge now?</string>
-    <string name="theme_installer_action_apply">Apply Theme</string>
-    <string name="theme_installer_action_later">Save for Later</string>
-    <string name="theme_installer_error_title">Import Failed</string>
-    <string name="theme_installer_error_generic">Could not verify the theme file.</string>
-    <string name="theme_installer_btn_close">Close</string>
-    <string name="theme_manager_title">My Themes</string>
-    <string name="theme_manager_cd_add">Add New Theme</string>
-
-    <string name="theme_card_author_format">by %s</string>
-    <string name="theme_card_cd_active">Active Theme</string>
-    <string name="theme_card_cd_delete">Delete Theme</string>
-
-    <string name="theme_system_default_title">System Default</string>
-    <string name="theme_system_default_desc">Standard Look</string>
-
-    <string name="theme_sheet_title">Add New Theme</string>
-
-    <string name="theme_sheet_action_create">Create New Theme</string>
-    <string name="theme_sheet_action_find">Search</string>
-    <string name="theme_action_import_short">Import</string>
-    <string name="theme_card_action_edit">Edit</string>
-    <string name="theme_card_action_export">Export</string>
-
-    <string name="creator_title_new">Create Theme</string>
-    <string name="creator_title_edit">Edit Theme</string>
-    <string name="creator_nav_colors">Colors</string>
-    <string name="creator_nav_icons">Icons &amp; Shapes</string>
-    <string name="creator_nav_calls">Call Style</string>
-    <string name="creator_nav_apps">App Config</string>
-    <string name="creator_action_save">Save</string>
-    <string name="creator_btn_edit_info">Edit Theme Info</string>
-    <string name="creator_sub_colors">Palettes &amp; contrast</string>
-    <string name="creator_sub_icons">Shape &amp; padding</string>
-    <string name="creator_sub_calls">Answer &amp; decline buttons</string>
-    <string name="creator_sub_apps">Per-app overrides</string>
-
-    <string name="meta_title">Theme Info</string>
-    <string name="meta_label_name">Theme Name</string>
-    <string name="meta_label_author">Author Name</string>
-    <string name="meta_action_done">Done</string>
-
-    <string name="colors_tab_presets">Presets</string>
-    <string name="colors_tab_custom">Custom</string>
-    <string name="colors_label_presets">Presets</string>
-    <string name="colors_label_use_app_colors">Use App Colors</string>
-    <string name="colors_desc_use_app_colors">Adapt colors from installed apps</string>
-    <string name="colors_label_custom_title">Custom Color</string>
-    <string name="colors_cd_add_custom">Add Custom Color</string>
-    <string name="colors_dialog_title">Pick a Color</string>
-    <string name="colors_action_done">Done</string>
-
-    <string name="icons_tab_style">Style</string>
-    <string name="icons_tab_assets">Icons</string>
-    <string name="icons_tab_shape">Shape</string>
-    <string name="icons_label_size">Icon Size</string>
-    <string name="icons_label_full">Full</string>
-    <string name="icons_label_minimal">Minimal</string>
-    <string name="icons_group_nav">Navigation</string>
-    <string name="icons_btn_start">Start</string>
-    <string name="icons_btn_end">End</string>
-    <string name="icons_group_progress">Progress</string>
-    <string name="icons_btn_success">Success</string>
-    <string name="icons_label_shape_title">Icon Shape</string>
-
-    <string name="shape_circle">Circle</string>
-    <string name="shape_square">Square</string>
-    <string name="shape_cookie">Cookie</string>
-    <string name="shape_arch">Arch</string>
-    <string name="shape_clover">Clover</string>
-
-    <string name="calls_label_answer">Answer</string>
-    <string name="calls_label_decline">Decline</string>
-
-    <string name="apps_empty">No apps configured</string>
-
-    <string name="design_hero_customization_title">Customization</string>
-    <string name="design_hero_customization_subtitle">Learn how to create themes</string>
-    <string name="design_hero_pro_title">Pro Features</string>
-    <string name="design_hero_pro_subtitle">Unlock more power</string>
-    <string name="design_hero_community_title">Community</string>
-    <string name="design_hero_community_subtitle">Join our GitHub</string>
-
-    <string name="design_section_themes">Themes</string>
-    <string name="design_section_widgets">Widgets</string>
-
-    <string name="design_browse_more">Browse More</string>
-    <string name="design_add_new">Add New</string>
-    <string name="design_add_design">Add Design</string>
-    <string name="design_add_to_island">Customization</string>
-    <string name="design_system_widget_beta">System Widget (Beta)</string>
-    <string name="design_get_themes">Get Themes</string>
-    <string name="design_empty_widget_title">Add your first Widget</string>
-    <string name="design">Design</string>
-
-    <string name="creator_nav_actions">Global Actions</string>
-    <string name="creator_sub_actions">Style buttons by keyword</string>
-    <string name="action_sheet_title">Configure Action</string>
-    <string name="action_label_keyword">Keyword (e.g. \'Reply\')</string>
-    <string name="action_label_bg_color">Background Color</string>
-    <string name="action_label_tint_color">Icon/Text Color</string>
-    <string name="action_preview">Live Preview</string>
-    <string name="action_mode_icon">Icon Only</string>
-    <string name="action_mode_text">Text</string>
-    <string name="action_mode_both">Both</string>
-    <string name="actions_empty_title">No Custom Actions</string>
-    <string name="actions_empty_desc">Add rules to style notification buttons based on their text (e.g., "Reply", "Archive").</string>
-    <string name="action_default_preview_text">Action</string>
-
-    <string name="actions_search_hint">Search actions...</string>
-    <string name="actions_search_empty_fmt">No actions found for "%1$s"</string>
-
-    <string name="action_wip_warning">This feature is a Work in Progress. Keyword matching depends on how apps structure their notifications and may not work for every app.</string>
-    <string name="creator_dialog_apply_title">Apply Theme?</string>
-    <string name="creator_dialog_apply_desc">Do you want to apply this theme now?</string>
-    <string name="creator_dialog_action_save_apply">Save &amp; Apply</string>
-    <string name="creator_dialog_action_save_only">Save Only</string>
-    <string name="select_icon">Select Icon</string>
-    <string name="change_icon">Change Icon</string>
-    <string name="action_add">Add App</string>
-    <string name="apps_sheet_select_title">Select App</string>
-    <string name="edit_app">Edit App</string>
-
-    <string name="creator_sub_colors_custom">Custom Color Set</string>
-    <string name="creator_sub_colors_default">Using Global Default</string>
-
-    <string name="creator_sub_icons_custom">Custom Shape Set</string>
-    <string name="creator_sub_icons_default">Using Global Default</string>
-    <string name="app_customization_desc">Add an app to customize its look specifically.</string>
-    <string name="discard">Discard</string>
-    <string name="unsaved_changes">Unsaved Changes</string>
-    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
-    <string name="share_theme">Share Theme</string>
-    <string name="my_theme">My Theme</string>
+    <string name="config_refresh_warning">更新频率越高越耗电。</string>
+    <string name="render_interactive_label">交互模式</string>
+    <string name="render_interactive_desc">按钮可操作。适用于音乐、控制台。</string>
+    <string name="render_snapshot_label">快照模式</string>
+    <string name="render_snapshot_desc">修复列表空白问题。适用于日历、Gmail。</string>
+    <string name="size_original">原始大小</string>
+    <string name="size_small">小 (100dp)</string>
+    <string name="size_medium">中 (180dp)</string>
+    <string name="size_large">大 (280dp)</string>
+    <string name="size_xlarge">特大 (380dp)</string>
+    <string name="app_uninstalled_badge">已卸载</string>
+    <string name="settings_action">设置</string>
+    <string name="saved_widgets_title">已保存的小工具</string>
+    <string name="no_saved_widgets">未发现已保存的小工具。</string>
+    <string name="widget_id_fmt">小工具 #%d</string>
+    <string name="show_on_island">显示于灵动岛</string>
+    <string name="theme_installer_analyzing">正在分析主题包……</string>
+    <string name="theme_installer_success_title">主题已就绪</string>
+    <string name="theme_installer_author">创建者：%s</string>
+    <string name="theme_installer_version">版本 %d</string>
+    <string name="theme_installer_apply_question">您现在要将此主题应用到 米灵 吗？</string>
+    <string name="theme_installer_action_apply">应用主题</string>
+    <string name="theme_installer_action_later">稍后保存</string>
+    <string name="theme_installer_error_title">导入失败</string>
+    <string name="theme_installer_error_generic">无法验证主题文件。</string>
+    <string name="theme_installer_btn_close">关闭</string>
+    <string name="theme_manager_title">我的主题</string>
+    <string name="theme_manager_cd_add">添加主题</string>
+    <string name="theme_card_author_format">作者：%s</string>
+    <string name="theme_card_cd_active">当前使用中的主题</string>
+    <string name="theme_card_cd_delete">删除主题</string>
+    <string name="theme_system_default_title">系统默认</string>
+    <string name="theme_system_default_desc">标准外观</string>
+    <string name="theme_sheet_title">添加主题</string>
+    <string name="theme_sheet_action_create">创建新主题</string>
+    <string name="theme_sheet_action_find">搜索</string>
+    <string name="theme_action_import_short">导入</string>
+    <string name="theme_card_action_edit">编辑</string>
+    <string name="theme_card_action_export">导出</string>
+    <string name="creator_title_new">创建主题</string>
+    <string name="creator_title_edit">编辑主题</string>
+    <string name="creator_nav_colors">颜色</string>
+    <string name="creator_nav_icons">图标 &amp; 形状</string>
+    <string name="creator_nav_calls">通话样式</string>
+    <string name="creator_nav_apps">应用程序配置</string>
+    <string name="creator_action_save">保存</string>
+    <string name="creator_btn_edit_info">编辑主题信息</string>
+    <string name="creator_sub_colors">调色板 &amp; 对比度</string>
+    <string name="creator_sub_icons">形状 &amp; 间距</string>
+    <string name="creator_sub_calls">接听 &amp; 拒接按钮</string>
+    <string name="creator_sub_apps">单独应用程序覆盖设置</string>
+    <string name="meta_title">主题信息</string>
+    <string name="meta_label_name">主题名称</string>
+    <string name="meta_label_author">作者姓名</string>
+    <string name="meta_action_done">完成</string>
+    <string name="colors_tab_presets">预设</string>
+    <string name="colors_tab_custom">自定义</string>
+    <string name="colors_label_presets">预设</string>
+    <string name="colors_label_use_app_colors">使用应用程序颜色</string>
+    <string name="colors_desc_use_app_colors">从已安装的应用程序中调整颜色</string>
+    <string name="colors_label_custom_title">自定义颜色</string>
+    <string name="colors_cd_add_custom">添加自定义颜色</string>
+    <string name="colors_dialog_title">挑选颜色</string>
+    <string name="colors_action_done">完成</string>
+    <string name="icons_tab_style">样式</string>
+    <string name="icons_tab_assets">图标</string>
+    <string name="icons_tab_shape">形状</string>
+    <string name="icons_label_size">图标大小</string>
+    <string name="icons_label_full">完整</string>
+    <string name="icons_label_minimal">极简</string>
+    <string name="icons_group_nav">导航</string>
+    <string name="icons_btn_start">开始</string>
+    <string name="icons_btn_end">结束</string>
+    <string name="icons_group_progress">进度</string>
+    <string name="icons_btn_success">成功</string>
+    <string name="icons_label_shape_title">图标形状</string>
+    <string name="shape_circle">圆形</string>
+    <string name="shape_square">正方形</string>
+    <string name="shape_cookie">饼干形</string>
+    <string name="shape_arch">拱形</string>
+    <string name="shape_clover">幸运草形</string>
+    <string name="calls_label_answer">接听</string>
+    <string name="calls_label_decline">拒绝</string>
+    <string name="apps_empty">尚未设置任何应用程序</string>
+    <string name="design_hero_customization_title">个性化设置</string>
+    <string name="design_hero_customization_subtitle">了解如何创建主题</string>
+    <string name="design_hero_pro_title">高级功能</string>
+    <string name="design_hero_pro_subtitle">解锁更多强大功能</string>
+    <string name="design_hero_community_title">社区</string>
+    <string name="design_hero_community_subtitle">加入我们的 GitHub</string>
+    <string name="design_section_themes">主题</string>
+    <string name="design_section_widgets">小工具</string>
+    <string name="design_browse_more">浏览更多</string>
+    <string name="design_add_new">添加</string>
+    <string name="design_add_design">添加设计</string>
+    <string name="design_add_to_island">个性化设置</string>
+    <string name="design_system_widget_beta">系统小工具 (Beta)</string>
+    <string name="design_get_themes">获取主题</string>
+    <string name="design_empty_widget_title">添加您的第一个小工具</string>
+    <string name="design">设计</string>
+    <string name="creator_nav_actions">默认动作</string>
+    <string name="creator_sub_actions">按关键词设置按钮样式</string>
+    <string name="action_sheet_title">设置动作</string>
+    <string name="action_label_keyword">关键词（例如：「回复」）</string>
+    <string name="action_label_bg_color">背景颜色</string>
+    <string name="action_label_tint_color">图标 / 文字颜色</string>
+    <string name="action_preview">实时预览</string>
+    <string name="action_mode_icon">仅图标</string>
+    <string name="action_mode_text">文字</string>
+    <string name="action_mode_both">两者</string>
+    <string name="actions_empty_title">尚无自定义动作</string>
+    <string name="actions_empty_desc">添加规则，根据通知按钮的文字（例如：「回复」、「归档」）来设置其样式。</string>
+    <string name="action_default_preview_text">动作</string>
+    <string name="actions_search_hint">搜索动作……</string>
+    <string name="actions_search_empty_fmt">找不到与"%1$s"相关的动作</string>
+    <string name="action_wip_warning">此功能仍在开发中。关键词匹配取决于应用程序如何构建通知结构，因此可能无法支持所有应用程序。</string>
+    <string name="creator_dialog_apply_title">应用主题？</string>
+    <string name="creator_dialog_apply_desc">您现在要应用此主题吗？</string>
+    <string name="creator_dialog_action_save_apply">保存 &amp; 应用</string>
+    <string name="creator_dialog_action_save_only">仅保存</string>
+    <string name="select_icon">选择图标</string>
+    <string name="change_icon">更改图标</string>
+    <string name="action_add">添加应用程序</string>
+    <string name="apps_sheet_select_title">选择应用程序</string>
+    <string name="edit_app">编辑应用程序</string>
+    <string name="creator_sub_colors_custom">已设置自定义颜色</string>
+    <string name="creator_sub_colors_default">使用默认值</string>
+    <string name="creator_sub_icons_custom">已设置自定义形状</string>
+    <string name="creator_sub_icons_default">应用默认设置</string>
+    <string name="app_customization_desc">添加应用程序以进行单独的外观自定义。</string>
+    <string name="discard">放弃</string>
+    <string name="unsaved_changes">未保存的更改</string>
+    <string name="unsaved_changes_desc">您有尚未保存的更改。在退出前要先保存吗？</string>
+    <string name="share_theme">分享主题</string>
+    <string name="my_theme">我的主题</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d custom action</item>
-        <item quantity="other">%1$d custom actions</item>
-        <item quantity="many">%1$d custom actions</item>
-
+        <item quantity="other">%1$d 个自定义动作</item>
     </plurals>
+    <string name="title_0_4_0">自定义更新</string>
+    <string name="changelog_0_4_0">        <b>主题引擎 🎨</b>\n
+        史上最大更新！现在你可以完整自定义 Dynamic Island 的视觉体验。\n
+        • <b>主题创建器： </b>直接在手机上设计主题，并实时预览。\n
+        • <b>精细控制： </b>自定义图标显示方式、来电通知的颜色与形状，并为单独 App 设置覆盖选项。\n
+        • <b>智能配色： </b>自动从 App 图标提取鲜明品牌色。\n
+        • <b>动作级自定义 (Beta)：</b> 微调特定通知动作的外观。\n
+        • <b>分享： </b>将主题导出或导入为 <i>.hbr</i> 包。\n\n
 
-    <string name="title_0_4_0">The Customization Update</string>
-    <string name="changelog_0_4_0">
-        <b>Theme Engine 🎨</b>\n
-        The biggest update yet! You can now fully customize the Dynamic Island visual experience.\n
-        • <b>Theme Creator:</b> Design themes directly on your phone with real-time previews.\n
-        • <b>Granular Control:</b> Choose exactly how icons are shown, customize call notification colors and shapes, and configure individual app overrides.\n
-        • <b>Smart Colors:</b> Automatically extract vibrant brand colors from app icons.\n
-        • <b>Per-Action Customization (Beta):</b> Fine-tune the look of specific notification actions.\n
-        • <b>Sharing:</b> Export and import themes as portable <i>.hbr</i> packages.\n\n
+<b>小工具支持 🧩</b>\n
+        将标准 Android 小工具固定到灵动岛，快速访问——即使在 <b>锁屏</b> 也能使用！\n
+        • 可选 交互模式 <b>Interactive</b> 提升速度，或 快照模式 <b>Snapshot</b> 节省电量。\n\n
 
-        <b>Widget Support 🧩</b>\n
-        Pin standard Android widgets to the island for quick access—even on your <b>Lockscreen</b>!\n
-        • Choose between <b>Interactive</b> mode for speed or <b>Snapshot</b> mode for battery efficiency.\n\n
+        <b>通知引擎 2.0 ⚡</b>\n
+        核心逻辑全面重写，提升稳定性：\n
+        • <b>更智能的解析： </b>修正通知只显示包名（如 com.whatsapp）而非消息内容的问题。\n
+        • <b>防闪烁： </b>新增内容哈希机制，避免重复更新与画面卡顿。\n
+        • <b>幽灵通知修正： </b>解决通知消失后 Island 遗留的 race condition 问题。\n\n
 
-        <b>Notification Engine 2.0 ⚡</b>\n
-        A complete rewrite of the core logic for better stability:\n
-        • <b>Smarter Parsing:</b> Fixed issues where notifications showed package names (e.g., com.whatsapp) instead of message content.\n
-        • <b>Anti-Flicker:</b> New content hashing prevents redundant updates and stuttering.\n
-        • <b>Ghost Fixes:</b> Solved race conditions where islands lingered after dismissal.\n\n
+<b>视觉更新 ✨</b>\n
+        • 重新设计"设计"标签页，使用流畅且原生感的旋转木马界面。\n
+        • 新增"文字胶囊"按钮，让通知动作更清楚。\n
+        • 新增对 🇮🇩 印尼语与 🇹🇷 土耳其语的支持。\n\n
 
-        <b>Visual Refresh ✨</b>\n
-        • Redesigned "Design" tab with fluid, native-feeling carousels.\n
-        • New "Text Pill" buttons for clearer notification actions.\n
-        • Added support for 🇮🇩 Indonesian and 🇹🇷 Turkish.\n\n
-
-        <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
+        <i>备注：本次版本包含重大架构调整，如发现任何问题，请至 GitHub 反馈！</i>
     </string>
-    <string name="title_0_4_2">Hotfix Update</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
-        •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
+    <string name="title_0_4_2">修补更新</string>
+    <string name="changelog_0_4_2">        •&lt;/b&gt;崩溃修复：&lt;/b&gt;修正了在繁体中文环境下，打开设置菜单会导致应用闪退的严重问题。\n
+        •&lt;b&gt;底层优化：&lt;/b&gt; 一般错误的修复与稳定性提升，确保您的灵动岛顺畅运行。
     </string>
-
-    <string name="colors_label_hue">Hue</string>
-    <string name="colors_label_saturation">Saturation</string>
-    <string name="colors_label_lightness">Lightness</string>
-    <string name="colors_label_dynamic_modes">Dynamic Colors</string>
-    <string name="colors_label_material_you">Material You (System)</string>
-    <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
-
-    <string name="kill_all_widgets">Kill Active Widgets</string>
-    <string name="permission_reminder_title">Update Notice</string>
-    <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
-    <string name="got_it">Got it</string>
-
-    <string name="recommended">Recommended</string>
-    <string name="all">All</string>
-    <string name="favorites">Favorites</string>
-
-    <string name="channel_live_updates">Native Live Updates</string>
-
-    <string name="engine_preview_title">Preview</string>
-    <string name="engine_design_section">Notification Design</string>
-    <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
-    <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
-    <string name="engine_native_title">Live Update Design</string>
-    <string name="engine_native_desc">Native android notification designs, works on CN ROM.</string>
-
-    <string name="engine_config_title">Engine Configuration</string>
-    <string name="engine_section_design">Notification Design</string>
-    <string name="good_to_know">Good to know</string>
-    <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
-    <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
-    <string name="island_behavior_title">Island Behavior</string>
-    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
-    <string name="engine">Engine</string>
-    <string name="engine_desc">Live Updates vs Xiaomi Island</string>
-    
-    <string name="dnd_mode_title">Do Not Disturb</string>
-    <string name="dnd_mode_desc">Manage island visibility during DND</string>
-    <string name="dnd_manual_toggle">Pause Islands</string>
-    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
-    <string name="dnd_auto_detect">Auto-detect System DND</string>
-    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
-    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
-    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
-    <string name="global_behavior">Global Behavior</string>
-    <string name="auto_hide_island">Auto-hide Island</string>
-    <string name="hides_after_a_set_time">Hides after a set time</string>
-    <string name="behavior_hide_desc">Visible until manually dismissed</string>
-    <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
-    <string name="active_triggers">Active Triggers</string>
-    <string name="active_triggers_global_desc">Select which global events trigger the island</string>
-    <string name="type_standard_desc">General alerts and notifications</string>
-    <string name="type_message_desc">Messages, chats, and conversations</string>
-    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
-    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
-    <string name="type_media_desc">Music and video playback controls</string>
-    <string name="type_nav_desc">Turn-by-turn directions and ETA</string>
-    <string name="type_call_desc">Incoming and ongoing phone calls</string>
-    <string name="type_timer_desc">Active timers and stopwatches</string>
-    <string name="select_triggered_events">Select triggered events</string>
-    <string name="override_global_triggers">Override Global Triggers</string>
-    <string name="override_global_trigger_desc">Set custom allowed notifications for this app</string>
-    <string name="trigger_override">Trigger Override</string>
-    <string name="trigger_app_desc">Select which events trigger the island for this app.</string>
-    <string name="enable_triggers">Enable specific triggers</string>
-    <string name="open_source_licenses">Open Source Licenses</string>
-    <string name="remove_original_notification">Remove original notification</string>
-    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
-    <string name="dismiss_with_original">Dismiss with original</string>
-    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
-    <string name="enable_inline_reply">Enable inline reply</string>
-    <string name="enable_inline_reply_desc">Launch the custom inline reply overlay when replying from the island.</string>
-    <string name="remove_original_notification_hidden_warning">Note: When enabled, Hyper Bridge cannot respond or mark messages as read. Reply and Mark as Read actions will be hidden.</string>
-    
-    <string name="color_mode">Color Mode</string>
-    <string name="color_mode_select">Select Color Mode</string>
-    <string name="color_mode_change_cd">Change color mode</string>
-    <string name="color_mode_default">Default</string>
-    <string name="color_mode_default_desc">Use default standard colors</string>
-    <string name="color_mode_app">App Colors</string>
-    <string name="color_mode_app_desc">Extract colors from the app icon</string>
+    <string name="colors_label_hue">色调</string>
+    <string name="colors_label_saturation">饱和度</string>
+    <string name="colors_label_lightness">亮度</string>
+    <string name="colors_label_dynamic_modes">灵动岛颜色</string>
+    <string name="colors_label_material_you">Material You (系统初始设置)</string>
+    <string name="colors_desc_material_you">从当前壁纸中提取颜色。</string>
+    <string name="kill_all_widgets">停止运行中的小工具</string>
+    <string name="permission_reminder_title">更新通知</string>
+    <string name="permission_reminder_desc">H米灵 已更新！请确保您的自启动和后台运行权限未被系统移除，以确保您的小工具正常运行。</string>
+    <string name="got_it">明白了</string>
+    <string name="recommended">建议</string>
+    <string name="all">全部</string>
+    <string name="favorites">我的收藏</string>
+    <string name="channel_live_updates">原生实时更新</string>
+    <string name="engine_preview_title">预览</string>
+    <string name="engine_design_section">通知设计</string>
+    <string name="engine_xiaomi_title">小米特色设计</string>
+    <string name="engine_xiaomi_desc">现代 澎湃OS 界面，采用小米的设计理念。</string>
+    <string name="engine_native_title">实时更新设计</string>
+    <string name="engine_native_desc">原生安卓通知设计。</string>
+    <string name="engine_config_title">保存配置</string>
+    <string name="engine_section_design">通知设计</string>
+    <string name="good_to_know">太好了</string>
+    <string name="nav_layout_info">• 导航布局会在即将推出的更新中完全整合到主题引擎中。 \n• 使用原生实时更新引擎时，仅右侧内容可见。</string>
+    <string name="xiaomi_featured_notifications">小米特色通知</string>
+    <string name="island_behavior_title">灵动岛行为</string>
+    <string name="island_behavior_desc"><![CDATA[超时、重复项及可见性]]></string>
+    <string name="engine">引擎</string>
+    <string name="engine_desc">原生实时更新 vs. 小米灵动岛</string>
+    <string name="dnd_mode_title">勿扰模式</string>
+    <string name="dnd_mode_desc">在勿扰模式中选择启用灵动岛</string>
+    <string name="dnd_manual_toggle">暂停灵动岛</string>
+    <string name="dnd_manual_toggle_desc">手动暂停所有灵动岛，直到您重新开启此功能</string>
+    <string name="dnd_auto_detect">自动检测勿扰模式</string>
+    <string name="dnd_auto_detect_desc">当您的手机处于勿扰模式时，自动暂停小米灵动岛功能</string>
+    <string name="behaviour_triggers"><![CDATA[行为 & 触发]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[引擎、超时及触发]]></string>
+    <string name="global_behavior">默认行为</string>
+    <string name="auto_hide_island">自动隐藏灵动岛</string>
+    <string name="hides_after_a_set_time">在特定的时间后隐藏</string>
+    <string name="behavior_hide_desc">手动关闭前一直可见</string>
+    <string name="behavior_desc_hide_long">决定灵动岛在屏幕上停留的时间，之后会自动消失。</string>
+    <string name="active_triggers">运行中的程序通知</string>
+    <string name="active_triggers_global_desc">选择哪一个全局条件来触发灵动岛</string>
+    <string name="type_standard_desc">默认的消息、邮件及闹钟</string>
+    <string name="type_message_desc">消息、聊天和对话</string>
+    <string name="type_progress_desc">正在进行的任务、渲染和操作</string>
+    <string name="type_download_desc">下载、上传及正在进行的任务</string>
+    <string name="type_media_desc">音乐及视频的播放控制</string>
+    <string name="type_nav_desc">逐向导航和预计到达时间</string>
+    <string name="type_call_desc">来电与通话</string>
+    <string name="type_timer_desc">运行中的计时器和秒表</string>
+    <string name="select_triggered_events">选择触发条件</string>
+    <string name="override_global_triggers">覆盖默认触发器</string>
+    <string name="override_global_trigger_desc">为此应用程序设自定义允许的通知</string>
+    <string name="trigger_override">覆盖触发器</string>
+    <string name="trigger_app_desc">为应用程序选择一个条件触发器上灵动岛。</string>
+    <string name="enable_triggers">启用特定的触发器</string>
+    <string name="open_source_licenses">开放源代码许可</string>
+    <string name="remove_original_notification">移除默认通知</string>
+    <string name="remove_original_notification_desc">当实时更新处于启用状态时，自动关闭通知来源。</string>
+    <string name="dismiss_with_original">不使用默认</string>
+    <string name="dismiss_with_original_desc">灵动岛通知会在您删除通知栏通知后消失。</string>
+    <string name="enable_inline_reply">启用岛内回复</string>
+    <string name="enable_inline_reply_desc">从灵动岛回复时，启动自定义的回复来回复。</string>
+    <string name="remove_original_notification_hidden_warning">注意：启用此功能后，米灵 将无法回复或将消息标记为已读。"回复"和"标记为已读"操作将被隐藏。</string>
+    <string name="color_mode">颜色模式</string>
+    <string name="color_mode_select">选取颜色模式</string>
+    <string name="color_mode_change_cd">更改颜色模式</string>
+    <string name="color_mode_default">默认</string>
+    <string name="color_mode_default_desc">使用默认颜色</string>
+    <string name="color_mode_app">应用程序颜色</string>
+    <string name="color_mode_app_desc">从应用程序图标中提取颜色</string>
     <string name="color_mode_material">Material You</string>
-    <string name="color_mode_material_desc">Match the system wallpaper (Monet)</string>
-    <string name="color_mode_custom">Custom Colors</string>
-    <string name="color_mode_custom_desc">Manually choose your own colors</string>
-    
-    <string name="reply_textfield_color">Textfield Color</string>
-    <string name="reply_textfield_color_desc">Inner text box background</string>
-    <string name="reply_text_color">Text Color</string>
-    <string name="reply_text_color_desc">Reply text color</string>
-    <string name="reply_send_color">Send Button Color</string>
-    <string name="reply_send_color_desc">Send icon color</string>
-    
-    <string name="reply_appearance">Appearance</string>
-    <string name="reply_blur_effect">Blur Effect</string>
-    <string name="reply_blur_effect_desc">Apply glassmorphism to textfield</string>
-    <string name="reply_textfield_radius">Textfield Corner Radius</string>
-    <string name="reply_send_radius">Send Button Corner Radius</string>
-    
-    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
-    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
-    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
-    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
-    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
-    <string name="widget_layout_snapshot">Preview of the widget</string>
-
+    <string name="color_mode_material_desc">选择与系统壁纸相符的壁纸（Monet）</string>
+    <string name="color_mode_custom">自定义颜色</string>
+    <string name="color_mode_custom_desc">手动选择颜色</string>
+    <string name="reply_textfield_color">文本框颜色</string>
+    <string name="reply_textfield_color_desc">内部文本框背景</string>
+    <string name="reply_text_color">文字颜色</string>
+    <string name="reply_text_color_desc">回复文字颜色</string>
+    <string name="reply_send_color">发送按钮颜色</string>
+    <string name="reply_send_color_desc">发送图标颜色</string>
+    <string name="reply_appearance">外观</string>
+    <string name="reply_blur_effect">模糊效果</string>
+    <string name="reply_blur_effect_desc">对文本框使用毛玻璃效果</string>
+    <string name="reply_textfield_radius">文本框圆角半径</string>
+    <string name="reply_send_radius">发送按钮圆角半径</string>
+    <string name="onboarding_can_be_changed">您稍后可以在"设置"和"主题配置器"中更改这些选项。</string>
+    <string name="onboarding_widget_desc">在您的灵动岛上添加 Android 小工具，以便快速访问。</string>
+    <string name="onboard_theme_desc">完全自定义灵动岛的颜色、形状和图标。</string>
+    <string name="onboard_design_desc">利用不同的自定义选项拓展可能性</string>
+    <string name="behavior_desc_glob_config">决定灵动岛的呈现方式。</string>
+    <string name="widget_layout_snapshot">预览小工具</string>
     <string name="changelog_0_5_5">
-        <b>Live Updates &amp; Islands</b>\n
-              • <b>Icons:</b> Fixed an issue where the original app icon wouldn\'t display properly on Android 16 Live Updates.\n
-              • <b>Inline Replies:</b> You can now use inline replies directly from Live Update notifications.\n
-              • <b>Island Removal:</b> Fixed an issue where islands were not being properly removed when dismissed.\n\n
-        <b>Messaging Grouping Overhaul</b>\n
-              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
-        <b>Fixes &amp; Stability</b>\n
-              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
-              • <b>Defaults:</b> Disabled "Show in shade" by default on the onboarding screen.\n
-              • <b>Localization:</b> Resolved broken characters in translated strings.\n
+        <b>实时更新 &amp; 灵动岛</b>\n
+              • <b>图标：</b> 修复了 Android 16 实时更新上原始应用图标无法正确显示的问题。\n
+              • <b>岛内回复：</b> 您现在可以直接从实时更新通知中使用岛内回复。\n
+              • <b>灵动岛移除：</b> 修复了关闭时灵动岛无法正确移除的问题。\n\n
+        <b>消息分组重构</b>\n
+              • <b>去重：</b> 完全重新设计了消息类通知（如 WhatsApp）的分组方式，以防止重复的灵动岛。\n\n
+        <b>修复 &amp; 稳定性</b>\n
+              • <b>更新迁移：</b> 修复了更新应用时无法触发正确的数据库迁移逻辑的关键错误。\n
+              • <b>默认值：</b> 在引导屏幕上默认禁用了"在通知栏中显示"。\n
+              • <b>本地化：</b> 解决了翻译字符串中的字符损坏问题。\n
     </string>
-    <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
+    <string name="title_0_5_5">消息 &amp; 更新修复</string>
 
-    <string name="changelog_0_5_2">
-        <b>New Inline Reply Feature!</b>\n
-              • <b>Inline Reply:</b> You can now reply to messages directly from the island without opening the app!\n
-              • <b>Customization:</b> Fully customize the look of the new inline reply editor globally or per-app.\n
-              • <b>Global Settings:</b> Access the new Reply customization section directly from the Global Settings -> Inline reply.\n
-        \n
-        <b>Play Store Crash Fixes &amp; Stability</b>\n
-              • <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
-              • <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
-              • <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
-              • <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
-              • <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
-              • <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
-              • <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
+    <string name="changelog_0_5_2">        <b>Play Store 崩溃修复 &amp; 稳定性</b>\n
+              ? <b>主题创建器：</b> 修复了解析大型自定义资源集时的崩溃问题。\n
+              ? <b>性能：</b> 解决了初始欢迎屏幕上的 ANR（应用无响应）问题。\n
+              ? <b>小工具选择器：</b> 消除了由超大小工具预览导致的崩溃和内存溢出（OOM）错误。\n
+              ? <b>UI 布局：</b> 修复了调整某些菜单大小时导致应用崩溃的 Jetpack Compose 布局约束异常。\n
+              ? <b>备份：</b> 通过优化 JSON 解析解决了导入大型备份文件时的 OOM 错误。\n
+              ? <b>热启动：</b> 显著提升了应用启动速度，并消除了中端设备上的 UI 线程阻塞。\n
+              ? <b>后台服务：</b> 全面重构了通知监听器的内存架构，将后台开销降至 0%，并改善了电池续航。\n
     </string>
-    <string name="title_0_5_2">Inline Reply, Performance &amp; Stability</string>
-
-    <string name="changelog_0_5_1">
-        <b>Fixes &amp; Stability</b>\n
-              WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
-              Notification Flicker &amp; Crashes Fixed: Fixed a crash caused by receiving multiple notifications in a short timeframe. The app now safely updates notifications normally, eliminating the notification flicker and improving stability.\n
-              Notification Intents Restored: Fixed an issue where clicking a featured notification would incorrectly route to the troubleshooting screen instead of the original app.\n\n
-        <b>Features &amp; Polish</b>\n
-              Remove Island on Dismiss: Added a new option to automatically remove the island if the original system notification is dismissed.\n
-              Featured Notifications Diagnostics: Added a new check screen during Onboarding to verify if your Xiaomi device supports Featured Notifications and if the required permissions are enabled.\n
-              Setup Health Integration: The Featured Notifications permission status is now continuously monitored and displayed inside the Setup Health screen.\n
-              Troubleshooting Screen: Added a dedicated Troubleshooting Screen that guides users on how to enable the necessary hidden system permissions (or use Shizuku) to get islands working on strict Xiaomi ROMs.\n
-              Clearer Terminology: Renamed the "Live Updates" section in the settings menu to "Notification Management" to better reflect its purpose.\n
-              Settings UI Polish: Restored the missing rounded corners on the "Permanent Island" option in the Global Settings list.\n
-              Spanish Translations: Added full Spanish translations for all the new troubleshooting dialogues, setup health checks, and notification management settings.
-    </string>
-    <string name="title_0_5_1">Fixes &amp; Refinements</string>
-
-    <string name="changelog_0_5_0">
-        <b>CN ROM Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
-        <b>Theme Engine Improvements</b>\n
-            • Engine Selection: You can now choose animation engines per-app or globally.\n
-            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
-            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
-        <b>Intelligent Permanent Island</b>\n
-            • Always Visible: Keep the island on screen even without active notifications.\n
-            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
-        <b>Smart Icon Tinting</b>\n
-            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. "12%") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Messaging Fixes</b>\n
-            • Fixed missing sender avatars in apps like Telegram (now correctly extracts "sender_person" data).\n
-            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
-            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>System &amp; Onboarding</b>\n
-            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
-            • Boot Fix: Service now starts immediately and reliably after restart.\n
-            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Navigation: Faster and smoother app transitions.
-    </string>
-    <string name="title_0_5_0">The Live Update</string>
-    <string name="notification_went_wrong">If you are seeing this, something went wrong! Click here to see how to fix it.</string>
-    <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
-    <string name="troubleshoot_featured_notification">Troubleshoot</string>
-
-    <string name="featured_notifications_check">Featured Notifications Check</string>
-    <string name="featured_notifications_check_desc">Let\'s verify if your system is configured correctly to display HyperBridge islands.</string>
-    <string name="featured_notifications_not_supported">Not Supported</string>
-    <string name="featured_notifications_enabled">Enabled</string>
-    <string name="featured_notifications_open_settings">Open System Settings</string>
-    <string name="featured_notifications_troubleshoot_title">Why is this not an island?</string>
-    <string name="featured_notifications_troubleshoot_desc">Your Xiaomi device intercepted the notification but failed to display it as a featured island because the permission is disabled in your system settings.\n\nTo fix this:\n1. Tap "Open System Settings"\n2. Scroll down to "Featured Notifications" (or similar)\n3. Enable it for HyperBridge.</string>
-    <string name="featured_notifications_shizuku_alternative">Alternative: Shizuku Override</string>
-    <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. HyperBridge will use Shizuku to post islands directly.</string>
-
-    <string name="migration_title">HyperBridge Update</string>
-    <string name="migration_message">Migrating database to Device Protected storage…</string>
-    <string name="migration_complete">Update Complete</string>
-
-    <string name="notification_management">Notification Management</string>
-    <string name="inline_reply_title">Inline Reply</string>
-    <string name="customize_inline_reply">Customize inline reply overlay</string>
-    <string name="reply_hint">Reply...</string>
-
-    <string name="perm_display_title">Display over other apps</string>
-    <string name="perm_display_onboard_desc">Required to show the custom inline reply overlay.</string>
+    <string name="title_0_5_2">性能 &amp; 稳定性更新</string>
+    <string name="changelog_0_5_1"><b>修复 &amp; 稳定</b>\n
+              WhatsApp 重复通知修复：解决了 WhatsApp 通知重复出现的问题。 \n
+              通知闪烁 &amp; 崩溃修复：修复了短时间内收到多个通知导致的崩溃问题。应用程序现在可以安全地正常更新通知，消除了通知闪烁并提高了稳定性。 \n
+              通知 Intent 恢复：修正了点击精选通知时会错误地跳到故障排除画面而不是原始应用程序的问题。 \n\n
+              <b>功能 &amp; 优化</b>\n
+              关闭通知时移除灵动岛通知：新增选项，当系统通知关闭时，灵动岛通知将自动移除。 \n
+              精选通知诊断：在引导过程中新增检查界面，用于验证您的小米设备是否支持精选通知以及是否已启用所需权限。 \n
+              设置健康整合：精选通知的权限状态现在会持续监控并显示在设置健康界面中。 \n
+              故障排除界面：新增专门的故障排除界面，引导用户启用必要的隐藏系统权限（或使用 Shizuku），以使灵动岛通知在严格的小米 ROM 上正常运行。 \n
+              更清晰的术语：将设置菜单中的"实时更新"部分重新命名为"通知管理"，以更好地体现其用途。 \n
+              设置界面优化：恢复了默认设置列表中"永久通知岛"选项的圆角效果。 \n
+              西班牙语翻译：为所有新增的故障排除对话框、设置健康检查和通知管理设置新增了完整的西班牙语翻译    </string>
+    <string name="title_0_5_1">修复 &amp; 改进</string>
+    <string name="changelog_0_5_0">        <b> 中国版 ROM 支持 </b>\n
+        • 启用新的 Sui &amp; Shizuku 变通方案，即可在运行 澎湃OS 中国版 ROM 且不支持原生功能的设备上体验小米灵动岛。 \n\n
+        <b>主题引擎改善</b>\n
+        • 引擎选择：现在您可以为每个应用程序或默认选择动画引擎。 \n
+        • Shizuku 变通方案：已将切换开关直接新增至主题编辑器的引擎标签。 \n
+        • 行为控制：现在完全支持自定义超时和弹出逻辑。 \n\n
+        <b>智能永久岛</b>\n
+        • 随时可见：即使没有活动通知，灵动岛也会保持在屏幕上。 \n
+        • 自动隐藏：现在，当屏幕上显示小工具时，永久岛会自动隐藏。 \n\n
+        <b>智能图标着色</b>\n
+        • 新的检测系统会自动分析提取通知图标，如果图标是深色或单色的，则会智能地将其着色为白色。 \n\n
+        <b>下载 &amp; 进度</b>\n
+        • 全新专用下载布局：独立的下载和进度布局，采用专属视觉设计。 \n
+        • 文字进度支持：即使没有原生进度条，也能解析应用更新的百分比文字（例如"12%"）。 \n
+        • 智能过滤：限制基于文字的进度检查，仅用于商店和安装程序下载，以防止误触其他状态通知。 \n\n
+    <b>消息修复</b>\n
+        • 修正了 Telegram 等应用程序中缺少发送者头像的问题（现在可以正确提取"sender_person"数据）。 \n
+        • 解决了分组通知（聊天摘要）无法触发灵动岛的问题。 \n
+        • 修正了通知更新竞争条件所导致的灵动岛消失错误。 \n\n
+<b>系统 &amp; 引导流程</b>\n
+        • 全新引导界面：关键权限的设置流程更方便。 \n
+        • 启动修复：服务现在在重新启动后能够立即可靠地启动。 \n
+        • 更智能的提醒：下载和媒体更新将静默进行，而消息更新则会可靠地触发弹出动画。 \n
+        • 导航：应用程序切换更加流畅快速    </string>
+    <string name="title_0_5_0">实时更新</string>
+    <string name="notification_went_wrong">如果您看到此消息，说明出现错误！</string>
+    <string name="widget_went_wrong">如果您看到此消息，表示出错了！系统无法显示该小工具</string>
+    <string name="troubleshoot_featured_notification">故障排除</string>
+    <string name="featured_notifications_check">精选通知检查</string>
+    <string name="featured_notifications_check_desc">让我们验证一下您的系统是否已正确配置以显示 米灵 灵动岛。</string>
+    <string name="featured_notifications_not_supported">不支持</string>
+    <string name="featured_notifications_enabled">启用</string>
+    <string name="featured_notifications_open_settings">打开系统设置</string>
+    <string name="featured_notifications_troubleshoot_title">为什么没有灵动岛？</string>
+    <string name="featured_notifications_troubleshoot_desc">您的小米设备拦截了通知，但由于系统设置中权限已禁用，因此无法将其显示为精选通知。 \n\n要解决此问题：\n1. 点击"打开系统设置"\n2. 向下滚动至"精选通知"（或类似选项）\n3. 为 米灵 启用此权限。</string>
+    <string name="featured_notifications_shizuku_alternative">替代方案：Shizuku 方案</string>
+    <string name="featured_notifications_shizuku_desc">如果您的系统未显示此设置或该设置受到限制，您可以通过设置 Shizuku 来完全绕过小米白名单。米灵 将使用 Shizuku 直接发布灵动岛通知。</string>
+    <string name="migration_title">米灵 更新</string>
+    <string name="migration_message">正在将数据库迁移到设备保护存储……</string>
+    <string name="migration_complete">更新完成</string>
+    <string name="notification_management">通知管理</string>
+    <string name="inline_reply_title">岛内回复</string>
+    <string name="customize_inline_reply">自定义岛内回复覆盖</string>
+    <string name="reply_hint">回复……</string>
+    <string name="perm_display_title">显示在其他应用程序上</string>
+    <string name="perm_display_onboard_desc">需要显示自定义岛内回复覆盖。</string>
 </resources>

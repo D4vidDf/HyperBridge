@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
-import com.d4viddf.hyperbridge.ui.components.ChangelogSheet
 import com.d4viddf.hyperbridge.ui.navigation.Navigator
 import com.d4viddf.hyperbridge.ui.navigation.Screen
 import com.d4viddf.hyperbridge.ui.navigation.mainNavGraph
@@ -122,10 +121,7 @@ private fun MainNavigationContent(
     onExit: () -> Unit
 ) {
     val isInitiallySetup = remember { isSetupComplete }
-    val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = -1)
 
-    var showChangelog by remember { mutableStateOf(false) }
-    
     // Check for Troubleshoot Intent
     val activity = context as? AppCompatActivity
     val shouldOpenTroubleshoot = activity?.intent?.getBooleanExtra("open_troubleshoot", false) ?: false
@@ -139,14 +135,6 @@ private fun MainNavigationContent(
         topLevelRoutes = allPossibleTopLevel
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
-
-    LaunchedEffect(isSetupComplete, lastSeenVersion) {
-        if (isSetupComplete && isInitiallySetup && lastSeenVersion != -1) {
-            if (currentVersionCode > lastSeenVersion) {
-                showChangelog = true
-            }
-        }
-    }
 
     val entryProvider = mainNavGraph(
         context = context,
@@ -208,19 +196,6 @@ private fun MainNavigationContent(
             .fillMaxSize()
             .clip(RoundedCornerShape(32.dp))
     )
-
-    if (showChangelog) {
-        ChangelogSheet(
-            currentVersionName = currentVersionName,
-            changelogText = stringResource(R.string.changelog_0_5_5),
-            onDismiss = {
-                showChangelog = false
-                scope.launch {
-                    preferences.setLastSeenVersion(currentVersionCode)
-                }
-            }
-        )
-    }
 
     if (showTroubleshootDialog) {
         androidx.compose.material3.AlertDialog(

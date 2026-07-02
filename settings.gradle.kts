@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Hyper Bridge"
+rootProject.name = "米灵"
 include(":app")
  

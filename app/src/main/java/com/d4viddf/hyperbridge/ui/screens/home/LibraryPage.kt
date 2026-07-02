@@ -1,9 +1,11 @@
 package com.d4viddf.hyperbridge.ui.screens.home
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -95,6 +97,26 @@ fun LibraryPage(
                 sortOption = sortOption,
                 onSortChange = { viewModel.librarySort.value = it }
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                androidx.compose.material3.FilledTonalButton(
+                    onClick = { viewModel.toggleAllApps(true) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.enable_all))
+                }
+                androidx.compose.material3.FilledTonalButton(
+                    onClick = { viewModel.toggleAllApps(false) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.disable_all))
+                }
+            }
 
             Box(
                 modifier = Modifier
