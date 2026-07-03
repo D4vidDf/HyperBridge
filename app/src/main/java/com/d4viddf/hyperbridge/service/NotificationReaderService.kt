@@ -1039,10 +1039,10 @@ class NotificationReaderService : NotificationListenerService() {
         }
         manager.createNotificationChannel(notifChannel)
 
-        val widgetChannel = NotificationChannel(WIDGET_CHANNEL_ID, "Widgets Overlay", NotificationManager.IMPORTANCE_LOW).apply {
-            setSound(null, null); enableVibration(false); setShowBadge(false)
-        }
-        manager.createNotificationChannel(widgetChannel)
+//        val widgetChannel = NotificationChannel(WIDGET_CHANNEL_ID, "Widgets Overlay", NotificationManager.IMPORTANCE_LOW).apply {
+//            setSound(null, null); enableVibration(false); setShowBadge(false)
+//        }
+//        manager.createNotificationChannel(widgetChannel)
 
         val liveUpdateChannel = NotificationChannel(LIVE_UPDATE_CHANNEL_ID, getString(R.string.channel_live_updates), NotificationManager.IMPORTANCE_DEFAULT).apply {
             setSound(null, null); enableVibration(false); setShowBadge(false)
