@@ -17,6 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 
 class PermanentIslandManager(
@@ -50,20 +51,22 @@ class PermanentIslandManager(
                 synchronized(this@PermanentIslandManager) {
                     if (isPermanentIslandEnabled != enabled) {
                         isPermanentIslandEnabled = enabled
-                        updateState()
+                        updateStateLocked()
                     }
                 }
             }
         }
         scope.launch {
             preferences.hidePermanentIslandLandscapeFlow.collectLatest { hide ->
-                if (isHideInLandscapeEnabled != hide) {
-                    isHideInLandscapeEnabled = hide
-                    updateState()
+                synchronized(this@PermanentIslandManager) {
+                    if (isHideInLandscapeEnabled != hide) {
+                        isHideInLandscapeEnabled = hide
+                        updateStateLocked()
+                    }
                 }
             }
         }
-        scope.launch  {
+        scope.launch {
             preferences.permanentIslandWidthFlow.collectLatest { width ->
                 synchronized(this@PermanentIslandManager) {
                     if (currentWidth != width) {
@@ -81,11 +84,12 @@ class PermanentIslandManager(
     fun onActiveNotificationsChanged(count: Int, hasNative: Boolean = false) {
         currentRealNotifications = count
         hasNativeIsland = hasNative
-        updateState()
+        updateStateLocked()
     }
 
+    @Synchronized
     fun onOrientationChanged() {
-        updateState()
+        updateStateLocked()
     }
 
     // isIslandPresent reflects whether PERMANENT_BRIDGE_ID is actually posted right now.
@@ -97,7 +101,10 @@ class PermanentIslandManager(
     // Bridged islands deliberately do NOT hide the permanent island: HyperOS shows the newest
     // focus island on top, so keeping 9999 posted makes the permanent island reappear instantly
     // when a bridged island collapses or expires (removing it would leave a gap until the TTL).
-    private fun desiredActive() = isPermanentIslandEnabled && !hasNativeIsland
+    private fun desiredActive(): Boolean {
+        val isLandscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        return isPermanentIslandEnabled && !hasNativeIsland && !(isHideInLandscapeEnabled && isLandscape)
+    }
 
     @Synchronized
     fun reconcile(count: Int, hasNative: Boolean, isIslandPresent: Boolean, refresh: Boolean) {
@@ -105,40 +112,44 @@ class PermanentIslandManager(
         hasNativeIsland = hasNative
         val shouldShow = desiredActive()
         val isLandscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        if (shouldShow && isIslandPresent && refresh && !(isHideInLandscapeEnabled && isLandscape)) {
+        if (shouldShow && isIslandPresent && refresh) {
             // Present but maybe not visible: re-assert in place (no remove first, so no
             // rapid cancel->post to swallow). Same id + content updates the residual island.
-            pendingDispatchJob?.cancel()
+            val jobToCancel = pendingDispatchJob
             pendingDispatchJob = null
+            jobToCancel?.cancel()
             dispatchPermanentIsland()
             isIslandActive = true
             return
         }
         isIslandActive = isIslandPresent
         Log.d(TAG, "updateState: shouldShow=$shouldShow, isLandscape=$isLandscape, isHideInLandscapeEnabled=$isHideInLandscapeEnabled")
-        updateState()
+        updateStateLocked()
     }
 
-    private fun updateState() {
+    private fun updateStateLocked() {
         if (desiredActive()) {
             if (!isIslandActive) {
                 isIslandActive = true
-                scheduleDispatch()
+                scheduleDispatchLocked()
             }
         } else {
             if (isIslandActive) {
                 isIslandActive = false
-                pendingDispatchJob?.cancel()
+                val jobToCancel = pendingDispatchJob
                 pendingDispatchJob = null
+                jobToCancel?.cancel()
                 removePermanentIsland()
             }
         }
     }
 
-    private fun scheduleDispatch() {
-        pendingDispatchJob?.cancel()
+    private fun scheduleDispatchLocked() {
+        val jobToCancel = pendingDispatchJob
+        pendingDispatchJob = null
+        jobToCancel?.cancel()
         pendingDispatchJob = scope.launch {
-            delay(DISPATCH_DELAY_MS)
+            delay(DISPATCH_DELAY_MS.milliseconds)
             synchronized(this@PermanentIslandManager) {
                 pendingDispatchJob = null
                 // Re-check under the lock: the desired state may have flipped during the delay.
