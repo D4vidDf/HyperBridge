@@ -691,6 +691,14 @@
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
+    <string name="changelog_0_5_6">
+        <b>Fixes &amp; Improvements</b>\n
+              • <b>System UI Stability:</b> Validated highlightColor before passing to SystemUI to prevent crashes.\n
+              • <b>Permanent Island Behavior:</b> Fixed an issue where the permanent island disappeared after notifications or unlock.\n
+              • <b>Landscape Mode:</b> Added an option to hide the Permanent Island in landscape orientation.\n
+    </string>
+    <string name="title_0_5_6">Landscape Hide &amp; Stability Fixes</string>
+
     <string name="changelog_0_5_5">
         <b>Live Updates &amp; Islands</b>\n
               • <b>Icons:</b> Fixed an issue where the original app icon wouldn\'t display properly on Android 16 Live Updates.\n
