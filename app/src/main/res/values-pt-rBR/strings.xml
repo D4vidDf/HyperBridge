@@ -45,6 +45,7 @@
     <string name="permanent_island_desc">Mantenha a Ilha Dinâmica permanentemente visível na tela quando não houver notificações ativas.</string>
     <string name="permanent_island_screen_desc">Quando ativada, uma Ilha Dinâmica vazia será exibida permanentemente na sua tela. Ela se ocultará automaticamente quando notificações reais chegarem e reaparecerá quando todas as notificações forem apagadas. Ela não ficará visível na sua área de notificações.</string>
     <string name="permanent_island_width">Largura da ilha</string>
+    <string name="permanent_island_hide_landscape">Ocultar na Horizontal</string>
     <string name="group_about">Sobre</string>
     <string name="developer">Desenvolvedor</string>
     <string name="developer_subtitle">Visite d4viddf.com</string>

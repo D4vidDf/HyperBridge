@@ -37,8 +37,11 @@ class PermanentIslandManager(
     private var isPermanentIslandEnabled = false
     private var isIslandActive = false
     private var currentRealNotifications = 0
+
+    fun isIslandActive(): Boolean = isIslandActive
     private var hasNativeIsland = false
     private var currentWidth = 0
+    private var isHideInLandscapeEnabled = false
     private var pendingDispatchJob: Job? = null
 
     init {
@@ -49,6 +52,14 @@ class PermanentIslandManager(
                         isPermanentIslandEnabled = enabled
                         updateState()
                     }
+                }
+            }
+        }
+        scope.launch {
+            preferences.hidePermanentIslandLandscapeFlow.collectLatest { hide ->
+                if (isHideInLandscapeEnabled != hide) {
+                    isHideInLandscapeEnabled = hide
+                    updateState()
                 }
             }
         }
@@ -73,6 +84,10 @@ class PermanentIslandManager(
         updateState()
     }
 
+    fun onOrientationChanged() {
+        updateState()
+    }
+
     // isIslandPresent reflects whether PERMANENT_BRIDGE_ID is actually posted right now.
     // Presence only proves the notification exists, NOT that its island is visible:
     // HyperOS can keep 9999 posted while hiding its island (e.g. a bridged focus island
@@ -89,7 +104,8 @@ class PermanentIslandManager(
         currentRealNotifications = count
         hasNativeIsland = hasNative
         val shouldShow = desiredActive()
-        if (shouldShow && isIslandPresent && refresh) {
+        val isLandscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        if (shouldShow && isIslandPresent && refresh && !(isHideInLandscapeEnabled && isLandscape)) {
             // Present but maybe not visible: re-assert in place (no remove first, so no
             // rapid cancel->post to swallow). Same id + content updates the residual island.
             pendingDispatchJob?.cancel()
@@ -99,6 +115,7 @@ class PermanentIslandManager(
             return
         }
         isIslandActive = isIslandPresent
+        Log.d(TAG, "updateState: shouldShow=$shouldShow, isLandscape=$isLandscape, isHideInLandscapeEnabled=$isHideInLandscapeEnabled")
         updateState()
     }
 
@@ -131,7 +148,6 @@ class PermanentIslandManager(
             }
         }
     }
-
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun dispatchPermanentIsland() {
         try {

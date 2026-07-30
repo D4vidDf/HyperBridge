@@ -508,6 +508,7 @@ class AppPreferences(context: Context) {
 
     private val SHOW_PERMANENT_ISLAND = "show_permanent_island"
     private val PERMANENT_ISLAND_WIDTH = "permanent_island_width"
+    private val HIDE_PERMANENT_ISLAND_LANDSCAPE = "hide_permanent_island_landscape"
 
     val isPermanentIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow(SHOW_PERMANENT_ISLAND)
         .map { it?.toBoolean() ?: false }
@@ -515,12 +516,23 @@ class AppPreferences(context: Context) {
     val permanentIslandWidthFlow: Flow<Int> = dao.getSettingFlow(PERMANENT_ISLAND_WIDTH)
         .map { it?.toIntOrNull() ?: 0 }
 
+    val hidePermanentIslandLandscapeFlow: Flow<Boolean> = dao.getSettingFlow(HIDE_PERMANENT_ISLAND_LANDSCAPE)
+        .map { it?.toBoolean() ?: false }
+
     suspend fun setPermanentIslandEnabled(value: Boolean) {
         save(SHOW_PERMANENT_ISLAND, value.toString())
     }
 
     suspend fun setPermanentIslandWidth(value: Int) {
         save(PERMANENT_ISLAND_WIDTH, value.toString())
+    }
+
+    suspend fun setHidePermanentIslandLandscape(value: Boolean) {
+        save(HIDE_PERMANENT_ISLAND_LANDSCAPE, value.toString())
+    }
+
+    fun hidePermanentIslandLandscapeSync(): Boolean {
+        return memoryCache[HIDE_PERMANENT_ISLAND_LANDSCAPE]?.toBoolean() ?: false
     }
 
     // ========================================================================
