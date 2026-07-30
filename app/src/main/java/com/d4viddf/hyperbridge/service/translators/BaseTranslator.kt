@@ -75,13 +75,13 @@ abstract class BaseTranslator(
             // A. Specific Color Override
             val overrideColor = override?.highlightColor
             if (!overrideColor.isNullOrEmpty()) {
-                return overrideColor
+                return overrideColor.toSafeColorHex(defaultHex)
             }
 
             // B. App-Specific "Use App Colors"
             // If explicit true -> extract. If explicit false -> skip extraction (fall to global).
             if (override?.useAppColors == true) {
-                return getAppBrandColor(pkg) ?: theme.global.highlightColor ?: defaultHex
+                return (getAppBrandColor(pkg) ?: theme.global.highlightColor ?: defaultHex).toSafeColorHex(defaultHex)
             }
         }
 
@@ -89,11 +89,26 @@ abstract class BaseTranslator(
         // Only run if app override didn't explicitly disable it (useAppColors != false)
         val appOverrideDisabled = theme.apps[pkg]?.useAppColors == false
         if (theme.global.useAppColors && !appOverrideDisabled && pkg != null) {
-            return getAppBrandColor(pkg) ?: theme.global.highlightColor ?: defaultHex
+            return (getAppBrandColor(pkg) ?: theme.global.highlightColor ?: defaultHex).toSafeColorHex(defaultHex)
         }
 
         // 3. Global Theme Highlight -> Default Fallback
-        return theme.global.highlightColor ?: defaultHex
+        return (theme.global.highlightColor ?: defaultHex).toSafeColorHex(defaultHex)
+    }
+
+    /**
+     * Validates that a color string can be parsed by [android.graphics.Color.parseColor].
+     * Returns the original string if valid, or [fallback] if parsing fails.
+     * This prevents SystemUI crashes caused by invalid color values in theme configs.
+     */
+    private fun String.toSafeColorHex(fallback: String): String {
+        return try {
+            Color.parseColor(this)
+            this
+        } catch (_: IllegalArgumentException) {
+            Log.w("BaseTranslator", "Invalid highlight color \"$this\", falling back to \"$fallback\"")
+            fallback
+        }
     }
 
     private fun getAppBrandColor(pkg: String): String? {
