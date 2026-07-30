@@ -68,6 +68,7 @@ class NotificationReaderService : NotificationListenerService() {
     private val NOTIFICATION_CHANNEL_ID = "hyper_bridge_notification_channel"
     private val WIDGET_CHANNEL_ID = "hyper_bridge_widget_channel"
     private val LIVE_UPDATE_CHANNEL_ID = "hyper_bridge_live_update_channel"
+    private val WATCH_RELAY_CHANNEL_ID = "hyper_bridge_watch_relay_channel"
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
 
     // --- STATE & CONFIG ---
@@ -97,6 +98,10 @@ class NotificationReaderService : NotificationListenerService() {
 
     private val MAX_ISLANDS = 9
     private val WIDGET_ID_BASE = 9000
+    // Negative so these ids can never hit the >= WIDGET_ID_BASE branch in onNotificationRemoved
+    private val WATCH_RELAY_ID_BASE = -20000
+    private var watchRelaySlot = 0
+    private val STANDARD_ISLAND_TIMEOUT_MS = 60_000L
 
     private lateinit var preferences: AppPreferences
 
@@ -116,12 +121,19 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var widgetTranslator: WidgetTranslator
     private lateinit var liveUpdateTranslator: LiveUpdateTranslator
 
+    @Volatile
+    private var isScreenOn = true
+
     private val systemReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_USER_UNLOCKED) {
                 WidgetManager.init(this@NotificationReaderService)
+                syncNotifications(refresh = true)
             } else if (intent.action == Intent.ACTION_SCREEN_ON) {
-                syncNotifications()
+                isScreenOn = true
+                syncNotifications(refresh = true)
+            } else if (intent.action == Intent.ACTION_SCREEN_OFF) {
+                isScreenOn = false
             }
         }
     }
@@ -159,6 +171,7 @@ class NotificationReaderService : NotificationListenerService() {
         
         val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
         filter.addAction(Intent.ACTION_SCREEN_ON)
+        filter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(systemReceiver, filter)
         
         val clickFilter = IntentFilter("com.d4viddf.hyperbridge.ISLAND_CLICKED")
@@ -501,9 +514,14 @@ class NotificationReaderService : NotificationListenerService() {
         updatePermanentIsland()
     }
 
-    private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType, isLiveUpdate: Boolean) {
+    private fun handlePostNotificationSideEffects(originalKey: String, bridgeId: Int, config: IslandConfig, type: NotificationType, isLiveUpdate: Boolean, sbn: StatusBarNotification? = null, title: String = "", text: String = "") {
         // 1. Remove original if enabled (EXCEPT for Media)
         if (config.removeOriginalNotification == true && type != NotificationType.MEDIA && type != NotificationType.CALL) {
+            // Companion apps (e.g. Mi Fitness) relay notifications to watches by listening like we do;
+            // cancelling the original kills that relay, so post a silent short-lived copy they can forward.
+            if (sbn != null && !isLiveUpdate && (type == NotificationType.MESSAGE || type == NotificationType.STANDARD)) {
+                postWatchRelayNotification(sbn, title, text)
+            }
             intentionallyRemovedKeys.add(originalKey)
             cancelNotification(originalKey)
         }
@@ -521,6 +539,35 @@ class NotificationReaderService : NotificationListenerService() {
                     timeoutJobs.remove(originalKey)
                 }
             }
+        } else if (type == NotificationType.MESSAGE || type == NotificationType.STANDARD) {
+            // HyperOS island-swipe only hides the island; the focus notification stays posted and no
+            // removal callback fires, so an untimed island blocks the permanent island forever.
+            timeoutJobs[originalKey]?.cancel()
+            timeoutJobs[originalKey] = serviceScope.launch {
+                delay(STANDARD_ISLAND_TIMEOUT_MS)
+                Log.d(TAG, "Island TTL reached for $originalKey, removing translated notification $bridgeId")
+                NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
+                cleanupCache(originalKey)
+                timeoutJobs.remove(originalKey)
+            }
+        }
+    }
+
+    private fun postWatchRelayNotification(sbn: StatusBarNotification, title: String, text: String) {
+        try {
+            val appLabel = getCachedAppLabel(sbn.packageName)
+            val relayId = WATCH_RELAY_ID_BASE - (watchRelaySlot++ and 0x0F)
+            val notification = NotificationCompat.Builder(this, WATCH_RELAY_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle(if (title.isNotBlank()) "$appLabel · $title" else appLabel)
+                .setContentText(text)
+                .setSilent(true)
+                .setAutoCancel(true)
+                .setTimeoutAfter(10_000L)
+                .build()
+            NotificationManagerCompat.from(this).notify(relayId, notification)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error posting watch relay notification", e)
         }
     }
 
@@ -771,7 +818,7 @@ class NotificationReaderService : NotificationListenerService() {
                 )
                 updatePermanentIsland()
 
-                handlePostNotificationSideEffects(effectiveKey, bridgeId, finalConfig, type, true)
+                handlePostNotificationSideEffects(effectiveKey, bridgeId, finalConfig, type, true, sbn, effectiveTitle, effectiveText)
                 return
             }
 
@@ -814,7 +861,7 @@ class NotificationReaderService : NotificationListenerService() {
             )
             updatePermanentIsland()
 
-            handlePostNotificationSideEffects(effectiveKey, bridgeId, finalConfig, type, false)
+            handlePostNotificationSideEffects(effectiveKey, bridgeId, finalConfig, type, false, sbn, effectiveTitle, effectiveText)
 
         } catch (e: Exception) {
             Log.e(TAG, "💥 Error processing standard notification", e)
@@ -1048,6 +1095,11 @@ class NotificationReaderService : NotificationListenerService() {
             setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(liveUpdateChannel)
+
+        val watchRelayChannel = NotificationChannel(WATCH_RELAY_CHANNEL_ID, "Watch Relay", NotificationManager.IMPORTANCE_LOW).apply {
+            setSound(null, null); enableVibration(false); setShowBadge(false)
+        }
+        manager.createNotificationChannel(watchRelayChannel)
     }
 
     private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
@@ -1167,16 +1219,21 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onListenerConnected() { 
         Log.i(TAG, "HyperBridge Service Connected")
+        syncNotifications(refresh = true)
         syncJob?.cancel()
         syncJob = serviceScope.launch {
             while (true) {
                 delay(60_000) // 1 minute periodic sync
-                syncNotifications()
+                // Screen off: nothing to keep in sync visually, and SCREEN_ON runs a full
+                // refresh sync on wake — skip the tick instead of waking up all night.
+                if (isScreenOn) {
+                    syncNotifications()
+                }
             }
         }
     }
 
-    private fun syncNotifications() {
+    private fun syncNotifications(refresh: Boolean = false) {
         val now = System.currentTimeMillis()
         recentlyRemovedKeys.entries.removeIf { now - it.value > 10000 }
 
@@ -1249,6 +1306,33 @@ class NotificationReaderService : NotificationListenerService() {
                     }
                     cleanupCache(key)
                 }
+
+                // Bridged notifications we no longer track (e.g. left over from a service restart)
+                // keep their island slot occupied forever, since island-swipe never removes them.
+                for (sbn in currentNotifications) {
+                    if (sbn.packageName != packageName) continue
+                    val id = sbn.id
+                    if (id == PermanentIslandManager.PERMANENT_BRIDGE_ID) continue
+                    if (id >= WIDGET_ID_BASE) continue
+                    if (id in (WATCH_RELAY_ID_BASE - 0x0F)..WATCH_RELAY_ID_BASE) continue
+                    if ((sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) continue
+                    if (reverseTranslations.containsKey(id)) continue
+                    if (System.currentTimeMillis() - sbn.postTime < 5000) continue
+                    Log.d(TAG, "Sync: Reaping orphan bridge notification $id")
+                    try {
+                        NotificationManagerCompat.from(this@NotificationReaderService).cancel(id)
+                    } catch (_: Exception) {}
+                }
+
+                val islandPresent = currentNotifications.any {
+                    it.packageName == packageName && it.id == PermanentIslandManager.PERMANENT_BRIDGE_ID
+                }
+                permanentIslandManager.reconcile(
+                    activeIslands.size + activeWidgets.size,
+                    nativeIslands.isNotEmpty(),
+                    islandPresent,
+                    refresh
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Error syncing notifications", e)
             }

@@ -13,6 +13,8 @@ import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -23,51 +25,109 @@ class PermanentIslandManager(
     private val preferences: AppPreferences
 ) {
     private val TAG = "HyperBridgeDebug"
-    private val PERMANENT_BRIDGE_ID = 9999
+
+    companion object {
+        const val PERMANENT_BRIDGE_ID = 9999
+        // The dismiss path posts 9999 right after cancelling the previous focus
+        // island. Delaying the post lets HyperOS finish tearing that island down,
+        // otherwise it can swallow the re-post and leave 9999 posted but hidden.
+        private const val DISPATCH_DELAY_MS = 700L
+    }
 
     private var isPermanentIslandEnabled = false
     private var isIslandActive = false
     private var currentRealNotifications = 0
     private var hasNativeIsland = false
     private var currentWidth = 0
+    private var pendingDispatchJob: Job? = null
 
     init {
         scope.launch {
             preferences.isPermanentIslandEnabledFlow.collectLatest { enabled ->
-                if (isPermanentIslandEnabled != enabled) {
-                    isPermanentIslandEnabled = enabled
-                    updateState()
+                synchronized(this@PermanentIslandManager) {
+                    if (isPermanentIslandEnabled != enabled) {
+                        isPermanentIslandEnabled = enabled
+                        updateState()
+                    }
                 }
             }
         }
         scope.launch  {
             preferences.permanentIslandWidthFlow.collectLatest { width ->
-                if (currentWidth != width) {
-                    currentWidth = width
-                    if (isIslandActive) {
-                        dispatchPermanentIsland()
+                synchronized(this@PermanentIslandManager) {
+                    if (currentWidth != width) {
+                        currentWidth = width
+                        if (isIslandActive) {
+                            dispatchPermanentIsland()
+                        }
                     }
                 }
             }
         }
     }
 
+    @Synchronized
     fun onActiveNotificationsChanged(count: Int, hasNative: Boolean = false) {
         currentRealNotifications = count
         hasNativeIsland = hasNative
         updateState()
     }
 
+    // isIslandPresent reflects whether PERMANENT_BRIDGE_ID is actually posted right now.
+    // Presence only proves the notification exists, NOT that its island is visible:
+    // HyperOS can keep 9999 posted while hiding its island (e.g. a bridged focus island
+    // superseded it, or a re-post landed too soon after a cancel). So on a discrete
+    // transition (screen on / unlock / (re)connect) callers pass refresh=true to re-assert
+    // the island even when present; the periodic tick passes false, trusting presence.
+    // Bridged islands deliberately do NOT hide the permanent island: HyperOS shows the newest
+    // focus island on top, so keeping 9999 posted makes the permanent island reappear instantly
+    // when a bridged island collapses or expires (removing it would leave a gap until the TTL).
+    private fun desiredActive() = isPermanentIslandEnabled && !hasNativeIsland
+
+    @Synchronized
+    fun reconcile(count: Int, hasNative: Boolean, isIslandPresent: Boolean, refresh: Boolean) {
+        currentRealNotifications = count
+        hasNativeIsland = hasNative
+        val shouldShow = desiredActive()
+        if (shouldShow && isIslandPresent && refresh) {
+            // Present but maybe not visible: re-assert in place (no remove first, so no
+            // rapid cancel->post to swallow). Same id + content updates the residual island.
+            pendingDispatchJob?.cancel()
+            pendingDispatchJob = null
+            dispatchPermanentIsland()
+            isIslandActive = true
+            return
+        }
+        isIslandActive = isIslandPresent
+        updateState()
+    }
+
     private fun updateState() {
-        if (isPermanentIslandEnabled && currentRealNotifications == 0 && !hasNativeIsland) {
+        if (desiredActive()) {
             if (!isIslandActive) {
-                dispatchPermanentIsland()
                 isIslandActive = true
+                scheduleDispatch()
             }
         } else {
             if (isIslandActive) {
-                removePermanentIsland()
                 isIslandActive = false
+                pendingDispatchJob?.cancel()
+                pendingDispatchJob = null
+                removePermanentIsland()
+            }
+        }
+    }
+
+    private fun scheduleDispatch() {
+        pendingDispatchJob?.cancel()
+        pendingDispatchJob = scope.launch {
+            delay(DISPATCH_DELAY_MS)
+            synchronized(this@PermanentIslandManager) {
+                pendingDispatchJob = null
+                // Re-check under the lock: the desired state may have flipped during the delay.
+                if (desiredActive()) {
+                    dispatchPermanentIsland()
+                }
             }
         }
     }
