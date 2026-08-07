@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hyper Bridge</string>
+
+    <string name="back">戻る</string>
+    <string name="next">次へ</string>
+    <string name="finish">完了</string>
+    <string name="done">完了</string>
+    <string name="logo_desc">アプリのロゴ</string>
+    <string name="settings">設定</string>
+    <string name="configure">設定する</string>
+    <string name="clear">クリア</string>
+    <string name="sort_order">並び順</string>
+
+    <string name="welcome_title">Hyper Bridgeへ\nようこそ</string>
+    <string name="welcome_subtitle">HyperIslandsをHyperOSにシームレスに統合します。</string>
+    <string name="get_started">はじめる</string>
+
+    <string name="how_it_works">使い方</string>
+    <string name="how_it_works_desc">お気に入りのアプリ（Spotify、マップ、タイマーなど）を選択してください。HyperBridgeが通知をスタイリッシュなHyperIslandに変換します。</string>
+    <string name="beta_warning">注意: このアプリはベータ版です。不具合や表示の誤りが発生する場合があります。</string>
+
+    <string name="device_compatible">対応デバイス</string>
+    <string name="unsupported_device">非対応デバイス</string>
+    <string name="compatible_msg">お使いの端末はHyperOS/MIUIで動作しているようです。準備は完了しています！</string>
+
+    <string name="show_island">アイランドを表示</string>
+    <string name="perm_post_desc">画面に「アイランド」通知を表示するには権限が必要です。</string>
+    <string name="perm_granted">権限が付与されました</string>
+    <string name="allow_notifications">通知を許可</string>
+
+    <string name="read_data">通知を読み取る</string>
+    <string name="perm_listener_desc">アプリを連携させるには、通知（音楽、マップ、タイマーなど）を読み取る権限が必要です。</string>
+    <string name="open_settings">設定を開く</string>
+
+    <string name="optimization_desc">HyperOSはバックグラウンドアプリを終了させることがあります。アイランドを維持するには、自動起動と制限なしを有効にしてください。</string>
+    <string name="enable_autostart">自動起動を許可</string>
+    <string name="set_battery_no_restrictions">制限を無効にする</string>
+
+    <string name="tab_active">有効</string>
+    <string name="tab_library">ライブラリ</string>
+    <string name="search_hint">アプリを検索…</string>
+
+    <string name="no_active_bridges">有効なブリッジがありません</string>
+    <string name="no_active_bridges_desc">ライブラリでアプリを有効にしてください。</string>
+    <string name="no_apps_found">アプリが見つかりません</string>
+
+    <string name="version_template">バージョン %s</string>
+    <string name="developer_credit">by D4vidDf</string>
+
+    <string name="group_configuration">設定</string>
+    <string name="system_setup">システム設定</string>
+    <string name="system_setup_subtitle">権限とバッテリー設定を修正</string>
+
+    <string name="group_about">アプリについて</string>
+    <string name="developer">開発者</string>
+    <string name="developer_subtitle">d4viddf.comにアクセス</string>
+    <string name="source_code">ソースコード</string>
+    <string name="source_code_subtitle">GitHubリポジトリ</string>
+    <string name="licenses">オープンソースライセンス</string>
+    <string name="licenses_subtitle">サードパーティ製ソフトウェア</string>
+    <string name="footer_made_with_love">スペインで❤️を込めて制作</string>
+
+    <string name="app_health_desc">アプリがバックグラウンドで正しく動作するには、すべての項目が緑色である必要があります。</string>
+    <string name="req_permissions">必要な権限</string>
+    <string name="notif_access">通知へのアクセス</string>
+    <string name="notif_access_desc">アプリのイベントを読み取るために必要です</string>
+    <string name="device_optimization">デバイスの最適化</string>
+    <string name="xiaomi_autostart">Xiaomi 自動起動</string>
+    <string name="battery_unrestricted">バッテリー使用制限なし</string>
+    <string name="battery_desc">システムによるアプリの強制終了を防ぐ</string>
+    <string name="recents_note">注意: 「最近使ったアプリ」画面でもアプリをロックしてください。</string>
+    <string name="status_active">有効</string>
+
+    <string name="cat_all">すべて</string>
+    <string name="cat_music">音楽</string>
+    <string name="cat_nav">ナビゲーション</string>
+    <string name="cat_timer">生産性</string>
+    <string name="cat_other">その他</string>
+
+    <string name="type_standard">メッセージ・一般</string>
+    <string name="type_progress">ダウンロード・進行状況</string>
+    <string name="type_media">音楽・メディア</string>
+    <string name="type_nav">マップ・GPS</string>
+    <string name="type_call">通話</string>
+    <string name="type_timer">タイマー・アラーム</string>
+
+    <string name="download_complete">ダウンロード完了</string>
+    <string name="downloading">ダウンロード中</string>
+    <string name="maps_title">マップ</string>
+
+    <string-array name="progress_finish_keywords">
+        <item>downloaded</item>
+        <item>completed</item>
+        <item>finished</item>
+        <item>installed</item>
+        <item>done</item>
+        <item>successful</item>
+        <item>succeeded</item>
+        <item>完了</item>
+        <item>ダウンロード完了</item>
+        <item>成功</item>
+    </string-array>
+
+    <string name="status_now_playing">再生中</string>
+
+    <string name="fallback_timer">タイマー</string>
+
+    <string name="whats_new_title">%s の新機能</string>
+    <string name="awesome">最高！</string>
+
+
+    <string name="island_behavior">アイランドの動作</string>
+    <string name="limit_strategy">上限時の挙動</string>
+    <string name="limit_desc">アイランドが9個の上限に達したときの動作は？</string>
+    <string name="mode_fcfs_title">先着順</string>
+    <string name="mode_fcfs_desc">最初の9個のアプリを維持します。空きができるまで新しいアプリは無視されます。</string>
+    <string name="mode_recent_title">最新順（デフォルト）</string>
+    <string name="mode_recent_desc">新しい通知が最も古いものを置き換えます。</string>
+    <string name="mode_priority_title">カスタム優先度</string>
+    <string name="mode_priority_desc">どの種類（例: 通話）をより重要にするかを定義します。</string>
+    <string name="priority_order">優先順位</string>
+    <string name="priority_order_desc">優先度の高いもの（上）が優先度の低いもの（下）を置き換えます。</string>
+    <string name="configure_order">アプリの順序を設定</string>
+
+    <string name="global_settings">全体設定</string>
+    <string name="island_appearance">アイランドの外観</string>
+    <string name="setting_float">ヘッドアップ表示</string>
+    <string name="setting_float_desc">アイランドに縮小する前に、完全な通知バナーを一時的に表示します。</string>
+    <string name="setting_float_timeout_desc">ヘッドアップ表示が画面に残る時間です。</string>
+
+    <string name="setting_shade">通知パネル</string>
+    <string name="setting_shade_desc">通知パネルにも通知を表示したままにします。無効にすると、アイランドとしてのみ表示されます。</string>
+
+    <string name="seconds_suffix">%d秒</string>
+
+    <string name="use_global_default">全体設定のデフォルトを使用</string>
+
+    <string-array name="nav_arrival_keywords">
+        <item>arrival</item>
+        <item>arrive</item>
+        <item>eta</item>
+        <item>reaching</item>
+        <item>destination</item>
+        <item>到着</item>
+        <item>目的地</item>
+    </string-array>
+
+    <string name="version_history">バージョン履歴</string>
+
+    <string name="title_0_2_0">情報アップデート</string>
+    <string name="changelog_0_2_0">
+        • &lt;b&gt;進行状況の強化:&lt;/b&gt; 「ステップ進行状況」（例: 3件中1件）と、通知パネル内でアイコン付きの進行バーに対応しました。\n
+        • &lt;b&gt;優先度システム:&lt;/b&gt; 新しい「アイランドの動作」設定を追加。「最新順」「先着順」、またはカスタムの「アプリ優先度」リストから選択できます。\n
+        • &lt;b&gt;スマートフィルタリング:&lt;/b&gt; 重複した通知やグループ化されたダウンロードの検出精度を向上しました。\n
+        • &lt;b&gt;表示の改善:&lt;/b&gt; ナビゲーション表示のレイアウトの不具合を修正しました。\n
+        • &lt;b&gt;アプリごとの設定:&lt;/b&gt; アプリごとにタイムアウトやポップアップ表示の挙動をカスタマイズできます。
+    </string>
+
+    <string name="title_0_1_0">エクスプレッシブアップデート</string>
+    <string name="changelog_0_1_0">
+        • &lt;b&gt;UIの大幅刷新:&lt;/b&gt; スムーズなアニメーションを備えた新しいMaterial 3 Expressiveデザインを採用しました。\n
+        • &lt;b&gt;アイランドの改善:&lt;/b&gt; テキストが右側に表示されるようになりました。ダウンロード完了時に緑色のチェックマークを追加しました。\n
+        • &lt;b&gt;アプリごとの設定:&lt;/b&gt; アプリごとに特定の通知タイプ（音楽、マップ、通話）を選択できます。\n
+        • &lt;b&gt;スマートフィルター:&lt;/b&gt; 重複通知をブロックし、バッテリーを節約します。\n
+        • &lt;b&gt;新しいライブラリ:&lt;/b&gt; カテゴリや並び順でアプリを絞り込めます。\n
+        • &lt;b&gt;ローカライズ:&lt;/b&gt; スペイン語に対応しました。
+    </string>
+
+    <string name="priority_edu_title">アイランドをコントロール</string>
+    <string name="priority_edu_desc">複数の通知が同時に発生したときのアイランドの挙動を選択できます。</string>
+
+    <string name="badge_new">NEW</string>
+
+    <string name="nav_layout_title">ナビゲーションレイアウト</string>
+    <string name="nav_layout_desc">情報を表示する位置を選択</string>
+    <string name="left_content">左側</string>
+    <string name="right_content">右側</string>
+
+    <string name="nav_content_instruction">案内</string>
+    <string name="nav_content_distance">距離</string>
+    <string name="nav_content_eta">到着予定時刻</string>
+    <string name="nav_content_distance_eta">距離＆時刻</string>
+    <string name="nav_content_none">非表示</string>
+
+    <string name="channel_active_islands">有効なアイランド</string>
+
+    <string name="cd_enable_type">%s の通知を有効にする</string>
+    <string name="cd_disable_type">%s の通知を無効にする</string>
+    <string name="cd_nav_edit">ナビゲーションレイアウトを編集</string>
+    <string name="cd_app_state_active">有効</string>
+    <string name="cd_app_state_inactive">無効</string>
+
+    <string name="cd_move_up">上に移動</string>
+    <string name="cd_move_down">下に移動</string>
+    <string name="cd_drag_handle">ドラッグハンドル。ダブルタップして長押しすると並び替え、または操作ボタンで移動できます。</string>
+    <string name="cd_app_icon">%s のアプリアイコン</string>
+    <string name="cd_nav_preview">ナビゲーションプレビュー: 左に%1$s、右に%2$s</string>
+    <string name="cd_expand_changelog">バージョン詳細を展開</string>
+    <string name="cd_collapse_changelog">バージョン詳細を折りたたむ</string>
+
+    <string name="nav_preview_instruction">右折します</string>
+    <string name="nav_preview_distance">200m</string>
+    <string name="nav_preview_time">10:30</string>
+
+    <string name="blocked_terms">ブロックするキーワード</string>
+    <string name="blocked_terms_desc">これらの単語を含む通知は無視されます。</string>
+    <string name="add_blocked_word">単語を追加（例: ネタバレ）</string>
+    <string name="add">追加</string>
+    <string name="remove">削除</string>
+    <string name="spoiler_subtitle">ネタバレ防止機能とフィルターを管理</string>
+
+    <string name="active_notifications_title">通知の種類</string>
+    <string name="active_notifications_subtitle">%d 件有効</string>
+    <string name="appearance_use_defaults_desc">アニメーション速度とポップアップ表示の挙動にはシステムのデフォルト値を使用しています。</string>
+    <string name="blocked_terms_active_count">%d 件のルールが有効</string>
+
+    <string name="global_rules">全体ルール</string>
+    <string name="app_specific_rules">アプリ別ルール</string>
+    <string name="manage_app_rules_desc">特定のアプリ用のフィルターをカスタマイズ</string>
+    <string name="blocked_terms_count">%d 件のキーワードをブロック中</string>
+    <string name="no_active_rules">有効なルールがありません</string>
+
+    <string name="setup_health_title">システムの互換性</string>
+    <string name="req_hyperos">HyperOS 3.0以降（Android 15以降）が必要です</string>
+    <string name="req_xiaomi">Xiaomi/Redmi/Poco端末が必要です</string>
+
+    <string name="warning_cn_rom_title">中国版ROMを検出</string>
+    <string name="warning_cn_rom_desc">お使いの端末は中国向けファームウェアで動作しているようです。Xiaomiは中国版ROMで通知の内部処理を大きく変更しているため、機能が不安定になったり動作しなかったりする場合があります。</string>
+
+    <string name="system_version">システムバージョン</string>
+
+    <string name="call_incoming">着信中</string>
+    <string name="call_ongoing">通話中</string>
+
+    <string-array name="call_keywords_hangup">
+        <item>hang</item>
+        <item>end</item>
+        <item>decline</item>
+        <item>reject</item>
+        <item>切断</item>
+        <item>終了</item>
+        <item>拒否</item>
+    </string-array>
+    <string-array name="call_keywords_answer">
+        <item>answer</item>
+        <item>accept</item>
+        <item>応答</item>
+        <item>出る</item>
+    </string-array>
+    <string-array name="call_keywords_speaker">
+        <item>speaker</item>
+        <item>audio</item>
+        <item>スピーカー</item>
+    </string-array>
+
+    <string name="title_0_3_0">グローバルアップデート</string>
+    <string name="changelog_0_3_0">
+        <b>通知の非表示 👻</b>\n
+        アイランドを有効にしたまま、システムパネルから通知を非表示にする新しいオプションを追加しました。全体設定を確認してください！\n\n
+        <b>新しい言語 🌍</b>\n
+        これらの翻訳にご協力いただいたコミュニティの皆様に感謝します:\n
+        • 🇧🇷 ポルトガル語（ブラジル）\n
+        • 🇵🇱 ポーランド語\n
+        • 🇰🇷 韓国語\n\n
+        • 🇺🇦 ウクライナ語\n\n
+        <b>ナビゲーションのカスタマイズ 🧭</b>\n
+        ナビゲーションアイランドの左側と右側に表示する情報（距離、到着予定時刻、案内）を選択できるようになりました。\n\n
+        <b>ネタバレ防止 🛡️</b>\n
+        新しい「ブロックするキーワード」機能を追加。特定の単語を全体またはアプリごとに設定し、該当する通知がアイランドに表示されないようにできます。\n\n
+        <b>通話機能の改善 📞</b>\n
+        より幅広いVoIPアプリや電話アプリに対応できるよう、検出ロジックを改善しました。\n\n
+        <b>修正と改善 🛠️</b>\n
+        • 再起動後にアプリの読み込みが止まってしまう重大な不具合を修正しました。\n
+        • 通知の内容ではなく、パッケージ名（例: "com.google..."）がそのまま表示されることがある不具合を修正しました。\n
+        • 使いやすさ向上のため、アプリ設定シートを再デザインしました。\n
+        • 詳細な端末情報を表示するよう、互換性チェック画面を改善しました。
+    </string>
+
+    <string name="privacy_title">完全オフライン＆セキュア</string>
+    <string name="privacy_desc">Hyper Bridgeはすべての処理をスマートフォンのプロセッサ上で直接行います。\n\nインターネット接続を必要としないため、通知や個人データが端末の外に送信されることはありません。</string>
+
+    <string name="language">言語</string>
+    <string name="language_desc">アプリの言語を変更</string>
+    <string name="system_default">システムのデフォルト</string>
+    <string name="save">保存</string>
+
+    <string name="backup_restore_title">バックアップと復元</string>
+    <string name="backup_section_title">データ管理</string>
+    <string name="backup_options_subtitle">操作に含めるデータを選択してください</string>
+
+    <string name="option_app_settings">アプリ設定</string>
+    <string name="option_app_settings_desc">セットアップ状況、テーマ、動作モード</string>
+
+    <string name="option_blocklist">ブロックリストのデータベース</string>
+    <string name="option_blocklist_desc">カスタムでブロックしたキーワードとアプリ</string>
+
+    <string name="option_priorities">優先度ルール</string>
+    <string name="option_priorities_desc">カスタム通知優先度の設定</string>
+
+    <string name="action_export">バックアップを作成</string>
+    <string name="action_import">バックアップを復元</string>
+
+    <string name="export_success">バックアップを保存しました</string>
+    <string name="export_failed">エクスポートに失敗しました: %s</string>
+    <string name="import_success">データを復元しました</string>
+    <string name="import_failed">インポートに失敗しました: %s</string>
+
+    <string name="autostart_manual_check">ステータスを自動的に確認できません。\nサービスが正常に動作するよう、手動で確認してください</string>
+
+    <string name="backup_info_title">バックアップ情報</string>
+    <string name="backup_meta_date">日付</string>
+    <string name="backup_meta_device">端末</string>
+    <string name="backup_meta_version">バージョン</string>
+    <string name="backup_meta_keys">項目数</string>
+    <string name="backup_empty_suffix">（空）</string>
+    <string name="action_restore_selected">選択したデータを復元</string>
+
+    <string name="optimization_title">デバイスの最適化</string>
+
+    <string name="privacy_card_title">オフラインファースト</string>
+    <string name="privacy_card_desc">インターネット接続は不要です。</string>
+
+    <string name="title_0_3_1">バックアップ＆多言語アップデート</string>
+    <string name="changelog_0_3_1">
+        <b>バックアップと復元 📦</b>\n
+        パワーユーザー向けの新機能！設定、ブロックリスト、アプリの優先度を.hbrファイルに安全にエクスポートし、いつでも復元できます。\n\n
+        <b>新しい言語 🌍</b>\n
+        以下の言語に対応しました:\n
+        • 🇩🇪 ドイツ語\n
+        • 🇷🇺 ロシア語\n
+        • 🇺🇦 ウクライナ語（改善版）\n
+        <i>さらに、システム設定に影響を与えずにアプリ内で言語を変更できる、新しい言語選択機能を追加しました。</i>\n\n
+        <b>ビジュアルの刷新 🎨</b>\n
+        アプリが<b>Material 3 Expressive</b>デザインにアップデートされました。より大きなヘッダー、丸みを帯びた形状、スムーズな操作性をお楽しみください。\n\n
+        <b>プライバシーとセットアップ 🛡️</b>\n
+        • オフラインファースト設計を説明する専用のプライバシーページを、オンボーディングに追加しました。\n
+        • HyperOS 3.0で最良の体験を得られるよう、互換性チェックをより厳密にしました。\n\n
+        <b>修正 🛠️</b>\n
+        • 端末再起動後に設定が失われる重大な不具合を修正しました（データベースへの移行により対応）。\n
+        • ナビゲーションアイランドの「終了」ボタンがテキストではなくアイコンで表示される不具合を修正しました。\n
+        • 設定画面でのアプリアイコンの読み込みを修正しました。\n
+    </string>
+
+    <string name="close">閉じる</string>
+    <string name="search">検索</string>
+    <string name="widget_updated_toast">ウィジェットを更新しました</string>
+    <string name="widget_settings_error">このウィジェットの設定は編集できません</string>
+
+    <string name="widget_picker_title">ウィジェットを追加</string>
+    <string name="search_apps_placeholder">アプリを検索...</string>
+    <plurals name="widget_count_fmt">
+        <item quantity="other">ウィジェット %d 個</item>
+    </plurals>
+
+    <string name="widget_config_title">ウィジェットを設定</string>
+    <string name="widget_settings_button">ウィジェット設定</string>
+
+    <string name="config_tab_appearance">外観</string>
+    <string name="config_tab_behavior">動作</string>
+
+    <string name="config_render_mode_label">表示モード</string>
+    <string name="config_container_size_label">コンテナサイズ</string>
+
+    <string name="config_shade_title">通知パネルに表示</string>
+    <string name="config_shade_desc">通知パネルに表示します</string>
+
+    <string name="config_timeout_title">自動的に閉じる</string>
+    <string name="config_timeout_desc">一定時間後にアイランドを閉じます</string>
+    <plurals name="config_timeout_fmt">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+
+    <string name="config_refresh_title">自動更新</string>
+    <string name="config_refresh_desc">スナップショットを定期的に更新</string>
+    <plurals name="config_refresh_fmt">
+        <item quantity="other">%d 分ごと</item>
+    </plurals>
+    <string name="config_refresh_warning">更新頻度を高くすると、バッテリー消費が増加します。</string>
+
+    <string name="render_interactive_label">インタラクティブ</string>
+    <string name="render_interactive_desc">ボタンが操作可能です。音楽やコントロールに最適です。</string>
+    <string name="render_snapshot_label">スナップショット</string>
+    <string name="render_snapshot_desc">空のリスト表示を修正します。カレンダーやGmailに最適です。</string>
+
+    <string name="size_original">オリジナル</string>
+    <string name="size_small">小（100dp）</string>
+    <string name="size_medium">中（180dp）</string>
+    <string name="size_large">大（280dp）</string>
+    <string name="size_xlarge">特大（380dp）</string>
+
+    <string name="app_uninstalled_badge">アンインストール済み</string>
+    <string name="settings_action">設定</string>
+
+    <string name="saved_widgets_title">保存済みウィジェット</string>
+    <string name="no_saved_widgets">保存されたウィジェットがありません。</string>
+    <string name="widget_id_fmt">ウィジェット #%d</string>
+    <string name="show_on_island">アイランドに表示</string>
+
+    <string name="theme_installer_analyzing">テーマパッケージを解析中...</string>
+    <string name="theme_installer_success_title">テーマの準備が完了しました</string>
+    <string name="theme_installer_author">作成者: %s</string>
+    <string name="theme_installer_version">バージョン %d</string>
+    <string name="theme_installer_apply_question">このテーマを今すぐHyperBridgeに適用しますか？</string>
+    <string name="theme_installer_action_apply">テーマを適用</string>
+    <string name="theme_installer_action_later">後で使用するため保存</string>
+    <string name="theme_installer_error_title">インポートに失敗しました</string>
+    <string name="theme_installer_error_generic">テーマファイルを検証できませんでした。</string>
+    <string name="theme_installer_btn_close">閉じる</string>
+    <string name="theme_manager_title">マイテーマ</string>
+    <string name="theme_manager_cd_add">新しいテーマを追加</string>
+
+    <string name="theme_card_author_format">by %s</string>
+    <string name="theme_card_cd_active">使用中のテーマ</string>
+    <string name="theme_card_cd_delete">テーマを削除</string>
+
+    <string name="theme_system_default_title">システムのデフォルト</string>
+    <string name="theme_system_default_desc">標準の外観</string>
+
+    <string name="theme_sheet_title">新しいテーマを追加</string>
+
+    <string name="theme_sheet_action_create">新しいテーマを作成</string>
+    <string name="theme_sheet_action_find">検索</string>
+    <string name="theme_action_import_short">インポート</string>
+    <string name="theme_card_action_edit">編集</string>
+    <string name="theme_card_action_export">エクスポート</string>
+
+    <string name="creator_title_new">テーマを作成</string>
+    <string name="creator_title_edit">テーマを編集</string>
+    <string name="creator_nav_colors">色</string>
+    <string name="creator_nav_icons">アイコン＆形状</string>
+    <string name="creator_nav_calls">通話スタイル</string>
+    <string name="creator_nav_apps">アプリ設定</string>
+    <string name="creator_action_save">保存</string>
+    <string name="creator_btn_edit_info">テーマ情報を編集</string>
+    <string name="creator_sub_colors">配色とコントラスト</string>
+    <string name="creator_sub_icons">形状と余白</string>
+    <string name="creator_sub_calls">応答・拒否ボタン</string>
+    <string name="creator_sub_apps">アプリごとの上書き設定</string>
+
+    <string name="meta_title">テーマ情報</string>
+    <string name="meta_label_name">テーマ名</string>
+    <string name="meta_label_author">作成者名</string>
+    <string name="meta_action_done">完了</string>
+
+    <string name="colors_tab_presets">プリセット</string>
+    <string name="colors_tab_custom">カスタム</string>
+    <string name="colors_label_presets">プリセット</string>
+    <string name="colors_label_use_app_colors">アプリの色を使用</string>
+    <string name="colors_desc_use_app_colors">インストール済みアプリから色を自動で取得します</string>
+    <string name="colors_label_custom_title">カスタムカラー</string>
+    <string name="colors_cd_add_custom">カスタムカラーを追加</string>
+    <string name="colors_dialog_title">色を選択</string>
+    <string name="colors_action_done">完了</string>
+
+    <string name="icons_tab_style">スタイル</string>
+    <string name="icons_tab_assets">アイコン</string>
+    <string name="icons_tab_shape">形状</string>
+    <string name="icons_label_size">アイコンサイズ</string>
+    <string name="icons_label_full">フル</string>
+    <string name="icons_label_minimal">ミニマル</string>
+    <string name="icons_group_nav">ナビゲーション</string>
+    <string name="icons_btn_start">開始</string>
+    <string name="icons_btn_end">終了</string>
+    <string name="icons_group_progress">進行状況</string>
+    <string name="icons_btn_success">完了</string>
+    <string name="icons_label_shape_title">アイコンの形状</string>
+
+    <string name="shape_circle">円形</string>
+    <string name="shape_square">四角形</string>
+    <string name="shape_cookie">クッキー型</string>
+    <string name="shape_arch">アーチ型</string>
+    <string name="shape_clover">クローバー型</string>
+
+    <string name="calls_label_answer">応答</string>
+    <string name="calls_label_decline">拒否</string>
+
+    <string name="apps_empty">設定されたアプリがありません</string>
+
+    <string name="design_hero_customization_title">カスタマイズ</string>
+    <string name="design_hero_customization_subtitle">テーマの作り方を学ぶ</string>
+    <string name="design_hero_pro_title">Pro機能</string>
+    <string name="design_hero_pro_subtitle">さらに多くの機能を解放</string>
+    <string name="design_hero_community_title">コミュニティ</string>
+    <string name="design_hero_community_subtitle">GitHubに参加する</string>
+
+    <string name="design_section_themes">テーマ</string>
+    <string name="design_section_widgets">ウィジェット</string>
+
+    <string name="design_browse_more">もっと見る</string>
+    <string name="design_add_new">新規追加</string>
+    <string name="design_add_design">デザインを追加</string>
+    <string name="design_add_to_island">カスタマイズ</string>
+    <string name="design_system_widget_beta">システムウィジェット（ベータ）</string>
+    <string name="design_get_themes">テーマを入手</string>
+    <string name="design_empty_widget_title">最初のウィジェットを追加</string>
+    <string name="design">デザイン</string>
+
+    <string name="creator_nav_actions">全体アクション</string>
+    <string name="creator_sub_actions">キーワードごとにボタンをスタイル設定</string>
+    <string name="action_sheet_title">アクションを設定</string>
+    <string name="action_label_keyword">キーワード（例:「返信」）</string>
+    <string name="action_label_bg_color">背景色</string>
+    <string name="action_label_tint_color">アイコン・テキストの色</string>
+    <string name="action_preview">リアルタイムプレビュー</string>
+    <string name="action_mode_icon">アイコンのみ</string>
+    <string name="action_mode_text">テキスト</string>
+    <string name="action_mode_both">両方</string>
+    <string name="actions_empty_title">カスタムアクションがありません</string>
+    <string name="actions_empty_desc">通知ボタンのテキスト（例:「返信」「アーカイブ」）に応じてスタイルを設定するルールを追加してください。</string>
+    <string name="action_default_preview_text">アクション</string>
+
+    <string name="actions_search_hint">アクションを検索...</string>
+    <string name="actions_search_empty_fmt">「%1$s」に一致するアクションが見つかりません</string>
+
+    <string name="action_wip_warning">この機能は開発中です。キーワードの一致は、アプリごとの通知構造に依存するため、一部のアプリでは動作しない場合があります。</string>
+    <string name="creator_dialog_apply_title">テーマを適用しますか？</string>
+    <string name="creator_dialog_apply_desc">このテーマを今すぐ適用しますか？</string>
+    <string name="creator_dialog_action_save_apply">保存して適用</string>
+    <string name="creator_dialog_action_save_only">保存のみ</string>
+    <string name="select_icon">アイコンを選択</string>
+    <string name="change_icon">アイコンを変更</string>
+    <string name="action_add">アプリを追加</string>
+    <string name="apps_sheet_select_title">アプリを選択</string>
+    <string name="edit_app">アプリを編集</string>
+
+    <string name="creator_sub_colors_custom">カスタムカラーセット</string>
+    <string name="creator_sub_colors_default">全体のデフォルトを使用</string>
+
+    <string name="creator_sub_icons_custom">カスタム形状セット</string>
+    <string name="creator_sub_icons_default">全体のデフォルトを使用</string>
+    <string name="app_customization_desc">アプリを追加すると、そのアプリの見た目を個別にカスタマイズできます。</string>
+    <string name="discard">破棄</string>
+    <string name="unsaved_changes">未保存の変更</string>
+    <string name="unsaved_changes_desc">このアプリの変更が保存されていません。終了する前に保存しますか？</string>
+    <string name="share_theme">テーマを共有</string>
+    <string name="my_theme">マイテーマ</string>
+    <plurals name="creator_sub_actions_count">
+        <item quantity="one">%1$d custom action</item>
+        <item quantity="other">カスタムアクション %1$d 件</item>
+        <item quantity="many">カスタムアクション %1$d 件</item>
+
+    </plurals>
+
+    <string name="title_0_4_0">カスタマイズアップデート</string>
+    <string name="changelog_0_4_0">
+        <b>テーマエンジン 🎨</b>\n
+        過去最大のアップデート！Dynamic Islandの表示を自由にカスタマイズできるようになりました。\n
+        • <b>テーマクリエイター:</b> リアルタイムプレビューを見ながら、端末上で直接テーマをデザインできます。\n
+        • <b>細かいコントロール:</b> アイコンの表示方法を細かく指定したり、通話通知の色や形をカスタマイズしたり、アプリごとの個別設定を行えます。\n
+        • <b>スマートカラー:</b> アプリアイコンから鮮やかなブランドカラーを自動で抽出します。\n
+        • <b>アクションごとのカスタマイズ（ベータ）:</b> 特定の通知アクションの見た目を細かく調整できます。\n
+        • <b>共有:</b> テーマを持ち運び可能な<i>.hbr</i>パッケージとしてエクスポート・インポートできます。\n\n
+
+        <b>ウィジェット対応 🧩</b>\n
+        標準的なAndroidウィジェットをアイランドにピン留めして、すぐにアクセスできるようになりました。<b>ロック画面</b>でも使用可能です！\n
+        • スピード重視の<b>インタラクティブ</b>モードか、バッテリー効率重視の<b>スナップショット</b>モードを選択できます。\n\n
+
+        <b>通知エンジン 2.0 ⚡</b>\n
+        安定性向上のため、コアロジックを全面的に書き直しました:\n
+        • <b>解析の高度化:</b> 通知にメッセージ内容の代わりにパッケージ名（例: com.whatsapp）が表示される不具合を修正しました。\n
+        • <b>ちらつき防止:</b> 新しいコンテンツハッシュ機能により、不要な更新やちらつきを防ぎます。\n
+        • <b>ゴースト表示の修正:</b> 通知を消してもアイランドが残ってしまう競合状態を解決しました。\n\n
+
+        <b>ビジュアルの刷新 ✨</b>\n
+        • ネイティブな操作感の滑らかなカルーセルで、「デザイン」タブを再デザインしました。\n
+        • より分かりやすい通知アクション用の「テキストピル」ボタンを追加しました。\n
+        • 🇮🇩 インドネシア語と🇹🇷 トルコ語に対応しました。\n\n
+
+        <i>注: 今回のリリースには大規模なアーキテクチャ変更が含まれます。不具合を見つけた場合はGitHubでご報告ください！</i>
+    </string>
+    <string name="title_0_4_2">緊急修正アップデート</string>
+    <string name="changelog_0_4_2">        •&lt;b&gt;クラッシュの修正:&lt;/b&gt; 繁体字中国語で設定メニューを開いた際にアプリがクラッシュする重大な不具合を修正しました。\n
+        •&lt;b&gt;内部改善:&lt;/b&gt; アイランドを快適にご利用いただけるよう、全般的な不具合修正と安定性の改善を行いました。
+    </string>
+
+    <string name="colors_label_hue">色相</string>
+    <string name="colors_label_saturation">彩度</string>
+    <string name="colors_label_lightness">明度</string>
+    <string name="colors_label_dynamic_modes">ダイナミックカラー</string>
+    <string name="colors_label_material_you">Material You（システム）</string>
+    <string name="colors_desc_material_you">現在の壁紙から色を抽出します。</string>
+
+    <string name="kill_all_widgets">有効なウィジェットを終了</string>
+    <string name="permission_reminder_title">更新のお知らせ</string>
+    <string name="permission_reminder_desc">HyperBridgeが更新されました！ウィジェットを問題なく動作させるため、自動起動とバックグラウンドでのバッテリー使用権限が、システムによって無効化されていないかご確認ください。</string>
+    <string name="got_it">わかりました</string>
+
+    <string name="recommended">おすすめ</string>
+    <string name="all">すべて</string>
+    <string name="favorites">お気に入り</string>
+
+    <string name="channel_live_updates">ネイティブライブアップデート</string>
+
+    <string name="engine_preview_title">プレビュー</string>
+    <string name="engine_design_section">通知デザイン</string>
+    <string name="engine_xiaomi_title">Xiaomi Featuredデザイン</string>
+    <string name="engine_xiaomi_desc">Xiaomiの意図に沿った、モダンなHyperOSレイアウトです。</string>
+    <string name="engine_native_title">ライブアップデートデザイン</string>
+    <string name="engine_native_desc">Android標準の通知デザインで、CN ROMでも動作します。</string>
+
+    <string name="engine_config_title">エンジン設定</string>
+    <string name="engine_section_design">通知デザイン</string>
+    <string name="good_to_know">知っておくと良いこと</string>
+    <string name="nav_layout_info">• ナビゲーションレイアウトは、今後のアップデートでテーマエンジンに完全統合される予定です。\n• ネイティブライブアップデートエンジンを使用している場合、右側のコンテンツのみ表示されます。</string>
+    <string name="xiaomi_featured_notifications">Xiaomi Featured通知</string>
+    <string name="island_behavior_title">アイランドの動作</string>
+    <string name="island_behavior_desc"><![CDATA[タイムアウト、重複、表示設定]]></string>
+    <string name="engine">エンジン</string>
+    <string name="engine_desc">ライブアップデート vs Xiaomiアイランド</string>
+    <string name="behaviour_triggers"><![CDATA[動作とトリガー]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[エンジン、タイムアウト、トリガー]]></string>
+    <string name="global_behavior">全体の動作</string>
+    <string name="auto_hide_island">アイランドを自動的に隠す</string>
+    <string name="hides_after_a_set_time">設定した時間が経過すると隠れます</string>
+    <string name="behavior_hide_desc">手動で閉じるまで表示され続けます</string>
+    <string name="behavior_desc_hide_long">アイランドが自動的に消えるまで画面に表示され続ける時間を設定します。</string>
+    <string name="active_triggers">有効なトリガー</string>
+    <string name="active_triggers_global_desc">アイランドを表示させる全体のイベントを選択してください</string>
+    <string name="type_standard_desc">通常のメッセージ、メール、通知</string>
+    <string name="type_progress_desc">ダウンロード、アップロード、進行中のタスク</string>
+    <string name="type_media_desc">音楽や動画の再生コントロール</string>
+    <string name="type_nav_desc">ターンバイターン案内と到着予定時刻</string>
+    <string name="type_call_desc">着信中および通話中の電話</string>
+    <string name="type_timer_desc">実行中のタイマーとストップウォッチ</string>
+    <string name="select_triggered_events">アイランドを表示させるイベントを選択</string>
+    <string name="override_global_triggers">全体のトリガーを上書き</string>
+    <string name="override_global_trigger_desc">このアプリで許可する通知を個別に設定します</string>
+    <string name="trigger_override">トリガーの上書き</string>
+    <string name="trigger_app_desc">このアプリでアイランドを表示させるイベントを選択してください。</string>
+    <string name="enable_triggers">特定のトリガーを有効にする</string>
+    <string name="open_source_licenses">オープンソースライセンス</string>
+    <string name="remove_original_notification">元の通知を削除</string>
+    <string name="remove_original_notification_desc">ライブアップデートが表示されている間、元の通知を自動的に消去します。</string>
+    <string name="onboarding_can_be_changed">これらのオプションは、後から設定画面やテーマ設定でいつでも変更できます。</string>
+    <string name="onboarding_widget_desc">標準的なAndroidウィジェットをアイランドに追加し、すぐにアクセスできるようにします。</string>
+    <string name="onboard_theme_desc">アイランドの色、形、アイコンを自由にカスタマイズできます。</string>
+    <string name="onboard_design_desc">さまざまなカスタマイズオプションで可能性を広げましょう</string>
+</resources>
