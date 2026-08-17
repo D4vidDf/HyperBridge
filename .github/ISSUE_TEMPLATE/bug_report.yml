@@ -13,7 +13,7 @@ body:
         Thanks for taking the time to fill out this bug report!
         
         **Note:** Please verify you are using a supported version.
-        - **Android:** 15 or 16
+        - **Android:** 15, 16 or 17
         - **HyperOS:** 3.0+
 
   - type: input
@@ -39,6 +39,7 @@ body:
     attributes:
       label: Android Version
       options:
+        - Android 17
         - Android 16
         - Android 15
         - Other
@@ -51,6 +52,7 @@ body:
       label: App Version
       description: "Which version is causing the issue? (Check tags: https://github.com/D4vidDf/HyperBridge/tags)"
       options:
+        - v0.6.x
         - v0.5.5
         - v0.5.4
         - v0.5.3
