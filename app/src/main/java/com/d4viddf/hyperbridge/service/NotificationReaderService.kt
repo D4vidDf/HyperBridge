@@ -1218,6 +1218,22 @@ class NotificationReaderService : NotificationListenerService() {
             val type = detectNotificationType(sbn)
             if (type != NotificationType.MESSAGE) return true
             if (text.isEmpty() || title.isEmpty()) return true
+            // A summary with live children is a duplicate: messaging apps post the real
+            // per-conversation notification plus an "N new messages" summary. With
+            // "remove original notification" disabled the summary survives and would
+            // become a second island. Only islandify a summary that stands alone
+            // (some apps post only the summary).
+            val group = notification.group
+            if (group != null) {
+                val hasLiveChild = try {
+                    activeNotifications?.any {
+                        it.packageName == pkg && it.key != sbn.key &&
+                            (it.notification.flags and Notification.FLAG_GROUP_SUMMARY) == 0 &&
+                            it.notification.group == group
+                    } == true
+                } catch (_: Exception) { false }
+                if (hasLiveChild) return true
+            }
         }
 
         return false
