@@ -694,6 +694,13 @@
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
+    <string name="changelog_0_5_7">
+        <b>Optimizations &amp; Fixes</b>\n
+              • <b>Code Optimization:</b> Upgraded to the latest Android Gradle Plugin and enabled R8 code shrinking for a smaller, faster app.\n
+              • <b>Stability:</b> Improved notification synchronization and fixed an issue where original notifications were sometimes prematurely dismissed (PR #258).\n
+    </string>
+    <string name="title_0_5_7">Performance &amp; Sync Update</string>
+
     <string name="changelog_0_5_6">
         <b>Fixes &amp; Improvements</b>\n
               • <b>System UI Stability:</b> Validated highlightColor before passing to SystemUI to prevent crashes.\n

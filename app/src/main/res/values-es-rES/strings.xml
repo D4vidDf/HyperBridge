@@ -669,4 +669,11 @@
     <string name="reply_hint">Responder...</string>
     <string name="perm_display_title">Mostrar sobre otras aplicaciones</string>
     <string name="perm_display_onboard_desc">Requerido para mostrar la ventana de respuesta rápida.</string>
+
+    <string name="changelog_0_5_7">
+        <b>Optimizaciones y correcciones</b>\n
+              • <b>Optimización de código:</b> Actualización a la última versión del Plugin de Gradle para Android y habilitación de R8 para una app más pequeña y rápida.\n
+              • <b>Estabilidad:</b> Mejora en la sincronización de notificaciones y corrección de un error donde las notificaciones originales a veces se eliminaban prematuramente (PR #258).\n
+    </string>
+    <string name="title_0_5_7">Actualización de Rendimiento y Sincronización</string>
 </resources>

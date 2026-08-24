@@ -652,4 +652,11 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="reply_hint">Reply...</string>
     <string name="perm_display_title">Display over other apps</string>
     <string name="perm_display_onboard_desc">Required to show the custom inline reply overlay.</string>
+
+    <string name="changelog_0_5_7">
+        <b>Otimizações e Correções</b>\n
+              • <b>Otimização de Código:</b> Atualizado para o plugin Gradle mais recente e ativado o encolhimento de código R8 para um aplicativo menor e mais rápido.\n
+              • <b>Estabilidade:</b> Melhoria na sincronização de notificações e correção de um problema onde as notificações originais às vezes eram descartadas prematuramente.\n
+    </string>
+    <string name="title_0_5_7">Atualização de Performance e Sincronização</string>
 </resources>
