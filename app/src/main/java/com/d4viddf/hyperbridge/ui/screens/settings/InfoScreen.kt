@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
@@ -191,6 +192,22 @@ fun InfoScreen(
                     SettingsItemData(Icons.Default.History, stringResource(R.string.version_history), "0.1.0 - $appVersion", onHistoryClick),
                     SettingsItemData(Icons.Default.Code, stringResource(R.string.source_code), stringResource(R.string.source_code_subtitle)) { uriHandler.openUri("https://github.com/D4vidDf/HyperBridge") },
                     SettingsItemData(Icons.Default.Description, stringResource(R.string.licenses), stringResource(R.string.licenses_subtitle), onLicensesClick)
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- SPECIAL THANKS ---
+            SettingsSection(
+                title = stringResource(R.string.special_thanks),
+                items = listOf(
+                    SettingsItemData(
+                        Icons.Default.Favorite,
+                        stringResource(R.string.xmsf_workaround_credit_title),
+                        stringResource(R.string.xmsf_workaround_credit_subtitle)
+                    ) {
+                        uriHandler.openUri("https://www.coolapk1s.com/feed/70418983")
+                    }
                 )
             )
 

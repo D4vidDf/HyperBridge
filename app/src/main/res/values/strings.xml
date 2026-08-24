@@ -59,6 +59,9 @@
     <string name="permanent_island_hide_landscape">Hide in Landscape</string>
 
     <string name="group_about">About</string>
+    <string name="special_thanks">Special Thanks</string>
+    <string name="xmsf_workaround_credit_title">XMSF Workaround</string>
+    <string name="xmsf_workaround_credit_subtitle">Research by Stardawn (星间晞)</string>
     <string name="developer">Developer</string>
     <string name="developer_subtitle">Visit d4viddf.com</string>
     <string name="source_code">Source Code</string>

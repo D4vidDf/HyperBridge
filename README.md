@@ -88,6 +88,12 @@ HyperBridge is fully localized thanks to our amazing community. **Want to add yo
 |:---:|:---:|:---:|:---:|
 | ![Home](./screenshots/home.png) | ![Island](./screenshots/island_example.png) | ![Creator](./screenshots/theme_creator.png) | ![Widgets](./screenshots/widget_picker.png) |
 
+## 🤝 Acknowledgements
+
+Special thanks to the following people and projects for their invaluable contributions:
+
+*   **[Stardawn](https://www.coolapk1s.com/feed/70418983)**: For the extensive research on the XMSF notification workaround that enables HyperIslands on Chinese ROMs.
+
 ## 📥 Installation
 
 ### Option 1: Google Play Store (Recommended)
