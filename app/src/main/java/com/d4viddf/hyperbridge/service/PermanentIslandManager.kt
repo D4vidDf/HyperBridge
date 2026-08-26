@@ -177,10 +177,10 @@ class PermanentIslandManager(
             
             val builder = HyperIslandNotification.Builder(context, "permanent_island", "Permanent Island")
             
-            // Should not be dismissible and shouldn't show in shade
+            // When show on lockscreen is enabled, tell HyperOS focus protocol to display the notification on keyguard
             builder.setEnableFloat(false)
             builder.setIslandConfig(timeout = 86400000, dismissible = false, highlightColor = "#FFFFFF", expandedTimeMs = 0)
-            builder.setShowNotification(false)
+            builder.setShowNotification(showIslandOnLockscreen)
             builder.setReopen(true)
             builder.setIslandFirstFloat(false)
 
@@ -191,7 +191,7 @@ class PermanentIslandManager(
                 left = ImageTextInfoLeft(1, null, TextInfo(emptyString, emptyString)),
                 right = null
             )
-            builder.setSmallIsland("")
+            builder.setSmallIsland(emptyString)
 
             val data = HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
 
