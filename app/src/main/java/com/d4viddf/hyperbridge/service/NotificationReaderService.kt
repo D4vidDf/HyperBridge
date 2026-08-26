@@ -79,6 +79,7 @@ class NotificationReaderService : NotificationListenerService() {
     
     private var isDndModeEnabled = false
     private var autoDetectDnd = false
+    private var showIslandOnLockscreen = true
 
     // --- CACHES ---
     private val recentlyRemovedKeys = ConcurrentHashMap<String, Long>()
@@ -215,6 +216,7 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
         serviceScope.launch { preferences.isDndModeEnabledFlow.collectLatest { isDndModeEnabled = it } }
         serviceScope.launch { preferences.autoDetectDndFlow.collectLatest { autoDetectDnd = it } }
+        serviceScope.launch { preferences.showIslandOnLockscreenFlow.collectLatest { showIslandOnLockscreen = it } }
 
         // Listen for Theme Changes
         serviceScope.launch {
@@ -786,6 +788,11 @@ class NotificationReaderService : NotificationListenerService() {
                 val shouldAlertOnce = isUpdate && (type == NotificationType.PROGRESS || type == NotificationType.DOWNLOAD || type == NotificationType.MEDIA)
                 builder.setOnlyAlertOnce(shouldAlertOnce)
 
+                // Lockscreen visibility: show island on lock screen if user enabled it
+                if (showIslandOnLockscreen) {
+                    builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                }
+
                 val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
                 if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
                     serviceScope.launch {
@@ -1035,6 +1042,11 @@ class NotificationReaderService : NotificationListenerService() {
             .setOngoing(true)
             .setOnlyAlertOnce(shouldAlertOnce)
 
+        // Lockscreen visibility: show island on lock screen if user enabled it
+        if (showIslandOnLockscreen) {
+            builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        }
+
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
         builder.addExtras(extras)
@@ -1098,16 +1110,19 @@ class NotificationReaderService : NotificationListenerService() {
         val manager = getSystemService(NotificationManager::class.java)
         val notifChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID, getString(R.string.channel_active_islands), NotificationManager.IMPORTANCE_HIGH).apply {
             setSound(null, null); enableVibration(false); setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
         manager.createNotificationChannel(notifChannel)
 
         val widgetChannel = NotificationChannel(WIDGET_CHANNEL_ID, "Widgets Overlay", NotificationManager.IMPORTANCE_LOW).apply {
             setSound(null, null); enableVibration(false); setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
         manager.createNotificationChannel(widgetChannel)
 
         val liveUpdateChannel = NotificationChannel(LIVE_UPDATE_CHANNEL_ID, getString(R.string.channel_live_updates), NotificationManager.IMPORTANCE_DEFAULT).apply {
             setSound(null, null); enableVibration(false); setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
         manager.createNotificationChannel(liveUpdateChannel)
 
@@ -1143,6 +1158,11 @@ class NotificationReaderService : NotificationListenerService() {
             .setContentTitle("Widget Overlay").setContentText(getString(R.string.widget_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_LOW).setOngoing(true)
             .setOnlyAlertOnce(true).addExtras(data.resources)
+
+        // Lockscreen visibility: show widget island on lock screen if user enabled it
+        if (showIslandOnLockscreen) {
+            builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        }
 
         val intent = Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)

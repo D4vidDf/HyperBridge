@@ -44,6 +44,7 @@ class PermanentIslandManager(
     private var currentWidth = 0
     private var isHideInLandscapeEnabled = false
     private var pendingDispatchJob: Job? = null
+    private var showIslandOnLockscreen = true
 
     init {
         scope.launch {
@@ -74,6 +75,16 @@ class PermanentIslandManager(
                         if (isIslandActive) {
                             dispatchPermanentIsland()
                         }
+                    }
+                }
+            }
+        }
+        scope.launch {
+            preferences.showIslandOnLockscreenFlow.collectLatest { show ->
+                synchronized(this@PermanentIslandManager) {
+                    showIslandOnLockscreen = show
+                    if (isIslandActive) {
+                        dispatchPermanentIsland()
                     }
                 }
             }
@@ -184,12 +195,18 @@ class PermanentIslandManager(
 
             val data = HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
 
+            val notifPriority = if (showIslandOnLockscreen) NotificationCompat.PRIORITY_LOW else NotificationCompat.PRIORITY_MIN
             val notifBuilder = NotificationCompat.Builder(context, "hyper_bridge_notification_channel")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("Permanent Island")
                 .setContentText("Empty Island")
-                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setPriority(notifPriority)
                 .setOngoing(true)
+
+            // Lockscreen visibility: show permanent island on lock screen if user enabled it
+            if (showIslandOnLockscreen) {
+                notifBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            }
 
             notifBuilder.addExtras(data.resources)
 

@@ -1529,6 +1529,8 @@ fun AutoHidePagePreview(){
 fun PermanentIslandConfigPage(prefs: AppPreferences) {
     val isEnabled by prefs.isPermanentIslandEnabledFlow.collectAsState(initial = false)
     val islandWidth by prefs.permanentIslandWidthFlow.collectAsState(initial = 0)
+    val hideInLandscape by prefs.hidePermanentIslandLandscapeFlow.collectAsState(initial = false)
+    val showOnLockscreen by prefs.showIslandOnLockscreenFlow.collectAsState(initial = true)
     
     var sliderValue by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     var isDragging by androidx.compose.runtime.remember { mutableStateOf(false) }
@@ -1589,6 +1591,61 @@ fun PermanentIslandConfigPage(prefs: AppPreferences) {
                             isDragging = false
                         },
                         valueRange = 0f..20f
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.permanent_island_hide_landscape),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Switch(
+                            checked = hideInLandscape,
+                            onCheckedChange = { hide ->
+                                scope.launch { prefs.setHidePermanentIslandLandscape(hide) }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.lockscreen_island_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = stringResource(R.string.lockscreen_island_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = showOnLockscreen,
+                        onCheckedChange = { show ->
+                            scope.launch { prefs.setShowIslandOnLockscreen(show) }
+                        }
                     )
                 }
             }
