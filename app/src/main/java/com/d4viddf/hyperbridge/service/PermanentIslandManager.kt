@@ -12,11 +12,20 @@ import com.d4viddf.hyperbridge.util.ShizukuManager
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
+import android.graphics.Color
+import android.graphics.PixelFormat
+import android.graphics.drawable.GradientDrawable
+import android.provider.Settings
+import android.view.Gravity
+import android.view.View
+import android.view.WindowManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -46,6 +55,11 @@ class PermanentIslandManager(
     private var pendingDispatchJob: Job? = null
     private var showIslandOnLockscreen = true
 
+    private var lockscreenOverlayView: View? = null
+    private val windowManager by lazy {
+        context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
+    }
+
     init {
         scope.launch {
             preferences.isPermanentIslandEnabledFlow.collectLatest { enabled ->
@@ -74,6 +88,9 @@ class PermanentIslandManager(
                         currentWidth = width
                         if (isIslandActive) {
                             dispatchPermanentIsland()
+                            if (showIslandOnLockscreen) {
+                                showLockscreenOverlayLocked()
+                            }
                         }
                     }
                 }
@@ -85,6 +102,11 @@ class PermanentIslandManager(
                     showIslandOnLockscreen = show
                     if (isIslandActive) {
                         dispatchPermanentIsland()
+                        if (show) {
+                            showLockscreenOverlayLocked()
+                        } else {
+                            removeLockscreenOverlayLocked()
+                        }
                     }
                 }
             }
@@ -103,15 +125,6 @@ class PermanentIslandManager(
         updateStateLocked()
     }
 
-    // isIslandPresent reflects whether PERMANENT_BRIDGE_ID is actually posted right now.
-    // Presence only proves the notification exists, NOT that its island is visible:
-    // HyperOS can keep 9999 posted while hiding its island (e.g. a bridged focus island
-    // superseded it, or a re-post landed too soon after a cancel). So on a discrete
-    // transition (screen on / unlock / (re)connect) callers pass refresh=true to re-assert
-    // the island even when present; the periodic tick passes false, trusting presence.
-    // Bridged islands deliberately do NOT hide the permanent island: HyperOS shows the newest
-    // focus island on top, so keeping 9999 posted makes the permanent island reappear instantly
-    // when a bridged island collapses or expires (removing it would leave a gap until the TTL).
     private fun desiredActive(): Boolean {
         val isLandscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         return isPermanentIslandEnabled && !hasNativeIsland && !(isHideInLandscapeEnabled && isLandscape)
@@ -124,13 +137,14 @@ class PermanentIslandManager(
         val shouldShow = desiredActive()
         val isLandscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         if (shouldShow && isIslandPresent && refresh) {
-            // Present but maybe not visible: re-assert in place (no remove first, so no
-            // rapid cancel->post to swallow). Same id + content updates the residual island.
             val jobToCancel = pendingDispatchJob
             pendingDispatchJob = null
             jobToCancel?.cancel()
             dispatchPermanentIsland()
             isIslandActive = true
+            if (showIslandOnLockscreen) {
+                showLockscreenOverlayLocked()
+            }
             return
         }
         isIslandActive = isIslandPresent
@@ -144,6 +158,11 @@ class PermanentIslandManager(
                 isIslandActive = true
                 scheduleDispatchLocked()
             }
+            if (showIslandOnLockscreen) {
+                showLockscreenOverlayLocked()
+            } else {
+                removeLockscreenOverlayLocked()
+            }
         } else {
             if (isIslandActive) {
                 isIslandActive = false
@@ -151,6 +170,75 @@ class PermanentIslandManager(
                 pendingDispatchJob = null
                 jobToCancel?.cancel()
                 removePermanentIsland()
+            }
+            removeLockscreenOverlayLocked()
+        }
+    }
+
+    private fun showLockscreenOverlayLocked() {
+        if (!showIslandOnLockscreen || !Settings.canDrawOverlays(context)) {
+            removeLockscreenOverlayLocked()
+            return
+        }
+        scope.launch(Dispatchers.Main) {
+            try {
+                val density = context.resources.displayMetrics.density
+                val widthPx = ((120 + currentWidth * 5) * density).toInt()
+                val heightPx = (26 * density).toInt()
+
+                val statusBarResId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+                val statusBarHeight = if (statusBarResId > 0) context.resources.getDimensionPixelSize(statusBarResId) else (28 * density).toInt()
+                val topMarginPx = max(0, (statusBarHeight - heightPx) / 2)
+
+                if (lockscreenOverlayView == null) {
+                    val pillView = View(context).apply {
+                        val shape = GradientDrawable().apply {
+                            shape = GradientDrawable.RECTANGLE
+                            cornerRadius = 50 * density
+                            setColor(Color.BLACK)
+                        }
+                        background = shape
+                    }
+                    val params = WindowManager.LayoutParams(
+                        widthPx,
+                        heightPx,
+                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                        PixelFormat.TRANSLUCENT
+                    ).apply {
+                        gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                        y = topMarginPx
+                    }
+                    windowManager?.addView(pillView, params)
+                    lockscreenOverlayView = pillView
+                } else {
+                    val params = lockscreenOverlayView?.layoutParams as? WindowManager.LayoutParams
+                    if (params != null) {
+                        params.width = widthPx
+                        params.height = heightPx
+                        params.y = topMarginPx
+                        windowManager?.updateViewLayout(lockscreenOverlayView, params)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error displaying lockscreen overlay", e)
+            }
+        }
+    }
+
+    private fun removeLockscreenOverlayLocked() {
+        scope.launch(Dispatchers.Main) {
+            try {
+                lockscreenOverlayView?.let {
+                    windowManager?.removeView(it)
+                    lockscreenOverlayView = null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error removing lockscreen overlay", e)
             }
         }
     }
