@@ -11,7 +11,7 @@
     <string name="clear">지우기</string>
     <string name="sort_order">정렬 순서</string>
     <string name="welcome_title">Hyper Bridge에 오신 것을\n환영합니다</string>
-    <string name="welcome_subtitle">HyperIslands를 HyperOS 시스템에 쉽게 통합하세요.</string>
+    <string name="welcome_subtitle">HyperIsland를 HyperOS 시스템에 쉽게 통합하세요.</string>
     <string name="get_started">시작하기</string>
     <string name="how_it_works">작동 방식</string>
     <string name="how_it_works_desc">좋아하는 앱(Spotify, 지도, 타이머)을 선택하세요. HyperBridge가 알림을 아름다운 HyperIsland로 변환합니다.</string>
@@ -19,19 +19,19 @@
     <string name="device_compatible">호환되는 기기</string>
     <string name="unsupported_device">지원되지 않는 기기</string>
     <string name="compatible_msg">기기가 HyperOS/MIUI에서 실행 중인 것으로 보입니다. 준비 완료!</string>
-    <string name="show_island">섬 표시</string>
-    <string name="perm_post_desc">화면에 ‘섬’ 알림을 표시하려면 권한이 필요합니다.</string>
+    <string name="show_island">Island 표시</string>
+    <string name="perm_post_desc">화면에 ‘Island’ 알림을 표시하려면 권한이 필요합니다.</string>
     <string name="perm_granted">✅ 권한 허용됨</string>
     <string name="allow_notifications">알림 허용</string>
     <string name="read_data">데이터 읽기</string>
     <string name="perm_listener_desc">앱을 연결하려면 해당 앱의 알림(음악, 지도, 타이머)을 읽을 수 있어야 합니다.</string>
     <string name="open_settings">설정 열기</string>
-    <string name="optimization_desc">HyperOS는 백그라운드 앱을 중지합니다. 자동 실행과 “제한 없음”을 켜서 섬을 유지하세요.</string>
+    <string name="optimization_desc">HyperOS는 백그라운드 앱을 중지합니다. 자동 실행과 “제한 없음”을 켜서 Island을 유지하세요.</string>
     <string name="enable_autostart">1. 자동 실행 켜기</string>
     <string name="set_battery_no_restrictions">2. 배터리 절약: “제한 없음”</string>
     <string name="tab_active">활성</string>
     <string name="tab_library">라이브러리</string>
-    <string name="search_hint">Search apps…</string>
+    <string name="search_hint">앱 검색…</string>
     <string name="no_active_bridges">활성 브리지가 없습니다</string>
     <string name="no_active_bridges_desc">라이브러리에서 앱을 활성화하세요.</string>
     <string name="no_apps_found">앱을 찾을 수 없습니다</string>
@@ -41,11 +41,15 @@
     <string name="system_setup">시스템 설정</string>
     <string name="system_setup_subtitle">권한 및 배터리 문제 해결</string>
     <!-- Permanent Island -->
-    <string name="permanent_island_title">Permanent Island</string>
-    <string name="permanent_island_desc">Keep the Dynamic Island permanently visible on screen when there are no active notifications.</string>
-    <string name="permanent_island_screen_desc">When enabled, an empty Dynamic Island will be shown permanently on your screen. It will automatically hide when real notifications arrive and reappear when all notifications are cleared. It will not be visible in your notification shade.</string>
-    <string name="permanent_island_width">Island Width</string>
+    <string name="permanent_island_title">고정 Island</string>
+    <string name="permanent_island_desc">활성 알림이 없을 때도 다이내믹 Island를 화면에 항상 표시합니다.</string>
+    <string name="permanent_island_screen_desc">활성화하면 빈 다이내믹 Island가 화면에 항상 표시됩니다. 실제 알림이 오면 자동으로 숨겨지고, 모든 알림을 지우면 다시 나타납니다. 알림창에는 표시되지 않습니다.</string>
+    <string name="permanent_island_width">Island 너비</string>
+    <string name="permanent_island_hide_landscape">가로 모드에서 숨기기</string>
     <string name="group_about">앱 정보</string>
+    <string name="xmsf_workaround_credit_title">XMSF 우회책</string>
+    <string name="special_thanks">특별 감사</string>
+    <string name="xmsf_workaround_credit_subtitle">싱젠시 (星间晞)의 연구</string>
     <string name="developer">개발자</string>
     <string name="developer_subtitle">d4viddf.com 방문</string>
     <string name="source_code">소스 코드</string>
@@ -69,8 +73,9 @@
     <string name="cat_timer">생산성</string>
     <string name="cat_other">기타</string>
     <string name="type_standard">메시지 및 일반</string>
-    <string name="type_progress">Progress &amp; Tasks</string>
-    <string name="type_download">Downloads</string>
+    <string name="type_message">메시지 및 채팅</string>
+    <string name="type_progress">진행 상황 및 작업</string>
+    <string name="type_download">다운로드</string>
     <string name="type_media">음악 및 미디어</string>
     <string name="type_nav">지도 및 GPS</string>
     <string name="type_call">통화</string>
@@ -91,12 +96,12 @@
     <string name="fallback_timer">타이머</string>
     <string name="whats_new_title">%s의 새로운 기능</string>
     <string name="awesome">멋져요!</string>
-    <string name="island_behavior">섬 동작 방식</string>
+    <string name="island_behavior">Island 동작 방식</string>
     <string name="limit_strategy">제한 도달</string>
-    <string name="limit_desc">섬 개수 제한(9개)을 초과하면 어떻게 될까요?</string>
+    <string name="limit_desc">Island 개수 제한(9개)을 초과하면 어떻게 될까요?</string>
     <string name="mode_fcfs_title">선착순 유지</string>
     <string name="mode_fcfs_desc">처음 9개의 앱을 유지하며, 자리가 생길 때까지 새로운 알림은 무시됩니다.</string>
-    <string name="mode_recent_title">가장 최신 (기본값)</string>
+    <string name="mode_recent_title">최신순 (기본값)</string>
     <string name="mode_recent_desc">새 알림이 가장 오래된 알림을 교체합니다.</string>
     <string name="mode_priority_title">사용자 우선순위</string>
     <string name="mode_priority_desc">어떤 유형(예: 전화)이 더 중요한지 지정하세요.</string>
@@ -104,12 +109,12 @@
     <string name="priority_order_desc">상위 우선순위가 하위 우선순위를 대체합니다.</string>
     <string name="configure_order">순서 설정</string>
     <string name="global_settings">전역 설정</string>
-    <string name="island_appearance">섬 외형</string>
-    <string name="setting_float">플로팅 섬 표시</string>
+    <string name="island_appearance">Island 외형</string>
+    <string name="setting_float">플로팅 Island 표시</string>
     <string name="setting_float_desc">팝업 알림 표시</string>
-    <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
+    <string name="setting_float_timeout_desc">헤드업 팝업이 표시되는 시간을 설정합니다.</string>
     <string name="setting_shade">알림창에 표시</string>
-    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_shade_desc">알림 패널에 알림을 유지합니다. 비활성화하면 Island로만 표시됩니다.</string>
     <string name="seconds_suffix">%d초</string>
     <string name="use_global_default">전역 설정 사용</string>
     <string-array name="nav_arrival_keywords">
@@ -122,20 +127,20 @@
     <string name="version_history">버전 기록</string>
     <string name="title_0_2_0">The Information 업데이트</string>
     <string name="changelog_0_2_0">        • &lt;b&gt;고급 진행률 표시줄:&lt;/b&gt; \"단계별 진행\"(예: 1/3) 및 알림창 내 아이콘이 포함된 진행률 표시줄 지원이 추가되었습니다.\n
-        • &lt;b&gt;우선순위 시스템:&lt;/b&gt; 새로운 \"아일랜드 동작\" 설정. \"최신순\", \"선착순\", 또는 사용자 지정 \"앱 우선순위\" 목록 중에서 선택하세요.\n
+        • &lt;b&gt;우선순위 시스템:&lt;/b&gt; 새로운 \"Island 동작\" 설정. \"최신순\", \"선착순\", 또는 사용자 지정 \"앱 우선순위\" 목록 중에서 선택하세요.\n
         • &lt;b&gt;스마트 필터링:&lt;/b&gt; 중복 알림 및 그룹화된 다운로드 감지 기능이 개선되었습니다.\n
         • &lt;b&gt;시각적 개선:&lt;/b&gt; 내비게이션 안내의 레이아웃 문제를 수정했습니다.\n
         • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 시간 제한 및 플로팅 동작을 사용자가 지정할 수 있습니다.
     </string>
     <string name="title_0_1_0">The Expressive 업데이트</string>
     <string name="changelog_0_1_0">        • &lt;b&gt;주요 UI 개편:&lt;/b&gt; 부드러운 애니메이션이 적용된 새로운 Material 3 Expressive 디자인.\n
-        • &lt;b&gt;향상된 아일랜드:&lt;/b&gt; 이제 텍스트가 오른쪽에 표시됩니다. 완료된 다운로드에 녹색 체크 표시가 추가되었습니다.\n
+        • &lt;b&gt;향상된 Island:&lt;/b&gt; 이제 텍스트가 오른쪽에 표시됩니다. 완료된 다운로드에 녹색 체크 표시가 추가되었습니다.\n
         • &lt;b&gt;앱별 구성:&lt;/b&gt; 앱별로 특정 알림 유형(음악, 지도, 통화)을 선택할 수 있습니다.\n
         • &lt;b&gt;스마트 필터:&lt;/b&gt; 중복 알림을 차단하고 배터리를 절약합니다.\n
         • &lt;b&gt;새로운 라이브러리:&lt;/b&gt; 카테고리별로 앱을 필터링하고 정렬 순서를 변경할 수 있습니다.\n
         • &lt;b&gt;현지화:&lt;/b&gt; 스페인어 지원이 추가되었습니다.
     </string>
-    <string name="priority_edu_title">새 기능: 섬 제어</string>
+    <string name="priority_edu_title">새 기능: Island 제어</string>
     <string name="priority_edu_desc">HyperBridge는 이제 9개 제한에 도달했을 때 여러 알림을 어떻게 처리할지 관리할 수 있습니다.\n\n<b>기본값: 최신순</b>\n새로운 알림이 오래된 알림을 자동으로 대체합니다.</string>
     <string name="badge_new">신규</string>
     <string name="nav_layout_title">내비게이션 레이아웃</string>
@@ -147,7 +152,7 @@
     <string name="nav_content_eta">도착 시간</string>
     <string name="nav_content_distance_eta">거리 + 시간</string>
     <string name="nav_content_none">없음</string>
-    <string name="channel_active_islands">활성 섬</string>
+    <string name="channel_active_islands">활성 Island</string>
     <string name="cd_enable_type">%s 알림 켜기</string>
     <string name="cd_disable_type">%s 알림 끄기</string>
     <string name="cd_nav_edit">내비게이션 레이아웃 편집</string>
@@ -183,14 +188,14 @@
     <string name="req_xiaomi">Xiaomi/Redmi/Poco 기기 필요</string>
     <string name="warning_cn_rom_title">중국(CN) 롬 감지됨</string>
     <string name="warning_cn_rom_desc">기기가 중국 롬을 사용 중입니다. Xiaomi는 이 버전에서 알림 구조를 크게 수정하므로 기능이 불안정하거나 작동하지 않을 수 있습니다.</string>
-    <string name="shizuku_workaround_title">Enable Shizuku Workaround</string>
-    <string name="shizuku_enable_workaround">Enable Workaround</string>
-    <string name="shizuku_workaround_desc">If you are on a CN ROM, you must enable the Shizuku Workaround for notifications to trigger correctly.</string>
-    <string name="shizuku_status_running">Shizuku is running</string>
-    <string name="shizuku_permission_granted">Permission Granted</string>
-    <string name="shizuku_permission_denied">Permission Denied</string>
-    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
-    <string name="shizuku_not_installed">Shizuku app is not installed or running. Please install and start Shizuku first.</string>
+    <string name="shizuku_workaround_title">Shizuku를 통한 우회책 활성화</string>
+    <string name="shizuku_enable_workaround">우회책 활성화</string>
+    <string name="shizuku_workaround_desc">중국(CN) 롬을 사용하는 경우 알림이 올바르게 실행되려면 Shizuku 우회 기능을 활성화해야 합니다.</string>
+    <string name="shizuku_status_running">Shizuku 실행 중</string>
+    <string name="shizuku_permission_granted">권한 허용됨</string>
+    <string name="shizuku_permission_denied">권한 거부됨</string>
+    <string name="shizuku_request_permission">Shizuku 권한 부여</string>
+    <string name="shizuku_not_installed">Shizuku 앱이 설치되지 않았거나 실행 중이지 않습니다. 먼저 Shizuku를 설치하고 실행해 주세요.</string>
     <string name="system_version">시스템 버전</string>
     <string name="call_incoming">수신 전화</string>
     <string name="call_ongoing">통화 중</string>
@@ -209,14 +214,14 @@
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">The Hidden 업데이트</string>
-    <string name="changelog_0_3_0">            • &lt;b&gt;숨겨진 알림 👻:&lt;/b&gt; 알림 패널에는 숨기고, 아일랜드에서는 계속 표시되도록 하는 새로운 옵션이 추가되었습니다. 전역 설정에서 확인하세요.\n
+    <string name="changelog_0_3_0">            • &lt;b&gt;숨겨진 알림 👻:&lt;/b&gt; 알림 패널에는 숨기고, Island에서는 계속 표시되도록 하는 새로운 옵션이 추가되었습니다. 전역 설정에서 확인하세요.\n
             • &lt;b&gt;새로운 언어 🌍:&lt;/b&gt; 커뮤니티 번역에 감사드립니다:\n
                 • 🇧🇷 포르투갈어(브라질)\n
                 • 🇵🇱 폴란드어\n
                 • 🇰🇷 한국어\n
                 • 🇺🇦 우크라이나어\n
             • &lt;b&gt;내비게이션 설정 🧭:&lt;/b&gt; 거리, 도착 시간, 안내 등 어떤 정보를 좌/우에 표시할지 선택할 수 있습니다.\n
-            • &lt;b&gt;스포일러 방지 🛡️:&lt;/b&gt; “차단된 단어” 기능을 통해 특정 단어가 포함된 알림이 아일랜드에 표시되지 않도록 전역 또는 앱별로 설정할 수 있습니다.\n
+            • &lt;b&gt;스포일러 방지 🛡️:&lt;/b&gt; “차단된 단어” 기능을 통해 특정 단어가 포함된 알림이 Island에 표시되지 않도록 전역 또는 앱별로 설정할 수 있습니다.\n
             • &lt;b&gt;통화 개선 📞:&lt;/b&gt; 더 다양한 VoIP 및 전화 앱을 정확하게 감지하도록 로직을 개선했습니다.\n
             • &lt;b&gt;수정 및 개선 🛠️:&lt;/b&gt;\n
                 • 재부팅 후 앱이 로딩에서 멈추는 치명적 버그 수정\n
@@ -266,7 +271,7 @@
             • 🇺🇦 우크라이나어 (개선됨)\n
             &lt;i&gt;또한: 시스템 언어에 영향을 주지 않고 앱 내에서 바로 변경할 수 있는 새로운 언어 선택기가 추가되었습니다.&lt;/i&gt;\n\n
             &lt;b&gt;시각적 업데이트 🎨&lt;/b&gt;\n
-            앱이 Material 3 Expressive 디자인으로 새로워졌습니다. 더 큰 헤더, 더 둥근 형태, 더 부드러운 사용자 경험을 제공합니다.\n\n
+            앱이 Material 3 Expressive 디자인으로 새로워졌습니다. 더 커진 헤더와 둥근 디자인, 한층 부드러워진 사용자 경험을 제공합니다.\n\n
             &lt;b&gt;프라이버시 &amp; 설정 🛡️&lt;/b&gt;\n
             • 오프라인 우선 구조를 설명하는 전용 프라이버시 페이지가 포함된 온보딩 개선.\n
             • HyperOS 3.0에서 최고의 경험을 제공하기 위한 더욱 엄격한 호환성 검사.\n\n
@@ -275,363 +280,387 @@
             • Navigation Island에서 “종료” 버튼이 아이콘으로 표시되던 문제 수정 — 이제 텍스트로 표시됩니다.\n
             • 설정에서 앱 아이콘 로딩 문제 수정.\n
     </string>
-    <string name="close">Close</string>
-    <string name="search">Search</string>
-    <string name="widget_updated_toast">Widget updated</string>
-    <string name="widget_settings_error">Cannot edit this widget settings</string>
-    <string name="widget_picker_title">Add Widget</string>
-    <string name="search_apps_placeholder">Search apps...</string>
+    <string name="close">닫기</string>
+    <string name="search">검색</string>
+    <string name="widget_updated_toast">위젯이 업데이트되었습니다</string>
+    <string name="widget_settings_error">이 위젯 설정을 수정할 수 없습니다</string>
+    <string name="widget_picker_title">위젯 추가</string>
+    <string name="search_apps_placeholder">앱 검색...</string>
     <plurals name="widget_count_fmt">
-        <item quantity="other">%d widgets</item>
+        <item quantity="other">위젯 %d개</item>
     </plurals>
-    <string name="widget_config_title">Configure Widget</string>
-    <string name="widget_settings_button">Widget Settings</string>
-    <string name="config_tab_appearance">Appearance</string>
-    <string name="config_tab_behavior">Behavior</string>
-    <string name="config_render_mode_label">Render Mode</string>
-    <string name="config_container_size_label">Container Size</string>
-    <string name="config_shade_title">Show in Shade</string>
-    <string name="config_shade_desc">Visible in notification panel</string>
-    <string name="config_timeout_title">Auto Close</string>
-    <string name="config_timeout_desc">Close island after delay</string>
+    <string name="widget_config_title">위젯 설정</string>
+    <string name="widget_settings_button">위젯 설정</string>
+    <string name="config_tab_appearance">외형</string>
+    <string name="config_tab_behavior">동작</string>
+    <string name="config_render_mode_label">렌더링 모드</string>
+    <string name="config_container_size_label">컨테이너 크기</string>
+    <string name="config_shade_title">알림창에 표시</string>
+    <string name="config_shade_desc">알림 패널에 표시됩니다</string>
+    <string name="config_timeout_title">자동 닫기</string>
+    <string name="config_timeout_desc">일정 시간 후 Island를 닫습니다</string>
     <plurals name="config_timeout_fmt">
-        <item quantity="other">%d seconds</item>
+        <item quantity="other">%d초</item>
     </plurals>
-    <string name="config_refresh_title">Auto Refresh</string>
-    <string name="config_refresh_desc">Update snapshot periodically</string>
+    <string name="config_refresh_title">자동 새로고침</string>
+    <string name="config_refresh_desc">주기적으로 스냅샷을 업데이트합니다</string>
     <plurals name="config_refresh_fmt">
-        <item quantity="other">Every %d minutes</item>
+        <item quantity="other">%d분마다</item>
     </plurals>
-    <string name="config_refresh_warning">Higher frequency uses more battery.</string>
-    <string name="render_interactive_label">Interactive</string>
-    <string name="render_interactive_desc">Buttons work. Best for Music, Controls.</string>
-    <string name="render_snapshot_label">Snapshot</string>
-    <string name="render_snapshot_desc">Fixes empty lists. Best for Calendar, Gmail.</string>
-    <string name="size_original">Original</string>
-    <string name="size_small">Small (100dp)</string>
-    <string name="size_medium">Medium (180dp)</string>
-    <string name="size_large">Large (280dp)</string>
-    <string name="size_xlarge">Extra Large (380dp)</string>
-    <string name="app_uninstalled_badge">Uninstalled</string>
-    <string name="settings_action">Settings</string>
-    <string name="saved_widgets_title">Saved Widgets</string>
-    <string name="no_saved_widgets">No saved widgets found.</string>
-    <string name="widget_id_fmt">Widget #%d</string>
-    <string name="show_on_island">Show on Island</string>
-    <string name="theme_installer_analyzing">Analyzing theme package...</string>
-    <string name="theme_installer_success_title">Theme Ready</string>
-    <string name="theme_installer_author">Created by %s</string>
-    <string name="theme_installer_version">Version %d</string>
-    <string name="theme_installer_apply_question">Do you want to apply this theme to HyperBridge now?</string>
-    <string name="theme_installer_action_apply">Apply Theme</string>
-    <string name="theme_installer_action_later">Save for Later</string>
-    <string name="theme_installer_error_title">Import Failed</string>
-    <string name="theme_installer_error_generic">Could not verify the theme file.</string>
-    <string name="theme_installer_btn_close">Close</string>
-    <string name="theme_manager_title">My Themes</string>
-    <string name="theme_manager_cd_add">Add New Theme</string>
-    <string name="theme_card_author_format">by %s</string>
-    <string name="theme_card_cd_active">Active Theme</string>
-    <string name="theme_card_cd_delete">Delete Theme</string>
-    <string name="theme_system_default_title">System Default</string>
-    <string name="theme_system_default_desc">Standard Look</string>
-    <string name="theme_sheet_title">Add New Theme</string>
-    <string name="theme_sheet_action_create">Create New Theme</string>
-    <string name="theme_sheet_action_find">Search</string>
-    <string name="theme_action_import_short">Import</string>
-    <string name="theme_card_action_edit">Edit</string>
-    <string name="theme_card_action_export">Export</string>
-    <string name="creator_title_new">Create Theme</string>
-    <string name="creator_title_edit">Edit Theme</string>
-    <string name="creator_nav_colors">Colors</string>
-    <string name="creator_nav_icons">Icons &amp; Shapes</string>
-    <string name="creator_nav_calls">Call Style</string>
-    <string name="creator_nav_apps">App Config</string>
-    <string name="creator_action_save">Save</string>
-    <string name="creator_btn_edit_info">Edit Theme Info</string>
-    <string name="creator_sub_colors">Palettes &amp; contrast</string>
-    <string name="creator_sub_icons">Shape &amp; padding</string>
-    <string name="creator_sub_calls">Answer &amp; decline buttons</string>
-    <string name="creator_sub_apps">Per-app overrides</string>
-    <string name="meta_title">Theme Info</string>
-    <string name="meta_label_name">Theme Name</string>
-    <string name="meta_label_author">Author Name</string>
-    <string name="meta_action_done">Done</string>
-    <string name="colors_tab_presets">Presets</string>
-    <string name="colors_tab_custom">Custom</string>
-    <string name="colors_label_presets">Presets</string>
-    <string name="colors_label_use_app_colors">Use App Colors</string>
-    <string name="colors_desc_use_app_colors">Adapt colors from installed apps</string>
-    <string name="colors_label_custom_title">Custom Color</string>
-    <string name="colors_cd_add_custom">Add Custom Color</string>
-    <string name="colors_dialog_title">Pick a Color</string>
-    <string name="colors_action_done">Done</string>
-    <string name="icons_tab_style">Style</string>
-    <string name="icons_tab_assets">Icons</string>
-    <string name="icons_tab_shape">Shape</string>
-    <string name="icons_label_size">Icon Size</string>
-    <string name="icons_label_full">Full</string>
-    <string name="icons_label_minimal">Minimal</string>
-    <string name="icons_group_nav">Navigation</string>
-    <string name="icons_btn_start">Start</string>
-    <string name="icons_btn_end">End</string>
-    <string name="icons_group_progress">Progress</string>
-    <string name="icons_btn_success">Success</string>
-    <string name="icons_label_shape_title">Icon Shape</string>
-    <string name="shape_circle">Circle</string>
-    <string name="shape_square">Square</string>
-    <string name="shape_cookie">Cookie</string>
-    <string name="shape_arch">Arch</string>
-    <string name="shape_clover">Clover</string>
-    <string name="calls_label_answer">Answer</string>
-    <string name="calls_label_decline">Decline</string>
-    <string name="apps_empty">No apps configured</string>
-    <string name="design_hero_customization_title">Customization</string>
-    <string name="design_hero_customization_subtitle">Learn how to create themes</string>
-    <string name="design_hero_pro_title">Pro Features</string>
-    <string name="design_hero_pro_subtitle">Unlock more power</string>
-    <string name="design_hero_community_title">Community</string>
-    <string name="design_hero_community_subtitle">Join our GitHub</string>
-    <string name="design_section_themes">Themes</string>
-    <string name="design_section_widgets">Widgets</string>
-    <string name="design_browse_more">Browse More</string>
-    <string name="design_add_new">Add New</string>
-    <string name="design_add_design">Add Design</string>
-    <string name="design_add_to_island">Customization</string>
-    <string name="design_system_widget_beta">System Widget (Beta)</string>
-    <string name="design_get_themes">Get Themes</string>
-    <string name="design_empty_widget_title">Add your first Widget</string>
-    <string name="design">Design</string>
-    <string name="creator_nav_actions">Global Actions</string>
-    <string name="creator_sub_actions">Style buttons by keyword</string>
-    <string name="action_sheet_title">Configure Action</string>
-    <string name="action_label_keyword">Keyword (e.g. \'Reply\')</string>
-    <string name="action_label_bg_color">Background Color</string>
-    <string name="action_label_tint_color">Icon/Text Color</string>
-    <string name="action_preview">Live Preview</string>
-    <string name="action_mode_icon">Icon Only</string>
-    <string name="action_mode_text">Text</string>
-    <string name="action_mode_both">Both</string>
-    <string name="actions_empty_title">No Custom Actions</string>
-    <string name="actions_empty_desc">Add rules to style notification buttons based on their text (e.g., \"Reply\", \"Archive\").</string>
-    <string name="action_default_preview_text">Action</string>
-    <string name="actions_search_hint">Search actions...</string>
-    <string name="actions_search_empty_fmt">No actions found for \"%1$s\"</string>
-    <string name="action_wip_warning">This feature is a Work in Progress. Keyword matching depends on how apps structure their notifications and may not work for every app.</string>
-    <string name="creator_dialog_apply_title">Apply Theme?</string>
-    <string name="creator_dialog_apply_desc">Do you want to apply this theme now?</string>
-    <string name="creator_dialog_action_save_apply">Save &amp; Apply</string>
-    <string name="creator_dialog_action_save_only">Save Only</string>
-    <string name="select_icon">Select Icon</string>
-    <string name="change_icon">Change Icon</string>
-    <string name="action_add">Add App</string>
-    <string name="apps_sheet_select_title">Select App</string>
-    <string name="edit_app">Edit App</string>
-    <string name="creator_sub_colors_custom">Custom Color Set</string>
-    <string name="creator_sub_colors_default">Using Global Default</string>
-    <string name="creator_sub_icons_custom">Custom Shape Set</string>
-    <string name="creator_sub_icons_default">Using Global Default</string>
-    <string name="app_customization_desc">Add an app to customize its look specifically.</string>
-    <string name="discard">Discard</string>
-    <string name="unsaved_changes">Unsaved Changes</string>
-    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
-    <string name="share_theme">Share Theme</string>
-    <string name="my_theme">My Theme</string>
+    <string name="config_refresh_warning">빈도가 높을수록 배터리가 더 많이 소모됩니다.</string>
+    <string name="render_interactive_label">대화형 (인터랙티브)</string>
+    <string name="render_interactive_desc">버튼이 작동합니다. 음악, 제어 항목에 최적화되어 있습니다.</string>
+    <string name="render_snapshot_label">스냅샷</string>
+    <string name="render_snapshot_desc">빈 목록 현상을 수정합니다. 캘린더, Gmail에 최적화되어 있습니다.</string>
+    <string name="size_original">원본 크기</string>
+    <string name="size_small">작게 (100dp)</string>
+    <string name="size_medium">보통 (180dp)</string>
+    <string name="size_large">크게 (280dp)</string>
+    <string name="size_xlarge">매우 크게 (380dp)</string>
+    <string name="app_uninstalled_badge">삭제됨</string>
+    <string name="settings_action">설정</string>
+    <string name="saved_widgets_title">저장된 위젯</string>
+    <string name="no_saved_widgets">저장된 위젯이 없습니다.</string>
+    <string name="widget_id_fmt">위젯 #%d</string>
+    <string name="show_on_island">Island에 표시</string>
+    <string name="theme_installer_analyzing">테마 패키지 분석 중...</string>
+    <string name="theme_installer_success_title">테마 준비 완료</string>
+    <string name="theme_installer_author">제작자: %s</string>
+    <string name="theme_installer_version">버전 %d</string>
+    <string name="theme_installer_apply_question">지금 이 테마를 HyperBridge에 적용하시겠습니까?</string>
+    <string name="theme_installer_action_apply">테마 적용</string>
+    <string name="theme_installer_action_later">나중에 저장</string>
+    <string name="theme_installer_error_title">가져오기 실패</string>
+    <string name="theme_installer_error_generic">테마 파일을 검증할 수 없습니다.</string>
+    <string name="theme_installer_btn_close">닫기</string>
+    <string name="theme_manager_title">내 테마</string>
+    <string name="theme_manager_cd_add">새 테마 추가</string>
+    <string name="theme_card_author_format">제작: %s</string>
+    <string name="theme_card_cd_active">사용 중인 테마</string>
+    <string name="theme_card_cd_delete">테마 삭제</string>
+    <string name="theme_system_default_title">시스템 기본값</string>
+    <string name="theme_system_default_desc">표준 디자인</string>
+    <string name="theme_sheet_title">새 테마 추가</string>
+    <string name="theme_sheet_action_create">새 테마 만들기</string>
+    <string name="theme_sheet_action_find">검색</string>
+    <string name="theme_action_import_short">가져오기</string>
+    <string name="theme_card_action_edit">편집</string>
+    <string name="theme_card_action_export">내보내기</string>
+    <string name="creator_title_new">테마 만들기</string>
+    <string name="creator_title_edit">테마 편집</string>
+    <string name="creator_nav_colors">색상</string>
+    <string name="creator_nav_icons">아이콘 및 모양</string>
+    <string name="creator_nav_calls">통화 스타일</string>
+    <string name="creator_nav_apps">앱 구성</string>
+    <string name="creator_action_save">저장</string>
+    <string name="creator_btn_edit_info">테마 정보 편집</string>
+    <string name="creator_sub_colors">팔레트 및 대비</string>
+    <string name="creator_sub_icons">모양 및 여백</string>
+    <string name="creator_sub_calls">수신 및 거절 버튼</string>
+    <string name="creator_sub_apps">앱별 설정</string>
+    <string name="meta_title">테마 정보</string>
+    <string name="meta_label_name">테마 이름</string>
+    <string name="meta_label_author">제작자 이름</string>
+    <string name="meta_action_done">완료</string>
+    <string name="colors_tab_presets">프리셋</string>
+    <string name="colors_tab_custom">사용자 지정</string>
+    <string name="colors_label_presets">프리셋</string>
+    <string name="colors_label_use_app_colors">앱 색상 사용</string>
+    <string name="colors_desc_use_app_colors">설치된 앱에서 색상을 적용합니다</string>
+    <string name="colors_label_custom_title">사용자 지정 색상</string>
+    <string name="colors_cd_add_custom">사용자 지정 색상 추가</string>
+    <string name="colors_dialog_title">색상 선택</string>
+    <string name="colors_action_done">완료</string>
+    <string name="icons_tab_style">스타일</string>
+    <string name="icons_tab_assets">아이콘</string>
+    <string name="icons_tab_shape">모양</string>
+    <string name="icons_label_size">아이콘 크기</string>
+    <string name="icons_label_full">전체</string>
+    <string name="icons_label_minimal">최소</string>
+    <string name="icons_group_nav">내비게이션</string>
+    <string name="icons_btn_start">시작</string>
+    <string name="icons_btn_end">종료</string>
+    <string name="icons_group_progress">진행률</string>
+    <string name="icons_btn_success">성공</string>
+    <string name="icons_label_shape_title">아이콘 모양</string>
+    <string name="shape_circle">원형</string>
+    <string name="shape_square">사각형</string>
+    <string name="shape_cookie">쿠키</string>
+    <string name="shape_arch">아치</string>
+    <string name="shape_clover">클로버</string>
+    <string name="calls_label_answer">수신</string>
+    <string name="calls_label_decline">거절</string>
+    <string name="apps_empty">설정된 앱 없음</string>
+    <string name="design_hero_customization_title">사용자 지정</string>
+    <string name="design_hero_customization_subtitle">테마를 만드는 방법을 알아보세요</string>
+    <string name="design_hero_pro_title">프로 기능</string>
+    <string name="design_hero_pro_subtitle">더 강력한 기능을 잠금 해제하세요</string>
+    <string name="design_hero_community_title">커뮤니티</string>
+    <string name="design_hero_community_subtitle">GitHub에 참여하세요</string>
+    <string name="design_section_themes">테마</string>
+    <string name="design_section_widgets">위젯</string>
+    <string name="design_browse_more">더 둘러보기</string>
+    <string name="design_add_new">새로 추가</string>
+    <string name="design_add_design">디자인 추가</string>
+    <string name="design_add_to_island">커스텀 설정</string>
+    <string name="design_system_widget_beta">시스템 위젯 (베타)</string>
+    <string name="design_get_themes">테마 받기</string>
+    <string name="design_empty_widget_title">첫 번째 위젯을 추가하세요</string>
+    <string name="design">디자인</string>
+    <string name="creator_nav_actions">전역 동작</string>
+    <string name="creator_sub_actions">키워드별 버튼 스타일 설정</string>
+    <string name="action_sheet_title">동작 설정</string>
+    <string name="action_label_keyword">키워드 (예: \'답장\')</string>
+    <string name="action_label_bg_color">배경색</string>
+    <string name="action_label_tint_color">아이콘/텍스트 색상</string>
+    <string name="action_preview">실시간 미리보기</string>
+    <string name="action_mode_icon">아이콘만</string>
+    <string name="action_mode_text">텍스트만</string>
+    <string name="action_mode_both">둘 다</string>
+    <string name="actions_empty_title">사용자 지정 동작 없음</string>
+    <string name="actions_empty_desc">알림 버튼의 텍스트(예: \"답장\", \"보관\")에 따라 스타일을 지정하는 규칙을 추가하세요.</string>
+    <string name="action_default_preview_text">동작</string>
+    <string name="actions_search_hint">동작 검색...</string>
+    <string name="actions_search_empty_fmt">\"%1$s\"에 대한 동작을 찾을 수 없습니다</string>
+    <string name="action_wip_warning">이 기능은 개발 중인 기능입니다. 키워드 일치 여부는 앱의 알림 구조 방식에 따라 달라지며 모든 앱에서 작동하지 않을 수 있습니다.</string>
+    <string name="creator_dialog_apply_title">테마를 적용하시겠습니까?</string>
+    <string name="creator_dialog_apply_desc">지금 이 테마를 적용하시겠습니까?</string>
+    <string name="creator_dialog_action_save_apply">저장 및 적용</string>
+    <string name="creator_dialog_action_save_only">저장만 하기</string>
+    <string name="select_icon">아이콘 선택</string>
+    <string name="change_icon">아이콘 변경</string>
+    <string name="action_add">앱 추가</string>
+    <string name="apps_sheet_select_title">앱 선택</string>
+    <string name="edit_app">앱 편집</string>
+    <string name="creator_sub_colors_custom">사용자 지정 색상 세트</string>
+    <string name="creator_sub_colors_default">전역 기본값 사용 중</string>
+    <string name="creator_sub_icons_custom">사용자 지정 모양 세트</string>
+    <string name="creator_sub_icons_default">전역 기본값 사용 중</string>
+    <string name="app_customization_desc">외형을 개별 설정할 앱을 추가합니다.</string>
+    <string name="discard">취소</string>
+    <string name="unsaved_changes">저장되지 않은 변경 사항</string>
+    <string name="unsaved_changes_desc">이 앱에 대한 저장되지 않은 변경 사항이 있습니다. 나가기 전에 저장하시겠습니까?</string>
+    <string name="share_theme">테마 공유</string>
+    <string name="my_theme">내 테마</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="other">%1$d custom actions</item>
+        <item quantity="other">사용자 지정 동작 %1$d개</item>
     </plurals>
-    <string name="title_0_4_0">The Customization Update</string>
-    <string name="changelog_0_4_0">        <b>Theme Engine 🎨</b>\n
-        The biggest update yet! You can now fully customize the Dynamic Island visual experience.\n
-        • <b>Theme Creator:</b> Design themes directly on your phone with real-time previews.\n
-        • <b>Granular Control:</b> Choose exactly how icons are shown, customize call notification colors and shapes, and configure individual app overrides.\n
-        • <b>Smart Colors:</b> Automatically extract vibrant brand colors from app icons.\n
-        • <b>Per-Action Customization (Beta):</b> Fine-tune the look of specific notification actions.\n
-        • <b>Sharing:</b> Export and import themes as portable <i>.hbr</i> packages.\n\n
+    <string name="title_0_4_0">The Customization 업데이트</string>
+    <string name="changelog_0_4_0">        <b>테마 엔진 🎨</b>\n
+        역대 가장 큰 업데이트! 이제 다이내믹 Island의 시각적 환경을 완벽하게 맞춤 설정할 수 있습니다.\n
+        • <b>테마 크리에이터:</b> 실시간 미리보기를 통해 휴대폰에서 직접 테마를 디자인하세요.\n
+        • <b>세부 제어:</b> 아이콘 표시 방식을 정밀하게 선택하고, 통화 알림 색상 및 모양을 커스텀하며, 앱별 개별 설정을 지정하세요.\n
+        • <b>스마트 컬러:</b> 앱 아이콘에서 선명한 브랜드 색상을 자동으로 추출합니다.\n
+        • <b>동작별 개별 커스텀 (베타):</b> 특정 알림 동작의 스타일을 미세 조정할 수 있습니다.\n
+        • <b>공유:</b> 테마를 <i>.hbr</i> 패키지로 내보내고 가져올 수 있습니다.\n\n
 
-        <b>Widget Support 🧩</b>\n
-        Pin standard Android widgets to the island for quick access—even on your <b>Lockscreen</b>!\n
-        • Choose between <b>Interactive</b> mode for speed or <b>Snapshot</b> mode for battery efficiency.\n\n
+        <b>위젯 지원 🧩</b>\n
+        표준 안드로이드 위젯을 Island에 고정하여 빠른 액세스를 즐겨보세요—<b>잠금화면</b>에서도 가능합니다!\n
+        • 속도를 위한 <b>대화형</b> 모드와 배터리 효율을 위한 <b>스냅샷</b> 모드 중 선택하세요.\n\n
 
-        <b>Notification Engine 2.0 ⚡</b>\n
-        A complete rewrite of the core logic for better stability:\n
-        • <b>Smarter Parsing:</b> Fixed issues where notifications showed package names (e.g., com.whatsapp) instead of message content.\n
-        • <b>Anti-Flicker:</b> New content hashing prevents redundant updates and stuttering.\n
-        • <b>Ghost Fixes:</b> Solved race conditions where islands lingered after dismissal.\n\n
+        <b>알림 엔진 2.0 ⚡</b>\n
+        더 뛰어난 안정성을 위해 핵심 로직을 완전히 재작성했습니다:\n
+        • <b>더 스마트해진 파싱:</b> 메시지 내용 대신 패키지 이름(예: com.whatsapp)이 표시되던 문제를 수정했습니다.\n
+        • <b>깜빡임 방지:</b> 새로운 콘텐츠 해싱으로 불필요한 업데이트 및 깜빡임을 방지합니다.\n
+        • <b>잔상 오류 수정:</b> 알림을 닫은 후에도 Island가 남아있던 경합 상태 문제를 해결했습니다.\n\n
 
-        <b>Visual Refresh ✨</b>\n
-        • Redesigned \"Design\" tab with fluid, native-feeling carousels.\n
-        • New \"Text Pill\" buttons for clearer notification actions.\n
-        • Added support for 🇮🇩 Indonesian and 🇹🇷 Turkish.\n\n
+        <b>시각적 리프레시 ✨</b>\n
+        • 부드럽고 네이티브한 느낌의 캐러셀로 \"디자인\" 탭을 재디자인했습니다.\n
+        • 알림 동작을 더 명확하게 보여주는 새로운 \"텍스트 알약형\" 버튼을 추가했습니다.\n
+        • 🇮🇩 인도네시아어 및 🇹🇷 튀르키예어 지원이 추가되었습니다.\n\n
 
-        <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
+        <i>참고: 이번 버전에는 주요 아키텍처 변경 사항이 포함되어 있습니다. 버그가 발견되면 GitHub에 제보해 주세요!</i>
     </string>
-    <string name="title_0_4_2">Hotfix Update</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
-        •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
+    <string name="title_0_4_2">핫픽스 업데이트</string>
+    <string name="changelog_0_4_2">        •&lt;b&gt;크래시 수정:&lt;/b&gt; 번체 중국어 설정 메뉴를 열 때 앱이 종료되던 치명적인 문제를 해결했습니다.\n
+        •&lt;b&gt;내부 개선:&lt;/b&gt; Island가 부드럽게 작동하도록 전반적인 버그 수정 및 안정성 향상을 진행했습니다.
     </string>
-    <string name="colors_label_hue">Hue</string>
-    <string name="colors_label_saturation">Saturation</string>
-    <string name="colors_label_lightness">Lightness</string>
-    <string name="colors_label_dynamic_modes">Dynamic Colors</string>
-    <string name="colors_label_material_you">Material You (System)</string>
-    <string name="colors_desc_material_you">Extracts colors from your current wallpaper.</string>
-    <string name="kill_all_widgets">Kill Active Widgets</string>
-    <string name="permission_reminder_title">Update Notice</string>
-    <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
-    <string name="got_it">Got it</string>
-    <string name="recommended">Recommended</string>
-    <string name="all">All</string>
-    <string name="favorites">Favorites</string>
-    <string name="channel_live_updates">Native Live Updates</string>
-    <string name="engine_preview_title">Preview</string>
-    <string name="engine_design_section">Notification Design</string>
-    <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
-    <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
-    <string name="engine_native_title">Live Update Design</string>
-    <string name="engine_native_desc">Native android notification designs, works on CN ROM.</string>
-    <string name="engine_config_title">Engine Configuration</string>
-    <string name="engine_section_design">Notification Design</string>
-    <string name="good_to_know">Good to know</string>
-    <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
-    <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
-    <string name="island_behavior_title">Island Behavior</string>
-    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
-    <string name="engine">Engine</string>
-    <string name="engine_desc">Live Updates vs Xiaomi Island</string>
-    <string name="dnd_mode_title">Do Not Disturb</string>
-    <string name="dnd_mode_desc">Manage island visibility during DND</string>
-    <string name="dnd_manual_toggle">Pause Islands</string>
-    <string name="dnd_manual_toggle_desc">Manually pause all islands until you turn this back on</string>
-    <string name="dnd_auto_detect">Auto-detect System DND</string>
-    <string name="dnd_auto_detect_desc">Automatically pause islands when your phone is in Do Not Disturb mode</string>
-    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
-    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
-    <string name="global_behavior">Global Behavior</string>
-    <string name="auto_hide_island">Auto-hide Island</string>
-    <string name="hides_after_a_set_time">Hides after a set time</string>
-    <string name="behavior_hide_desc">Visible until manually dismissed</string>
-    <string name="behavior_desc_hide_long">Determines how long the island stays on screen before disappearing automatically.</string>
-    <string name="active_triggers">Active Triggers</string>
-    <string name="active_triggers_global_desc">Select which global events trigger the island</string>
-    <string name="type_standard_desc">Regular messages, emails, and alerts</string>
-    <string name="type_progress_desc">Ongoing tasks, rendering, and operations</string>
-    <string name="type_download_desc">Downloads, uploads, and file transfers</string>
-    <string name="type_media_desc">Music and video playback controls</string>
-    <string name="type_nav_desc">Turn-by-turn directions and ETA</string>
-    <string name="type_call_desc">Incoming and ongoing phone calls</string>
-    <string name="type_timer_desc">Active timers and stopwatches</string>
-    <string name="select_triggered_events">Select triggered events</string>
-    <string name="override_global_triggers">Override Global Triggers</string>
-    <string name="override_global_trigger_desc">Set custom allowed notifications for this app</string>
-    <string name="trigger_override">Trigger Override</string>
-    <string name="trigger_app_desc">Select which events trigger the island for this app.</string>
-    <string name="enable_triggers">Enable specific triggers</string>
-    <string name="open_source_licenses">Open Source Licenses</string>
-    <string name="remove_original_notification">Remove original notification</string>
-    <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
-    <string name="dismiss_with_original">Dismiss with original</string>
-    <string name="dismiss_with_original_desc">Island will disappear when you clear the original notification.</string>
-    <string name="enable_inline_reply">Enable inline reply</string>
-    <string name="enable_inline_reply_desc">Launch the custom inline reply overlay when replying from the island.</string>
-    <string name="remove_original_notification_hidden_warning">Note: When enabled, Hyper Bridge cannot respond or mark messages as read. Reply and Mark as Read actions will be hidden.</string>
-    <string name="color_mode">Color Mode</string>
-    <string name="color_mode_select">Select Color Mode</string>
-    <string name="color_mode_change_cd">Change color mode</string>
-    <string name="color_mode_default">Default</string>
-    <string name="color_mode_default_desc">Use default standard colors</string>
-    <string name="color_mode_app">App Colors</string>
-    <string name="color_mode_app_desc">Extract colors from the app icon</string>
+    <string name="colors_label_hue">색상 (Hue)</string>
+    <string name="colors_label_saturation">채도 (Saturation)</string>
+    <string name="colors_label_lightness">명도 (Lightness)</string>
+    <string name="colors_label_dynamic_modes">동적 색상</string>
+    <string name="colors_label_material_you">Material You (시스템)</string>
+    <string name="colors_desc_material_you">현재 배경화면에서 색상을 추출합니다.</string>
+    <string name="kill_all_widgets">활성 위젯 모두 종료</string>
+    <string name="permission_reminder_title">업데이트 안내</string>
+    <string name="permission_reminder_desc">HyperBridge가 업데이트되었습니다! 위젯이 원활하게 작동할 수 있도록 자동 실행 및 백그라운드 배터리 권한이 시스템에 의해 몰래 취소되지 않았는지 확인해 주세요.</string>
+    <string name="got_it">확인했습니다</string>
+    <string name="recommended">추천</string>
+    <string name="all">전체</string>
+    <string name="favorites">즐겨찾기</string>
+    <string name="channel_live_updates">Android 라이브 업데이트</string>
+    <string name="engine_preview_title">미리보기</string>
+    <string name="engine_design_section">알림 디자인</string>
+    <string name="engine_xiaomi_title">Xiaomi HyperIsland</string>
+    <string name="engine_xiaomi_desc">Xiaomi의 의도된 디자인이 적용된 최신 HyperOS 레이아웃입니다.</string>
+    <string name="engine_native_title">라이브 업데이트 디자인</string>
+    <string name="engine_native_desc">중국(CN) 롬에서도 작동하는 안드로이드의 알림 디자인입니다.</string>
+    <string name="engine_config_title">엔진 구성</string>
+    <string name="engine_section_design">알림 디자인</string>
+    <string name="good_to_know">참고 사항</string>
+    <string name="nav_layout_info">• 내비게이션 레이아웃은 향후 업데이트를 통해 테마 엔진에 완전 통합될 예정입니다.\n• 네이티브 라이브 업데이트 엔진을 사용할 경우 오른쪽 콘텐츠만 표시됩니다.</string>
+    <string name="xiaomi_featured_notifications">Xiaomi HyperIsland</string>
+    <string name="island_behavior_title">Island 동작 방식</string>
+    <string name="island_behavior_desc"><![CDATA[시간 초과, 중복 및 표시 여부]]></string>
+    <string name="engine">엔진</string>
+    <string name="engine_desc">라이브 업데이트 vs Xiaomi Island</string>
+    <string name="dnd_mode_title">방해 금지 모드</string>
+    <string name="dnd_mode_desc">방해 금지 모드 중 Island 표시 여부 관리</string>
+    <string name="dnd_manual_toggle">Island 일시 중지</string>
+    <string name="dnd_manual_toggle_desc">다시 켤 때까지 모든 Island를 수동으로 일시 중지합니다</string>
+    <string name="dnd_auto_detect">시스템 방해 금지 모드 자동 감지</string>
+    <string name="dnd_auto_detect_desc">휴대폰이 방해 금지 모드일 때 Island를 자동으로 일시 중지합니다</string>
+    <string name="behaviour_triggers"><![CDATA[동작 및 트리거]]></string>
+    <string name="engine_timeouts_triggers"><![CDATA[엔진, 시간 초과 및 트리거]]></string>
+    <string name="global_behavior">전역 동작</string>
+    <string name="auto_hide_island">Island 자동 숨김</string>
+    <string name="hides_after_a_set_time">설정한 시간 후 숨겨짐</string>
+    <string name="behavior_hide_desc">수동으로 닫을 때까지 계속 표시됩니다</string>
+    <string name="behavior_desc_hide_long">Island가 자동으로 사라지기 전까지 화면에 유지되는 시간을 결정합니다.</string>
+    <string name="active_triggers">활성 트리거</string>
+    <string name="active_triggers_global_desc">Island를 실행할 전역 이벤트를 선택하세요</string>
+    <string name="type_standard_desc">일반 메시지, 이메일 및 알림</string>
+    <string name="type_message_desc">메시지, 채팅 및 대화</string>
+    <string name="type_progress_desc">진행 중인 작업, 렌더링 및 작동</string>
+    <string name="type_download_desc">다운로드, 업로드 및 파일 전송</string>
+    <string name="type_media_desc">음악 및 비디오 재생 제어</string>
+    <string name="type_nav_desc">턴바이턴 경로 안내 및 도착 예정 시간</string>
+    <string name="type_call_desc">수신 및 통화 중인 전화</string>
+    <string name="type_timer_desc">활성 타이머 및 스톱워치</string>
+    <string name="select_triggered_events">트리거될 이벤트 선택</string>
+    <string name="override_global_triggers">전역 트리거 오버라이드</string>
+    <string name="override_global_trigger_desc">이 앱에 허용할 사용자 지정 알림 설정</string>
+    <string name="trigger_override">트리거 오버라이드</string>
+    <string name="trigger_app_desc">이 앱에서 Island를 실행할 이벤트를 선택하세요.</string>
+    <string name="enable_triggers">특정 트리거 활성화</string>
+    <string name="open_source_licenses">오픈소스 라이선스</string>
+    <string name="remove_original_notification">원본 알림 제거</string>
+    <string name="remove_original_notification_desc">라이브 업데이트가 활성화되어 있을 때 원본 알림을 자동으로 닫습니다.</string>
+    <string name="dismiss_with_original">원본과 함께 닫기</string>
+    <string name="dismiss_with_original_desc">원본 알림을 지우면 Island도 함께 사라집니다.</string>
+    <string name="enable_inline_reply">인라인 답장 활성화</string>
+    <string name="enable_inline_reply_desc">Island에서 답장할 때 커스텀 인라인 답장 오버레이를 실행합니다.</string>
+    <string name="remove_original_notification_hidden_warning">참고: 이 기능을 활성화하면 Hyper Bridge가 메시지를 읽음으로 표시하거나 답장할 수 없습니다. 답장 및 읽음 표시 동작이 숨겨집니다.</string>
+    <string name="color_mode">색상 모드</string>
+    <string name="color_mode_select">색상 모드 선택</string>
+    <string name="color_mode_change_cd">색상 모드 변경</string>
+    <string name="color_mode_default">기본값</string>
+    <string name="color_mode_default_desc">기본 표준 색상 사용</string>
+    <string name="color_mode_app">앱 색상</string>
+    <string name="color_mode_app_desc">앱 아이콘에서 색상 추출</string>
     <string name="color_mode_material">Material You</string>
-    <string name="color_mode_material_desc">Match the system wallpaper (Monet)</string>
-    <string name="color_mode_custom">Custom Colors</string>
-    <string name="color_mode_custom_desc">Manually choose your own colors</string>
-    <string name="reply_textfield_color">Textfield Color</string>
-    <string name="reply_textfield_color_desc">Inner text box background</string>
-    <string name="reply_text_color">Text Color</string>
-    <string name="reply_text_color_desc">Reply text color</string>
-    <string name="reply_send_color">Send Button Color</string>
-    <string name="reply_send_color_desc">Send icon color</string>
-    <string name="reply_appearance">Appearance</string>
-    <string name="reply_blur_effect">Blur Effect</string>
-    <string name="reply_blur_effect_desc">Apply glassmorphism to textfield</string>
-    <string name="reply_textfield_radius">Textfield Corner Radius</string>
-    <string name="reply_send_radius">Send Button Corner Radius</string>
-    <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>
-    <string name="onboarding_widget_desc">Add standard Android widgets to your island for quick access.</string>
-    <string name="onboard_theme_desc">Fully customize colors, shapes and icons of your island.</string>
-    <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
-    <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
-    <string name="widget_layout_snapshot">Preview of the widget</string>
-    <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
-              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
-              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
-              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
-              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
-              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
-              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
-              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
+    <string name="color_mode_material_desc">시스템 배경화면 색상에 맞춤 (Monet)</string>
+    <string name="color_mode_custom">사용자 지정 색상</string>
+    <string name="color_mode_custom_desc">원하는 색상을 직접 선택</string>
+    <string name="reply_textfield_color">텍스트 입력창 색상</string>
+    <string name="reply_textfield_color_desc">내부 텍스트 상자 배경</string>
+    <string name="reply_text_color">텍스트 색상</string>
+    <string name="reply_text_color_desc">답장 텍스트 색상</string>
+    <string name="reply_send_color">전송 버튼 색상</string>
+    <string name="reply_send_color_desc">전송 아이콘 색상</string>
+    <string name="reply_appearance">외형</string>
+    <string name="reply_blur_effect">블러 효과</string>
+    <string name="reply_blur_effect_desc">텍스트 입력창에 글래스모피즘 적용</string>
+    <string name="reply_textfield_radius">텍스트 입력창 모서리 곡률</string>
+    <string name="reply_send_radius">전송 버튼 모서리 곡률</string>
+    <string name="onboarding_can_be_changed">이 옵션들은 나중에 설정 및 테마 설정에서 변경할 수 있습니다.</string>
+    <string name="onboarding_widget_desc">빠른 액세스를 위해 Island에 안드로이드 표준 위젯을 추가하세요.</string>
+    <string name="onboard_theme_desc">Island의 색상, 모양 및 아이콘을 자유롭게 커스텀하세요.</string>
+    <string name="onboard_design_desc">다양한 커스텀 옵션으로 가능성을 확장하세요</string>
+    <string name="behavior_desc_glob_config">Island의 동작 방식을 결정합니다.</string>
+    <string name="widget_layout_snapshot">위젯 미리보기</string>
+    <string name="changelog_0_5_6">        <b>수정 및 개선</b>\n
+              • <b>System UI 안정성:</b> SystemUI에 전달하기 전에 highlightColor를 검증하여 충돌을 방지했습니다.\n
+              • <b>고정 Island 동작:</b> 알림이 오거나 잠금 해제 후 고정 Island가 사라지던 문제를 수정했습니다.\n
+              • <b>가로 모드:</b> 가로 화면에서 고정 Island를 숨길 수 있는 옵션을 추가했습니다.
     </string>
-    <string name="title_0_5_2">Performance &amp; Stability Update</string>
-    <string name="changelog_0_5_1">        <b>Fixes &amp; Stability</b>\n
-              WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
-              Notification Flicker &amp; Crashes Fixed: Fixed a crash caused by receiving multiple notifications in a short timeframe. The app now safely updates notifications normally, eliminating the notification flicker and improving stability.\n
-              Notification Intents Restored: Fixed an issue where clicking a featured notification would incorrectly route to the troubleshooting screen instead of the original app.\n\n
-        <b>Features &amp; Polish</b>\n
-              Remove Island on Dismiss: Added a new option to automatically remove the island if the original system notification is dismissed.\n
-              Featured Notifications Diagnostics: Added a new check screen during Onboarding to verify if your Xiaomi device supports Featured Notifications and if the required permissions are enabled.\n
-              Setup Health Integration: The Featured Notifications permission status is now continuously monitored and displayed inside the Setup Health screen.\n
-              Troubleshooting Screen: Added a dedicated Troubleshooting Screen that guides users on how to enable the necessary hidden system permissions (or use Shizuku) to get islands working on strict Xiaomi ROMs.\n
-              Clearer Terminology: Renamed the \"Live Updates\" section in the settings menu to \"Notification Management\" to better reflect its purpose.\n
-              Settings UI Polish: Restored the missing rounded corners on the \"Permanent Island\" option in the Global Settings list.\n
-              Spanish Translations: Added full Spanish translations for all the new troubleshooting dialogues, setup health checks, and notification management settings.
+    <string name="title_0_5_7">성능 및 동기화 업데이트</string>
+    <string name="changelog_0_5_7">        <b>최적화 및 수정</b>\n
+              • <b>코드 최적화:</b> 최신 Android Gradle Plugin으로 업그레이드하고 R8 코드 축소를 활성화하여 더 작고 빠른 앱으로 개선했습니다.\n
+              • <b>안정성:</b> 알림 동기화를 개선하고, 원본 알림이 간혹 너무 일찍 사라지던 문제(PR #258)를 수정했습니다.
     </string>
-    <string name="title_0_5_1">Fixes &amp; Refinements</string>
-    <string name="changelog_0_5_0">        <b>CN ROM Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
-        <b>Theme Engine Improvements</b>\n
-            • Engine Selection: You can now choose animation engines per-app or globally.\n
-            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
-            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
-        <b>Intelligent Permanent Island</b>\n
-            • Always Visible: Keep the island on screen even without active notifications.\n
-            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
-        <b>Smart Icon Tinting</b>\n
-            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Messaging Fixes</b>\n
-            • Fixed missing sender avatars in apps like Telegram (now correctly extracts \"sender_person\" data).\n
-            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
-            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>System &amp; Onboarding</b>\n
-            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
-            • Boot Fix: Service now starts immediately and reliably after restart.\n
-            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Navigation: Faster and smoother app transitions.
+    <string name="changelog_0_5_5">        <b>Live Updates 및 Island</b>\n
+              • <b>아이콘:</b> Android 16 Live Updates에서 원본 앱 아이콘이 제대로 표시되지 않던 문제를 수정했습니다.\n
+              • <b>인라인 답장:</b> 이제 Live Update 알림에서 바로 인라인 답장을 사용할 수 있습니다.\n
+              • <b>Island 제거:</b> Island를 닫았을 때 제대로 제거되지 않던 문제를 수정했습니다.\n\n
+        <b>메시지 그룹화 개선</b>\n
+              • <b>중복 제거:</b> WhatsApp과 같은 메시지 스타일 알림의 그룹화 방식을 전면 개편하여 중복 Island가 생성되지 않도록 했습니다.\n\n
+        <b>수정 및 안정성</b>\n
+              • <b>업데이트 마이그레이션:</b> 앱 업데이트 후 올바른 데이터베이스 마이그레이션 로직이 실행되지 않던 치명적인 버그를 수정했습니다.\n
+              • <b>기본값:</b> 온보딩 화면에서 기본적으로 "알림창에 표시"를 비활성화했습니다.\n
+              • <b>현지화:</b> 번역된 문자열에서 깨진 문자가 표시되던 문제를 해결했습니다.
+    </string>
+    <string name="title_0_5_5">메시지 및 업데이트 수정</string>
+    <string name="title_0_5_6">가로 모드 숨김 및 안정성 개선</string>
+    <string name="changelog_0_5_2">        <b>Play Store 크래시 수정 및 안정성 개선</b>\n
+              • <b>테마 크리에이터:</b> 대용량 커스텀 에셋을 파싱할 때 발생하던 크래시를 수정했습니다.\n
+              • <b>성능:</b> 최초 환영 화면에서 발생하던 ANR(응답 없음) 문제를 해결했습니다.\n
+              • <b>위젯 선택기:</b> 매우 큰 위젯 미리보기로 인해 발생하던 크래시 및 메모리 부족(OOM) 오류를 제거했습니다.\n
+              • <b>UI 레이아웃:</b> 특정 메뉴의 크기를 조정할 때 앱이 종료되던 Jetpack Compose 레이아웃 제약 조건 예외를 수정했습니다.\n
+              • <b>백업:</b> JSON 파싱을 최적화하여 대용량 백업 파일 가져오기 시 OOM 오류를 해결했습니다.\n
+              • <b>빠른 실행:</b> 중급형 기기에서 앱 실행 속도를 대폭 향상시키고 UI 스레드 병목 현상을 제거했습니다.\n
+              • <b>백그라운드 서비스:</b> 알림 리스너 메모리 아키텍처를 완전히 개편하여 백그라운드 오버헤드를 0%로 줄이고 배터리 수명을 향상시켰습니다.\n
+    </string>
+    <string name="title_0_5_2">성능 및 안정성 업데이트</string>
+    <string name="changelog_0_5_1">        <b>수정 및 안정성</b>\n
+              • WhatsApp 중복 수정: WhatsApp 알림이 중복으로 표시되던 문제를 해결했습니다.\n
+              • 알림 깜빡임 및 크래시 수정: 짧은 시간 동안 여러 알림이 수신될 때 발생하던 크래시를 수정했습니다. 이제 알림을 정상적이고 안전하게 업데이트하여 깜빡임을 제거하고 안정성을 향상시켰습니다.\n
+              • 알림 인텐트 복구: 주요 알림을 클릭했을 때 원래 앱 대신 문제 해결 화면으로 잘못 이동하던 문제를 수정했습니다.\n\n
+        <b>기능 및 개선</b>\n
+              • 닫을 때 Island 제거: 원본 시스템 알림을 지우면 Island도 자동으로 제거하는 옵션을 추가했습니다.\n
+              • 주요 알림 진단: Xiaomi 기기가 주요 알림(Featured Notifications)을 지원하는지 및 필요한 권한이 활성화되어 있는지 확인하는 전용 검사 화면을 온보딩에 추가했습니다.\n
+              • 설정 상태 통합: 주요 알림 권한 상태가 이제 설정 상태 화면 내에서 지속적으로 모니터링되고 표시됩니다.\n
+              • 문제 해결 화면: 엄격한 Xiaomi ROM에서 Island를 작동시키기 위해 필요한 숨겨진 시스템 권한을 활성화하는 방법(또는 Shizuku 사용법)을 안내하는 전용 문제 해결 화면을 추가했습니다.\n
+              • 명확해진 용어: 설정 메뉴의 \"라이브 업데이트\" 섹션 이름을 목적에 맞게 \"알림 관리\"로 변경했습니다.\n
+              • 설정 UI 개선: 전역 설정 목록의 \"고정 Island\" 옵션에서 누락되었던 둥근 모서리를 복원했습니다.\n
+              • 스페인어 번역: 새로운 문제 해결 대화상자, 설정 상태 검사, 알림 관리 설정에 대한 전체 스페인어 번역을 추가했습니다.
+    </string>
+    <string name="title_0_5_1">수정 및 다듬기</string>
+    <string name="changelog_0_5_0">        <b>중국(CN) 롬 지원</b>\n
+            • 기본 지원이 없는 HyperOS 중국(CN) 롬 기기에서도 새로운 Sui 및 Shizuku 우회 기능을 활성화하여 Hyper Islands를 이용할 수 있습니다.\n\n
+        <b>테마 엔진 개선</b>\n
+            • 엔진 선택: 이제 앱별 또는 전역으로 애니메이션 엔진을 선택할 수 있습니다.\n
+            • Shizuku 우회: 테마 에디터 엔진 탭에 토글이 직접 추가되었습니다.\n
+            • 동작 제어: 사용자 지정 시간 초과 및 팝업 로직이 완벽하게 지원됩니다.\n\n
+        <b>지능형 고정 Island</b>\n
+            • 상시 표시: 활성화된 알림이 없을 때도 Island를 화면에 유지합니다.\n
+            • 자동 숨김: 고정 Island는 화면에 활성화된 위젯이 표시될 때마다 자동으로 숨겨집니다.\n\n
+        <b>스마트 아이콘 틴트</b>\n
+            • 새로운 감지 시스템이 추출된 알림 아이콘을 자동으로 분석하여 어둡거나 단색인 경우 지능적으로 흰색 틴트를 적용합니다.\n\n
+        <b>다운로드 및 진행 상황</b>\n
+            • 전용 다운로드 레이아웃: 다운로드 및 진행률 레이아웃을 전용 시각적 디자인으로 분리했습니다.\n
+            • 텍스트 진행률 지원: 네이티브 진행률 표시줄이 없더라도 앱 업데이트 시 비율 텍스트(예: \"12%\")를 파싱합니다.\n
+            • 스마트 필터링: 상태 알림의 오작동을 방지하기 위해 텍스트 기반 진행률 확인을 스토어 및 인스톨러 다운로드로 제한했습니다.\n\n
+        <b>메시징 수정</b>\n
+            • Telegram과 같은 앱에서 보낸 사람 프로필 이미지가 누락되던 문제를 수정했습니다(이제 \"sender_person\" 데이터를 올바르게 추출함).\n
+            • 그룹화된 알림(채팅 요약)이 Island를 실행하지 못하던 문제를 해결했습니다.\n
+            • 알림 업데이트 경합 상태로 인해 Island가 사라지던 버그를 수정했습니다.\n\n
+        <b>시스템 및 온보딩</b>\n
+            • 새로운 온보딩 화면: 핵심 권한 설정을 위한 완전히 새로워지고 쉬워진 프로세스를 제공합니다.\n
+            • 부팅 수정: 재부팅 후 서비스가 즉시 안정적으로 시작됩니다.\n
+            • 스마트 알림: 다운로드 및 미디어 업데이트는 무음으로 진행되며, 메시지 업데이트는 팝업 애니메이션을 안정적으로 실행합니다.\n
+            • 내비게이션: 앱 전환이 더 빠르고 부드러워졌습니다.
     </string>
     <string name="title_0_5_0">The Live Update</string>
-    <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
-    <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
-    <string name="troubleshoot_featured_notification">Troubleshoot</string>
-    <string name="featured_notifications_check">Featured Notifications Check</string>
-    <string name="featured_notifications_check_desc">Let\'s verify if your system is configured correctly to display HyperBridge islands.</string>
-    <string name="featured_notifications_not_supported">Not Supported</string>
-    <string name="featured_notifications_enabled">Enabled</string>
-    <string name="featured_notifications_open_settings">Open System Settings</string>
-    <string name="featured_notifications_troubleshoot_title">Why is this not an island?</string>
-    <string name="featured_notifications_troubleshoot_desc">Your Xiaomi device intercepted the notification but failed to display it as a featured island because the permission is disabled in your system settings.\n\nTo fix this:\n1. Tap \"Open System Settings\"\n2. Scroll down to \"Featured Notifications\" (or similar)\n3. Enable it for HyperBridge.</string>
-    <string name="featured_notifications_shizuku_alternative">Alternative: Shizuku Override</string>
-    <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. HyperBridge will use Shizuku to post islands directly.</string>
-    <string name="migration_title">HyperBridge Update</string>
-    <string name="migration_message">Migrating database to Device Protected storage…</string>
-    <string name="migration_complete">Update Complete</string>
-    <string name="notification_management">Notification Management</string>
-    <string name="inline_reply_title">Inline Reply</string>
-    <string name="customize_inline_reply">Customize inline reply overlay</string>
-    <string name="reply_hint">Reply...</string>
-    <string name="perm_display_title">Display over other apps</string>
-    <string name="perm_display_onboard_desc">Required to show the custom inline reply overlay.</string>
+    <string name="notification_went_wrong">이 문구가 보인다면 무언가 문제가 발생한 것입니다!</string>
+    <string name="widget_went_wrong">이 문구가 보인다면 무언가 문제가 발생한 것입니다! 시스템이 위젯을 표시할 수 없습니다.</string>
+    <string name="troubleshoot_featured_notification">문제 해결</string>
+    <string name="featured_notifications_check">주요 알림 검사</string>
+    <string name="featured_notifications_check_desc">HyperBridge Island를 표시하도록 시스템이 올바르게 설정되어 있는지 확인해 봅시다.</string>
+    <string name="featured_notifications_not_supported">지원되지 않음</string>
+    <string name="featured_notifications_enabled">활성화됨</string>
+    <string name="featured_notifications_open_settings">시스템 설정 열기</string>
+    <string name="featured_notifications_troubleshoot_title">왜 Island로 표시되지 않나요?</string>
+    <string name="featured_notifications_troubleshoot_desc">Xiaomi 기기가 알림을 수신했으나 시스템 설정에서 권한이 비활성화되어 있어 Island로 표시하지 못했습니다.\n\n해결 방법:\n1. \"시스템 설정 열기\"를 누릅니다.\n2. 아래로 스크롤하여 \"주요 알림(Featured Notifications)\" (또는 유사 항목)을 찾습니다.\n3. HyperBridge에 대한 권한을 활성화합니다.</string>
+    <string name="featured_notifications_shizuku_alternative">대안: Shizuku 우회</string>
+    <string name="featured_notifications_shizuku_desc">시스템에 해당 설정이 없거나 제한된 경우, Shizuku를 설정하여 Xiaomi 화이트리스트를 완전히 우회할 수 있습니다. HyperBridge는 Shizuku를 사용하여 Island를 직접 게시합니다.</string>
+    <string name="migration_title">HyperBridge 업데이트</string>
+    <string name="migration_message">기기 보호 저장소로 데이터베이스를 마이그레이션하는 중…</string>
+    <string name="migration_complete">업데이트 완료</string>
+    <string name="notification_management">알림 관리</string>
+    <string name="inline_reply_title">인라인 답장</string>
+    <string name="customize_inline_reply">인라인 답장 오버레이 커스텀</string>
+    <string name="reply_hint">답장...</string>
+    <string name="perm_display_title">다른 앱 위에 표시</string>
+    <string name="perm_display_onboard_desc">커스텀 인라인 답장 오버레이를 표시하려면 이 권한이 필요합니다.</string>
 </resources>
