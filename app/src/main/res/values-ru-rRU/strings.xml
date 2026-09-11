@@ -121,20 +121,7 @@
     </string-array>
     <string name="version_history">История версий</string>
     <string name="title_0_2_0">Информационное обновление</string>
-    <string name="changelog_0_2_0">        • &lt;b&gt;Расширенный прогресс:&lt;/b&gt; Добавлена поддержка «пошагового прогресса» (напр. 1 из 3) и индикаторов прогресса с иконками внутри шторки уведомлений.\n
-        • &lt;b&gt;Система приоритетов:&lt;/b&gt; Новые настройки «Поведения Острова». Выбирайте между «Самые новые», «Кто первый» или собственным списком «Приоритет приложений».\n
-        • &lt;b&gt;Умная фильтрация:&lt;/b&gt; Улучшено обнаружение дублированных уведомлений и сгруппированных загрузок.\n
-        • &lt;b&gt;Визуальные улучшения:&lt;/b&gt; Исправлены проблемы с макетом навигационных инструкций.\n
-        • &lt;b&gt;Настройки приложений:&lt;/b&gt; Настраивайте тайм-аут и поведение плавающего окна отдельно для каждого приложения.
-    </string>
     <string name="title_0_1_0">Экспрессивное обновление</string>
-    <string name="changelog_0_1_0">        • &lt;b&gt;Обновление интерфейса:&lt;/b&gt; Новый дизайн Material 3 Expressive с плавными анимациями.\n
-        • &lt;b&gt;Лучший Остров:&lt;/b&gt; Текст теперь отображается справа. Добавлена зелёная галочка для завершённых загрузок.\n
-        • &lt;b&gt;Настройки приложений:&lt;/b&gt; Выбор конкретных типов уведомлений (Музыка, Карты, Звонки) для каждого приложения.\n
-        • &lt;b&gt;Умные фильтры:&lt;/b&gt; Блокируют дублированные уведомления и экономят заряд батареи.\n
-        • &lt;b&gt;Новая библиотека:&lt;/b&gt; Фильтрация приложений по категории и порядку сортировки.\n
-        • &lt;b&gt;Локализация:&lt;/b&gt; Добавлена поддержка испанского языка.
-    </string>
     <string name="priority_edu_title">Новое: Управляйте Островом</string>
     <string name="priority_edu_desc">HyperBridge теперь может управлять поведением нескольких уведомлений при достижении лимита в 9 Островов.\n\n&lt;b&gt;По умолчанию: Самые новые&lt;/b&gt;\nНовые уведомления автоматически заменяют самые старые.</string>
     <string name="badge_new">НОВОЕ</string>
@@ -209,27 +196,6 @@
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">Глобальное обновление</string>
-    <string name="changelog_0_3_0">        <b>Скрытые уведомления 👻</b>\n
-        Новая опция, позволяющая скрывать уведомления из системной панели, сохраняя Остров активным. Проверьте Глобальные настройки!\n\n
-        <b>Новые языки 🌍</b>\n
-        Особая благодарность нашему сообществу за эти переводы:\n
-        • 🇧🇷 Португальский (Бразилия)\n
-        • 🇵🇱 Польский\n
-        • 🇰🇷 Корейский\n
-        • 🇺🇦 Украинский\n\n
-        <b>Настройки навигации 🧭</b>\n
-        Теперь вы можете выбрать, какая информация будет отображаться слева и справа на Навигационном Острове (Расстояние, Время прибытия, Инструкция).\n\n
-        <b>Защита от спойлеров 🛡️</b>\n
-        Новая функция «Заблокированные слова». Указывайте слова глобально или для отдельных приложений, чтобы предотвратить появление определённых уведомлений на Острове.\n\n
-        <b>Улучшения звонков 📞</b>\n
-        Улучшена логика обнаружения для поддержки большего числа VoIP-приложений и «звонилок».\n\n
-        <b>Исправления и улучшения 🛠️</b>\n
-        • Исправлена критическая ошибка, из-за которой приложение зависало при загрузке после перезапуска.\n
-        • Исправлено отображение имён пакетов (например \"com.google...\")
-          вместо содержимого уведомлений.\n
-        • Обновлён дизайн панели настройки приложений для более удобного использования.\n
-        • Улучшён экран проверки совместимости с подробной информацией об устройстве.
-    </string>
     <string name="privacy_title">100% Оффлайн и Безопасно</string>
     <string name="privacy_desc">Hyper Bridge обрабатывает всё напрямую на процессоре вашего телефона.\n\nПриложению НЕ требуется доступ к интернету, что означает: ваши уведомления и личные данные никогда не покидают устройство.</string>
     <string name="language">Язык</string>
@@ -263,24 +229,6 @@
     <string name="privacy_card_title">Оффлайн-принцип</string>
     <string name="privacy_card_desc">Подключение к интернету не требуется.</string>
     <string name="title_0_3_1">Обновление: Резервирование и Полиглот</string>
-    <string name="changelog_0_3_1">            <b>Резервное копирование и Восстановление 📦</b>\n
-            Новая функция для продвинутых пользователей! Безопасно экспортируйте ваши настройки, блоклисты и приоритеты приложений в файл .hbr и восстанавливайте их в любое время.\n\n
-            <b>Новые Языки 🌍</b>\n
-            Добавлена поддержка следующих языков:\n
-            • 🇩🇪 Немецкий\n
-            • 🇷🇺 Русский\n
-            • 🇺🇦 Украинский (улучшено)\n
-            <i>Также: новый встроенный переключатель языка, позволяющий менять язык приложения без изменения системных настроек.</i>\n\n
-            <b>Визуальное Обновление 🎨</b>\n
-            Приложение обновлено до дизайна <b>Material 3 Expressive</b>. Наслаждайтесь более крупными заголовками, округлёнными формами и более плавным интерфейсом.\n\n
-            <b>Приватность и Настройка 🛡️</b>\n
-            • Улучшен onboarding с отдельной страницей Приватности, объясняющей offline-first архитектуру.\n
-            • Ужесточены проверки совместимости для лучшего опыта на HyperOS 3.0.\n\n
-            <b>Исправления 🛠️</b>\n
-            • Исправлена критическая ошибка, из-за которой настройки терялись после перезагрузки устройства (перенесено в базу данных).\n
-            • Исправлена кнопка «Выход» в Navigation Island — теперь отображается текст, а не иконка.\n
-            • Исправлена загрузка иконок приложений в Настройках.\n
-    </string>
     <string name="close">Close</string>
     <string name="search">Search</string>
     <string name="widget_updated_toast">Widget updated</string>
@@ -459,35 +407,7 @@
         <item quantity="many">%1$d custom actions</item>
     </plurals>
     <string name="title_0_4_0">The Customization Update</string>
-    <string name="changelog_0_4_0">        <b>Theme Engine 🎨</b>\n
-        The biggest update yet! You can now fully customize the Dynamic Island visual experience.\n
-        • <b>Theme Creator:</b> Design themes directly on your phone with real-time previews.\n
-        • <b>Granular Control:</b> Choose exactly how icons are shown, customize call notification colors and shapes, and configure individual app overrides.\n
-        • <b>Smart Colors:</b> Automatically extract vibrant brand colors from app icons.\n
-        • <b>Per-Action Customization (Beta):</b> Fine-tune the look of specific notification actions.\n
-        • <b>Sharing:</b> Export and import themes as portable <i>.hbr</i> packages.\n\n
-
-        <b>Widget Support 🧩</b>\n
-        Pin standard Android widgets to the island for quick access—even on your <b>Lockscreen</b>!\n
-        • Choose between <b>Interactive</b> mode for speed or <b>Snapshot</b> mode for battery efficiency.\n\n
-
-        <b>Notification Engine 2.0 ⚡</b>\n
-        A complete rewrite of the core logic for better stability:\n
-        • <b>Smarter Parsing:</b> Fixed issues where notifications showed package names (e.g., com.whatsapp) instead of message content.\n
-        • <b>Anti-Flicker:</b> New content hashing prevents redundant updates and stuttering.\n
-        • <b>Ghost Fixes:</b> Solved race conditions where islands lingered after dismissal.\n\n
-
-        <b>Visual Refresh ✨</b>\n
-        • Redesigned \"Design\" tab with fluid, native-feeling carousels.\n
-        • New \"Text Pill\" buttons for clearer notification actions.\n
-        • Added support for 🇮🇩 Indonesian and 🇹🇷 Turkish.\n\n
-
-        <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
-    </string>
     <string name="title_0_4_2">Hotfix Update</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
-        •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
-    </string>
     <string name="colors_label_hue">Hue</string>
     <string name="colors_label_saturation">Saturation</string>
     <string name="colors_label_lightness">Lightness</string>
@@ -581,55 +501,8 @@
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
-    <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
-              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
-              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
-              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
-              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
-              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
-              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
-              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
-    </string>
     <string name="title_0_5_2">Performance &amp; Stability Update</string>
-    <string name="changelog_0_5_1">        <b>Fixes &amp; Stability</b>\n
-              WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
-              Notification Flicker &amp; Crashes Fixed: Fixed a crash caused by receiving multiple notifications in a short timeframe. The app now safely updates notifications normally, eliminating the notification flicker and improving stability.\n
-              Notification Intents Restored: Fixed an issue where clicking a featured notification would incorrectly route to the troubleshooting screen instead of the original app.\n\n
-        <b>Features &amp; Polish</b>\n
-              Remove Island on Dismiss: Added a new option to automatically remove the island if the original system notification is dismissed.\n
-              Featured Notifications Diagnostics: Added a new check screen during Onboarding to verify if your Xiaomi device supports Featured Notifications and if the required permissions are enabled.\n
-              Setup Health Integration: The Featured Notifications permission status is now continuously monitored and displayed inside the Setup Health screen.\n
-              Troubleshooting Screen: Added a dedicated Troubleshooting Screen that guides users on how to enable the necessary hidden system permissions (or use Shizuku) to get islands working on strict Xiaomi ROMs.\n
-              Clearer Terminology: Renamed the \"Live Updates\" section in the settings menu to \"Notification Management\" to better reflect its purpose.\n
-              Settings UI Polish: Restored the missing rounded corners on the \"Permanent Island\" option in the Global Settings list.\n
-              Spanish Translations: Added full Spanish translations for all the new troubleshooting dialogues, setup health checks, and notification management settings.
-    </string>
     <string name="title_0_5_1">Fixes &amp; Refinements</string>
-    <string name="changelog_0_5_0">        <b>CN ROM Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
-        <b>Theme Engine Improvements</b>\n
-            • Engine Selection: You can now choose animation engines per-app or globally.\n
-            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
-            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
-        <b>Intelligent Permanent Island</b>\n
-            • Always Visible: Keep the island on screen even without active notifications.\n
-            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
-        <b>Smart Icon Tinting</b>\n
-            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Messaging Fixes</b>\n
-            • Fixed missing sender avatars in apps like Telegram (now correctly extracts \"sender_person\" data).\n
-            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
-            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>System &amp; Onboarding</b>\n
-            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
-            • Boot Fix: Service now starts immediately and reliably after restart.\n
-            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Navigation: Faster and smoother app transitions.
-    </string>
     <string name="title_0_5_0">The Live Update</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
     <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>

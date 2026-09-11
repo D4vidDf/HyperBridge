@@ -121,18 +121,7 @@
     </string-array>
     <string name="version_history">Riwayat Versi</string>
     <string name="title_0_2_0">Informasi Pembaruan</string>
-    <string name="changelog_0_2_0">• &lt;b&gt;Progres Canggih:&lt;/b&gt; Menambahkan dukungan untuk \"Progres Langkah\" (mis. 1 dari 3) dan bilah progres dengan ikon di dalam panel notifikasi.\n
-        • &lt;b&gt;Sistem Prioritas:&lt;/b&gt; Pengaturan \"Perilaku Island\" baru. Pilih antara \"Paling Baru\", \"Siapa Cepat\", atau daftar \"Prioritas Aplikasi\" kustom.\n
-        • &lt;b&gt;Penyaringan Cerdas:&lt;/b&gt; Peningkatan deteksi notifikasi duplikat dan unduhan grup.\n
-        • &lt;b&gt;Peningkatan Visual:&lt;/b&gt; Memperbaiki masalah tata letak pada instruksi Navigasi.\n
-        • &lt;b&gt;Konfig Per-Aplikasi:&lt;/b&gt; Kustomisasi Timeout dan perilaku Mengambang (Floating) per aplikasi.</string>
     <string name="title_0_1_0">Pembaruan Ekspresif</string>
-    <string name="changelog_0_1_0">• &lt;b&gt;Perombakan UI Besar:&lt;/b&gt; Desain Material 3 Expressive baru dengan animasi halus.\n
-        • &lt;b&gt;Island Lebih Baik:&lt;/b&gt; Teks sekarang muncul di sisi kanan. Menambahkan Centang Hijau untuk unduhan selesai.\n
-        • &lt;b&gt;Konfig Per-Aplikasi:&lt;/b&gt; Pilih tipe notifikasi spesifik (Musik, Peta, Panggilan) per aplikasi.\n
-        • &lt;b&gt;Filter Cerdas:&lt;/b&gt; Memblokir notifikasi duplikat dan menghemat baterai.\n
-        • &lt;b&gt;Pustaka Baru:&lt;/b&gt; Filter aplikasi berdasarkan kategori dan urutan sortir.\n
-        • &lt;b&gt;Lokalisasi:&lt;/b&gt; Menambahkan dukungan bahasa Spanyol.</string>
     <string name="priority_edu_title">Kontrol Island</string>
     <string name="priority_edu_desc">Pilih bagaimana island harus berperilaku ketika ada beberapa pemberitahuan yang aktif secara bersamaan.</string>
     <string name="badge_new">BARU</string>
@@ -207,25 +196,6 @@
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">Pembaruan Global</string>
-    <string name="changelog_0_3_0"><b>Notifikasi Tersembunyi 👻</b>\n
-        Opsi baru untuk menyembunyikan notifikasi dari panel sistem sambil tetap mengaktifkan Island. Cek Pengaturan Global!\n\n
-        <b>Bahasa Baru 🌍</b>\n
-        Terima kasih khusus kepada komunitas kami untuk terjemahan ini:\n
-        • 🇧🇷 Portugis (Brasil)\n
-        • 🇵🇱 Polandia\n
-        • 🇰🇷 Korea\n\n
-        • 🇺🇦 Ukraina\n\n
-        <b>Kustomisasi Navigasi 🧭</b>\n
-        Anda sekarang dapat memilih informasi apa yang muncul di sisi Kiri dan Kanan Island Navigasi (Jarak, ETA, Instruksi).\n\n
-        <b>Perlindungan Spoiler 🛡️</b>\n
-        Fitur baru \"Istilah Diblokir\". Tentukan kata secara global atau per-aplikasi untuk mencegah notifikasi spesifik muncul di Island.\n\n
-        <b>Peningkatan Panggilan 📞</b>\n
-        Logika deteksi ditingkatkan untuk mendukung lebih banyak aplikasi VoIP dan Dialer.\n\n
-        <b>Perbaikan &amp; Peningkatan 🛠️</b>\n
-        • Memperbaiki bug kritis di mana aplikasi macet saat memuat setelah reboot.\n
-        • Memperbaiki notifikasi yang kadang menampilkan nama paket mentah (mis. \"com.google...\") alih-alih konten.\n
-        • Mendesain ulang lembar Konfigurasi Aplikasi untuk penggunaan yang lebih baik.\n
-        • Meningkatkan layar Cek Kompatibilitas dengan info perangkat yang detail.</string>
     <string name="privacy_title">100% Offline &amp; Aman</string>
     <string name="privacy_desc">Hyper Bridge memproses semuanya langsung di prosesor ponsel Anda.\n\nIni TIDAK memerlukan akses internet, artinya notifikasi dan data pribadi Anda tidak pernah meninggalkan perangkat Anda.</string>
     <string name="language">Bahasa</string>
@@ -259,23 +229,6 @@
     <string name="privacy_card_title">Utamakan Offline</string>
     <string name="privacy_card_desc">Tidak perlu koneksi internet.</string>
     <string name="title_0_3_1">Pembaruan Cadangan &amp; Polyglot</string>
-    <string name="changelog_0_3_1"><b>Cadangkan &amp; Pulihkan 📦</b>\n
-        Fitur baru untuk power-user! Ekspor pengaturan, daftar blokir, dan prioritas aplikasi Anda dengan aman ke file .hbr dan pulihkan kapan saja.\n\n
-        <b>Bahasa Baru 🌍</b>\n
-        Menambahkan dukungan untuk:\n
-        • 🇩🇪 Jerman\n
-        • 🇷🇺 Rusia\n
-        • 🇺🇦 Ukraina (Ditingkatkan)\n
-        <i>Plus: A new in-app Language Selector to change languages without affecting your system settings.</i>\n\n
-        <b>Penyegaran Visual 🎨</b>\n
-        Aplikasi telah diperbarui dengan desain <b>Material 3 Expressive</b>. Nikmati header yang lebih besar, bentuk yang lebih bulat, dan pengalaman yang lebih halus.\n\n
-        <b>Privasi &amp; Setup 🛡️</b>\n
-        • Peningkatan Onboarding dengan halaman Privasi khusus yang menjelaskan arsitektur offline-first.\n
-        • Cek kompatibilitas yang lebih ketat untuk memastikan pengalaman terbaik di HyperOS 3.0.\n\n
-        <b>Perbaikan 🛠️</b>\n
-        • Memperbaiki masalah kritis di mana pengaturan hilang setelah reboot perangkat (dimigrasikan ke database).\n
-        • Memperbaiki tombol \"Keluar\" di island Navigasi yang muncul sebagai ikon alih-alih teks.\n
-        • Memperbaiki pemuatan Ikon Aplikasi di Pengaturan.\n</string>
     <string name="close">Tutup</string>
     <string name="search">Cari</string>
     <string name="widget_updated_toast">Widget diperbarui</string>
@@ -442,34 +395,7 @@
         <item quantity="other">%1$d aksi kustom</item>
     </plurals>
     <string name="title_0_4_0">Pembaruan Kustomisasi</string>
-    <string name="changelog_0_4_0"><b>Theme Engine 🎨</b>\n
-Pembaruan terbesar sejauh ini! Kini Anda dapat sepenuhnya menyesuaikan tampilan visual Dynamic Island.\n
-• <b>Theme Creator</b> Desain tema langsung di ponsel Anda dengan pratinjau waktu nyata.\n
-• <b>Kontrol Granular</b> Pilih dengan tepat bagaimana ikon ditampilkan, sesuaikan warna dan bentuk notifikasi panggilan, dan konfigurasikan pengaturan khusus untuk setiap aplikasi.\n
-• <b>Smart Colors</b> Secara otomatis mengekstrak warna merek yang hidup dari ikon aplikasi.\n
-• <b>Kustomisasi Per-Aksi (Beta)</b> Sesuaikan tampilan aksi notifikasi tertentu.\n
-• <b>Berbagi</b> Ekspor dan impor tema sebagai paket <i>.hbp</i> portabel.\n\n
-
-<b>Dukungan Widget 🧩</b>\n
-Sematkan widget Android standar ke Island untuk akses cepat—bahkan di <b>Lock screen</b>.\n
-• Pilih antara mode <b>Interaktif</b> untuk kecepatan atau mode <b>Snapshot</b> untuk efisiensi baterai.\n\n
-
-<b>Notification Engine 2.0 ⚡</b>\n
-Penulisan ulang total logika inti untuk stabilitas yang lebih baik.\n
-• <b>Parsing Lebih Cerdas</b> Memperbaiki masalah di mana notifikasi menampilkan nama paket (misalnya com.whatsapp) alih-alih konten pesan.\n
-• <b>Anti-Flicker</b> Hashing konten baru mencegah pembaruan berulang dan efek patah-patah.\n
-• <b>Ghost Fixes</b> Memperbaiki kondisi balapan di mana Island tetap muncul setelah ditutup.\n\n
-
-<b>Penyegaran Visual ✨</b>\n
-• Tab “Design” didesain ulang dengan carousel yang halus dan terasa native.\n
-• Tombol “Text Pill” baru untuk aksi notifikasi yang lebih jelas.\n
-• Menambahkan dukungan untuk 🇮🇩 bahasa Indonesia dan 🇹🇷 Turki.\n\n
-
-<i>Catatan: Rilis ini mencakup perubahan arsitektur yang signifikan. Silakan laporkan bug apa pun di GitHub.</i>    </string>
     <string name="title_0_4_2">Pembaruan Hotfix</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Perbakan Kesalahan:&lt;/b&gt; Mengatasi masalah kritis yang menyebabkan aplikasi mogok saat membuka menu pengaturan dalam bahasa Mandarin Tradisional.\n
-        •&lt;b&gt;Di Balik Layar:&lt;/b&gt; Perbaikan kesalahan umum dan peningkatan stabilitas agar Island Anda tetap berjalan lancar.
-    </string>
     <string name="colors_label_hue">Hue</string>
     <string name="colors_label_saturation">Saturasi</string>
     <string name="colors_label_lightness">Keringanan</string>
@@ -563,55 +489,8 @@ Penulisan ulang total logika inti untuk stabilitas yang lebih baik.\n
     <string name="onboard_design_desc">Perluas kemungkinan dengan berbagai pilihan penyesuaian</string>
     <string name="behavior_desc_glob_config">Menentukan bagaimana island tersebut berperilaku.</string>
     <string name="widget_layout_snapshot">Tampilan pratinjau widget</string>
-    <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
-              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
-              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
-              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
-              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
-              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
-              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
-              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
-    </string>
     <string name="title_0_5_2">Performance &amp; Stability Update</string>
-    <string name="changelog_0_5_1">        <b>Fixes &amp; Stability</b>\n
-              WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
-              Notification Flicker &amp; Crashes Fixed: Fixed a crash caused by receiving multiple notifications in a short timeframe. The app now safely updates notifications normally, eliminating the notification flicker and improving stability.\n
-              Notification Intents Restored: Fixed an issue where clicking a featured notification would incorrectly route to the troubleshooting screen instead of the original app.\n\n
-        <b>Features &amp; Polish</b>\n
-              Remove Island on Dismiss: Added a new option to automatically remove the island if the original system notification is dismissed.\n
-              Featured Notifications Diagnostics: Added a new check screen during Onboarding to verify if your Xiaomi device supports Featured Notifications and if the required permissions are enabled.\n
-              Setup Health Integration: The Featured Notifications permission status is now continuously monitored and displayed inside the Setup Health screen.\n
-              Troubleshooting Screen: Added a dedicated Troubleshooting Screen that guides users on how to enable the necessary hidden system permissions (or use Shizuku) to get islands working on strict Xiaomi ROMs.\n
-              Clearer Terminology: Renamed the \"Live Updates\" section in the settings menu to \"Notification Management\" to better reflect its purpose.\n
-              Settings UI Polish: Restored the missing rounded corners on the \"Permanent Island\" option in the Global Settings list.\n
-              Spanish Translations: Added full Spanish translations for all the new troubleshooting dialogues, setup health checks, and notification management settings.
-    </string>
     <string name="title_0_5_1">Perbaikan &amp; Penyempurnaan</string>
-    <string name="changelog_0_5_0">        <b>CN ROM Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
-        <b>Theme Engine Improvements</b>\n
-            • Engine Selection: You can now choose animation engines per-app or globally.\n
-            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
-            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
-        <b>Intelligent Permanent Island</b>\n
-            • Always Visible: Keep the island on screen even without active notifications.\n
-            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
-        <b>Smart Icon Tinting</b>\n
-            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Messaging Fixes</b>\n
-            • Fixed missing sender avatars in apps like Telegram (now correctly extracts \"sender_person\" data).\n
-            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
-            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>System &amp; Onboarding</b>\n
-            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
-            • Boot Fix: Service now starts immediately and reliably after restart.\n
-            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Navigation: Faster and smoother app transitions.
-    </string>
     <string name="title_0_5_0">Pembaruan Langsung</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
     <string name="widget_went_wrong">Jika Anda melihat pesan ini, berarti terjadi kesalahan! Sistem tidak dapat menampilkan widget</string>

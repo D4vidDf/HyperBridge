@@ -121,20 +121,7 @@
     </string-array>
     <string name="version_history">Historique des versions</string>
     <string name="title_0_2_0">La version de l\'information</string>
-    <string name="changelog_0_2_0">        • &lt;b&gt;Progression avancée:&lt;/b&gt; Ajout d\'étapes de progressions (par ex. 1 sur 3) et de barres de progression avec icônes dans la bulle de notification.\n
-        • &lt;b&gt;Système de priorité :&lt;/b&gt; Nouveaux paramètres « Comportement des bulles de notification. Choisissez entre \"Les plus récents\", \"Premier arrivé\" ou une liste personnalisée \"Priorité des applications\".\n
-        • &lt;b&gt; Filtrage intelligent :&lt;/b&gt; Détection améliorée des notifications en double et des téléchargements groupés.\n
-        • &lt;b&gt;Améliorations visuelles :&lt;/b&gt; Correction de problèmes de mise en page avec les instructions de navigation.\n
-        • &lt;b&gt;Configuration par application :&lt;/b&gt; Personnalisez le comportement du délai d\'attente et du flottement par application.
-    </string>
     <string name="title_0_1_0">La version expressive</string>
-    <string name="changelog_0_1_0">        • &lt;b&gt;Révision majeure de l\'interface utilisateur :&lt;/b&gt; Nouveau design \"Material 3 expressive\" avec des animations plus fluides.\n
-        • &lt;b&gt; Meilleure bulle:&lt;/b&gt; Le texte apparaît maintenant sur le côté droit. Ajout d\'une coche verte pour les téléchargements terminés.\n
-        • &lt;b&gt;Configuration par application :&lt;/b&gt; Sélectionnez les types de notifications spécifiques (Musique, Plans, Appels) par application.\n
-        • &lt;b&gt;Filtres intelligents :&lt;/b&gt; Bloque les notifications en double et économise la batterie.\n
-        • &lt;b&gt;Nouvelle bibliothèque :&lt;/b&gt; Filtrer les applications par catégorie et ordre de tri.\n
-        • &lt;b&gt;Localisation :&lt;/b&gt; Ajout de la langue espagnole
-    </string>
     <string name="priority_edu_title">Nouveau : Contrôler la bulle de notification</string>
     <string name="priority_edu_desc">Choisissez comment l\'île devrait se comporter lorsque plusieurs notifications sont actives en même temps.</string>
     <string name="badge_new">NOUVEAU</string>
@@ -209,26 +196,6 @@
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">La version \"Globale\"</string>
-    <string name="changelog_0_3_0">        <b>Notification masquée 👻</b>\n
-        Nouvelle option pour masquer les notifications du panneau système tout en gardant les bulles active. Vérifiez les paramètres généraux!\n\n
-        <b>Nouvelles langues 🌍</b>\n
-        Un merci spécial à notre communauté pour ces traductions :\n
-        • 🇧🇷 portugais (Brésil)\n
-        • 🇵🇱 polonais\n
-        • 🇰🇷 coréen\n\n
-        • 🇺🇦 ukrainien\n\n
-        <b>Personnalisation de la navigation 🧭</b>\n
-        Vous pouvez maintenant choisir les informations qui apparaissent sur les côtés gauche et droit de la bulle de navigation (distance, ETA, instruction).\n\n
-        <b>Protection contre les spoilers 🛡️</b>\n
-        Nouvelle fonctionnalité « termes bloqués ». Définissez des mots globalement ou par application pour empêcher l\'affichage de notifications spécifiques.\n\n
-        <b>Améliorations des appels 📞</b>\n
-        Logique de détection améliorée pour prendre en charge une plus grande gamme d\'applications VoIP et de clavier.\n\n
-        <b>Corrections et &amp; améliorations 🛠️</b>\n
-        • Correction d\'un bug critique qui empêchait le chargement de l\'application après un redémarrage.\n
-        • Correction des notifications affichant parfois les noms bruts des packages (par exemple, \"com.google...\") au lieu du contenu.\n
-        • Feuille de configuration de l\'application repensée pour une meilleure convivialité.\n
-        • Écran de vérification de compatibilité amélioré avec des informations détaillées sur l\'appareil
-    </string>
     <string name="privacy_title">100% hors ligne &amp; sécurisé</string>
     <string name="privacy_desc">Hyper Bridge traite tout directement via le processeur de votre téléphone.\n\nIl ne nécessite PAS d\'accès à Internet, ce qui signifie que vos notifications et vos données personnelles ne quittent jamais votre appareil.</string>
     <string name="language">Langue</string>
@@ -262,24 +229,6 @@
     <string name="privacy_card_title">Approche \"sans connexion\"</string>
     <string name="privacy_card_desc">Aucune connexion internet requise.</string>
     <string name="title_0_3_1">Sauvegarde &amp; langues</string>
-    <string name="changelog_0_3_1">        &lt;b&gt;Sauvegarde &amp; Restauration 📦&lt;/b&gt;\n
-        Nouvelle fonctionnalité utilisateur ! Exportez vos paramètres, listes de blocage et priorités d\'applications en toute sécurité vers un fichier .hbr et restaurez les à tout moment.\n\n
-        &lt;b&gt;Nouvelles Langues 🌍&lt;/b&gt;\n
-        Support Ajouté pour :\n
-        • :Allemagne : Allemand\n
-        • :Russie : Russe\n
-        • 🇺🇦 Ukrainien (Imprové)\n
-        &lt;i&gt;Plus : Un nouveau sélecteur de langue a été intégré pour changer de Langue sans toucher aux paramètres  système.&lt;/i&gt;\n\n\n
-        &lt;b&gt;Mise à jour visuelle 🎨&lt;/b&gt;\n
-        L\'application a été mise à jour avec &lt;b&gt;Material 3 Expressive&lt;/b&gt; . Appréciez des en-têtes plus grands, des formes arrondies et une expérience plus agréable.\n\n
-         &lt;b&gt;Confidentialité &amp; Configuration 🛡️&lt;/b&gt;\n
-        • Amélioration de l\'intégration avec une page consacrée à la protection de la vie privée qui clarifie l\'architecture hors ligne.\n
-        • Des contrôles de compatibilité plus stricts pour assurer la meilleure expérience sur HyperOS 3.0.\n\n\n
-        &lt;b&gt;Corrections 🛠️&lt;/b&gt;\n
-        • Correction d\'un problème critique où les paramètres étaient perdus après le redémarrage de l\'appareil (migré vers la base de données).\n
-        • &lt;Correction du bouton \"Quitter\" sur les bulles de navigation s\'affichant sous la forme d\'une icône au lieu du texte.\n
-        • Correction de l\'icône de chargement dans les paramètres.\n
-    </string>
     <string name="close">Fermer</string>
     <string name="search">Rechercher</string>
     <string name="widget_updated_toast">Widget mis à jour</string>
@@ -450,35 +399,7 @@
         <item quantity="other">%1$d actions personnalisées</item>
     </plurals>
     <string name="title_0_4_0">La version de la personnalisation</string>
-    <string name="changelog_0_4_0">       <b>Système de thèmes 🎨</b>\n
-        La plus grande mise à jour ! Vous pouvez maintenant personnaliser pleinement l\'expérience visuelle des bulles de notification. \n
-        • <b>Créateur de Thèmes :</b> Concevez des thèmes directement sur votre téléphone avec un aperçu en temps réel.\n
-        • <b>Paramétrage plus fin:</b>; Choisissez exactement comment les icônes sont affichées, personnalisez les couleurs et les formes des notifications, et configurer les remplacements des applications individuelles.\n
-        • <b>Couleurs intelligentes:</b>; Extraction automatique des couleurs des icônes d\'application.\n
-        •<b>Personnalisation par action (Bêta):</b>; Ajustement de l\'apparence de certaines notifications d\'actions spécifiques.\n
-        • <b>Partage :</b> Exportez et importez des thèmes au format <i>hbr</i> .\n\n
-
-        <b>Support des widget 🧩</b>\n
-        Verrouillez les widgets standard d\'Android pour un accès rapide — même sur votre <b>écran verrouillé</b>!\n
-        • Choisissez entre les modes <b>interractifs</b> pour la vitesse ou <b>instantané</b> pour l\'efficacité de la batterie.\n\n
-
-        <b>Moteur de notification 2.0⚡</b>\n
-        Réécriture complète du moteur pour une meilleure stabilité:\n
-        • <b>Analyse intelligente : </b> Résolutions de problèmes où les notifications affichaient les noms des paquets (par ex. : com.whatsapp) au lieu du contenu du message.\n
-        • <b>Anti-scintillement :</b> La vérification de contenu empêche les notifications redondantes et les saccades.\n
-        • <b>Correction des fantômes :</b> Résolution d\'un problème où les notifications persistaient après leur suppression.\n\n
-
-        <b>Rafraîchissement visuel ✨</b>\n
-        • Onglet \"Design\" redessiné pour plus de fluidité avec des blocs dynamiques.\n
-        • Nouveaux boutons de textes pour des actions de notification plus claires.\n
-        • Ajout du support pour l\'indonésien 🇮🇩 et le turque 🇹🇷.\n\n
-
-        <i>Note : Cette version comprend des changements architecturaux importants. Veuillez signaler tout bug sur GitHub !</i>
-    </string>
     <string name="title_0_4_2">Mise à jour de corrections de bugs</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Correction d\'un crash :&lt;/b&gt; Résolution d\'un problème critique qui faisait planter l\'application lors de l\'ouverture du menu des paramètres en chinois traditionnel.\n
-        •&lt;b&gt;Corrections diverses :&lt;/b&gt; Corrections générales de bugs pour améliorer la stabilité et la fluidité de l\'application.
-    </string>
     <string name="colors_label_hue">Teinte</string>
     <string name="colors_label_saturation">Saturation</string>
     <string name="colors_label_lightness">Clarté</string>
@@ -572,60 +493,8 @@
     <string name="onboard_design_desc">Augmentez les possibilités avec différentes options de personnalisation</string>
     <string name="behavior_desc_glob_config">Détermine le comportement de la bulle de notification.</string>
     <string name="widget_layout_snapshot">Aperçu du widget</string>
-    <string name="changelog_0_5_2">        <b>Nouvelle fonctionnalité de réponse intégrée !</b>\n
-              • <b>Réponse intégrée :</b> Vous pouvez désormais répondre aux messages directement depuis la notification sans ouvrir l\'application !\n
-              • <b>Personnalisation :</b> Personnalisez entièrement l\'apparence du nouvel éditeur de réponse intégrée, soit globalement, soit par application.\n
-              • <b>Paramètres généraux :</b> Accédez à la nouvelle section de personnalisation des réponses directement depuis Paramètres généraux -&gt; Réponse intégrée.\n
-        \n
-        <b>Correction de crash du Play Store &amp; Stabilité</b>\n
-              • <b>Créateur de thème :</b> Correction d\'un plantage lors de l\'analyse d\'un grand nombre d\'actifs personnalisés.\n
-              • <b>Performances :</b> Résolution d\'un problème d’application qui ne répond plus (ANR) sur l’écran initial de bienvenue.\n
-              • <b>Widget Picker:</b> Elimination de plantages et d\'erreurs Out-Of-Memory (OOM) causés par une prévisualisation de Widget extremement large.\n
-              • <b>Dispositions de l\'interface utilisateur :</b> Correction des exceptions sur les contraintes de mise en page de composition de Jetpack qui plantaient l\'application lors du redimensionnement de certains menus.\n
-              • <b>Sauvegardes :</b> Erreurs OOM corrigées lors de l\'importation de gros fichiers de sauvegarde en optimisant l\'analyse JSON.\n
-              • <b>Démarrage chaud :</b> Amélioration significative des vitesses de lancement des applications et élimination du blocage des piles d\'interface utilisateur sur les appareils de milieu de gamme.\n
-              • <b>Service d\'arrière-plan :</b> Révision complète de l\'architecture du traitement d\'écoute, chute de la charge en arrière-plan à 0 % et amélioration de la durée de vie de la batterie.\n
-    </string>
     <string name="title_0_5_2">Réponse intégrée, performance &amp; stabilité</string>
-    <string name="changelog_0_5_1">        <b>Corrections &amp; stabilité</b>\n
-              Correction des doublons WhatsApp : résolution d\'un problème qui entraînait l\'affichage de notifications WhatsApp en double.\n
-              Correction du scintillement des notifications &amp; des plantages : correction d\'un plantage provoqué par la réception de plusieurs notifications en peu de temps. L\'application met désormais à jour les notifications normalement et en toute sécurité, ce qui élimine le scintillement des notifications et améliore la stabilité.\n
-              Restauration des intentions de notification : correction d\'un problème où cliquer sur une notification mise en avant redirigeait à tort vers l\'écran de dépannage au lieu de l\'application d\'origine.\n\n
-        <b>Fonctionnalités &amp; améliorations</b>\n
-              Suppression de l\'îlot lors de la fermeture : ajout d\'une nouvelle option permettant de supprimer automatiquement l\'îlot si la notification système d\'origine est fermée.\n
-              Diagnostic des notifications en vedette : ajout d\'un nouvel écran de vérification lors de la configuration initiale pour vérifier si votre appareil Xiaomi prend en charge les notifications en vedette et si les autorisations requises sont activées.\n
-              Intégration à l\'état de la configuration : l\'état des autorisations pour les notifications en vedette est désormais surveillé en continu et affiché dans l\'écran d\'état de la configuration.\n
-              Écran de dépannage : ajout d\'un écran de dépannage dédié qui guide les utilisateurs sur la manière d\'activer les autorisations système cachées nécessaires (ou d\'utiliser Shizuku) pour que les bulles de notifications fonctionnent sur les ROM Xiaomi strictes.\n
-              Terminologie plus claire : la section « Mises à jour en direct » du menu des paramètres a été renommée « Gestion des notifications » afin de mieux refléter\n
-            Polissage de l\'Interface utilisateur : rétablissement des coins arrondis qui manquaient dans l\'option « bulles permanentes » de la liste des paramètres généraux.\n
-              Traductions en espagnol : ajout de traductions complètes en espagnol pour toutes les nouvelles boîtes de dialogue de dépannage, les contrôles d\'intégrité de la configuration et les paramètres de gestion des notifications.
-    </string>
     <string name="title_0_5_1">Corrections &amp; Affinements</string>
-    <string name="changelog_0_5_0">        <b>Support ROM CN</b>\n
-            • Utilisez Sui &amp; Shizuku pour profiter des notifications Hyper Islands sur vos appareils exécutant des ROM HyperOS CN (chinois) sans prise en charge native.\n\n
-        <b>Améliorations du moteur de thème</b>\n
-            • Sélection du moteur : vous pouvez désormais choisir le moteur d\'animation par application ou global.\n
-            • Solution de contournement Shizuku : option ajoutée directement à l\'onglet Moteur de l\'éditeur de thème.\n
-            • Contrôles de comportement : les délais d\'attente personnalisés et la logique contextuelle sont désormais entièrement pris en charge.\n\n
-        <b>Île permanente intelligente</b>\n
-            • Toujours visible : gardez la notification à l\'écran même sans notifications actives.\n
-            • Masquer automatiquement : l\'îlot permanent se cache désormais automatiquement chaque fois qu\'un widget actif est affiché à l\'écran.\n\n
-        <b>Teinture intelligente des icônes</b>\n
-            • Le nouveau système de détection analyse automatiquement les icônes de notification extraites et les teinte intelligemment en blanc si elles sont sombres ou monochromes.\n\n
-        <b>Téléchargements &amp; progression</b>\n
-            • Nouvelle présentation de téléchargement dédiée : présentations de téléchargement et de progression séparés avec des conceptions visuelles dédiées.\n
-            • Prise en charge de la progression du texte : pourcentage sous forme de texte (par exemple \"12 %\") pour les mises à jour d\'applications, même sans barres de progression natives.\n
-            • Filtrage intelligent : vérification de la progression basée sur du texte pour stocker et télécharger le programme d\'installation afin d\'éviter de faux déclenchements sur d\'autres notifications d\'état.\n\n
-        <b>Corrections de messagerie</b>\n
-            • Correction des avatars d\'expéditeur manquants dans des applications comme Telegram (extrait désormais correctement les données \"sender_person\").\n
-            • Problèmes résolus avec les notifications groupées (résumés de discussion) ne déclenchant pas les notifications.\n
-            • Correction de bugs de disparition des notifications causés par des conditions de mise à jour des notifications.\n\n
-        <b>Système &amp; Intégration</b>\n
-            • Nouvel écran d\'intégration : tout nouveau processus de configuration plus simple pour les autorisations critiques.\n
-            • Correctif de démarrage : le service démarre désormais immédiatement et de manière fiable après le redémarrage.\n
-            • Alertes plus intelligentes : les téléchargements et les médias sont mis à jour silencieusement, tandis que les mises à jour de messagerie déclenchent de manière fiable des animations contextuelles.\n
-            • Navigation : transitions d\'applications plus rapides et plus fluides.
-    </string>
     <string name="title_0_5_0">La mise à jour \"Live Update\"</string>
     <string name="notification_went_wrong">Si vous voyez cela, quelque chose s\'est mal passé !</string>
     <string name="widget_went_wrong">Si vous voyez ceci, quelque chose s\'est mal passé ! Le système n\'a pas pu afficher le widget</string>

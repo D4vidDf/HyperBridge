@@ -121,20 +121,7 @@
     </string-array>
     <string name="version_history">Verzióelőzmények</string>
     <string name="title_0_2_0">Az információs frissítés</string>
-    <string name="changelog_0_2_0">        • &lt;b&gt;Részletes folyamatok:&lt;/b&gt; Hozzáadott támogatás a „Lépésenkénti előrehaladás” (pl. 1/3) és az ikonokkal ellátott előrehaladási sávok számára az értesítési sávon belül.\n
-        • &lt;b&gt;Fontossági rendszer:&lt;/b&gt; Új „Island működési” beállítások. Választhatsz a „Legutóbbi”, „Elsőként érkezett” vagy egy egyedi „Alkalmazás fontossági” lista közül.\n
-• &lt;b&gt;Intelligens szűrés:&lt;/b&gt; Javított felismerés az ismétlődő értesítések és csoportos letöltések esetében.\n
-• &lt;b&gt;Vizuális fejlesztések:&lt;/b&gt; Javított elrendezési problémák a navigációs utasításoknál.\n
-        • &lt;b&gt;Alkalmazásonkénti konfiguráció:&lt;/b&gt; Az időkorlát és a lebegő viselkedés alkalmazásonkénti testreszabása.
-    </string>
     <string name="title_0_1_0">A kifejező frissítés</string>
-    <string name="changelog_0_1_0">        • &lt;b&gt;A felhasználói felület jelentős átalakítása:&lt;/b&gt; Új Material 3 kifejező dizájn, sima animációkkal.\n
-        • &lt;b&gt;Jobb Island:&lt;/b&gt; A szöveg most a jobb oldalon jelenik meg. Zöld pipa jelzi a befejezett letöltéseket.\n
-        • &lt;b&gt;Alkalmazásonkénti beállítások:&lt;/b&gt; Alkalmazásonként kiválaszthatók az egyes értesítési típusok (zene, térképek, hívások).\n
-        • &lt;b&gt;Intelligens szűrők:&lt;/b&gt; Megakadályozza az ismétlődő értesítéseket és megtakarítja az akkumulátort.\n
-        • &lt;b&gt;Új könyvtár:&lt;/b&gt; Az alkalmazások szűrése kategória és rendezési sorrend szerint.\n
-        • &lt;b&gt;Fordítások:&lt;/b&gt; Hozzáadva a spanyol nyelv támogatása.
-    </string>
     <string name="priority_edu_title">Újdonság: Vezéreld a Island-ot</string>
     <string name="priority_edu_desc">A HyperBridge mostantól kezelni tudja, hogy több értesítés hogyan viselkedik, amikor eléri a 9-szigetes korlátot.\n\n&lt;b&gt;Alapértelmezett: Legújabb&lt;/b&gt;\nAz új értesítések automatikusan felülírják a legrégebbieket.</string>
     <string name="badge_new">ÚJ</string>
@@ -209,26 +196,6 @@
         <item>Hang</item>
     </string-array>
     <string name="title_0_3_0">Az általános frissítés</string>
-    <string name="changelog_0_3_0">        <b>Rejtett értesítések 👻</b>\n
-        Új opció az értesítések elrejtésére a rendszerpanelen, miközben az Island aktív marad. Ellenőrizd az általános beállításokat!\n\n
-        <b>Új nyelvek 🌍</b>\n
-        Külön köszönet közösségünknek ezekért a fordításokért:\n
-        • 🇧🇷 portugál (Brazília)\n
-        • 🇵🇱 lengyel\n
-        • 🇰🇷 koreai\n\n
-        • 🇺🇦 ukrán\n\n
-<b>Navigáció testreszabása 🧭</b>\n
-Mostantól kiválaszthatod, hogy milyen információk jelenjenek meg a navigációs Island bal és jobb oldalán (távolság, várható érkezési idő, utasítások).\n\n
-<b>Leleplezés védelem 🛡️</b>\n
-        Új „Tiltott kifejezések” funkció. Határozd meg a szavakat általánosan vagy alkalmazásonként, hogy megakadályozd bizonyos értesítések megjelenését az Island-on.\n\n
-<b>Hívásjavítások 📞</b>\n
-Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szélesebb körének támogatásához.\n\n
-<b>Javítások és fejlesztések 🛠️</b>\n
-        • Javítva egy kritikus hiba, amely miatt az alkalmazás újraindítás után beragadt a betöltés közben.\n
-        • Javítva az értesítések néha a tartalom helyett a nyers csomagneveket (pl. „com.google...”) mutatták.\n
-        • Átalakítva az alkalmazás konfigurációs lapja a jobb használhatóság érdekében.\n
-        • Javítva a kompatibilitás-ellenőrző képernyő részletes eszközadatokkal.
-    </string>
     <string name="privacy_title">100% offline és biztonságos</string>
     <string name="privacy_desc">A Hyper Bridge mindent közvetlenül a telefon processzorán dolgoz fel.\n\nNem igényel internet-hozzáférést, vagyis az értesítések és a személyes adatok soha nem hagyják el az eszközt.</string>
     <string name="language">Nyelv</string>
@@ -262,24 +229,6 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="privacy_card_title">Elsősorban offline</string>
     <string name="privacy_card_desc">Nincs szükség internetkapcsolatra.</string>
     <string name="title_0_3_1">Mentés és többnyelvű frissítés</string>
-    <string name="changelog_0_3_1">        <b>Mentés és visszaállítás 📦</b>\n
-        Új, haladó felhasználóknak szóló funkció! Biztonságosan külviteli beállításait, tiltási listáit és alkalmazásfontosságait egy .hbr fájlba, és bármikor visszaállíthatod őket.\n\n
-        <b>Új nyelvek 🌍</b>\n
-        Támogatás hozzáadva:\n
-        • 🇩🇪 német\n
-        • 🇷🇺 orosz\n
-        • 🇺🇦 ukrán (javított)\n
-        <i>Plusz: új, alkalmazáson belüli nyelvválasztó, amellyel a rendszerbeállítások megváltoztatása nélkül válthat nyelvet.</i>\n\n
-        <b>Vizuális frissítés 🎨</b>\n
-        Az alkalmazás <b>Material 3 Expressive</b> dizájnnal lett frissítve. Élvezd a nagyobb fejlécet, a lekerekítettebb formákat és a simább felhasználói élményt.\n\n
-        <b>Adatvédelem és beállítások 🛡️</b>\n
-        • Továbbfejlesztett bevezetés egy külön adatvédelmi oldallal, amely tisztázza az elsődlegesen offline architektúrát.\n
-        • Szigorúbb kompatibilitási ellenőrzések a HyperOS 3.0-n való legjobb felhasználói élmény biztosítása érdekében.\n\n
-        <b>Javítások 🛠️</b>\n
-        • Javítva egy kritikus hiba, amelynek következtében a beállítások elvesztek az eszköz újraindítása után (átvitel az adatbázisba).\n
-        • Javítva a navigációs Island-on található „Kilépés” gomb, amely ikonként jelent meg szöveg helyett.\n
-        • Javítva az alkalmazás ikonjának betöltése a Beállításokban.\n
-    </string>
     <string name="close">Bezár</string>
     <string name="search">Keresés</string>
     <string name="widget_updated_toast">Modul frissítve</string>
@@ -450,34 +399,7 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
         <item quantity="other">%1$d egyedi művelet</item>
     </plurals>
     <string name="title_0_4_0">A testreszabás frissítés</string>
-    <string name="changelog_0_4_0">        <b>Téma motor 🎨</b>\n
-        A legnagyobb frissítés eddig! Mostantól teljes mértékben testreszabhatod a Dynamic Island vizuális élményét.\n
-        • <b>Témaalkotó:</b> Tervezz témákat közvetlenül a telefonodon, valós idejű előnézettel.\n
-        • <b>Részletes vezérlés:</b> Válaszd ki pontosan, hogyan jelenjenek meg az ikonok, testreszabhatod a hívásértesítések színeit és alakjait, valamint beállíthatod az egyes alkalmazások felülírásait.\n
-        • <b>Intelligens színek:</b> Az alkalmazásikonokból automatikusan kivonja az élénk márkaszíneket.\n
-        • <b>Műveletenkénti testreszabás (béta):</b> Finomítsd az egyes értesítési műveletek megjelenését.\n
-        • <b>Megosztás:</b> Külvitele és behozza a témákat hordozható <i>.hbr</i> csomagokként.
-
-        <b>Modul-támogatás 🧩</b>\n
-        Rögzítsed a szabványos Android-modulokat az Islandra a gyors hozzáférés érdekében – még a <b>zárképernyőn</b> is!\n
-        • Válassz sebességet biztosító <b>Interaktív</b> mód és az akkumulátor hatékonyságát biztosító <b>Pillanatkép</b> mód között.\n\n
-
-        <b>Értesítési motor 2.0 ⚡</b>\n
-        A jobb stabilitás érdekében teljesen átírtuk a központi logikát:\n
-        • <b>Okosabb elemzés:</b> Javítva azok a problémák, amikor az értesítések a csomag nevét (pl. com.whatsapp) mutatták az üzenet tartalma helyett.\n
-        • <b>Anti-Flicker:</b> Az új tartalom-hasholás megakadályozza a felesleges frissítéseket és a akadozást.\n
-        • <b>Ghost Fixes:</b> Megoldva azok a versenyhelyzetek, amikor a szigetek elutasítás után is megmaradtak.\n\n
-
-        <b>Vizuális frissítés ✨</b>\n
-        • Átdolgozott „Design” fül, folyékony, natív érzésű karusszelekkel.\n
-        • Új „Text Pill” gombok a világosabb értesítési műveletekhez.\n
-        • Hozzáadott támogatás 🇮🇩 indonéz és 🇹🇷 török nyelvekhez.\n\n
-
-        <i>Megjegyzés: Ez a kiadás jelentős architektúraváltozásokat tartalmaz. A hibákat a GitHubon jelentsd!</i></string>
     <string name="title_0_4_2">Hibaijavító frissítés</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Hibajavítás:&lt;/b&gt; Kijavítottunk egy kritikus hibát, amely miatt az alkalmazás összeomlott, amikor a beállítások menüt hagyományos kínai nyelven nyitották meg.\n
-        •&lt;b&gt;Háttérmunkák:&lt;/b&gt; Általános hibajavítások és stabilitási fejlesztések, hogy az island-od zökkenőmentesen működjön.
-    </string>
     <string name="colors_label_hue">Árnyalat</string>
     <string name="colors_label_saturation">Telítettség</string>
     <string name="colors_label_lightness">Fényesség</string>
@@ -571,55 +493,8 @@ Továbbfejlesztett felismerési logika a VoIP- és tárcsázóalkalmazások szé
     <string name="onboard_design_desc">Expand the possibilities with different customization options</string>
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
-    <string name="changelog_0_5_2">        <b>Play Store Crash Fixes &amp; Stability</b>\n
-              ? <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
-              ? <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
-              ? <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
-              ? <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
-              ? <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
-              ? <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
-              ? <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
-    </string>
     <string name="title_0_5_2">Performance &amp; Stability Update</string>
-    <string name="changelog_0_5_1">        <b>Fixes &amp; Stability</b>\n
-              WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
-              Notification Flicker &amp; Crashes Fixed: Fixed a crash caused by receiving multiple notifications in a short timeframe. The app now safely updates notifications normally, eliminating the notification flicker and improving stability.\n
-              Notification Intents Restored: Fixed an issue where clicking a featured notification would incorrectly route to the troubleshooting screen instead of the original app.\n\n
-        <b>Features &amp; Polish</b>\n
-              Remove Island on Dismiss: Added a new option to automatically remove the island if the original system notification is dismissed.\n
-              Featured Notifications Diagnostics: Added a new check screen during Onboarding to verify if your Xiaomi device supports Featured Notifications and if the required permissions are enabled.\n
-              Setup Health Integration: The Featured Notifications permission status is now continuously monitored and displayed inside the Setup Health screen.\n
-              Troubleshooting Screen: Added a dedicated Troubleshooting Screen that guides users on how to enable the necessary hidden system permissions (or use Shizuku) to get islands working on strict Xiaomi ROMs.\n
-              Clearer Terminology: Renamed the \"Live Updates\" section in the settings menu to \"Notification Management\" to better reflect its purpose.\n
-              Settings UI Polish: Restored the missing rounded corners on the \"Permanent Island\" option in the Global Settings list.\n
-              Spanish Translations: Added full Spanish translations for all the new troubleshooting dialogues, setup health checks, and notification management settings.
-    </string>
     <string name="title_0_5_1">Fixes &amp; Refinements</string>
-    <string name="changelog_0_5_0">        <b>CN ROM Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
-        <b>Theme Engine Improvements</b>\n
-            • Engine Selection: You can now choose animation engines per-app or globally.\n
-            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
-            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
-        <b>Intelligent Permanent Island</b>\n
-            • Always Visible: Keep the island on screen even without active notifications.\n
-            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
-        <b>Smart Icon Tinting</b>\n
-            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. \"12%\") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Messaging Fixes</b>\n
-            • Fixed missing sender avatars in apps like Telegram (now correctly extracts \"sender_person\" data).\n
-            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
-            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>System &amp; Onboarding</b>\n
-            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
-            • Boot Fix: Service now starts immediately and reliably after restart.\n
-            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Navigation: Faster and smoother app transitions.
-    </string>
     <string name="title_0_5_0">The Live Update</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong!</string>
     <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>

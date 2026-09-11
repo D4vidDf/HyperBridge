@@ -118,20 +118,7 @@
     </string-array>
     <string name="version_history">Version History</string>
     <string name="title_0_2_0">The Information Update</string>
-    <string name="changelog_0_2_0">        • &lt;b&gt;Advanced Progress:&lt;/b&gt; Added support for \"Step Progress\" (e.g. 1 of 3) and progress bars with icons inside the notification shade.\n
-        • &lt;b&gt;Priority System:&lt;/b&gt; New \"Island Behavior\" settings. Choose between \"Most Recent\", \"First Come\", or a custom \"App Priority\" list.\n
-        • &lt;b&gt;Smart Filtering:&lt;/b&gt; Improved detection of duplicate notifications and grouped downloads.\n
-        • &lt;b&gt;Visual Improvements:&lt;/b&gt; Fixed layout issues with Navigation instructions.\n
-        • &lt;b&gt;Per-App Config:&lt;/b&gt; Customize Timeout and Floating behavior per app.
-    </string>
     <string name="title_0_1_0">The Expressive Update</string>
-    <string name="changelog_0_1_0">        • &lt;b&gt;Major UI Overhaul:&lt;/b&gt; New Material 3 Expressive design with smooth animations.\n
-        • &lt;b&gt;Better Island:&lt;/b&gt; Text now appears on the right side. Added Green Tick for finished downloads.\n
-        • &lt;b&gt;Per-App Config:&lt;/b&gt; Select specific notification types (Music, Maps, Calls) per app.\n
-        • &lt;b&gt;Smart Filters:&lt;/b&gt; Blocks duplicate notifications and saves battery.\n
-        • &lt;b&gt;New Library:&lt;/b&gt; Filter apps by category and sort order.\n
-        • &lt;b&gt;Localization:&lt;/b&gt; Added Spanish support.
-    </string>
     <string name="priority_edu_title">New: Control the Island</string>
     <string name="priority_edu_desc">HyperBridge can now manage how multiple notifications behave when the 9-island limit is reached.\n\n&lt;b&gt;Default: Most Recent&lt;/b&gt;\nNew notifications replace the oldest ones automatically.</string>
     <string name="badge_new">NEW</string>
@@ -198,26 +185,6 @@
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">The Global Update</string>
-    <string name="changelog_0_3_0">        <b>Hidden Notification 👻</b>\n
-        New option to hide notifications from the system panel while keeping the Island active. Check Global Settings!\n\n
-        <b>New Languages 🌍</b>\n
-        Special thanks to our community for these translations:\n
-        • 🇧🇷 Portuguese (Brazil)\n
-        • 🇵🇱 Polish\n
-        • 🇰🇷 Korean\n\n
-        • 🇺🇦 Ukranian\n\n
-        <b>Navigation Customization 🧭</b>\n
-        You can now choose what information appears on the Left and Right sides of the Navigation Island (Distance, ETA, Instruction).\n\n
-        <b>Spoiler Protection 🛡️</b>\n
-        New \"Blocked Terms\" feature. Define words globally or per-app to prevent specific notifications from showing up on the Island.\n\n
-        <b>Call Improvements 📞</b>\n
-        Improved detection logic to support a wider range of VoIP and Dialer applications.\n\n
-        <b>Fixes &amp; Improvements 🛠️</b>\n
-        • Fixed a critical bug where the app would get stuck loading after a reboot.\n
-        • Fixed notifications sometimes showing raw package names (e.g. \"com.google...\") instead of content.\n
-        • Redesigned App Configuration sheet for better usability.\n
-        • Improved Compatibility Check screen with detailed device info.
-    </string>
     <string name="privacy_title">100% Offline &amp; Secure</string>
     <string name="privacy_desc">Hyper Bridge processes everything directly on your phone\'s processor.\n\nIt does NOT require internet access, meaning your notifications and personal data never leave your device.</string>
     <string name="language">Language</string>
@@ -251,24 +218,6 @@
     <string name="privacy_card_title">Offline First</string>
     <string name="privacy_card_desc">No internet connection required.</string>
     <string name="title_0_3_1">Backup &amp; Polyglot Update</string>
-    <string name="changelog_0_3_1">        <b>Backup &amp; Restore 📦</b>\n
-        New power-user feature! Securely export your settings, blocklists, and app priorities to a .hbr file and restore them anytime.\n\n
-        <b>New Languages 🌍</b>\n
-        Added support for:\n
-        • 🇩🇪 German\n
-        • 🇷🇺 Russian\n
-        • 🇺🇦 Ukrainian (Improved)\n
-        <i>Plus: A new in-app Language Selector to change languages without affecting your system settings.</i>\n\n
-        <b>Visual Refresh 🎨</b>\n
-        The app has been updated with <b>Material 3 Expressive</b> design. Enjoy larger headers, rounder shapes, and a smoother experience.\n\n
-        <b>Privacy &amp; Setup 🛡️</b>\n
-        • Improved Onboarding with a dedicated Privacy page clarifying offline-first architecture.\n
-        • Stricter compatibility checks to ensure the best experience on HyperOS 3.0.\n\n
-        <b>Fixes 🛠️</b>\n
-        • Fixed a critical issue where settings were lost after device reboot (migrated to database).\n
-        • Fixed \"Exit\" button in Navigation island showing as an icon instead of text.\n
-        • Fixed App Icon loading in Settings.\n
-    </string>
     <string name="close">Close</string>
     <string name="search">Search</string>
     <string name="widget_updated_toast">Widget updated</string>

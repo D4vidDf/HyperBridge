@@ -23,7 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import com.d4viddf.hyperbridge.util.DocumentationUrls
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Code
@@ -178,6 +180,22 @@ fun InfoScreen(
                     SettingsItemData(Icons.Default.Palette, stringResource(R.string.global_settings), stringResource(R.string.island_appearance), onGlobalSettingsClick),
                     SettingsItemData(Icons.Default.Block, stringResource(R.string.blocked_terms), stringResource(R.string.spoiler_subtitle), onBlocklistClick),
                     SettingsItemData(Icons.Default.Save, stringResource(R.string.backup_restore_title), stringResource(R.string.backup_section_title), onBackupClick)
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- GUIDES GROUP ---
+            SettingsSection(
+                title = stringResource(R.string.group_guides),
+                items = listOf(
+                    SettingsItemData(
+                        Icons.AutoMirrored.Filled.MenuBook,
+                        stringResource(R.string.documentation_title),
+                        stringResource(R.string.documentation_subtitle)
+                    ) {
+                        uriHandler.openUri(DocumentationUrls.DOCS)
+                    }
                 )
             )
 
