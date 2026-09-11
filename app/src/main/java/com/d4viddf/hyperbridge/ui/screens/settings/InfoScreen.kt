@@ -305,6 +305,7 @@ fun getSettingsShape(groupSize: Int, index: Int): Shape {
 fun LanguageSelectorDialog(onDismiss: () -> Unit) {
     val languages = mapOf(
         stringResource(R.string.system_default) to "",
+        "العربية" to "ar",
         "Bahasa Indonesia" to "id",
         "Čeština" to "cs",              // Added (Czech)
         "Deutsch" to "de",
