@@ -817,6 +817,22 @@
     <string name="diagnostic_supported" translatable="false">Supported</string>
     <string name="diagnostic_unsupported" translatable="false">Unsupported</string>
     <string name="diagnostic_all_clear" translatable="false">All clear</string>
+    <string name="diagnostic_metric_review" translatable="false">Review</string>
+    <string name="diagnostic_service_active_desc" translatable="false">Active notification interceptor service</string>
+    <string name="diagnostic_service_disconnected_desc" translatable="false">Service disconnected</string>
+    <string name="diagnostic_active_islands_desc" translatable="false">Currently active Dynamic Island views</string>
+    <string name="diagnostic_active_count" translatable="false">%1$d active</string>
+    <string name="diagnostic_last_classification_desc" translatable="false">Latest intercepted notification category</string>
+    <string name="diagnostic_last_call_state_desc" translatable="false">Latest monitored call state</string>
+    <string name="diagnostic_notification_access_desc" translatable="false">Required to intercept app events</string>
+    <string name="diagnostic_post_notifications_desc" translatable="false">Required to display Island notifications</string>
+    <string name="diagnostic_focus_support_desc" translatable="false">Xiaomi HyperOS Island hardware support</string>
+    <string name="diagnostic_featured_permission_desc" translatable="false">Focus notification display permission</string>
+    <string name="diagnostic_selected_apps_desc" translatable="false">Applications enabled for Island display</string>
+    <string name="diagnostic_apps_count" translatable="false">%1$d apps</string>
+    <string name="diagnostic_floating_review_desc" translatable="false">Apps needing native floating banner disabled</string>
+    <string name="diagnostic_pending_count" translatable="false">%1$d pending</string>
+    <string name="diagnostic_reason_prefix" translatable="false">Reason: %1$s</string>
 </resources>
 
 

@@ -328,7 +328,7 @@ fun DiagnosticsContent(
                             )
                             DiagnosticMetricPill(
                                 modifier = Modifier.weight(1f),
-                                label = "Review",
+                                label = stringResource(R.string.diagnostic_metric_review),
                                 value = if (data.floatingReviewCount > 0) data.floatingReviewCount.toString() else "0",
                                 icon = Icons.Default.Warning,
                                 isWarning = data.floatingReviewCount > 0
@@ -389,7 +389,7 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.CheckCircle,
                         title = stringResource(R.string.diagnostic_service),
-                        subtitle = if (data.serviceConnected) "Active notification interceptor service" else "Service disconnected",
+                        subtitle = if (data.serviceConnected) stringResource(R.string.diagnostic_service_active_desc) else stringResource(R.string.diagnostic_service_disconnected_desc),
                         trailingBadge = {
                             StatusBadge(
                                 text = stringResource(if (data.serviceConnected) R.string.connected else R.string.disconnected),
@@ -405,9 +405,9 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Widgets,
                         title = stringResource(R.string.diagnostic_active_islands),
-                        subtitle = "Currently active Dynamic Island views",
+                        subtitle = stringResource(R.string.diagnostic_active_islands_desc),
                         trailingBadge = {
-                            ValueBadge(text = "${data.activeIslands} active")
+                            ValueBadge(text = stringResource(R.string.diagnostic_active_count, data.activeIslands))
                         }
                     )
                     HorizontalDivider(
@@ -417,7 +417,7 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Code,
                         title = stringResource(R.string.diagnostic_last_classification),
-                        subtitle = "Latest intercepted notification category",
+                        subtitle = stringResource(R.string.diagnostic_last_classification_desc),
                         trailingBadge = {
                             ValueBadge(text = data.lastClassification ?: "—")
                         }
@@ -429,7 +429,7 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Phone,
                         title = stringResource(R.string.diagnostic_last_call_state),
-                        subtitle = "Latest monitored call state",
+                        subtitle = stringResource(R.string.diagnostic_last_call_state_desc),
                         trailingBadge = {
                             ValueBadge(text = data.lastCallState ?: "—")
                         }
@@ -444,7 +444,7 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.NotificationsActive,
                         title = stringResource(R.string.diagnostic_notification_access),
-                        subtitle = "Required to intercept app events",
+                        subtitle = stringResource(R.string.diagnostic_notification_access_desc),
                         trailingBadge = {
                             StatusBadge(
                                 text = yesNo(data.notificationAccess),
@@ -460,7 +460,7 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Notifications,
                         title = stringResource(R.string.diagnostic_post_notifications),
-                        subtitle = "Required to display Island notifications",
+                        subtitle = stringResource(R.string.diagnostic_post_notifications_desc),
                         trailingBadge = {
                             StatusBadge(
                                 text = yesNo(data.postPermission),
@@ -476,7 +476,7 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Smartphone,
                         title = stringResource(R.string.diagnostic_focus_support),
-                        subtitle = "Xiaomi HyperOS Island hardware support",
+                        subtitle = stringResource(R.string.diagnostic_focus_support_desc),
                         trailingBadge = {
                             StatusBadge(
                                 text = stringResource(if (data.focusSupported) R.string.diagnostic_supported else R.string.diagnostic_unsupported),
@@ -492,7 +492,7 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Security,
                         title = stringResource(R.string.diagnostic_featured_permission),
-                        subtitle = "Focus notification display permission",
+                        subtitle = stringResource(R.string.diagnostic_featured_permission_desc),
                         trailingBadge = {
                             StatusBadge(
                                 text = yesNo(data.focusPermission),
@@ -511,9 +511,9 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Apps,
                         title = stringResource(R.string.diagnostic_selected_apps),
-                        subtitle = "Applications enabled for Island display",
+                        subtitle = stringResource(R.string.diagnostic_selected_apps_desc),
                         trailingBadge = {
-                            ValueBadge(text = "${data.selectedAppsCount} apps")
+                            ValueBadge(text = stringResource(R.string.diagnostic_apps_count, data.selectedAppsCount))
                         }
                     )
                     HorizontalDivider(
@@ -523,11 +523,11 @@ fun DiagnosticsContent(
                     ExpressiveDiagnosticRow(
                         icon = Icons.Default.Warning,
                         title = stringResource(R.string.diagnostic_floating_review),
-                        subtitle = "Apps needing native floating banner disabled",
+                        subtitle = stringResource(R.string.diagnostic_floating_review_desc),
                         trailingBadge = {
                             if (data.floatingReviewCount > 0) {
                                 StatusBadge(
-                                    text = "${data.floatingReviewCount} pending",
+                                    text = stringResource(R.string.diagnostic_pending_count, data.floatingReviewCount),
                                     isSuccess = false,
                                     isWarning = true
                                 )
@@ -703,7 +703,7 @@ fun DiagnosticsContent(
                             if (!event.reason.isNullOrBlank()) {
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = "Reason: ${event.reason}",
+                                    text = stringResource(R.string.diagnostic_reason_prefix, event.reason),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
