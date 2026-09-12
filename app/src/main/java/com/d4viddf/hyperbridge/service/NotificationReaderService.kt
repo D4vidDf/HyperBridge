@@ -519,7 +519,8 @@ class NotificationReaderService : NotificationListenerService() {
                     callSessionTracker.markSourceRemoved(notifKey, System.currentTimeMillis())
                 }
 
-                val job = serviceScope.launch(Dispatchers.IO) {
+                lateinit var job: Job
+                job = serviceScope.launch(Dispatchers.IO) {
                     val appConfig = preferences.getAppIslandConfigSync(sbn.packageName)
                     val globalConfig = preferences.getGlobalConfigSync()
                     val finalConfig = appConfig.mergeWith(globalConfig)
@@ -533,23 +534,57 @@ class NotificationReaderService : NotificationListenerService() {
                         } else if (reason == REASON_APP_CANCEL) {
                             kotlinx.coroutines.delay(300)
                         }
-                        try {
-                            NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
-                        } catch (_: Exception) {}
-                        cleanupCache(logicalKey)
+                        notificationLifecycleMutex.withLock {
+                            val current = activeIslands[logicalKey]
+                            val sourceStillActive = isSourceNotificationActive(notifKey)
+                            if (sourceStillActive || current == null || !NotificationLifecyclePolicy.isCurrentRemoval(
+                                    activeSourceKey = current.sourceKey,
+                                    activeSourcePostTime = current.sourcePostTime,
+                                    removedSourceKey = notifKey,
+                                    removedSourcePostTime = sbn.postTime
+                                )
+                            ) {
+                                Log.d(
+                                    TAG,
+                                    "${islandType?.name ?: "UNKNOWN"} REMOVE reason=stale " +
+                                            "sourceKey=${notifKey.hashCode()} logicalId=${logicalKey.hashCode()}"
+                                )
+                                return@withLock
+                            }
+                            timeoutJobs.remove(logicalKey)?.cancel()
+                            try {
+                                NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
+                            } catch (_: Exception) {}
+                            Log.d(
+                                TAG,
+                                "${islandType?.name ?: "UNKNOWN"} REMOVE reason=$reason " +
+                                        "sourceKey=${notifKey.hashCode()} logicalId=${logicalKey.hashCode()}"
+                            )
+                            cleanupCache(logicalKey)
+                        }
                     }
-                    removalJobs.remove(logicalKey)
                 }
+                removalJobs[logicalKey]?.cancel()
                 removalJobs[logicalKey] = job
+                job.invokeOnCompletion { removalJobs.remove(logicalKey, job) }
             } else if (trackedCallLogicalId != null) {
                 callSessionTracker.markSourceRemoved(notifKey, System.currentTimeMillis())
-                val job = serviceScope.launch(Dispatchers.IO) {
+                lateinit var job: Job
+                job = serviceScope.launch(Dispatchers.IO) {
                     kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
-                    callSessionTracker.end(trackedCallLogicalId)
-                    sourceToLogicalKeys.entries.removeIf { it.value == trackedCallLogicalId }
-                    removalJobs.remove(trackedCallLogicalId)
+                    notificationLifecycleMutex.withLock {
+                        if (isSourceNotificationActive(notifKey) ||
+                            callSessionTracker.logicalIdForSource(notifKey) != trackedCallLogicalId
+                        ) {
+                            return@withLock
+                        }
+                        callSessionTracker.end(trackedCallLogicalId)
+                        sourceToLogicalKeys.entries.removeIf { it.value == trackedCallLogicalId }
+                    }
                 }
+                removalJobs[trackedCallLogicalId]?.cancel()
                 removalJobs[trackedCallLogicalId] = job
+                job.invokeOnCompletion { removalJobs.remove(trackedCallLogicalId, job) }
             }
         }
     }
@@ -628,8 +663,9 @@ class NotificationReaderService : NotificationListenerService() {
         }
 
         // 2. Lifecycle timeout using user-configured timeout
-        val needsLifecycleTimeout = isLiveUpdate ||
-                type == NotificationType.MESSAGE || type == NotificationType.STANDARD
+        val needsLifecycleTimeout = (isLiveUpdate ||
+                type == NotificationType.MESSAGE || type == NotificationType.STANDARD) &&
+                type != NotificationType.CALL && type != NotificationType.MEDIA && type != NotificationType.NAVIGATION
         if (needsLifecycleTimeout) {
             val timeoutMs = IslandTimeoutPolicy.durationMillis(config.timeout)
             timeoutJobs.remove(originalKey)?.cancel()
@@ -2034,6 +2070,14 @@ class NotificationReaderService : NotificationListenerService() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error syncing notifications", e)
             }
+        }
+    }
+
+    private fun isSourceNotificationActive(sourceKey: String): Boolean {
+        return try {
+            activeNotifications?.any { it.key == sourceKey } == true
+        } catch (_: Exception) {
+            false
         }
     }
 

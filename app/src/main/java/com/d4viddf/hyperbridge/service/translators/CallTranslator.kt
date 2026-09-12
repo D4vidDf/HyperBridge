@@ -68,9 +68,8 @@ class CallTranslator(
         val isIncoming = session.state == CallState.INCOMING_RINGING
 
         val builder = HyperIslandNotification.Builder(context, stableBusinessId(picKey), title)
-        builder.setEnableFloat(config.isFloat ?: false)
+        builder.applyFloatingPresentation(config.isFloat ?: false, isUpdate)
         builder.setShowNotification(config.isShowShade ?: true)
-        builder.setIslandFirstFloat(!isUpdate && (config.isFloat ?: false))
 
         val hiddenKey = "hidden_pixel"
         builder.addPicture(resolveIcon(sbn, picKey, preferNativeAppBadge = true))

@@ -127,6 +127,9 @@ fun NotificationTypesContent() {
     val enabledTypesStr by preferences.globalNotificationTypesFlow.collectAsState(
         initial = NotificationType.entries.map { it.name }.toSet()
     )
+    val enabledCallStages by preferences.globalCallStagesFlow.collectAsState(
+        initial = com.d4viddf.hyperbridge.models.CallStage.entries.toSet()
+    )
 
     Column(
         Modifier
@@ -171,6 +174,58 @@ fun NotificationTypesContent() {
                 },
                 shape = shape
             )
+
+            if (type == NotificationType.CALL && enabledTypesStr.contains(type.name)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, top = 8.dp, bottom = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.call_stage_settings),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.call_stage_settings_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    com.d4viddf.hyperbridge.models.CallStage.entries.forEach { stage ->
+                        val checked = stage in enabledCallStages
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    scope.launch { preferences.updateGlobalCallStage(stage, !checked) }
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(stage.labelRes),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = stringResource(stage.descriptionRes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Switch(
+                                checked = checked,
+                                onCheckedChange = { enabled ->
+                                    scope.launch { preferences.updateGlobalCallStage(stage, enabled) }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
 
             // Add a small spacer between cards to make the 4dp corners distinct
             if (index < NotificationType.entries.size - 1) {
