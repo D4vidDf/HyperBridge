@@ -17,7 +17,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -40,14 +39,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.service.floating.FloatingNotificationSetup
 import com.d4viddf.hyperbridge.service.floating.FloatingSetupStatus
+import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.util.DeviceUtils
 import com.d4viddf.hyperbridge.util.NotificationSettingsNavigator
 import kotlinx.coroutines.launch
+
+data class FloatingSetupAppItem(
+    val packageName: String,
+    val label: String,
+    val status: FloatingSetupStatus,
+    val isConfirmed: Boolean
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +71,52 @@ fun FloatingNotificationSetupScreen(onBack: () -> Unit) {
         preferences.setFloatingSetupNoticePending(false)
     }
 
+    val appItems = remember(selectedPackages, confirmedPackages, requiresManualSetup) {
+        selectedPackages.sorted().map { packageName ->
+            val label = try {
+                val info = context.packageManager.getApplicationInfo(packageName, 0)
+                context.packageManager.getApplicationLabel(info).toString()
+            } catch (_: Exception) {
+                packageName
+            }
+            val status = FloatingNotificationSetup.status(
+                isSelected = true,
+                userConfirmedDisabled = packageName in confirmedPackages,
+                requiresManualSetup = requiresManualSetup
+            )
+            FloatingSetupAppItem(
+                packageName = packageName,
+                label = label,
+                status = status,
+                isConfirmed = packageName in confirmedPackages
+            )
+        }
+    }
+
+    FloatingNotificationSetupContent(
+        apps = appItems,
+        requiresManualSetup = requiresManualSetup,
+        onBack = onBack,
+        onOpenSettings = { packageName ->
+            if (!NotificationSettingsNavigator.openForApp(context, packageName)) {
+                Toast.makeText(context, R.string.settings_not_available, Toast.LENGTH_SHORT).show()
+            }
+        },
+        onConfirmedChange = { packageName, confirmed ->
+            scope.launch { preferences.setFloatingSetupConfirmed(packageName, confirmed) }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FloatingNotificationSetupContent(
+    apps: List<FloatingSetupAppItem>,
+    requiresManualSetup: Boolean,
+    onBack: () -> Unit,
+    onOpenSettings: (packageName: String) -> Unit,
+    onConfirmedChange: (packageName: String, confirmed: Boolean) -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,7 +151,7 @@ fun FloatingNotificationSetupScreen(onBack: () -> Unit) {
                 }
             }
 
-            if (selectedPackages.isEmpty()) {
+            if (apps.isEmpty()) {
                 item {
                     Text(
                         stringResource(R.string.floating_setup_no_apps),
@@ -107,32 +161,18 @@ fun FloatingNotificationSetupScreen(onBack: () -> Unit) {
                 }
             }
 
-            items(selectedPackages.sorted(), key = { it }) { packageName ->
-                val label = remember(packageName) {
-                    try {
-                        val info = context.packageManager.getApplicationInfo(packageName, 0)
-                        context.packageManager.getApplicationLabel(info).toString()
-                    } catch (_: Exception) {
-                        packageName
-                    }
-                }
-                val status = FloatingNotificationSetup.status(
-                    isSelected = true,
-                    userConfirmedDisabled = packageName in confirmedPackages,
-                    requiresManualSetup = requiresManualSetup
-                )
-
+            items(apps, key = { it.packageName }) { app ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(18.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = if (status == FloatingSetupStatus.USER_CONFIRMED) {
+                                imageVector = if (app.status == FloatingSetupStatus.USER_CONFIRMED) {
                                     Icons.Default.CheckCircle
                                 } else {
                                     Icons.Default.Warning
                                 },
                                 contentDescription = null,
-                                tint = if (status == FloatingSetupStatus.USER_CONFIRMED) {
+                                tint = if (app.status == FloatingSetupStatus.USER_CONFIRMED) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
                                     MaterialTheme.colorScheme.tertiary
@@ -140,9 +180,9 @@ fun FloatingNotificationSetupScreen(onBack: () -> Unit) {
                             )
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(label, fontWeight = FontWeight.SemiBold)
+                                Text(app.label, fontWeight = FontWeight.SemiBold)
                                 Text(
-                                    when (status) {
+                                    when (app.status) {
                                         FloatingSetupStatus.USER_CONFIRMED -> stringResource(R.string.floating_status_user_confirmed)
                                         FloatingSetupStatus.NEEDS_REVIEW -> stringResource(R.string.floating_status_needs_review)
                                         FloatingSetupStatus.NOT_REQUIRED -> stringResource(R.string.floating_status_not_required)
@@ -155,11 +195,7 @@ fun FloatingNotificationSetupScreen(onBack: () -> Unit) {
 
                         Spacer(Modifier.height(12.dp))
                         OutlinedButton(
-                            onClick = {
-                                if (!NotificationSettingsNavigator.openForApp(context, packageName)) {
-                                    Toast.makeText(context, R.string.settings_not_available, Toast.LENGTH_SHORT).show()
-                                }
-                            },
+                            onClick = { onOpenSettings(app.packageName) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(Icons.Default.NotificationsOff, contentDescription = null)
@@ -170,9 +206,9 @@ fun FloatingNotificationSetupScreen(onBack: () -> Unit) {
                         if (requiresManualSetup) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Checkbox(
-                                    checked = packageName in confirmedPackages,
+                                    checked = app.isConfirmed,
                                     onCheckedChange = { checked ->
-                                        scope.launch { preferences.setFloatingSetupConfirmed(packageName, checked) }
+                                        onConfirmedChange(app.packageName, checked)
                                     }
                                 )
                                 Text(stringResource(R.string.floating_disabled_confirmation))
@@ -182,5 +218,32 @@ fun FloatingNotificationSetupScreen(onBack: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FloatingNotificationSetupScreenPreview() {
+    HyperBridgeTheme {
+        FloatingNotificationSetupContent(
+            apps = listOf(
+                FloatingSetupAppItem(
+                    packageName = "com.whatsapp",
+                    label = "WhatsApp",
+                    status = FloatingSetupStatus.NEEDS_REVIEW,
+                    isConfirmed = false
+                ),
+                FloatingSetupAppItem(
+                    packageName = "org.telegram.messenger",
+                    label = "Telegram",
+                    status = FloatingSetupStatus.USER_CONFIRMED,
+                    isConfirmed = true
+                )
+            ),
+            requiresManualSetup = true,
+            onBack = {},
+            onOpenSettings = {},
+            onConfirmedChange = { _, _ -> }
+        )
     }
 }
