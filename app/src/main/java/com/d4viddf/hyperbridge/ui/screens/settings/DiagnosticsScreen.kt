@@ -15,13 +15,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -68,7 +71,10 @@ data class DiagnosticsData(
 )
 
 @Composable
-fun DiagnosticsScreen(onBack: () -> Unit) {
+fun DiagnosticsScreen(
+    onBack: () -> Unit,
+    onReportError: (() -> Unit)? = null
+) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
     val state by DiagnosticsStore.state.collectAsState()
@@ -111,6 +117,7 @@ fun DiagnosticsScreen(onBack: () -> Unit) {
     DiagnosticsContent(
         data = data,
         onBack = onBack,
+        onReportError = onReportError,
         onCopyDiagnostics = {
             val text = buildDiagnosticExport(exportHeader, state.events)
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -124,6 +131,7 @@ fun DiagnosticsScreen(onBack: () -> Unit) {
 fun DiagnosticsContent(
     data: DiagnosticsData,
     onBack: () -> Unit,
+    onReportError: (() -> Unit)? = null,
     onCopyDiagnostics: () -> Unit
 ) {
     Scaffold(
@@ -133,6 +141,16 @@ fun DiagnosticsContent(
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
+                    }
+                },
+                actions = {
+                    if (onReportError != null) {
+                        IconButton(onClick = onReportError) {
+                            Icon(
+                                imageVector = Icons.Default.BugReport,
+                                contentDescription = stringResource(R.string.bug_report_entry_title)
+                            )
+                        }
                     }
                 }
             )
@@ -174,6 +192,19 @@ fun DiagnosticsContent(
                     Icon(Icons.Default.ContentCopy, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.copy_sanitized_diagnostics))
+                }
+            }
+
+            if (onReportError != null) {
+                item {
+                    OutlinedButton(
+                        onClick = onReportError,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.BugReport, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.bug_report_entry_title))
+                    }
                 }
             }
 
@@ -253,6 +284,7 @@ fun DiagnosticsScreenPreview() {
                 )
             ),
             onBack = {},
+            onReportError = {},
             onCopyDiagnostics = {}
         )
     }

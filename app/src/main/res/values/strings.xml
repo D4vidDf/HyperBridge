@@ -800,6 +800,9 @@
     <string name="disconnected" translatable="false">Disconnected</string>
     <string name="granted" translatable="false">Granted</string>
     <string name="not_granted" translatable="false">Not granted</string>
+    <string name="bug_report_include_diagnostics" translatable="false">Include Diagnostics &amp; Events</string>
+    <string name="bug_report_include_diagnostics_desc" translatable="false">Recent sanitized Island classifications and event history</string>
+    <string name="view_diagnostics" translatable="false">View Diagnostics</string>
 </resources>
 
 

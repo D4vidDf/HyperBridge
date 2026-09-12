@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandLess
@@ -109,6 +110,7 @@ import androidx.core.net.toUri
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
+import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import com.d4viddf.hyperbridge.ui.components.ExpressiveGroupCard
 import com.d4viddf.hyperbridge.ui.components.ExpressiveSectionTitle
 import com.d4viddf.hyperbridge.util.AppConfigScope
@@ -133,7 +135,8 @@ data class AppEntry(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BugReportScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToDiagnostics: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -153,7 +156,11 @@ fun BugReportScreen(
     var selectedWidgetId by remember { mutableStateOf<Int?>(null) } // null = all widgets
     var appConfigScope by remember { mutableStateOf(AppConfigScope.NONE) }
     var selectedAppPackage by remember { mutableStateOf<String?>(null) }
+    var includeDiagnostics by remember { mutableStateOf(true) }
     var includeLogs by remember { mutableStateOf(true) }
+
+    // Live diagnostics store state
+    val diagnosticsState by DiagnosticsStore.state.collectAsState()
 
     // Collected diagnostic state
     var deviceInfo by remember { mutableStateOf<DeviceDiagnosticInfo?>(null) }
@@ -282,6 +289,8 @@ fun BugReportScreen(
         appConfigScope,
         selectedAppPackage,
         appConfigText,
+        includeDiagnostics,
+        diagnosticsState,
         includeLogs,
         logcatText
     ) {
@@ -295,7 +304,8 @@ fun BugReportScreen(
             appConfigScope = appConfigScope,
             targetPackage = selectedAppPackage,
             appConfigText = if (appConfigScope != AppConfigScope.NONE) appConfigText else null,
-            logcatText = if (includeLogs) logcatText else null
+            logcatText = if (includeLogs) logcatText else null,
+            diagnosticsState = if (includeDiagnostics) diagnosticsState else null
         )
     }
 
@@ -713,6 +723,53 @@ fun BugReportScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
+                // Diagnostics & Events Toggle
+                ToggleSettingRow(
+                    icon = Icons.Default.Code,
+                    title = stringResource(R.string.bug_report_include_diagnostics),
+                    subtitle = stringResource(R.string.bug_report_include_diagnostics_desc),
+                    checked = includeDiagnostics,
+                    onCheckedChange = { includeDiagnostics = it }
+                )
+
+                if (includeDiagnostics && onNavigateToDiagnostics != null) {
+                    Surface(
+                        onClick = onNavigateToDiagnostics,
+                        color = Color.Transparent,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(R.string.diagnostics_title),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(R.string.view_diagnostics),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
                 // Logcat Logs Toggle
                 ToggleSettingRow(
                     icon = Icons.AutoMirrored.Filled.Article,
@@ -809,7 +866,8 @@ fun BugReportScreen(
                             appConfigScope = appConfigScope,
                             selectedAppPackage = selectedAppPackage,
                             appConfigText = if (appConfigScope != AppConfigScope.NONE) appConfigText else null,
-                            logcatText = if (includeLogs) logcatText else null
+                            logcatText = if (includeLogs) logcatText else null,
+                            diagnosticsState = if (includeDiagnostics) diagnosticsState else null
                         )
                         uriHandler.openUri(gitHubUrl)
                     }

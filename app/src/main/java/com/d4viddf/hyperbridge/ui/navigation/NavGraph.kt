@@ -110,7 +110,10 @@ fun mainNavGraph(
         FloatingNotificationSetupScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.Diagnostics> {
-        DiagnosticsScreen(onBack = { navigator.goBack() })
+        DiagnosticsScreen(
+            onBack = { navigator.goBack() },
+            onReportError = { navigator.navigate(Screen.BugReport) }
+        )
     }
     entry<Screen.Licenses> {
         LicensesScreen(onBack = { navigator.goBack() })
@@ -169,7 +172,10 @@ fun mainNavGraph(
         IslandSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.BugReport> {
-        BugReportScreen(onBack = { navigator.goBack() })
+        BugReportScreen(
+            onBack = { navigator.goBack() },
+            onNavigateToDiagnostics = { navigator.navigate(Screen.Diagnostics) }
+        )
     }
     entry<Screen.ScreenRecordingCustomization> {
         com.d4viddf.hyperbridge.ui.screens.settings.ScreenRecordingSettingsScreen(onBack = { navigator.goBack() })
