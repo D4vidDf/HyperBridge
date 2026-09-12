@@ -803,6 +803,15 @@
     <string name="bug_report_include_diagnostics" translatable="false">Include Diagnostics &amp; Events</string>
     <string name="bug_report_include_diagnostics_desc" translatable="false">Recent sanitized Island classifications and event history</string>
     <string name="view_diagnostics" translatable="false">View Diagnostics</string>
+    <string name="diagnostic_section_service" translatable="false">Service &amp; Bridge State</string>
+    <string name="diagnostic_section_permissions" translatable="false">Permissions &amp; HyperOS Integration</string>
+    <string name="diagnostic_section_apps" translatable="false">Apps &amp; Floating Setup</string>
+    <string name="diagnostic_no_events" translatable="false">No recent events recorded</string>
+    <string name="diagnostic_no_events_desc" translatable="false">System and notification interactions will appear here in real time.</string>
+    <string name="diagnostic_copied_toast" translatable="false">Sanitized diagnostics copied to clipboard</string>
+    <string name="diagnostic_supported" translatable="false">Supported</string>
+    <string name="diagnostic_unsupported" translatable="false">Unsupported</string>
+    <string name="diagnostic_all_clear" translatable="false">All clear</string>
 </resources>
 
 
