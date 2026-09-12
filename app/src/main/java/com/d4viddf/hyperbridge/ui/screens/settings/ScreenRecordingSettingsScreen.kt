@@ -54,7 +54,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -332,7 +334,6 @@ private fun ScreenRecordingIslandPreview(
         ) {
             Box(
                 modifier = Modifier
-                    .height(42.dp)
                     .clip(RoundedCornerShape(50))
                     .background(Color.Black)
                     .animateContentSize(
@@ -340,67 +341,85 @@ private fun ScreenRecordingIslandPreview(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
                             stiffness = Spring.StiffnessLow
                         )
-                    )
-                    .padding(horizontal = 16.dp),
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    // Left Content
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        when (left) {
-                            ScreenRecordingLeftDesign.ICON_ONLY -> {
-                                Box(
-                                    modifier = Modifier
-                                        .size(10.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFFB382F))
-                                )
-                            }
-                            ScreenRecordingLeftDesign.ICON_AND_TEXT -> {
-                                Box(
-                                    modifier = Modifier
-                                        .size(10.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFFB382F))
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.screen_recording_compact),
-                                    color = Color.White,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = 1
-                                )
-                            }
-                            ScreenRecordingLeftDesign.TEXT_ONLY -> {
-                                Text(
-                                    text = stringResource(R.string.screen_recording_compact),
-                                    color = Color.White,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = 1
-                                )
-                            }
-                        }
-                    }
+                SymmetricalIslandLayout(
+                    left = left,
+                    right = right
+                )
+            }
+        }
+    }
+}
 
-                    // Right Content (if timer is present)
-                    if (right == ScreenRecordingRightDesign.TIMER) {
-                        Spacer(Modifier.width(16.dp))
-                        // Camera cutout
+@Composable
+private fun SymmetricalIslandLayout(
+    left: ScreenRecordingLeftDesign,
+    right: ScreenRecordingRightDesign,
+    modifier: Modifier = Modifier
+) {
+    val horizontalPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
+    val cameraGapPx = with(LocalDensity.current) { 12.dp.roundToPx() }
+    val minSideWidthPx = with(LocalDensity.current) { 14.dp.roundToPx() }
+    val pillHeightPx = with(LocalDensity.current) { 42.dp.roundToPx() }
+
+    Layout(
+        modifier = modifier,
+        content = {
+            // Measurable 0: Left Content
+            Box(contentAlignment = Alignment.CenterStart) {
+                when (left) {
+                    ScreenRecordingLeftDesign.ICON_ONLY -> {
                         Box(
                             modifier = Modifier
-                                .size(13.dp)
+                                .size(10.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF1F1F1F))
+                                .background(Color(0xFFFB382F))
                         )
-                        Spacer(Modifier.width(16.dp))
+                    }
+                    ScreenRecordingLeftDesign.ICON_AND_TEXT -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFFB382F))
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.screen_recording_compact),
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                    ScreenRecordingLeftDesign.TEXT_ONLY -> {
+                        Text(
+                            text = stringResource(R.string.screen_recording_compact),
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+
+            // Measurable 1: Camera Cutout
+            Box(
+                modifier = Modifier
+                    .size(13.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF1F1F1F))
+            )
+
+            // Measurable 2: Right Content
+            Box(contentAlignment = Alignment.CenterEnd) {
+                when (right) {
+                    ScreenRecordingRightDesign.TIMER -> {
                         Text(
                             text = "00:05",
                             color = Color.White,
@@ -409,8 +428,44 @@ private fun ScreenRecordingIslandPreview(
                             maxLines = 1
                         )
                     }
+                    ScreenRecordingRightDesign.NONE -> {
+                        // Empty slot
+                    }
                 }
             }
+        }
+    ) { measurables, constraints ->
+        val unconstrained = constraints.copy(minWidth = 0, minHeight = 0)
+        val leftPlaceable = measurables[0].measure(unconstrained)
+        val cameraPlaceable = measurables[1].measure(unconstrained)
+        val rightPlaceable = measurables[2].measure(unconstrained)
+
+        // Make left and right symmetrical by taking the width of the widest side
+        val sideWidth = maxOf(leftPlaceable.width, rightPlaceable.width, minSideWidthPx)
+
+        val totalWidth = (horizontalPaddingPx * 2) + (sideWidth * 2) + cameraPlaceable.width + (cameraGapPx * 2)
+        val totalHeight = pillHeightPx
+
+        layout(totalWidth, totalHeight) {
+            // Left content aligned at start of left side
+            leftPlaceable.placeRelative(
+                x = horizontalPaddingPx,
+                y = (totalHeight - leftPlaceable.height) / 2
+            )
+
+            // Camera placed in the exact center
+            val cameraX = horizontalPaddingPx + sideWidth + cameraGapPx
+            cameraPlaceable.placeRelative(
+                x = cameraX,
+                y = (totalHeight - cameraPlaceable.height) / 2
+            )
+
+            // Right content aligned at end of right side
+            val rightX = totalWidth - horizontalPaddingPx - rightPlaceable.width
+            rightPlaceable.placeRelative(
+                x = rightX,
+                y = (totalHeight - rightPlaceable.height) / 2
+            )
         }
     }
 }
