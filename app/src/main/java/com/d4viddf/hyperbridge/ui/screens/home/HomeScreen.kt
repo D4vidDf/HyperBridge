@@ -70,8 +70,7 @@ fun HomeScreen(
     viewModel: AppListViewModel = viewModel(),
     onSettingsClick: () -> Unit,
     onNavConfigClick: (String) -> Unit,
-    onScreenRecordingConfigClick: () -> Unit = {},
-    onFloatingSetupClick: () -> Unit = {}
+    onScreenRecordingConfigClick: () -> Unit = {}
 ) {
 
     var selectedTab by remember { mutableIntStateOf(1) }
@@ -143,34 +142,6 @@ fun HomeScreen(
             ) {
                 val prefs = remember { com.d4viddf.hyperbridge.data.AppPreferences(context) }
                 val showWarning by prefs.featuredPermissionWarningFlow.collectAsState(initial = false)
-                val showFloatingSetup by prefs.floatingSetupNoticePendingFlow.collectAsState(initial = false)
-
-                if (showFloatingSetup) {
-                    androidx.compose.material3.Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        onClick = onFloatingSetupClick
-                    ) {
-                        androidx.compose.foundation.layout.Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Warning, contentDescription = null)
-                            androidx.compose.foundation.layout.Spacer(Modifier.width(12.dp))
-                            androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
-                                Text(stringResource(R.string.finish_notification_setup), style = MaterialTheme.typography.titleSmall)
-                                Text(
-                                    stringResource(R.string.finish_notification_setup_desc),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                    }
-                }
 
                 if (showWarning) {
                     androidx.compose.material3.Card(

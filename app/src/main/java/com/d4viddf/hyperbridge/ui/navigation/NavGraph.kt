@@ -52,8 +52,7 @@ fun mainNavGraph(
         HomeScreen(
             onSettingsClick = { navigator.navigate(Screen.Info) },
             onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
-            onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) },
-            onFloatingSetupClick = { navigator.navigate(Screen.FloatingSetup) }
+            onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) }
         )
     }
 
