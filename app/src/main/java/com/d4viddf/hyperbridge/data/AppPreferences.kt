@@ -302,6 +302,13 @@ class AppPreferences internal constructor(
         if (config.enableInlineReply != null) save(eirKey, config.enableInlineReply.toString()) else remove(eirKey)
     }
 
+    // --- SYSTEM ISLAND: SCREEN RECORDING ---
+    val screenRecordingTimeoutFlow: Flow<Int> =
+        dao.getSettingFlow(SettingsKeys.SCREEN_RECORDING_TIMEOUT).map { it.toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT) }
+
+    suspend fun setScreenRecordingTimeout(seconds: Int) =
+        save(SettingsKeys.SCREEN_RECORDING_TIMEOUT, seconds.toString())
+
     // --- NAVIGATION ---
     val globalBlockedTermsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.GLOBAL_BLOCKED_TERMS).map { it.deserializeSet() }
     suspend fun setGlobalBlockedTerms(terms: Set<String>) = save(SettingsKeys.GLOBAL_BLOCKED_TERMS, terms.serialize())
@@ -713,6 +720,13 @@ class AppPreferences internal constructor(
 
     fun autoDetectDndSync(): Boolean {
         return memoryCache["auto_detect_dnd"]?.toBoolean() ?: false
+    }
+
+    fun getScreenRecordingTimeoutSync(): Int =
+        memoryCache[SettingsKeys.SCREEN_RECORDING_TIMEOUT].toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT)
+
+    companion object {
+        const val SYSTEM_ISLAND_DEFAULT_TIMEOUT = 4
     }
 
     @androidx.annotation.VisibleForTesting

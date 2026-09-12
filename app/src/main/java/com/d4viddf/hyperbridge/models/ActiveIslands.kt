@@ -21,6 +21,7 @@ data class ActiveIsland(
     /** Distinguishes repeated, semantically identical message events. */
     val messageEventFingerprint: MessageEventFingerprint? = null,
     val callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null,
+    val screenRecordingSession: com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession? = null,
     val deleteIntent: android.app.PendingIntent? = null,
     /** The mirrored source should be retired when this bridge notification is opened. */
     val dismissSourceOnContentClick: Boolean = false

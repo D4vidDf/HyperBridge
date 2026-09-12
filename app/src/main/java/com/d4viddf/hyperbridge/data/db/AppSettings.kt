@@ -34,4 +34,7 @@ object SettingsKeys {
     // Nav
     const val NAV_LEFT = "nav_left_content"
     const val NAV_RIGHT = "nav_right_content"
+
+    // System Island
+    const val SCREEN_RECORDING_TIMEOUT = "screen_recording_timeout"
 }

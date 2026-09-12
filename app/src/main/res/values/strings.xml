@@ -730,5 +730,12 @@
     <string name="bug_report_screen_description">Generate detailed system diagnostics and logs to troubleshoot and report issues with Hyper Bridge.</string>
     <string name="cancel">Cancel</string>
     <string name="continue_action">Continue</string>
+    <string name="type_screen_recording">Screen recording</string>
+    <string name="type_screen_recording_desc">Xiaomi system screen recording sessions</string>
+    <string name="screen_recording_title">Screen recording</string>
+    <string name="screen_recording_active">Recording screen..</string>
+    <string name="screen_recording_compact">Recording..</string>
+    <string name="screen_recording_done">Done recording.</string>
+    <string name="screen_recording_stop">Stop</string>
 </resources>
 

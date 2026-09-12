@@ -42,6 +42,18 @@ import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
 import com.d4viddf.hyperbridge.service.translators.StandardTranslator
 import com.d4viddf.hyperbridge.service.translators.TimerTranslator
 import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingControlBackend
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSemanticFingerprint
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionInput
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionTracker
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSignals
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingTimeoutPolicy
+import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBackend
 import com.d4viddf.hyperbridge.util.ShizukuManager
 import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.MessageEventFingerprint
@@ -151,6 +163,8 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var rulesEngine: RulesEngine
     private lateinit var callClassifier: CallNotificationClassifier
     private val callSessionTracker = CallSessionTracker()
+    private val screenRecordingSessionTracker = ScreenRecordingSessionTracker()
+    private lateinit var screenRecordingControlBackend: XiaomiScreenRecordingControlBackend
 
     // Translators
     private lateinit var callTranslator: CallTranslator
@@ -163,6 +177,8 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var mediaTranslator: MediaTranslator
     private lateinit var widgetTranslator: WidgetTranslator
     private lateinit var liveUpdateTranslator: LiveUpdateTranslator
+    private lateinit var screenRecordingTranslator: ScreenRecordingTranslator
+    private lateinit var screenRecordingSavedTranslator: ScreenRecordingSavedTranslator
 
     @Volatile
     private var isScreenOn = true
@@ -252,6 +268,9 @@ class NotificationReaderService : NotificationListenerService() {
 
         mediaTranslator = MediaTranslator(this)
         widgetTranslator = WidgetTranslator(this)
+        screenRecordingTranslator = ScreenRecordingTranslator(this)
+        screenRecordingSavedTranslator = ScreenRecordingSavedTranslator(this, themeRepository)
+        screenRecordingControlBackend = XiaomiScreenRecordingControlBackend(this)
 
         val userManager = getSystemService(USER_SERVICE) as android.os.UserManager
         if (userManager.isUserUnlocked) {
@@ -476,9 +495,10 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             if (isOurApp) {
-                // Only process user-initiated dismissals for our notifications. 
-                // Ignore programmatic cancels (e.g., during updates or Shizuku workarounds).
-                if (reason != REASON_CANCEL && reason != REASON_CANCEL_ALL) {
+                // A content click removes auto-cancel bridge notifications just like a shade
+                // dismissal. Programmatic cancels (updates and Shizuku workarounds) are ignored.
+                val wasContentClick = reason == REASON_CLICK
+                if (!wasContentClick && reason != REASON_CANCEL && reason != REASON_CANCEL_ALL) {
                     return
                 }
 
@@ -497,10 +517,24 @@ class NotificationReaderService : NotificationListenerService() {
 
                 if (originalKey != null) {
                     Log.d(TAG, "Our notification $notifId removed. Cleaning up cache for $originalKey")
-                    try {
-                        activeIslands[originalKey]?.deleteIntent?.send()
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error sending delete intent for original notification", e)
+                    val island = activeIslands[originalKey]
+                    if (NotificationLifecyclePolicy.shouldDismissSourceAfterBridgeRemoval(
+                            dismissSourceOnContentClick = island?.dismissSourceOnContentClick == true,
+                            wasContentClick = wasContentClick
+                        )
+                    ) {
+                        // The bridge uses the recorder's content PendingIntent, so opening it does
+                        // not make Android auto-cancel the recorder's separate source notification.
+                        // Retire that source explicitly after the bridge click.
+                        island?.sourceKey?.let(::cancelSourceNotification)
+                    } else {
+                        // [FIX] We no longer kill the source notification when our Island is
+                        // dismissed or timed out; only forward its normal deletion callback.
+                        try {
+                            island?.deleteIntent?.send()
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error sending delete intent for original notification", e)
+                        }
                     }
                     cleanupCache(originalKey)
                 }
@@ -509,8 +543,10 @@ class NotificationReaderService : NotificationListenerService() {
 
             val logicalKey = sourceToLogicalKeys[notifKey]
                 ?: callSessionTracker.logicalIdForSource(notifKey)
+                ?: screenRecordingSessionTracker.logicalIdForSource(notifKey)
                 ?: notifKey
             val trackedCallLogicalId = callSessionTracker.logicalIdForSource(notifKey)
+            val trackedRecordingLogicalId = screenRecordingSessionTracker.logicalIdForSource(notifKey)
 
             if (activeTranslations.containsKey(logicalKey)) {
                 val hyperId = activeTranslations[logicalKey] ?: return
@@ -531,7 +567,7 @@ class NotificationReaderService : NotificationListenerService() {
                         // Debounce updates if the app canceled it programmatically
                         if (islandType == NotificationType.CALL) {
                             kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
-                        } else if (reason == REASON_APP_CANCEL) {
+                        } else if (reason == REASON_APP_CANCEL && islandType != NotificationType.SCREEN_RECORDING) {
                             kotlinx.coroutines.delay(300)
                         }
                         notificationLifecycleMutex.withLock {
@@ -585,6 +621,11 @@ class NotificationReaderService : NotificationListenerService() {
                 removalJobs[trackedCallLogicalId]?.cancel()
                 removalJobs[trackedCallLogicalId] = job
                 job.invokeOnCompletion { removalJobs.remove(trackedCallLogicalId, job) }
+            } else if (trackedRecordingLogicalId != null) {
+                // A removal that wins the race with presentation must still retire this exact
+                // recording generation. A reused source key with a newer postTime is preserved.
+                screenRecordingSessionTracker.endSource(notifKey, sbn.postTime)
+                sourceToLogicalKeys.remove(notifKey, trackedRecordingLogicalId)
             }
         }
     }
@@ -633,6 +674,9 @@ class NotificationReaderService : NotificationListenerService() {
         if (island?.type == NotificationType.CALL && !preserveCallSession) {
             callSessionTracker.end(island.logicalId)
         }
+        if (island?.type == NotificationType.SCREEN_RECORDING) {
+            screenRecordingSessionTracker.end(island.logicalId)
+        }
         messageFamilyTracker.end(originalKey)
 
         if (hyperId != null) {
@@ -651,7 +695,8 @@ class NotificationReaderService : NotificationListenerService() {
         isLiveUpdate: Boolean,
         sbn: StatusBarNotification? = null,
         title: String = "",
-        text: String = ""
+        text: String = "",
+        forceLifecycleTimeout: Boolean = false
     ) {
         // 1. Remove original if enabled (EXCEPT for Media and Call)
         if (config.removeOriginalNotification == true && type != NotificationType.MEDIA && type != NotificationType.CALL) {
@@ -664,7 +709,8 @@ class NotificationReaderService : NotificationListenerService() {
 
         // 2. Lifecycle timeout using user-configured timeout
         val needsLifecycleTimeout = (isLiveUpdate ||
-                type == NotificationType.MESSAGE || type == NotificationType.STANDARD) &&
+                type == NotificationType.MESSAGE || type == NotificationType.STANDARD ||
+                forceLifecycleTimeout) &&
                 type != NotificationType.CALL && type != NotificationType.MEDIA && type != NotificationType.NAVIGATION
         if (needsLifecycleTimeout) {
             val timeoutMs = IslandTimeoutPolicy.durationMillis(config.timeout)
@@ -1147,13 +1193,39 @@ class NotificationReaderService : NotificationListenerService() {
                 return
             }
             val type = NotificationType.valueOf(enabledTypeName)
+            val isSavedScreenRecording = isSavedScreenRecordingNotification(sbn)
             val isMessagingLifecycle = isMessagingLifecycleEvent(sbn, type, resolvedContent)
 
             var effectiveKey = sbn.key
             var messageEventFingerprint: MessageEventFingerprint? = null
             var callSession: CallSession? = null
+            var screenRecordingSession: ScreenRecordingSession? = null
 
-            if (type == NotificationType.CALL) {
+            if (isSavedScreenRecording) {
+                // Xiaomi reuses notification key/ID 111 for every completed recording. postTime is
+                // the generation boundary, so a new saved file presents once while duplicate
+                // callbacks for that same source generation remain idempotent.
+                effectiveKey = ScreenRecordingSavedIdentity.logicalId(sbn.key, sbn.postTime)
+            } else if (type == NotificationType.SCREEN_RECORDING) {
+                val capabilities = screenRecordingControlBackend.probeCapabilities().also { probed ->
+                    DiagnosticsStore.record(
+                        classification = type.name,
+                        action = "control-probed",
+                        packageName = sbn.packageName,
+                        reason = if (probed.canStop) "stop-available" else "visual-only"
+                    )
+                }
+                val session = screenRecordingSessionTracker.resolve(
+                    ScreenRecordingSessionInput(
+                        sourceKey = sbn.key,
+                        packageName = sbn.packageName,
+                        sourcePostTime = sbn.postTime,
+                        capabilities = capabilities
+                    )
+                )
+                effectiveKey = session.logicalId
+                screenRecordingSession = session
+            } else if (type == NotificationType.CALL) {
                 val signals = buildCallSignals(sbn)
                 val classification = callClassifier.classify(signals)
                 val now = System.currentTimeMillis()
@@ -1294,10 +1366,21 @@ class NotificationReaderService : NotificationListenerService() {
             val isSummary = (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
 
             // --- LAYERED ENGINE LOGIC ---
-            val useLiveUpdates = getEffectiveEngine(sbn.packageName)
+            val useLiveUpdates = type != NotificationType.SCREEN_RECORDING &&
+                    !isSavedScreenRecording &&
+                    getEffectiveEngine(sbn.packageName)
             val appIslandConfig = preferences.getAppIslandConfigSync(sbn.packageName)
             val globalConfig = preferences.getGlobalConfigSync()
-            val finalConfig = appIslandConfig.mergeWith(globalConfig)
+            val finalConfig = appIslandConfig.mergeWith(globalConfig).let { config ->
+                config.copy(
+                    timeout = ScreenRecordingTimeoutPolicy.resolve(
+                        configuredTimeout = config.timeout,
+                        systemScreenRecordingTimeout = preferences.getScreenRecordingTimeoutSync(),
+                        isActiveRecording = type == NotificationType.SCREEN_RECORDING,
+                        isSavedRecording = isSavedScreenRecording
+                    )
+                )
+            }
 
             if (useLiveUpdates) {
                 Log.i(TAG, " POSTING Native Live Update -> ID: $candidateBridgeId, Type: $type")
@@ -1409,7 +1492,9 @@ class NotificationReaderService : NotificationListenerService() {
 
             // --- LAYERED CUSTOM ISLAND LOGIC ---
             val picKey = "pic_${candidateBridgeId}"
-            val data: HyperIslandData = when (type) {
+            val data: HyperIslandData = if (isSavedScreenRecording) {
+                screenRecordingSavedTranslator.translate(sbn, picKey, finalConfig, activeTheme)
+            } else when (type) {
                 NotificationType.CALL -> callTranslator.translate(
                     sbn, picKey, finalConfig, activeTheme,
                     requireNotNull(callSession), isUpdate,
@@ -1423,12 +1508,19 @@ class NotificationReaderService : NotificationListenerService() {
                 NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.DOWNLOAD -> downloadTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
+                NotificationType.SCREEN_RECORDING -> screenRecordingTranslator.translate(
+                    requireNotNull(screenRecordingSession)
+                )
                 NotificationType.MESSAGE -> messageTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme, isUpdate)
                 else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
             }
 
-            val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
-            val newContentHash = normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
+            val newContentHash = if (type == NotificationType.SCREEN_RECORDING && screenRecordingSession != null) {
+                ScreenRecordingSemanticFingerprint.compute(screenRecordingSession)
+            } else {
+                val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
+                normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
+            }
 
             if (shouldSuppressExpiredSource(sbn, type, effectiveKey, newContentHash, recovery, messageEventFingerprint)) {
                 return
@@ -1454,7 +1546,13 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             Log.i(TAG, " POSTING Island -> ID: ${decision.bridgeId}, Type: $type, FinalTitle: '$effectiveTitle', FinalText: '$effectiveText'")
-            postStandardNotification(sbn, decision.bridgeId, data, decision.onlyAlertOnce)
+            postStandardNotification(
+                sbn = sbn,
+                bridgeId = decision.bridgeId,
+                data = data,
+                shouldAlertOnce = decision.onlyAlertOnce,
+                suppressContentIntent = isSavedScreenRecording
+            )
 
             expiredIslands.acceptNewGeneration(
                 sbn.key,
@@ -1482,11 +1580,24 @@ class NotificationReaderService : NotificationListenerService() {
                 lastContentHash = newContentHash,
                 messageEventFingerprint = messageEventFingerprint,
                 callSession = callSession,
-                deleteIntent = sbn.notification.deleteIntent
+                screenRecordingSession = screenRecordingSession,
+                deleteIntent = sbn.notification.deleteIntent,
+                dismissSourceOnContentClick = false
             )
             updatePermanentIsland()
 
-            handlePostNotificationSideEffects(effectiveKey, decision.bridgeId, processingGeneration, finalConfig, type, false, sbn, effectiveTitle, effectiveText)
+            handlePostNotificationSideEffects(
+                originalKey = effectiveKey,
+                bridgeId = decision.bridgeId,
+                generation = processingGeneration,
+                config = finalConfig,
+                type = type,
+                isLiveUpdate = false,
+                sbn = sbn,
+                title = effectiveTitle,
+                text = effectiveText,
+                forceLifecycleTimeout = isSavedScreenRecording
+            )
 
         } catch (e: Exception) {
             Log.e(TAG, "💥 Error processing standard notification", e)
@@ -1698,8 +1809,19 @@ class NotificationReaderService : NotificationListenerService() {
         val text = resolveText(extras)
         val isDownload = isDownloadNotification(sbn, title, text)
         val hasProgress = hasProgressNotification(sbn, title, text)
+        val isScreenRecording = ScreenRecordingClassifier.isScreenRecording(
+            ScreenRecordingSignals(
+                packageName = sbn.packageName,
+                notificationId = sbn.id,
+                channelId = n.channelId,
+                isOngoing = (n.flags and Notification.FLAG_ONGOING_EVENT) != 0,
+                isForegroundService = (n.flags and Notification.FLAG_FOREGROUND_SERVICE) != 0,
+                isGroupSummary = (n.flags and Notification.FLAG_GROUP_SUMMARY) != 0
+            )
+        )
 
         return when {
+            isScreenRecording -> NotificationType.SCREEN_RECORDING
             isCall -> NotificationType.CALL
             isNav -> NotificationType.NAVIGATION
             isTimer -> NotificationType.TIMER
@@ -1716,14 +1838,35 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
+    private fun isSavedScreenRecordingNotification(sbn: StatusBarNotification): Boolean {
+        val notification = sbn.notification
+        return ScreenRecordingClassifier.isSavedScreenRecording(
+            ScreenRecordingSignals(
+                packageName = sbn.packageName,
+                notificationId = sbn.id,
+                channelId = notification.channelId,
+                isOngoing = (notification.flags and Notification.FLAG_ONGOING_EVENT) != 0,
+                isForegroundService = (notification.flags and Notification.FLAG_FOREGROUND_SERVICE) != 0,
+                isGroupSummary = (notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
+            )
+        )
+    }
+
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private fun postStandardNotification(sbn: StatusBarNotification, bridgeId: Int, data: HyperIslandData, shouldAlertOnce: Boolean) {
+    private fun postStandardNotification(
+        sbn: StatusBarNotification,
+        bridgeId: Int,
+        data: HyperIslandData,
+        shouldAlertOnce: Boolean,
+        suppressContentIntent: Boolean = false
+    ) {
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.notification_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
+            .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
 
         val extras = Bundle()
@@ -1746,7 +1889,7 @@ class NotificationReaderService : NotificationListenerService() {
                 getString(R.string.troubleshoot_featured_notification),
                 pendingIntent
             )
-        } else {
+        } else if (!suppressContentIntent) {
             sbn.notification.contentIntent?.let { originalIntent ->
                 if (detectNotificationType(sbn) == NotificationType.MESSAGE) {
                     val clickIntent = Intent("com.d4viddf.hyperbridge.ISLAND_CLICKED").apply {
@@ -2087,6 +2230,7 @@ class NotificationReaderService : NotificationListenerService() {
         unregisterReceiver(islandClickReceiver)
         syncJob?.cancel()
         callSessionTracker.clear()
+        screenRecordingSessionTracker.clear()
         messageFamilyTracker.clear()
         messageEventTracker.clear()
         serviceScope.cancel() 
