@@ -737,5 +737,9 @@
     <string name="screen_recording_compact">Recording..</string>
     <string name="screen_recording_done">Done recording.</string>
     <string name="screen_recording_stop">Stop</string>
+    <string name="system_integrations">System</string>
+    <string name="system_integration_enabled">Enabled</string>
+    <string name="system_integration_disabled">Disabled</string>
+    <string name="system_integration_unavailable">Not available on this device</string>
 </resources>
 

@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.MusicNote
@@ -71,7 +73,10 @@ fun AppListFilterSection(
     selectedCategory: AppCategory,
     onCategoryChange: (AppCategory) -> Unit,
     sortOption: SortOption,
-    onSortChange: (SortOption) -> Unit
+    onSortChange: (SortOption) -> Unit,
+    showSystemCategory: Boolean = false,
+    systemSelected: Boolean = false,
+    onSystemSelected: (Boolean) -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
@@ -133,12 +138,35 @@ fun AppListFilterSection(
                 color = MaterialTheme.colorScheme.outlineVariant
             )
 
+            if (showSystemCategory) {
+                ToggleButton(
+                    checked = systemSelected,
+                    onCheckedChange = { onSystemSelected(true) },
+                    modifier = Modifier.semantics { role = Role.RadioButton },
+                    colors = ToggleButtonDefaults.toggleButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Icon(
+                        imageVector = if (systemSelected) Icons.Filled.Android else Icons.Outlined.Android,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.system_integrations))
+                }
+            }
+
             // B. CONNECTED BUTTON GROUP
             Row(
                 horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
             ) {
                 categories.forEachIndexed { index, category ->
-                    val isSelected = selectedCategory == category
+                    val isSelected = !systemSelected && selectedCategory == category
 
                     // Define Connected Shapes using Defaults
                     val shape = when (index) {
