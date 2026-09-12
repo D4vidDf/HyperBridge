@@ -11,6 +11,7 @@ import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.WidgetConfig
+import com.d4viddf.hyperbridge.service.NotificationReaderService
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsState
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import kotlinx.coroutines.flow.first
@@ -258,7 +259,13 @@ object BugReportCollector {
     }
 
     fun collectDiagnosticsInfo(): DiagnosticsState {
-        return DiagnosticsStore.state.value
+        val baseState = DiagnosticsStore.state.value
+        val isConnected = NotificationReaderService.isConnected || baseState.serviceConnected
+        return if (baseState.serviceConnected != isConnected) {
+            baseState.copy(serviceConnected = isConnected)
+        } else {
+            baseState
+        }
     }
 
     fun buildMarkdownReport(

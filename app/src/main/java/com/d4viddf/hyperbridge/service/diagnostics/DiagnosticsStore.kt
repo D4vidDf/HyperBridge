@@ -1,6 +1,5 @@
 package com.d4viddf.hyperbridge.service.diagnostics
 
-import com.d4viddf.hyperbridge.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,12 +30,10 @@ object DiagnosticsStore {
         get() = mutableState.asStateFlow()
 
     fun setServiceConnected(connected: Boolean) {
-        if (!BuildConfig.DEBUG) return
         mutableState.update { it.copy(serviceConnected = connected) }
     }
 
     fun setActiveIslands(count: Int) {
-        if (!BuildConfig.DEBUG) return
         mutableState.update { it.copy(activeIslands = count.coerceAtLeast(0)) }
     }
 
@@ -48,7 +45,6 @@ object DiagnosticsStore {
         callState: String? = null,
         timestamp: Long? = null
     ) {
-        if (!BuildConfig.DEBUG) return
         val event = DiagnosticEvent(timestamp ?: System.currentTimeMillis(), packageName, classification, action, reason)
         mutableState.update { current ->
             current.copy(

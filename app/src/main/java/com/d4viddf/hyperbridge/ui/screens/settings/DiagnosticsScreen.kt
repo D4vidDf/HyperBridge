@@ -57,6 +57,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -77,9 +78,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import android.content.ComponentName
+import android.service.notification.NotificationListenerService
+import android.util.Log
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.service.NotificationReaderService
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticEvent
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import com.d4viddf.hyperbridge.ui.components.ExpressiveGroupCard
@@ -123,17 +128,40 @@ fun DiagnosticsScreen(
     val exportHeader = stringResource(R.string.diagnostic_export_header)
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    LaunchedEffect(notificationAccess) {
+        if (notificationAccess && !NotificationReaderService.isConnected && !state.serviceConnected) {
+            try {
+                NotificationListenerService.requestRebind(
+                    ComponentName(context, NotificationReaderService::class.java)
+                )
+            } catch (e: Exception) {
+                Log.w("DiagnosticsScreen", "Failed to requestRebind", e)
+            }
+        }
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 notificationAccess = isNotificationServiceEnabled(context)
                 postPermission = isPostNotificationsEnabled(context)
                 focusPermission = XiaomiNotificationHelper.hasFocusPermission(context)
+                if (notificationAccess && !NotificationReaderService.isConnected && !state.serviceConnected) {
+                    try {
+                        NotificationListenerService.requestRebind(
+                            ComponentName(context, NotificationReaderService::class.java)
+                        )
+                    } catch (e: Exception) {
+                        Log.w("DiagnosticsScreen", "Failed to requestRebind", e)
+                    }
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+
+    val isConnected = notificationAccess && (NotificationReaderService.isConnected || state.serviceConnected)
 
     val data = DiagnosticsData(
         notificationAccess = notificationAccess,
@@ -145,7 +173,7 @@ fun DiagnosticsScreen(
         activeIslands = state.activeIslands,
         lastClassification = state.lastClassification,
         lastCallState = state.lastCallState,
-        serviceConnected = state.serviceConnected,
+        serviceConnected = isConnected,
         events = state.events
     )
 
