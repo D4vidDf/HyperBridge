@@ -45,6 +45,16 @@ import com.d4viddf.hyperbridge.util.ShizukuManager
 import com.d4viddf.hyperbridge.models.MessageEventFingerprint
 import com.d4viddf.hyperbridge.models.MessageEventFingerprintSource
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
+import com.d4viddf.hyperbridge.service.message.MessageEventFallbackTracker
+import com.d4viddf.hyperbridge.service.message.MessageEventSignals
+import com.d4viddf.hyperbridge.service.message.MessageIdentity
+import com.d4viddf.hyperbridge.service.message.MessageNotificationResolver
+import com.d4viddf.hyperbridge.service.message.MessageNotificationSignals
+import com.d4viddf.hyperbridge.service.message.MessagePresentationFamilyTracker
+import com.d4viddf.hyperbridge.service.message.MessagePresentationSource
+import com.d4viddf.hyperbridge.service.message.MessageSourceQuality
+import com.d4viddf.hyperbridge.service.message.MessagingEventSignals
+import com.d4viddf.hyperbridge.service.message.isMessagingEvent
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +75,7 @@ class NotificationReaderService : NotificationListenerService() {
     companion object {
         const val ACTION_RELOAD_THEME = "com.d4viddf.hyperbridge.ACTION_RELOAD_THEME"
         const val ACTION_PERFORM_MIGRATION = "com.d4viddf.hyperbridge.ACTION_PERFORM_MIGRATION"
+        private val GMAIL_PACKAGES = setOf("com.google.android.gm")
     }
 
     private val TAG = "HyperBridgeDebug"
@@ -102,6 +113,9 @@ class NotificationReaderService : NotificationListenerService() {
     private val sourceToLogicalKeys = ConcurrentHashMap<String, String>()
     private val processingJobs = ConcurrentHashMap<Long, Job>()
     private val sourceProcessingGeneration = SourceProcessingGeneration()
+    private val messageEventTracker = MessageEventFallbackTracker()
+    private val messageResolver = MessageNotificationResolver()
+    private val messageFamilyTracker = MessagePresentationFamilyTracker()
     private val expiredIslands = ExpiredIslandRegistry()
     private val timeoutJobs = ConcurrentHashMap<String, Job>()
     private val removalJobs = ConcurrentHashMap<String, Job>()
@@ -424,6 +438,20 @@ class NotificationReaderService : NotificationListenerService() {
 
             recentlyRemovedKeys[notifKey] = RemovedSource(System.currentTimeMillis(), it.postTime, reason)
 
+            messageFamilyTracker.removeSource(notifKey)?.let { removal ->
+                if (!removal.familyEnded) {
+                    sourceToLogicalKeys.remove(notifKey, removal.logicalId)
+                    removalJobs.remove(removal.logicalId)?.cancel()
+                    Log.d(
+                        TAG,
+                        "MESSAGE ALIAS REMOVED sourceHash=${notifKey.hashCode()} " +
+                                "logicalHash=${removal.logicalId.hashCode()} " +
+                                "primaryRemoved=${removal.removedPrimary} familySurvives=true"
+                    )
+                    return
+                }
+            }
+
             if (isOurApp) {
                 // Only process user-initiated dismissals for our notifications. 
                 // Ignore programmatic cancels (e.g., during updates or Shizuku workarounds).
@@ -525,6 +553,7 @@ class NotificationReaderService : NotificationListenerService() {
         activeIslands.remove(originalKey)
         activeTranslations.remove(originalKey)
         timeoutJobs.remove(originalKey)?.cancel()
+        messageFamilyTracker.end(originalKey)
 
         if (hyperId != null) {
             reverseTranslations.remove(hyperId)
@@ -861,28 +890,116 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    private fun resolveMessageEventFingerprint(
+    private fun isMessagingLifecycleEvent(
+        sbn: StatusBarNotification,
+        type: NotificationType,
+        content: ResolvedNotificationContent
+    ): Boolean {
+        if (type != NotificationType.MESSAGE && type != NotificationType.STANDARD) return false
+
+        val notification = sbn.notification
+        val extras = notification.extras
+        val template = extras.getString(Notification.EXTRA_TEMPLATE).orEmpty()
+        val hasMessagePersonMetadata = try {
+            extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, android.app.Person::class.java) != null ||
+                    extras.getParcelableArrayList(
+                        Notification.EXTRA_PEOPLE_LIST,
+                        android.app.Person::class.java
+                    )?.isNotEmpty() == true ||
+                    extras.containsKey(Notification.EXTRA_MESSAGES)
+        } catch (_: Exception) {
+            extras.containsKey(Notification.EXTRA_MESSAGES)
+        }
+        val hasRemoteInputReply = (notification.actions ?: emptyArray()).any { action ->
+            action.semanticAction == Notification.Action.SEMANTIC_ACTION_REPLY ||
+                    !action.remoteInputs.isNullOrEmpty()
+        }
+
+        return isMessagingEvent(
+            MessagingEventSignals(
+                packageName = sbn.packageName,
+                isMessageNotificationType = type == NotificationType.MESSAGE,
+                isStandardNotificationType = type == NotificationType.STANDARD,
+                hasMessageCategory = notification.category == Notification.CATEGORY_MESSAGE,
+                hasMessagingStyleTemplate = template.contains("MessagingStyle"),
+                extractedMessageCount = content.messageCount,
+                hasConversationShortcut = !notification.shortcutId.isNullOrBlank(),
+                hasConversationLocus = !notification.locusId?.id.isNullOrBlank(),
+                hasMessagePersonMetadata = hasMessagePersonMetadata,
+                hasRemoteInputReply = hasRemoteInputReply,
+                hasEmailCategory = notification.category == Notification.CATEGORY_EMAIL,
+                hasUsefulContent = content.title.isNotBlank() && content.text.isNotBlank()
+            )
+        )
+    }
+
+    private fun resolveMessageIdentity(sbn: StatusBarNotification): MessageIdentity {
+        val extras = sbn.notification.extras
+        val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()
+        val isGroupSummary = (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
+        return messageResolver.resolve(
+            MessageNotificationSignals(
+                packageName = sbn.packageName,
+                notificationId = sbn.id,
+                notificationTag = sbn.tag,
+                shortcutId = sbn.notification.shortcutId,
+                locusId = sbn.notification.locusId?.id,
+                conversationTitle = conversationTitle,
+                isGroupSummary = isGroupSummary
+            )
+        )
+    }
+
+    private fun gmailEmailContentFingerprint(
         sbn: StatusBarNotification,
         content: ResolvedNotificationContent
+    ): Int? {
+        if (sbn.packageName !in GMAIL_PACKAGES ||
+            sbn.notification.category != Notification.CATEGORY_EMAIL
+        ) {
+            return null
+        }
+        val notification = sbn.notification
+        val actions = (notification.actions ?: emptyArray()).map { action ->
+            listOf(
+                action.semanticAction,
+                action.actionIntent != null,
+                !action.remoteInputs.isNullOrEmpty()
+            )
+        }
+        return listOf(
+            content.title.hashCode(),
+            content.text.hashCode(),
+            notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.hashCode(),
+            actions
+        ).hashCode()
+    }
+
+    private fun resolveMessageEventFingerprint(
+        sbn: StatusBarNotification,
+        eventScope: String,
+        content: ResolvedNotificationContent,
+        effectiveTitle: String,
+        effectiveText: String,
+        processingGeneration: Long,
+        callbackObservedAt: Long,
+        recovery: Boolean
     ): MessageEventFingerprint? {
         val notification = sbn.notification
-        return when {
-            content.latestMessageTimestamp != null -> MessageEventFingerprint(
-                source = MessageEventFingerprintSource.MESSAGING_STYLE,
-                primaryValue = content.latestMessageTimestamp,
-                messageCount = content.messageCount
-            )
-            notification.`when` > 0L -> MessageEventFingerprint(
-                source = MessageEventFingerprintSource.NOTIFICATION_WHEN,
-                primaryValue = notification.`when`,
-                secondaryValue = sbn.postTime
-            )
-            sbn.postTime > 0L -> MessageEventFingerprint(
-                source = MessageEventFingerprintSource.SOURCE_POST_TIME,
-                primaryValue = sbn.postTime
-            )
-            else -> null
-        }
+        return messageEventTracker.resolve(
+            sourceKey = eventScope,
+            contentHash = listOf(effectiveTitle, effectiveText, content.messageCount).hashCode(),
+            signals = MessageEventSignals(
+                latestMessageTimestamp = content.latestMessageTimestamp,
+                messageCount = content.messageCount,
+                notificationWhen = notification.`when`.takeIf { it > 0L },
+                notificationWhenIsReliable = notification.`when` > 0L,
+                sourcePostTime = sbn.postTime.takeIf { it > 0L }
+            ),
+            callbackGeneration = processingGeneration,
+            observedAt = callbackObservedAt,
+            recovery = recovery
+        )
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -949,17 +1066,78 @@ class NotificationReaderService : NotificationListenerService() {
                 return
             }
             val type = NotificationType.valueOf(enabledTypeName)
+            val isMessagingLifecycle = isMessagingLifecycleEvent(sbn, type, resolvedContent)
 
             var effectiveKey = sbn.key
+            var messageEventFingerprint: MessageEventFingerprint? = null
+
+            if (isMessagingLifecycle) {
+                sourceToLogicalKeys[sbn.key]?.let { existingLogicalId ->
+                    val existing = activeIslands[existingLogicalId]
+                    if (existing?.messageEventFingerprint != null && existing.packageName == sbn.packageName) {
+                        effectiveKey = existingLogicalId
+                    }
+                }
+                if (effectiveKey == sbn.key) {
+                    val identity = resolveMessageIdentity(sbn)
+                    effectiveKey = identity.logicalId
+                }
+
+                messageEventFingerprint = resolveMessageEventFingerprint(
+                    sbn = sbn,
+                    eventScope = effectiveKey,
+                    content = resolvedContent,
+                    effectiveTitle = effectiveTitle,
+                    effectiveText = effectiveText,
+                    processingGeneration = processingGeneration,
+                    callbackObservedAt = callbackObservedAt,
+                    recovery = recovery
+                )
+
+                val identity = resolveMessageIdentity(sbn)
+                val family = messageFamilyTracker.resolve(
+                    MessagePresentationSource(
+                        sourceKey = sbn.key,
+                        packageName = sbn.packageName,
+                        proposedLogicalId = identity.logicalId,
+                        identitySource = identity.source,
+                        notificationType = type,
+                        groupKey = sbn.groupKey,
+                        isGroupSummary = (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0,
+                        hasMessagingStyle = hasDirectMessagingStyle,
+                        eventFingerprint = messageEventFingerprint,
+                        notificationTag = sbn.tag,
+                        sourcePostTime = sbn.postTime,
+                        contentFingerprint = gmailEmailContentFingerprint(sbn, resolvedContent),
+                        isEmailCategory = sbn.notification.category == Notification.CATEGORY_EMAIL
+                    )
+                )
+
+                effectiveKey = family.logicalId
+                if (family.shouldPresent) {
+                    messageEventFingerprint = family.eventFingerprint
+                }
+
+                val existingIsland = activeIslands[effectiveKey]
+                if (existingIsland != null && !family.shouldPresent) {
+                    sourceToLogicalKeys[sbn.key] = effectiveKey
+                    return
+                }
+            }
+
+            sourceToLogicalKeys[sbn.key] = effectiveKey
             removalJobs[effectiveKey]?.cancel()
             removalJobs.remove(effectiveKey)
             val previous = activeIslands[effectiveKey]
             val isUpdate = previous != null
-            var candidateBridgeId = previous?.id ?: sbn.key.hashCode()
+            var candidateBridgeId = previous?.id ?: effectiveKey.hashCode()
 
-            val messageEventFingerprint = if (type == NotificationType.MESSAGE || hasDirectMessagingStyle) {
-                resolveMessageEventFingerprint(sbn, resolvedContent)
-            } else null
+            if (isMessagingLifecycle && previous != null &&
+                previous.sourceKey == sbn.key && sbn.postTime < previous.sourcePostTime
+            ) {
+                Log.d(TAG, "MESSAGE skip stale update logical=${effectiveKey.hashCode()}")
+                return
+            }
 
             val isSummary = (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
 
@@ -1089,7 +1267,7 @@ class NotificationReaderService : NotificationListenerService() {
                 NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.DOWNLOAD -> downloadTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
-                NotificationType.MESSAGE -> messageTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
+                NotificationType.MESSAGE -> messageTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme, isUpdate)
                 else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
             }
 
@@ -1661,6 +1839,8 @@ class NotificationReaderService : NotificationListenerService() {
         unregisterReceiver(systemReceiver)
         unregisterReceiver(islandClickReceiver)
         syncJob?.cancel()
+        messageFamilyTracker.clear()
+        messageEventTracker.clear()
         serviceScope.cancel() 
     }
 }

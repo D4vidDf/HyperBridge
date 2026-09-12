@@ -48,6 +48,9 @@ abstract class BaseTranslator(
 
     enum class ActionDisplayMode { TEXT, ICON, BOTH }
 
+    /** Stable across source-notification replacements because picKey is derived from bridgeId. */
+    protected fun stableBusinessId(picKey: String): String = "bridge_${picKey.removePrefix("pic_")}"
+
     private val appColorCache = ConcurrentHashMap<String, String>()
 
     protected inline fun <reified T : Parcelable> Bundle.getParcelableCompat(key: String): T? {
