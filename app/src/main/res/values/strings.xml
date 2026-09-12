@@ -763,6 +763,43 @@
     <string name="vpn_blocking">Blocking internet</string>
     <string name="vpn_error">VPN error</string>
     <string name="vpn_disconnected">VPN is disconnected</string>
+
+    <string name="floating_setup_title" translatable="false">Floating notification setup</string>
+    <string name="floating_setup_settings_subtitle" translatable="false">Avoid duplicate native banners for selected apps</string>
+    <string name="floating_setup_intro" translatable="false">HyperBridge presents selected notifications in the Island. The source app still owns sound, vibration, and its useful notification-center entry.</string>
+    <string name="floating_setup_limitation" translatable="false">Android does not let HyperBridge verify or change another app’s floating-notification switch. Open each app’s settings, disable its native floating banner, then confirm the step here.</string>
+    <string name="floating_setup_no_apps" translatable="false">Select apps from the Library first. This setup remains available later.</string>
+    <string name="floating_status_user_confirmed" translatable="false">User confirmed</string>
+    <string name="floating_status_needs_review" translatable="false">Needs review</string>
+    <string name="floating_status_not_required" translatable="false">Not required on this device</string>
+    <string name="floating_disabled_confirmation" translatable="false">I disabled floating notifications for this app</string>
+    <string name="open_notification_settings" translatable="false">Open notification settings</string>
+    <string name="settings_not_available" translatable="false">No compatible settings screen was found</string>
+    <string name="finish_notification_setup" translatable="false">Finish notification setup</string>
+    <string name="finish_notification_setup_desc" translatable="false">Review native floating banners for your selected apps. This is optional and can be revisited.</string>
+    <string name="floating_setup_onboarding_title" translatable="false">Avoid duplicate floating banners</string>
+    <string name="floating_setup_onboarding_desc" translatable="false">After selecting apps, HyperBridge can take you directly to each app’s notification settings. This optional step never requires root, Shizuku, or ADB.</string>
+
+    <string name="diagnostics_title" translatable="false">Diagnostics</string>
+    <string name="diagnostics_subtitle" translatable="false">Permissions, service health, and sanitized recent events</string>
+    <string name="diagnostic_notification_access" translatable="false">Notification access</string>
+    <string name="diagnostic_post_notifications" translatable="false">Post notifications</string>
+    <string name="diagnostic_focus_support" translatable="false">HyperOS Island support</string>
+    <string name="diagnostic_featured_permission" translatable="false">Featured notifications</string>
+    <string name="diagnostic_selected_apps" translatable="false">Selected apps</string>
+    <string name="diagnostic_floating_review" translatable="false">Apps needing floating review</string>
+    <string name="diagnostic_active_islands" translatable="false">Active Islands</string>
+    <string name="diagnostic_last_classification" translatable="false">Last classification</string>
+    <string name="diagnostic_last_call_state" translatable="false">Last call state</string>
+    <string name="diagnostic_service" translatable="false">Service</string>
+    <string name="diagnostic_recent_events" translatable="false">Recent sanitized events</string>
+    <string name="diagnostic_privacy_note" translatable="false">Message text, caller details, and notification content are never stored in this log.</string>
+    <string name="copy_sanitized_diagnostics" translatable="false">Copy sanitized diagnostics</string>
+    <string name="diagnostic_export_header" translatable="false">HyperBridge sanitized diagnostics</string>
+    <string name="connected" translatable="false">Connected</string>
+    <string name="disconnected" translatable="false">Disconnected</string>
+    <string name="granted" translatable="false">Granted</string>
+    <string name="not_granted" translatable="false">Not granted</string>
 </resources>
 
 

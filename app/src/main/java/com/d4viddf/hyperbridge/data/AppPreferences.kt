@@ -87,6 +87,17 @@ class AppPreferences internal constructor(
                     dao.insert(AppSetting(SettingsKeys.MIGRATION_COMPLETE, "true"))
                 }
 
+                if (dao.getSetting(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING) == null) {
+                    val setupComplete = dao.getSetting(SettingsKeys.SETUP_COMPLETE).toBoolean(false)
+                    val hasSelectedApps = !dao.getSetting(SettingsKeys.ALLOWED_PACKAGES).isNullOrBlank()
+                    dao.insert(
+                        AppSetting(
+                            SettingsKeys.FLOATING_SETUP_NOTICE_PENDING,
+                            (setupComplete && hasSelectedApps).toString()
+                        )
+                    )
+                }
+
                 // Grant DOWNLOAD notification type if PROGRESS was previously enabled
                 val isDownloadMigrated = dao.getSetting("download_type_migration_complete") == "true"
                 if (!isDownloadMigrated) {
@@ -190,11 +201,29 @@ class AppPreferences internal constructor(
     val featuredPermissionWarningFlow: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.FEATURED_PERMISSION_WARNING).map { it.toBoolean(false) }
     suspend fun setFeaturedPermissionWarning(show: Boolean) = save(SettingsKeys.FEATURED_PERMISSION_WARNING, show.toString())
 
+    val floatingSetupNoticePendingFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING).map { it.toBoolean(false) }
+
+    val floatingSetupConfirmedPackagesFlow: Flow<Set<String>> =
+        dao.getSettingFlow(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).map { it.deserializeSet() }
+
+    suspend fun setFloatingSetupNoticePending(show: Boolean) =
+        save(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING, show.toString())
+
+    suspend fun setFloatingSetupConfirmed(packageName: String, confirmed: Boolean) {
+        val current = dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()
+        val updated = if (confirmed) current + packageName else current - packageName
+        save(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES, updated.serialize())
+    }
+
     suspend fun toggleApp(packageName: String, isEnabled: Boolean) {
         val currentString = dao.getSetting(SettingsKeys.ALLOWED_PACKAGES)
         val currentSet = currentString.deserializeSet()
         val newSet = if (isEnabled) currentSet + packageName else currentSet - packageName
         save(SettingsKeys.ALLOWED_PACKAGES, newSet.serialize())
+        if (isEnabled && packageName !in dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()) {
+            save(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING, "true")
+        }
     }
 
     // ========================================================================
