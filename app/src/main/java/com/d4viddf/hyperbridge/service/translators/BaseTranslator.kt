@@ -186,7 +186,11 @@ abstract class BaseTranslator(
         }?.value
     }
 
-    protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
+    protected fun resolveIcon(
+        sbn: StatusBarNotification,
+        picKey: String,
+        preferNativeAppBadge: Boolean = false
+    ): HyperPicture {
         var originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
         if (isBitmapDarkAndMonochrome(originalBitmap)) {
             originalBitmap = tintBitmap(originalBitmap, Color.WHITE)
@@ -509,7 +513,12 @@ abstract class BaseTranslator(
         return result
     }
 
-    protected fun loadIconBitmap(icon: Icon, packageName: String): Bitmap? {
+    protected fun loadIconBitmap(
+        icon: Icon,
+        packageName: String,
+        width: Int? = null,
+        height: Int? = null
+    ): Bitmap? {
         return try {
             val drawable = if (icon.type == Icon.TYPE_RESOURCE) {
                 try {
@@ -521,7 +530,7 @@ abstract class BaseTranslator(
             } else {
                 icon.loadDrawable(context)
             }
-            drawable?.toBitmap()
+            drawable?.toBitmap(width = width, height = height)
         } catch (e: Exception) {
             null
         }

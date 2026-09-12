@@ -9,6 +9,7 @@ import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.db.AppSetting
 import com.d4viddf.hyperbridge.data.db.SettingsDao
 import com.d4viddf.hyperbridge.data.db.SettingsKeys
+import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NavContent
@@ -30,7 +31,8 @@ private val Context.legacyDataStore: DataStore<Preferences> by preferencesDataSt
 class AppPreferences internal constructor(
     private val dao: SettingsDao,
     private val legacyDataStore: DataStore<Preferences>?,
-    context: Context?
+    context: Context?,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
 
     constructor(context: Context) : this(
@@ -43,7 +45,7 @@ class AppPreferences internal constructor(
 
     init {
         // --- MEMORY CACHE LOGIC ---
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             dao.getAllFlow().collect { list ->
                 val newCache = ConcurrentHashMap<String, String>()
                 list.forEach { newCache[it.key] = it.value }
@@ -54,7 +56,7 @@ class AppPreferences internal constructor(
 
         // --- MIGRATION LOGIC ---
         if (context != null && legacyDataStore != null) {
-            CoroutineScope(Dispatchers.IO).launch {
+            scope.launch {
                 try {
                     // Wait for user unlock before attempting to migrate from legacy DataStore (CE storage)
                     val userManager = context.getSystemService(Context.USER_SERVICE) as? android.os.UserManager
@@ -157,6 +159,12 @@ class AppPreferences internal constructor(
     private fun Set<String>.serialize(): String = this.joinToString(",")
     private fun String?.deserializeSet(): Set<String> = this?.split(",")?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
     private fun String?.deserializeList(): List<String> = this?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+    private fun String?.deserializeCallStages(default: Set<CallStage>): Set<CallStage> {
+        if (this == null) return default
+        return deserializeSet().mapNotNull { value ->
+            try { CallStage.valueOf(value) } catch (_: IllegalArgumentException) { null }
+        }.toSet()
+    }
 
     private suspend fun save(key: String, value: String) {
         memoryCache[key] = value
@@ -468,6 +476,39 @@ class AppPreferences internal constructor(
     }
 
     // ========================================================================
+    //                        Call Stages Configuration
+    // ========================================================================
+
+    val GLOBAL_CALL_STAGES_KEY = "global_call_stages"
+
+    val globalCallStagesFlow: Flow<Set<CallStage>> = dao.getSettingFlow(GLOBAL_CALL_STAGES_KEY).map { raw ->
+        raw.deserializeCallStages(CallStage.entries.toSet())
+    }
+
+    suspend fun updateGlobalCallStage(stage: CallStage, isEnabled: Boolean) {
+        val current = dao.getSetting(GLOBAL_CALL_STAGES_KEY)
+            .deserializeCallStages(CallStage.entries.toSet())
+        val updated = if (isEnabled) current + stage else current - stage
+        save(GLOBAL_CALL_STAGES_KEY, updated.map { it.name }.toSet().serialize())
+    }
+
+    fun getAppCallStagesFlow(packageName: String): Flow<Set<CallStage>?> {
+        return dao.getSettingFlow("config_${packageName}_call_stages").map { raw ->
+            raw?.deserializeCallStages(emptySet())
+        }
+    }
+
+    suspend fun updateAppCallStage(packageName: String, stage: CallStage, isEnabled: Boolean) {
+        val key = "config_${packageName}_call_stages"
+        val appValue = dao.getSetting(key)
+        val inherited = dao.getSetting(GLOBAL_CALL_STAGES_KEY)
+            .deserializeCallStages(CallStage.entries.toSet())
+        val current = appValue.deserializeCallStages(inherited)
+        val updated = if (isEnabled) current + stage else current - stage
+        save(key, updated.map { it.name }.toSet().serialize())
+    }
+
+    // ========================================================================
     //                        THEME ENGINE CONFIGURATION
     // ========================================================================
 
@@ -604,6 +645,14 @@ class AppPreferences internal constructor(
     fun getAppConfigSync(packageName: String): Set<String>? {
         val str = memoryCache["config_$packageName"]
         return str?.deserializeSet()
+    }
+
+    fun getEffectiveCallStagesSync(packageName: String): Set<CallStage> {
+        val appValue = memoryCache["config_${packageName}_call_stages"]
+        val globalValue = memoryCache[GLOBAL_CALL_STAGES_KEY]
+        return appValue.deserializeCallStages(
+            globalValue.deserializeCallStages(CallStage.entries.toSet())
+        )
     }
 
     fun getAppEnginePreferenceSync(packageName: String): Boolean? {

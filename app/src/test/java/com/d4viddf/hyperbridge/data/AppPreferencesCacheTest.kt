@@ -4,6 +4,8 @@ import com.d4viddf.hyperbridge.data.db.AppSetting
 import com.d4viddf.hyperbridge.data.db.SettingsDao
 import com.d4viddf.hyperbridge.data.db.SettingsKeys
 import com.d4viddf.hyperbridge.models.IslandLimitMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
@@ -51,7 +53,12 @@ class AppPreferencesCacheTest {
     @Before
     fun setUp() {
         fakeDao = FakeSettingsDao()
-        preferences = AppPreferences(dao = fakeDao, legacyDataStore = null, context = null)
+        preferences = AppPreferences(
+            dao = fakeDao,
+            legacyDataStore = null,
+            context = null,
+            scope = CoroutineScope(Dispatchers.Unconfined)
+        )
         preferences.clearCacheForTesting()
     }
 

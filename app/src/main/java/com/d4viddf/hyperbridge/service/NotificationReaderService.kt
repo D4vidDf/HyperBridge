@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.Person
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -42,8 +43,18 @@ import com.d4viddf.hyperbridge.service.translators.StandardTranslator
 import com.d4viddf.hyperbridge.service.translators.TimerTranslator
 import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
 import com.d4viddf.hyperbridge.util.ShizukuManager
+import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.MessageEventFingerprint
 import com.d4viddf.hyperbridge.models.MessageEventFingerprintSource
+import com.d4viddf.hyperbridge.service.call.CallActionSignal
+import com.d4viddf.hyperbridge.service.call.CallClassification
+import com.d4viddf.hyperbridge.service.call.CallNotificationClassifier
+import com.d4viddf.hyperbridge.service.call.CallNotificationSignals
+import com.d4viddf.hyperbridge.service.call.CallReplacementPolicy
+import com.d4viddf.hyperbridge.service.call.CallSession
+import com.d4viddf.hyperbridge.service.call.CallSessionInput
+import com.d4viddf.hyperbridge.service.call.CallSessionTracker
+import com.d4viddf.hyperbridge.service.call.CallStageVisibilityPolicy
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import com.d4viddf.hyperbridge.service.message.MessageEventFallbackTracker
 import com.d4viddf.hyperbridge.service.message.MessageEventSignals
@@ -138,6 +149,8 @@ class NotificationReaderService : NotificationListenerService() {
     // --- THEME ENGINE ---
     private lateinit var themeRepository: ThemeRepository
     private lateinit var rulesEngine: RulesEngine
+    private lateinit var callClassifier: CallNotificationClassifier
+    private val callSessionTracker = CallSessionTracker()
 
     // Translators
     private lateinit var callTranslator: CallTranslator
@@ -218,6 +231,14 @@ class NotificationReaderService : NotificationListenerService() {
         // [INIT] Theme Engine
         themeRepository = ThemeRepository(this)
         rulesEngine = RulesEngine()
+        callClassifier = CallNotificationClassifier(
+            answerKeywords = resources.getStringArray(R.array.call_keywords_answer).toList(),
+            declineKeywords = resources.getStringArray(R.array.call_keywords_hangup).toList(),
+            hangUpKeywords = resources.getStringArray(R.array.call_keywords_hangup).toList(),
+            muteKeywords = resources.getStringArray(R.array.call_keywords_mute).toList(),
+            unmuteKeywords = resources.getStringArray(R.array.call_keywords_unmute).toList(),
+            speakerKeywords = resources.getStringArray(R.array.call_keywords_speaker).toList()
+        )
 
         // Pass ThemeRepository to Translators
         callTranslator = CallTranslator(this, themeRepository)
@@ -383,6 +404,8 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
+    private fun getEffectiveCallStages(pkg: String): Set<CallStage> = preferences.getEffectiveCallStagesSync(pkg)
+
     private fun getEffectiveEngine(pkg: String): Boolean {
         val activeTheme = themeRepository.activeTheme.value
 
@@ -484,30 +507,49 @@ class NotificationReaderService : NotificationListenerService() {
                 return
             }
 
-            if (activeTranslations.containsKey(notifKey)) {
-                val hyperId = activeTranslations[notifKey] ?: return
+            val logicalKey = sourceToLogicalKeys[notifKey]
+                ?: callSessionTracker.logicalIdForSource(notifKey)
+                ?: notifKey
+            val trackedCallLogicalId = callSessionTracker.logicalIdForSource(notifKey)
+
+            if (activeTranslations.containsKey(logicalKey)) {
+                val hyperId = activeTranslations[logicalKey] ?: return
+                val islandType = activeIslands[logicalKey]?.type
+                if (islandType == NotificationType.CALL) {
+                    callSessionTracker.markSourceRemoved(notifKey, System.currentTimeMillis())
+                }
 
                 val job = serviceScope.launch(Dispatchers.IO) {
                     val appConfig = preferences.getAppIslandConfigSync(sbn.packageName)
                     val globalConfig = preferences.getGlobalConfigSync()
                     val finalConfig = appConfig.mergeWith(globalConfig)
 
-                    val islandType = activeIslands[notifKey]?.type
                     val forceDismiss = NotificationLifecyclePolicy.dismissesWithSource(islandType)
 
                     if (finalConfig.dismissWithOriginal == true || forceDismiss) {
                         // Debounce updates if the app canceled it programmatically
-                        if (reason == REASON_APP_CANCEL) {
+                        if (islandType == NotificationType.CALL) {
+                            kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                        } else if (reason == REASON_APP_CANCEL) {
                             kotlinx.coroutines.delay(300)
                         }
                         try {
                             NotificationManagerCompat.from(this@NotificationReaderService).cancel(hyperId)
                         } catch (_: Exception) {}
-                        cleanupCache(notifKey)
+                        cleanupCache(logicalKey)
                     }
-                    removalJobs.remove(notifKey)
+                    removalJobs.remove(logicalKey)
                 }
-                removalJobs[notifKey] = job
+                removalJobs[logicalKey] = job
+            } else if (trackedCallLogicalId != null) {
+                callSessionTracker.markSourceRemoved(notifKey, System.currentTimeMillis())
+                val job = serviceScope.launch(Dispatchers.IO) {
+                    kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                    callSessionTracker.end(trackedCallLogicalId)
+                    sourceToLogicalKeys.entries.removeIf { it.value == trackedCallLogicalId }
+                    removalJobs.remove(trackedCallLogicalId)
+                }
+                removalJobs[trackedCallLogicalId] = job
             }
         }
     }
@@ -548,11 +590,14 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    private fun cleanupCache(originalKey: String) {
+    private fun cleanupCache(originalKey: String, preserveCallSession: Boolean = false) {
         val hyperId = activeTranslations[originalKey]
-        activeIslands.remove(originalKey)
+        val island = activeIslands.remove(originalKey)
         activeTranslations.remove(originalKey)
         timeoutJobs.remove(originalKey)?.cancel()
+        if (island?.type == NotificationType.CALL && !preserveCallSession) {
+            callSessionTracker.end(island.logicalId)
+        }
         messageFamilyTracker.end(originalKey)
 
         if (hyperId != null) {
@@ -1070,6 +1115,62 @@ class NotificationReaderService : NotificationListenerService() {
 
             var effectiveKey = sbn.key
             var messageEventFingerprint: MessageEventFingerprint? = null
+            var callSession: CallSession? = null
+
+            if (type == NotificationType.CALL) {
+                val signals = buildCallSignals(sbn)
+                val classification = callClassifier.classify(signals)
+                val now = System.currentTimeMillis()
+                val session = callSessionTracker.resolve(
+                    CallSessionInput(
+                        sourceKey = sbn.key,
+                        packageName = sbn.packageName,
+                        notificationId = sbn.id,
+                        notificationTag = sbn.tag,
+                        groupKey = sbn.groupKey,
+                        participantId = resolveCallParticipantId(sbn),
+                        classification = classification,
+                        showsChronometer = signals.showsChronometer,
+                        chronometerBase = signals.whenTime,
+                        observedAt = now,
+                        isVideoCall = signals.isVideoCall
+                    )
+                )
+                val participantPresent = !resolveCallParticipantId(sbn).isNullOrBlank()
+                Log.d(
+                    TAG,
+                    "${if (signals.isVideoCall) "VIDEO CALL" else "CALL"} SIGNAL pkg=${sbn.packageName} " +
+                            "sourceKeyHash=${sbn.key.hashCode()} id=${sbn.id} tagHash=${sbn.tag?.hashCode()} " +
+                            "logicalIdHash=${session.logicalCallId.hashCode()} callType=${signals.callType} " +
+                            "showsChronometer=${signals.showsChronometer} chronometerBase=${signals.whenTime} " +
+                            "postTime=${sbn.postTime} groupHash=${sbn.groupKey?.hashCode()} " +
+                            "ongoingFlag=${signals.isOngoingEvent} foreground=${signals.isForegroundService} " +
+                            "video=${signals.isVideoCall} actionRoles=${classification.actionRoles} " +
+                            "actionSemantics=${signals.actions.map { it.semanticAction }} " +
+                            "remoteInput=${signals.actions.any { it.hasRemoteInput }} " +
+                            "callPersonPresent=${if (participantPresent) "yes" else "no"} " +
+                            "shortcutHash=${sbn.notification.shortcutId?.hashCode()} " +
+                            "locusHash=${sbn.notification.locusId?.id?.hashCode()}"
+                )
+                Log.d(
+                    TAG,
+                    "${if (signals.isVideoCall) "VIDEO CALL" else "CALL"} TRANSITION " +
+                            "previousState=${session.previousState} candidateState=${session.candidateState} " +
+                            "resolvedState=${session.state} activeEvidence=${session.activeEvidence} " +
+                            "connectedAtSource=${session.connectedAtSource} " +
+                            "sourceReplacement=${if (session.sourceReplacement) "yes" else "no"} " +
+                            "reason=${session.transitionReason}"
+                )
+                DiagnosticsStore.record(
+                    classification = "CALL",
+                    action = "classified",
+                    packageName = sbn.packageName,
+                    reason = classification.reason,
+                    callState = session.state.name
+                )
+                effectiveKey = session.logicalCallId
+                callSession = session
+            }
 
             if (isMessagingLifecycle) {
                 sourceToLogicalKeys[sbn.key]?.let { existingLogicalId ->
@@ -1129,6 +1230,21 @@ class NotificationReaderService : NotificationListenerService() {
             removalJobs[effectiveKey]?.cancel()
             removalJobs.remove(effectiveKey)
             val previous = activeIslands[effectiveKey]
+
+            if (callSession != null && !CallStageVisibilityPolicy.isVisible(
+                    getEffectiveCallStages(sbn.packageName),
+                    callSession.state
+                )
+            ) {
+                suppressCallStagePresentation(
+                    sbn = sbn,
+                    logicalKey = effectiveKey,
+                    session = callSession,
+                    previous = previous
+                )
+                return
+            }
+
             val isUpdate = previous != null
             var candidateBridgeId = previous?.id ?: effectiveKey.hashCode()
 
@@ -1258,7 +1374,11 @@ class NotificationReaderService : NotificationListenerService() {
             // --- LAYERED CUSTOM ISLAND LOGIC ---
             val picKey = "pic_${candidateBridgeId}"
             val data: HyperIslandData = when (type) {
-                NotificationType.CALL -> callTranslator.translate(sbn, picKey, finalConfig, activeTheme)
+                NotificationType.CALL -> callTranslator.translate(
+                    sbn, picKey, finalConfig, activeTheme,
+                    requireNotNull(callSession), isUpdate,
+                    resolvedTitle = effectiveTitle
+                )
                 NotificationType.NAVIGATION -> {
                     val navLayout = getEffectiveNav(sbn.packageName)
                     navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second, activeTheme)
@@ -1325,6 +1445,7 @@ class NotificationReaderService : NotificationListenerService() {
                 subText = "",
                 lastContentHash = newContentHash,
                 messageEventFingerprint = messageEventFingerprint,
+                callSession = callSession,
                 deleteIntent = sbn.notification.deleteIntent
             )
             updatePermanentIsland()
@@ -1424,6 +1545,87 @@ class NotificationReaderService : NotificationListenerService() {
         return bigText ?: ""
     }
 
+    private fun buildCallSignals(sbn: StatusBarNotification): CallNotificationSignals {
+        val n = sbn.notification
+        val extras = n.extras
+        val callType = try {
+            if (extras.containsKey(Notification.EXTRA_CALL_TYPE)) {
+                extras.getInt(Notification.EXTRA_CALL_TYPE, CallNotificationClassifier.CALL_TYPE_UNKNOWN)
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
+
+        return CallNotificationSignals(
+            category = n.category,
+            template = extras.getString(Notification.EXTRA_TEMPLATE),
+            callType = callType,
+            showsChronometer = extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER),
+            whenTime = n.`when`,
+            actions = (n.actions ?: emptyArray()).map {
+                CallActionSignal(
+                    title = it.title?.toString().orEmpty(),
+                    semanticAction = it.semanticAction,
+                    hasPendingIntent = it.actionIntent != null,
+                    hasRemoteInput = !it.remoteInputs.isNullOrEmpty()
+                )
+            },
+            isOngoingEvent = (n.flags and Notification.FLAG_ONGOING_EVENT) != 0,
+            isForegroundService = (n.flags and Notification.FLAG_FOREGROUND_SERVICE) != 0,
+            isVideoCall = extras.getBoolean(Notification.EXTRA_CALL_IS_VIDEO, false)
+        )
+    }
+
+    private fun resolveCallParticipantId(sbn: StatusBarNotification): String? {
+        val extras = sbn.notification.extras
+        val person = try {
+            extras.getParcelable(Notification.EXTRA_CALL_PERSON, Person::class.java)
+                ?: extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, Person::class.java)
+                ?: extras.getParcelableArrayList(Notification.EXTRA_PEOPLE_LIST, Person::class.java)?.firstOrNull()
+        } catch (_: Exception) {
+            null
+        }
+        val identity = person?.let(::personIdentity)
+        return identity?.hashCode()?.toUInt()?.toString(16)
+    }
+
+    private fun personIdentity(person: Person): String? {
+        return person.key?.takeIf { it.isNotBlank() }
+            ?: person.uri?.takeIf { it.isNotBlank() }
+            ?: person.name?.toString()?.takeIf { it.isNotBlank() }
+    }
+
+    private fun suppressCallStagePresentation(
+        sbn: StatusBarNotification,
+        logicalKey: String,
+        session: CallSession,
+        previous: ActiveIsland?
+    ) {
+        if (previous?.type == NotificationType.CALL) {
+            activeTranslations[logicalKey]?.let { bridgeId ->
+                try {
+                    NotificationManagerCompat.from(this).cancel(bridgeId)
+                } catch (_: Exception) {}
+            }
+            cleanupCache(logicalKey, preserveCallSession = true)
+        }
+        sourceToLogicalKeys[sbn.key] = logicalKey
+        Log.d(
+            TAG,
+            "CALL STAGE HIDDEN pkg=${sbn.packageName} logicalIdHash=${logicalKey.hashCode()} " +
+                    "state=${session.state} stage=${CallStageVisibilityPolicy.stageFor(session.state)}"
+        )
+        DiagnosticsStore.record(
+            classification = "CALL",
+            action = "stage-hidden",
+            packageName = sbn.packageName,
+            reason = CallStageVisibilityPolicy.stageFor(session.state)?.name,
+            callState = session.state.name
+        )
+    }
+
     private suspend fun ensureValidSbn(sbn: StatusBarNotification): StatusBarNotification {
         val extras = sbn.notification.extras
         val title = resolveTitle(sbn)
@@ -1450,7 +1652,7 @@ class NotificationReaderService : NotificationListenerService() {
         val n = sbn.notification
         val extras = n.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE) ?: ""
-        val isCall = n.category == Notification.CATEGORY_CALL || template == "android.app.Notification\$CallStyle"
+        val isCall = callClassifier.classify(buildCallSignals(sbn)).isCall
         val isNav = n.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.let { it.contains("maps") || it.contains("waze") }
         val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || n.category == Notification.CATEGORY_ALARM) && n.`when` > 0
         val isMedia = template.contains("MediaStyle") || n.category == Notification.CATEGORY_TRANSPORT
@@ -1669,7 +1871,7 @@ class NotificationReaderService : NotificationListenerService() {
         val text = (resolvedContent?.text ?: extras.getCharSequence(Notification.EXTRA_TEXT)?.toString())?.trim() ?: ""
 
         val hasProgress = hasProgressNotification(sbn, title, text)
-        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT || notification.category == Notification.CATEGORY_CALL ||
+        val isSpecial = notification.category == Notification.CATEGORY_TRANSPORT || callClassifier.classify(buildCallSignals(sbn)).isCall ||
                 notification.category == Notification.CATEGORY_NAVIGATION || extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
         if (hasProgress || isSpecial) return false
         if (title.isEmpty() && text.isEmpty()) return true
@@ -1731,6 +1933,7 @@ class NotificationReaderService : NotificationListenerService() {
     private fun syncNotifications(refresh: Boolean = false) {
         val now = System.currentTimeMillis()
         recentlyRemovedKeys.entries.removeIf { now - it.value.observedAt > 10000 }
+        callSessionTracker.pruneStale(now)
 
         serviceScope.launch(Dispatchers.IO) {
             try {
@@ -1839,6 +2042,7 @@ class NotificationReaderService : NotificationListenerService() {
         unregisterReceiver(systemReceiver)
         unregisterReceiver(islandClickReceiver)
         syncJob?.cancel()
+        callSessionTracker.clear()
         messageFamilyTracker.clear()
         messageEventTracker.clear()
         serviceScope.cancel() 
