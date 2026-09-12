@@ -417,6 +417,27 @@
 
     <string name="perm_display_title">Mostrar sobre otras aplicaciones</string>
     <string name="perm_display_onboard_desc">Requerido para mostrar la ventana de respuesta rápida.</string>
+    <string name="type_screen_recording">Grabación de pantalla</string>
+    <string name="type_screen_recording_desc">Sesiones de grabación de pantalla del sistema Xiaomi</string>
+    <string name="screen_recording_title">Grabadora de pantalla</string>
+    <string name="screen_recording_active">Grabando pantalla..</string>
+    <string name="screen_recording_compact">Grabando..</string>
+    <string name="screen_recording_done">Grabación finalizada.</string>
+    <string name="screen_recording_stop">Detener</string>
+    <string name="system_integrations">Sistema</string>
+    <string name="system_integration_enabled">Activado</string>
+    <string name="system_integration_disabled">Desactivado</string>
+    <string name="system_integration_unavailable">No disponible en este dispositivo</string>
+    <string name="screen_recording_customization_title">Isla de Grabación de Pantalla</string>
+    <string name="screen_recording_customization_desc">Personaliza cómo se muestra la isla de grabación</string>
+    <string name="screen_recording_left_option_icon_only">Solo icono</string>
+    <string name="screen_recording_left_option_icon_and_text">Icono y mensaje</string>
+    <string name="screen_recording_left_option_text_only">Solo mensaje</string>
+    <string name="screen_recording_right_option_timer">Temporizador</string>
+    <string name="screen_recording_right_option_none">Nada</string>
+    <string name="screen_recording_saved_auto_hide_desc">Tiempo que se muestra el tic de confirmación tras finalizar la grabación</string>
+    <string name="preview">Vista previa</string>
 </resources>
+
 
 

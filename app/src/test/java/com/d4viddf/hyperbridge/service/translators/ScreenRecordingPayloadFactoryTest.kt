@@ -107,11 +107,68 @@ class ScreenRecordingPayloadFactoryTest {
         assertFalse(check.has("textInfo"))
         assertFalse(param.has("iconTextInfo"))
         assertFalse(param.has("animTextInfo"))
-        assertFalse(param.has("picInfo"))
         assertEquals("miui.focus.pic_source", compact.getAsJsonObject("picInfo")["pic"].asString)
     }
 
-    private fun payload(canStop: Boolean) = ScreenRecordingPayloadFactory.build(
+    @Test
+    fun customDesignLeftIconOnlyOmitText() {
+        val root = JsonParser.parseString(
+            payload(
+                canStop = true,
+                design = com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(
+                    left = com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.ICON_ONLY
+                )
+            )
+        ).asJsonObject
+        val left = root.getAsJsonObject("param_v2")
+            .getAsJsonObject("param_island")
+            .getAsJsonObject("bigIslandArea")
+            .getAsJsonObject("imageTextInfoLeft")
+
+        assertEquals("miui.focus.pic_ticker", left.getAsJsonObject("picInfo")["pic"].asString)
+        assertFalse(left.has("textInfo"))
+    }
+
+    @Test
+    fun customDesignLeftTextOnlyUsesBlankBadge() {
+        val root = JsonParser.parseString(
+            payload(
+                canStop = true,
+                design = com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(
+                    left = com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.TEXT_ONLY
+                )
+            )
+        ).asJsonObject
+        val left = root.getAsJsonObject("param_v2")
+            .getAsJsonObject("param_island")
+            .getAsJsonObject("bigIslandArea")
+            .getAsJsonObject("imageTextInfoLeft")
+
+        assertEquals("miui.focus.pic_recorder_app_badge", left.getAsJsonObject("picInfo")["pic"].asString)
+        assertEquals("Recording..", left.getAsJsonObject("textInfo")["title"].asString)
+    }
+
+    @Test
+    fun customDesignRightNoneOmitsTimerDigitInfo() {
+        val root = JsonParser.parseString(
+            payload(
+                canStop = true,
+                design = com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(
+                    right = com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.NONE
+                )
+            )
+        ).asJsonObject
+        val bigIsland = root.getAsJsonObject("param_v2")
+            .getAsJsonObject("param_island")
+            .getAsJsonObject("bigIslandArea")
+
+        assertFalse(bigIsland.has("sameWidthDigitInfo"))
+    }
+
+    private fun payload(
+        canStop: Boolean,
+        design: com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig = com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig()
+    ) = ScreenRecordingPayloadFactory.build(
         session = ScreenRecordingSession(
             logicalId = "screen-recording:key:1000",
             sourceKey = "key",
@@ -122,6 +179,7 @@ class ScreenRecordingPayloadFactoryTest {
         now = 9_000L,
         compactText = "Recording..",
         expandedText = "Recording screen..",
-        notifyId = "com.d4viddf.hyperbridge:42"
+        notifyId = "com.d4viddf.hyperbridge:42",
+        design = design
     )
 }

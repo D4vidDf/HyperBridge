@@ -8,6 +8,9 @@ import android.graphics.drawable.Icon
 import android.os.Bundle
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.HyperIslandData
+import com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig
+import com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign
+import com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign
 import com.d4viddf.hyperbridge.receiver.ScreenRecordingActionReceiver
 import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
 import kotlinx.serialization.SerialName
@@ -16,14 +19,19 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class ScreenRecordingTranslator(private val context: Context) {
-    fun translate(session: ScreenRecordingSession, now: Long = System.currentTimeMillis()): HyperIslandData {
+    fun translate(
+        session: ScreenRecordingSession,
+        now: Long = System.currentTimeMillis(),
+        design: ScreenRecordingDesignConfig = ScreenRecordingDesignConfig()
+    ): HyperIslandData {
         val canStop = session.capabilities.canStop
         val payload = ScreenRecordingPayloadFactory.build(
             session = session,
             now = now,
             compactText = context.getString(R.string.screen_recording_compact),
             expandedText = context.getString(R.string.screen_recording_active),
-            notifyId = "${context.packageName}:${session.logicalId.hashCode()}"
+            notifyId = "${context.packageName}:${session.logicalId.hashCode()}",
+            design = design
         )
 
         return HyperIslandData(
@@ -96,7 +104,8 @@ internal object ScreenRecordingPayloadFactory {
         now: Long,
         compactText: String,
         expandedText: String,
-        notifyId: String
+        notifyId: String,
+        design: ScreenRecordingDesignConfig = ScreenRecordingDesignConfig()
     ): String {
         val timerInfo = RecorderTimerInfo(
             timerWhen = session.startedAt,
@@ -109,6 +118,36 @@ internal object ScreenRecordingPayloadFactory {
             timerTotal = session.startedAt,
             timerSystemCurrent = now
         )
+        val imageTextInfoLeft = when (design.left) {
+            ScreenRecordingLeftDesign.ICON_ONLY -> RecorderImageTextInfo(
+                type = 1,
+                picInfo = RecorderPicInfo(
+                    type = 1,
+                    pic = ScreenRecordingTranslator.PIC_TICKER
+                ),
+                textInfo = null
+            )
+            ScreenRecordingLeftDesign.ICON_AND_TEXT -> RecorderImageTextInfo(
+                type = 1,
+                picInfo = RecorderPicInfo(
+                    type = 1,
+                    pic = ScreenRecordingTranslator.PIC_TICKER
+                ),
+                textInfo = RecorderTextInfo(title = compactText, content = "")
+            )
+            ScreenRecordingLeftDesign.TEXT_ONLY -> RecorderImageTextInfo(
+                type = 1,
+                picInfo = RecorderPicInfo(
+                    type = 1,
+                    pic = ScreenRecordingTranslator.PIC_APP_BADGE
+                ),
+                textInfo = RecorderTextInfo(title = compactText, content = "")
+            )
+        }
+        val sameWidthDigitInfo = when (design.right) {
+            ScreenRecordingRightDesign.TIMER -> RecorderSameWidthDigitInfo(timerInfo = timerInfo)
+            ScreenRecordingRightDesign.NONE -> null
+        }
         val payload = RecorderFocusRoot(
             paramV2 = RecorderParamV2(
                 protocol = 1,
@@ -130,15 +169,8 @@ internal object ScreenRecordingPayloadFactory {
                     islandProperty = 2,
                     highlightColor = ScreenRecordingTranslator.HIGHLIGHT_COLOR,
                     bigIslandArea = RecorderBigIslandArea(
-                        imageTextInfoLeft = RecorderImageTextInfo(
-                            type = 1,
-                            picInfo = RecorderPicInfo(
-                                type = 1,
-                                pic = ScreenRecordingTranslator.PIC_TICKER
-                            ),
-                            textInfo = RecorderTextInfo(title = compactText, content = "")
-                        ),
-                        sameWidthDigitInfo = RecorderSameWidthDigitInfo(timerInfo = timerInfo)
+                        imageTextInfoLeft = imageTextInfoLeft,
+                        sameWidthDigitInfo = sameWidthDigitInfo
                     ),
                     smallIslandArea = RecorderSmallIslandArea(
                         RecorderPicInfo(type = 1, pic = ScreenRecordingTranslator.PIC_TICKER)
@@ -210,7 +242,7 @@ private data class RecorderParamIsland(
 @Serializable
 private data class RecorderBigIslandArea(
     val imageTextInfoLeft: RecorderImageTextInfo,
-    val sameWidthDigitInfo: RecorderSameWidthDigitInfo
+    val sameWidthDigitInfo: RecorderSameWidthDigitInfo? = null
 )
 
 @Serializable

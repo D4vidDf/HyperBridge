@@ -309,6 +309,30 @@ class AppPreferences internal constructor(
     suspend fun setScreenRecordingTimeout(seconds: Int) =
         save(SettingsKeys.SCREEN_RECORDING_TIMEOUT, seconds.toString())
 
+    val screenRecordingLeftDesignFlow: Flow<com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign> =
+        dao.getSettingFlow(SettingsKeys.SCREEN_RECORDING_LEFT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.ICON_AND_TEXT
+        }
+
+    val screenRecordingRightDesignFlow: Flow<com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign> =
+        dao.getSettingFlow(SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.TIMER
+        }
+
+    val screenRecordingDesignFlow: Flow<com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig> =
+        combine(screenRecordingLeftDesignFlow, screenRecordingRightDesignFlow) { left, right ->
+            com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(left = left, right = right)
+        }
+
+    suspend fun setScreenRecordingLeftDesign(design: com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign) =
+        save(SettingsKeys.SCREEN_RECORDING_LEFT_DESIGN, design.name)
+
+    suspend fun setScreenRecordingRightDesign(design: com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign) =
+        save(SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN, design.name)
+
+
     // --- NAVIGATION ---
     val globalBlockedTermsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.GLOBAL_BLOCKED_TERMS).map { it.deserializeSet() }
     suspend fun setGlobalBlockedTerms(terms: Set<String>) = save(SettingsKeys.GLOBAL_BLOCKED_TERMS, terms.serialize())
@@ -724,6 +748,23 @@ class AppPreferences internal constructor(
 
     fun getScreenRecordingTimeoutSync(): Int =
         memoryCache[SettingsKeys.SCREEN_RECORDING_TIMEOUT].toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT)
+
+    fun getScreenRecordingLeftDesignSync(): com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign =
+        memoryCache[SettingsKeys.SCREEN_RECORDING_LEFT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.ICON_AND_TEXT
+
+    fun getScreenRecordingRightDesignSync(): com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign =
+        memoryCache[SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.TIMER
+
+    fun getScreenRecordingDesignSync(): com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig =
+        com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(
+            left = getScreenRecordingLeftDesignSync(),
+            right = getScreenRecordingRightDesignSync()
+        )
+
 
     companion object {
         const val SYSTEM_ISLAND_DEFAULT_TIMEOUT = 4

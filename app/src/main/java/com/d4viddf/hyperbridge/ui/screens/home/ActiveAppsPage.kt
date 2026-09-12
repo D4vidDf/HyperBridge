@@ -162,11 +162,12 @@ fun ActiveAppsPage(
                                         SystemIntegrationListItem(
                                             integration = integration,
                                             onToggle = { viewModel.toggleSystemIntegration(integration.id, it) },
-                                            onSettingsClick = integration.configurationApp?.let {
+                                            onSettingsClick = if (integration.available) {
                                                 { onSystemConfig(integration) }
-                                            }
+                                            } else null
                                         )
                                         HorizontalDivider(
+
                                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
                                         )
                                     }

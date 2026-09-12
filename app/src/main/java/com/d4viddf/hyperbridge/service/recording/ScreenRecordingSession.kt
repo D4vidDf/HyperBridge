@@ -1,5 +1,7 @@
 package com.d4viddf.hyperbridge.service.recording
 
+import com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig
+
 data class ScreenRecordingCapabilities(
     val canStop: Boolean,
     val canPause: Boolean = false,
@@ -70,12 +72,17 @@ class ScreenRecordingSessionTracker {
 }
 
 object ScreenRecordingSemanticFingerprint {
-    fun compute(session: ScreenRecordingSession): Int = listOf(
+    fun compute(
+        session: ScreenRecordingSession,
+        design: ScreenRecordingDesignConfig = ScreenRecordingDesignConfig()
+    ): Int = listOf(
         session.logicalId,
         session.startedAt,
         session.capabilities.canStop,
         session.capabilities.canPause,
         session.capabilities.canResume,
+        design.left.name,
+        design.right.name,
         "screen_recording_avatar_timer_v14_blank_app_badge",
         "recorder",
         1,

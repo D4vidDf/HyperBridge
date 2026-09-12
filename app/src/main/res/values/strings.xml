@@ -741,5 +741,15 @@
     <string name="system_integration_enabled">Enabled</string>
     <string name="system_integration_disabled">Disabled</string>
     <string name="system_integration_unavailable">Not available on this device</string>
+    <string name="screen_recording_customization_title">Screen Recording Island</string>
+    <string name="screen_recording_customization_desc">Customize how the recording island is displayed</string>
+    <string name="screen_recording_left_option_icon_only">Icon only</string>
+    <string name="screen_recording_left_option_icon_and_text">Icon and message</string>
+    <string name="screen_recording_left_option_text_only">Message only</string>
+    <string name="screen_recording_right_option_timer">Timer</string>
+    <string name="screen_recording_right_option_none">Nothing</string>
+    <string name="screen_recording_saved_auto_hide_desc">Duration the completion checkmark is shown after recording stops</string>
+    <string name="preview">Preview</string>
 </resources>
+
 

@@ -1509,14 +1509,18 @@ class NotificationReaderService : NotificationListenerService() {
                 NotificationType.DOWNLOAD -> downloadTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
                 NotificationType.SCREEN_RECORDING -> screenRecordingTranslator.translate(
-                    requireNotNull(screenRecordingSession)
+                    requireNotNull(screenRecordingSession),
+                    design = preferences.getScreenRecordingDesignSync()
                 )
                 NotificationType.MESSAGE -> messageTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme, isUpdate)
                 else -> standardTranslator.translate(sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme)
             }
 
             val newContentHash = if (type == NotificationType.SCREEN_RECORDING && screenRecordingSession != null) {
-                ScreenRecordingSemanticFingerprint.compute(screenRecordingSession)
+                ScreenRecordingSemanticFingerprint.compute(
+                    screenRecordingSession,
+                    preferences.getScreenRecordingDesignSync()
+                )
             } else {
                 val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
                 normalizedJson?.hashCode() ?: data.jsonParam.hashCode()

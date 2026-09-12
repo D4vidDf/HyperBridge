@@ -69,8 +69,10 @@ private enum class DesignRoute {
 fun HomeScreen(
     viewModel: AppListViewModel = viewModel(),
     onSettingsClick: () -> Unit,
-    onNavConfigClick: (String) -> Unit
+    onNavConfigClick: (String) -> Unit,
+    onScreenRecordingConfigClick: () -> Unit = {}
 ) {
+
     var selectedTab by remember { mutableIntStateOf(1) }
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
@@ -282,7 +284,9 @@ fun HomeScreen(
                             viewModel = viewModel,
                             onConfig = { configApp = it },
                             onSystemConfig = { integration ->
-                                integration.configurationApp?.let { configApp = it }
+                                when (integration.id) {
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                }
                             },
                             onSettingsClick = onSettingsClick
                         )
@@ -294,10 +298,13 @@ fun HomeScreen(
                             viewModel = viewModel,
                             onConfig = { configApp = it },
                             onSystemConfig = { integration ->
-                                integration.configurationApp?.let { configApp = it }
+                                when (integration.id) {
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                }
                             },
                             onSettingsClick = onSettingsClick
                         )
+
                     }
                 }
             }

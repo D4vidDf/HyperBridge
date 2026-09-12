@@ -39,9 +39,9 @@ object ScreenRecordingTimeoutPolicy {
         systemScreenRecordingTimeout: Int,
         isActiveRecording: Boolean,
         isSavedRecording: Boolean
-    ): Int? = if (isActiveRecording || isSavedRecording) {
-        systemScreenRecordingTimeout
-    } else {
-        configuredTimeout
+    ): Int? = when {
+        isActiveRecording -> null
+        isSavedRecording -> systemScreenRecordingTimeout
+        else -> configuredTimeout
     }
 }

@@ -37,4 +37,6 @@ object SettingsKeys {
 
     // System Island
     const val SCREEN_RECORDING_TIMEOUT = "screen_recording_timeout"
+    const val SCREEN_RECORDING_LEFT_DESIGN = "screen_recording_left_design"
+    const val SCREEN_RECORDING_RIGHT_DESIGN = "screen_recording_right_design"
 }

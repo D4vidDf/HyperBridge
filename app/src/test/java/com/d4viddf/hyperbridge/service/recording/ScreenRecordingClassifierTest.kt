@@ -45,8 +45,8 @@ class ScreenRecordingClassifierTest {
     }
 
     @Test
-    fun dedicatedTimeoutAppliesToBothActiveAndSavedRecorderStates() {
-        assertEquals(4, ScreenRecordingTimeoutPolicy.resolve(1800, 4, true, false))
+    fun timeoutPolicyNeverAppliesToActiveRecordingAndUsesDedicatedTimeoutForSaved() {
+        assertEquals(null, ScreenRecordingTimeoutPolicy.resolve(1800, 4, true, false))
         assertEquals(4, ScreenRecordingTimeoutPolicy.resolve(1800, 4, false, true))
         assertEquals(1800, ScreenRecordingTimeoutPolicy.resolve(1800, 4, false, false))
     }
