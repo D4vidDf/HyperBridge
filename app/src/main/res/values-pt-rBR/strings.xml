@@ -561,8 +561,8 @@ Novas notificações substituem as mais antigas automaticamente.</string>
     <string name="view_full_changelog">View on Website</string>
     <string name="changelog_notice">Full release notes and changes are published on our website.</string>
     <string name="changelog_view_website_desc">Check out the latest release notes, improvements and new features on our website.</string>
-    <!-- Bug Report & Diagnostics -->
-    <string name="bug_report_title">Bug Report &amp; Diagnostics</string>
+    <!-- Bug Report -->
+    <string name="bug_report_title">Bug Report</string>
     <string name="bug_report_subtitle">Generate system diagnostics and report issues</string>
     <string name="bug_report_privacy_title">Privacy &amp; Disclosure</string>
     <string name="bug_report_privacy_desc">Submitting an issue on GitHub will make this information PUBLIC to anyone on the internet. If you prefer to keep your report private, you can email it directly to the developer at %s.</string>
@@ -601,7 +601,7 @@ Novas notificações substituem as mais antigas automaticamente.</string>
     <string name="bug_report_copied_github_toast">Diagnostics copied to clipboard! Paste it into the Logs section on GitHub.</string>
     <string name="bug_report_copied_toast">Report copied to clipboard.</string>
     <string name="bug_report_email_subject">Hyper Bridge Bug Report</string>
-    <string name="bug_report_entry_title">Bug Report &amp; Diagnostics</string>
+    <string name="bug_report_entry_title">Bug Report</string>
     <string name="bug_report_entry_subtitle">Troubleshoot and report issues with system logs</string>
     <string name="bug_report_need_help">Having issues with permissions or islands?</string>
     <string name="bug_report_open_diagnostics">Open Diagnostics</string>

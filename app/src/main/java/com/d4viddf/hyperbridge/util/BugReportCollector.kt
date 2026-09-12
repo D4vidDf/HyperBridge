@@ -11,6 +11,9 @@ import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.WidgetConfig
+import com.d4viddf.hyperbridge.service.NotificationReaderService
+import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsState
+import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import kotlinx.coroutines.flow.first
 import rikka.shizuku.Shizuku
 import java.io.BufferedReader
@@ -255,6 +258,16 @@ object BugReportCollector {
         }
     }
 
+    fun collectDiagnosticsInfo(): DiagnosticsState {
+        val baseState = DiagnosticsStore.state.value
+        val isConnected = NotificationReaderService.isConnected || baseState.serviceConnected
+        return if (baseState.serviceConnected != isConnected) {
+            baseState.copy(serviceConnected = isConnected)
+        } else {
+            baseState
+        }
+    }
+
     fun buildMarkdownReport(
         userDescription: String,
         userSteps: String,
@@ -265,7 +278,8 @@ object BugReportCollector {
         appConfigScope: AppConfigScope,
         targetPackage: String?,
         appConfigText: String?,
-        logcatText: String?
+        logcatText: String?,
+        diagnosticsState: DiagnosticsState? = null
     ): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
         val timestamp = dateFormat.format(Date())
@@ -345,6 +359,28 @@ object BugReportCollector {
             sb.append("```yaml\n$appConfigText\n```\n\n")
         }
 
+        // Diagnostics & Sanitized Events
+        if (diagnosticsState != null) {
+            sb.append("#### Diagnostics & Sanitized Events\n")
+            sb.append("- **Service Status:** ${if (diagnosticsState.serviceConnected) "Connected" else "Disconnected"}\n")
+            sb.append("- **Active Islands:** ${diagnosticsState.activeIslands}\n")
+            if (diagnosticsState.lastClassification != null) {
+                sb.append("- **Last Classification:** ${diagnosticsState.lastClassification}\n")
+            }
+            if (diagnosticsState.lastCallState != null) {
+                sb.append("- **Last Call State:** ${diagnosticsState.lastCallState}\n")
+            }
+            if (diagnosticsState.events.isNotEmpty()) {
+                sb.append("- **Recent Events (${diagnosticsState.events.size}):**\n")
+                diagnosticsState.events.takeLast(20).forEach { ev ->
+                    val time = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(ev.timestamp))
+                    val details = listOfNotNull(time, ev.classification, ev.action, ev.packageName, ev.reason).joinToString(" · ")
+                    sb.append("  - $details\n")
+                }
+            }
+            sb.append("\n")
+        }
+
         // Logs
         if (!logcatText.isNullOrBlank()) {
             sb.append("#### Application Logs (Logcat)\n")
@@ -364,7 +400,8 @@ object BugReportCollector {
         appConfigScope: AppConfigScope = AppConfigScope.NONE,
         selectedAppPackage: String? = null,
         appConfigText: String? = null,
-        logcatText: String? = null
+        logcatText: String? = null,
+        diagnosticsState: DiagnosticsState? = null
     ): String {
         val androidOption = when {
             deviceInfo == null -> "Other"
@@ -433,6 +470,21 @@ object BugReportCollector {
         if (appConfigScope != AppConfigScope.NONE && !appConfigText.isNullOrBlank()) {
             val scopeLabel = if (appConfigScope == AppConfigScope.SPECIFIC_APP) "Specific App: $selectedAppPackage" else "All Apps"
             diagSummary.append("\n**App Config ($scopeLabel):**\n```yaml\n${appConfigText.take(400)}\n```\n")
+        }
+
+        if (diagnosticsState != null) {
+            diagSummary.append("\n**Diagnostics & Island State:**\n")
+            diagSummary.append("- Service: ${if (diagnosticsState.serviceConnected) "Connected" else "Disconnected"} | Active Islands: ${diagnosticsState.activeIslands}\n")
+            if (diagnosticsState.lastClassification != null) {
+                diagSummary.append("- Last Classification: ${diagnosticsState.lastClassification}\n")
+            }
+            if (diagnosticsState.events.isNotEmpty()) {
+                val recentEventsStr = diagnosticsState.events.takeLast(5).joinToString("\n") { ev ->
+                    val time = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(ev.timestamp))
+                    "  - " + listOfNotNull(time, ev.classification, ev.action, ev.packageName, ev.reason).joinToString(" · ")
+                }
+                diagSummary.append("- Recent Events:\n$recentEventsStr\n")
+            }
         }
 
         val finalDesc = (descBuilder.toString() + diagSummary.toString()).trim()

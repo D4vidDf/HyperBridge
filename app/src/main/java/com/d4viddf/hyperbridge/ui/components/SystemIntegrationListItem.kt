@@ -40,10 +40,11 @@ fun SystemIntegrationListItem(
     onToggle: (Boolean) -> Unit,
     onSettingsClick: (() -> Unit)?
 ) {
+    val settingsAction = if (integration.id != SystemIntegrationId.VPN) onSettingsClick else null
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onSettingsClick != null) Modifier.clickable(onClick = onSettingsClick) else Modifier)
+            .then(if (settingsAction != null) Modifier.clickable(onClick = settingsAction) else Modifier)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -101,8 +102,8 @@ fun SystemIntegrationListItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        if (onSettingsClick != null) {
-            IconButton(onClick = onSettingsClick) {
+        if (settingsAction != null) {
+            IconButton(onClick = settingsAction) {
                 Icon(Icons.Default.Settings, stringResource(R.string.settings_action), tint = MaterialTheme.colorScheme.primary)
             }
         }

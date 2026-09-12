@@ -679,8 +679,8 @@
     <string name="changelog_notice">Full release notes and changes are published on our website.</string>
     <string name="changelog_view_website_desc">Check out the latest release notes, improvements and new features on our website.</string>
 
-    <!-- Bug Report & Diagnostics -->
-    <string name="bug_report_title">Bug Report &amp; Diagnostics</string>
+    <!-- Bug Report -->
+    <string name="bug_report_title">Bug report</string>
     <string name="bug_report_subtitle">Generate system diagnostics and report issues</string>
     <string name="bug_report_privacy_title">Privacy &amp; Disclosure</string>
     <string name="bug_report_privacy_desc">Submitting an issue on GitHub will make this information PUBLIC to anyone on the internet. If you prefer to keep your report private, you can email it directly to the developer at %s.</string>
@@ -719,7 +719,7 @@
     <string name="bug_report_copied_github_toast">Diagnostics copied to clipboard! Paste it into the Logs section on GitHub.</string>
     <string name="bug_report_copied_toast">Report copied to clipboard.</string>
     <string name="bug_report_email_subject">Hyper Bridge Bug Report</string>
-    <string name="bug_report_entry_title">Bug Report &amp; Diagnostics</string>
+    <string name="bug_report_entry_title">Bug report</string>
     <string name="bug_report_entry_subtitle">Troubleshoot and report issues with system logs</string>
     <string name="bug_report_need_help">Having issues with permissions or islands?</string>
     <string name="bug_report_open_diagnostics">Open Diagnostics</string>
@@ -763,6 +763,76 @@
     <string name="vpn_blocking">Blocking internet</string>
     <string name="vpn_error">VPN error</string>
     <string name="vpn_disconnected">VPN is disconnected</string>
+
+    <string name="floating_setup_title" translatable="false">Floating notification setup</string>
+    <string name="floating_setup_settings_subtitle" translatable="false">Avoid duplicate native banners for selected apps</string>
+    <string name="floating_setup_intro" translatable="false">HyperBridge displays selected incoming notifications in the Island. The source app still owns sound, vibration, and its notification-center entry.</string>
+    <string name="floating_setup_limitation" translatable="false">To prevent duplicate heads-up popups, open each app’s system notification settings, disable its native floating notification, and confirm it below.</string>
+    <string name="floating_setup_alternative_title" translatable="false">Prefer native floating notifications?</string>
+    <string name="floating_setup_alternative_desc" translatable="false">You can keep native floating notifications enabled on your apps and instead turn off Heads-up Popup (Notificación Emergente) in HyperBridge Global Settings to avoid duplicate banners.</string>
+    <string name="floating_setup_no_apps_title" translatable="false">No bridged apps</string>
+    <string name="floating_setup_no_apps" translatable="false">Select apps from the Library first. This setup remains available later.</string>
+    <string name="floating_status_user_confirmed" translatable="false">User confirmed</string>
+    <string name="floating_status_needs_review" translatable="false">Needs review</string>
+    <string name="floating_status_not_required" translatable="false">Not required on this device</string>
+    <string name="floating_disabled_confirmation" translatable="false">I disabled floating notifications for this app</string>
+    <string name="open_notification_settings" translatable="false">Open notification settings</string>
+    <string name="settings_not_available" translatable="false">No compatible settings screen was found</string>
+    <string name="finish_notification_setup" translatable="false">Finish notification setup</string>
+    <string name="finish_notification_setup_desc" translatable="false">Review native floating banners for your selected apps. This is optional and can be revisited.</string>
+    <string name="floating_setup_onboarding_title" translatable="false">Avoid duplicate floating banners</string>
+    <string name="floating_setup_onboarding_desc" translatable="false">After selecting apps, HyperBridge can take you directly to each app’s notification settings. This optional step never requires root, Shizuku, or ADB.</string>
+
+    <string name="diagnostics_title" translatable="false">Diagnostics</string>
+    <string name="diagnostics_subtitle" translatable="false">Permissions, service health, and sanitized recent events</string>
+    <string name="diagnostic_notification_access" translatable="false">Notification access</string>
+    <string name="diagnostic_post_notifications" translatable="false">Post notifications</string>
+    <string name="diagnostic_focus_support" translatable="false">HyperOS Island support</string>
+    <string name="diagnostic_featured_permission" translatable="false">Featured notifications</string>
+    <string name="diagnostic_selected_apps" translatable="false">Selected apps</string>
+    <string name="diagnostic_floating_review" translatable="false">Apps needing floating review</string>
+    <string name="diagnostic_active_islands" translatable="false">Active Islands</string>
+    <string name="diagnostic_last_classification" translatable="false">Last classification</string>
+    <string name="diagnostic_last_call_state" translatable="false">Last call state</string>
+    <string name="diagnostic_service" translatable="false">Service</string>
+    <string name="diagnostic_recent_events" translatable="false">Recent sanitized events</string>
+    <string name="diagnostic_privacy_note" translatable="false">Message text, caller details, and notification content are never stored in this log.</string>
+    <string name="copy" translatable="false">Copy</string>
+    <string name="bug_report" translatable="false">Bug report</string>
+    <string name="copy_sanitized_diagnostics" translatable="false">Copy</string>
+    <string name="diagnostic_export_header" translatable="false">HyperBridge sanitized diagnostics</string>
+    <string name="connected" translatable="false">Connected</string>
+    <string name="disconnected" translatable="false">Disconnected</string>
+    <string name="granted" translatable="false">Granted</string>
+    <string name="not_granted" translatable="false">Not granted</string>
+    <string name="bug_report_include_diagnostics" translatable="false">Include Diagnostics &amp; Events</string>
+    <string name="bug_report_include_diagnostics_desc" translatable="false">Recent sanitized Island classifications and event history</string>
+    <string name="view_diagnostics" translatable="false">View Diagnostics</string>
+    <string name="diagnostic_section_service" translatable="false">Service &amp; Bridge State</string>
+    <string name="diagnostic_section_permissions" translatable="false">Permissions &amp; HyperOS Integration</string>
+    <string name="diagnostic_section_apps" translatable="false">Apps &amp; Floating Setup</string>
+    <string name="diagnostic_no_events" translatable="false">No recent events recorded</string>
+    <string name="diagnostic_no_events_desc" translatable="false">System and notification interactions will appear here in real time.</string>
+    <string name="diagnostic_copied_toast" translatable="false">Sanitized diagnostics copied to clipboard</string>
+    <string name="diagnostic_supported" translatable="false">Supported</string>
+    <string name="diagnostic_unsupported" translatable="false">Unsupported</string>
+    <string name="diagnostic_all_clear" translatable="false">All clear</string>
+    <string name="diagnostic_metric_review" translatable="false">Review</string>
+    <string name="diagnostic_service_active_desc" translatable="false">Active notification interceptor service</string>
+    <string name="diagnostic_service_disconnected_desc" translatable="false">Service disconnected</string>
+    <string name="diagnostic_active_islands_desc" translatable="false">Currently active Dynamic Island views</string>
+    <string name="diagnostic_active_count" translatable="false">%1$d active</string>
+    <string name="diagnostic_last_classification_desc" translatable="false">Latest intercepted notification category</string>
+    <string name="diagnostic_last_call_state_desc" translatable="false">Latest monitored call state</string>
+    <string name="diagnostic_notification_access_desc" translatable="false">Required to intercept app events</string>
+    <string name="diagnostic_post_notifications_desc" translatable="false">Required to display Island notifications</string>
+    <string name="diagnostic_focus_support_desc" translatable="false">Xiaomi HyperOS Island hardware support</string>
+    <string name="diagnostic_featured_permission_desc" translatable="false">Focus notification display permission</string>
+    <string name="diagnostic_selected_apps_desc" translatable="false">Applications enabled for Island display</string>
+    <string name="diagnostic_apps_count" translatable="false">%1$d apps</string>
+    <string name="diagnostic_floating_review_desc" translatable="false">Apps needing native floating banner disabled</string>
+    <string name="diagnostic_pending_count" translatable="false">%1$d pending</string>
+    <string name="diagnostic_reason_prefix" translatable="false">Reason: %1$s</string>
 </resources>
 
 

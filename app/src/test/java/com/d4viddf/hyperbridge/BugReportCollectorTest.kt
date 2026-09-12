@@ -224,4 +224,55 @@ class BugReportCollectorTest {
         assertFalse(report.contains("#### Widget Configuration"))
         assertFalse(report.contains("#### Application Logs (Logcat)"))
     }
+
+    @Test
+    fun testBuildMarkdownReportAndGitHubUrlWithDiagnosticsState() {
+        val diagnostics = com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsState(
+            serviceConnected = true,
+            activeIslands = 2,
+            lastClassification = "MESSAGE",
+            lastCallState = "RINGING",
+            events = listOf(
+                com.d4viddf.hyperbridge.service.diagnostics.DiagnosticEvent(
+                    timestamp = 1700000000000L,
+                    packageName = "com.whatsapp",
+                    classification = "MESSAGE",
+                    action = "updated",
+                    reason = "active"
+                )
+            )
+        )
+
+        val report = BugReportCollector.buildMarkdownReport(
+            userDescription = "Test issue",
+            userSteps = "Steps",
+            deviceInfo = null,
+            permissions = null,
+            themeInfo = null,
+            widgetList = null,
+            appConfigScope = AppConfigScope.NONE,
+            targetPackage = null,
+            appConfigText = null,
+            logcatText = null,
+            diagnosticsState = diagnostics
+        )
+
+        assertTrue(report.contains("#### Diagnostics & Sanitized Events"))
+        assertTrue(report.contains("**Service Status:** Connected"))
+        assertTrue(report.contains("**Active Islands:** 2"))
+        assertTrue(report.contains("**Last Classification:** MESSAGE"))
+        assertTrue(report.contains("**Last Call State:** RINGING"))
+        assertTrue(report.contains("com.whatsapp"))
+
+        val url = BugReportCollector.buildGitHubIssueUrl(
+            userDescription = "Test issue",
+            diagnosticsState = diagnostics
+        )
+
+        val decoded = java.net.URLDecoder.decode(url, "UTF-8")
+        assertTrue(decoded.contains("Service: Connected"))
+        assertTrue(decoded.contains("Active Islands: 2"))
+        assertTrue(decoded.contains("Last Classification: MESSAGE"))
+        assertTrue(decoded.contains("com.whatsapp"))
+    }
 }

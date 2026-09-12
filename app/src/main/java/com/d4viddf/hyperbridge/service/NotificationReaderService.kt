@@ -100,6 +100,10 @@ class NotificationReaderService : NotificationListenerService() {
         const val ACTION_RELOAD_THEME = "com.d4viddf.hyperbridge.ACTION_RELOAD_THEME"
         const val ACTION_PERFORM_MIGRATION = "com.d4viddf.hyperbridge.ACTION_PERFORM_MIGRATION"
         private val GMAIL_PACKAGES = setOf("com.google.android.gm")
+
+        @Volatile
+        var isConnected: Boolean = false
+            internal set
     }
 
     private val TAG = "HyperBridgeDebug"
@@ -468,6 +472,10 @@ class NotificationReaderService : NotificationListenerService() {
     // =========================================================================
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?, rankingMap: RankingMap?, reason: Int) {
+        if (!isConnected) {
+            isConnected = true
+            DiagnosticsStore.setServiceConnected(true)
+        }
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationRemoved(it)
             if (nativeIslands.remove(it.key)) {
@@ -843,6 +851,10 @@ class NotificationReaderService : NotificationListenerService() {
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
+        if (!isConnected) {
+            isConnected = true
+            DiagnosticsStore.setServiceConnected(true)
+        }
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
             if (it.packageName != packageName) {
@@ -2119,6 +2131,8 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onListenerConnected() { 
         Log.i(TAG, "HyperBridge Service Connected")
+        isConnected = true
+        DiagnosticsStore.setServiceConnected(true)
         syncNotifications(refresh = true)
         syncJob?.cancel()
         syncJob = serviceScope.launch {
@@ -2131,6 +2145,13 @@ class NotificationReaderService : NotificationListenerService() {
                 }
             }
         }
+    }
+
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+        Log.i(TAG, "HyperBridge Service Disconnected")
+        isConnected = false
+        DiagnosticsStore.setServiceConnected(false)
     }
 
     private fun syncNotifications(refresh: Boolean = false) {
@@ -2254,6 +2275,8 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isConnected = false
+        DiagnosticsStore.setServiceConnected(false)
         if (::vpnIslandController.isInitialized) vpnIslandController.stop()
         unregisterReceiver(systemReceiver)
         unregisterReceiver(islandClickReceiver)

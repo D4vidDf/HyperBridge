@@ -44,6 +44,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppCategory
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
+import com.d4viddf.hyperbridge.ui.SystemIntegrationId
 import com.d4viddf.hyperbridge.ui.SystemIntegrationInfo
 import com.d4viddf.hyperbridge.ui.components.AppListFilterSection
 import com.d4viddf.hyperbridge.ui.components.AppListItem
@@ -162,7 +163,7 @@ fun ActiveAppsPage(
                                         SystemIntegrationListItem(
                                             integration = integration,
                                             onToggle = { viewModel.toggleSystemIntegration(integration.id, it) },
-                                            onSettingsClick = if (integration.available) {
+                                            onSettingsClick = if (integration.available && integration.id != SystemIntegrationId.VPN) {
                                                 { onSystemConfig(integration) }
                                             } else null
                                         )
