@@ -750,6 +750,19 @@
     <string name="screen_recording_right_option_none">Nothing</string>
     <string name="screen_recording_saved_auto_hide_desc">Duration the completion checkmark is shown after recording stops</string>
     <string name="preview">Preview</string>
+    <string name="vpn_title">VPN</string>
+    <string name="vpn_island_enabled">Watching for VPN connections</string>
+    <string name="vpn_island_disabled">VPN Island is disabled</string>
+    <string name="vpn_is_connected">VPN is connected</string>
+    <string name="vpn_connected_to">Connected to %1$s</string>
+    <string name="vpn_connecting">VPN is connecting</string>
+    <string name="vpn_reconnecting">VPN is reconnecting</string>
+    <string name="vpn_waiting_for_network">Waiting for network</string>
+    <string name="vpn_paused">VPN is paused</string>
+    <string name="vpn_disconnecting">Disconnecting VPN</string>
+    <string name="vpn_blocking">Blocking internet</string>
+    <string name="vpn_error">VPN error</string>
+    <string name="vpn_disconnected">VPN is disconnected</string>
 </resources>
 
 

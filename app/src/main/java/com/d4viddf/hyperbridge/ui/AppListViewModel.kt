@@ -41,7 +41,7 @@ data class AppInfo(
     val category: AppCategory = AppCategory.OTHER
 )
 
-enum class SystemIntegrationId { SCREEN_RECORDER }
+enum class SystemIntegrationId { SCREEN_RECORDER, VPN }
 
 data class SystemIntegrationInfo(
     val id: SystemIntegrationId,
@@ -141,8 +141,9 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     val systemIntegrationsState: StateFlow<List<SystemIntegrationInfo>> = combine(
         preferences.allowedPackagesFlow,
+        preferences.vpnIslandEnabledFlow,
         _screenRecorderIntegrationApp
-    ) { allowedPackages, recorderApp ->
+    ) { allowedPackages, vpnEnabled, recorderApp ->
         listOf(
             SystemIntegrationInfo(
                 id = SystemIntegrationId.SCREEN_RECORDER,
@@ -150,6 +151,13 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 available = recorderApp != null,
                 icon = recorderApp?.icon,
                 configurationApp = recorderApp
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.VPN,
+                enabled = vpnEnabled,
+                available = true,
+                icon = null,
+                configurationApp = null
             )
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -280,6 +288,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                     ScreenRecordingClassifier.PACKAGE_NAME,
                     enabled
                 )
+                SystemIntegrationId.VPN -> preferences.setVpnIslandEnabled(enabled)
             }
         }
     }

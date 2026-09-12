@@ -23,6 +23,7 @@ import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.RulesEngine
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
+import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.ActiveIsland
 import com.d4viddf.hyperbridge.models.HyperIslandData
@@ -143,6 +144,8 @@ class NotificationReaderService : NotificationListenerService() {
     private val timeoutJobs = ConcurrentHashMap<String, Job>()
     private val removalJobs = ConcurrentHashMap<String, Job>()
     private lateinit var permanentIslandManager: PermanentIslandManager
+    @Volatile private var vpnIslandActive = false
+    private lateinit var vpnIslandController: VpnIslandController
     private val intentionallyRemovedKeys = ConcurrentHashMap<String, Long>()
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
@@ -224,7 +227,7 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    @RequiresPermission(allOf = [Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.ACCESS_NETWORK_STATE])
     override fun onCreate() {
         super.onCreate()
         
@@ -278,6 +281,18 @@ class NotificationReaderService : NotificationListenerService() {
         }
 
         permanentIslandManager = PermanentIslandManager(this, serviceScope, preferences)
+        vpnIslandController = VpnIslandController(
+            this,
+            serviceScope,
+            preferences,
+            themeRepository,
+            initialNotifications = { activeNotifications ?: emptyArray() },
+            onIslandActiveChanged = { active ->
+                vpnIslandActive = active
+                updatePermanentIsland()
+            }
+        )
+        vpnIslandController.start()
 
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
@@ -454,6 +469,7 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?, rankingMap: RankingMap?, reason: Int) {
         sbn?.let {
+            if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationRemoved(it)
             if (nativeIslands.remove(it.key)) {
                 updatePermanentIsland()
             }
@@ -801,16 +817,19 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun logStateChange(isLandscape: Boolean) {
         val orientation = if (isLandscape) "Landscape" else "Portrait"
-        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || nativeIslands.isNotEmpty() || permanentIslandManager.isIslandActive()
+        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || vpnIslandActive || nativeIslands.isNotEmpty() || permanentIslandManager.isIslandActive()
         val islandState = if (isIslandExhibited) "Showing Island" else "No Island"
         Log.d(TAG, "State: $orientation | $islandState")
     }
 
     private fun updatePermanentIsland() {
-        permanentIslandManager.onActiveNotificationsChanged(activeIslands.size + activeWidgets.size, nativeIslands.isNotEmpty())
+        permanentIslandManager.onActiveNotificationsChanged(activeIslandCount(), nativeIslands.isNotEmpty())
+        DiagnosticsStore.setActiveIslands(activeIslands.size + if (vpnIslandActive) 1 else 0)
         val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         logStateChange(isLandscape)
     }
+
+    private fun activeIslandCount(): Int = activeIslands.size + activeWidgets.size + if (vpnIslandActive) 1 else 0
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -825,6 +844,7 @@ class NotificationReaderService : NotificationListenerService() {
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
+            if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
             if (it.packageName != packageName) {
                 val extras = it.notification.extras
                 var isNative = false
@@ -2194,6 +2214,10 @@ class NotificationReaderService : NotificationListenerService() {
                     if (sbn.packageName != packageName) continue
                     val id = sbn.id
                     if (id == PermanentIslandManager.PERMANENT_BRIDGE_ID) continue
+                    // The VPN controller deliberately owns its notification outside the ordinary
+                    // source-to-translation maps. Do not mistake it for an orphan during the
+                    // reconciliation pass and cancel its backing island.
+                    if (id == VpnIslandController.NOTIFICATION_ID) continue
                     if (id >= WIDGET_ID_BASE) continue
                     if (id in (WATCH_RELAY_ID_BASE - 0x0F)..WATCH_RELAY_ID_BASE) continue
                     if ((sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) continue
@@ -2209,7 +2233,7 @@ class NotificationReaderService : NotificationListenerService() {
                     it.packageName == packageName && it.id == PermanentIslandManager.PERMANENT_BRIDGE_ID
                 }
                 permanentIslandManager.reconcile(
-                    activeIslands.size + activeWidgets.size,
+                    activeIslandCount(),
                     nativeIslands.isNotEmpty(),
                     islandPresent,
                     refresh
@@ -2230,6 +2254,7 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (::vpnIslandController.isInitialized) vpnIslandController.stop()
         unregisterReceiver(systemReceiver)
         unregisterReceiver(islandClickReceiver)
         syncJob?.cancel()

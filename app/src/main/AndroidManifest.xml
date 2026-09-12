@@ -11,8 +11,12 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <queries>
+        <intent>
+            <action android:name="android.net.VpnService" />
+        </intent>
         <intent>
             <action android:name="android.appwidget.action.APPWIDGET_PICK" />
         </intent>
@@ -119,6 +123,10 @@
 
         <receiver
             android:name=".receiver.ScreenRecordingActionReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".receiver.VpnActionReceiver"
             android:exported="false" />
 
         <service
