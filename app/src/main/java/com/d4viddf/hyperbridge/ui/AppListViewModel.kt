@@ -18,6 +18,7 @@ import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.NavigationModule
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,16 @@ data class AppInfo(
     val isBridged: Boolean = false,
     val isInstalled: Boolean = true,
     val category: AppCategory = AppCategory.OTHER
+)
+
+enum class SystemIntegrationId { SCREEN_RECORDER }
+
+data class SystemIntegrationInfo(
+    val id: SystemIntegrationId,
+    val enabled: Boolean,
+    val available: Boolean,
+    val icon: Bitmap? = null,
+    val configurationApp: AppInfo? = null
 )
 
 enum class AppCategory(val label: String) {
@@ -64,9 +75,11 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     // Filters
     val activeSearch = MutableStateFlow("")
     val activeCategory = MutableStateFlow(AppCategory.ALL)
+    val activeSystemSelected = MutableStateFlow(false)
     val activeSort = MutableStateFlow(SortOption.NAME_AZ)
     val librarySearch = MutableStateFlow("")
     val libraryCategory = MutableStateFlow(AppCategory.ALL)
+    val librarySystemSelected = MutableStateFlow(false)
     val librarySort = MutableStateFlow(SortOption.NAME_AZ)
 
     // Helpers (Keyword Fallback)
@@ -89,7 +102,9 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
         // 2. Identify Missing (Uninstalled) Apps
         val installedPkgSet = installed.map { it.packageName }.toSet()
-        val uninstalledPkgs = allowedSet.filter { !installedPkgSet.contains(it) }
+        val uninstalledPkgs = allowedSet.filter {
+            !installedPkgSet.contains(it) && it != ScreenRecordingClassifier.PACKAGE_NAME
+        }
 
         // 3. Reconstruct Uninstalled Apps from Cache
         uninstalledPkgs.forEach { pkg ->
@@ -111,15 +126,32 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     }
 
     val activeAppsState: StateFlow<List<AppInfo>> = combine(
-        baseAppsFlow, activeSearch, activeCategory, activeSort
-    ) { apps, query, category, sort ->
-        applyFilters(apps.filter { it.isBridged }, query, category, sort)
+        baseAppsFlow, activeSearch, activeCategory, activeSort, activeSystemSelected
+    ) { apps, query, category, sort, systemSelected ->
+        if (systemSelected) emptyList() else applyFilters(apps.filter { it.isBridged }, query, category, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val libraryAppsState: StateFlow<List<AppInfo>> = combine(
-        baseAppsFlow, librarySearch, libraryCategory, librarySort
-    ) { apps, query, category, sort ->
-        applyFilters(apps, query, category, sort)
+        baseAppsFlow, librarySearch, libraryCategory, librarySort, librarySystemSelected
+    ) { apps, query, category, sort, systemSelected ->
+        if (systemSelected) emptyList() else applyFilters(apps, query, category, sort)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _screenRecorderIntegrationApp = MutableStateFlow<AppInfo?>(null)
+
+    val systemIntegrationsState: StateFlow<List<SystemIntegrationInfo>> = combine(
+        preferences.allowedPackagesFlow,
+        _screenRecorderIntegrationApp
+    ) { allowedPackages, recorderApp ->
+        listOf(
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.SCREEN_RECORDER,
+                enabled = ScreenRecordingClassifier.PACKAGE_NAME in allowedPackages,
+                available = recorderApp != null,
+                icon = recorderApp?.icon,
+                configurationApp = recorderApp
+            )
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private fun applyFilters(list: List<AppInfo>, query: String, category: AppCategory, sort: SortOption): List<AppInfo> {
@@ -146,6 +178,9 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             _isLoading.value = true
             val apps = getLaunchableApps()
             _installedApps.value = apps
+            _screenRecorderIntegrationApp.value = loadPackageAppInfo(
+                ScreenRecordingClassifier.PACKAGE_NAME
+            )
             _isLoading.value = false
         }
     }
@@ -215,6 +250,37 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     fun toggleApp(packageName: String, isEnabled: Boolean) {
         viewModelScope.launch {
             preferences.toggleApp(packageName, isEnabled)
+        }
+    }
+
+    fun selectLibrarySystem(selected: Boolean) {
+        librarySystemSelected.value = selected
+        if (selected) libraryCategory.value = AppCategory.ALL
+    }
+
+    fun selectLibraryAppCategory(category: AppCategory) {
+        librarySystemSelected.value = false
+        libraryCategory.value = category
+    }
+
+    fun selectActiveSystem(selected: Boolean) {
+        activeSystemSelected.value = selected
+        if (selected) activeCategory.value = AppCategory.ALL
+    }
+
+    fun selectActiveAppCategory(category: AppCategory) {
+        activeSystemSelected.value = false
+        activeCategory.value = category
+    }
+
+    fun toggleSystemIntegration(id: SystemIntegrationId, enabled: Boolean) {
+        viewModelScope.launch {
+            when (id) {
+                SystemIntegrationId.SCREEN_RECORDER -> preferences.toggleApp(
+                    ScreenRecordingClassifier.PACKAGE_NAME,
+                    enabled
+                )
+            }
         }
     }
 
@@ -293,6 +359,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             try {
                 val pkg = resolveInfo.activityInfo.packageName
                 if (pkg == getApplication<Application>().packageName) return@mapNotNull null
+                if (pkg == ScreenRecordingClassifier.PACKAGE_NAME) return@mapNotNull null
 
                 val name = resolveInfo.loadLabel(packageManager).toString()
                 val icon = resolveInfo.loadIcon(packageManager).toBitmap()
@@ -322,6 +389,31 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 AppInfo(name, pkg, icon, category = cat, isInstalled = true)
             } catch (e: Exception) { null }
         }.distinctBy { it.packageName }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+    }
+
+    private suspend fun loadPackageAppInfo(packageName: String): AppInfo? = withContext(Dispatchers.IO) {
+        try {
+            val appInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getApplicationInfo(
+                    packageName,
+                    android.content.pm.PackageManager.ApplicationInfoFlags.of(0)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getApplicationInfo(packageName, 0)
+            }
+            AppInfo(
+                name = packageManager.getApplicationLabel(appInfo).toString(),
+                packageName = packageName,
+                icon = packageManager.getApplicationIcon(appInfo).toBitmap(),
+                category = AppCategory.OTHER,
+                isInstalled = true
+            )
+        } catch (_: android.content.pm.PackageManager.NameNotFoundException) {
+            null
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun Drawable.toBitmap(): Bitmap {

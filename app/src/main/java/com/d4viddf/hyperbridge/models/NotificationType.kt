@@ -11,5 +11,6 @@ enum class NotificationType(@StringRes val labelRes: Int) {
     MEDIA(R.string.type_media),
     NAVIGATION(R.string.type_nav),
     CALL(R.string.type_call),
-    TIMER(R.string.type_timer)
+    TIMER(R.string.type_timer),
+    SCREEN_RECORDING(R.string.type_screen_recording)
 }

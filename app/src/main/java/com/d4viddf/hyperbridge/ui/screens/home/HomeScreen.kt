@@ -69,8 +69,10 @@ private enum class DesignRoute {
 fun HomeScreen(
     viewModel: AppListViewModel = viewModel(),
     onSettingsClick: () -> Unit,
-    onNavConfigClick: (String) -> Unit
+    onNavConfigClick: (String) -> Unit,
+    onScreenRecordingConfigClick: () -> Unit = {}
 ) {
+
     var selectedTab by remember { mutableIntStateOf(1) }
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
@@ -81,6 +83,7 @@ fun HomeScreen(
 
     val activeApps by viewModel.activeAppsState.collectAsState()
     val libraryApps by viewModel.libraryAppsState.collectAsState()
+    val systemIntegrations by viewModel.systemIntegrationsState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
     val context = LocalContext.current
@@ -277,18 +280,31 @@ fun HomeScreen(
                         1 -> ActiveAppsPage(
                             apps = activeApps,
                             isLoading = isLoading,
+                            systemIntegrations = systemIntegrations,
                             viewModel = viewModel,
                             onConfig = { configApp = it },
+                            onSystemConfig = { integration ->
+                                when (integration.id) {
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                }
+                            },
                             onSettingsClick = onSettingsClick
                         )
 
                         2 -> LibraryPage(
                             apps = libraryApps,
                             isLoading = isLoading,
+                            systemIntegrations = systemIntegrations,
                             viewModel = viewModel,
                             onConfig = { configApp = it },
+                            onSystemConfig = { integration ->
+                                when (integration.id) {
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                }
+                            },
                             onSettingsClick = onSettingsClick
                         )
+
                     }
                 }
             }

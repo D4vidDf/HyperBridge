@@ -183,7 +183,8 @@ object NotificationLifecyclePolicy {
     fun dismissesWithSource(type: NotificationType?): Boolean = when (type) {
         NotificationType.CALL,
         NotificationType.MEDIA,
-        NotificationType.NAVIGATION -> true
+        NotificationType.NAVIGATION,
+        NotificationType.SCREEN_RECORDING -> true
         else -> false
     }
 

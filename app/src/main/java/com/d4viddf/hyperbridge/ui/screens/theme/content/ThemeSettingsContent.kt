@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -152,6 +153,7 @@ fun NotificationTypesContent() {
                 NotificationType.CALL -> Icons.Outlined.Call to stringResource(R.string.type_call_desc)
                 NotificationType.TIMER -> Icons.Outlined.Timer to stringResource(R.string.type_timer_desc)
                 NotificationType.MESSAGE -> Icons.AutoMirrored.Outlined.Message to stringResource(R.string.type_message_desc)
+                NotificationType.SCREEN_RECORDING -> Icons.Outlined.Videocam to stringResource(R.string.type_screen_recording_desc)
             }
 
             // Calculate expressive rounded corners to group them beautifully
