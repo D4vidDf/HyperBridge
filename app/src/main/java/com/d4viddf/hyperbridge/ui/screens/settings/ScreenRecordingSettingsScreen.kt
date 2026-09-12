@@ -61,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.d4viddf.hyperbridge.R
@@ -69,9 +70,9 @@ import com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign
 import com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign
 import com.d4viddf.hyperbridge.ui.components.formatSeconds
 import com.d4viddf.hyperbridge.ui.components.timeoutSteps
+import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenRecordingSettingsScreen(
     onBack: () -> Unit
@@ -90,6 +91,28 @@ fun ScreenRecordingSettingsScreen(
         initial = AppPreferences.SYSTEM_ISLAND_DEFAULT_TIMEOUT
     )
 
+    ScreenRecordingSettingsContent(
+        leftDesign = leftDesign,
+        rightDesign = rightDesign,
+        savedTimeout = savedTimeout,
+        onLeftDesignChange = { scope.launch { preferences.setScreenRecordingLeftDesign(it) } },
+        onRightDesignChange = { scope.launch { preferences.setScreenRecordingRightDesign(it) } },
+        onSavedTimeoutChange = { scope.launch { preferences.setScreenRecordingTimeout(it) } },
+        onBack = onBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScreenRecordingSettingsContent(
+    leftDesign: ScreenRecordingLeftDesign,
+    rightDesign: ScreenRecordingRightDesign,
+    savedTimeout: Int,
+    onLeftDesignChange: (ScreenRecordingLeftDesign) -> Unit,
+    onRightDesignChange: (ScreenRecordingRightDesign) -> Unit,
+    onSavedTimeoutChange: (Int) -> Unit,
+    onBack: () -> Unit
+) {
     var showLeftSheet by remember { mutableStateOf(false) }
     var showRightSheet by remember { mutableStateOf(false) }
 
@@ -236,9 +259,7 @@ fun ScreenRecordingSettingsScreen(
                         Switch(
                             checked = isTimeoutEnabled,
                             onCheckedChange = { enabled ->
-                                scope.launch {
-                                    preferences.setScreenRecordingTimeout(if (enabled) 4 else 0)
-                                }
+                                onSavedTimeoutChange(if (enabled) 4 else 0)
                             }
                         )
                     }
@@ -262,7 +283,7 @@ fun ScreenRecordingSettingsScreen(
                                 value = currentIndex,
                                 onValueChange = { index ->
                                     val selectedSeconds = timeoutSteps[index.toInt()]
-                                    scope.launch { preferences.setScreenRecordingTimeout(selectedSeconds) }
+                                    onSavedTimeoutChange(selectedSeconds)
                                 },
                                 valueRange = 0f..(timeoutSteps.size - 1).toFloat(),
                                 steps = timeoutSteps.size - 2
@@ -290,7 +311,7 @@ fun ScreenRecordingSettingsScreen(
                 }
             },
             onSelect = { newLeft ->
-                scope.launch { preferences.setScreenRecordingLeftDesign(newLeft) }
+                onLeftDesignChange(newLeft)
             },
             onDismiss = { showLeftSheet = false }
         )
@@ -309,7 +330,7 @@ fun ScreenRecordingSettingsScreen(
                 }
             },
             onSelect = { newRight ->
-                scope.launch { preferences.setScreenRecordingRightDesign(newRight) }
+                onRightDesignChange(newRight)
             },
             onDismiss = { showRightSheet = false }
         )
@@ -360,9 +381,9 @@ private fun SymmetricalIslandLayout(
     modifier: Modifier = Modifier
 ) {
     val horizontalPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
-    val cameraGapPx = with(LocalDensity.current) { 12.dp.roundToPx() }
-    val minSideWidthPx = with(LocalDensity.current) { 14.dp.roundToPx() }
-    val pillHeightPx = with(LocalDensity.current) { 42.dp.roundToPx() }
+    val cameraGapPx = with(LocalDensity.current) { 10.dp.roundToPx() }
+    val minSideWidthPx = with(LocalDensity.current) { 16.dp.roundToPx() }
+    val pillHeightPx = with(LocalDensity.current) { 44.dp.roundToPx() }
 
     Layout(
         modifier = modifier,
@@ -382,9 +403,9 @@ private fun SymmetricalIslandLayout(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFFB382F))
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFB382F))
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
@@ -408,13 +429,21 @@ private fun SymmetricalIslandLayout(
                 }
             }
 
-            // Measurable 1: Camera Cutout
+            // Measurable 1: Camera Cutout (Realistic punch-hole)
             Box(
                 modifier = Modifier
-                    .size(13.dp)
+                    .size(24.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF1F1F1F))
-            )
+                    .background(Color(0xFF1E1E1E)),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF0F0F0F))
+                )
+            }
 
             // Measurable 2: Right Content
             Box(contentAlignment = Alignment.CenterEnd) {
@@ -539,6 +568,37 @@ private fun <T> ScreenRecordingOptionBottomSheet(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ScreenRecordingSettingsScreenPreview() {
+    HyperBridgeTheme {
+        ScreenRecordingSettingsContent(
+            leftDesign = ScreenRecordingLeftDesign.ICON_AND_TEXT,
+            rightDesign = ScreenRecordingRightDesign.TIMER,
+            savedTimeout = 4,
+            onLeftDesignChange = {},
+            onRightDesignChange = {},
+            onSavedTimeoutChange = {},
+            onBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ScreenRecordingIslandPreviewVariants() {
+    HyperBridgeTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ScreenRecordingIslandPreview(ScreenRecordingLeftDesign.ICON_AND_TEXT, ScreenRecordingRightDesign.TIMER)
+            ScreenRecordingIslandPreview(ScreenRecordingLeftDesign.ICON_ONLY, ScreenRecordingRightDesign.NONE)
+            ScreenRecordingIslandPreview(ScreenRecordingLeftDesign.TEXT_ONLY, ScreenRecordingRightDesign.TIMER)
         }
     }
 }
