@@ -47,6 +47,11 @@
     <string name="permanent_island_width">Ancho de la Isla</string>
     <string name="permanent_island_hide_landscape">Ocultar en Horizontal</string>
     <string name="group_about">Sobre la aplicación</string>
+    <string name="special_thanks">Agradecimientos especiales</string>
+    <string name="xmsf_workaround_credit_title">Solución alternativa XMSF</string>
+    <string name="xmsf_workaround_credit_subtitle">Investigación por Stardawn (星间晞)</string>
+    <string name="sykeptical_credit_title">Sykeptical</string>
+    <string name="sykeptical_credit_subtitle">Contribuciones a la grabación de pantalla, mejoras en mensajes y llamadas, e integración VPN</string>
     <string name="developer">Desarrollador</string>
     <string name="developer_subtitle">Visita d4viddf.com</string>
     <string name="source_code">Código Fuente</string>

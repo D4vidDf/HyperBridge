@@ -244,6 +244,13 @@ fun InfoScreen(
                         stringResource(R.string.xmsf_workaround_credit_subtitle)
                     ) {
                         uriHandler.openUri("https://www.coolapk1s.com/feed/70418983")
+                    },
+                    SettingsItemData(
+                        Icons.Default.Favorite,
+                        stringResource(R.string.sykeptical_credit_title),
+                        stringResource(R.string.sykeptical_credit_subtitle)
+                    ) {
+                        uriHandler.openUri("https://github.com/SykepticalS/Sykepticals_HyperBridge")
                     }
                 )
             )
