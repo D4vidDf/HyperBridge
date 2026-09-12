@@ -553,8 +553,8 @@
     <string name="view_full_changelog">在網站上查看</string>
     <string name="changelog_notice">完整的發布說明和變更詳情已在我們的網站上發布。</string>
     <string name="changelog_view_website_desc">請造訪我們的網站，查看最新的版本說明、改進內容及新功能。</string>
-    <!-- Bug Report & Diagnostics -->
-    <string name="bug_report_title">錯誤回報&amp;診斷</string>
+    <!-- Bug Report -->
+    <string name="bug_report_title">錯誤回報</string>
     <string name="bug_report_subtitle">產生系統診斷資訊並報告問題</string>
     <string name="bug_report_privacy_title">隱私&amp;揭露</string>
     <string name="bug_report_privacy_desc">在 GitHub 上提交 Issue 會將相關資訊公開給網路上的任何人。如果您希望保持報告的私密性，可以直接發送電子郵件至 %s 聯繫開發者。</string>
@@ -593,7 +593,7 @@
     <string name="bug_report_copied_github_toast">診斷資訊已複製到剪貼簿！請將其貼到 GitHub 上的 Logs（日誌）部分。</string>
     <string name="bug_report_copied_toast">報告已複製到剪貼簿。</string>
     <string name="bug_report_email_subject">Hyper Bridge 錯誤報告</string>
-    <string name="bug_report_entry_title">錯誤回報&amp;診斷</string>
+    <string name="bug_report_entry_title">錯誤回報</string>
     <string name="bug_report_entry_subtitle">排查問題並回報系統日誌相關問題</string>
     <string name="bug_report_need_help">遇到權限或超級島上的問題了嗎？</string>
     <string name="bug_report_open_diagnostics">打開診斷</string>

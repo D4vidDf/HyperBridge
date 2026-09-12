@@ -535,8 +535,8 @@
     <string name="changelog_notice">Las notas de la versión completas están publicadas en nuestro sitio web.</string>
     <string name="changelog_view_website_desc">Descubre las últimas notas de la versión, mejoras y novedades en nuestro sitio web.</string>
 
-    <!-- Bug Report & Diagnostics -->
-    <string name="bug_report_title">Reporte de Errores y Diagnóstico</string>
+    <!-- Bug Report -->
+    <string name="bug_report_title">Reporte de errores</string>
     <string name="bug_report_subtitle">Genera un diagnóstico del sistema y reporta errores</string>
     <string name="bug_report_privacy_title">Privacidad y Divulgación</string>
     <string name="bug_report_privacy_desc">Enviar un reporte en GitHub hará que esta información sea PÚBLICA para cualquier persona en internet. Si prefieres que sea privado, puedes enviarlo por correo directamente al desarrollador a %s.</string>
@@ -575,7 +575,7 @@
     <string name="bug_report_copied_github_toast">¡Diagnóstico copiado al portapapeles! Pégalo en la sección de Logs en GitHub.</string>
     <string name="bug_report_copied_toast">Reporte copiado al portapapeles.</string>
     <string name="bug_report_email_subject">Reporte de Error de Hyper Bridge</string>
-    <string name="bug_report_entry_title">Reporte de Errores y Diagnóstico</string>
+    <string name="bug_report_entry_title">Reporte de errores</string>
     <string name="bug_report_entry_subtitle">Soluciona y reporta errores con registros del sistema</string>
     <string name="bug_report_need_help">¿Tienes problemas con permisos o islas?</string>
     <string name="bug_report_open_diagnostics">Abrir Diagnóstico</string>

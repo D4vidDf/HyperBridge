@@ -193,7 +193,7 @@ fun DiagnosticsContent(
                         IconButton(onClick = onReportError) {
                             Icon(
                                 imageVector = Icons.Default.BugReport,
-                                contentDescription = stringResource(R.string.bug_report_entry_title),
+                                contentDescription = stringResource(R.string.bug_report),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -326,7 +326,7 @@ fun DiagnosticsContent(
                         Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.copy_sanitized_diagnostics),
+                            text = stringResource(R.string.copy),
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -344,7 +344,7 @@ fun DiagnosticsContent(
                             Icon(Icons.Default.BugReport, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = stringResource(R.string.bug_report_entry_title),
+                                text = stringResource(R.string.bug_report),
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
