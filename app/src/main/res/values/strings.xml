@@ -232,6 +232,18 @@
 
     <string name="call_incoming">Incoming Call</string>
     <string name="call_ongoing">Active Call</string>
+    <string name="call_calling">Calling…</string>
+    <string name="call_ringing">Ringing…</string>
+    <string name="call_connecting">Connecting…</string>
+    <string name="call_ended">Call ended</string>
+    <string name="call_stage_settings">Call stages</string>
+    <string name="call_stage_settings_desc">Choose which parts of a voice call can show an Island</string>
+    <string name="call_stage_incoming">Incoming calls</string>
+    <string name="call_stage_incoming_desc">Calls that are ringing and waiting to be answered</string>
+    <string name="call_stage_outgoing">Outgoing calls</string>
+    <string name="call_stage_outgoing_desc">Calling, ringing, and connecting before the call is answered</string>
+    <string name="call_stage_active">Active calls</string>
+    <string name="call_stage_active_desc">Connected calls with an elapsed-time display</string>
 
     <string-array name="call_keywords_hangup">
         <item>hang</item>
@@ -242,6 +254,16 @@
     <string-array name="call_keywords_answer">
         <item>answer</item>
         <item>accept</item>
+    </string-array>
+    <string-array name="call_keywords_mute">
+        <item>mute</item>
+        <item>mic off</item>
+        <item>microphone off</item>
+    </string-array>
+    <string-array name="call_keywords_unmute">
+        <item>unmute</item>
+        <item>mic on</item>
+        <item>microphone on</item>
     </string-array>
     <string-array name="call_keywords_speaker">
         <item>speaker</item>

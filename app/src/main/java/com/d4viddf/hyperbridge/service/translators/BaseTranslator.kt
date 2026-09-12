@@ -34,6 +34,8 @@ import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeResource
+import com.d4viddf.hyperbridge.service.visual.IconGeometry
+import com.d4viddf.hyperbridge.service.visual.PixelBounds
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
@@ -186,7 +188,11 @@ abstract class BaseTranslator(
         }?.value
     }
 
-    protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
+    protected fun resolveIcon(
+        sbn: StatusBarNotification,
+        picKey: String,
+        preferNativeAppBadge: Boolean = false
+    ): HyperPicture {
         var originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
         if (isBitmapDarkAndMonochrome(originalBitmap)) {
             originalBitmap = tintBitmap(originalBitmap, Color.WHITE)
@@ -264,10 +270,7 @@ abstract class BaseTranslator(
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
                 colorFilter = PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
             }
-            val iconMatrix = Matrix()
-            val iconBounds = RectF(0f, 0f, source.width.toFloat(), source.height.toFloat())
-            iconMatrix.setRectToRect(iconBounds, iconDestRect, Matrix.ScaleToFit.CENTER)
-            canvas.drawBitmap(source, iconMatrix, iconPaint)
+            drawNormalizedBitmap(canvas, source, iconDestRect, iconPaint)
         }
 
         return output
@@ -491,11 +494,53 @@ abstract class BaseTranslator(
         if (targetSize > 0) {
             val whiteSource = tintBitmap(source, Color.WHITE)
             val destRect = Rect(paddingPx, paddingPx, size - paddingPx, size - paddingPx)
-            val srcRect = Rect(0, 0, whiteSource.width, whiteSource.height)
-            canvas.drawBitmap(whiteSource, srcRect, destRect, null)
+            drawNormalizedBitmap(canvas, whiteSource, RectF(destRect), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
         }
 
         return output
+    }
+
+    private fun drawNormalizedBitmap(canvas: Canvas, source: Bitmap, destRect: RectF, paint: Paint?) {
+        if (!isUsableBitmap(source) || destRect.width() <= 0f || destRect.height() <= 0f) return
+
+        val visible = getVisibleBitmapBounds(source)
+        val srcRect = if (visible != null) {
+            Rect(visible.left, visible.top, visible.right + 1, visible.bottom + 1)
+        } else {
+            Rect(0, 0, source.width, source.height)
+        }
+
+        if (srcRect.width() <= 0 || srcRect.height() <= 0) return
+
+        val fitted = IconGeometry.fitCenterInside(
+            srcRect.width(),
+            srcRect.height(),
+            destRect.left,
+            destRect.top,
+            destRect.right,
+            destRect.bottom
+        )
+        val finalRect = RectF(fitted.left, fitted.top, fitted.right, fitted.bottom)
+        if (finalRect.width() <= 0f || finalRect.height() <= 0f) return
+        canvas.drawBitmap(source, srcRect, finalRect, paint)
+    }
+
+    private fun getVisibleBitmapBounds(bitmap: Bitmap): PixelBounds? {
+        if (!isUsableBitmap(bitmap)) return null
+        return try {
+            val pixels = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            IconGeometry.findVisibleBounds(pixels, bitmap.width, bitmap.height)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun isUsableBitmap(bitmap: Bitmap?): Boolean {
+        if (bitmap == null || bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) return false
+        return bitmap.width <= 2_048 &&
+                bitmap.height <= 2_048 &&
+                bitmap.width.toLong() * bitmap.height.toLong() <= 4_194_304L
     }
 
     private fun tintBitmap(source: Bitmap, color: Int): Bitmap {
@@ -509,7 +554,12 @@ abstract class BaseTranslator(
         return result
     }
 
-    protected fun loadIconBitmap(icon: Icon, packageName: String): Bitmap? {
+    protected fun loadIconBitmap(
+        icon: Icon,
+        packageName: String,
+        width: Int? = null,
+        height: Int? = null
+    ): Bitmap? {
         return try {
             val drawable = if (icon.type == Icon.TYPE_RESOURCE) {
                 try {
@@ -521,7 +571,7 @@ abstract class BaseTranslator(
             } else {
                 icon.loadDrawable(context)
             }
-            drawable?.toBitmap()
+            drawable?.toBitmap(width = width, height = height)
         } catch (e: Exception) {
             null
         }

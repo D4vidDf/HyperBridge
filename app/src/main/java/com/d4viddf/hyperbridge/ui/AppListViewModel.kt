@@ -157,6 +157,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     data class EffectiveAppConfig(
         val isManagedByTheme: Boolean,
         val activeTypes: Set<String>,
+        val activeCallStages: Set<com.d4viddf.hyperbridge.models.CallStage>,
         val useNativeEngine: Boolean,
         val navigationOverride: NavigationModule?,
         val localNavContent: Pair<NavContent, NavContent> // Added for the bottom sheet
@@ -167,12 +168,17 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
      * Active Theme > Local App Preferences > Global Fallbacks
      */
     fun getEffectiveAppConfigFlow(packageName: String): Flow<EffectiveAppConfig> {
+        val effectiveCallStagesFlow = combine(
+            preferences.getAppCallStagesFlow(packageName),
+            preferences.globalCallStagesFlow
+        ) { appStages, globalStages -> appStages ?: globalStages }
         return combine(
             preferences.getAppConfigFlow(packageName),
             preferences.globalNotificationTypesFlow,
+            effectiveCallStagesFlow,
             preferences.getEffectiveNavLayout(packageName), // Gets the fallback-resolved NavContent
             activeTheme
-        ) { appPrefTypes, globalTypes, effectiveNavContent, theme ->
+        ) { appPrefTypes, globalTypes, effectiveCallStages, effectiveNavContent, theme ->
 
             val themeOverride = theme?.apps?.get(packageName)
             val isManaged = themeOverride != null
@@ -196,6 +202,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             EffectiveAppConfig(
                 isManagedByTheme = isManaged,
                 activeTypes = effectiveTypes,
+                activeCallStages = effectiveCallStages,
                 useNativeEngine = effectiveEngine,
                 navigationOverride = effectiveNavVisuals,
                 localNavContent = effectiveNavContent
@@ -239,6 +246,12 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 // Not managed by theme. Save normally to local AppPreferences.
                 preferences.updateAppConfig(pkg, type, enabled)
             }
+        }
+    }
+
+    fun updateAppCallStage(pkg: String, stage: com.d4viddf.hyperbridge.models.CallStage, enabled: Boolean) {
+        viewModelScope.launch {
+            preferences.updateAppCallStage(pkg, stage, enabled)
         }
     }
 
