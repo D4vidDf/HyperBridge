@@ -766,8 +766,11 @@
 
     <string name="floating_setup_title" translatable="false">Floating notification setup</string>
     <string name="floating_setup_settings_subtitle" translatable="false">Avoid duplicate native banners for selected apps</string>
-    <string name="floating_setup_intro" translatable="false">HyperBridge presents selected notifications in the Island. The source app still owns sound, vibration, and its useful notification-center entry.</string>
-    <string name="floating_setup_limitation" translatable="false">Android does not let HyperBridge verify or change another app’s floating-notification switch. Open each app’s settings, disable its native floating banner, then confirm the step here.</string>
+    <string name="floating_setup_intro" translatable="false">HyperBridge displays selected incoming notifications in the Island. The source app still owns sound, vibration, and its notification-center entry.</string>
+    <string name="floating_setup_limitation" translatable="false">To prevent duplicate heads-up popups, open each app’s system notification settings, disable its native floating notification, and confirm it below.</string>
+    <string name="floating_setup_alternative_title" translatable="false">Prefer native floating notifications?</string>
+    <string name="floating_setup_alternative_desc" translatable="false">You can keep native floating notifications enabled on your apps and instead turn off Heads-up Popup (Notificación Emergente) in HyperBridge Global Settings to avoid duplicate banners.</string>
+    <string name="floating_setup_no_apps_title" translatable="false">No bridged apps</string>
     <string name="floating_setup_no_apps" translatable="false">Select apps from the Library first. This setup remains available later.</string>
     <string name="floating_status_user_confirmed" translatable="false">User confirmed</string>
     <string name="floating_status_needs_review" translatable="false">Needs review</string>

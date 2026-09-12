@@ -619,5 +619,21 @@
     <string name="vpn_blocking">Bloqueando internet</string>
     <string name="vpn_error">Error de VPN</string>
     <string name="vpn_disconnected">VPN desconectada</string>
+
+    <!-- Floating Notification Setup -->
+    <string name="floating_setup_title">Configuración de notificaciones flotantes</string>
+    <string name="floating_setup_settings_subtitle">Evita banners flotantes duplicados en apps seleccionadas</string>
+    <string name="floating_setup_intro">HyperBridge muestra las notificaciones seleccionadas en la Isla. La app de origen sigue gestionando el sonido, vibración y su entrada en el panel.</string>
+    <string name="floating_setup_limitation">Para evitar banners flotantes duplicados, abre los ajustes de notificaciones del sistema de cada app, desactiva sus notificaciones emergentes y confírmalo abajo.</string>
+    <string name="floating_setup_alternative_title">¿Prefieres mantener las notificaciones flotantes nativas?</string>
+    <string name="floating_setup_alternative_desc">Puedes mantener activadas las notificaciones flotantes de tus apps y simplemente desactivar \"Notificación Emergente\" en los Ajustes Globales de HyperBridge para evitar duplicados.</string>
+    <string name="floating_setup_no_apps_title">Sin apps conectadas</string>
+    <string name="floating_setup_no_apps">Selecciona apps en la biblioteca primero. Esta configuración seguirá disponible después.</string>
+    <string name="floating_status_user_confirmed">Confirmado</string>
+    <string name="floating_status_needs_review">Revisión pendiente</string>
+    <string name="floating_status_not_required">No requerido en este dispositivo</string>
+    <string name="floating_disabled_confirmation">He desactivado las notificaciones emergentes en esta app</string>
+    <string name="open_notification_settings">Abrir ajustes de notificaciones</string>
+    <string name="settings_not_available">No se encontró una pantalla de ajustes compatible</string>
 </resources>
 
