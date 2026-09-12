@@ -1,6 +1,9 @@
 package com.d4viddf.hyperbridge.ui.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
@@ -23,22 +26,23 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -84,6 +88,9 @@ fun ScreenRecordingSettingsScreen(
         initial = AppPreferences.SYSTEM_ISLAND_DEFAULT_TIMEOUT
     )
 
+    var showLeftSheet by remember { mutableStateOf(false) }
+    var showRightSheet by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -122,38 +129,80 @@ fun ScreenRecordingSettingsScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
-                Column(Modifier.padding(16.dp)) {
-                    ScreenRecordingDropdown(
-                        label = stringResource(R.string.left_content),
-                        options = ScreenRecordingLeftDesign.entries,
-                        selected = leftDesign,
-                        labelFor = { option ->
-                            when (option) {
-                                ScreenRecordingLeftDesign.ICON_ONLY -> stringResource(R.string.screen_recording_left_option_icon_only)
-                                ScreenRecordingLeftDesign.ICON_AND_TEXT -> stringResource(R.string.screen_recording_left_option_icon_and_text)
-                                ScreenRecordingLeftDesign.TEXT_ONLY -> stringResource(R.string.screen_recording_left_option_text_only)
-                            }
-                        },
-                        onSelect = { newLeft ->
-                            scope.launch { preferences.setScreenRecordingLeftDesign(newLeft) }
+            // Configuration Options Card
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(vertical = 4.dp)) {
+                    // Left Content Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showLeftSheet = true }
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.left_content),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = when (leftDesign) {
+                                    ScreenRecordingLeftDesign.ICON_ONLY -> stringResource(R.string.screen_recording_left_option_icon_only)
+                                    ScreenRecordingLeftDesign.ICON_AND_TEXT -> stringResource(R.string.screen_recording_left_option_icon_and_text)
+                                    ScreenRecordingLeftDesign.TEXT_ONLY -> stringResource(R.string.screen_recording_left_option_text_only)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
-                    Spacer(Modifier.height(16.dp))
-                    ScreenRecordingDropdown(
-                        label = stringResource(R.string.right_content),
-                        options = ScreenRecordingRightDesign.entries,
-                        selected = rightDesign,
-                        labelFor = { option ->
-                            when (option) {
-                                ScreenRecordingRightDesign.TIMER -> stringResource(R.string.screen_recording_right_option_timer)
-                                ScreenRecordingRightDesign.NONE -> stringResource(R.string.screen_recording_right_option_none)
-                            }
-                        },
-                        onSelect = { newRight ->
-                            scope.launch { preferences.setScreenRecordingRightDesign(newRight) }
+
+                    // Right Content Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showRightSheet = true }
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.right_content),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = when (rightDesign) {
+                                    ScreenRecordingRightDesign.TIMER -> stringResource(R.string.screen_recording_right_option_timer)
+                                    ScreenRecordingRightDesign.NONE -> stringResource(R.string.screen_recording_right_option_none)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
-                    )
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
@@ -221,30 +270,47 @@ fun ScreenRecordingSettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-                )
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.good_to_know),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.screen_recording_customization_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+
+    // Left Design Bottom Sheet
+    if (showLeftSheet) {
+        ScreenRecordingOptionBottomSheet(
+            title = stringResource(R.string.left_content),
+            options = ScreenRecordingLeftDesign.entries,
+            selected = leftDesign,
+            labelFor = { option ->
+                when (option) {
+                    ScreenRecordingLeftDesign.ICON_ONLY -> stringResource(R.string.screen_recording_left_option_icon_only)
+                    ScreenRecordingLeftDesign.ICON_AND_TEXT -> stringResource(R.string.screen_recording_left_option_icon_and_text)
+                    ScreenRecordingLeftDesign.TEXT_ONLY -> stringResource(R.string.screen_recording_left_option_text_only)
+                }
+            },
+            onSelect = { newLeft ->
+                scope.launch { preferences.setScreenRecordingLeftDesign(newLeft) }
+            },
+            onDismiss = { showLeftSheet = false }
+        )
+    }
+
+    // Right Design Bottom Sheet
+    if (showRightSheet) {
+        ScreenRecordingOptionBottomSheet(
+            title = stringResource(R.string.right_content),
+            options = ScreenRecordingRightDesign.entries,
+            selected = rightDesign,
+            labelFor = { option ->
+                when (option) {
+                    ScreenRecordingRightDesign.TIMER -> stringResource(R.string.screen_recording_right_option_timer)
+                    ScreenRecordingRightDesign.NONE -> stringResource(R.string.screen_recording_right_option_none)
+                }
+            },
+            onSelect = { newRight ->
+                scope.launch { preferences.setScreenRecordingRightDesign(newRight) }
+            },
+            onDismiss = { showRightSheet = false }
+        )
     }
 }
 
@@ -261,34 +327,29 @@ private fun ScreenRecordingIslandPreview(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 32.dp),
+                .padding(vertical = 36.dp, horizontal = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
-                    .width(330.dp)
-                    .height(46.dp)
+                    .height(42.dp)
                     .clip(RoundedCornerShape(50))
                     .background(Color.Black)
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                // Camera Cutout
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(30.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF1F1F1F))
-                )
-
                 Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    // LEFT SIDE
+                    // Left Content
                     Row(
-                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
@@ -313,7 +374,8 @@ private fun ScreenRecordingIslandPreview(
                                     text = stringResource(R.string.screen_recording_compact),
                                     color = Color.White,
                                     fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1
                                 )
                             }
                             ScreenRecordingLeftDesign.TEXT_ONLY -> {
@@ -321,32 +383,31 @@ private fun ScreenRecordingIslandPreview(
                                     text = stringResource(R.string.screen_recording_compact),
                                     color = Color.White,
                                     fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1
                                 )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(32.dp))
-
-                    // RIGHT SIDE
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        when (right) {
-                            ScreenRecordingRightDesign.TIMER -> {
-                                Text(
-                                    text = "00:05",
-                                    color = Color.White,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Normal
-                                )
-                            }
-                            ScreenRecordingRightDesign.NONE -> {
-                                // Empty right side
-                            }
-                        }
+                    // Right Content (if timer is present)
+                    if (right == ScreenRecordingRightDesign.TIMER) {
+                        Spacer(Modifier.width(16.dp))
+                        // Camera cutout
+                        Box(
+                            modifier = Modifier
+                                .size(13.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF1F1F1F))
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        Text(
+                            text = "00:05",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1
+                        )
                     }
                 }
             }
@@ -356,34 +417,71 @@ private fun ScreenRecordingIslandPreview(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> ScreenRecordingDropdown(
-    label: String,
+private fun <T> ScreenRecordingOptionBottomSheet(
+    title: String,
     options: List<T>,
     selected: T,
     labelFor: @Composable (T) -> String,
-    onSelect: (T) -> Unit
+    onSelect: (T) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Column {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.height(4.dp))
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-            OutlinedTextField(
-                value = labelFor(selected),
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
-                    .fillMaxWidth(),
-                textStyle = MaterialTheme.typography.bodyMedium
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(labelFor(option)) },
-                        onClick = { onSelect(option); expanded = false }
-                    )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            options.forEach { option ->
+                val isSelected = option == selected
+                Surface(
+                    onClick = {
+                        onSelect(option)
+                        onDismiss()
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+                    } else {
+                        Color.Transparent
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = labelFor(option),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        RadioButton(
+                            selected = isSelected,
+                            onClick = null
+                        )
+                    }
                 }
             }
         }
