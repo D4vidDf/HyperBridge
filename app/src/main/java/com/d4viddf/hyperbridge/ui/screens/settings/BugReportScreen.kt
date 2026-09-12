@@ -103,6 +103,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
@@ -113,6 +114,7 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import com.d4viddf.hyperbridge.ui.components.ExpressiveGroupCard
 import com.d4viddf.hyperbridge.ui.components.ExpressiveSectionTitle
+import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.util.AppConfigScope
 import com.d4viddf.hyperbridge.util.BugReportCollector
 import com.d4viddf.hyperbridge.util.DeviceDiagnosticInfo
@@ -142,7 +144,6 @@ fun BugReportScreen(
     val uriHandler = LocalUriHandler.current
     val preferences = remember { AppPreferences(context) }
     val themeRepo = remember { ThemeRepository(context) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     // Form inputs
     var userDescription by remember { mutableStateOf("") }
@@ -170,16 +171,8 @@ fun BugReportScreen(
     var appConfigText by remember { mutableStateOf<String?>(null) }
     var logcatText by remember { mutableStateOf<String?>(null) }
 
-    // UI BottomSheet state
-    var isPreviewExpanded by remember { mutableStateOf(false) }
-    var showScopeBottomSheet by remember { mutableStateOf(false) }
-    var showAppPickerBottomSheet by remember { mutableStateOf(false) }
-    var showWidgetPickerDialog by remember { mutableStateOf(false) }
-    var showShareWarningDialog by remember { mutableStateOf(false) }
-    var pendingShareAction by remember { mutableStateOf<(() -> Unit)?>(null) }
-
     val bridgedPackages by preferences.allowedPackagesFlow.collectAsState(initial = emptySet())
-    val savedWidgetIds by preferences.savedWidgetIdsFlow.collectAsState(initial = emptySet())
+    val savedWidgetIds by preferences.savedWidgetIdsFlow.collectAsState(initial = emptyList())
 
     // Load launchable & bridged apps with icons and labels
     var allAppEntries by remember { mutableStateOf<List<AppEntry>>(emptyList()) }
@@ -309,6 +302,151 @@ fun BugReportScreen(
         )
     }
 
+    val onSubmitGitHub = {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Hyper Bridge Diagnostics", markdownReport)
+        clipboard.setPrimaryClip(clip)
+
+        Toast.makeText(
+            context,
+            context.getString(R.string.bug_report_copied_github_toast),
+            Toast.LENGTH_LONG
+        ).show()
+
+        val gitHubUrl = BugReportCollector.buildGitHubIssueUrl(
+            deviceInfo = if (includeDevice) deviceInfo else null,
+            userDescription = userDescription,
+            userSteps = userSteps,
+            permissionsInfo = if (includePermissions) permissionsInfo else null,
+            themeInfo = if (includeTheme) themeInfo else null,
+            widgetList = if (includeWidgets) widgetList else null,
+            appConfigScope = appConfigScope,
+            selectedAppPackage = selectedAppPackage,
+            appConfigText = if (appConfigScope != AppConfigScope.NONE) appConfigText else null,
+            logcatText = if (includeLogs) logcatText else null,
+            diagnosticsState = if (includeDiagnostics) diagnosticsState else null
+        )
+        uriHandler.openUri(gitHubUrl)
+    }
+
+    val onSendEmail = {
+        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = "mailto:".toUri()
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(BugReportCollector.DEVELOPER_EMAIL))
+            val subjectDesc = if (userDescription.isNotBlank()) {
+                userDescription.trim().take(50)
+            } else {
+                "Diagnostics"
+            }
+            putExtra(Intent.EXTRA_SUBJECT, "[Hyper Bridge Bug Report] $subjectDesc")
+            putExtra(Intent.EXTRA_TEXT, markdownReport)
+        }
+        try {
+            context.startActivity(Intent.createChooser(emailIntent, context.getString(R.string.bug_report_send_email)))
+        } catch (_: Exception) {
+            Toast.makeText(context, "No email client available", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val onCopyClipboard = {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Hyper Bridge Diagnostics", markdownReport)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(context, context.getString(R.string.bug_report_copied_toast), Toast.LENGTH_SHORT).show()
+    }
+
+    val onShare = {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.bug_report_email_subject))
+            putExtra(Intent.EXTRA_TEXT, markdownReport)
+        }
+        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.bug_report_share)))
+    }
+
+    BugReportContent(
+        userDescription = userDescription,
+        onUserDescriptionChange = { userDescription = it },
+        userSteps = userSteps,
+        onUserStepsChange = { userSteps = it },
+        includeDevice = includeDevice,
+        onIncludeDeviceChange = { includeDevice = it },
+        includePermissions = includePermissions,
+        onIncludePermissionsChange = { includePermissions = it },
+        includeTheme = includeTheme,
+        onIncludeThemeChange = { includeTheme = it },
+        includeWidgets = includeWidgets,
+        onIncludeWidgetsChange = { includeWidgets = it },
+        selectedWidgetId = selectedWidgetId,
+        onSelectedWidgetIdChange = { selectedWidgetId = it },
+        savedWidgetIds = savedWidgetIds,
+        appConfigScope = appConfigScope,
+        onAppConfigScopeChange = { appConfigScope = it },
+        selectedAppPackage = selectedAppPackage,
+        onSelectedAppPackageChange = { selectedAppPackage = it },
+        allAppEntries = allAppEntries,
+        isLoadingApps = isLoadingApps,
+        includeDiagnostics = includeDiagnostics,
+        onIncludeDiagnosticsChange = { includeDiagnostics = it },
+        includeLogs = includeLogs,
+        onIncludeLogsChange = { includeLogs = it },
+        markdownReport = markdownReport,
+        onSubmitGitHub = onSubmitGitHub,
+        onSendEmail = onSendEmail,
+        onCopyClipboard = onCopyClipboard,
+        onShare = onShare,
+        onBack = onBack,
+        onNavigateToDiagnostics = onNavigateToDiagnostics
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BugReportContent(
+    userDescription: String,
+    onUserDescriptionChange: (String) -> Unit,
+    userSteps: String,
+    onUserStepsChange: (String) -> Unit,
+    includeDevice: Boolean,
+    onIncludeDeviceChange: (Boolean) -> Unit,
+    includePermissions: Boolean,
+    onIncludePermissionsChange: (Boolean) -> Unit,
+    includeTheme: Boolean,
+    onIncludeThemeChange: (Boolean) -> Unit,
+    includeWidgets: Boolean,
+    onIncludeWidgetsChange: (Boolean) -> Unit,
+    selectedWidgetId: Int?,
+    onSelectedWidgetIdChange: (Int?) -> Unit,
+    savedWidgetIds: List<Int>,
+    appConfigScope: AppConfigScope,
+    onAppConfigScopeChange: (AppConfigScope) -> Unit,
+    selectedAppPackage: String?,
+    onSelectedAppPackageChange: (String?) -> Unit,
+    allAppEntries: List<AppEntry>,
+    isLoadingApps: Boolean,
+    includeDiagnostics: Boolean,
+    onIncludeDiagnosticsChange: (Boolean) -> Unit,
+    includeLogs: Boolean,
+    onIncludeLogsChange: (Boolean) -> Unit,
+    markdownReport: String,
+    onSubmitGitHub: () -> Unit,
+    onSendEmail: () -> Unit,
+    onCopyClipboard: () -> Unit,
+    onShare: () -> Unit,
+    onBack: () -> Unit,
+    onNavigateToDiagnostics: (() -> Unit)? = null
+) {
+    val uriHandler = LocalUriHandler.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    // UI BottomSheet state
+    var isPreviewExpanded by remember { mutableStateOf(false) }
+    var showScopeBottomSheet by remember { mutableStateOf(false) }
+    var showAppPickerBottomSheet by remember { mutableStateOf(false) }
+    var showWidgetPickerDialog by remember { mutableStateOf(false) }
+    var showShareWarningDialog by remember { mutableStateOf(false) }
+    var pendingShareAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
@@ -377,7 +515,7 @@ fun BugReportScreen(
             ExpressiveSectionTitle(stringResource(R.string.bug_report_details_title))
             OutlinedTextField(
                 value = userDescription,
-                onValueChange = { userDescription = it },
+                onValueChange = onUserDescriptionChange,
                 label = { Text(stringResource(R.string.bug_report_what_happened)) },
                 placeholder = { Text(stringResource(R.string.bug_report_what_happened_hint)) },
                 minLines = 2,
@@ -390,7 +528,7 @@ fun BugReportScreen(
 
             OutlinedTextField(
                 value = userSteps,
-                onValueChange = { userSteps = it },
+                onValueChange = onUserStepsChange,
                 label = { Text(stringResource(R.string.bug_report_steps)) },
                 placeholder = { Text(stringResource(R.string.bug_report_steps_hint)) },
                 minLines = 2,
@@ -409,7 +547,7 @@ fun BugReportScreen(
                     title = stringResource(R.string.bug_report_include_device),
                     subtitle = stringResource(R.string.bug_report_include_device_desc),
                     checked = includeDevice,
-                    onCheckedChange = { includeDevice = it }
+                    onCheckedChange = onIncludeDeviceChange
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -420,7 +558,7 @@ fun BugReportScreen(
                     title = stringResource(R.string.bug_report_include_permissions),
                     subtitle = stringResource(R.string.bug_report_include_permissions_desc),
                     checked = includePermissions,
-                    onCheckedChange = { includePermissions = it }
+                    onCheckedChange = onIncludePermissionsChange
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -431,7 +569,7 @@ fun BugReportScreen(
                     title = stringResource(R.string.bug_report_include_theme),
                     subtitle = stringResource(R.string.bug_report_include_theme_desc),
                     checked = includeTheme,
-                    onCheckedChange = { includeTheme = it }
+                    onCheckedChange = onIncludeThemeChange
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -442,7 +580,7 @@ fun BugReportScreen(
                     title = stringResource(R.string.bug_report_include_widgets),
                     subtitle = stringResource(R.string.bug_report_include_widgets_desc),
                     checked = includeWidgets,
-                    onCheckedChange = { includeWidgets = it }
+                    onCheckedChange = onIncludeWidgetsChange
                 )
 
                 if (includeWidgets && savedWidgetIds.isNotEmpty()) {
@@ -686,7 +824,7 @@ fun BugReportScreen(
                                             )
                                         } else if (selectedAppPackage != null) {
                                             Text(
-                                                text = selectedAppPackage!!,
+                                                text = selectedAppPackage,
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 fontWeight = FontWeight.SemiBold,
                                                 color = MaterialTheme.colorScheme.onSurface
@@ -729,7 +867,7 @@ fun BugReportScreen(
                     title = stringResource(R.string.bug_report_include_diagnostics),
                     subtitle = stringResource(R.string.bug_report_include_diagnostics_desc),
                     checked = includeDiagnostics,
-                    onCheckedChange = { includeDiagnostics = it }
+                    onCheckedChange = onIncludeDiagnosticsChange
                 )
 
                 if (includeDiagnostics && onNavigateToDiagnostics != null) {
@@ -776,7 +914,7 @@ fun BugReportScreen(
                     title = stringResource(R.string.bug_report_include_logs),
                     subtitle = stringResource(R.string.bug_report_include_logs_desc),
                     checked = includeLogs,
-                    onCheckedChange = { includeLogs = it }
+                    onCheckedChange = onIncludeLogsChange
                 )
             }
 
@@ -845,32 +983,7 @@ fun BugReportScreen(
             // 1. Primary: Submit on GitHub
             Button(
                 onClick = {
-                    pendingShareAction = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Hyper Bridge Diagnostics", markdownReport)
-                        clipboard.setPrimaryClip(clip)
-
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.bug_report_copied_github_toast),
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                        val gitHubUrl = BugReportCollector.buildGitHubIssueUrl(
-                            deviceInfo = if (includeDevice) deviceInfo else null,
-                            userDescription = userDescription,
-                            userSteps = userSteps,
-                            permissionsInfo = if (includePermissions) permissionsInfo else null,
-                            themeInfo = if (includeTheme) themeInfo else null,
-                            widgetList = if (includeWidgets) widgetList else null,
-                            appConfigScope = appConfigScope,
-                            selectedAppPackage = selectedAppPackage,
-                            appConfigText = if (appConfigScope != AppConfigScope.NONE) appConfigText else null,
-                            logcatText = if (includeLogs) logcatText else null,
-                            diagnosticsState = if (includeDiagnostics) diagnosticsState else null
-                        )
-                        uriHandler.openUri(gitHubUrl)
-                    }
+                    pendingShareAction = onSubmitGitHub
                     showShareWarningDialog = true
                 },
                 modifier = Modifier
@@ -887,24 +1000,7 @@ fun BugReportScreen(
 
             // 2. Secondary: Send via Email
             OutlinedButton(
-                onClick = {
-                    val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = "mailto:".toUri()
-                        putExtra(Intent.EXTRA_EMAIL, arrayOf(BugReportCollector.DEVELOPER_EMAIL))
-                        val subjectDesc = if (userDescription.isNotBlank()) {
-                            userDescription.trim().take(50)
-                        } else {
-                            "Diagnostics"
-                        }
-                        putExtra(Intent.EXTRA_SUBJECT, "[Hyper Bridge Bug Report] $subjectDesc")
-                        putExtra(Intent.EXTRA_TEXT, markdownReport)
-                    }
-                    try {
-                        context.startActivity(Intent.createChooser(emailIntent, context.getString(R.string.bug_report_send_email)))
-                    } catch (_: Exception) {
-                        Toast.makeText(context, "No email client available", Toast.LENGTH_SHORT).show()
-                    }
-                },
+                onClick = onSendEmail,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -923,12 +1019,7 @@ fun BugReportScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FilledTonalButton(
-                    onClick = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Hyper Bridge Diagnostics", markdownReport)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(context, context.getString(R.string.bug_report_copied_toast), Toast.LENGTH_SHORT).show()
-                    },
+                    onClick = onCopyClipboard,
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
@@ -941,14 +1032,7 @@ fun BugReportScreen(
 
                 FilledTonalButton(
                     onClick = {
-                        pendingShareAction = {
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.bug_report_email_subject))
-                                putExtra(Intent.EXTRA_TEXT, markdownReport)
-                            }
-                            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.bug_report_share)))
-                        }
+                        pendingShareAction = onShare
                         showShareWarningDialog = true
                     },
                     modifier = Modifier
@@ -1000,7 +1084,7 @@ fun BugReportScreen(
                 // Option 1: None
                 Surface(
                     onClick = {
-                        appConfigScope = AppConfigScope.NONE
+                        onAppConfigScopeChange(AppConfigScope.NONE)
                         showScopeBottomSheet = false
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -1038,7 +1122,7 @@ fun BugReportScreen(
                 // Option 2: All Apps
                 Surface(
                     onClick = {
-                        appConfigScope = AppConfigScope.ALL_SETTINGS
+                        onAppConfigScopeChange(AppConfigScope.ALL_SETTINGS)
                         showScopeBottomSheet = false
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -1076,7 +1160,7 @@ fun BugReportScreen(
                 // Option 3: Specific App
                 Surface(
                     onClick = {
-                        appConfigScope = AppConfigScope.SPECIFIC_APP
+                        onAppConfigScopeChange(AppConfigScope.SPECIFIC_APP)
                         showScopeBottomSheet = false
                         if (selectedAppPackage == null) {
                             showAppPickerBottomSheet = true
@@ -1212,8 +1296,8 @@ fun BugReportScreen(
                             val isSelected = selectedAppPackage == app.packageName && appConfigScope == AppConfigScope.SPECIFIC_APP
                             Surface(
                                 onClick = {
-                                    selectedAppPackage = app.packageName
-                                    appConfigScope = AppConfigScope.SPECIFIC_APP
+                                    onSelectedAppPackageChange(app.packageName)
+                                    onAppConfigScopeChange(AppConfigScope.SPECIFIC_APP)
                                     showAppPickerBottomSheet = false
                                 },
                                 shape = RoundedCornerShape(12.dp),
@@ -1293,7 +1377,7 @@ fun BugReportScreen(
                 Column {
                     Surface(
                         onClick = {
-                            selectedWidgetId = null
+                            onSelectedWidgetIdChange(null)
                             showWidgetPickerDialog = false
                         },
                         shape = RoundedCornerShape(12.dp),
@@ -1319,7 +1403,7 @@ fun BugReportScreen(
                     savedWidgetIds.forEach { id ->
                         Surface(
                             onClick = {
-                                selectedWidgetId = id
+                                onSelectedWidgetIdChange(id)
                                 showWidgetPickerDialog = false
                             },
                             shape = RoundedCornerShape(12.dp),
@@ -1482,5 +1566,59 @@ private fun ToggleSettingRow(
                 onCheckedChange = null
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BugReportScreenPreview() {
+    HyperBridgeTheme {
+        BugReportContent(
+            userDescription = "Island does not show up when playing Spotify music.",
+            onUserDescriptionChange = {},
+            userSteps = "1. Play music on Spotify\n2. Lock and unlock device\n3. Notice island missing",
+            onUserStepsChange = {},
+            includeDevice = true,
+            onIncludeDeviceChange = {},
+            includePermissions = true,
+            onIncludePermissionsChange = {},
+            includeTheme = true,
+            onIncludeThemeChange = {},
+            includeWidgets = true,
+            onIncludeWidgetsChange = {},
+            selectedWidgetId = null,
+            onSelectedWidgetIdChange = {},
+            savedWidgetIds = listOf(1, 2),
+            appConfigScope = AppConfigScope.ALL_SETTINGS,
+            onAppConfigScopeChange = {},
+            selectedAppPackage = null,
+            onSelectedAppPackageChange = {},
+            allAppEntries = listOf(
+                AppEntry("com.spotify.music", "Spotify", null, isBridged = true),
+                AppEntry("org.telegram.messenger", "Telegram", null, isBridged = true),
+                AppEntry("com.whatsapp", "WhatsApp", null, isBridged = false)
+            ),
+            isLoadingApps = false,
+            includeDiagnostics = true,
+            onIncludeDiagnosticsChange = {},
+            includeLogs = true,
+            onIncludeLogsChange = {},
+            markdownReport = """
+                ### Device Information
+                - Device: Xiaomi 13 Pro (nuwa)
+                - Android: 14 (API 34)
+                - HyperOS: 1.0.8.0.UMBMIXM
+
+                ### Diagnostics
+                - Service Connected: Yes
+                - Active Islands: 1
+            """.trimIndent(),
+            onSubmitGitHub = {},
+            onSendEmail = {},
+            onCopyClipboard = {},
+            onShare = {},
+            onBack = {},
+            onNavigateToDiagnostics = {}
+        )
     }
 }
