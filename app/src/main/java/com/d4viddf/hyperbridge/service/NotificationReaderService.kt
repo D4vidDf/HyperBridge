@@ -290,7 +290,18 @@ class NotificationReaderService : NotificationListenerService() {
             serviceScope,
             preferences,
             themeRepository,
-            initialNotifications = { activeNotifications ?: emptyArray() },
+            initialNotifications = {
+                if (isConnected) {
+                    try {
+                        activeNotifications ?: emptyArray()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to query active notifications for VPN controller", e)
+                        emptyArray()
+                    }
+                } else {
+                    emptyArray()
+                }
+            },
             onIslandActiveChanged = { active ->
                 vpnIslandActive = active
                 updatePermanentIsland()
@@ -2133,6 +2144,17 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, "HyperBridge Service Connected")
         isConnected = true
         DiagnosticsStore.setServiceConnected(true)
+        if (::vpnIslandController.isInitialized) {
+            val notifications = try {
+                activeNotifications ?: emptyArray()
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to query active notifications on listener connected", e)
+                emptyArray()
+            }
+            notifications.forEach { sbn ->
+                vpnIslandController.onSourceNotificationPosted(sbn)
+            }
+        }
         syncNotifications(refresh = true)
         syncJob?.cancel()
         syncJob = serviceScope.launch {
@@ -2160,8 +2182,14 @@ class NotificationReaderService : NotificationListenerService() {
         callSessionTracker.pruneStale(now)
 
         serviceScope.launch(Dispatchers.IO) {
+            if (!isConnected) return@launch
             try {
-                val currentNotifications = activeNotifications ?: return@launch
+                val currentNotifications = try {
+                    activeNotifications ?: return@launch
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to query active notifications during sync", e)
+                    return@launch
+                }
                 val systemNotificationKeys = currentNotifications.map { it.key }.toSet()
 
                 var nativeChanged = false

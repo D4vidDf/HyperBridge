@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.util.Log
 import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
@@ -75,7 +76,11 @@ class VpnIslandController(
                 enabled = shouldEnable
                 if (shouldEnable) {
                     providerRegistry.providerPackages(refresh = true)
-                    initialNotifications().forEach(::onSourceNotificationPosted)
+                    try {
+                        initialNotifications().forEach(::onSourceNotificationPosted)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to load initial notifications for VPN controller", e)
+                    }
                     observer.start()
                 } else {
                     observer.stop()
@@ -405,6 +410,7 @@ class VpnIslandController(
     }
 
     companion object {
+        private const val TAG = "VpnIslandController"
         /** Reserved controller-owned ID; periodic orphan cleanup must leave this notification alone. */
         val NOTIFICATION_ID = VpnTranslator.BUSINESS.hashCode()
         private const val HANDOFF_GRACE_MS = 1_500L
