@@ -41,6 +41,8 @@ import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
+import android.graphics.Typeface
+import androidx.core.graphics.withClip
 import androidx.core.graphics.get
 
 abstract class BaseTranslator(
@@ -418,6 +420,89 @@ abstract class BaseTranslator(
         val bitmap = drawable?.toBitmap() ?: createFallbackBitmap()
         return HyperPicture(key, bitmap)
     }
+
+    /**
+     * Places a country flag behind Xiaomi's native app-icon badge position. The provider icon
+     * remains a separate native ChatInfo layer, so both identities stay visible as a stack.
+     */
+    protected fun getCountryFlagBadgedPicture(
+        key: String,
+        resId: Int,
+        colorHex: String,
+        countryFlagBitmap: Bitmap?,
+        flagEmoji: String?
+    ): HyperPicture {
+        val drawable = ContextCompat.getDrawable(context, resId)?.mutate()
+        val color = try { colorHex.toColorInt() } catch (_: Exception) { Color.WHITE }
+        drawable?.setTint(color)
+        val glyph = drawable?.toBitmap()?.let { source ->
+            createBitmap(96, 96).also { target ->
+                drawNormalizedBitmap(
+                    Canvas(target),
+                    source,
+                    RectF(0f, 0f, 96f, 96f),
+                    Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+                )
+            }
+        } ?: createFallbackBitmap()
+        if (!isUsableBitmap(countryFlagBitmap) && flagEmoji.isNullOrBlank()) return HyperPicture(key, glyph)
+
+        val output = runCatching {
+            val width = glyph.width.coerceAtLeast(1)
+            val height = glyph.height.coerceAtLeast(1)
+            val bitmap = createBitmap(width, height)
+            val canvas = Canvas(bitmap)
+            canvas.drawBitmap(glyph, 0f, 0f, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+
+            val minSide = minOf(width, height).toFloat()
+            val radius = minSide * 0.235f
+            // Offset up and left so Xiaomi's native provider badge overlaps instead of hiding it.
+            val centerX = width - minSide * 0.31f
+            val centerY = height - minSide * 0.31f
+            canvas.drawCircle(centerX, centerY, radius, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                this.color = Color.WHITE
+            })
+            canvas.withClip(centerX - radius, centerY - radius, centerX + radius, centerY + radius) {
+                if (isUsableBitmap(countryFlagBitmap)) {
+                    drawNormalizedBitmap(
+                        canvas,
+                        checkNotNull(countryFlagBitmap),
+                        RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius),
+                        Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+                    )
+                } else {
+                    val textPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                        textAlign = Paint.Align.CENTER
+                        textSize = radius * 1.65f
+                        typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+                    }
+                    val metrics = textPaint.fontMetrics
+                    val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
+                    canvas.drawText(checkNotNull(flagEmoji), centerX, baseline, textPaint)
+                }
+            }
+            bitmap
+        }.getOrDefault(glyph)
+        return HyperPicture(key, output)
+    }
+
+    protected fun getThemedActionPicture(
+        key: String,
+        resId: Int,
+        theme: HyperTheme?,
+        packageName: String?,
+        backgroundColor: Int
+    ): HyperPicture {
+        val source = ContextCompat.getDrawable(context, resId)?.mutate()?.toBitmap(width = 96, height = 96)
+            ?: createFallbackBitmap()
+        val bitmap = if (theme != null && packageName != null) {
+            applyThemeToActionIcon(source, theme, packageName, backgroundColor)
+        } else {
+            applyThemeToActionIcon(source, "circle", 24, backgroundColor)
+        }
+        return HyperPicture(key, bitmap)
+    }
+
 
     protected fun getNotificationBitmap(sbn: StatusBarNotification): Bitmap? {
         val pkg = sbn.packageName

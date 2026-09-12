@@ -286,6 +286,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
                             onSettingsClick = onSettingsClick
@@ -300,6 +301,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
                             onSettingsClick = onSettingsClick

@@ -32,6 +32,8 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.SystemIntegrationId
 import com.d4viddf.hyperbridge.ui.SystemIntegrationInfo
 
+import androidx.compose.ui.res.painterResource
+
 @Composable
 fun SystemIntegrationListItem(
     integration: SystemIntegrationInfo,
@@ -57,10 +59,18 @@ fun SystemIntegrationListItem(
                         contentDescription = null,
                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp))
                     )
+                } else if (integration.id == SystemIntegrationId.VPN) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_vpn),
+                        contentDescription = null,
+                        modifier = Modifier.size(25.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 } else {
                     Icon(
                         imageVector = when (integration.id) {
                             SystemIntegrationId.SCREEN_RECORDER -> Icons.Outlined.Videocam
+                            SystemIntegrationId.VPN -> Icons.Outlined.Videocam
                         },
                         contentDescription = null,
                         modifier = Modifier.size(25.dp),
@@ -75,6 +85,7 @@ fun SystemIntegrationListItem(
                 text = stringResource(
                     when (integration.id) {
                         SystemIntegrationId.SCREEN_RECORDER -> R.string.screen_recording_title
+                        SystemIntegrationId.VPN -> R.string.vpn_title
                     }
                 ),
                 style = MaterialTheme.typography.titleMedium,
@@ -102,3 +113,4 @@ fun SystemIntegrationListItem(
         )
     }
 }
+

@@ -435,8 +435,20 @@
     <string name="screen_recording_left_option_text_only">Solo mensaje</string>
     <string name="screen_recording_right_option_timer">Temporizador</string>
     <string name="screen_recording_right_option_none">Nada</string>
-    <string name="screen_recording_saved_auto_hide_desc">Tiempo que se muestra el tic de confirmación tras finalizar la grabación</string>
     <string name="preview">Vista previa</string>
+    <string name="vpn_title">VPN</string>
+    <string name="vpn_island_enabled">Supervisando conexiones VPN</string>
+    <string name="vpn_island_disabled">La isla de VPN está desactivada</string>
+    <string name="vpn_is_connected">VPN conectada</string>
+    <string name="vpn_connected_to">Conectado a %1$s</string>
+    <string name="vpn_connecting">Conectando VPN…</string>
+    <string name="vpn_reconnecting">Reconectando VPN…</string>
+    <string name="vpn_waiting_for_network">Esperando conexión de red…</string>
+    <string name="vpn_paused">VPN pausada</string>
+    <string name="vpn_disconnecting">Desconectando VPN…</string>
+    <string name="vpn_blocking">Bloqueando internet</string>
+    <string name="vpn_error">Error de VPN</string>
+    <string name="vpn_disconnected">VPN desconectada</string>
 </resources>
 
 
