@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.db.AppSetting
+import com.d4viddf.hyperbridge.data.db.SettingsDao
 import com.d4viddf.hyperbridge.data.db.SettingsKeys
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
@@ -26,10 +27,17 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val Context.legacyDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-class AppPreferences(context: Context) {
+class AppPreferences internal constructor(
+    private val dao: SettingsDao,
+    private val legacyDataStore: DataStore<Preferences>?,
+    context: Context?
+) {
 
-    private val dao = AppDatabase.getDatabase(context).settingsDao()
-    private val legacyDataStore = context.applicationContext.legacyDataStore
+    constructor(context: Context) : this(
+        dao = AppDatabase.getDatabase(context).settingsDao(),
+        legacyDataStore = context.applicationContext.legacyDataStore,
+        context = context
+    )
 
     private val memoryCache = ConcurrentHashMap<String, String>()
 
@@ -45,13 +53,14 @@ class AppPreferences(context: Context) {
         }
 
         // --- MIGRATION LOGIC ---
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // Wait for user unlock before attempting to migrate from legacy DataStore (CE storage)
-                val userManager = context.getSystemService(Context.USER_SERVICE) as android.os.UserManager
-                if (!userManager.isUserUnlocked) {
-                    return@launch 
-                }
+        if (context != null && legacyDataStore != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    // Wait for user unlock before attempting to migrate from legacy DataStore (CE storage)
+                    val userManager = context.getSystemService(Context.USER_SERVICE) as? android.os.UserManager
+                    if (userManager != null && !userManager.isUserUnlocked) {
+                        return@launch 
+                    }
 
                 // Force Onboarding reset for new permissions
                 val lastResetVersion = dao.getSetting("onboarding_reset_version")?.toIntOrNull() ?: 0
@@ -138,6 +147,7 @@ class AppPreferences(context: Context) {
             }
         }
     }
+}
 
     // --- HELPERS ---
     private fun String?.toBoolean(default: Boolean = false): Boolean = this?.toBooleanStrictOrNull() ?: default
@@ -149,10 +159,12 @@ class AppPreferences(context: Context) {
     private fun String?.deserializeList(): List<String> = this?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
 
     private suspend fun save(key: String, value: String) {
+        memoryCache[key] = value
         dao.insert(AppSetting(key, value))
     }
 
     private suspend fun remove(key: String) {
+        memoryCache.remove(key)
         dao.delete(key)
     }
 
@@ -600,5 +612,72 @@ class AppPreferences(context: Context) {
 
     fun useNativeLiveUpdatesSync(): Boolean {
         return memoryCache[USE_NATIVE_ENGINE]?.toBoolean() ?: false
+    }
+
+    fun isAppAllowedSync(packageName: String): Boolean {
+        val raw = memoryCache[SettingsKeys.ALLOWED_PACKAGES] ?: return false
+        return raw.deserializeSet().contains(packageName)
+    }
+
+    fun getAppPriorityOrderSync(): List<String> {
+        val raw = memoryCache[SettingsKeys.PRIORITY_ORDER]
+        return raw.deserializeList()
+    }
+
+    fun getAppPriorityFast(packageName: String): Int {
+        val priorityList = getAppPriorityOrderSync()
+        val index = priorityList.indexOf(packageName)
+        return if (index == -1) Int.MAX_VALUE else index
+    }
+
+    fun getLimitModeSync(): IslandLimitMode {
+        val raw = memoryCache["limit_mode"]
+        return try {
+            IslandLimitMode.valueOf(raw ?: IslandLimitMode.MOST_RECENT.name)
+        } catch (_: Exception) {
+            IslandLimitMode.MOST_RECENT
+        }
+    }
+
+    fun getGlobalBlockedTermsSync(): Set<String> {
+        return memoryCache[SettingsKeys.GLOBAL_BLOCKED_TERMS].deserializeSet()
+    }
+
+    fun isBlockedTermFast(packageName: String, title: String, text: String): Boolean {
+        val appBlocked = getAppBlockedTermsSync(packageName)
+        val globalBlocked = getGlobalBlockedTermsSync()
+        if (appBlocked.isEmpty() && globalBlocked.isEmpty()) return false
+
+        val combinedContent = "$title $text"
+        if (appBlocked.isNotEmpty() && appBlocked.any { combinedContent.contains(it, ignoreCase = true) }) {
+            return true
+        }
+        if (globalBlocked.isNotEmpty() && globalBlocked.any { combinedContent.contains(it, ignoreCase = true) }) {
+            return true
+        }
+        return false
+    }
+
+    fun isDndModeEnabledSync(): Boolean {
+        return memoryCache["dnd_mode_enabled"]?.toBoolean() ?: false
+    }
+
+    fun autoDetectDndSync(): Boolean {
+        return memoryCache["auto_detect_dnd"]?.toBoolean() ?: false
+    }
+
+    @androidx.annotation.VisibleForTesting
+    internal fun putInCacheForTesting(key: String, value: String) {
+        memoryCache[key] = value
+    }
+
+    @androidx.annotation.VisibleForTesting
+    internal fun removeFromCacheForTesting(key: String) {
+        memoryCache.remove(key)
+    }
+
+    @androidx.annotation.VisibleForTesting
+    internal fun clearCacheForTesting() {
+        memoryCache.clear()
     }
 }

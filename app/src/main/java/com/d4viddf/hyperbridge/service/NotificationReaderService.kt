@@ -896,7 +896,8 @@ class NotificationReaderService : NotificationListenerService() {
     ) {
         val manager = getSystemService(NotificationManager::class.java)
         val isSystemDndActive = manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
-        val dndActive = isDndModeEnabled || (autoDetectDnd && isSystemDndActive)
+        val dndActive = preferences.isDndModeEnabledSync() || isDndModeEnabled || 
+                ((preferences.autoDetectDndSync() || autoDetectDnd) && isSystemDndActive)
 
         if (dndActive) {
             Log.d(TAG, "DND active. Skipping notification ${rawSbn.packageName}")
@@ -922,11 +923,7 @@ class NotificationReaderService : NotificationListenerService() {
             val hasProgress = hasProgressNotification(sbn, effectiveTitle, effectiveText)
             if (effectiveTitle.isEmpty() && !hasProgress) return
 
-            val appBlockedTerms = preferences.getAppBlockedTermsSync(sbn.packageName)
-            if (appBlockedTerms.isNotEmpty()) {
-                val content = "$effectiveTitle $effectiveText"
-                if (appBlockedTerms.any { term -> content.contains(term, ignoreCase = true) }) return
-            }
+            if (preferences.isBlockedTermFast(sbn.packageName, effectiveTitle, effectiveText)) return
 
             val activeTheme = themeRepository.activeTheme.value
             val ruleMatch = rulesEngine.match(sbn, effectiveTitle, effectiveText, activeTheme)
@@ -1434,15 +1431,10 @@ class NotificationReaderService : NotificationListenerService() {
     private fun handleLimitReached(newType: NotificationType, newPkg: String) {
         val oldest = activeIslands.minByOrNull { it.value.postTime } ?: return
 
-        when (currentMode) {
+        val mode = preferences.getLimitModeSync()
+        when (mode) {
             IslandLimitMode.FIRST_COME -> {
                 // Ignore the new notification by removing it immediately (or simply returning, but returning here means the caller won't add it)
-                // The logic in the caller says:
-                // if (!isUpdate && activeIslands.size >= MAX_ISLANDS) {
-                //    handleLimitReached(type, sbn.packageName)
-                //    if (activeIslands.size >= MAX_ISLANDS) return
-                // }
-                // So if we do nothing here, the size remains >= MAX_ISLANDS, and the caller will return.
                 return
             }
             IslandLimitMode.MOST_RECENT -> {
@@ -1453,15 +1445,29 @@ class NotificationReaderService : NotificationListenerService() {
                 // Check if newPkg has higher priority than existing ones.
                 // Priority is determined by its index in appPriorityList (lower index = higher priority).
                 // If it's not in the list, it has the lowest priority (Int.MAX_VALUE).
-                val newPriority = appPriorityList.indexOf(newPkg).let { if (it == -1) Int.MAX_VALUE else it }
+                val newPriority = preferences.getAppPriorityFast(newPkg).let {
+                    if (it == Int.MAX_VALUE && appPriorityList.isNotEmpty()) {
+                        appPriorityList.indexOf(newPkg).let { idx -> if (idx == -1) Int.MAX_VALUE else idx }
+                    } else it
+                }
                 
                 // Find the existing active island with the lowest priority (highest index value)
                 val lowestPriorityIsland = activeIslands.maxByOrNull {
-                    appPriorityList.indexOf(it.value.packageName).let { idx -> if (idx == -1) Int.MAX_VALUE else idx }
+                    val pkg = it.value.packageName
+                    preferences.getAppPriorityFast(pkg).let { p ->
+                        if (p == Int.MAX_VALUE && appPriorityList.isNotEmpty()) {
+                            appPriorityList.indexOf(pkg).let { idx -> if (idx == -1) Int.MAX_VALUE else idx }
+                        } else p
+                    }
                 }
 
                 if (lowestPriorityIsland != null) {
-                    val lowestPriority = appPriorityList.indexOf(lowestPriorityIsland.value.packageName).let { if (it == -1) Int.MAX_VALUE else it }
+                    val lowestPkg = lowestPriorityIsland.value.packageName
+                    val lowestPriority = preferences.getAppPriorityFast(lowestPkg).let { p ->
+                        if (p == Int.MAX_VALUE && appPriorityList.isNotEmpty()) {
+                            appPriorityList.indexOf(lowestPkg).let { idx -> if (idx == -1) Int.MAX_VALUE else idx }
+                        } else p
+                    }
                     if (newPriority <= lowestPriority) {
                         // The new notification has equal or higher priority than the lowest existing one.
                         // Remove the lowest priority existing notification.
@@ -1490,7 +1496,8 @@ class NotificationReaderService : NotificationListenerService() {
         if (hasProgress || isSpecial) return false
         if (title.isEmpty() && text.isEmpty()) return true
         if (title.equals(pkg, ignoreCase = true) || text.equals(pkg, ignoreCase = true)) return true
-        if (globalBlockedTerms.any { "$title $text".contains(it, true) }) return true
+        val blockedTerms = preferences.getGlobalBlockedTermsSync().ifEmpty { globalBlockedTerms }
+        if (blockedTerms.any { "$title $text".contains(it, true) }) return true
 
         if ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) {
             val type = detectNotificationType(sbn)
@@ -1522,7 +1529,8 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
-    private fun isAppAllowed(packageName: String): Boolean = allowedPackageSet.contains(packageName)
+    private fun isAppAllowed(packageName: String): Boolean =
+        preferences.isAppAllowedSync(packageName) || allowedPackageSet.contains(packageName)
 
     private var syncJob: Job? = null
 
