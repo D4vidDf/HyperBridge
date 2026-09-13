@@ -856,6 +856,9 @@
     <string name="theme_managed_banner">Behaviors are currently managed by your active Theme.</string>
     <string name="app_status_bridged">Bridged</string>
     <string name="app_status_not_bridged">Not Bridged</string>
+    <string name="custom_behavior_desc">Using custom behavior for this app. Enable to use global defaults.</string>
+    <string name="no_blocked_terms">No blocked terms configured</string>
+    <string name="no_blocked_terms_desc">Notifications containing added words will not trigger an island.</string>
 </resources>
 
 

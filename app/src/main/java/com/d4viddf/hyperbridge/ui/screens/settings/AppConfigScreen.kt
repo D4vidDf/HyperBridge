@@ -40,6 +40,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
@@ -70,6 +72,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -95,11 +98,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -116,7 +121,6 @@ import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetSize
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
-import com.d4viddf.hyperbridge.ui.components.BlocklistEditor
 import com.d4viddf.hyperbridge.ui.components.IslandSettingsControl
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
@@ -538,23 +542,15 @@ fun AppConfigContent(
                         appName = appName,
                         onBack = { onNavigateSubscreen(null) }
                     ) {
-                        Card(
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                AppNotificationTypesContent(
-                                    packageName = packageName,
-                                    activeTypes = activeTypes,
-                                    activeCallStages = activeCallStages,
-                                    onToggleType = onToggleType,
-                                    onToggleCallStage = onToggleCallStage,
-                                    onNavConfigClick = onNavConfigClick,
-                                    navEditDesc = navEditDesc
-                                )
-                            }
-                        }
+                        AppNotificationTypesContent(
+                            packageName = packageName,
+                            activeTypes = activeTypes,
+                            activeCallStages = activeCallStages,
+                            onToggleType = onToggleType,
+                            onToggleCallStage = onToggleCallStage,
+                            onNavConfigClick = onNavConfigClick,
+                            navEditDesc = navEditDesc
+                        )
                     }
                 }
 
@@ -564,21 +560,13 @@ fun AppConfigContent(
                         appName = appName,
                         onBack = { onNavigateSubscreen(null) }
                     ) {
-                        Card(
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                AppBehaviorContent(
-                                    appConfig = appIslandConfig,
-                                    globalConfig = globalConfig,
-                                    onUpdate = onUpdateIslandConfig,
-                                    activeDesc = activeDesc,
-                                    inactiveDesc = inactiveDesc
-                                )
-                            }
-                        }
+                        AppBehaviorContent(
+                            appConfig = appIslandConfig,
+                            globalConfig = globalConfig,
+                            onUpdate = onUpdateIslandConfig,
+                            activeDesc = activeDesc,
+                            inactiveDesc = inactiveDesc
+                        )
                     }
                 }
 
@@ -588,18 +576,10 @@ fun AppConfigContent(
                         appName = appName,
                         onBack = { onNavigateSubscreen(null) }
                     ) {
-                        Card(
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                BlocklistEditor(
-                                    terms = blockedTerms,
-                                    onUpdate = onUpdateBlockedTerms
-                                )
-                            }
-                        }
+                        AppConfigBlockedTermsContent(
+                            terms = blockedTerms,
+                            onUpdate = onUpdateBlockedTerms
+                        )
                     }
                 }
 
@@ -710,7 +690,7 @@ fun SubscreenScaffold(
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 content()
@@ -918,7 +898,7 @@ fun AppHeaderCard(
 }
 
 // ------------------------------------------------------------------------------------------------
-// NOTIFICATION TYPES CONTENT
+// NOTIFICATION TYPES CONTENT (Each in a clean separate container card)
 // ------------------------------------------------------------------------------------------------
 
 @Composable
@@ -931,85 +911,93 @@ fun AppNotificationTypesContent(
     onNavConfigClick: () -> Unit,
     navEditDesc: String
 ) {
-    Column {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         NotificationType.configurableEntries.forEach { type ->
             val isChecked = activeTypes.contains(type.name)
             val typeLabel = stringResource(type.labelRes)
             val switchDesc = if (isChecked) stringResource(R.string.cd_disable_type, typeLabel)
             else stringResource(R.string.cd_enable_type, typeLabel)
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onToggleType(type, !isChecked) }
-                    .padding(vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = typeLabel,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-
-                if (type == NotificationType.NAVIGATION) {
-                    IconButton(
-                        onClick = onNavConfigClick,
-                        modifier = Modifier.semantics { contentDescription = navEditDesc }
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onToggleType(type, !isChecked) },
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = typeLabel,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        if (type == NotificationType.NAVIGATION) {
+                            IconButton(
+                                onClick = onNavConfigClick,
+                                modifier = Modifier.semantics { contentDescription = navEditDesc }
+                            ) {
+                                Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+
+                        Switch(
+                            checked = isChecked,
+                            onCheckedChange = { onToggleType(type, it) },
+                            modifier = Modifier.semantics { contentDescription = switchDesc }
+                        )
                     }
-                }
 
-                Switch(
-                    checked = isChecked,
-                    onCheckedChange = { onToggleType(type, it) },
-                    modifier = Modifier.semantics { contentDescription = switchDesc }
-                )
-            }
-
-            if (type == NotificationType.CALL && isChecked) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, bottom = 8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.call_stage_settings),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = stringResource(R.string.call_stage_settings_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    CallStage.entries.forEach { stage ->
-                        val stageEnabled = stage in activeCallStages
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onToggleCallStage(stage, !stageEnabled) }
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(stage.labelRes),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Text(
-                                    text = stringResource(stage.descriptionRes),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    if (type == NotificationType.CALL && isChecked) {
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.3f))
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.call_stage_settings),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.call_stage_settings_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        CallStage.entries.forEach { stage ->
+                            val stageEnabled = stage in activeCallStages
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onToggleCallStage(stage, !stageEnabled) }
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(stage.labelRes),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = stringResource(stage.descriptionRes),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Checkbox(
+                                    checked = stageEnabled,
+                                    onCheckedChange = { onToggleCallStage(stage, it) }
                                 )
                             }
-                            Checkbox(
-                                checked = stageEnabled,
-                                onCheckedChange = { onToggleCallStage(stage, it) }
-                            )
                         }
                     }
                 }
@@ -1020,6 +1008,8 @@ fun AppNotificationTypesContent(
 
 // ------------------------------------------------------------------------------------------------
 // ISLAND BEHAVIOR CONTENT
+// Shows current config (global or custom), any change auto-switches to custom,
+// and has the "Use Global Defaults" toggle at the END in its own container card.
 // ------------------------------------------------------------------------------------------------
 
 @Composable
@@ -1032,36 +1022,243 @@ fun AppBehaviorContent(
 ) {
     val isUsingGlobal = appConfig.isFloat == null
 
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    if (isUsingGlobal) onUpdate(globalConfig)
-                    else onUpdate(IslandConfig(null, null, null))
-                }
-                .padding(vertical = 8.dp)
-                .semantics { stateDescription = if (isUsingGlobal) activeDesc else inactiveDesc },
-            verticalAlignment = Alignment.CenterVertically
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Elements show current configuration (global values if using global, or custom if customized)
+        // If user moves or changes anything, onUpdate is called with isFloat set to non-null,
+        // automatically turning the toggle to custom and saving as custom.
+        IslandSettingsControl(
+            config = appConfig,
+            defaultConfig = globalConfig,
+            onUpdate = { updatedConfig ->
+                val customConfig = updatedConfig.copy(
+                    isFloat = updatedConfig.isFloat ?: globalConfig.isFloat ?: false
+                )
+                onUpdate(customConfig)
+            }
+        )
+
+        // "Use Global Defaults" toggle at the END in its own separate container Card
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Checkbox(checked = isUsingGlobal, onCheckedChange = null)
-            Spacer(Modifier.width(12.dp))
-            Text(stringResource(R.string.use_global_default), style = MaterialTheme.typography.bodyLarge)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (isUsingGlobal) {
+                            // Turn off global: copy current global values into custom
+                            onUpdate(globalConfig.copy(isFloat = globalConfig.isFloat ?: false))
+                        } else {
+                            // Turn on global: reset custom values to null
+                            onUpdate(IslandConfig(null, null, null, null, null, null, null))
+                        }
+                    }
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.use_global_default),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = if (isUsingGlobal) {
+                            stringResource(R.string.appearance_use_defaults_desc)
+                        } else {
+                            stringResource(R.string.custom_behavior_desc)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Switch(
+                    checked = isUsingGlobal,
+                    onCheckedChange = { useGlobal ->
+                        if (useGlobal) {
+                            onUpdate(IslandConfig(null, null, null, null, null, null, null))
+                        } else {
+                            onUpdate(globalConfig.copy(isFloat = globalConfig.isFloat ?: false))
+                        }
+                    },
+                    modifier = Modifier.semantics {
+                        stateDescription = if (isUsingGlobal) activeDesc else inactiveDesc
+                    }
+                )
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// BLOCKED TERMS CONTENT
+// Input box container on top, and vertical list of blocked terms below in separate containers.
+// ------------------------------------------------------------------------------------------------
+
+@Composable
+fun AppConfigBlockedTermsContent(
+    terms: Set<String>,
+    onUpdate: (Set<String>) -> Unit
+) {
+    var text by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Container 1: Input Box Card
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = stringResource(R.string.blocked_terms),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.blocked_terms_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                )
+
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.add_blocked_word)) },
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                if (text.isNotBlank()) {
+                                    onUpdate(terms + text.trim())
+                                    text = ""
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = stringResource(R.string.add),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        if (text.isNotBlank()) {
+                            onUpdate(terms + text.trim())
+                            text = ""
+                            keyboardController?.hide()
+                        }
+                    }),
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
         }
 
-        if (!isUsingGlobal) {
-            Spacer(Modifier.height(8.dp))
-            IslandSettingsControl(
-                config = appConfig,
-                onUpdate = onUpdate
-            )
+        // Container 2: Vertical list of blocked terms below the box
+        val termsList = terms.toList()
+        if (termsList.isEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp, horizontal = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Block,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = stringResource(R.string.no_blocked_terms),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.no_blocked_terms_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+            }
         } else {
-            Text(
-                text = stringResource(R.string.appearance_use_defaults_desc),
-                color = Color.Gray,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp, start = 8.dp)
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                termsList.forEachIndexed { index, term ->
+                    val shape = getExpressiveShape(termsList.size, index, ShapeStyle.Medium)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                        shape = shape,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 18.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.errorContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Block,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                            Spacer(Modifier.width(14.dp))
+
+                            Text(
+                                text = term,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            IconButton(
+                                onClick = { onUpdate(terms - term) },
+                                colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = stringResource(R.string.remove)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
