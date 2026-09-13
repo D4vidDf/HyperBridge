@@ -11,16 +11,15 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,9 +41,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Edit
@@ -61,7 +60,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -75,6 +73,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -89,7 +88,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -122,6 +120,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Subscreens available within the App Configuration flow.
+ * Selecting any element opens a dedicated full subscreen instead of expanding inline dropdowns.
+ */
+enum class AppConfigSubscreen {
+    NOTIFICATION_TYPES,
+    ISLAND_APPEARANCE,
+    BLOCKED_TERMS,
+    ISLAND_WIDGETS,
+    CUSTOM_DESIGN,
+    CUSTOM_TRANSLATORS
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppConfigScreen(
@@ -133,6 +144,11 @@ fun AppConfigScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences = remember { AppPreferences(context.applicationContext) }
+
+    var currentSubscreen by remember { mutableStateOf<AppConfigSubscreen?>(null) }
+    BackHandler(enabled = currentSubscreen != null) {
+        currentSubscreen = null
+    }
 
     val effectiveConfig by viewModel.getEffectiveAppConfigFlow(packageName).collectAsState(initial = null)
     val activeTypes = effectiveConfig?.activeTypes ?: emptySet()
@@ -227,6 +243,8 @@ fun AppConfigScreen(
         blockedTerms = blockedTerms,
         savedWidgetIds = appSavedWidgetIds,
         availableProviders = availableProviders,
+        currentSubscreen = currentSubscreen,
+        onNavigateSubscreen = { currentSubscreen = it },
         onBack = onBack,
         onToggleBridged = { enabled -> viewModel.toggleApp(packageName, enabled) },
         onToggleType = { type, enabled -> viewModel.updateAppConfig(packageName, type, enabled) },
@@ -256,17 +274,18 @@ fun AppConfigScreen(
             onDismiss = { showAddWidgetSheet = false },
             onSelectProvider = { provider ->
                 showAddWidgetSheet = false
-                val widgetId = WidgetManager.allocateId(context)
-                val allowed = WidgetManager.bindWidget(context, widgetId, provider.provider)
-                if (allowed) {
+                val newId = WidgetManager.allocateId(context)
+                val manager = AppWidgetManager.getInstance(context)
+                val canBind = manager.bindAppWidgetIdIfAllowed(newId, provider.provider)
+                if (canBind) {
                     scope.launch {
-                        preferences.saveWidgetConfig(widgetId, WidgetConfig())
+                        preferences.saveWidgetConfig(newId, WidgetConfig())
                         refreshWidgetTrigger.intValue++
                     }
                 } else {
-                    pendingWidgetId = widgetId
+                    pendingWidgetId = newId
                     val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newId)
                         putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
                     }
                     bindLauncher.launch(intent)
@@ -276,7 +295,7 @@ fun AppConfigScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppConfigContent(
     appName: String,
@@ -291,6 +310,8 @@ fun AppConfigContent(
     blockedTerms: Set<String>,
     savedWidgetIds: List<Int>,
     availableProviders: List<AppWidgetProviderInfo>,
+    currentSubscreen: AppConfigSubscreen? = null,
+    onNavigateSubscreen: (AppConfigSubscreen?) -> Unit = {},
     onBack: () -> Unit,
     onToggleBridged: (Boolean) -> Unit,
     onToggleType: (NotificationType, Boolean) -> Unit,
@@ -301,50 +322,339 @@ fun AppConfigContent(
     onAddWidgetClick: () -> Unit,
     onDeleteWidget: (Int) -> Unit
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    val navEditDesc = stringResource(R.string.cd_nav_edit)
     val activeDesc = stringResource(R.string.cd_app_state_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
+    val navEditDesc = stringResource(R.string.cd_nav_edit)
+    val activeTypesSubtitle = stringResource(R.string.active_notifications_subtitle, activeTypes.size)
+    val blockedBadge = if (blockedTerms.isNotEmpty()) "${blockedTerms.size}" else null
+    val isUsingGlobal = appIslandConfig.isFloat == null
+    val appearanceSubtitle = if (isUsingGlobal) {
+        stringResource(R.string.use_global_default)
+    } else {
+        "${if (appIslandConfig.isFloat == true) activeDesc else inactiveDesc} • ${appIslandConfig.timeout ?: 5}s"
+    }
+    val widgetsSubtitle = if (savedWidgetIds.isNotEmpty()) {
+        "${savedWidgetIds.size} configured"
+    } else {
+        stringResource(R.string.no_widgets_for_app)
+    }
 
-    val activeCount = NotificationType.configurableEntries.count { activeTypes.contains(it.name) }
-    val activeSubtitle = stringResource(R.string.active_notifications_subtitle, activeCount)
-    val blockedCount = blockedTerms.size
-    val blockedBadge = if (blockedCount > 0) stringResource(R.string.blocked_terms_active_count, blockedCount) else null
+    AnimatedContent(
+        targetState = currentSubscreen,
+        transitionSpec = {
+            if (targetState != null && initialState == null) {
+                // Navigate forward into subscreen: slide in from right
+                (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                    slideOutHorizontally { width -> -width / 3 } + fadeOut()
+                )
+            } else if (targetState == null && initialState != null) {
+                // Navigate backward to overview: slide in from left
+                (slideInHorizontally { width -> -width / 3 } + fadeIn()).togetherWith(
+                    slideOutHorizontally { width -> width } + fadeOut()
+                )
+            } else {
+                fadeIn().togetherWith(fadeOut())
+            }
+        },
+        label = "AppConfigSubscreenTransition"
+    ) { subscreen ->
+        if (subscreen == null) {
+            // =========================================================================
+            // MAIN OVERVIEW SCREEN
+            // =========================================================================
+            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+            Scaffold(
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                topBar = {
+                    LargeTopAppBar(
+                        title = {
+                            Column {
+                                Text(
+                                    text = appName,
+                                    maxLines = 1,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = stringResource(R.string.app_config_subtitle),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.back)
+                                )
+                            }
+                        },
+                        scrollBehavior = scrollBehavior
+                    )
+                }
+            ) { padding ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Header Overview Card
+                    item {
+                        AppHeaderCard(
+                            appName = appName,
+                            packageName = packageName,
+                            appIcon = appIcon,
+                            isBridged = isBridged,
+                            isManagedByTheme = isManagedByTheme,
+                            onToggleBridged = onToggleBridged
+                        )
+                    }
+
+                    // Section 1: Notification Types
+                    item {
+                        AppConfigNavCard(
+                            title = stringResource(R.string.active_notifications_title),
+                            icon = Icons.Default.Notifications,
+                            subtitle = activeTypesSubtitle,
+                            onClick = { onNavigateSubscreen(AppConfigSubscreen.NOTIFICATION_TYPES) }
+                        )
+                    }
+
+                    // Section 2: Island Appearance
+                    item {
+                        AppConfigNavCard(
+                            title = stringResource(R.string.island_appearance),
+                            icon = Icons.Default.Palette,
+                            subtitle = appearanceSubtitle,
+                            onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_APPEARANCE) }
+                        )
+                    }
+
+                    // Section 3: Blocked Terms
+                    item {
+                        AppConfigNavCard(
+                            title = stringResource(R.string.blocked_terms),
+                            icon = Icons.Default.Block,
+                            subtitle = if (blockedBadge != null) "$blockedBadge blocked" else null,
+                            onClick = { onNavigateSubscreen(AppConfigSubscreen.BLOCKED_TERMS) }
+                        )
+                    }
+
+                    // Section 4: Island Widgets
+                    item {
+                        AppConfigNavCard(
+                            title = stringResource(R.string.app_widgets_section_title),
+                            icon = Icons.Outlined.Widgets,
+                            subtitle = widgetsSubtitle,
+                            onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_WIDGETS) }
+                        )
+                    }
+
+                    // Section 5: Custom Design (KWGT / Visual Island Layouts)
+                    item {
+                        AppConfigNavCard(
+                            title = stringResource(R.string.custom_design_title),
+                            icon = Icons.Default.Brush,
+                            badge = stringResource(R.string.custom_design_badge),
+                            subtitle = stringResource(R.string.custom_design_desc),
+                            onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_DESIGN) }
+                        )
+                    }
+
+                    // Section 6: Custom Translators (Community Extensions)
+                    item {
+                        AppConfigNavCard(
+                            title = stringResource(R.string.custom_translators_title),
+                            icon = Icons.Default.Extension,
+                            badge = stringResource(R.string.custom_translators_badge),
+                            subtitle = stringResource(R.string.custom_translators_desc),
+                            onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_TRANSLATORS) }
+                        )
+                    }
+
+                    item {
+                        Spacer(Modifier.height(24.dp))
+                    }
+                }
+            }
+        } else {
+            // =========================================================================
+            // DEDICATED SUBSCREEN (No dropdowns - full dedicated view)
+            // =========================================================================
+            when (subscreen) {
+                AppConfigSubscreen.NOTIFICATION_TYPES -> {
+                    SubscreenScaffold(
+                        title = stringResource(R.string.active_notifications_title),
+                        appName = appName,
+                        onBack = { onNavigateSubscreen(null) }
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                AppNotificationTypesContent(
+                                    packageName = packageName,
+                                    activeTypes = activeTypes,
+                                    activeCallStages = activeCallStages,
+                                    onToggleType = onToggleType,
+                                    onToggleCallStage = onToggleCallStage,
+                                    onNavConfigClick = onNavConfigClick,
+                                    navEditDesc = navEditDesc
+                                )
+                            }
+                        }
+                    }
+                }
+
+                AppConfigSubscreen.ISLAND_APPEARANCE -> {
+                    SubscreenScaffold(
+                        title = stringResource(R.string.island_appearance),
+                        appName = appName,
+                        onBack = { onNavigateSubscreen(null) }
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                AppAppearanceContent(
+                                    appConfig = appIslandConfig,
+                                    globalConfig = globalConfig,
+                                    onUpdate = onUpdateIslandConfig,
+                                    activeDesc = activeDesc,
+                                    inactiveDesc = inactiveDesc
+                                )
+                            }
+                        }
+                    }
+                }
+
+                AppConfigSubscreen.BLOCKED_TERMS -> {
+                    SubscreenScaffold(
+                        title = stringResource(R.string.blocked_terms),
+                        appName = appName,
+                        onBack = { onNavigateSubscreen(null) }
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                BlocklistEditor(
+                                    terms = blockedTerms,
+                                    onUpdate = onUpdateBlockedTerms
+                                )
+                            }
+                        }
+                    }
+                }
+
+                AppConfigSubscreen.ISLAND_WIDGETS -> {
+                    SubscreenScaffold(
+                        title = stringResource(R.string.app_widgets_section_title),
+                        appName = appName,
+                        onBack = { onNavigateSubscreen(null) },
+                        actions = {
+                            IconButton(onClick = onAddWidgetClick) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = stringResource(R.string.add_island_widget)
+                                )
+                            }
+                        }
+                    ) {
+                        AppWidgetsSectionCard(
+                            savedWidgetIds = savedWidgetIds,
+                            availableProviders = availableProviders,
+                            onAddWidget = onAddWidgetClick,
+                            onDeleteWidget = onDeleteWidget
+                        )
+                    }
+                }
+
+                AppConfigSubscreen.CUSTOM_DESIGN -> {
+                    SubscreenScaffold(
+                        title = stringResource(R.string.custom_design_title),
+                        appName = appName,
+                        onBack = { onNavigateSubscreen(null) }
+                    ) {
+                        FutureFeaturePlaceholderCard(
+                            title = stringResource(R.string.custom_design_title),
+                            badge = stringResource(R.string.custom_design_badge),
+                            icon = Icons.Default.Brush,
+                            description = stringResource(R.string.custom_design_desc)
+                        )
+                    }
+                }
+
+                AppConfigSubscreen.CUSTOM_TRANSLATORS -> {
+                    SubscreenScaffold(
+                        title = stringResource(R.string.custom_translators_title),
+                        appName = appName,
+                        onBack = { onNavigateSubscreen(null) }
+                    ) {
+                        FutureFeaturePlaceholderCard(
+                            title = stringResource(R.string.custom_translators_title),
+                            badge = stringResource(R.string.custom_translators_badge),
+                            icon = Icons.Default.Extension,
+                            description = stringResource(R.string.custom_translators_desc)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// REUSABLE SUBSCREEN CONTAINER
+// ------------------------------------------------------------------------------------------------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubscreenScaffold(
+    title: String,
+    appName: String,
+    onBack: () -> Unit,
+    actions: @Composable () -> Unit = {},
+    content: @Composable () -> Unit
+) {
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Column {
                         Text(
-                            text = appName,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
+                            text = title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = stringResource(R.string.app_config_subtitle),
+                            text = appName,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
+                    IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
-                scrollBehavior = scrollBehavior
+                actions = { actions() },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { padding ->
@@ -353,110 +663,105 @@ fun AppConfigContent(
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // --- HEADER OVERVIEW CARD ---
             item {
-                AppHeaderCard(
-                    appName = appName,
-                    packageName = packageName,
-                    appIcon = appIcon,
-                    isBridged = isBridged,
-                    isManagedByTheme = isManagedByTheme,
-                    onToggleBridged = onToggleBridged
-                )
+                content()
             }
-
-            // --- SECTION 1: NOTIFICATION TYPES ---
             item {
-                AppConfigExpandableCard(
-                    title = stringResource(R.string.active_notifications_title),
-                    icon = Icons.Default.Notifications,
-                    subtitle = activeSubtitle,
-                    initiallyExpanded = true
-                ) {
-                    AppNotificationTypesContent(
-                        packageName = packageName,
-                        activeTypes = activeTypes,
-                        activeCallStages = activeCallStages,
-                        onToggleType = onToggleType,
-                        onToggleCallStage = onToggleCallStage,
-                        onNavConfigClick = onNavConfigClick,
-                        navEditDesc = navEditDesc
-                    )
-                }
-            }
-
-            // --- SECTION 2: ISLAND APPEARANCE ---
-            item {
-                AppConfigExpandableCard(
-                    title = stringResource(R.string.island_appearance),
-                    icon = Icons.Default.Palette
-                ) {
-                    AppAppearanceContent(
-                        appConfig = appIslandConfig,
-                        globalConfig = globalConfig,
-                        onUpdate = onUpdateIslandConfig,
-                        activeDesc = activeDesc,
-                        inactiveDesc = inactiveDesc
-                    )
-                }
-            }
-
-            // --- SECTION 3: BLOCKED TERMS ---
-            item {
-                AppConfigExpandableCard(
-                    title = stringResource(R.string.blocked_terms),
-                    icon = Icons.Default.Block,
-                    subtitle = blockedBadge
-                ) {
-                    BlocklistEditor(
-                        terms = blockedTerms,
-                        onUpdate = onUpdateBlockedTerms
-                    )
-                }
-            }
-
-            // --- SECTION 4: APP WIDGETS ---
-            item {
-                AppWidgetsSectionCard(
-                    savedWidgetIds = savedWidgetIds,
-                    availableProviders = availableProviders,
-                    onAddWidget = onAddWidgetClick,
-                    onDeleteWidget = onDeleteWidget
-                )
-            }
-
-            // --- SECTION 5: CUSTOM DESIGN (Placeholder) ---
-            item {
-                FutureFeaturePlaceholderCard(
-                    title = stringResource(R.string.custom_design_title),
-                    badge = stringResource(R.string.custom_design_badge),
-                    description = stringResource(R.string.custom_design_desc),
-                    icon = Icons.Default.Brush
-                )
-            }
-
-            // --- SECTION 6: CUSTOM TRANSLATORS (Placeholder) ---
-            item {
-                FutureFeaturePlaceholderCard(
-                    title = stringResource(R.string.custom_translators_title),
-                    badge = stringResource(R.string.custom_translators_badge),
-                    description = stringResource(R.string.custom_translators_desc),
-                    icon = Icons.Default.Extension
-                )
-            }
-
-            // Extra spacer at bottom
-            item {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
             }
         }
     }
 }
 
 // ------------------------------------------------------------------------------------------------
-// SUBCOMPONENTS
+// NAVIGATION CARD (Overview list item with forward chevron)
+// ------------------------------------------------------------------------------------------------
+
+@Composable
+fun AppConfigNavCard(
+    title: String,
+    icon: ImageVector,
+    subtitle: String? = null,
+    badge: String? = null,
+    onClick: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 18.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            Spacer(Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (badge != null) {
+                        Spacer(Modifier.width(8.dp))
+                        Surface(
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                text = badge,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+                if (subtitle != null) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// HEADER OVERVIEW CARD
 // ------------------------------------------------------------------------------------------------
 
 @Composable
@@ -469,11 +774,11 @@ fun AppHeaderCard(
     onToggleBridged: (Boolean) -> Unit
 ) {
     Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(Modifier.padding(20.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -481,19 +786,29 @@ fun AppHeaderCard(
                 if (appIcon != null) {
                     Image(
                         bitmap = appIcon.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp)
+                        contentDescription = appName,
+                        modifier = Modifier
+                            .size(54.dp)
+                            .clip(RoundedCornerShape(14.dp))
                     )
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.Android,
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(54.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Android,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(Modifier.width(16.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -506,26 +821,27 @@ fun AppHeaderCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    Spacer(Modifier.height(6.dp))
-
+                    Spacer(Modifier.height(4.dp))
                     Surface(
-                        color = if (isBridged) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                        color = if (isBridged) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = if (isBridged) stringResource(R.string.app_status_bridged) else stringResource(R.string.app_status_not_bridged),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isBridged) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            color = if (isBridged) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                         )
                     }
                 }
 
                 Switch(
                     checked = isBridged,
-                    onCheckedChange = onToggleBridged
+                    onCheckedChange = onToggleBridged,
+                    modifier = Modifier.semantics {
+                        contentDescription = "Toggle bridging for $appName"
+                    }
                 )
             }
 
@@ -541,7 +857,7 @@ fun AppHeaderCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Outlined.Info,
+                            imageVector = Icons.Outlined.Info,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.size(20.dp)
@@ -559,84 +875,9 @@ fun AppHeaderCard(
     }
 }
 
-@Composable
-fun AppConfigExpandableCard(
-    title: String,
-    icon: ImageVector,
-    subtitle: String? = null,
-    initiallyExpanded: Boolean = false,
-    content: @Composable () -> Unit
-) {
-    var expanded by remember { mutableStateOf(initiallyExpanded) }
-    val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "rotation")
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                Spacer(Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (subtitle != null) {
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = null,
-                    modifier = Modifier.rotate(rotation)
-                )
-            }
-
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
-                exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
-            ) {
-                Column(modifier = Modifier.padding(top = 16.dp)) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(bottom = 12.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(0.3f)
-                    )
-                    content()
-                }
-            }
-        }
-    }
-}
+// ------------------------------------------------------------------------------------------------
+// NOTIFICATION TYPES CONTENT
+// ------------------------------------------------------------------------------------------------
 
 @Composable
 fun AppNotificationTypesContent(
@@ -723,8 +964,7 @@ fun AppNotificationTypesContent(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            Spacer(Modifier.width(8.dp))
-                            Switch(
+                            Checkbox(
                                 checked = stageEnabled,
                                 onCheckedChange = { onToggleCallStage(stage, it) }
                             )
@@ -735,6 +975,10 @@ fun AppNotificationTypesContent(
         }
     }
 }
+
+// ------------------------------------------------------------------------------------------------
+// ISLAND APPEARANCE CONTENT
+// ------------------------------------------------------------------------------------------------
 
 @Composable
 fun AppAppearanceContent(
@@ -780,6 +1024,10 @@ fun AppAppearanceContent(
     }
 }
 
+// ------------------------------------------------------------------------------------------------
+// ISLAND WIDGETS SECTION
+// ------------------------------------------------------------------------------------------------
+
 @Composable
 fun AppWidgetsSectionCard(
     savedWidgetIds: List<Int>,
@@ -788,89 +1036,62 @@ fun AppWidgetsSectionCard(
     onDeleteWidget: (Int) -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.app_widgets_section_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            if (savedWidgetIds.isEmpty()) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Widgets,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Outlined.Widgets,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.no_widgets_for_app),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
                 }
-
-                Spacer(Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.app_widgets_section_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = stringResource(R.string.app_widgets_section_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    savedWidgetIds.forEach { widgetId ->
+                        AppConfigWidgetChildItem(
+                            widgetId = widgetId,
+                            onDelete = { onDeleteWidget(widgetId) }
+                        )
+                    }
                 }
             }
 
             Spacer(Modifier.height(14.dp))
 
-            if (savedWidgetIds.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.no_widgets_for_app),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            } else {
-                savedWidgetIds.forEachIndexed { index, widgetId ->
-                    if (index > 0) {
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f),
-                            modifier = Modifier.padding(vertical = 12.dp)
-                        )
-                    }
-                    AppConfigWidgetChildItem(
-                        widgetId = widgetId,
-                        onDelete = { onDeleteWidget(widgetId) }
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
             FilledTonalButton(
                 onClick = onAddWidget,
-                enabled = availableProviders.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Add, null)
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.add_island_widget))
-            }
-
-            if (availableProviders.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.no_available_widgets_for_app),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.padding(top = 6.dp)
-                )
             }
         }
     }
@@ -883,111 +1104,131 @@ fun AppConfigWidgetChildItem(
 ) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
-    val config by preferences.getWidgetConfigFlow(widgetId).collectAsState(initial = null)
+    val config by preferences.getWidgetConfigFlow(widgetId).collectAsState(initial = WidgetConfig())
+    val providerInfo = remember(widgetId) { WidgetManager.getWidgetInfo(context, widgetId) }
 
-    val viewHeightDp = when (config?.size) {
-        WidgetSize.SMALL -> 100
-        WidgetSize.MEDIUM -> 180
-        WidgetSize.LARGE -> 280
-        WidgetSize.XLARGE -> 380
-        else -> 180
-    }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.widget_id_fmt, widgetId),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-
-            IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error)
-            }
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(viewHeightDp.dp + 32.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surface),
-            contentAlignment = Alignment.Center
-        ) {
-            AndroidView(
-                factory = { ctx ->
-                    val wrapper = FrameLayout(ctx)
-                    val hostView = WidgetManager.createPreview(ctx, widgetId)
-                    if (hostView != null) {
-                        val info = WidgetManager.getWidgetInfo(ctx, widgetId)
-                        hostView.setAppWidget(widgetId, info)
-                        wrapper.addView(hostView)
-
-                        val density = ctx.resources.displayMetrics.density
-                        val w = (300 * density).toInt()
-                        val h = (viewHeightDp * density).toInt()
-
-                        hostView.measure(
-                            View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY),
-                            View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.AT_MOST)
-                        )
-                        hostView.layout(0, 0, hostView.measuredWidth, hostView.measuredHeight)
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    val label = providerInfo?.loadLabel(context.packageManager)
+                    Text(
+                        text = if (!label.isNullOrEmpty()) label else "Widget #$widgetId",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(top = 2.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = config.size.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                        }
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = config.renderMode.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                        }
                     }
-                    wrapper
-                },
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxSize()
-            )
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                val intent = Intent(context, com.d4viddf.hyperbridge.service.WidgetOverlayService::class.java).apply {
-                    action = "ACTION_TEST_WIDGET"
-                    putExtra("WIDGET_ID", widgetId)
                 }
-                context.startService(intent)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.filledTonalButtonColors()
-        ) {
-            Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.show_on_island))
+
+                IconButton(
+                    onClick = {
+                        val testIntent = Intent(context, com.d4viddf.hyperbridge.service.WidgetOverlayService::class.java).apply {
+                            action = "ACTION_TEST_WIDGET"
+                            putExtra("WIDGET_ID", widgetId)
+                        }
+                        context.startService(testIntent)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Test Widget",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                IconButton(
+                    onClick = onDelete,
+                    colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "Delete Widget"
+                    )
+                }
+            }
+
+            // Live widget preview container
+            Spacer(Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                AndroidView(
+                    factory = { ctx ->
+                        FrameLayout(ctx).apply {
+                            val hostView = WidgetManager.createPreview(ctx, widgetId)
+                            if (hostView != null) {
+                                val info = WidgetManager.getWidgetInfo(ctx, widgetId)
+                                hostView.setAppWidget(widgetId, info)
+                                addView(hostView)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 }
+
+// ------------------------------------------------------------------------------------------------
+// FUTURE FEATURE PLACEHOLDER (Custom Design & Custom Translators)
+// ------------------------------------------------------------------------------------------------
 
 @Composable
 fun FutureFeaturePlaceholderCard(
     title: String,
     badge: String,
-    description: String,
-    icon: ImageVector
+    icon: ImageVector,
+    description: String
 ) {
     Card(
-        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                     contentAlignment = Alignment.Center
@@ -996,17 +1237,17 @@ fun FutureFeaturePlaceholderCard(
                         imageVector = icon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
 
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.width(8.dp))
@@ -1026,16 +1267,46 @@ fun FutureFeaturePlaceholderCard(
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            Spacer(Modifier.height(14.dp))
+
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = "Track progress on GitHub: Issues #271, #272, #273.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 }
+
+// ------------------------------------------------------------------------------------------------
+// ADD APP WIDGET BOTTOM SHEET
+// ------------------------------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1160,6 +1431,8 @@ fun AppConfigScreenPreview() {
             blockedTerms = setOf("Ad", "Promo"),
             savedWidgetIds = emptyList(),
             availableProviders = emptyList(),
+            currentSubscreen = null,
+            onNavigateSubscreen = {},
             onBack = {},
             onToggleBridged = {},
             onToggleType = { _, _ -> },
@@ -1175,21 +1448,23 @@ fun AppConfigScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun AppConfigScreenManagedByThemePreview() {
+fun AppConfigScreenSubscreenPreview() {
     HyperBridgeTheme {
         AppConfigContent(
-            appName = "Google Maps",
-            packageName = "com.google.android.apps.maps",
+            appName = "Spotify",
+            packageName = "com.spotify.music",
             appIcon = null,
             isBridged = true,
-            isManagedByTheme = true,
-            activeTypes = setOf(NotificationType.NAVIGATION.name),
+            isManagedByTheme = false,
+            activeTypes = setOf(NotificationType.MEDIA.name, NotificationType.MESSAGE.name),
             activeCallStages = CallStage.entries.toSet(),
-            appIslandConfig = IslandConfig(),
+            appIslandConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
             globalConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
-            blockedTerms = emptySet(),
-            savedWidgetIds = listOf(101),
+            blockedTerms = setOf("Ad", "Promo"),
+            savedWidgetIds = emptyList(),
             availableProviders = emptyList(),
+            currentSubscreen = AppConfigSubscreen.NOTIFICATION_TYPES,
+            onNavigateSubscreen = {},
             onBack = {},
             onToggleBridged = {},
             onToggleType = { _, _ -> },
