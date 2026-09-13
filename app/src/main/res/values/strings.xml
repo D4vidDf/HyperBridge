@@ -837,6 +837,25 @@
     <string name="diagnostic_floating_review_desc" translatable="false">Apps needing native floating banner disabled</string>
     <string name="diagnostic_pending_count" translatable="false">%1$d pending</string>
     <string name="diagnostic_reason_prefix" translatable="false">Reason: %1$s</string>
+
+    <!-- App Configuration Screen -->
+    <string name="app_config_title">App Configuration</string>
+    <string name="app_config_subtitle">Behaviors, widgets &amp; appearance</string>
+    <string name="custom_design_title">Custom Design</string>
+    <string name="custom_design_badge">COMING SOON</string>
+    <string name="custom_design_desc">KWGT widget layouts and customizable Island UI designs are in development. Stay tuned for upcoming updates.</string>
+    <string name="custom_translators_title">Custom Translators</string>
+    <string name="custom_translators_badge">COMING SOON</string>
+    <string name="custom_translators_desc">Create and install custom community translators to format and control notification data for this application.</string>
+    <string name="app_widgets_section_title">Island Widgets</string>
+    <string name="app_widgets_section_desc">Configure app widgets to display as Dynamic Islands.</string>
+    <string name="add_island_widget">Add Widget</string>
+    <string name="no_widgets_for_app">No island widgets configured for this app yet.</string>
+    <string name="no_available_widgets_for_app">This app does not provide any widgets.</string>
+    <string name="select_app_widget">Select Widget</string>
+    <string name="theme_managed_banner">Behaviors are currently managed by your active Theme.</string>
+    <string name="app_status_bridged">Bridged</string>
+    <string name="app_status_not_bridged">Not Bridged</string>
 </resources>
 
 

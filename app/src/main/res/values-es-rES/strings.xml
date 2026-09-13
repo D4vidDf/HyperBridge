@@ -707,5 +707,24 @@
     <string name="diagnostic_floating_review_desc">Apps que necesitan desactivar su banner flotante nativo</string>
     <string name="diagnostic_pending_count">%1$d pendientes</string>
     <string name="diagnostic_reason_prefix">Motivo: %1$s</string>
+
+    <!-- App Configuration Screen -->
+    <string name="app_config_title">Configuración de la App</string>
+    <string name="app_config_subtitle">Comportamientos, widgets y apariencia</string>
+    <string name="custom_design_title">Custom Design</string>
+    <string name="custom_design_badge">PRÓXIMAMENTE</string>
+    <string name="custom_design_desc">Los diseños de widgets KWGT y temas visuales personalizables de la Isla están en desarrollo. Muy pronto disponibles.</string>
+    <string name="custom_translators_title">Custom Translators</string>
+    <string name="custom_translators_badge">PRÓXIMAMENTE</string>
+    <string name="custom_translators_desc">Crea e instala traductores personalizados de la comunidad para formatear y controlar los datos de las notificaciones de esta app.</string>
+    <string name="app_widgets_section_title">Widgets de la Isla</string>
+    <string name="app_widgets_section_desc">Configura widgets de esta app para mostrarlos como Dynamic Islands.</string>
+    <string name="add_island_widget">Añadir Widget</string>
+    <string name="no_widgets_for_app">Aún no hay widgets de la isla configurados para esta app.</string>
+    <string name="no_available_widgets_for_app">Esta aplicación no proporciona ningún widget.</string>
+    <string name="select_app_widget">Seleccionar Widget</string>
+    <string name="theme_managed_banner">Los comportamientos están gestionados por tu Tema activo.</string>
+    <string name="app_status_bridged">Vinculada</string>
+    <string name="app_status_not_bridged">No vinculada</string>
 </resources>
 

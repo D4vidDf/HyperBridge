@@ -9,6 +9,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
 import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.AppConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.AppPriorityScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.BackupSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.BlocklistAppListScreen
@@ -52,7 +53,8 @@ fun mainNavGraph(
         HomeScreen(
             onSettingsClick = { navigator.navigate(Screen.Info) },
             onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
-            onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) }
+            onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) },
+            onAppConfigClick = { pkg -> navigator.navigate(Screen.AppConfig(pkg)) }
         )
     }
 
@@ -179,6 +181,13 @@ fun mainNavGraph(
     }
     entry<Screen.ScreenRecordingCustomization> {
         com.d4viddf.hyperbridge.ui.screens.settings.ScreenRecordingSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.AppConfig> { key ->
+        AppConfigScreen(
+            packageName = key.packageName,
+            onBack = { navigator.goBack() },
+            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) }
+        )
     }
 }
 

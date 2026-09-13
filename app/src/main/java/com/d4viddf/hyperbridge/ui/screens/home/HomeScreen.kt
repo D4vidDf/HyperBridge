@@ -49,7 +49,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
-import com.d4viddf.hyperbridge.ui.components.AppConfigBottomSheet
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
@@ -70,7 +69,8 @@ fun HomeScreen(
     viewModel: AppListViewModel = viewModel(),
     onSettingsClick: () -> Unit,
     onNavConfigClick: (String) -> Unit,
-    onScreenRecordingConfigClick: () -> Unit = {}
+    onScreenRecordingConfigClick: () -> Unit = {},
+    onAppConfigClick: (String) -> Unit = {}
 ) {
 
     var selectedTab by remember { mutableIntStateOf(1) }
@@ -79,7 +79,6 @@ fun HomeScreen(
 
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
-    var configApp by remember { mutableStateOf<AppInfo?>(null) }
 
     val activeApps by viewModel.activeAppsState.collectAsState()
     val libraryApps by viewModel.libraryAppsState.collectAsState()
@@ -88,7 +87,6 @@ fun HomeScreen(
 
     val context = LocalContext.current
 
-    if (configApp != null) BackHandler { configApp = null }
     if (editingWidgetId != null) BackHandler { editingWidgetId = null }
     if (showWidgetPicker) BackHandler { showWidgetPicker = false }
 
@@ -282,7 +280,7 @@ fun HomeScreen(
                             isLoading = isLoading,
                             systemIntegrations = systemIntegrations,
                             viewModel = viewModel,
-                            onConfig = { configApp = it },
+                            onConfig = { onAppConfigClick(it.packageName) },
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
@@ -297,7 +295,7 @@ fun HomeScreen(
                             isLoading = isLoading,
                             systemIntegrations = systemIntegrations,
                             viewModel = viewModel,
-                            onConfig = { configApp = it },
+                            onConfig = { onAppConfigClick(it.packageName) },
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
@@ -355,24 +353,6 @@ fun HomeScreen(
                         onBack = { editingWidgetId = null }
                     )
                 }
-            }
-
-            // [FIXED] Safe handling of nullable state
-            if (configApp != null) {
-                // Capture the non-null value locally for the lambda scope
-                val currentConfigApp = configApp!!
-
-                AppConfigBottomSheet(
-                    app = currentConfigApp,
-                    viewModel = viewModel,
-                    onDismiss = { configApp = null },
-                    onNavConfigClick = {
-                        // Use the LOCAL variable, not the mutable state which might have changed
-                        onNavConfigClick(currentConfigApp.packageName)
-                        configApp = null
-                    }
-
-                )
             }
         }
     }
