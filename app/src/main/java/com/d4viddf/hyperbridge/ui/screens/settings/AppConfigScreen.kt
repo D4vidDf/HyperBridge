@@ -392,7 +392,12 @@ fun AppConfigContent(
                             }
                         },
                         navigationIcon = {
-                            IconButton(onClick = onBack) {
+                            FilledTonalIconButton(
+                                onClick = onBack,
+                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
+                            ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = stringResource(R.string.back)
@@ -671,7 +676,12 @@ fun SubscreenScaffold(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    FilledTonalIconButton(
+                        onClick = onBack,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
