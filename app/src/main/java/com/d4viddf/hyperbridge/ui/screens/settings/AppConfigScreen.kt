@@ -1024,21 +1024,7 @@ fun AppBehaviorContent(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Elements show current configuration (global values if using global, or custom if customized)
-        // If user moves or changes anything, onUpdate is called with isFloat set to non-null,
-        // automatically turning the toggle to custom and saving as custom.
-        IslandSettingsControl(
-            config = appConfig,
-            defaultConfig = globalConfig,
-            onUpdate = { updatedConfig ->
-                val customConfig = updatedConfig.copy(
-                    isFloat = updatedConfig.isFloat ?: globalConfig.isFloat ?: false
-                )
-                onUpdate(customConfig)
-            }
-        )
-
-        // "Use Global Defaults" toggle at the END in its own separate container Card
+        // "Use Global Defaults" toggle as the FIRST option in its own separate container Card
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             shape = RoundedCornerShape(24.dp),
@@ -1091,6 +1077,20 @@ fun AppBehaviorContent(
                 )
             }
         }
+
+        // Elements show current configuration (global values if using global, or custom if customized)
+        // If user moves or changes anything, onUpdate is called with isFloat set to non-null,
+        // automatically turning the toggle to custom and saving as custom.
+        IslandSettingsControl(
+            config = appConfig,
+            defaultConfig = globalConfig,
+            onUpdate = { updatedConfig ->
+                val customConfig = updatedConfig.copy(
+                    isFloat = updatedConfig.isFloat ?: globalConfig.isFloat ?: false
+                )
+                onUpdate(customConfig)
+            }
+        )
     }
 }
 
