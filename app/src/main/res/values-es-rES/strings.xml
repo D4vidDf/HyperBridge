@@ -718,7 +718,7 @@
     <string name="custom_translators_badge">PRÓXIMAMENTE</string>
     <string name="custom_translators_desc">Crea e instala traductores personalizados de la comunidad para formatear y controlar los datos de las notificaciones de esta app.</string>
     <string name="app_widgets_section_title">Widgets de la Isla</string>
-    <string name="app_widgets_section_desc">Configura widgets de esta app para mostrarlos como Dynamic Islands.</string>
+    <string name="app_widgets_section_desc">Configura widgets de esta app para mostrarlos como Hyper Islands.</string>
     <string name="add_island_widget">Añadir Widget</string>
     <string name="no_widgets_for_app">Aún no hay widgets de la isla configurados para esta app.</string>
     <string name="no_available_widgets_for_app">Esta aplicación no proporciona ningún widget.</string>

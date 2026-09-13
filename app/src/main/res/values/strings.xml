@@ -848,7 +848,7 @@
     <string name="custom_translators_badge">COMING SOON</string>
     <string name="custom_translators_desc">Create and install custom community translators to format and control notification data for this application.</string>
     <string name="app_widgets_section_title">Island Widgets</string>
-    <string name="app_widgets_section_desc">Configure app widgets to display as Dynamic Islands.</string>
+    <string name="app_widgets_section_desc">Configure app widgets to display as Hyper Islands.</string>
     <string name="add_island_widget">Add Widget</string>
     <string name="no_widgets_for_app">No island widgets configured for this app yet.</string>
     <string name="no_available_widgets_for_app">This app does not provide any widgets.</string>
