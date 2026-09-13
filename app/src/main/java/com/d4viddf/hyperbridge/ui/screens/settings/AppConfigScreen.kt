@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,7 +42,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Block
@@ -89,6 +90,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -98,6 +100,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -115,6 +118,8 @@ import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.BlocklistEditor
 import com.d4viddf.hyperbridge.ui.components.IslandSettingsControl
+import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
+import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -326,13 +331,13 @@ fun AppConfigContent(
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
     val navEditDesc = stringResource(R.string.cd_nav_edit)
     val activeTypesSubtitle = stringResource(R.string.active_notifications_subtitle, activeTypes.size)
-    val blockedBadge = if (blockedTerms.isNotEmpty()) "${blockedTerms.size}" else null
     val isUsingGlobal = appIslandConfig.isFloat == null
     val appearanceSubtitle = if (isUsingGlobal) {
         stringResource(R.string.use_global_default)
     } else {
         "${if (appIslandConfig.isFloat == true) activeDesc else inactiveDesc} • ${appIslandConfig.timeout ?: 5}s"
     }
+    val blockedSubtitle = stringResource(R.string.blocked_terms_count, blockedTerms.size)
     val widgetsSubtitle = if (savedWidgetIds.isNotEmpty()) {
         "${savedWidgetIds.size} configured"
     } else {
@@ -343,12 +348,10 @@ fun AppConfigContent(
         targetState = currentSubscreen,
         transitionSpec = {
             if (targetState != null && initialState == null) {
-                // Navigate forward into subscreen: slide in from right
                 (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
                     slideOutHorizontally { width -> -width / 3 } + fadeOut()
                 )
             } else if (targetState == null && initialState != null) {
-                // Navigate backward to overview: slide in from left
                 (slideInHorizontally { width -> -width / 3 } + fadeIn()).togetherWith(
                     slideOutHorizontally { width -> width } + fadeOut()
                 )
@@ -398,8 +401,8 @@ fun AppConfigContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Header Overview Card
                     item {
@@ -413,66 +416,72 @@ fun AppConfigContent(
                         )
                     }
 
-                    // Section 1: Notification Types
+                    // Variable Corner Connected Sub-Item Cards (matching ThemeCreatorScreen style)
                     item {
-                        AppConfigNavCard(
-                            title = stringResource(R.string.active_notifications_title),
-                            icon = Icons.Default.Notifications,
-                            subtitle = activeTypesSubtitle,
-                            onClick = { onNavigateSubscreen(AppConfigSubscreen.NOTIFICATION_TYPES) }
+                        val subItems = listOf(
+                            AppConfigSubscreen.NOTIFICATION_TYPES,
+                            AppConfigSubscreen.ISLAND_APPEARANCE,
+                            AppConfigSubscreen.BLOCKED_TERMS,
+                            AppConfigSubscreen.ISLAND_WIDGETS,
+                            AppConfigSubscreen.CUSTOM_DESIGN,
+                            AppConfigSubscreen.CUSTOM_TRANSLATORS
                         )
-                    }
 
-                    // Section 2: Island Appearance
-                    item {
-                        AppConfigNavCard(
-                            title = stringResource(R.string.island_appearance),
-                            icon = Icons.Default.Palette,
-                            subtitle = appearanceSubtitle,
-                            onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_APPEARANCE) }
-                        )
-                    }
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            subItems.forEachIndexed { index, route ->
+                                val shape = getExpressiveShape(subItems.size, index, ShapeStyle.Large)
 
-                    // Section 3: Blocked Terms
-                    item {
-                        AppConfigNavCard(
-                            title = stringResource(R.string.blocked_terms),
-                            icon = Icons.Default.Block,
-                            subtitle = if (blockedBadge != null) "$blockedBadge blocked" else null,
-                            onClick = { onNavigateSubscreen(AppConfigSubscreen.BLOCKED_TERMS) }
-                        )
-                    }
-
-                    // Section 4: Island Widgets
-                    item {
-                        AppConfigNavCard(
-                            title = stringResource(R.string.app_widgets_section_title),
-                            icon = Icons.Outlined.Widgets,
-                            subtitle = widgetsSubtitle,
-                            onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_WIDGETS) }
-                        )
-                    }
-
-                    // Section 5: Custom Design (KWGT / Visual Island Layouts)
-                    item {
-                        AppConfigNavCard(
-                            title = stringResource(R.string.custom_design_title),
-                            icon = Icons.Default.Brush,
-                            badge = stringResource(R.string.custom_design_badge),
-                            subtitle = stringResource(R.string.custom_design_desc),
-                            onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_DESIGN) }
-                        )
-                    }
-
-                    // Section 6: Custom Translators (Community Extensions)
-                    item {
-                        AppConfigNavCard(
-                            title = stringResource(R.string.custom_translators_title),
-                            icon = Icons.Default.Extension,
-                            badge = stringResource(R.string.custom_translators_badge),
-                            subtitle = stringResource(R.string.custom_translators_desc),
-                            onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_TRANSLATORS) }
-                        )
+                                when (route) {
+                                    AppConfigSubscreen.NOTIFICATION_TYPES -> AppConfigOptionCard(
+                                        title = stringResource(R.string.active_notifications_title),
+                                        subtitle = activeTypesSubtitle,
+                                        icon = Icons.Default.Notifications,
+                                        shape = shape,
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.NOTIFICATION_TYPES) }
+                                    )
+                                    AppConfigSubscreen.ISLAND_APPEARANCE -> AppConfigOptionCard(
+                                        title = stringResource(R.string.island_appearance),
+                                        subtitle = appearanceSubtitle,
+                                        icon = Icons.Default.Palette,
+                                        shape = shape,
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_APPEARANCE) }
+                                    )
+                                    AppConfigSubscreen.BLOCKED_TERMS -> AppConfigOptionCard(
+                                        title = stringResource(R.string.blocked_terms),
+                                        subtitle = blockedSubtitle,
+                                        icon = Icons.Default.Block,
+                                        shape = shape,
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.BLOCKED_TERMS) }
+                                    )
+                                    AppConfigSubscreen.ISLAND_WIDGETS -> AppConfigOptionCard(
+                                        title = stringResource(R.string.app_widgets_section_title),
+                                        subtitle = widgetsSubtitle,
+                                        icon = Icons.Outlined.Widgets,
+                                        shape = shape,
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_WIDGETS) }
+                                    )
+                                    AppConfigSubscreen.CUSTOM_DESIGN -> AppConfigOptionCard(
+                                        title = stringResource(R.string.custom_design_title),
+                                        subtitle = stringResource(R.string.custom_design_desc),
+                                        badge = stringResource(R.string.custom_design_badge),
+                                        icon = Icons.Default.Brush,
+                                        shape = shape,
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_DESIGN) }
+                                    )
+                                    AppConfigSubscreen.CUSTOM_TRANSLATORS -> AppConfigOptionCard(
+                                        title = stringResource(R.string.custom_translators_title),
+                                        subtitle = stringResource(R.string.custom_translators_desc),
+                                        badge = stringResource(R.string.custom_translators_badge),
+                                        icon = Icons.Default.Extension,
+                                        shape = shape,
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_TRANSLATORS) }
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     item {
@@ -482,7 +491,7 @@ fun AppConfigContent(
             }
         } else {
             // =========================================================================
-            // DEDICATED SUBSCREEN (No dropdowns - full dedicated view)
+            // DEDICATED SUBSCREEN
             // =========================================================================
             when (subscreen) {
                 AppConfigSubscreen.NOTIFICATION_TYPES -> {
@@ -492,7 +501,7 @@ fun AppConfigContent(
                         onBack = { onNavigateSubscreen(null) }
                     ) {
                         Card(
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -518,7 +527,7 @@ fun AppConfigContent(
                         onBack = { onNavigateSubscreen(null) }
                     ) {
                         Card(
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -542,7 +551,7 @@ fun AppConfigContent(
                         onBack = { onNavigateSubscreen(null) }
                     ) {
                         Card(
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -676,53 +685,45 @@ fun SubscreenScaffold(
 }
 
 // ------------------------------------------------------------------------------------------------
-// NAVIGATION CARD (Overview list item with forward chevron)
+// EXPRESSIVE OPTION CARD (Replicating ThemeCreatorScreen style with variable corners)
 // ------------------------------------------------------------------------------------------------
 
 @Composable
-fun AppConfigNavCard(
+fun AppConfigOptionCard(
     title: String,
+    subtitle: String,
     icon: ImageVector,
-    subtitle: String? = null,
+    shape: Shape,
     badge: String? = null,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     Card(
+        onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        shape = RoundedCornerShape(20.dp),
+        shape = shape,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .defaultMinSize(minHeight = 88.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 18.dp)
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            Spacer(Modifier.width(14.dp))
-
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                     if (badge != null) {
                         Spacer(Modifier.width(8.dp))
@@ -740,22 +741,25 @@ fun AppConfigNavCard(
                         }
                     }
                 }
-                if (subtitle != null) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(20.dp)
-            )
+            Spacer(Modifier.width(8.dp))
+            if (trailingContent != null) {
+                trailingContent()
+            } else {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }
@@ -1037,7 +1041,7 @@ fun AppWidgetsSectionCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(16.dp)) {
@@ -1221,7 +1225,7 @@ fun FutureFeaturePlaceholderCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(20.dp)) {
