@@ -1,9 +1,7 @@
 package com.d4viddf.hyperbridge.ui.screens.settings
 
-import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -12,8 +10,6 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.FrameLayout
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -41,7 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -61,16 +56,12 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DisplaySettings
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -505,7 +496,7 @@ fun AppConfigContent(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
-                            group2Items.forEachIndexed { index, route ->
+                            group2Items.forEachIndexed { index, _ ->
                                 val shape = getExpressiveShape(group2Items.size, index, ShapeStyle.Large)
 
                                 AppConfigOptionCard(
@@ -573,7 +564,6 @@ fun AppConfigContent(
                         onBack = { onNavigateSubscreen(null) }
                     ) {
                         AppNotificationTypesContent(
-                            packageName = packageName,
                             activeTypes = activeTypes,
                             activeCallStages = activeCallStages,
                             onToggleType = onToggleType,
@@ -943,7 +933,6 @@ fun AppHeaderCard(
 
 @Composable
 fun AppNotificationTypesContent(
-    packageName: String,
     activeTypes: Set<String>,
     activeCallStages: Set<CallStage>,
     onToggleType: (NotificationType, Boolean) -> Unit,
@@ -1361,18 +1350,6 @@ fun AppWidgetsSectionCard(
                         )
                     }
                 }
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            FilledTonalButton(
-                onClick = onAddWidget,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.Add, null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.add_island_widget))
             }
         }
     }
