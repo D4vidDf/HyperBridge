@@ -380,7 +380,7 @@ fun AppConfigContent(
                         title = {
                             Column {
                                 Text(
-                                    text = appName,
+                                    text = stringResource(R.string.app_config_title),
                                     maxLines = 1,
                                     fontWeight = FontWeight.Bold
                                 )
