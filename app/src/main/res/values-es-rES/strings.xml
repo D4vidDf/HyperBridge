@@ -710,10 +710,10 @@
 
     <!-- App Configuration Screen -->
     <string name="app_config_title">Configuración de la App</string>
-    <string name="app_config_subtitle">Comportamientos, widgets y apariencia</string>
+    <string name="app_config_subtitle">Comportamientos, widgets y extensiones</string>
     <string name="custom_design_title">Custom Design</string>
     <string name="custom_design_badge">PRÓXIMAMENTE</string>
-    <string name="custom_design_desc">Los diseños de widgets KWGT y temas visuales personalizables de la Isla están en desarrollo. Muy pronto disponibles.</string>
+    <string name="custom_design_desc">Los diseños visuales personalizados y temas de la Isla están en desarrollo. Muy pronto disponibles.</string>
     <string name="custom_translators_title">Custom Translators</string>
     <string name="custom_translators_badge">PRÓXIMAMENTE</string>
     <string name="custom_translators_desc">Crea e instala traductores personalizados de la comunidad para formatear y controlar los datos de las notificaciones de esta app.</string>

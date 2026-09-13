@@ -50,9 +50,9 @@ import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DisplaySettings
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Button
@@ -127,11 +127,13 @@ import kotlinx.coroutines.withContext
 
 /**
  * Subscreens available within the App Configuration flow.
- * Selecting any element opens a dedicated full subscreen instead of expanding inline dropdowns.
+ * Group 1: Notification Types, Island Behavior, Blocked Terms
+ * Group 2: Island Widgets
+ * Group 3: Custom Design, Custom Translators
  */
 enum class AppConfigSubscreen {
     NOTIFICATION_TYPES,
-    ISLAND_APPEARANCE,
+    ISLAND_BEHAVIOR,
     BLOCKED_TERMS,
     ISLAND_WIDGETS,
     CUSTOM_DESIGN,
@@ -332,7 +334,7 @@ fun AppConfigContent(
     val navEditDesc = stringResource(R.string.cd_nav_edit)
     val activeTypesSubtitle = stringResource(R.string.active_notifications_subtitle, activeTypes.size)
     val isUsingGlobal = appIslandConfig.isFloat == null
-    val appearanceSubtitle = if (isUsingGlobal) {
+    val behaviorSubtitle = if (isUsingGlobal) {
         stringResource(R.string.use_global_default)
     } else {
         "${if (appIslandConfig.isFloat == true) activeDesc else inactiveDesc} • ${appIslandConfig.timeout ?: 5}s"
@@ -416,23 +418,20 @@ fun AppConfigContent(
                         )
                     }
 
-                    // Variable Corner Connected Sub-Item Cards (matching ThemeCreatorScreen style)
+                    // --- GROUP 1: NOTIFICATIONS & BEHAVIOR (3 connected items) ---
                     item {
-                        val subItems = listOf(
+                        val group1Items = listOf(
                             AppConfigSubscreen.NOTIFICATION_TYPES,
-                            AppConfigSubscreen.ISLAND_APPEARANCE,
-                            AppConfigSubscreen.BLOCKED_TERMS,
-                            AppConfigSubscreen.ISLAND_WIDGETS,
-                            AppConfigSubscreen.CUSTOM_DESIGN,
-                            AppConfigSubscreen.CUSTOM_TRANSLATORS
+                            AppConfigSubscreen.ISLAND_BEHAVIOR,
+                            AppConfigSubscreen.BLOCKED_TERMS
                         )
 
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
-                            subItems.forEachIndexed { index, route ->
-                                val shape = getExpressiveShape(subItems.size, index, ShapeStyle.Large)
+                            group1Items.forEachIndexed { index, route ->
+                                val shape = getExpressiveShape(group1Items.size, index, ShapeStyle.Large)
 
                                 when (route) {
                                     AppConfigSubscreen.NOTIFICATION_TYPES -> AppConfigOptionCard(
@@ -442,12 +441,12 @@ fun AppConfigContent(
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.NOTIFICATION_TYPES) }
                                     )
-                                    AppConfigSubscreen.ISLAND_APPEARANCE -> AppConfigOptionCard(
-                                        title = stringResource(R.string.island_appearance),
-                                        subtitle = appearanceSubtitle,
-                                        icon = Icons.Default.Palette,
+                                    AppConfigSubscreen.ISLAND_BEHAVIOR -> AppConfigOptionCard(
+                                        title = stringResource(R.string.island_behavior_title),
+                                        subtitle = behaviorSubtitle,
+                                        icon = Icons.Outlined.DisplaySettings,
                                         shape = shape,
-                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_APPEARANCE) }
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_BEHAVIOR) }
                                     )
                                     AppConfigSubscreen.BLOCKED_TERMS -> AppConfigOptionCard(
                                         title = stringResource(R.string.blocked_terms),
@@ -456,13 +455,51 @@ fun AppConfigContent(
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.BLOCKED_TERMS) }
                                     )
-                                    AppConfigSubscreen.ISLAND_WIDGETS -> AppConfigOptionCard(
-                                        title = stringResource(R.string.app_widgets_section_title),
-                                        subtitle = widgetsSubtitle,
-                                        icon = Icons.Outlined.Widgets,
-                                        shape = shape,
-                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_WIDGETS) }
-                                    )
+                                    else -> {}
+                                }
+                            }
+                        }
+                    }
+
+                    // --- GROUP 2: ISLAND WIDGETS (1 standalone item) ---
+                    item {
+                        val group2Items = listOf(
+                            AppConfigSubscreen.ISLAND_WIDGETS
+                        )
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            group2Items.forEachIndexed { index, route ->
+                                val shape = getExpressiveShape(group2Items.size, index, ShapeStyle.Large)
+
+                                AppConfigOptionCard(
+                                    title = stringResource(R.string.app_widgets_section_title),
+                                    subtitle = widgetsSubtitle,
+                                    icon = Icons.Outlined.Widgets,
+                                    shape = shape,
+                                    onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_WIDGETS) }
+                                )
+                            }
+                        }
+                    }
+
+                    // --- GROUP 3: FUTURE EXTENSIONS (2 connected items) ---
+                    item {
+                        val group3Items = listOf(
+                            AppConfigSubscreen.CUSTOM_DESIGN,
+                            AppConfigSubscreen.CUSTOM_TRANSLATORS
+                        )
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            group3Items.forEachIndexed { index, route ->
+                                val shape = getExpressiveShape(group3Items.size, index, ShapeStyle.Large)
+
+                                when (route) {
                                     AppConfigSubscreen.CUSTOM_DESIGN -> AppConfigOptionCard(
                                         title = stringResource(R.string.custom_design_title),
                                         subtitle = stringResource(R.string.custom_design_desc),
@@ -479,6 +516,7 @@ fun AppConfigContent(
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_TRANSLATORS) }
                                     )
+                                    else -> {}
                                 }
                             }
                         }
@@ -520,9 +558,9 @@ fun AppConfigContent(
                     }
                 }
 
-                AppConfigSubscreen.ISLAND_APPEARANCE -> {
+                AppConfigSubscreen.ISLAND_BEHAVIOR -> {
                     SubscreenScaffold(
-                        title = stringResource(R.string.island_appearance),
+                        title = stringResource(R.string.island_behavior_title),
                         appName = appName,
                         onBack = { onNavigateSubscreen(null) }
                     ) {
@@ -532,7 +570,7 @@ fun AppConfigContent(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(Modifier.padding(16.dp)) {
-                                AppAppearanceContent(
+                                AppBehaviorContent(
                                     appConfig = appIslandConfig,
                                     globalConfig = globalConfig,
                                     onUpdate = onUpdateIslandConfig,
@@ -981,11 +1019,11 @@ fun AppNotificationTypesContent(
 }
 
 // ------------------------------------------------------------------------------------------------
-// ISLAND APPEARANCE CONTENT
+// ISLAND BEHAVIOR CONTENT
 // ------------------------------------------------------------------------------------------------
 
 @Composable
-fun AppAppearanceContent(
+fun AppBehaviorContent(
     appConfig: IslandConfig,
     globalConfig: IslandConfig,
     onUpdate: (IslandConfig) -> Unit,

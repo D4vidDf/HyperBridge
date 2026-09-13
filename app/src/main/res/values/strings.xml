@@ -840,10 +840,10 @@
 
     <!-- App Configuration Screen -->
     <string name="app_config_title">App Configuration</string>
-    <string name="app_config_subtitle">Behaviors, widgets &amp; appearance</string>
+    <string name="app_config_subtitle">Behaviors, widgets &amp; extensions</string>
     <string name="custom_design_title">Custom Design</string>
     <string name="custom_design_badge">COMING SOON</string>
-    <string name="custom_design_desc">KWGT widget layouts and customizable Island UI designs are in development. Stay tuned for upcoming updates.</string>
+    <string name="custom_design_desc">Customizable visual layouts and tailored Island designs are in development. Stay tuned for upcoming updates.</string>
     <string name="custom_translators_title">Custom Translators</string>
     <string name="custom_translators_badge">COMING SOON</string>
     <string name="custom_translators_desc">Create and install custom community translators to format and control notification data for this application.</string>
