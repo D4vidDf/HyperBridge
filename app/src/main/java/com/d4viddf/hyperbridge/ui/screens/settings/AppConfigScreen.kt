@@ -69,6 +69,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -616,8 +618,12 @@ fun AppConfigContent(
                         title = stringResource(R.string.app_widgets_section_title),
                         appName = appName,
                         onBack = { onNavigateSubscreen(null) },
-                        actions = {
-                            IconButton(onClick = onAddWidgetClick) {
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = onAddWidgetClick,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = stringResource(R.string.add_island_widget)
@@ -680,6 +686,7 @@ fun SubscreenScaffold(
     appName: String,
     onBack: () -> Unit,
     actions: @Composable () -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable () -> Unit
 ) {
     Scaffold(
@@ -717,7 +724,8 @@ fun SubscreenScaffold(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
-        }
+        },
+        floatingActionButton = floatingActionButton
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -730,7 +738,7 @@ fun SubscreenScaffold(
                 content()
             }
             item {
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(80.dp))
             }
         }
     }
@@ -1381,14 +1389,23 @@ fun AppConfigWidgetChildItem(
     val config by preferences.getWidgetConfigFlow(widgetId).collectAsState(initial = WidgetConfig())
     val providerInfo = remember(widgetId) { WidgetManager.getWidgetInfo(context, widgetId) }
 
+    val viewHeightDp = when (config.size) {
+        WidgetSize.ORIGINAL -> 160
+        WidgetSize.SMALL -> 100
+        WidgetSize.MEDIUM -> 160
+        WidgetSize.LARGE -> 240
+        WidgetSize.XLARGE -> 320
+    }
+    val previewContainerHeight = (viewHeightDp + 24).dp
+
     Card(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onEdit)
     ) {
-        Column(Modifier.padding(12.dp)) {
+        Column(Modifier.padding(14.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -1402,28 +1419,28 @@ fun AppConfigWidgetChildItem(
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = 4.dp)
                     ) {
                         Surface(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(4.dp)
+                            shape = RoundedCornerShape(6.dp)
                         ) {
                             Text(
                                 text = config.size.name,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                         Surface(
                             color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(4.dp)
+                            shape = RoundedCornerShape(6.dp)
                         ) {
                             Text(
                                 text = config.renderMode.name,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                     }
@@ -1464,13 +1481,13 @@ fun AppConfigWidgetChildItem(
                 }
             }
 
-            // Live widget preview container
-            Spacer(Modifier.height(8.dp))
+            // Live widget preview container with size adapted to widget configuration
+            Spacer(Modifier.height(10.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(90.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .height(previewContainerHeight)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
@@ -1482,10 +1499,22 @@ fun AppConfigWidgetChildItem(
                                 val info = WidgetManager.getWidgetInfo(ctx, widgetId)
                                 hostView.setAppWidget(widgetId, info)
                                 addView(hostView)
+
+                                val density = ctx.resources.displayMetrics.density
+                                val w = (300 * density).toInt()
+                                val h = (viewHeightDp * density).toInt()
+
+                                hostView.measure(
+                                    View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY),
+                                    View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.AT_MOST)
+                                )
+                                hostView.layout(0, 0, hostView.measuredWidth, hostView.measuredHeight)
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp)
                 )
             }
         }
