@@ -1456,66 +1456,87 @@ private fun drawableToBitmap(drawable: Drawable): Bitmap {
 // PREVIEWS
 // ------------------------------------------------------------------------------------------------
 
-@Preview(showBackground = true)
+@Preview(name = "Overview", showBackground = true)
 @Composable
-fun AppConfigScreenPreview() {
+fun AppConfigOverviewPreview() {
     HyperBridgeTheme {
-        AppConfigContent(
-            appName = "Spotify",
-            packageName = "com.spotify.music",
-            appIcon = null,
-            isBridged = true,
-            isManagedByTheme = false,
-            activeTypes = setOf(NotificationType.MEDIA.name, NotificationType.MESSAGE.name),
-            activeCallStages = CallStage.entries.toSet(),
-            appIslandConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
-            globalConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
-            blockedTerms = setOf("Ad", "Promo"),
-            savedWidgetIds = emptyList(),
-            availableProviders = emptyList(),
-            currentSubscreen = null,
-            onNavigateSubscreen = {},
-            onBack = {},
-            onToggleBridged = {},
-            onToggleType = { _, _ -> },
-            onToggleCallStage = { _, _ -> },
-            onUpdateIslandConfig = {},
-            onUpdateBlockedTerms = {},
-            onNavConfigClick = {},
-            onAddWidgetClick = {},
-            onDeleteWidget = {}
-        )
+        SampleAppConfigContent(currentSubscreen = null)
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Subscreen: Notification Types", showBackground = true)
 @Composable
-fun AppConfigScreenSubscreenPreview() {
+fun AppConfigNotificationTypesPreview() {
     HyperBridgeTheme {
-        AppConfigContent(
-            appName = "Spotify",
-            packageName = "com.spotify.music",
-            appIcon = null,
-            isBridged = true,
-            isManagedByTheme = false,
-            activeTypes = setOf(NotificationType.MEDIA.name, NotificationType.MESSAGE.name),
-            activeCallStages = CallStage.entries.toSet(),
-            appIslandConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
-            globalConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
-            blockedTerms = setOf("Ad", "Promo"),
-            savedWidgetIds = emptyList(),
-            availableProviders = emptyList(),
-            currentSubscreen = AppConfigSubscreen.NOTIFICATION_TYPES,
-            onNavigateSubscreen = {},
-            onBack = {},
-            onToggleBridged = {},
-            onToggleType = { _, _ -> },
-            onToggleCallStage = { _, _ -> },
-            onUpdateIslandConfig = {},
-            onUpdateBlockedTerms = {},
-            onNavConfigClick = {},
-            onAddWidgetClick = {},
-            onDeleteWidget = {}
-        )
+        SampleAppConfigContent(currentSubscreen = AppConfigSubscreen.NOTIFICATION_TYPES)
     }
+}
+
+@Preview(name = "Subscreen: Island Behavior", showBackground = true)
+@Composable
+fun AppConfigIslandBehaviorPreview() {
+    HyperBridgeTheme {
+        SampleAppConfigContent(currentSubscreen = AppConfigSubscreen.ISLAND_BEHAVIOR)
+    }
+}
+
+@Preview(name = "Subscreen: Blocked Terms", showBackground = true)
+@Composable
+fun AppConfigBlockedTermsPreview() {
+    HyperBridgeTheme {
+        SampleAppConfigContent(currentSubscreen = AppConfigSubscreen.BLOCKED_TERMS)
+    }
+}
+
+@Preview(name = "Subscreen: Island Widgets", showBackground = true)
+@Composable
+fun AppConfigIslandWidgetsPreview() {
+    HyperBridgeTheme {
+        SampleAppConfigContent(currentSubscreen = AppConfigSubscreen.ISLAND_WIDGETS)
+    }
+}
+
+@Preview(name = "Subscreen: Custom Design", showBackground = true)
+@Composable
+fun AppConfigCustomDesignPreview() {
+    HyperBridgeTheme {
+        SampleAppConfigContent(currentSubscreen = AppConfigSubscreen.CUSTOM_DESIGN)
+    }
+}
+
+@Preview(name = "Subscreen: Custom Translators", showBackground = true)
+@Composable
+fun AppConfigCustomTranslatorsPreview() {
+    HyperBridgeTheme {
+        SampleAppConfigContent(currentSubscreen = AppConfigSubscreen.CUSTOM_TRANSLATORS)
+    }
+}
+
+@Composable
+private fun SampleAppConfigContent(currentSubscreen: AppConfigSubscreen?) {
+    AppConfigContent(
+        appName = "Spotify",
+        packageName = "com.spotify.music",
+        appIcon = null,
+        isBridged = true,
+        isManagedByTheme = false,
+        activeTypes = setOf(NotificationType.MEDIA.name, NotificationType.MESSAGE.name),
+        activeCallStages = CallStage.entries.toSet(),
+        appIslandConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
+        globalConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
+        blockedTerms = setOf("Ad", "Promo"),
+        savedWidgetIds = emptyList(),
+        availableProviders = emptyList(),
+        currentSubscreen = currentSubscreen,
+        onNavigateSubscreen = {},
+        onBack = {},
+        onToggleBridged = {},
+        onToggleType = { _, _ -> },
+        onToggleCallStage = { _, _ -> },
+        onUpdateIslandConfig = {},
+        onUpdateBlockedTerms = {},
+        onNavConfigClick = {},
+        onAddWidgetClick = {},
+        onDeleteWidget = {}
+    )
 }
