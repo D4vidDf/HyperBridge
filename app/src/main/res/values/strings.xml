@@ -859,6 +859,29 @@
     <string name="custom_behavior_desc">Using custom behavior for this app. Enable to use global defaults.</string>
     <string name="no_blocked_terms">No blocked terms configured</string>
     <string name="no_blocked_terms_desc">Notifications containing added words will not trigger an island.</string>
+
+    <!-- Smart Actions (issue #270) -->
+    <string name="smart_actions_title">Smart Actions</string>
+    <string name="smart_actions_desc">One-tap buttons for codes, links, phone numbers and parcels</string>
+    <string name="setting_smart_actions">Enable Smart Actions</string>
+    <string name="setting_smart_actions_desc">Scan notification text for actionable content and add buttons to the island and the shade. Nothing is scanned while this is off.</string>
+    <string name="smart_actions_group_detect">Detect</string>
+    <string name="setting_smart_actions_otp">Verification codes</string>
+    <string name="setting_smart_actions_otp_desc">One-tap copy of OTP and 2FA codes</string>
+    <string name="setting_smart_actions_url">Links</string>
+    <string name="setting_smart_actions_url_desc">Open web links straight from the island</string>
+    <string name="setting_smart_actions_phone">Phone numbers</string>
+    <string name="setting_smart_actions_phone_desc">Open the dialer with the number filled in</string>
+    <string name="setting_smart_actions_tracking">Parcel tracking</string>
+    <string name="setting_smart_actions_tracking_desc">Track shipments from UPS, FedEx, USPS, DHL, Correos and others</string>
+    <string name="smart_actions_group_excluded">Excluded apps</string>
+    <string name="smart_actions_excluded_desc">Notifications from these apps are never scanned</string>
+    <string name="smart_actions_no_apps">Enable some apps in HyperBridge first</string>
+    <string name="smart_action_copy_code">Copy %1$s</string>
+    <string name="smart_action_open_link">Open link</string>
+    <string name="smart_action_call">Call</string>
+    <string name="smart_action_track">Track parcel</string>
+    <string name="smart_action_copied">Code copied</string>
 </resources>
 
 

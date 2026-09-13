@@ -60,7 +60,8 @@ class MessageTranslator(
         val bridgeActions = extractBridgeActions(
             sbn = sbn,
             config = config,
-            theme = theme
+            theme = theme,
+            includeSmartActions = true
         )
 
         // Base Info (Shade)

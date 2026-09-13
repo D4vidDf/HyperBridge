@@ -17,6 +17,8 @@ import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.models.WidgetSize
+import com.d4viddf.hyperbridge.models.SmartActionType
+import com.d4viddf.hyperbridge.models.SmartActionsConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -364,6 +366,45 @@ class AppPreferences internal constructor(
         save(SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN, design.name)
 
 
+    // --- SMART ACTIONS (issue #270) ---
+    val smartActionsConfigFlow: Flow<SmartActionsConfig> = combine(
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_ENABLED),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_OTP),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_URL),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_PHONE),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_TRACKING),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES)
+    ) { args: Array<String?> ->
+        buildSmartActionsConfig(args[0], args[1], args[2], args[3], args[4], args[5])
+    }
+
+    suspend fun setSmartActionsEnabled(enabled: Boolean) =
+        save(SettingsKeys.SMART_ACTIONS_ENABLED, enabled.toString())
+
+    suspend fun setSmartActionTypeEnabled(type: SmartActionType, enabled: Boolean) =
+        save(smartActionTypeKey(type), enabled.toString())
+
+    suspend fun setSmartActionsExcludedPackages(packages: Set<String>) =
+        save(SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES, packages.serialize())
+
+    private fun smartActionTypeKey(type: SmartActionType): String = when (type) {
+        SmartActionType.OTP -> SettingsKeys.SMART_ACTIONS_OTP
+        SmartActionType.URL -> SettingsKeys.SMART_ACTIONS_URL
+        SmartActionType.PHONE -> SettingsKeys.SMART_ACTIONS_PHONE
+        SmartActionType.TRACKING -> SettingsKeys.SMART_ACTIONS_TRACKING
+    }
+
+    private fun buildSmartActionsConfig(
+        enabled: String?, otp: String?, url: String?, phone: String?, tracking: String?, excluded: String?
+    ) = SmartActionsConfig(
+        enabled = enabled.toBoolean(false),
+        otp = otp.toBoolean(true),
+        url = url.toBoolean(true),
+        phone = phone.toBoolean(true),
+        tracking = tracking.toBoolean(true),
+        excludedPackages = excluded.deserializeSet()
+    )
+
     // --- NAVIGATION ---
     val globalBlockedTermsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.GLOBAL_BLOCKED_TERMS).map { it.deserializeSet() }
     suspend fun setGlobalBlockedTerms(terms: Set<String>) = save(SettingsKeys.GLOBAL_BLOCKED_TERMS, terms.serialize())
@@ -678,9 +719,19 @@ class AppPreferences internal constructor(
             memoryCache[SettingsKeys.GLOBAL_FLOAT_TIMEOUT]?.toIntOrNull(),
             memoryCache[SettingsKeys.GLOBAL_REMOVE_NOTIF]?.toBooleanStrictOrNull(),
             memoryCache[SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL]?.toBooleanStrictOrNull() ?: true,
-            memoryCache[SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY]?.toBooleanStrictOrNull()
+            memoryCache[SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY]?.toBooleanStrictOrNull(),
+            smartActions = getSmartActionsConfigSync()
         )
     }
+
+    fun getSmartActionsConfigSync(): SmartActionsConfig = buildSmartActionsConfig(
+        memoryCache[SettingsKeys.SMART_ACTIONS_ENABLED],
+        memoryCache[SettingsKeys.SMART_ACTIONS_OTP],
+        memoryCache[SettingsKeys.SMART_ACTIONS_URL],
+        memoryCache[SettingsKeys.SMART_ACTIONS_PHONE],
+        memoryCache[SettingsKeys.SMART_ACTIONS_TRACKING],
+        memoryCache[SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES]
+    )
 
     fun getGlobalNavLayoutSync(): Pair<NavContent, NavContent> {
         val l = memoryCache[SettingsKeys.NAV_LEFT]

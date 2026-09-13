@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DisplaySettings
 import androidx.compose.material.icons.outlined.DoNotDisturbOn
 import androidx.compose.material.icons.outlined.Edit
@@ -51,7 +52,8 @@ fun GlobalSettingsScreen(
     onIslandSettingsClick: () -> Unit,
     onEngineSettingsClick: () -> Unit,
     onDndSettingsClick: () -> Unit,
-    onPermanentIslandClick: () -> Unit
+    onPermanentIslandClick: () -> Unit,
+    onSmartActionsClick: () -> Unit
 ) {
 
     Scaffold(
@@ -76,7 +78,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.engine),
                 subtitle = stringResource(R.string.engine_desc),
                 icon = Icons.Outlined.Memory,
-                shape = getExpressiveShape(6, 0, ShapeStyle.Large),
+                shape = getExpressiveShape(7, 0, ShapeStyle.Large),
                 onClick = onEngineSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -84,7 +86,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.island_behavior_title),
                 subtitle = stringResource(R.string.island_behavior_desc),
                 icon = Icons.Outlined.DisplaySettings,
-                shape = getExpressiveShape(6, 1, ShapeStyle.Large),
+                shape = getExpressiveShape(7, 1, ShapeStyle.Large),
                 onClick = onIslandSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -92,7 +94,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.dnd_mode_title),
                 subtitle = stringResource(R.string.dnd_mode_desc),
                 icon = Icons.Outlined.DoNotDisturbOn,
-                shape = getExpressiveShape(6, 2, ShapeStyle.Large),
+                shape = getExpressiveShape(7, 2, ShapeStyle.Large),
                 onClick = onDndSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -100,7 +102,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.nav_layout_title),
                 subtitle = stringResource(R.string.nav_layout_desc),
                 icon = Icons.Outlined.Navigation,
-                shape = getExpressiveShape(6, 3, ShapeStyle.Large),
+                shape = getExpressiveShape(7, 3, ShapeStyle.Large),
                 onClick = onNavSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -108,7 +110,7 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.inline_reply_title),
                 subtitle = stringResource(R.string.customize_inline_reply),
                 icon = Icons.Outlined.Edit,
-                shape = getExpressiveShape(6, 4, ShapeStyle.Large),
+                shape = getExpressiveShape(7, 4, ShapeStyle.Large),
                 onClick = onInlineReplyClick
             )
             Spacer(Modifier.height(2.dp))
@@ -116,8 +118,16 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.permanent_island_title),
                 subtitle = stringResource(R.string.permanent_island_desc),
                 icon = Icons.Outlined.PushPin,
-                shape = getExpressiveShape(6, 5, ShapeStyle.Large),
+                shape = getExpressiveShape(7, 5, ShapeStyle.Large),
                 onClick = onPermanentIslandClick
+            )
+            Spacer(Modifier.height(2.dp))
+            ListOptionCard(
+                title = stringResource(R.string.smart_actions_title),
+                subtitle = stringResource(R.string.smart_actions_desc),
+                icon = Icons.Outlined.AutoAwesome,
+                shape = getExpressiveShape(7, 6, ShapeStyle.Large),
+                onClick = onSmartActionsClick
             )
             Spacer(Modifier.height(16.dp))
             
