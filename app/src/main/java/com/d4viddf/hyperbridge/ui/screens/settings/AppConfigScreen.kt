@@ -15,10 +15,14 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -71,7 +75,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -79,7 +82,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -122,6 +124,8 @@ import com.d4viddf.hyperbridge.models.WidgetSize
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.IslandSettingsControl
+import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
+import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
@@ -157,9 +161,6 @@ fun AppConfigScreen(
     val preferences = remember { AppPreferences(context.applicationContext) }
 
     var currentSubscreen by remember { mutableStateOf<AppConfigSubscreen?>(null) }
-    BackHandler(enabled = currentSubscreen != null) {
-        currentSubscreen = null
-    }
 
     val effectiveConfig by viewModel.getEffectiveAppConfigFlow(packageName).collectAsState(initial = null)
     val activeTypes = effectiveConfig?.activeTypes ?: emptySet()
@@ -208,8 +209,16 @@ fun AppConfigScreen(
     val refreshWidgetTrigger = remember { mutableIntStateOf(0) }
     var appSavedWidgetIds by remember { mutableStateOf<List<Int>>(emptyList()) }
     var availableProviders by remember { mutableStateOf<List<AppWidgetProviderInfo>>(emptyList()) }
-    var showAddWidgetSheet by remember { mutableStateOf(false) }
-    var pendingWidgetId by remember { mutableIntStateOf(-1) }
+    var isPickingWidget by remember { mutableStateOf(false) }
+    var editingWidgetId by remember { mutableStateOf<Int?>(null) }
+
+    BackHandler(enabled = editingWidgetId != null || isPickingWidget || currentSubscreen != null) {
+        when {
+            editingWidgetId != null -> editingWidgetId = null
+            isPickingWidget -> isPickingWidget = false
+            currentSubscreen != null -> currentSubscreen = null
+        }
+    }
 
     LaunchedEffect(savedWidgetIds, refreshWidgetTrigger.intValue, packageName) {
         withContext(Dispatchers.IO) {
@@ -225,84 +234,97 @@ fun AppConfigScreen(
         }
     }
 
-    val bindLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && pendingWidgetId != -1) {
-            val boundId = pendingWidgetId
-            scope.launch {
-                preferences.saveWidgetConfig(boundId, WidgetConfig())
-                refreshWidgetTrigger.intValue++
-            }
-            pendingWidgetId = -1
-        } else if (pendingWidgetId != -1) {
-            WidgetManager.deleteId(context, pendingWidgetId)
-            pendingWidgetId = -1
-        }
-    }
-
-    AppConfigContent(
-        appName = appInfo?.name ?: packageName,
-        packageName = packageName,
-        appIcon = appInfo?.icon,
-        isBridged = isBridged,
-        isManagedByTheme = isManagedByTheme,
-        activeTypes = activeTypes,
-        activeCallStages = activeCallStages,
-        appIslandConfig = appIslandConfig,
-        globalConfig = globalConfig,
-        blockedTerms = blockedTerms,
-        savedWidgetIds = appSavedWidgetIds,
-        availableProviders = availableProviders,
-        currentSubscreen = currentSubscreen,
-        onNavigateSubscreen = { currentSubscreen = it },
-        onBack = onBack,
-        onToggleBridged = { enabled -> viewModel.toggleApp(packageName, enabled) },
-        onToggleType = { type, enabled -> viewModel.updateAppConfig(packageName, type, enabled) },
-        onToggleCallStage = { stage, enabled -> viewModel.updateAppCallStage(packageName, stage, enabled) },
-        onUpdateIslandConfig = { config -> viewModel.updateAppIslandConfig(packageName, config) },
-        onUpdateBlockedTerms = { terms -> viewModel.updateAppBlockedTerms(packageName, terms) },
-        onNavConfigClick = { onNavConfigClick(packageName) },
-        onAddWidgetClick = { showAddWidgetSheet = true },
-        onDeleteWidget = { widgetId ->
-            val killIntent = Intent(context, com.d4viddf.hyperbridge.service.WidgetOverlayService::class.java).apply {
-                action = "ACTION_KILL_WIDGET"
-                putExtra("WIDGET_ID", widgetId)
-            }
-            context.startService(killIntent)
-            scope.launch {
-                preferences.removeWidgetId(widgetId)
-                refreshWidgetTrigger.intValue++
-            }
-        }
-    )
-
-    if (showAddWidgetSheet) {
-        AddAppWidgetSheet(
-            packageName = packageName,
+    Box(modifier = Modifier.fillMaxSize()) {
+        AppConfigContent(
             appName = appInfo?.name ?: packageName,
+            packageName = packageName,
+            appIcon = appInfo?.icon,
+            isBridged = isBridged,
+            isManagedByTheme = isManagedByTheme,
+            activeTypes = activeTypes,
+            activeCallStages = activeCallStages,
+            appIslandConfig = appIslandConfig,
+            globalConfig = globalConfig,
+            blockedTerms = blockedTerms,
+            savedWidgetIds = appSavedWidgetIds,
             availableProviders = availableProviders,
-            onDismiss = { showAddWidgetSheet = false },
-            onSelectProvider = { provider ->
-                showAddWidgetSheet = false
-                val newId = WidgetManager.allocateId(context)
-                val manager = AppWidgetManager.getInstance(context)
-                val canBind = manager.bindAppWidgetIdIfAllowed(newId, provider.provider)
-                if (canBind) {
-                    scope.launch {
-                        preferences.saveWidgetConfig(newId, WidgetConfig())
-                        refreshWidgetTrigger.intValue++
-                    }
-                } else {
-                    pendingWidgetId = newId
-                    val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newId)
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
-                    }
-                    bindLauncher.launch(intent)
+            currentSubscreen = currentSubscreen,
+            onNavigateSubscreen = { currentSubscreen = it },
+            onBack = onBack,
+            onToggleBridged = { enabled -> viewModel.toggleApp(packageName, enabled) },
+            onToggleType = { type, enabled -> viewModel.updateAppConfig(packageName, type, enabled) },
+            onToggleCallStage = { stage, enabled -> viewModel.updateAppCallStage(packageName, stage, enabled) },
+            onUpdateIslandConfig = { config -> viewModel.updateAppIslandConfig(packageName, config) },
+            onUpdateBlockedTerms = { terms -> viewModel.updateAppBlockedTerms(packageName, terms) },
+            onNavConfigClick = { onNavConfigClick(packageName) },
+            onAddWidgetClick = { isPickingWidget = true },
+            onEditWidget = { widgetId -> editingWidgetId = widgetId },
+            onDeleteWidget = { widgetId ->
+                val killIntent = Intent(context, com.d4viddf.hyperbridge.service.WidgetOverlayService::class.java).apply {
+                    action = "ACTION_KILL_WIDGET"
+                    putExtra("WIDGET_ID", widgetId)
+                }
+                context.startService(killIntent)
+                scope.launch {
+                    preferences.removeWidgetId(widgetId)
+                    refreshWidgetTrigger.intValue++
                 }
             }
         )
+
+        // --- OVERLAYS ---
+        AnimatedVisibility(
+            visible = isPickingWidget,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(400)
+            ) + fadeIn(),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(400)
+            ) + fadeOut(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
+            WidgetPickerScreen(
+                targetPackageName = packageName,
+                onBack = { isPickingWidget = false },
+                onWidgetSelected = { newId ->
+                    isPickingWidget = false
+                    scope.launch {
+                        preferences.saveWidgetConfig(newId, WidgetConfig())
+                        refreshWidgetTrigger.intValue++
+                        editingWidgetId = newId
+                    }
+                }
+            )
+        }
+
+        AnimatedVisibility(
+            visible = editingWidgetId != null,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(400)
+            ) + fadeIn(),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(400)
+            ) + fadeOut(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
+            if (editingWidgetId != null) {
+                WidgetConfigScreen(
+                    widgetId = editingWidgetId!!,
+                    onBack = {
+                        editingWidgetId = null
+                        refreshWidgetTrigger.intValue++
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -331,6 +353,7 @@ fun AppConfigContent(
     onUpdateBlockedTerms: (Set<String>) -> Unit,
     onNavConfigClick: () -> Unit,
     onAddWidgetClick: () -> Unit,
+    onEditWidget: (Int) -> Unit,
     onDeleteWidget: (Int) -> Unit
 ) {
     val activeDesc = stringResource(R.string.cd_app_state_active)
@@ -606,6 +629,7 @@ fun AppConfigContent(
                             savedWidgetIds = savedWidgetIds,
                             availableProviders = availableProviders,
                             onAddWidget = onAddWidgetClick,
+                            onEditWidget = onEditWidget,
                             onDeleteWidget = onDeleteWidget
                         )
                     }
@@ -1280,6 +1304,7 @@ fun AppWidgetsSectionCard(
     savedWidgetIds: List<Int>,
     availableProviders: List<AppWidgetProviderInfo>,
     onAddWidget: () -> Unit,
+    onEditWidget: (Int) -> Unit,
     onDeleteWidget: (Int) -> Unit
 ) {
     Card(
@@ -1323,6 +1348,7 @@ fun AppWidgetsSectionCard(
                     savedWidgetIds.forEach { widgetId ->
                         AppConfigWidgetChildItem(
                             widgetId = widgetId,
+                            onEdit = { onEditWidget(widgetId) },
                             onDelete = { onDeleteWidget(widgetId) }
                         )
                     }
@@ -1347,6 +1373,7 @@ fun AppWidgetsSectionCard(
 @Composable
 fun AppConfigWidgetChildItem(
     widgetId: Int,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1357,7 +1384,9 @@ fun AppConfigWidgetChildItem(
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit)
     ) {
         Column(Modifier.padding(12.dp)) {
             Row(
@@ -1398,6 +1427,14 @@ fun AppConfigWidgetChildItem(
                             )
                         }
                     }
+                }
+
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.configure),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
                 IconButton(
@@ -1549,101 +1586,6 @@ fun FutureFeaturePlaceholderCard(
     }
 }
 
-// ------------------------------------------------------------------------------------------------
-// ADD APP WIDGET BOTTOM SHEET
-// ------------------------------------------------------------------------------------------------
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddAppWidgetSheet(
-    packageName: String,
-    appName: String,
-    availableProviders: List<AppWidgetProviderInfo>,
-    onDismiss: () -> Unit,
-    onSelectProvider: (AppWidgetProviderInfo) -> Unit
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val context = LocalContext.current
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.select_app_widget),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = appName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            if (availableProviders.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.no_available_widgets_for_app),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(availableProviders) { provider ->
-                        Card(
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelectProvider(provider) }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Widgets,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Spacer(Modifier.width(14.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    val label = provider.loadLabel(context.packageManager)
-                                    Text(
-                                        text = if (label.isNullOrEmpty()) provider.provider.shortClassName else label,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = "${provider.targetCellWidth} x ${provider.targetCellHeight}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
-        }
-    }
-}
-
 private fun drawableToBitmap(drawable: Drawable): Bitmap {
     if (drawable is BitmapDrawable) return drawable.bitmap
     val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1
@@ -1740,6 +1682,7 @@ private fun SampleAppConfigContent(currentSubscreen: AppConfigSubscreen?) {
         onUpdateBlockedTerms = {},
         onNavConfigClick = {},
         onAddWidgetClick = {},
+        onEditWidget = {},
         onDeleteWidget = {}
     )
 }
