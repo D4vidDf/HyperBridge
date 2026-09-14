@@ -63,7 +63,7 @@ fun PrioritySettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.island_behavior)) },
+                title = { Text(stringResource(R.string.limit_strategy)) },
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))

@@ -135,6 +135,7 @@
     <string name="configure_order">Configure apps order</string>
 
     <string name="global_settings">Global Settings</string>
+    <string name="global_settings_desc">Behavior, motor, inline reply, and smart actions</string>
     <string name="island_appearance">Island Appearance</string>
     <string name="setting_float">Heads-up Popup</string>
     <string name="setting_float_desc">Show the full notification banner briefly before minimizing to the Island.</string>

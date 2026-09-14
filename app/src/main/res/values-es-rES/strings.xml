@@ -111,6 +111,7 @@
     <string name="priority_order_desc">Las aplicaciones más arriba tienen mayor prioridad</string>
     <string name="configure_order">Configurar Orden de aplicaciones</string>
     <string name="global_settings">Ajustes Globales</string>
+    <string name="global_settings_desc">Comportamiento, motor, respuesta rápida y acciones inteligentes</string>
     <string name="island_appearance">Apariencia de Isla</string>
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
