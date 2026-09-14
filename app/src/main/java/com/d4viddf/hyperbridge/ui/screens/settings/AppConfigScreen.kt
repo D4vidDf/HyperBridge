@@ -55,6 +55,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.DisplaySettings
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
@@ -1320,6 +1321,21 @@ fun AppSmartActionsContent(
                     checked = override.tracking ?: global.tracking,
                     onCheckedChange = if (controlsEnabled) {
                         { value -> onTypeOverride(SmartActionType.TRACKING, value) }
+                    } else {
+                        { _ -> }
+                    }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+                SettingsSwitchItem(
+                    icon = Icons.Outlined.Directions,
+                    title = stringResource(R.string.setting_smart_actions_navigation),
+                    subtitle = stringResource(R.string.setting_smart_actions_navigation_desc),
+                    checked = override.navigation ?: global.navigation,
+                    onCheckedChange = if (controlsEnabled) {
+                        { value -> onTypeOverride(SmartActionType.NAVIGATION, value) }
                     } else {
                         { _ -> }
                     }

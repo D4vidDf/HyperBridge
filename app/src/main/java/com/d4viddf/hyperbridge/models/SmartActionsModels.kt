@@ -1,7 +1,7 @@
 package com.d4viddf.hyperbridge.models
 
 /** Kinds of actionable content Smart Actions can pull out of notification text. */
-enum class SmartActionType { OTP, TRACKING, URL, PHONE }
+enum class SmartActionType { OTP, TRACKING, NAVIGATION, URL, PHONE }
 
 /**
  * One extracted entity plus the target its button acts on.
@@ -10,6 +10,8 @@ enum class SmartActionType { OTP, TRACKING, URL, PHONE }
  * - URL: [value] = the text as written, [target] = absolute URL (https:// prepended when missing)
  * - PHONE: [value] = the number as written, [target] = dialable number (`+34612345678`)
  * - TRACKING: [value] = tracking id, [target] = carrier tracking page URL, [carrier] = human name
+ * - NAVIGATION: [value] = the map link as written, [target] = the link itself (https:// prepended
+ *   when missing, `geo:` URIs kept as-is) so the app that owns it opens it directly
  */
 data class SmartAction(
     val type: SmartActionType,
@@ -28,12 +30,13 @@ data class SmartActionsConfig(
     val url: Boolean = true,
     val phone: Boolean = true,
     val tracking: Boolean = true,
+    val navigation: Boolean = true,
     val excludedPackages: Set<String> = emptySet(),
     // When true, the OTP button never prints the code itself (island or shade), only "Copy code".
     val hideOtpCode: Boolean = false
 ) {
     fun isActiveFor(packageName: String): Boolean =
-        enabled && packageName !in excludedPackages && (otp || url || phone || tracking)
+        enabled && packageName !in excludedPackages && (otp || url || phone || tracking || navigation)
 
     /**
      * Applies a per-app [override] on top of this (global) config: a non-null field in [override]
@@ -47,7 +50,8 @@ data class SmartActionsConfig(
             otp = override.otp ?: otp,
             url = override.url ?: url,
             phone = override.phone ?: phone,
-            tracking = override.tracking ?: tracking
+            tracking = override.tracking ?: tracking,
+            navigation = override.navigation ?: navigation
         )
     }
 
@@ -66,16 +70,18 @@ data class AppSmartActionsOverride(
     val otp: Boolean? = null,
     val url: Boolean? = null,
     val phone: Boolean? = null,
-    val tracking: Boolean? = null
+    val tracking: Boolean? = null,
+    val navigation: Boolean? = null
 ) {
     val isEmpty: Boolean
-        get() = otp == null && url == null && phone == null && tracking == null
+        get() = otp == null && url == null && phone == null && tracking == null && navigation == null
 
     fun get(type: SmartActionType): Boolean? = when (type) {
         SmartActionType.OTP -> otp
         SmartActionType.URL -> url
         SmartActionType.PHONE -> phone
         SmartActionType.TRACKING -> tracking
+        SmartActionType.NAVIGATION -> navigation
     }
 
     fun with(type: SmartActionType, value: Boolean?): AppSmartActionsOverride = when (type) {
@@ -83,5 +89,6 @@ data class AppSmartActionsOverride(
         SmartActionType.URL -> copy(url = value)
         SmartActionType.PHONE -> copy(phone = value)
         SmartActionType.TRACKING -> copy(tracking = value)
+        SmartActionType.NAVIGATION -> copy(navigation = value)
     }
 }

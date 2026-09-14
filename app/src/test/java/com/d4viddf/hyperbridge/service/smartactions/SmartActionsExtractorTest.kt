@@ -301,4 +301,69 @@ class SmartActionsExtractorTest {
         assertEquals("123456", actions.first { it.type == SmartActionType.OTP }.value)
         assertNull(actions.firstOrNull { it.type == SmartActionType.TRACKING })
     }
+
+    // ---------------------------------------------------------------- NAVIGATION
+
+    @Test
+    fun navigationGoogleMapsLinkBecomesDirectionsNotOpenLink() {
+        val actions = extract("Here's the restaurant: https://maps.google.com/?q=Casa+Marcelo+Santiago")
+        val nav = actions.single { it.type == SmartActionType.NAVIGATION }
+        assertEquals("https://maps.google.com/?q=Casa+Marcelo+Santiago", nav.target)
+        assertNull(actions.firstOrNull { it.type == SmartActionType.URL })
+    }
+
+    @Test
+    fun navigationShortGoogleMapsLink() {
+        val nav = only("Meet here https://maps.app.goo.gl/AbC123xyz.", SmartActionType.NAVIGATION)
+        assertEquals("https://maps.app.goo.gl/AbC123xyz", nav?.value)
+    }
+
+    @Test
+    fun navigationGoogleMapsWithoutScheme() {
+        val nav = only("Location: maps.google.es/maps?q=42.68,-8.48", SmartActionType.NAVIGATION)
+        assertEquals("https://maps.google.es/maps?q=42.68,-8.48", nav?.target)
+    }
+
+    @Test
+    fun navigationAppleMapsAndWaze() {
+        assertEquals("https://maps.apple.com/?ll=42.88,-8.54", only("Pin: https://maps.apple.com/?ll=42.88,-8.54", SmartActionType.NAVIGATION)?.target)
+        assertEquals("https://waze.com/ul/hsv9x2k3", only("Drive with me https://waze.com/ul/hsv9x2k3", SmartActionType.NAVIGATION)?.target)
+    }
+
+    @Test
+    fun navigationGeoUri() {
+        val nav = only("Your driver shared geo:42.6814,-8.4820?q=Pickup", SmartActionType.NAVIGATION)
+        assertEquals("geo:42.6814,-8.4820?q=Pickup", nav?.target)
+    }
+
+    @Test
+    fun navigationOrdinaryLinkStillOpensAsLink() {
+        val actions = extract("Read more at https://example.com/news/123")
+        assertEquals(SmartActionType.URL, actions.single().type)
+    }
+
+    @Test
+    fun navigationDisabledTypeIsSkipped() {
+        val noNav = all.copy(navigation = false)
+        // With navigation off a map link falls through to the ordinary link button.
+        assertEquals(SmartActionType.URL, extract("https://maps.app.goo.gl/AbC123xyz", noNav).single().type)
+    }
+
+    @Test
+    fun navigationTrailingPunctuationIsNotPartOfTheLink() {
+        assertEquals("https://maps.apple.com/?q=Coffee", only("See you there (https://maps.apple.com/?q=Coffee).", SmartActionType.NAVIGATION)?.target)
+    }
+
+    @Test
+    fun navigationOtpStillWinsAndCountsTowardsTheCap() {
+        val actions = extract("Your code is 483920. Pickup: https://maps.app.goo.gl/AbC123xyz. Track at https://example.com/t", max = 2)
+        assertEquals(listOf(SmartActionType.OTP, SmartActionType.NAVIGATION), actions.map { it.type })
+    }
+
+    @Test
+    fun navigationOnlyOnePerNotification() {
+        val actions = extract("From https://maps.app.goo.gl/AbC123xyz to https://maps.app.goo.gl/Zyx987cba", max = 4)
+        assertEquals(1, actions.count { it.type == SmartActionType.NAVIGATION })
+        assertEquals("https://maps.app.goo.gl/AbC123xyz", actions.single { it.type == SmartActionType.NAVIGATION }.value)
+    }
 }

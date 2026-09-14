@@ -11,9 +11,10 @@ import com.d4viddf.hyperbridge.models.SmartActionsConfig
  * handful of regex passes over a few hundred characters, so it is cheap enough to run on the
  * notification worker thread right before translation.
  *
- * Priority when several entities are present: OTP > tracking number > URL > phone. Only the best
- * candidate of each type is returned, and the total is capped by [DEFAULT_MAX_ACTIONS] so the
- * island never fills up with buttons.
+ * Priority when several entities are present: OTP > tracking number > navigation > URL > phone.
+ * Only the best candidate of each type is returned, and the total is capped by
+ * [DEFAULT_MAX_ACTIONS] so the island never fills up with buttons. Navigation runs before URL so a
+ * shared map link yields a single "Directions" button rather than "Open link" as well.
  */
 object SmartActionsExtractor {
 
@@ -41,8 +42,13 @@ object SmartActionsExtractor {
                 results.add(action); taken.add(range)
             }
         }
+        if (config.navigation) {
+            findNavigation(source, taken)?.let { (action, range) ->
+                results.add(action); taken.add(range)
+            }
+        }
         if (config.url) {
-            findUrl(source)?.let { (action, range) ->
+            findUrl(source, taken)?.let { (action, range) ->
                 results.add(action); taken.add(range)
             }
         }
@@ -151,6 +157,41 @@ object SmartActionsExtractor {
         return SmartAction(SmartActionType.OTP, value = code, target = code) to match.range
     }
 
+
+    // ------------------------------------------------------------------ NAVIGATION
+
+    /**
+     * Links that a maps app owns. Matched before the generic URL pass so they become a single
+     * "Directions" button; the link itself is the target, so the owning app (Google Maps, Apple
+     * Maps, Waze, OsmAnd...) opens it directly instead of a browser.
+     */
+    private val MAP_LINK = Regex(
+        "(?i)(?<![\\p{L}\\p{N}@/.])(?:" +
+                "(?:https?://)?(?:www\\.)?(?:" +
+                "maps\\.google\\.[a-z.]{2,6}|google\\.[a-z.]{2,6}/maps|maps\\.app\\.goo\\.gl|goo\\.gl/maps|" +
+                "maps\\.apple\\.com|waze\\.com/(?:ul|live-map)|openstreetmap\\.org|osm\\.org|" +
+                "maps\\.yandex\\.[a-z]{2,3}|yandex\\.[a-z]{2,3}/maps|petalmaps\\.com|maps\\.here\\.com|wego\\.here\\.com|" +
+                "bing\\.com/maps|mapy\\.cz|maps\\.baidu\\.com|amap\\.com|uri\\.amap\\.com|map\\.naver\\.com|map\\.kakao\\.com" +
+                ")[^\\s<>\"'`]*" +
+                "|geo:[^\\s<>\"'`]+" +
+                ")"
+    )
+
+    private fun findNavigation(text: String, taken: List<IntRange>): Pair<SmartAction, IntRange>? {
+        for (m in MAP_LINK.findAll(text)) {
+            if (taken.any { it.overlaps(m.range) }) continue
+            val raw = trimLink(m.value)
+            if (raw.length < 8) continue
+            val target = when {
+                raw.startsWith("geo:", true) -> raw
+                raw.startsWith("http://", true) || raw.startsWith("https://", true) -> raw
+                else -> "https://$raw"
+            }
+            return SmartAction(SmartActionType.NAVIGATION, value = raw, target = target) to m.range
+        }
+        return null
+    }
+
     // ------------------------------------------------------------------ URL
 
     private const val URL_TLDS = "com|net|org|io|app|dev|es|eu|me|co|ly|to|gl|link|page|info|uk|de|fr|it|pt|nl|be|ch|at|br|mx|ar|cl|us|ca|au|in|jp|kr|cn|ru|tv|xyz|site|online|store|shop|cloud|ai|gg|id|ie|se|no|dk|fi|pl|cz|tr|gr|ro|hu"
@@ -164,17 +205,24 @@ object SmartActionsExtractor {
 
     private val URL_TRAILING_PUNCT = Regex("[.,;:!?\\]}'\"»]+$")
 
-    private fun findUrl(text: String): Pair<SmartAction, IntRange>? {
+    /**
+     * Strips sentence punctuation from the end of a link; keeps a closing paren only if the link
+     * itself opened one (wikipedia-style), otherwise it belongs to the surrounding prose.
+     */
+    private fun trimLink(value: String): String {
+        var raw = value
+        while (true) {
+            var next = URL_TRAILING_PUNCT.replace(raw, "")
+            if (next.endsWith(")") && next.count { it == '(' } < next.count { it == ')' }) next = next.dropLast(1)
+            if (next == raw) return raw
+            raw = next
+        }
+    }
+
+    private fun findUrl(text: String, taken: List<IntRange>): Pair<SmartAction, IntRange>? {
         for (m in URL_CANDIDATE.findAll(text)) {
-            var raw = m.value
-            // Strip sentence punctuation; keep a closing paren only if the URL itself opened one
-            // (wikipedia-style links), otherwise it belongs to the surrounding prose.
-            while (true) {
-                var next = URL_TRAILING_PUNCT.replace(raw, "")
-                if (next.endsWith(")") && next.count { it == '(' } < next.count { it == ')' }) next = next.dropLast(1)
-                if (next == raw) break
-                raw = next
-            }
+            if (taken.any { it.overlaps(m.range) }) continue
+            val raw = trimLink(m.value)
             val hasScheme = raw.startsWith("http://", true) || raw.startsWith("https://", true)
             if (!hasScheme) {
                 val host = raw.substringBefore('/')

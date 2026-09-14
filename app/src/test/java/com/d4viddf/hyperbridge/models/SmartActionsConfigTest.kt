@@ -20,6 +20,7 @@ class SmartActionsConfigTest {
         assertNull(override.get(SmartActionType.URL))
         assertNull(override.get(SmartActionType.PHONE))
         assertNull(override.get(SmartActionType.TRACKING))
+        assertNull(override.get(SmartActionType.NAVIGATION))
     }
 
     @Test
@@ -30,6 +31,7 @@ class SmartActionsConfigTest {
         assertNull(override.get(SmartActionType.URL))
         assertNull(override.get(SmartActionType.PHONE))
         assertNull(override.get(SmartActionType.TRACKING))
+        assertNull(override.get(SmartActionType.NAVIGATION))
     }
 
     @Test
@@ -42,11 +44,30 @@ class SmartActionsConfigTest {
 
     @Test
     fun getRoutesToTheCorrectField() {
-        val override = AppSmartActionsOverride(otp = true, url = false, phone = true, tracking = false)
+        val override = AppSmartActionsOverride(otp = true, url = false, phone = true, tracking = false, navigation = true)
         assertEquals(true, override.get(SmartActionType.OTP))
         assertEquals(false, override.get(SmartActionType.URL))
         assertEquals(true, override.get(SmartActionType.PHONE))
         assertEquals(false, override.get(SmartActionType.TRACKING))
+        assertEquals(true, override.get(SmartActionType.NAVIGATION))
+    }
+
+    @Test
+    fun navigationOverrideRoundTripsThroughWithAndApply() {
+        val override = AppSmartActionsOverride().with(SmartActionType.NAVIGATION, false)
+        assertFalse(override.isEmpty)
+        assertEquals(false, override.get(SmartActionType.NAVIGATION))
+
+        val config = SmartActionsConfig(enabled = true, navigation = true).applyOverride(override)
+        assertFalse(config.navigation)
+        assertTrue(config.otp)
+    }
+
+    @Test
+    fun navigationCountsAsAnActiveType() {
+        val onlyNavigation = SmartActionsConfig(enabled = true, otp = false, url = false, phone = false, tracking = false, navigation = true)
+        assertTrue(onlyNavigation.isActiveFor("com.example"))
+        assertFalse(onlyNavigation.copy(navigation = false).isActiveFor("com.example"))
     }
 
     // ------------------------------------------------------------- applyOverride
