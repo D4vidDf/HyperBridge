@@ -541,14 +541,21 @@ class NotificationReaderService : NotificationListenerService() {
             }
         } else if (type == NotificationType.MESSAGE || type == NotificationType.STANDARD) {
             // HyperOS island-swipe only hides the island; the focus notification stays posted and no
-            // removal callback fires, so an untimed island blocks the permanent island forever.
+            // removal callback fires, so a timed-out island would block the permanent island forever.
+            // The TTL only exists to free that slot, so it must follow the user's Auto-hide setting:
+            // Auto-hide off (timeout 0) means "visible until manually dismissed" and gets no TTL at
+            // all, and Auto-hide on never retires the island before the delay the user picked.
+            val timeoutSeconds = config.timeout ?: 0
             timeoutJobs[originalKey]?.cancel()
-            timeoutJobs[originalKey] = serviceScope.launch {
-                delay(STANDARD_ISLAND_TIMEOUT_MS)
-                Log.d(TAG, "Island TTL reached for $originalKey, removing translated notification $bridgeId")
-                NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
-                cleanupCache(originalKey)
-                timeoutJobs.remove(originalKey)
+            if (timeoutSeconds > 0) {
+                val ttlMs = maxOf(STANDARD_ISLAND_TIMEOUT_MS, timeoutSeconds * 1000L)
+                timeoutJobs[originalKey] = serviceScope.launch {
+                    delay(ttlMs)
+                    Log.d(TAG, "Island TTL reached for $originalKey, removing translated notification $bridgeId")
+                    NotificationManagerCompat.from(this@NotificationReaderService).cancel(bridgeId)
+                    cleanupCache(originalKey)
+                    timeoutJobs.remove(originalKey)
+                }
             }
         }
     }
