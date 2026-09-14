@@ -498,7 +498,7 @@ fun AppNotificationTypesEditor(viewModel: ThemeViewModel) {
             onCheckedChange = { checked ->
                 isOverride = checked
                 // If turning on, default to everything enabled for this app
-                viewModel.appEnabledNotificationTypes = if (checked) NotificationType.entries.map { it.name }.toSet() else null
+                viewModel.appEnabledNotificationTypes = if (checked) NotificationType.configurableEntries.map { it.name }.toSet() else null
             },
             shape = RoundedCornerShape(24.dp)
         )
@@ -509,11 +509,12 @@ fun AppNotificationTypesEditor(viewModel: ThemeViewModel) {
             exit = shrinkVertically() + fadeOut()
         ) {
             Column(Modifier.padding(top = 16.dp)) {
-                NotificationType.entries.forEachIndexed { index, type ->
+                val configurableTypes = NotificationType.configurableEntries
+                configurableTypes.forEachIndexed { index, type ->
                     val shape = when {
-                        NotificationType.entries.size == 1 -> RoundedCornerShape(24.dp)
+                        configurableTypes.size == 1 -> RoundedCornerShape(24.dp)
                         index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                        index == NotificationType.entries.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                        index == configurableTypes.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                         else -> RoundedCornerShape(4.dp)
                     }
 
@@ -530,7 +531,7 @@ fun AppNotificationTypesEditor(viewModel: ThemeViewModel) {
                         shape = shape
                     )
 
-                    if (index < NotificationType.entries.size - 1) {
+                    if (index < configurableTypes.size - 1) {
                         Spacer(modifier = Modifier.height(2.dp))
                     }
                 }

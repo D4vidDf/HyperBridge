@@ -2,6 +2,9 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.app.PendingIntent
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionNotificationText
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionsExtractor
 import android.app.Person
 import android.content.Context
 import android.graphics.Bitmap
@@ -34,12 +37,19 @@ import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeResource
+import com.d4viddf.hyperbridge.service.visual.IconGeometry
+import com.d4viddf.hyperbridge.service.visual.PixelBounds
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
+import android.graphics.Typeface
+import androidx.core.graphics.withClip
 import androidx.core.graphics.get
+
+/** Android caps visible notification actions at three; HyperOS shows the same set in the island. */
+private const val MAX_ACTION_BUTTONS = 3
 
 abstract class BaseTranslator(
     protected val context: Context,
@@ -47,6 +57,9 @@ abstract class BaseTranslator(
 ) {
 
     enum class ActionDisplayMode { TEXT, ICON, BOTH }
+
+    /** Stable across source-notification replacements because picKey is derived from bridgeId. */
+    protected fun stableBusinessId(picKey: String): String = "bridge_${picKey.removePrefix("pic_")}"
 
     private val appColorCache = ConcurrentHashMap<String, String>()
 
@@ -183,7 +196,11 @@ abstract class BaseTranslator(
         }?.value
     }
 
-    protected fun resolveIcon(sbn: StatusBarNotification, picKey: String): HyperPicture {
+    protected fun resolveIcon(
+        sbn: StatusBarNotification,
+        picKey: String,
+        preferNativeAppBadge: Boolean = false
+    ): HyperPicture {
         var originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
         if (isBitmapDarkAndMonochrome(originalBitmap)) {
             originalBitmap = tintBitmap(originalBitmap, Color.WHITE)
@@ -261,10 +278,7 @@ abstract class BaseTranslator(
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
                 colorFilter = PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
             }
-            val iconMatrix = Matrix()
-            val iconBounds = RectF(0f, 0f, source.width.toFloat(), source.height.toFloat())
-            iconMatrix.setRectToRect(iconBounds, iconDestRect, Matrix.ScaleToFit.CENTER)
-            canvas.drawBitmap(source, iconMatrix, iconPaint)
+            drawNormalizedBitmap(canvas, source, iconDestRect, iconPaint)
         }
 
         return output
@@ -283,10 +297,13 @@ abstract class BaseTranslator(
         sbn: StatusBarNotification,
         config: com.d4viddf.hyperbridge.models.IslandConfig,
         theme: HyperTheme? = null,
-        mode: ActionDisplayMode = ActionDisplayMode.BOTH
+        mode: ActionDisplayMode = ActionDisplayMode.BOTH,
+        includeSmartActions: Boolean = false
     ): List<BridgeAction> {
         val bridgeActions = mutableListOf<BridgeAction>()
-        val actions = sbn.notification.actions ?: return emptyList()
+        // No early return on a missing actions array: an OTP SMS usually has zero native actions
+        // and Smart Actions still have to get a chance to add theirs.
+        val actions = sbn.notification.actions ?: emptyArray()
 
         val defaultActionBg = if (theme != null) {
             try {
@@ -394,7 +411,76 @@ abstract class BaseTranslator(
 
             bridgeActions.add(BridgeAction(hyperAction, hyperPic))
         }
+
+        if (includeSmartActions) {
+            bridgeActions.addAll(
+                buildSmartActions(sbn, config, theme, mode, defaultActionBg, nativeCount = bridgeActions.size)
+            )
+        }
         return bridgeActions
+    }
+
+    /**
+     * Smart Actions (issue #270): buttons synthesised from the notification text (copy OTP, open
+     * link, dial, track parcel). Returns nothing — and reads no text — unless the user enabled the
+     * feature, so disabled users pay for one boolean check.
+     */
+    private fun buildSmartActions(
+        sbn: StatusBarNotification,
+        config: com.d4viddf.hyperbridge.models.IslandConfig,
+        theme: HyperTheme?,
+        mode: ActionDisplayMode,
+        defaultActionBg: Int,
+        nativeCount: Int
+    ): List<BridgeAction> {
+        val smartConfig = config.smartActions ?: return emptyList()
+        if (!smartConfig.isActiveFor(sbn.packageName)) return emptyList()
+
+        // Leave room for the app's own buttons; the shade never shows more than three.
+        val room = (MAX_ACTION_BUTTONS - nativeCount).coerceAtLeast(0)
+        if (room == 0) return emptyList()
+
+        val text = SmartActionNotificationText.collect(sbn.notification)
+        val smartActions = SmartActionsExtractor.extract(
+            text,
+            smartConfig,
+            maxActions = minOf(room, SmartActionsExtractor.DEFAULT_MAX_ACTIONS)
+        )
+        if (smartActions.isEmpty()) return emptyList()
+
+        val bgColorHex = String.format("#%08X", (0xFFFFFFFF and defaultActionBg.toLong()))
+
+        return smartActions.map { smart ->
+            val key = SmartActionIntents.actionKey(sbn.key, smart)
+            val title = SmartActionIntents.label(context, smart, smartConfig.hideOtpCode)
+
+            var actionIcon: Icon? = null
+            var hyperPic: HyperPicture? = null
+            if (mode != ActionDisplayMode.TEXT) {
+                val iconRes = SmartActionIntents.iconRes(smart.type)
+                val bitmap = loadIconBitmap(Icon.createWithResource(context, iconRes), context.packageName)
+                if (bitmap != null) {
+                    val processed = if (theme != null) {
+                        applyThemeToActionIcon(bitmap, theme, sbn.packageName, defaultActionBg)
+                    } else {
+                        createRoundedIconWithBackground(bitmap, defaultActionBg, 12)
+                    }
+                    actionIcon = Icon.createWithBitmap(processed)
+                    hyperPic = HyperPicture("${key}_icon", processed)
+                }
+            }
+
+            val hyperAction = HyperAction(
+                key = key,
+                title = if (mode == ActionDisplayMode.ICON) "" else title,
+                icon = actionIcon,
+                pendingIntent = SmartActionIntents.pendingIntent(context, smart, key),
+                actionIntentType = 1,
+                actionBgColor = if (mode == ActionDisplayMode.TEXT) null else bgColorHex,
+                titleColor = "#FFFFFF"
+            )
+            BridgeAction(hyperAction, hyperPic)
+        }
     }
 
     // --- UTILS ---
@@ -412,6 +498,89 @@ abstract class BaseTranslator(
         val bitmap = drawable?.toBitmap() ?: createFallbackBitmap()
         return HyperPicture(key, bitmap)
     }
+
+    /**
+     * Places a country flag behind Xiaomi's native app-icon badge position. The provider icon
+     * remains a separate native ChatInfo layer, so both identities stay visible as a stack.
+     */
+    protected fun getCountryFlagBadgedPicture(
+        key: String,
+        resId: Int,
+        colorHex: String,
+        countryFlagBitmap: Bitmap?,
+        flagEmoji: String?
+    ): HyperPicture {
+        val drawable = ContextCompat.getDrawable(context, resId)?.mutate()
+        val color = try { colorHex.toColorInt() } catch (_: Exception) { Color.WHITE }
+        drawable?.setTint(color)
+        val glyph = drawable?.toBitmap()?.let { source ->
+            createBitmap(96, 96).also { target ->
+                drawNormalizedBitmap(
+                    Canvas(target),
+                    source,
+                    RectF(0f, 0f, 96f, 96f),
+                    Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+                )
+            }
+        } ?: createFallbackBitmap()
+        if (!isUsableBitmap(countryFlagBitmap) && flagEmoji.isNullOrBlank()) return HyperPicture(key, glyph)
+
+        val output = runCatching {
+            val width = glyph.width.coerceAtLeast(1)
+            val height = glyph.height.coerceAtLeast(1)
+            val bitmap = createBitmap(width, height)
+            val canvas = Canvas(bitmap)
+            canvas.drawBitmap(glyph, 0f, 0f, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+
+            val minSide = minOf(width, height).toFloat()
+            val radius = minSide * 0.235f
+            // Offset up and left so Xiaomi's native provider badge overlaps instead of hiding it.
+            val centerX = width - minSide * 0.31f
+            val centerY = height - minSide * 0.31f
+            canvas.drawCircle(centerX, centerY, radius, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                this.color = Color.WHITE
+            })
+            canvas.withClip(centerX - radius, centerY - radius, centerX + radius, centerY + radius) {
+                if (isUsableBitmap(countryFlagBitmap)) {
+                    drawNormalizedBitmap(
+                        canvas,
+                        checkNotNull(countryFlagBitmap),
+                        RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius),
+                        Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+                    )
+                } else {
+                    val textPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                        textAlign = Paint.Align.CENTER
+                        textSize = radius * 1.65f
+                        typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+                    }
+                    val metrics = textPaint.fontMetrics
+                    val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
+                    canvas.drawText(checkNotNull(flagEmoji), centerX, baseline, textPaint)
+                }
+            }
+            bitmap
+        }.getOrDefault(glyph)
+        return HyperPicture(key, output)
+    }
+
+    protected fun getThemedActionPicture(
+        key: String,
+        resId: Int,
+        theme: HyperTheme?,
+        packageName: String?,
+        backgroundColor: Int
+    ): HyperPicture {
+        val source = ContextCompat.getDrawable(context, resId)?.mutate()?.toBitmap(width = 96, height = 96)
+            ?: createFallbackBitmap()
+        val bitmap = if (theme != null && packageName != null) {
+            applyThemeToActionIcon(source, theme, packageName, backgroundColor)
+        } else {
+            applyThemeToActionIcon(source, "circle", 24, backgroundColor)
+        }
+        return HyperPicture(key, bitmap)
+    }
+
 
     protected fun getNotificationBitmap(sbn: StatusBarNotification): Bitmap? {
         val pkg = sbn.packageName
@@ -488,11 +657,53 @@ abstract class BaseTranslator(
         if (targetSize > 0) {
             val whiteSource = tintBitmap(source, Color.WHITE)
             val destRect = Rect(paddingPx, paddingPx, size - paddingPx, size - paddingPx)
-            val srcRect = Rect(0, 0, whiteSource.width, whiteSource.height)
-            canvas.drawBitmap(whiteSource, srcRect, destRect, null)
+            drawNormalizedBitmap(canvas, whiteSource, RectF(destRect), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
         }
 
         return output
+    }
+
+    private fun drawNormalizedBitmap(canvas: Canvas, source: Bitmap, destRect: RectF, paint: Paint?) {
+        if (!isUsableBitmap(source) || destRect.width() <= 0f || destRect.height() <= 0f) return
+
+        val visible = getVisibleBitmapBounds(source)
+        val srcRect = if (visible != null) {
+            Rect(visible.left, visible.top, visible.right + 1, visible.bottom + 1)
+        } else {
+            Rect(0, 0, source.width, source.height)
+        }
+
+        if (srcRect.width() <= 0 || srcRect.height() <= 0) return
+
+        val fitted = IconGeometry.fitCenterInside(
+            srcRect.width(),
+            srcRect.height(),
+            destRect.left,
+            destRect.top,
+            destRect.right,
+            destRect.bottom
+        )
+        val finalRect = RectF(fitted.left, fitted.top, fitted.right, fitted.bottom)
+        if (finalRect.width() <= 0f || finalRect.height() <= 0f) return
+        canvas.drawBitmap(source, srcRect, finalRect, paint)
+    }
+
+    private fun getVisibleBitmapBounds(bitmap: Bitmap): PixelBounds? {
+        if (!isUsableBitmap(bitmap)) return null
+        return try {
+            val pixels = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            IconGeometry.findVisibleBounds(pixels, bitmap.width, bitmap.height)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun isUsableBitmap(bitmap: Bitmap?): Boolean {
+        if (bitmap == null || bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) return false
+        return bitmap.width <= 2_048 &&
+                bitmap.height <= 2_048 &&
+                bitmap.width.toLong() * bitmap.height.toLong() <= 4_194_304L
     }
 
     private fun tintBitmap(source: Bitmap, color: Int): Bitmap {
@@ -506,7 +717,12 @@ abstract class BaseTranslator(
         return result
     }
 
-    protected fun loadIconBitmap(icon: Icon, packageName: String): Bitmap? {
+    protected fun loadIconBitmap(
+        icon: Icon,
+        packageName: String,
+        width: Int? = null,
+        height: Int? = null
+    ): Bitmap? {
         return try {
             val drawable = if (icon.type == Icon.TYPE_RESOURCE) {
                 try {
@@ -518,7 +734,7 @@ abstract class BaseTranslator(
             } else {
                 icon.loadDrawable(context)
             }
-            drawable?.toBitmap()
+            drawable?.toBitmap(width = width, height = height)
         } catch (e: Exception) {
             null
         }

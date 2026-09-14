@@ -16,7 +16,7 @@
     <string name="get_started">Get Started</string>
 
     <string name="how_it_works">How it Works</string>
-    <string name="how_it_works_desc">Select your favorite apps (Spotify, Maps, Timer). HyperBridge transforms their notifications into a sleek HyperIsland.</string>
+    <string name="how_it_works_desc">Select your favorite apps (Spotify, Maps, Timer). Hyper Bridge transforms their notifications into a sleek HyperIsland.</string>
     <string name="beta_warning">Note: This app is in Beta. You may encounter bugs or incorrect visual information.</string>
 
     <string name="device_compatible">Device Compatible</string>
@@ -155,23 +155,8 @@
     <string name="version_history">Version History</string>
 
     <string name="title_0_2_0">The Information Update</string>
-    <string name="changelog_0_2_0">
-        • &lt;b&gt;Advanced Progress:&lt;/b&gt; Added support for "Step Progress" (e.g. 1 of 3) and progress bars with icons inside the notification shade.\n
-        • &lt;b&gt;Priority System:&lt;/b&gt; New "Island Behavior" settings. Choose between "Most Recent", "First Come", or a custom "App Priority" list.\n
-        • &lt;b&gt;Smart Filtering:&lt;/b&gt; Improved detection of duplicate notifications and grouped downloads.\n
-        • &lt;b&gt;Visual Improvements:&lt;/b&gt; Fixed layout issues with Navigation instructions.\n
-        • &lt;b&gt;Per-App Config:&lt;/b&gt; Customize Timeout and Floating behavior per app.
-    </string>
 
     <string name="title_0_1_0">The Expressive Update</string>
-    <string name="changelog_0_1_0">
-        • &lt;b&gt;Major UI Overhaul:&lt;/b&gt; New Material 3 Expressive design with smooth animations.\n
-        • &lt;b&gt;Better Island:&lt;/b&gt; Text now appears on the right side. Added Green Tick for finished downloads.\n
-        • &lt;b&gt;Per-App Config:&lt;/b&gt; Select specific notification types (Music, Maps, Calls) per app.\n
-        • &lt;b&gt;Smart Filters:&lt;/b&gt; Blocks duplicate notifications and saves battery.\n
-        • &lt;b&gt;New Library:&lt;/b&gt; Filter apps by category and sort order.\n
-        • &lt;b&gt;Localization:&lt;/b&gt; Added Spanish support.
-    </string>
 
     <string name="priority_edu_title">Control the Island</string>
     <string name="priority_edu_desc">Choose how the island should behave when multiple notifications are active at the same time.</string>
@@ -247,6 +232,18 @@
 
     <string name="call_incoming">Incoming Call</string>
     <string name="call_ongoing">Active Call</string>
+    <string name="call_calling">Calling…</string>
+    <string name="call_ringing">Ringing…</string>
+    <string name="call_connecting">Connecting…</string>
+    <string name="call_ended">Call ended</string>
+    <string name="call_stage_settings">Call stages</string>
+    <string name="call_stage_settings_desc">Choose which parts of a voice call can show an Island</string>
+    <string name="call_stage_incoming">Incoming calls</string>
+    <string name="call_stage_incoming_desc">Calls that are ringing and waiting to be answered</string>
+    <string name="call_stage_outgoing">Outgoing calls</string>
+    <string name="call_stage_outgoing_desc">Calling, ringing, and connecting before the call is answered</string>
+    <string name="call_stage_active">Active calls</string>
+    <string name="call_stage_active_desc">Connected calls with an elapsed-time display</string>
 
     <string-array name="call_keywords_hangup">
         <item>hang</item>
@@ -258,33 +255,22 @@
         <item>answer</item>
         <item>accept</item>
     </string-array>
+    <string-array name="call_keywords_mute">
+        <item>mute</item>
+        <item>mic off</item>
+        <item>microphone off</item>
+    </string-array>
+    <string-array name="call_keywords_unmute">
+        <item>unmute</item>
+        <item>mic on</item>
+        <item>microphone on</item>
+    </string-array>
     <string-array name="call_keywords_speaker">
         <item>speaker</item>
         <item>audio</item>
     </string-array>
 
     <string name="title_0_3_0">The Global Update</string>
-    <string name="changelog_0_3_0">
-        <b>Hidden Notification 👻</b>\n
-        New option to hide notifications from the system panel while keeping the Island active. Check Global Settings!\n\n
-        <b>New Languages 🌍</b>\n
-        Special thanks to our community for these translations:\n
-        • 🇧🇷 Portuguese (Brazil)\n
-        • 🇵🇱 Polish\n
-        • 🇰🇷 Korean\n\n
-        • 🇺🇦 Ukranian\n\n
-        <b>Navigation Customization 🧭</b>\n
-        You can now choose what information appears on the Left and Right sides of the Navigation Island (Distance, ETA, Instruction).\n\n
-        <b>Spoiler Protection 🛡️</b>\n
-        New "Blocked Terms" feature. Define words globally or per-app to prevent specific notifications from showing up on the Island.\n\n
-        <b>Call Improvements 📞</b>\n
-        Improved detection logic to support a wider range of VoIP and Dialer applications.\n\n
-        <b>Fixes &amp; Improvements 🛠️</b>\n
-        • Fixed a critical bug where the app would get stuck loading after a reboot.\n
-        • Fixed notifications sometimes showing raw package names (e.g. "com.google...") instead of content.\n
-        • Redesigned App Configuration sheet for better usability.\n
-        • Improved Compatibility Check screen with detailed device info.
-    </string>
 
     <string name="privacy_title">100% Offline &amp; Secure</string>
     <string name="privacy_desc">Hyper Bridge processes everything directly on your phone\'s processor.\n\nIt does NOT require internet access, meaning your notifications and personal data never leave your device.</string>
@@ -331,25 +317,6 @@
     <string name="privacy_card_desc">No internet connection required.</string>
 
     <string name="title_0_3_1">Backup &amp; Polyglot Update</string>
-    <string name="changelog_0_3_1">
-        <b>Backup &amp; Restore 📦</b>\n
-        New power-user feature! Securely export your settings, blocklists, and app priorities to a .hbr file and restore them anytime.\n\n
-        <b>New Languages 🌍</b>\n
-        Added support for:\n
-        • 🇩🇪 German\n
-        • 🇷🇺 Russian\n
-        • 🇺🇦 Ukrainian (Improved)\n
-        <i>Plus: A new in-app Language Selector to change languages without affecting your system settings.</i>\n\n
-        <b>Visual Refresh 🎨</b>\n
-        The app has been updated with <b>Material 3 Expressive</b> design. Enjoy larger headers, rounder shapes, and a smoother experience.\n\n
-        <b>Privacy &amp; Setup 🛡️</b>\n
-        • Improved Onboarding with a dedicated Privacy page clarifying offline-first architecture.\n
-        • Stricter compatibility checks to ensure the best experience on HyperOS 3.0.\n\n
-        <b>Fixes 🛠️</b>\n
-        • Fixed a critical issue where settings were lost after device reboot (migrated to database).\n
-        • Fixed "Exit" button in Navigation island showing as an icon instead of text.\n
-        • Fixed App Icon loading in Settings.\n
-    </string>
 
     <string name="close">Close</string>
     <string name="search">Search</string>
@@ -416,7 +383,7 @@
     <string name="theme_installer_success_title">Theme Ready</string>
     <string name="theme_installer_author">Created by %s</string>
     <string name="theme_installer_version">Version %d</string>
-    <string name="theme_installer_apply_question">Do you want to apply this theme to HyperBridge now?</string>
+    <string name="theme_installer_apply_question">Do you want to apply this theme to Hyper Bridge now?</string>
     <string name="theme_installer_action_apply">Apply Theme</string>
     <string name="theme_installer_action_later">Save for Later</string>
     <string name="theme_installer_error_title">Import Failed</string>
@@ -558,36 +525,7 @@
     </plurals>
 
     <string name="title_0_4_0">The Customization Update</string>
-    <string name="changelog_0_4_0">
-        <b>Theme Engine 🎨</b>\n
-        The biggest update yet! You can now fully customize the Dynamic Island visual experience.\n
-        • <b>Theme Creator:</b> Design themes directly on your phone with real-time previews.\n
-        • <b>Granular Control:</b> Choose exactly how icons are shown, customize call notification colors and shapes, and configure individual app overrides.\n
-        • <b>Smart Colors:</b> Automatically extract vibrant brand colors from app icons.\n
-        • <b>Per-Action Customization (Beta):</b> Fine-tune the look of specific notification actions.\n
-        • <b>Sharing:</b> Export and import themes as portable <i>.hbr</i> packages.\n\n
-
-        <b>Widget Support 🧩</b>\n
-        Pin standard Android widgets to the island for quick access—even on your <b>Lockscreen</b>!\n
-        • Choose between <b>Interactive</b> mode for speed or <b>Snapshot</b> mode for battery efficiency.\n\n
-
-        <b>Notification Engine 2.0 ⚡</b>\n
-        A complete rewrite of the core logic for better stability:\n
-        • <b>Smarter Parsing:</b> Fixed issues where notifications showed package names (e.g., com.whatsapp) instead of message content.\n
-        • <b>Anti-Flicker:</b> New content hashing prevents redundant updates and stuttering.\n
-        • <b>Ghost Fixes:</b> Solved race conditions where islands lingered after dismissal.\n\n
-
-        <b>Visual Refresh ✨</b>\n
-        • Redesigned "Design" tab with fluid, native-feeling carousels.\n
-        • New "Text Pill" buttons for clearer notification actions.\n
-        • Added support for 🇮🇩 Indonesian and 🇹🇷 Turkish.\n\n
-
-        <i>Note: This release includes significant architectural changes. Please report any bugs on GitHub!</i>
-    </string>
     <string name="title_0_4_2">Hotfix Update</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Crash Fix:&lt;/b&gt; Resolved a critical issue that caused the app to crash when opening the settings menu in Traditional Chinese.\n
-        •&lt;b&gt;Under the Hood:&lt;/b&gt; General bug fixes and stability improvements to keep your Island running smoothly.
-    </string>
 
     <string name="colors_label_hue">Hue</string>
     <string name="colors_label_saturation">Saturation</string>
@@ -598,7 +536,7 @@
 
     <string name="kill_all_widgets">Kill Active Widgets</string>
     <string name="permission_reminder_title">Update Notice</string>
-    <string name="permission_reminder_desc">HyperBridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
+    <string name="permission_reminder_desc">Hyper Bridge has been updated! Please ensure that your Autostart and Background Battery permissions haven\'t been silently revoked by the system to keep your widgets running smoothly.</string>
     <string name="got_it">Got it</string>
 
     <string name="recommended">Recommended</string>
@@ -694,110 +632,32 @@
     <string name="behavior_desc_glob_config">Determines how the island behaves.</string>
     <string name="widget_layout_snapshot">Preview of the widget</string>
 
-    <string name="changelog_0_5_7">
-        <b>Optimizations &amp; Fixes</b>\n
-              • <b>Code Optimization:</b> Upgraded to the latest Android Gradle Plugin and enabled R8 code shrinking for a smaller, faster app.\n
-              • <b>Stability:</b> Improved notification synchronization and fixed an issue where original notifications were sometimes prematurely dismissed (PR #258).\n
-    </string>
     <string name="title_0_5_7">Performance &amp; Sync Update</string>
 
-    <string name="changelog_0_5_6">
-        <b>Fixes &amp; Improvements</b>\n
-              • <b>System UI Stability:</b> Validated highlightColor before passing to SystemUI to prevent crashes.\n
-              • <b>Permanent Island Behavior:</b> Fixed an issue where the permanent island disappeared after notifications or unlock.\n
-              • <b>Landscape Mode:</b> Added an option to hide the Permanent Island in landscape orientation.\n
-    </string>
     <string name="title_0_5_6">Landscape Hide &amp; Stability Fixes</string>
 
-    <string name="changelog_0_5_5">
-        <b>Live Updates &amp; Islands</b>\n
-              • <b>Icons:</b> Fixed an issue where the original app icon wouldn\'t display properly on Android 16 Live Updates.\n
-              • <b>Inline Replies:</b> You can now use inline replies directly from Live Update notifications.\n
-              • <b>Island Removal:</b> Fixed an issue where islands were not being properly removed when dismissed.\n\n
-        <b>Messaging Grouping Overhaul</b>\n
-              • <b>Deduplication:</b> Completely reworked how messaging-style notifications (like WhatsApp) are grouped to prevent duplicated islands.\n\n
-        <b>Fixes &amp; Stability</b>\n
-              • <b>Update Migration:</b> Fixed a critical bug where updating the app wouldn\'t trigger the proper database migration logic.\n
-              • <b>Defaults:</b> Disabled "Show in shade" by default on the onboarding screen.\n
-              • <b>Localization:</b> Resolved broken characters in translated strings.\n
-    </string>
     <string name="title_0_5_5">Messaging &amp; Update Fixes</string>
 
-    <string name="changelog_0_5_2">
-        <b>New Inline Reply Feature!</b>\n
-              • <b>Inline Reply:</b> You can now reply to messages directly from the island without opening the app!\n
-              • <b>Customization:</b> Fully customize the look of the new inline reply editor globally or per-app.\n
-              • <b>Global Settings:</b> Access the new Reply customization section directly from the Global Settings -> Inline reply.\n
-        \n
-        <b>Play Store Crash Fixes &amp; Stability</b>\n
-              • <b>Theme Creator:</b> Fixed a crash when parsing large sets of custom assets.\n
-              • <b>Performance:</b> Resolved an ANR (Application Not Responding) issue on the initial Welcome Screen.\n
-              • <b>Widget Picker:</b> Eliminated crashes and Out-Of-Memory (OOM) errors caused by extremely large widget previews.\n
-              • <b>UI Layouts:</b> Fixed Jetpack Compose layout constraint exceptions that crashed the app when resizing certain menus.\n
-              • <b>Backups:</b> Resolved OOM errors when importing large backup files by optimizing JSON parsing.\n
-              • <b>Warm Starts:</b> Significantly improved app launch speeds and eliminated UI thread blocking on mid-range devices.\n
-              • <b>Background Service:</b> Completely overhauled the Notification Listener memory architecture, dropping background overhead to 0% and improving battery life.\n
-    </string>
     <string name="title_0_5_2">Inline Reply, Performance &amp; Stability</string>
 
-    <string name="changelog_0_5_1">
-        <b>Fixes &amp; Stability</b>\n
-              WhatsApp Duplicates Fixed: Resolved an issue that caused duplicate WhatsApp notifications to appear.\n
-              Notification Flicker &amp; Crashes Fixed: Fixed a crash caused by receiving multiple notifications in a short timeframe. The app now safely updates notifications normally, eliminating the notification flicker and improving stability.\n
-              Notification Intents Restored: Fixed an issue where clicking a featured notification would incorrectly route to the troubleshooting screen instead of the original app.\n\n
-        <b>Features &amp; Polish</b>\n
-              Remove Island on Dismiss: Added a new option to automatically remove the island if the original system notification is dismissed.\n
-              Featured Notifications Diagnostics: Added a new check screen during Onboarding to verify if your Xiaomi device supports Featured Notifications and if the required permissions are enabled.\n
-              Setup Health Integration: The Featured Notifications permission status is now continuously monitored and displayed inside the Setup Health screen.\n
-              Troubleshooting Screen: Added a dedicated Troubleshooting Screen that guides users on how to enable the necessary hidden system permissions (or use Shizuku) to get islands working on strict Xiaomi ROMs.\n
-              Clearer Terminology: Renamed the "Live Updates" section in the settings menu to "Notification Management" to better reflect its purpose.\n
-              Settings UI Polish: Restored the missing rounded corners on the "Permanent Island" option in the Global Settings list.\n
-              Spanish Translations: Added full Spanish translations for all the new troubleshooting dialogues, setup health checks, and notification management settings.
-    </string>
     <string name="title_0_5_1">Fixes &amp; Refinements</string>
 
-    <string name="changelog_0_5_0">
-        <b>CN ROM Support</b>\n
-            • Enable the new Sui &amp; Shizuku workaround to enjoy the Hyper Islands in your devices running HyperOS CN (Chinese) ROMs without native support.\n\n
-        <b>Theme Engine Improvements</b>\n
-            • Engine Selection: You can now choose animation engines per-app or globally.\n
-            • Shizuku Workaround: Toggle added directly to the Theme Editor Engine tab.\n
-            • Behavior Controls: Custom timeouts and popup logic are now fully supported.\n\n
-        <b>Intelligent Permanent Island</b>\n
-            • Always Visible: Keep the island on screen even without active notifications.\n
-            • Auto-Hide: The permanent island now automatically hides itself whenever an active widget is shown on the screen.\n\n
-        <b>Smart Icon Tinting</b>\n
-            • New detection system automatically analyzes extracted notification icons and intelligently tints them white if they are dark or monochrome.\n\n
-        <b>Downloads &amp; Progress</b>\n
-            • New Dedicated Download Layout: Separated download and progress layouts with dedicated visual designs.\n
-            • Text Progress Support: Parsed percentage text (e.g. "12%") for app updates even without native progress bars.\n
-            • Smart Filtering: Restricted text-based progress checking to store and installer downloads to prevent false triggers on other status notifications.\n\n
-        <b>Messaging Fixes</b>\n
-            • Fixed missing sender avatars in apps like Telegram (now correctly extracts "sender_person" data).\n
-            • Resolved issues with grouped notifications (chat summaries) not triggering islands.\n
-            • Fixed island disappearance bugs caused by notification update race conditions.\n\n
-        <b>System &amp; Onboarding</b>\n
-            • New Onboarding Screen: A brand new and easier setup process for critical permissions.\n
-            • Boot Fix: Service now starts immediately and reliably after restart.\n
-            • Smarter Alerts: Downloads and Media update silently, while messaging updates reliably trigger popup animations.\n
-            • Navigation: Faster and smoother app transitions.
-    </string>
     <string name="title_0_5_0">The Live Update</string>
     <string name="notification_went_wrong">If you are seeing this, something went wrong! Click here to see how to fix it.</string>
     <string name="widget_went_wrong">If you are seeing this, something went wrong! The system couldn\'t show the widget</string>
     <string name="troubleshoot_featured_notification">Troubleshoot</string>
 
     <string name="featured_notifications_check">Featured Notifications Check</string>
-    <string name="featured_notifications_check_desc">Let\'s verify if your system is configured correctly to display HyperBridge islands.</string>
+    <string name="featured_notifications_check_desc">Let\'s verify if your system is configured correctly to display Hyper Bridge islands.</string>
     <string name="featured_notifications_not_supported">Not Supported</string>
     <string name="featured_notifications_enabled">Enabled</string>
     <string name="featured_notifications_open_settings">Open System Settings</string>
     <string name="featured_notifications_troubleshoot_title">Why is this not an island?</string>
-    <string name="featured_notifications_troubleshoot_desc">Your Xiaomi device intercepted the notification but failed to display it as a featured island because the permission is disabled in your system settings.\n\nTo fix this:\n1. Tap "Open System Settings"\n2. Scroll down to "Featured Notifications" (or similar)\n3. Enable it for HyperBridge.</string>
+    <string name="featured_notifications_troubleshoot_desc">Your Xiaomi device intercepted the notification but failed to display it as a featured island because the permission is disabled in your system settings.\n\nTo fix this:\n1. Tap "Open System Settings"\n2. Scroll down to "Featured Notifications" (or similar)\n3. Enable it for Hyper Bridge.</string>
     <string name="featured_notifications_shizuku_alternative">Alternative: Shizuku Override</string>
-    <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. HyperBridge will use Shizuku to post islands directly.</string>
+    <string name="featured_notifications_shizuku_desc">If your system doesn\'t show the setting or it\'s restricted, you can bypass the Xiaomi whitelist entirely by setting up Shizuku. Hyper Bridge will use Shizuku to post islands directly.</string>
 
-    <string name="migration_title">HyperBridge Update</string>
+    <string name="migration_title">Hyper Bridge Update</string>
     <string name="migration_message">Migrating database to Device Protected storage…</string>
     <string name="migration_complete">Update Complete</string>
 
@@ -808,4 +668,239 @@
 
     <string name="perm_display_title">Display over other apps</string>
     <string name="perm_display_onboard_desc">Required to show the custom inline reply overlay.</string>
+
+    <!-- Guides & Documentation -->
+    <string name="group_guides">Guides &amp; Help</string>
+    <string name="documentation_title">Guides &amp; Documentation</string>
+    <string name="documentation_subtitle">Learn how to configure and customize Hyper Bridge</string>
+    <!-- Changelog & Website -->
+    <string name="view_changelog">View Changelog</string>
+    <string name="view_full_changelog">View on Website</string>
+    <string name="changelog_notice">Full release notes and changes are published on our website.</string>
+    <string name="changelog_view_website_desc">Check out the latest release notes, improvements and new features on our website.</string>
+
+    <!-- Bug Report -->
+    <string name="bug_report_title">Bug report</string>
+    <string name="bug_report_subtitle">Generate system diagnostics and report issues</string>
+    <string name="bug_report_privacy_title">Privacy &amp; Disclosure</string>
+    <string name="bug_report_privacy_desc">Submitting an issue on GitHub will make this information PUBLIC to anyone on the internet. If you prefer to keep your report private, you can email it directly to the developer at %s.</string>
+    <string name="bug_report_view_privacy">View Privacy Policy</string>
+    <string name="bug_report_details_title">Issue Details</string>
+    <string name="bug_report_what_happened">What happened?</string>
+    <string name="bug_report_what_happened_hint">Describe the problem or unexpected behavior...</string>
+    <string name="bug_report_steps">Steps to Reproduce</string>
+    <string name="bug_report_steps_hint">1. Open Spotify&#8230;\n2. Lock screen&#8230;\n3. Island disappears</string>
+    <string name="bug_report_options_title">Information to Include</string>
+    <string name="bug_report_include_device">Device &amp; OS Info</string>
+    <string name="bug_report_include_device_desc">Model, HyperOS/MIUI version, Android version, ROM region</string>
+    <string name="bug_report_include_permissions">System Permissions &amp; Restricted Settings</string>
+    <string name="bug_report_include_permissions_desc">Notification listener, overlay, battery, and Android 13+ restricted settings</string>
+    <string name="bug_report_include_theme">Theme Configuration</string>
+    <string name="bug_report_include_theme_desc">Active theme, engine mode, custom theme metadata</string>
+    <string name="bug_report_include_widgets">Widget Configuration</string>
+    <string name="bug_report_include_widgets_desc">Saved widgets, update intervals, sizes, and shade visibility</string>
+    <string name="bug_report_widget_scope_all">All Widgets</string>
+    <string name="bug_report_include_app_config">App Settings &amp; Configuration</string>
+    <string name="bug_report_app_scope_none">None</string>
+    <string name="bug_report_app_scope_none_desc">Do not include any app configurations in the report</string>
+    <string name="bug_report_app_scope_specific">Specific App</string>
+    <string name="bug_report_app_scope_specific_desc">Share settings and overrides for a single application</string>
+    <string name="bug_report_app_scope_all">All Apps</string>
+    <string name="bug_report_app_scope_all_desc">Include configurations and overrides for all apps</string>
+    <string name="bug_report_select_app">Select App</string>
+    <string name="bug_report_include_logs">Recent App Logs (Logcat)</string>
+    <string name="bug_report_include_logs_desc">Last 500 lines of system and Hyper Bridge logs</string>
+    <string name="bug_report_preview_title">Report Preview</string>
+    <string name="bug_report_preview_desc">Review the exact data that will be shared</string>
+    <string name="bug_report_submit_github">Submit on GitHub</string>
+    <string name="bug_report_send_email">Send via Email</string>
+    <string name="bug_report_copy_clipboard">Copy</string>
+    <string name="bug_report_share">Share</string>
+    <string name="bug_report_copied_github_toast">Diagnostics copied to clipboard! Paste it into the Logs section on GitHub.</string>
+    <string name="bug_report_copied_toast">Report copied to clipboard.</string>
+    <string name="bug_report_email_subject">Hyper Bridge Bug Report</string>
+    <string name="bug_report_entry_title">Bug report</string>
+    <string name="bug_report_entry_subtitle">Troubleshoot and report issues with system logs</string>
+    <string name="bug_report_need_help">Having issues with permissions or islands?</string>
+    <string name="bug_report_open_diagnostics">Open Diagnostics</string>
+    <string name="bug_report_bridged">Bridged</string>
+    <string name="bug_report_change_app">Change App</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_subtitle">Learn how your data is protected and handled</string>
+    <string name="bug_report_screen_description">Generate detailed system diagnostics and logs to troubleshoot and report issues with Hyper Bridge.</string>
+    <string name="cancel">Cancel</string>
+    <string name="continue_action">Continue</string>
+    <string name="type_screen_recording">Screen recording</string>
+    <string name="type_screen_recording_desc">Xiaomi system screen recording sessions</string>
+    <string name="screen_recording_title">Screen recording</string>
+    <string name="screen_recording_active">Recording screen..</string>
+    <string name="screen_recording_compact">Recording..</string>
+    <string name="screen_recording_done">Done recording.</string>
+    <string name="screen_recording_stop">Stop</string>
+    <string name="system_integrations">System</string>
+    <string name="system_integration_enabled">Enabled</string>
+    <string name="system_integration_disabled">Disabled</string>
+    <string name="system_integration_unavailable">Not available on this device</string>
+    <string name="screen_recording_customization_title">Screen Recording Island</string>
+    <string name="screen_recording_customization_desc">Customize how the recording island is displayed</string>
+    <string name="screen_recording_left_option_icon_only">Icon only</string>
+    <string name="screen_recording_left_option_icon_and_text">Icon and message</string>
+    <string name="screen_recording_left_option_text_only">Message only</string>
+    <string name="screen_recording_right_option_timer">Timer</string>
+    <string name="screen_recording_right_option_none">Nothing</string>
+    <string name="screen_recording_saved_auto_hide_desc">Duration the completion checkmark is shown after recording stops</string>
+    <string name="preview">Preview</string>
+    <string name="vpn_title">VPN</string>
+    <string name="vpn_island_enabled">Watching for VPN connections</string>
+    <string name="vpn_island_disabled">VPN Island is disabled</string>
+    <string name="vpn_is_connected">VPN is connected</string>
+    <string name="vpn_connected_to">Connected to %1$s</string>
+    <string name="vpn_connecting">VPN is connecting</string>
+    <string name="vpn_reconnecting">VPN is reconnecting</string>
+    <string name="vpn_waiting_for_network">Waiting for network</string>
+    <string name="vpn_paused">VPN is paused</string>
+    <string name="vpn_disconnecting">Disconnecting VPN</string>
+    <string name="vpn_blocking">Blocking internet</string>
+    <string name="vpn_error">VPN error</string>
+    <string name="vpn_disconnected">VPN is disconnected</string>
+
+    <string name="floating_setup_title" translatable="false">Floating notification setup</string>
+    <string name="floating_setup_settings_subtitle" translatable="false">Avoid duplicate native banners for selected apps</string>
+    <string name="floating_setup_intro" translatable="false">HyperBridge displays selected incoming notifications in the Island. The source app still owns sound, vibration, and its notification-center entry.</string>
+    <string name="floating_setup_limitation" translatable="false">To prevent duplicate heads-up popups, open each app’s system notification settings, disable its native floating notification, and confirm it below.</string>
+    <string name="floating_setup_alternative_title" translatable="false">Prefer native floating notifications?</string>
+    <string name="floating_setup_alternative_desc" translatable="false">You can keep native floating notifications enabled on your apps and instead turn off Heads-up Popup (Notificación Emergente) in HyperBridge Global Settings to avoid duplicate banners.</string>
+    <string name="floating_setup_no_apps_title" translatable="false">No bridged apps</string>
+    <string name="floating_setup_no_apps" translatable="false">Select apps from the Library first. This setup remains available later.</string>
+    <string name="floating_status_user_confirmed" translatable="false">User confirmed</string>
+    <string name="floating_status_needs_review" translatable="false">Needs review</string>
+    <string name="floating_status_not_required" translatable="false">Not required on this device</string>
+    <string name="floating_disabled_confirmation" translatable="false">I disabled floating notifications for this app</string>
+    <string name="open_notification_settings" translatable="false">Open notification settings</string>
+    <string name="settings_not_available" translatable="false">No compatible settings screen was found</string>
+    <string name="finish_notification_setup" translatable="false">Finish notification setup</string>
+    <string name="finish_notification_setup_desc" translatable="false">Review native floating banners for your selected apps. This is optional and can be revisited.</string>
+    <string name="floating_setup_onboarding_title" translatable="false">Avoid duplicate floating banners</string>
+    <string name="floating_setup_onboarding_desc" translatable="false">After selecting apps, HyperBridge can take you directly to each app’s notification settings. This optional step never requires root, Shizuku, or ADB.</string>
+
+    <string name="diagnostics_title" translatable="false">Diagnostics</string>
+    <string name="diagnostics_subtitle" translatable="false">Permissions, service health, and sanitized recent events</string>
+    <string name="diagnostic_notification_access" translatable="false">Notification access</string>
+    <string name="diagnostic_post_notifications" translatable="false">Post notifications</string>
+    <string name="diagnostic_focus_support" translatable="false">HyperOS Island support</string>
+    <string name="diagnostic_featured_permission" translatable="false">Featured notifications</string>
+    <string name="diagnostic_selected_apps" translatable="false">Selected apps</string>
+    <string name="diagnostic_floating_review" translatable="false">Apps needing floating review</string>
+    <string name="diagnostic_active_islands" translatable="false">Active Islands</string>
+    <string name="diagnostic_last_classification" translatable="false">Last classification</string>
+    <string name="diagnostic_last_call_state" translatable="false">Last call state</string>
+    <string name="diagnostic_service" translatable="false">Service</string>
+    <string name="diagnostic_recent_events" translatable="false">Recent sanitized events</string>
+    <string name="diagnostic_privacy_note" translatable="false">Message text, caller details, and notification content are never stored in this log.</string>
+    <string name="copy" translatable="false">Copy</string>
+    <string name="bug_report" translatable="false">Bug report</string>
+    <string name="copy_sanitized_diagnostics" translatable="false">Copy</string>
+    <string name="diagnostic_export_header" translatable="false">HyperBridge sanitized diagnostics</string>
+    <string name="connected" translatable="false">Connected</string>
+    <string name="disconnected" translatable="false">Disconnected</string>
+    <string name="granted" translatable="false">Granted</string>
+    <string name="not_granted" translatable="false">Not granted</string>
+    <string name="bug_report_include_diagnostics" translatable="false">Include Diagnostics &amp; Events</string>
+    <string name="bug_report_include_diagnostics_desc" translatable="false">Recent sanitized Island classifications and event history</string>
+    <string name="view_diagnostics" translatable="false">View Diagnostics</string>
+    <string name="diagnostic_section_service" translatable="false">Service &amp; Bridge State</string>
+    <string name="diagnostic_section_permissions" translatable="false">Permissions &amp; HyperOS Integration</string>
+    <string name="diagnostic_section_apps" translatable="false">Apps &amp; Floating Setup</string>
+    <string name="diagnostic_no_events" translatable="false">No recent events recorded</string>
+    <string name="diagnostic_no_events_desc" translatable="false">System and notification interactions will appear here in real time.</string>
+    <string name="diagnostic_copied_toast" translatable="false">Sanitized diagnostics copied to clipboard</string>
+    <string name="diagnostic_supported" translatable="false">Supported</string>
+    <string name="diagnostic_unsupported" translatable="false">Unsupported</string>
+    <string name="diagnostic_all_clear" translatable="false">All clear</string>
+    <string name="diagnostic_metric_review" translatable="false">Review</string>
+    <string name="diagnostic_service_active_desc" translatable="false">Active notification interceptor service</string>
+    <string name="diagnostic_service_disconnected_desc" translatable="false">Service disconnected</string>
+    <string name="diagnostic_active_islands_desc" translatable="false">Currently active Dynamic Island views</string>
+    <string name="diagnostic_active_count" translatable="false">%1$d active</string>
+    <string name="diagnostic_last_classification_desc" translatable="false">Latest intercepted notification category</string>
+    <string name="diagnostic_last_call_state_desc" translatable="false">Latest monitored call state</string>
+    <string name="diagnostic_notification_access_desc" translatable="false">Required to intercept app events</string>
+    <string name="diagnostic_post_notifications_desc" translatable="false">Required to display Island notifications</string>
+    <string name="diagnostic_restricted_settings" translatable="false">Restricted permissions</string>
+    <string name="diagnostic_restricted_settings_desc" translatable="false">Android 13+ restricted settings access for sideloaded app</string>
+    <string name="diagnostic_restricted_allowed" translatable="false">Allowed</string>
+    <string name="diagnostic_restricted_blocked" translatable="false">Restricted</string>
+    <string name="diagnostic_focus_support_desc" translatable="false">Xiaomi HyperOS Island hardware support</string>
+    <string name="diagnostic_featured_permission_desc" translatable="false">Focus notification display permission</string>
+    <string name="diagnostic_selected_apps_desc" translatable="false">Applications enabled for Island display</string>
+    <string name="diagnostic_apps_count" translatable="false">%1$d apps</string>
+    <string name="diagnostic_floating_review_desc" translatable="false">Apps needing native floating banner disabled</string>
+    <string name="diagnostic_pending_count" translatable="false">%1$d pending</string>
+    <string name="diagnostic_reason_prefix" translatable="false">Reason: %1$s</string>
+
+    <!-- App Configuration Screen -->
+    <string name="app_config_title">App Configuration</string>
+    <string name="app_config_subtitle">Behaviors, widgets &amp; extensions</string>
+    <string name="custom_design_title">Custom Design</string>
+    <string name="custom_design_badge">COMING SOON</string>
+    <string name="custom_design_desc">Customizable visual layouts and tailored Island designs are in development. Stay tuned for upcoming updates.</string>
+    <string name="custom_translators_title">Custom Translators</string>
+    <string name="custom_translators_badge">COMING SOON</string>
+    <string name="custom_translators_desc">Create and install custom community translators to format and control notification data for this application.</string>
+    <string name="app_widgets_section_title">Island Widgets</string>
+    <string name="app_widgets_section_desc">Configure app widgets to display as Hyper Islands.</string>
+    <string name="add_island_widget">Add Widget</string>
+    <string name="no_widgets_for_app">No island widgets configured for this app yet.</string>
+    <string name="no_available_widgets_for_app">This app does not provide any widgets.</string>
+    <string name="select_app_widget">Select Widget</string>
+    <string name="theme_managed_banner">Behaviors are currently managed by your active Theme.</string>
+    <string name="app_status_bridged">Bridged</string>
+    <string name="app_status_not_bridged">Not Bridged</string>
+    <string name="custom_behavior_desc">Using custom behavior for this app. Enable to use global defaults.</string>
+    <string name="no_blocked_terms">No blocked terms configured</string>
+    <string name="no_blocked_terms_desc">Notifications containing added words will not trigger an island.</string>
+
+    <!-- Smart Actions (issue #270) -->
+    <string name="smart_actions_title">Smart Actions</string>
+    <string name="smart_actions_desc">One-tap buttons for codes, links, phone numbers and parcels</string>
+    <string name="setting_smart_actions">Enable Smart Actions</string>
+    <string name="setting_smart_actions_desc">Scan notification text for actionable content and add buttons to the island and the shade. Nothing is scanned while this is off.</string>
+    <string name="smart_actions_group_detect">Detect</string>
+    <string name="setting_smart_actions_otp">Verification codes</string>
+    <string name="setting_smart_actions_otp_desc">One-tap copy of OTP and 2FA codes</string>
+    <string name="setting_smart_actions_url">Links</string>
+    <string name="setting_smart_actions_url_desc">Open web links straight from the island</string>
+    <string name="setting_smart_actions_phone">Phone numbers</string>
+    <string name="setting_smart_actions_phone_desc">Open the dialer with the number filled in</string>
+    <string name="setting_smart_actions_tracking">Parcel tracking</string>
+    <string name="setting_smart_actions_tracking_desc">Track shipments from UPS, FedEx, USPS, DHL, Correos and others</string>
+    <string name="smart_actions_group_excluded">Excluded apps</string>
+    <string name="smart_actions_excluded_desc">Notifications from these apps are never scanned</string>
+    <string name="smart_actions_no_apps">Enable some apps in HyperBridge first</string>
+    <string name="smart_action_copy_code">Copy %1$s</string>
+    <string name="smart_action_open_link">Open link</string>
+    <string name="smart_action_call">Call</string>
+    <string name="smart_action_track">Track parcel</string>
+    <string name="smart_action_copied">Code copied</string>
+    <string name="smart_action_copy_code_hidden">Copy code</string>
+    <string name="smart_actions_group_privacy">Privacy</string>
+    <string name="setting_smart_actions_hide_otp">Hide the code on the button</string>
+    <string name="setting_smart_actions_hide_otp_desc">Show “Copy code” instead of the code itself, so it is never printed on the island or in the shade</string>
+    <string name="smart_actions_excluded_empty">No apps excluded. Every bridged app is scanned.</string>
+    <string name="smart_actions_add_excluded_app">Add app</string>
+    <string name="smart_actions_pick_app_title">Exclude an app</string>
+    <string name="smart_actions_pick_app_search">Search apps</string>
+    <string name="smart_actions_all_apps_excluded">Every bridged app is already excluded</string>
+    <string name="cd_smart_actions_remove_excluded">Remove from excluded apps</string>
+    <string name="app_smart_actions_title">Smart Actions</string>
+    <string name="app_smart_actions_subtitle_on">Codes, links, phone numbers and parcels</string>
+    <string name="app_smart_actions_subtitle_off">Off for this app</string>
+    <string name="app_smart_actions_subtitle_global_off">Enable Smart Actions in Global settings first</string>
+    <string name="app_smart_actions_enable">Smart Actions for this app</string>
+    <string name="app_smart_actions_enable_desc">Turn off to never scan this app\'s notifications</string>
+    <string name="app_smart_actions_types_title">Actions for this app</string>
+    <string name="app_smart_actions_types_desc">Choose which buttons this app may show. Each one follows the global setting until you change it here.</string>
+    <string name="app_smart_actions_global_off_banner">Smart Actions are turned off globally. Turn them on in Global settings &gt; Smart Actions to use these options.</string>
 </resources>
+
+

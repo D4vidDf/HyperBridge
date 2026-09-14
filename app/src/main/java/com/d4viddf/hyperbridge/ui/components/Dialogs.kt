@@ -76,6 +76,7 @@ fun AppConfigBottomSheet(
     // --- UPDATED DATA LOADING ---
     val effectiveConfig by viewModel.getEffectiveAppConfigFlow(app.packageName).collectAsState(initial = null)
     val activeTypes = effectiveConfig?.activeTypes ?: emptySet()
+    val activeCallStages = effectiveConfig?.activeCallStages ?: com.d4viddf.hyperbridge.models.CallStage.entries.toSet()
     val isManagedByTheme = effectiveConfig?.isManagedByTheme == true
 
     val appIslandConfig by viewModel.getAppIslandConfig(app.packageName).collectAsState(initial = IslandConfig())
@@ -168,7 +169,7 @@ fun AppConfigBottomSheet(
 
                 // --- CARD 1: NOTIFICATION TYPES (New Dropdown) ---
                 // Count how many are active from the effective config
-                val activeCount = NotificationType.entries.toTypedArray().count { activeTypes.contains(it.name) }
+                val activeCount = NotificationType.configurableEntries.count { activeTypes.contains(it.name) }
                 val activeSubtitle = stringResource(R.string.active_notifications_subtitle, activeCount)
 
                 ExpandableSettingCard(
@@ -179,6 +180,7 @@ fun AppConfigBottomSheet(
                     NotificationTypesContent(
                         app = app,
                         activeTypes = activeTypes,
+                        activeCallStages = activeCallStages,
                         viewModel = viewModel,
                         onNavConfigClick = { onDismiss(); onNavConfigClick() },
                         navEditDesc = navEditDesc
@@ -246,12 +248,13 @@ fun AppConfigBottomSheet(
 fun NotificationTypesContent(
     app: AppInfo,
     activeTypes: Set<String>,
+    activeCallStages: Set<com.d4viddf.hyperbridge.models.CallStage>,
     viewModel: AppListViewModel,
     onNavConfigClick: () -> Unit,
     navEditDesc: String
 ) {
     Column {
-        NotificationType.entries.forEach { type ->
+        NotificationType.configurableEntries.forEach { type ->
             val isChecked = activeTypes.contains(type.name)
             val typeLabel = stringResource(type.labelRes)
             val switchDesc = if (isChecked) stringResource(R.string.cd_disable_type, typeLabel)
@@ -283,6 +286,57 @@ fun NotificationTypesContent(
                     onCheckedChange = { viewModel.updateAppConfig(app.packageName, type, it) },
                     modifier = Modifier.semantics { contentDescription = switchDesc }
                 )
+            }
+
+            if (type == NotificationType.CALL && isChecked) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, bottom = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.call_stage_settings),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.call_stage_settings_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    com.d4viddf.hyperbridge.models.CallStage.entries.forEach { stage ->
+                        val stageEnabled = stage in activeCallStages
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.updateAppCallStage(app.packageName, stage, !stageEnabled)
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(stage.labelRes),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = stringResource(stage.descriptionRes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Switch(
+                                checked = stageEnabled,
+                                onCheckedChange = {
+                                    viewModel.updateAppCallStage(app.packageName, stage, it)
+                                }
+                            )
+                        }
+                    }
+                }
             }
         }
     }

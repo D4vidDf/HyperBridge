@@ -11,14 +11,24 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <queries>
+        <intent>
+            <action android:name="android.net.VpnService" />
+        </intent>
         <intent>
             <action android:name="android.appwidget.action.APPWIDGET_PICK" />
         </intent>
 
         <intent>
             <action android:name="com.d4viddf.hyperbridge.THEME_PROVIDER" />
+        </intent>
+
+        <package android:name="com.miui.screenrecorder" />
+
+        <intent>
+            <action android:name="com.aios.osbot.action.APP_TOOL_PROVIDER" />
         </intent>
     </queries>
 
@@ -109,6 +119,18 @@
 
         <receiver
             android:name=".receiver.InlineReplyReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".receiver.ScreenRecordingActionReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".receiver.VpnActionReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".receiver.SmartActionReceiver"
             android:exported="false" />
 
         <service

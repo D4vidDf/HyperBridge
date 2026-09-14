@@ -15,8 +15,8 @@ android {
         applicationId = "com.d4viddf.hyperbridge"
         minSdk = 35
         targetSdk = 37
-        versionCode = 33
-        versionName = "0.5.7"
+        versionCode = 34
+        versionName = "0.6.0-dev1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -89,3 +89,15 @@ dependencies {
 configurations.all {
     exclude(group = "com.intellij", module = "annotations")
 }
+
+afterEvaluate {
+    tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileDebugUnitTestKotlin").configure {
+        dependsOn("compileDebugKotlin")
+        libraries.from(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+        friendPaths.from(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+    }
+    tasks.named<Test>("testDebugUnitTest").configure {
+        classpath += files(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+    }
+}
+
