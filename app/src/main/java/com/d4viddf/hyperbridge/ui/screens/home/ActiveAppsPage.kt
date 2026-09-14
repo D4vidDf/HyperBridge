@@ -39,16 +39,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppCategory
 import com.d4viddf.hyperbridge.ui.AppInfo
+import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.ui.AppListViewModel
+import com.d4viddf.hyperbridge.ui.SortOption
 import com.d4viddf.hyperbridge.ui.SystemIntegrationId
 import com.d4viddf.hyperbridge.ui.SystemIntegrationInfo
 import com.d4viddf.hyperbridge.ui.components.AppListFilterSection
 import com.d4viddf.hyperbridge.ui.components.AppListItem
 import com.d4viddf.hyperbridge.ui.components.EmptyState
+import com.d4viddf.hyperbridge.ui.components.FeaturedNotificationWarningBanner
 import com.d4viddf.hyperbridge.ui.components.SystemIntegrationListItem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -58,6 +62,9 @@ fun ActiveAppsPage(
     isLoading: Boolean,
     systemIntegrations: List<SystemIntegrationInfo>,
     viewModel: AppListViewModel,
+    showWarning: Boolean = false,
+    onWarningClick: () -> Unit = {},
+    onDismissWarning: () -> Unit = {},
     onConfig: (AppInfo) -> Unit,
     onSystemConfig: (SystemIntegrationInfo) -> Unit,
     onSettingsClick: () -> Unit
@@ -66,6 +73,55 @@ fun ActiveAppsPage(
     val selectedCategory = viewModel.activeCategory.collectAsState().value
     val sortOption = viewModel.activeSort.collectAsState().value
     val systemSelected = viewModel.activeSystemSelected.collectAsState().value
+
+    ActiveAppsPageContent(
+        apps = apps,
+        isLoading = isLoading,
+        systemIntegrations = systemIntegrations,
+        searchQuery = searchQuery,
+        onSearchQueryChange = { viewModel.activeSearch.value = it },
+        selectedCategory = selectedCategory,
+        onCategoryChange = viewModel::selectActiveAppCategory,
+        sortOption = sortOption,
+        onSortChange = { viewModel.activeSort.value = it },
+        systemSelected = systemSelected,
+        onSystemSelected = viewModel::selectActiveSystem,
+        onRefresh = { viewModel.refreshApps() },
+        onToggleSystem = { id, enabled -> viewModel.toggleSystemIntegration(id, enabled) },
+        onToggleApp = { pkg -> viewModel.toggleApp(pkg, false) },
+        showWarning = showWarning,
+        onWarningClick = onWarningClick,
+        onDismissWarning = onDismissWarning,
+        onConfig = onConfig,
+        onSystemConfig = onSystemConfig,
+        onSettingsClick = onSettingsClick
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun ActiveAppsPageContent(
+    apps: List<AppInfo>,
+    isLoading: Boolean,
+    systemIntegrations: List<SystemIntegrationInfo>,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    selectedCategory: AppCategory,
+    onCategoryChange: (AppCategory) -> Unit,
+    sortOption: SortOption,
+    onSortChange: (SortOption) -> Unit,
+    systemSelected: Boolean,
+    onSystemSelected: (Boolean) -> Unit,
+    onRefresh: () -> Unit,
+    onToggleSystem: (SystemIntegrationId, Boolean) -> Unit,
+    onToggleApp: (String) -> Unit,
+    showWarning: Boolean = false,
+    onWarningClick: () -> Unit = {},
+    onDismissWarning: () -> Unit = {},
+    onConfig: (AppInfo) -> Unit = {},
+    onSystemConfig: (SystemIntegrationInfo) -> Unit = {},
+    onSettingsClick: () -> Unit = {}
+) {
     val activeSystemIntegrations = remember(systemIntegrations) {
         systemIntegrations.filter { it.enabled }
     }
@@ -80,19 +136,20 @@ fun ActiveAppsPage(
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.app_name),style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) },
-                actions = {Surface(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .padding(end = 8.dp)
-                        .clip(CircleShape) // Ensure ripple is circular
-                        .clickable(onClick = onSettingsClick), // [NEW] Added Clickable here
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.Settings, stringResource(R.string.settings), modifier = Modifier.size(20.dp))
+                title = { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) },
+                actions = {
+                    Surface(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(end = 8.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onSettingsClick),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Settings, stringResource(R.string.settings), modifier = Modifier.size(20.dp))
+                        }
                     }
-                }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
@@ -102,15 +159,22 @@ fun ActiveAppsPage(
 
             AppListFilterSection(
                 searchQuery = searchQuery,
-                onSearchChange = { viewModel.activeSearch.value = it },
+                onSearchChange = onSearchQueryChange,
                 selectedCategory = selectedCategory,
-                onCategoryChange = viewModel::selectActiveAppCategory,
+                onCategoryChange = onCategoryChange,
                 sortOption = sortOption,
-                onSortChange = { viewModel.activeSort.value = it },
+                onSortChange = onSortChange,
                 showSystemCategory = true,
                 systemSelected = systemSelected,
-                onSystemSelected = viewModel::selectActiveSystem
+                onSystemSelected = onSystemSelected
             )
+
+            if (showWarning) {
+                FeaturedNotificationWarningBanner(
+                    onOpenSettings = onWarningClick,
+                    onDismiss = onDismissWarning
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -119,7 +183,7 @@ fun ActiveAppsPage(
             ) {
                 PullToRefreshBox(
                     isRefreshing = isRefreshing,
-                    onRefresh = { viewModel.refreshApps() },
+                    onRefresh = onRefresh,
                     state = pullState,
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.TopCenter,
@@ -162,13 +226,12 @@ fun ActiveAppsPage(
                                     Column(modifier = Modifier.animateItem()) {
                                         SystemIntegrationListItem(
                                             integration = integration,
-                                            onToggle = { viewModel.toggleSystemIntegration(integration.id, it) },
+                                            onToggle = { onToggleSystem(integration.id, it) },
                                             onSettingsClick = if (integration.available && integration.id != SystemIntegrationId.VPN) {
                                                 { onSystemConfig(integration) }
                                             } else null
                                         )
                                         HorizontalDivider(
-
                                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
                                         )
                                     }
@@ -178,7 +241,7 @@ fun ActiveAppsPage(
                                 Column(modifier = Modifier.animateItem()) {
                                     AppListItem(
                                         app = app,
-                                        onToggle = { viewModel.toggleApp(app.packageName, false) },
+                                        onToggle = { onToggleApp(app.packageName) },
                                         onSettingsClick = { onConfig(app) },
                                     )
                                     HorizontalDivider(
@@ -202,5 +265,71 @@ fun ActiveAppsPage(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActiveAppsPageWarningPreview() {
+    HyperBridgeTheme {
+        ActiveAppsPageContent(
+            apps = listOf(
+                AppInfo(
+                    name = "Spotify",
+                    packageName = "com.spotify.music",
+                    icon = null,
+                    isBridged = true
+                )
+            ),
+            isLoading = false,
+            systemIntegrations = emptyList(),
+            searchQuery = "",
+            onSearchQueryChange = {},
+            selectedCategory = AppCategory.ALL,
+            onCategoryChange = {},
+            sortOption = SortOption.NAME_AZ,
+            onSortChange = {},
+            systemSelected = false,
+            onSystemSelected = {},
+            onRefresh = {},
+            onToggleSystem = { _, _ -> },
+            onToggleApp = {},
+            showWarning = true,
+            onWarningClick = {},
+            onDismissWarning = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ActiveAppsPageWarningDarkPreview() {
+    HyperBridgeTheme(darkTheme = true) {
+        ActiveAppsPageContent(
+            apps = listOf(
+                AppInfo(
+                    name = "Spotify",
+                    packageName = "com.spotify.music",
+                    icon = null,
+                    isBridged = true
+                )
+            ),
+            isLoading = false,
+            systemIntegrations = emptyList(),
+            searchQuery = "",
+            onSearchQueryChange = {},
+            selectedCategory = AppCategory.ALL,
+            onCategoryChange = {},
+            sortOption = SortOption.NAME_AZ,
+            onSortChange = {},
+            systemSelected = false,
+            onSystemSelected = {},
+            onRefresh = {},
+            onToggleSystem = { _, _ -> },
+            onToggleApp = {},
+            showWarning = true,
+            onWarningClick = {},
+            onDismissWarning = {}
+        )
     }
 }
