@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Password
@@ -188,6 +189,14 @@ fun SmartActionsSettingsContent(
                     subtitle = stringResource(R.string.setting_smart_actions_tracking_desc),
                     checked = config.tracking,
                     onCheckedChange = { onTypeChange(SmartActionType.TRACKING, it) }
+                )
+                SettingsDivider()
+                SettingsSwitchItem(
+                    icon = Icons.Outlined.Directions,
+                    title = stringResource(R.string.setting_smart_actions_navigation),
+                    subtitle = stringResource(R.string.setting_smart_actions_navigation_desc),
+                    checked = config.navigation,
+                    onCheckedChange = { onTypeChange(SmartActionType.NAVIGATION, it) }
                 )
             }
 

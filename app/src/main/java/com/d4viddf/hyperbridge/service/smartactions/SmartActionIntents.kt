@@ -15,9 +15,10 @@ import com.d4viddf.hyperbridge.receiver.SmartActionReceiver
  * [PendingIntent]. Shared by the island translators and the Live Update path so both render the
  * same buttons.
  *
- * URL / phone / tracking buttons launch an Activity intent directly (no receiver in between), which
- * keeps them clear of the Android 12+ notification-trampoline restriction. Only the OTP copy goes
- * through [SmartActionReceiver], because writing to the clipboard needs no Activity.
+ * URL / phone / tracking / navigation buttons launch an Activity intent directly (no receiver in
+ * between), which keeps them clear of the Android 12+ notification-trampoline restriction. Only
+ * the OTP copy goes through [SmartActionReceiver], because writing to the clipboard needs no
+ * Activity.
  */
 object SmartActionIntents {
 
@@ -36,6 +37,7 @@ object SmartActionIntents {
         SmartActionType.URL -> context.getString(R.string.smart_action_open_link)
         SmartActionType.PHONE -> context.getString(R.string.smart_action_call)
         SmartActionType.TRACKING -> context.getString(R.string.smart_action_track)
+        SmartActionType.NAVIGATION -> context.getString(R.string.smart_action_directions)
     }
 
     @DrawableRes
@@ -44,6 +46,7 @@ object SmartActionIntents {
         SmartActionType.URL -> R.drawable.ic_smart_link
         SmartActionType.PHONE -> R.drawable.ic_smart_call
         SmartActionType.TRACKING -> R.drawable.ic_smart_package
+        SmartActionType.NAVIGATION -> R.drawable.ic_smart_navigate
     }
 
     fun pendingIntent(context: Context, action: SmartAction, key: String): PendingIntent {
@@ -61,7 +64,8 @@ object SmartActionIntents {
                 }
                 PendingIntent.getBroadcast(context, requestCode, intent, flags)
             }
-            SmartActionType.URL, SmartActionType.TRACKING -> {
+            SmartActionType.URL, SmartActionType.TRACKING, SmartActionType.NAVIGATION -> {
+                // NAVIGATION targets are map links / geo: URIs, opened by whichever maps app owns them.
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(action.target)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }

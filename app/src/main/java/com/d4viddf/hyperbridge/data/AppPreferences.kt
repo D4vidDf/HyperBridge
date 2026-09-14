@@ -115,7 +115,7 @@ class AppPreferences internal constructor(
                     }
 
                     // 2. App-specific notification types migration
-                    val suffixes = listOf("_float", "_shade", "_timeout", "_float_timeout", "_remove_notif", "_blocked", "_nav_left", "_nav_right", "_use_native", "_smart_otp", "_smart_url", "_smart_phone", "_smart_tracking")
+                    val suffixes = listOf("_float", "_shade", "_timeout", "_float_timeout", "_remove_notif", "_blocked", "_nav_left", "_nav_right", "_use_native", "_smart_otp", "_smart_url", "_smart_phone", "_smart_tracking", "_smart_navigation")
                     val allSettings = dao.getAllSync()
                     allSettings.forEach { setting ->
                         val key = setting.key
@@ -377,10 +377,11 @@ class AppPreferences internal constructor(
         dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_URL),
         dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_PHONE),
         dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_TRACKING),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_NAVIGATION),
         dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES),
         dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_HIDE_OTP)
     ) { args: Array<String?> ->
-        buildSmartActionsConfig(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
+        buildSmartActionsConfig(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
     }
 
     suspend fun setSmartActionsEnabled(enabled: Boolean) =
@@ -406,16 +407,19 @@ class AppPreferences internal constructor(
         SmartActionType.URL -> SettingsKeys.SMART_ACTIONS_URL
         SmartActionType.PHONE -> SettingsKeys.SMART_ACTIONS_PHONE
         SmartActionType.TRACKING -> SettingsKeys.SMART_ACTIONS_TRACKING
+        SmartActionType.NAVIGATION -> SettingsKeys.SMART_ACTIONS_NAVIGATION
     }
 
     private fun buildSmartActionsConfig(
-        enabled: String?, otp: String?, url: String?, phone: String?, tracking: String?, excluded: String?, hideOtp: String?
+        enabled: String?, otp: String?, url: String?, phone: String?, tracking: String?, navigation: String?,
+        excluded: String?, hideOtp: String?
     ) = SmartActionsConfig(
         enabled = enabled.toBoolean(false),
         otp = otp.toBoolean(true),
         url = url.toBoolean(true),
         phone = phone.toBoolean(true),
         tracking = tracking.toBoolean(true),
+        navigation = navigation.toBoolean(true),
         excludedPackages = excluded.deserializeSet(),
         hideOtpCode = hideOtp.toBoolean(false)
     )
@@ -428,6 +432,7 @@ class AppPreferences internal constructor(
             SmartActionType.URL -> "url"
             SmartActionType.PHONE -> "phone"
             SmartActionType.TRACKING -> "tracking"
+            SmartActionType.NAVIGATION -> "navigation"
         }
         return "config_${packageName}_smart_$suffix"
     }
@@ -437,13 +442,15 @@ class AppPreferences internal constructor(
             dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.OTP)),
             dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.URL)),
             dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.PHONE)),
-            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.TRACKING))
-        ) { otp, url, phone, tracking ->
+            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.TRACKING)),
+            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.NAVIGATION))
+        ) { otp, url, phone, tracking, navigation ->
             AppSmartActionsOverride(
                 otp = otp?.toBooleanStrictOrNull(),
                 url = url?.toBooleanStrictOrNull(),
                 phone = phone?.toBooleanStrictOrNull(),
-                tracking = tracking?.toBooleanStrictOrNull()
+                tracking = tracking?.toBooleanStrictOrNull(),
+                navigation = navigation?.toBooleanStrictOrNull()
             )
         }
     }
@@ -453,7 +460,8 @@ class AppPreferences internal constructor(
             otp = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.OTP)]?.toBooleanStrictOrNull(),
             url = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.URL)]?.toBooleanStrictOrNull(),
             phone = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.PHONE)]?.toBooleanStrictOrNull(),
-            tracking = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.TRACKING)]?.toBooleanStrictOrNull()
+            tracking = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.TRACKING)]?.toBooleanStrictOrNull(),
+            navigation = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.NAVIGATION)]?.toBooleanStrictOrNull()
         )
     }
 
@@ -792,6 +800,7 @@ class AppPreferences internal constructor(
         memoryCache[SettingsKeys.SMART_ACTIONS_URL],
         memoryCache[SettingsKeys.SMART_ACTIONS_PHONE],
         memoryCache[SettingsKeys.SMART_ACTIONS_TRACKING],
+        memoryCache[SettingsKeys.SMART_ACTIONS_NAVIGATION],
         memoryCache[SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES],
         memoryCache[SettingsKeys.SMART_ACTIONS_HIDE_OTP]
     )

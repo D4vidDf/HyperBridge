@@ -667,7 +667,7 @@
     <string name="no_blocked_terms_desc">Las notificaciones que contengan las palabras añadidas no activarán la isla.</string>
     <!-- Smart Actions (issue #270) -->
     <string name="smart_actions_title">Acciones Inteligentes</string>
-    <string name="smart_actions_desc">Botones de un toque para códigos, enlaces, teléfonos y paquetes</string>
+    <string name="smart_actions_desc">Botones de un toque para códigos, enlaces, teléfonos, paquetes y enlaces de mapas</string>
     <string name="setting_smart_actions">Activar Acciones Inteligentes</string>
     <string name="setting_smart_actions_desc">Escanea el texto de las notificaciones para detectar contenido útil y añade botones a la isla y al panel. No se escanea nada mientras esté desactivado.</string>
     <string name="smart_actions_group_detect">Detectar</string>
@@ -679,6 +679,8 @@
     <string name="setting_smart_actions_phone_desc">Abre el marcador con el número completado</string>
     <string name="setting_smart_actions_tracking">Seguimiento de paquetes</string>
     <string name="setting_smart_actions_tracking_desc">Rastrea envíos de UPS, FedEx, USPS, DHL, Correos y otros</string>
+    <string name="setting_smart_actions_navigation">Cómo llegar</string>
+    <string name="setting_smart_actions_navigation_desc">Abre los enlaces de mapas compartidos en tu app de mapas en vez del navegador</string>
     <string name="smart_actions_group_excluded">Apps excluidas</string>
     <string name="smart_actions_excluded_desc">Las notificaciones de estas apps nunca se escanean</string>
     <string name="smart_actions_no_apps">Primero activa algunas aplicaciones en HyperBridge</string>
@@ -686,6 +688,7 @@
     <string name="smart_action_open_link">Abrir enlace</string>
     <string name="smart_action_call">Llamar</string>
     <string name="smart_action_track">Rastrear paquete</string>
+    <string name="smart_action_directions">Cómo llegar</string>
     <string name="smart_action_copied">Código copiado</string>
     <string name="smart_action_copy_code_hidden">Copiar código</string>
     <string name="smart_actions_group_privacy">Privacidad</string>
@@ -698,7 +701,7 @@
     <string name="smart_actions_all_apps_excluded">Todas las apps vinculadas ya están excluidas</string>
     <string name="cd_smart_actions_remove_excluded">Eliminar de apps excluidas</string>
     <string name="app_smart_actions_title">Acciones Inteligentes</string>
-    <string name="app_smart_actions_subtitle_on">Códigos, enlaces, números de teléfono y paquetes</string>
+    <string name="app_smart_actions_subtitle_on">Códigos, enlaces, números de teléfono, paquetes y enlaces de mapas</string>
     <string name="app_smart_actions_subtitle_off">Desactivado para esta app</string>
     <string name="app_smart_actions_subtitle_global_off">Primero activa Acciones Inteligentes en los ajustes globales</string>
     <string name="app_smart_actions_enable">Acciones Inteligentes para esta app</string>
