@@ -12,38 +12,52 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -79,9 +93,9 @@ fun SmartActionsSettingsScreen(
         apps = activeApps,
         onEnabledChange = { scope.launch { preferences.setSmartActionsEnabled(it) } },
         onTypeChange = { type, enabled -> scope.launch { preferences.setSmartActionTypeEnabled(type, enabled) } },
+        onHideOtpChange = { scope.launch { preferences.setSmartActionsHideOtpCode(it) } },
         onExcludedChange = { packageName, excluded ->
-            val updated = if (excluded) config.excludedPackages + packageName else config.excludedPackages - packageName
-            scope.launch { preferences.setSmartActionsExcludedPackages(updated) }
+            scope.launch { preferences.setSmartActionExcluded(packageName, excluded) }
         },
         onBack = onBack
     )
@@ -94,9 +108,12 @@ fun SmartActionsSettingsContent(
     apps: List<AppInfo>,
     onEnabledChange: (Boolean) -> Unit,
     onTypeChange: (SmartActionType, Boolean) -> Unit,
+    onHideOtpChange: (Boolean) -> Unit,
     onExcludedChange: (String, Boolean) -> Unit,
     onBack: () -> Unit
 ) {
+    var showAppPicker by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -167,6 +184,22 @@ fun SmartActionsSettingsContent(
             }
 
             Spacer(Modifier.height(24.dp))
+            SectionTitle(stringResource(R.string.smart_actions_group_privacy))
+            Spacer(Modifier.height(12.dp))
+
+            // Hiding the OTP code only matters once Smart Actions (and detection of codes) can
+            // actually surface a button, so it follows the same dimmed treatment as Detect above.
+            SettingsCard(modifier = Modifier.alpha(if (config.enabled) 1f else 0.55f)) {
+                SettingsSwitchItem(
+                    icon = Icons.Outlined.VisibilityOff,
+                    title = stringResource(R.string.setting_smart_actions_hide_otp),
+                    subtitle = stringResource(R.string.setting_smart_actions_hide_otp_desc),
+                    checked = config.hideOtpCode,
+                    onCheckedChange = onHideOtpChange
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
             SectionTitle(stringResource(R.string.smart_actions_group_excluded))
             Spacer(Modifier.height(4.dp))
             Text(
@@ -176,29 +209,163 @@ fun SmartActionsSettingsContent(
             )
             Spacer(Modifier.height(12.dp))
 
+            val excludedApps = remember(apps, config.excludedPackages) {
+                config.excludedPackages.toList().map { pkg -> pkg to apps.find { it.packageName == pkg } }
+            }
+
             SettingsCard {
-                if (apps.isEmpty()) {
+                if (excludedApps.isEmpty()) {
                     Text(
-                        text = stringResource(R.string.smart_actions_no_apps),
+                        text = stringResource(R.string.smart_actions_excluded_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
                     )
                 } else {
-                    apps.forEachIndexed { index, app ->
-                        val excluded = app.packageName in config.excludedPackages
+                    excludedApps.forEachIndexed { index, (pkg, app) ->
                         ExcludedAppRow(
+                            packageName = pkg,
                             app = app,
-                            excluded = excluded,
-                            onToggle = { onExcludedChange(app.packageName, !excluded) }
+                            onRemove = { onExcludedChange(pkg, false) }
                         )
-                        if (index < apps.lastIndex) SettingsDivider()
+                        if (index < excludedApps.lastIndex) SettingsDivider()
                     }
                 }
             }
 
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { showAppPicker = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Outlined.Add, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.smart_actions_add_excluded_app))
+            }
+
             Spacer(Modifier.height(16.dp))
         }
+    }
+
+    if (showAppPicker) {
+        ExcludeAppPickerSheet(
+            apps = apps,
+            excludedPackages = config.excludedPackages,
+            onAppSelected = { pkg -> onExcludedChange(pkg, true) },
+            onDismiss = { showAppPicker = false }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExcludeAppPickerSheet(
+    apps: List<AppInfo>,
+    excludedPackages: Set<String>,
+    onAppSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val availableApps = remember(apps, excludedPackages, searchQuery) {
+        apps.filter { it.packageName !in excludedPackages }
+            .filter {
+                searchQuery.isBlank() ||
+                    it.name.contains(searchQuery, ignoreCase = true) ||
+                    it.packageName.contains(searchQuery, ignoreCase = true)
+            }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.smart_actions_pick_app_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(16.dp))
+
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text(stringResource(R.string.smart_actions_pick_app_search)) },
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                trailingIcon = if (searchQuery.isNotEmpty()) {
+                    { IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Outlined.Close, contentDescription = null) } }
+                } else null,
+                singleLine = true,
+                shape = RoundedCornerShape(28.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+
+            if (apps.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.smart_actions_no_apps),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            } else if (availableApps.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.smart_actions_all_apps_excluded),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    items(availableApps.size) { index ->
+                        val app = availableApps[index]
+                        PickableAppRow(
+                            app = app,
+                            onClick = { onAppSelected(app.packageName) }
+                        )
+                        if (index < availableApps.lastIndex) SettingsDivider()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PickableAppRow(
+    app: AppInfo,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AppIcon(app.icon)
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = app.name,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -236,26 +403,30 @@ private fun SettingsDivider() {
 
 @Composable
 private fun ExcludedAppRow(
-    app: AppInfo,
-    excluded: Boolean,
-    onToggle: () -> Unit
+    packageName: String,
+    app: AppInfo?,
+    onRemove: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onToggle() }
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AppIcon(app.icon)
+        AppIcon(app?.icon)
         Spacer(Modifier.width(16.dp))
         Text(
-            text = app.name,
+            text = app?.name ?: packageName,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
-        Checkbox(checked = excluded, onCheckedChange = { onToggle() })
+        IconButton(onClick = onRemove) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.cd_smart_actions_remove_excluded)
+            )
+        }
     }
 }
 
@@ -297,6 +468,7 @@ private fun SmartActionsSettingsPreview() {
             ),
             onEnabledChange = {},
             onTypeChange = { _, _ -> },
+            onHideOtpChange = {},
             onExcludedChange = { _, _ -> },
             onBack = {}
         )

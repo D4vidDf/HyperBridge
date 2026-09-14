@@ -126,7 +126,7 @@ class LiveUpdateTranslator(
                     builder.addAction(
                         NotificationCompat.Action.Builder(
                             IconCompat.createWithResource(context, intents.iconRes(smart.type)),
-                            intents.label(context, smart),
+                            intents.label(context, smart, smartConfig.hideOtpCode),
                             intents.pendingIntent(context, smart, key)
                         ).build()
                     )

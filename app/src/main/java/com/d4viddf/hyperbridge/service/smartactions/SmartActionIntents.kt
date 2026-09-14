@@ -27,8 +27,12 @@ object SmartActionIntents {
     fun actionKey(notificationKey: String, action: SmartAction): String =
         "$KEY_PREFIX${action.type.name.lowercase()}_${notificationKey.hashCode()}"
 
-    fun label(context: Context, action: SmartAction): String = when (action.type) {
-        SmartActionType.OTP -> context.getString(R.string.smart_action_copy_code, action.value)
+    fun label(context: Context, action: SmartAction, hideOtpCode: Boolean = false): String = when (action.type) {
+        SmartActionType.OTP -> if (hideOtpCode) {
+            context.getString(R.string.smart_action_copy_code_hidden)
+        } else {
+            context.getString(R.string.smart_action_copy_code, action.value)
+        }
         SmartActionType.URL -> context.getString(R.string.smart_action_open_link)
         SmartActionType.PHONE -> context.getString(R.string.smart_action_call)
         SmartActionType.TRACKING -> context.getString(R.string.smart_action_track)

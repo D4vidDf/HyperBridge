@@ -44,6 +44,7 @@ object SettingsKeys {
     const val SMART_ACTIONS_PHONE = "smart_actions_phone"
     const val SMART_ACTIONS_TRACKING = "smart_actions_tracking"
     const val SMART_ACTIONS_EXCLUDED_PACKAGES = "smart_actions_excluded_packages"
+    const val SMART_ACTIONS_HIDE_OTP = "smart_actions_hide_otp"
 
     // System Island
     const val SCREEN_RECORDING_TIMEOUT = "screen_recording_timeout"

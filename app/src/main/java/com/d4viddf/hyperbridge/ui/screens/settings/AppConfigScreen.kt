@@ -52,9 +52,14 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DisplaySettings
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -86,6 +91,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -109,9 +115,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
+import com.d4viddf.hyperbridge.models.AppSmartActionsOverride
 import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.SmartActionType
+import com.d4viddf.hyperbridge.models.SmartActionsConfig
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetSize
 import com.d4viddf.hyperbridge.ui.AppInfo
@@ -135,6 +144,7 @@ import kotlinx.coroutines.withContext
 enum class AppConfigSubscreen {
     NOTIFICATION_TYPES,
     ISLAND_BEHAVIOR,
+    SMART_ACTIONS,
     BLOCKED_TERMS,
     ISLAND_WIDGETS,
     CUSTOM_DESIGN,
@@ -166,6 +176,8 @@ fun AppConfigScreen(
     )
 
     val blockedTerms by viewModel.getAppBlockedTerms(packageName).collectAsState(initial = emptySet())
+
+    val globalSmartActionsConfig by viewModel.smartActionsConfigFlow.collectAsState(initial = SmartActionsConfig.DISABLED)
 
     val allowedPackages by preferences.allowedPackagesFlow.collectAsState(initial = emptySet())
     val isBridged = allowedPackages.contains(packageName)
@@ -239,6 +251,7 @@ fun AppConfigScreen(
             appIslandConfig = appIslandConfig,
             globalConfig = globalConfig,
             blockedTerms = blockedTerms,
+            globalSmartActionsConfig = globalSmartActionsConfig,
             savedWidgetIds = appSavedWidgetIds,
             availableProviders = availableProviders,
             currentSubscreen = currentSubscreen,
@@ -249,6 +262,9 @@ fun AppConfigScreen(
             onToggleCallStage = { stage, enabled -> viewModel.updateAppCallStage(packageName, stage, enabled) },
             onUpdateIslandConfig = { config -> viewModel.updateAppIslandConfig(packageName, config) },
             onUpdateBlockedTerms = { terms -> viewModel.updateAppBlockedTerms(packageName, terms) },
+            onSmartActionExcludedChange = { excluded -> viewModel.setSmartActionExcluded(packageName, excluded) },
+            onSmartActionTypeOverride = { type, enabled -> viewModel.setAppSmartActionTypeOverride(packageName, type, enabled) },
+            onClearSmartActionsOverride = { viewModel.clearAppSmartActionsOverride(packageName) },
             onNavConfigClick = { onNavConfigClick(packageName) },
             onAddWidgetClick = { isPickingWidget = true },
             onEditWidget = { widgetId -> editingWidgetId = widgetId },
@@ -334,6 +350,7 @@ fun AppConfigContent(
     appIslandConfig: IslandConfig,
     globalConfig: IslandConfig,
     blockedTerms: Set<String>,
+    globalSmartActionsConfig: SmartActionsConfig,
     savedWidgetIds: List<Int>,
     availableProviders: List<AppWidgetProviderInfo>,
     currentSubscreen: AppConfigSubscreen? = null,
@@ -344,6 +361,9 @@ fun AppConfigContent(
     onToggleCallStage: (CallStage, Boolean) -> Unit,
     onUpdateIslandConfig: (IslandConfig) -> Unit,
     onUpdateBlockedTerms: (Set<String>) -> Unit,
+    onSmartActionExcludedChange: (Boolean) -> Unit,
+    onSmartActionTypeOverride: (SmartActionType, Boolean?) -> Unit,
+    onClearSmartActionsOverride: () -> Unit,
     onNavConfigClick: () -> Unit,
     onAddWidgetClick: () -> Unit,
     onEditWidget: (Int) -> Unit,
@@ -360,6 +380,13 @@ fun AppConfigContent(
         "${if (appIslandConfig.isFloat == true) activeDesc else inactiveDesc} • ${appIslandConfig.timeout ?: 5}s"
     }
     val blockedSubtitle = stringResource(R.string.blocked_terms_count, blockedTerms.size)
+    val appSmartActionsOverride = appIslandConfig.smartActionsOverride ?: AppSmartActionsOverride()
+    val isSmartActionsExcluded = packageName in globalSmartActionsConfig.excludedPackages
+    val smartActionsSubtitle = when {
+        !globalSmartActionsConfig.enabled -> stringResource(R.string.app_smart_actions_subtitle_global_off)
+        isSmartActionsExcluded -> stringResource(R.string.app_smart_actions_subtitle_off)
+        else -> stringResource(R.string.app_smart_actions_subtitle_on)
+    }
     val widgetsSubtitle = if (savedWidgetIds.isNotEmpty()) {
         "${savedWidgetIds.size} configured"
     } else {
@@ -448,6 +475,7 @@ fun AppConfigContent(
                         val group1Items = listOf(
                             AppConfigSubscreen.NOTIFICATION_TYPES,
                             AppConfigSubscreen.ISLAND_BEHAVIOR,
+                            AppConfigSubscreen.SMART_ACTIONS,
                             AppConfigSubscreen.BLOCKED_TERMS
                         )
 
@@ -472,6 +500,13 @@ fun AppConfigContent(
                                         icon = Icons.Outlined.DisplaySettings,
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_BEHAVIOR) }
+                                    )
+                                    AppConfigSubscreen.SMART_ACTIONS -> AppConfigOptionCard(
+                                        title = stringResource(R.string.app_smart_actions_title),
+                                        subtitle = smartActionsSubtitle,
+                                        icon = Icons.Outlined.AutoAwesome,
+                                        shape = shape,
+                                        onClick = { onNavigateSubscreen(AppConfigSubscreen.SMART_ACTIONS) }
                                     )
                                     AppConfigSubscreen.BLOCKED_TERMS -> AppConfigOptionCard(
                                         title = stringResource(R.string.blocked_terms),
@@ -586,6 +621,23 @@ fun AppConfigContent(
                             onUpdate = onUpdateIslandConfig,
                             activeDesc = activeDesc,
                             inactiveDesc = inactiveDesc
+                        )
+                    }
+                }
+
+                AppConfigSubscreen.SMART_ACTIONS -> {
+                    SubscreenScaffold(
+                        title = stringResource(R.string.app_smart_actions_title),
+                        appName = appName,
+                        onBack = { onNavigateSubscreen(null) }
+                    ) {
+                        AppSmartActionsContent(
+                            global = globalSmartActionsConfig,
+                            override = appSmartActionsOverride,
+                            packageName = packageName,
+                            onExcludedChange = onSmartActionExcludedChange,
+                            onTypeOverride = onSmartActionTypeOverride,
+                            onClearOverrides = onClearSmartActionsOverride
                         )
                     }
                 }
@@ -1126,6 +1178,201 @@ fun AppBehaviorContent(
 }
 
 // ------------------------------------------------------------------------------------------------
+// SMART ACTIONS CONTENT (per-app)
+// Master on/off (backed by SmartActionsConfig.excludedPackages), per-type overrides layered on
+// top of the global config, and a "Use Global Defaults" action to clear all per-app overrides.
+// ------------------------------------------------------------------------------------------------
+
+@Composable
+fun AppSmartActionsContent(
+    global: SmartActionsConfig,
+    override: AppSmartActionsOverride,
+    packageName: String,
+    onExcludedChange: (Boolean) -> Unit,
+    onTypeOverride: (SmartActionType, Boolean?) -> Unit,
+    onClearOverrides: () -> Unit
+) {
+    val isExcluded = packageName in global.excludedPackages
+    val controlsEnabled = global.enabled && !isExcluded
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (!global.enabled) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Text(
+                        text = stringResource(R.string.app_smart_actions_global_off_banner),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+        }
+
+        // Master switch: on/off for this app is tracked by SmartActionsConfig.excludedPackages,
+        // not by a field of its own.
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(if (global.enabled) 1f else 0.55f)
+        ) {
+            SettingsSwitchItem(
+                icon = Icons.Outlined.AutoAwesome,
+                title = stringResource(R.string.app_smart_actions_enable),
+                subtitle = stringResource(R.string.app_smart_actions_enable_desc),
+                checked = !isExcluded,
+                onCheckedChange = if (global.enabled) {
+                    { checked -> onExcludedChange(!checked) }
+                } else {
+                    { _ -> }
+                }
+            )
+        }
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(R.string.app_smart_actions_types_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = stringResource(R.string.app_smart_actions_types_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(if (controlsEnabled) 1f else 0.55f)
+        ) {
+            Column(Modifier.padding(vertical = 4.dp)) {
+                SettingsSwitchItem(
+                    icon = Icons.Outlined.Password,
+                    title = stringResource(R.string.setting_smart_actions_otp),
+                    subtitle = stringResource(R.string.setting_smart_actions_otp_desc),
+                    checked = override.otp ?: global.otp,
+                    onCheckedChange = if (controlsEnabled) {
+                        { value -> onTypeOverride(SmartActionType.OTP, value) }
+                    } else {
+                        { _ -> }
+                    }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+                SettingsSwitchItem(
+                    icon = Icons.Outlined.Link,
+                    title = stringResource(R.string.setting_smart_actions_url),
+                    subtitle = stringResource(R.string.setting_smart_actions_url_desc),
+                    checked = override.url ?: global.url,
+                    onCheckedChange = if (controlsEnabled) {
+                        { value -> onTypeOverride(SmartActionType.URL, value) }
+                    } else {
+                        { _ -> }
+                    }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+                SettingsSwitchItem(
+                    icon = Icons.Outlined.Call,
+                    title = stringResource(R.string.setting_smart_actions_phone),
+                    subtitle = stringResource(R.string.setting_smart_actions_phone_desc),
+                    checked = override.phone ?: global.phone,
+                    onCheckedChange = if (controlsEnabled) {
+                        { value -> onTypeOverride(SmartActionType.PHONE, value) }
+                    } else {
+                        { _ -> }
+                    }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+                SettingsSwitchItem(
+                    icon = Icons.Outlined.LocalShipping,
+                    title = stringResource(R.string.setting_smart_actions_tracking),
+                    subtitle = stringResource(R.string.setting_smart_actions_tracking_desc),
+                    checked = override.tracking ?: global.tracking,
+                    onCheckedChange = if (controlsEnabled) {
+                        { value -> onTypeOverride(SmartActionType.TRACKING, value) }
+                    } else {
+                        { _ -> }
+                    }
+                )
+            }
+        }
+
+        // "Use Global Defaults" action, mirroring AppBehaviorContent's global-default card:
+        // a dedicated container with the switch state reflecting whether any per-app override
+        // is currently set, clearing all of them in one tap.
+        val isUsingGlobalDefaults = override.isEmpty
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(if (controlsEnabled) 1f else 0.55f)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = controlsEnabled && !isUsingGlobalDefaults) { onClearOverrides() }
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.use_global_default),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = if (isUsingGlobalDefaults) {
+                            stringResource(R.string.appearance_use_defaults_desc)
+                        } else {
+                            stringResource(R.string.custom_behavior_desc)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Switch(
+                    checked = isUsingGlobalDefaults,
+                    enabled = controlsEnabled && !isUsingGlobalDefaults,
+                    onCheckedChange = { onClearOverrides() }
+                )
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
 // BLOCKED TERMS CONTENT
 // Input box container on top, and vertical list of blocked terms below in separate containers.
 // ------------------------------------------------------------------------------------------------
@@ -1631,6 +1878,14 @@ fun AppConfigIslandBehaviorPreview() {
     }
 }
 
+@Preview(name = "Subscreen: Smart Actions", showBackground = true)
+@Composable
+fun AppConfigSmartActionsPreview() {
+    HyperBridgeTheme {
+        SampleAppConfigContent(currentSubscreen = AppConfigSubscreen.SMART_ACTIONS)
+    }
+}
+
 @Preview(name = "Subscreen: Blocked Terms", showBackground = true)
 @Composable
 fun AppConfigBlockedTermsPreview() {
@@ -1676,6 +1931,7 @@ private fun SampleAppConfigContent(currentSubscreen: AppConfigSubscreen?) {
         appIslandConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
         globalConfig = IslandConfig(isFloat = true, isShowShade = true, timeout = 5),
         blockedTerms = setOf("Ad", "Promo"),
+        globalSmartActionsConfig = SmartActionsConfig(enabled = true),
         savedWidgetIds = emptyList(),
         availableProviders = emptyList(),
         currentSubscreen = currentSubscreen,
@@ -1686,6 +1942,9 @@ private fun SampleAppConfigContent(currentSubscreen: AppConfigSubscreen?) {
         onToggleCallStage = { _, _ -> },
         onUpdateIslandConfig = {},
         onUpdateBlockedTerms = {},
+        onSmartActionExcludedChange = {},
+        onSmartActionTypeOverride = { _, _ -> },
+        onClearSmartActionsOverride = {},
         onNavConfigClick = {},
         onAddWidgetClick = {},
         onEditWidget = {},

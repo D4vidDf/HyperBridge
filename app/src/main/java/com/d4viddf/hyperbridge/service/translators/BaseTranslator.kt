@@ -452,7 +452,7 @@ abstract class BaseTranslator(
 
         return smartActions.map { smart ->
             val key = SmartActionIntents.actionKey(sbn.key, smart)
-            val title = SmartActionIntents.label(context, smart)
+            val title = SmartActionIntents.label(context, smart, smartConfig.hideOtpCode)
 
             var actionIcon: Icon? = null
             var hyperPic: HyperPicture? = null
