@@ -260,7 +260,7 @@ fun SettingsToggleCard(
                 .fillMaxWidth()
                 .clickable { onCheckedChange(!checked) }
                 .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Box(
                 modifier = Modifier
@@ -290,7 +290,7 @@ fun SettingsToggleCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange

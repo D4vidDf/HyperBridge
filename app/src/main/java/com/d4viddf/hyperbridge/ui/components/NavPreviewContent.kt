@@ -3,12 +3,9 @@ package com.d4viddf.hyperbridge.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,20 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TurnRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +36,12 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NavContent
 
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
+
 @Composable
 fun NavPreview(left: NavContent, right: NavContent) {
     val leftLabel = stringResource(getNavContentLabelRes(left))
@@ -65,58 +58,116 @@ fun NavPreview(left: NavContent, right: NavContent) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 32.dp),
+                .padding(vertical = 36.dp, horizontal = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
-                    .width(330.dp)
-                    .height(46.dp)
                     .clip(RoundedCornerShape(50))
                     .background(Color.Black)
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                // Camera Cutout
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(30.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF1F1F1F))
+                SymmetricalNavIslandLayout(
+                    left = left,
+                    right = right
                 )
+            }
+        }
+    }
+}
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // LEFT SIDE
+@Composable
+private fun SymmetricalNavIslandLayout(
+    left: NavContent,
+    right: NavContent,
+    modifier: Modifier = Modifier
+) {
+    val horizontalPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
+    val cameraGapPx = with(LocalDensity.current) { 10.dp.roundToPx() }
+    val minSideWidthPx = with(LocalDensity.current) { 16.dp.roundToPx() }
+    val pillHeightPx = with(LocalDensity.current) { 44.dp.roundToPx() }
+
+    Layout(
+        modifier = modifier,
+        content = {
+            // Measurable 0: Left Content
+            Box(contentAlignment = Alignment.CenterStart) {
+                if (left != NavContent.NONE) {
                     Row(
-                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
                         Icon(
                             imageVector = Icons.Default.TurnRight,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
+                            tint = Color.White
                         )
                         Spacer(Modifier.width(6.dp))
                         NavContentRenderer(left, Alignment.Start)
                     }
-
-                    // SPACER
-                    Spacer(modifier = Modifier.width(32.dp))
-
-                    // RIGHT SIDE
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        NavContentRenderer(right, Alignment.End)
-                    }
                 }
             }
+
+            // Measurable 1: Camera Cutout (Realistic punch-hole)
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF1E1E1E)),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF0F0F0F))
+                )
+            }
+
+            // Measurable 2: Right Content
+            Box(contentAlignment = Alignment.CenterEnd) {
+                NavContentRenderer(right, Alignment.End)
+            }
+        }
+    ) { measurables, constraints ->
+        val unconstrained = constraints.copy(minWidth = 0, minHeight = 0)
+        val leftPlaceable = measurables[0].measure(unconstrained)
+        val cameraPlaceable = measurables[1].measure(unconstrained)
+        val rightPlaceable = measurables[2].measure(unconstrained)
+
+        // Make left and right symmetrical by taking the width of the widest side
+        val sideWidth = maxOf(leftPlaceable.width, rightPlaceable.width, minSideWidthPx)
+
+        val totalWidth = (horizontalPaddingPx * 2) + (sideWidth * 2) + cameraPlaceable.width + (cameraGapPx * 2)
+        val totalHeight = pillHeightPx
+
+        layout(totalWidth, totalHeight) {
+            // Left content aligned at start of left side
+            leftPlaceable.placeRelative(
+                x = horizontalPaddingPx,
+                y = (totalHeight - leftPlaceable.height) / 2
+            )
+
+            // Camera placed in the exact center
+            val cameraX = horizontalPaddingPx + sideWidth + cameraGapPx
+            cameraPlaceable.placeRelative(
+                x = cameraX,
+                y = (totalHeight - cameraPlaceable.height) / 2
+            )
+
+            // Right content aligned at end of right side
+            val rightX = totalWidth - horizontalPaddingPx - rightPlaceable.width
+            rightPlaceable.placeRelative(
+                x = rightX,
+                y = (totalHeight - rightPlaceable.height) / 2
+            )
         }
     }
 }
@@ -176,35 +227,7 @@ fun NavContentRenderer(type: NavContent, align: Alignment.Horizontal) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NavDropdown(label: String, selected: NavContent, onSelect: (NavContent) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Column {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.height(4.dp))
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-            OutlinedTextField(
-                value = stringResource(getNavContentLabelRes(selected)),
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
-                textStyle = MaterialTheme.typography.bodyMedium
-            )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                NavContent.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(getNavContentLabelRes(option))) },
-                        onClick = { onSelect(option); expanded = false }
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun getNavContentLabelRes(content: NavContent): Int {
+fun getNavContentLabelRes(content: NavContent): Int {
     return when(content) {
         NavContent.INSTRUCTION -> R.string.nav_content_instruction
         NavContent.DISTANCE -> R.string.nav_content_distance
