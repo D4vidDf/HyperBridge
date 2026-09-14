@@ -521,11 +521,11 @@
     <string name="nav_layout_info">• ナビゲーションレイアウトは、今後のアップデートでテーマエンジンに完全統合される予定です。\n• ネイティブライブアップデートエンジンを使用している場合、右側のコンテンツのみ表示されます。</string>
     <string name="xiaomi_featured_notifications">Xiaomi Featured通知</string>
     <string name="island_behavior_title">アイランドの動作</string>
-    <string name="island_behavior_desc"><![CDATA[タイムアウト、重複、表示設定]]></string>
+    <string name="island_behavior_desc">タイムアウト、重複、表示設定</string>
     <string name="engine">エンジン</string>
     <string name="engine_desc">ライブアップデート vs Xiaomiアイランド</string>
-    <string name="behaviour_triggers"><![CDATA[動作とトリガー]]></string>
-    <string name="engine_timeouts_triggers"><![CDATA[エンジン、タイムアウト、トリガー]]></string>
+    <string name="behaviour_triggers">動作とトリガー</string>
+    <string name="engine_timeouts_triggers">エンジン、タイムアウト、トリガー</string>
     <string name="global_behavior">全体の動作</string>
     <string name="auto_hide_island">アイランドを自動的に隠す</string>
     <string name="hides_after_a_set_time">設定した時間が経過すると隠れます</string>

@@ -515,11 +515,11 @@
     <string name="nav_layout_info">• Navigation layouts will be fully integrated into the Theme Engine in an upcoming update.\n• When using the Native Live Update engine, only the Right Side content is visible.</string>
     <string name="xiaomi_featured_notifications">Xiaomi Featured Notifications</string>
     <string name="island_behavior_title">Island Behavior</string>
-    <string name="island_behavior_desc"><![CDATA[Timeouts, duplicates & visibility]]></string>
+    <string name="island_behavior_desc">Timeouts, duplicates &amp; visibility</string>
     <string name="engine">Engine</string>
     <string name="engine_desc">Live Updates vs Xiaomi Island</string>
-    <string name="behaviour_triggers"><![CDATA[Behaviour & Triggers]]></string>
-    <string name="engine_timeouts_triggers"><![CDATA[Engine, timeouts & triggers]]></string>
+    <string name="behaviour_triggers">Behaviour &amp; Triggers</string>
+    <string name="engine_timeouts_triggers">Engine, timeouts &amp; triggers</string>
     <string name="global_behavior">Global Behavior</string>
     <string name="auto_hide_island">Auto-hide Island</string>
     <string name="hides_after_a_set_time">Hides after a set time</string>
