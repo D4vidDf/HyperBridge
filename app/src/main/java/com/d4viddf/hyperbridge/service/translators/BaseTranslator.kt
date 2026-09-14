@@ -2,6 +2,9 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.app.PendingIntent
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionNotificationText
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionsExtractor
 import android.app.Person
 import android.content.Context
 import android.graphics.Bitmap
@@ -44,6 +47,9 @@ import kotlin.math.abs
 import android.graphics.Typeface
 import androidx.core.graphics.withClip
 import androidx.core.graphics.get
+
+/** Android caps visible notification actions at three; HyperOS shows the same set in the island. */
+private const val MAX_ACTION_BUTTONS = 3
 
 abstract class BaseTranslator(
     protected val context: Context,
@@ -291,10 +297,13 @@ abstract class BaseTranslator(
         sbn: StatusBarNotification,
         config: com.d4viddf.hyperbridge.models.IslandConfig,
         theme: HyperTheme? = null,
-        mode: ActionDisplayMode = ActionDisplayMode.BOTH
+        mode: ActionDisplayMode = ActionDisplayMode.BOTH,
+        includeSmartActions: Boolean = false
     ): List<BridgeAction> {
         val bridgeActions = mutableListOf<BridgeAction>()
-        val actions = sbn.notification.actions ?: return emptyList()
+        // No early return on a missing actions array: an OTP SMS usually has zero native actions
+        // and Smart Actions still have to get a chance to add theirs.
+        val actions = sbn.notification.actions ?: emptyArray()
 
         val defaultActionBg = if (theme != null) {
             try {
@@ -402,7 +411,76 @@ abstract class BaseTranslator(
 
             bridgeActions.add(BridgeAction(hyperAction, hyperPic))
         }
+
+        if (includeSmartActions) {
+            bridgeActions.addAll(
+                buildSmartActions(sbn, config, theme, mode, defaultActionBg, nativeCount = bridgeActions.size)
+            )
+        }
         return bridgeActions
+    }
+
+    /**
+     * Smart Actions (issue #270): buttons synthesised from the notification text (copy OTP, open
+     * link, dial, track parcel). Returns nothing — and reads no text — unless the user enabled the
+     * feature, so disabled users pay for one boolean check.
+     */
+    private fun buildSmartActions(
+        sbn: StatusBarNotification,
+        config: com.d4viddf.hyperbridge.models.IslandConfig,
+        theme: HyperTheme?,
+        mode: ActionDisplayMode,
+        defaultActionBg: Int,
+        nativeCount: Int
+    ): List<BridgeAction> {
+        val smartConfig = config.smartActions ?: return emptyList()
+        if (!smartConfig.isActiveFor(sbn.packageName)) return emptyList()
+
+        // Leave room for the app's own buttons; the shade never shows more than three.
+        val room = (MAX_ACTION_BUTTONS - nativeCount).coerceAtLeast(0)
+        if (room == 0) return emptyList()
+
+        val text = SmartActionNotificationText.collect(sbn.notification)
+        val smartActions = SmartActionsExtractor.extract(
+            text,
+            smartConfig,
+            maxActions = minOf(room, SmartActionsExtractor.DEFAULT_MAX_ACTIONS)
+        )
+        if (smartActions.isEmpty()) return emptyList()
+
+        val bgColorHex = String.format("#%08X", (0xFFFFFFFF and defaultActionBg.toLong()))
+
+        return smartActions.map { smart ->
+            val key = SmartActionIntents.actionKey(sbn.key, smart)
+            val title = SmartActionIntents.label(context, smart, smartConfig.hideOtpCode)
+
+            var actionIcon: Icon? = null
+            var hyperPic: HyperPicture? = null
+            if (mode != ActionDisplayMode.TEXT) {
+                val iconRes = SmartActionIntents.iconRes(smart.type)
+                val bitmap = loadIconBitmap(Icon.createWithResource(context, iconRes), context.packageName)
+                if (bitmap != null) {
+                    val processed = if (theme != null) {
+                        applyThemeToActionIcon(bitmap, theme, sbn.packageName, defaultActionBg)
+                    } else {
+                        createRoundedIconWithBackground(bitmap, defaultActionBg, 12)
+                    }
+                    actionIcon = Icon.createWithBitmap(processed)
+                    hyperPic = HyperPicture("${key}_icon", processed)
+                }
+            }
+
+            val hyperAction = HyperAction(
+                key = key,
+                title = if (mode == ActionDisplayMode.ICON) "" else title,
+                icon = actionIcon,
+                pendingIntent = SmartActionIntents.pendingIntent(context, smart, key),
+                actionIntentType = 1,
+                actionBgColor = if (mode == ActionDisplayMode.TEXT) null else bgColorHex,
+                titleColor = "#FFFFFF"
+            )
+            BridgeAction(hyperAction, hyperPic)
+        }
     }
 
     // --- UTILS ---

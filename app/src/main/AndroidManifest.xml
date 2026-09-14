@@ -129,6 +129,10 @@
             android:name=".receiver.VpnActionReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".receiver.SmartActionReceiver"
+            android:exported="false" />
+
         <service
             android:name=".service.InlineReplyService"
             android:enabled="true"

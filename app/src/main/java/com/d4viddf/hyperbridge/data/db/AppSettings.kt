@@ -37,6 +37,15 @@ object SettingsKeys {
     const val NAV_LEFT = "nav_left_content"
     const val NAV_RIGHT = "nav_right_content"
 
+    // Smart Actions (issue #270) — off by default
+    const val SMART_ACTIONS_ENABLED = "smart_actions_enabled"
+    const val SMART_ACTIONS_OTP = "smart_actions_otp"
+    const val SMART_ACTIONS_URL = "smart_actions_url"
+    const val SMART_ACTIONS_PHONE = "smart_actions_phone"
+    const val SMART_ACTIONS_TRACKING = "smart_actions_tracking"
+    const val SMART_ACTIONS_EXCLUDED_PACKAGES = "smart_actions_excluded_packages"
+    const val SMART_ACTIONS_HIDE_OTP = "smart_actions_hide_otp"
+
     // System Island
     const val SCREEN_RECORDING_TIMEOUT = "screen_recording_timeout"
     const val SCREEN_RECORDING_LEFT_DESIGN = "screen_recording_left_design"

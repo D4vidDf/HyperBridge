@@ -16,6 +16,7 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.SmartActionType
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.NavigationModule
 import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
@@ -357,6 +358,19 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     fun getAppBlockedTerms(packageName: String) = preferences.getAppBlockedTerms(packageName)
     fun updateAppBlockedTerms(packageName: String, terms: Set<String>) {
         viewModelScope.launch { preferences.setAppBlockedTerms(packageName, terms) }
+    }
+
+    // --- SMART ACTIONS ---
+    val smartActionsConfigFlow = preferences.smartActionsConfigFlow
+    fun getAppSmartActionsOverride(packageName: String) = preferences.getAppSmartActionsOverride(packageName)
+    fun setSmartActionExcluded(packageName: String, excluded: Boolean) {
+        viewModelScope.launch { preferences.setSmartActionExcluded(packageName, excluded) }
+    }
+    fun setAppSmartActionTypeOverride(packageName: String, type: SmartActionType, enabled: Boolean?) {
+        viewModelScope.launch { preferences.setAppSmartActionTypeOverride(packageName, type, enabled) }
+    }
+    fun clearAppSmartActionsOverride(packageName: String) {
+        viewModelScope.launch { preferences.clearAppSmartActionsOverride(packageName) }
     }
 
     // App Loader
