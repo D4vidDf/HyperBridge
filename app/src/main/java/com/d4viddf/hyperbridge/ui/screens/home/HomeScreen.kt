@@ -15,14 +15,11 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.ToggleOn
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.ToggleOff
@@ -43,11 +40,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
@@ -55,6 +50,7 @@ import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeCreatorScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeManagerScreen
+import kotlinx.coroutines.launch
 
 private enum class DesignRoute {
     DASHBOARD,
@@ -133,59 +129,15 @@ fun HomeScreen(
                 }
             }
         ) { padding ->
+            val prefs = remember { com.d4viddf.hyperbridge.data.AppPreferences(context) }
+            val showWarning by prefs.featuredPermissionWarningFlow.collectAsState(initial = false)
+            val scope = androidx.compose.runtime.rememberCoroutineScope()
+
             androidx.compose.foundation.layout.Column(
                 modifier = Modifier
                     .padding(bottom = padding.calculateBottomPadding())
                     .fillMaxSize()
             ) {
-                val prefs = remember { com.d4viddf.hyperbridge.data.AppPreferences(context) }
-                val showWarning by prefs.featuredPermissionWarningFlow.collectAsState(initial = false)
-
-                if (showWarning) {
-                    androidx.compose.material3.Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        ),
-                        onClick = {
-                            val intent =
-                                Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                    putExtra(
-                                        android.provider.Settings.EXTRA_APP_PACKAGE,
-                                        context.packageName
-                                    )
-                                }
-                            context.startActivity(intent)
-                        }
-                    ) {
-                        androidx.compose.foundation.layout.Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.Warning,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            androidx.compose.foundation.layout.Spacer(Modifier.width(12.dp))
-                            androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    stringResource(R.string.featured_notifications_troubleshoot_title),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Text(
-                                    stringResource(R.string.featured_notifications_troubleshoot_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
-                        }
-                    }
-                }
-
                 Box(modifier = Modifier.weight(1f)) {
                     when (selectedTab) {
                         0 -> {
@@ -280,6 +232,22 @@ fun HomeScreen(
                             isLoading = isLoading,
                             systemIntegrations = systemIntegrations,
                             viewModel = viewModel,
+                            showWarning = showWarning,
+                            onWarningClick = {
+                                val intent =
+                                    Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                        putExtra(
+                                            android.provider.Settings.EXTRA_APP_PACKAGE,
+                                            context.packageName
+                                        )
+                                    }
+                                context.startActivity(intent)
+                            },
+                            onDismissWarning = {
+                                scope.launch {
+                                    prefs.setFeaturedPermissionWarning(false)
+                                }
+                            },
                             onConfig = { onAppConfigClick(it.packageName) },
                             onSystemConfig = { integration ->
                                 when (integration.id) {
