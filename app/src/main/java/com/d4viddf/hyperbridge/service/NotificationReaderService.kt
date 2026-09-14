@@ -522,6 +522,18 @@ class NotificationReaderService : NotificationListenerService() {
                 // A content click removes auto-cancel bridge notifications just like a shade
                 // dismissal. Programmatic cancels (updates and Shizuku workarounds) are ignored.
                 val wasContentClick = reason == REASON_CLICK
+                // Our own cancel() calls (updates, timeouts, Shizuku workarounds) are noise; anything
+                // else means the user or the system took the island away, which is exactly what a
+                // "my island vanished" bug report needs to show.
+                if (reason != REASON_APP_CANCEL && notifId < WIDGET_ID_BASE) {
+                    val removedIsland = reverseTranslations[notifId]?.let { key -> activeIslands[key] }
+                    DiagnosticsStore.record(
+                        removedIsland?.type?.name ?: "BRIDGE",
+                        "removed",
+                        removedIsland?.packageName ?: it.notification.extras.getString(EXTRA_ORIGINAL_KEY)?.split('|')?.getOrNull(1),
+                        removalReasonName(reason)
+                    )
+                }
                 if (!wasContentClick && reason != REASON_CANCEL && reason != REASON_CANCEL_ALL) {
                     return
                 }
@@ -757,6 +769,34 @@ class NotificationReaderService : NotificationListenerService() {
             timeoutJobs[originalKey] = job
             job.invokeOnCompletion { timeoutJobs.remove(originalKey, job) }
         }
+    }
+
+    /** Human-readable name for a NotificationListenerService REASON_* removal code. */
+    private fun removalReasonName(reason: Int): String = when (reason) {
+        REASON_CLICK -> "click"
+        REASON_CANCEL -> "user-dismiss"
+        REASON_CANCEL_ALL -> "clear-all"
+        REASON_ERROR -> "error"
+        REASON_PACKAGE_CHANGED -> "package-changed"
+        REASON_USER_STOPPED -> "user-stopped"
+        REASON_PACKAGE_BANNED -> "package-banned"
+        REASON_APP_CANCEL -> "app-cancel"
+        REASON_APP_CANCEL_ALL -> "app-cancel-all"
+        REASON_LISTENER_CANCEL -> "listener-cancel"
+        REASON_LISTENER_CANCEL_ALL -> "listener-cancel-all"
+        REASON_GROUP_SUMMARY_CANCELED -> "group-summary-canceled"
+        REASON_GROUP_OPTIMIZATION -> "group-optimization"
+        REASON_PACKAGE_SUSPENDED -> "package-suspended"
+        REASON_PROFILE_TURNED_OFF -> "profile-off"
+        REASON_UNAUTOBUNDLED -> "unautobundled"
+        REASON_CHANNEL_BANNED -> "channel-banned"
+        REASON_SNOOZED -> "snoozed"
+        REASON_TIMEOUT -> "timeout"
+        REASON_CHANNEL_REMOVED -> "channel-removed"
+        REASON_CLEAR_DATA -> "clear-data"
+        REASON_ASSISTANT_CANCEL -> "assistant-cancel"
+        REASON_LOCKDOWN -> "lockdown"
+        else -> "reason-$reason"
     }
 
     private fun recordExpiredIsland(island: ActiveIsland) {
@@ -1177,6 +1217,7 @@ class NotificationReaderService : NotificationListenerService() {
 
         if (dndActive) {
             Log.d(TAG, "DND active. Skipping notification ${rawSbn.packageName}")
+            DiagnosticsStore.record("DND", "ignored", rawSbn.packageName, "dnd-active")
             return
         }
 
@@ -1197,9 +1238,15 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             val hasProgress = hasProgressNotification(sbn, effectiveTitle, effectiveText)
-            if (effectiveTitle.isEmpty() && !hasProgress) return
+            if (effectiveTitle.isEmpty() && !hasProgress) {
+                DiagnosticsStore.record(typeBeforeRules.name, "ignored", sbn.packageName, "empty-title")
+                return
+            }
 
-            if (preferences.isBlockedTermFast(sbn.packageName, effectiveTitle, effectiveText)) return
+            if (preferences.isBlockedTermFast(sbn.packageName, effectiveTitle, effectiveText)) {
+                DiagnosticsStore.record(typeBeforeRules.name, "ignored", sbn.packageName, "blocked-term")
+                return
+            }
 
             val activeTheme = themeRepository.activeTheme.value
             val ruleMatch = rulesEngine.match(sbn, effectiveTitle, effectiveText, activeTheme)
@@ -1517,6 +1564,9 @@ class NotificationReaderService : NotificationListenerService() {
                     deleteIntent = sbn.notification.deleteIntent
                 )
                 updatePermanentIsland()
+                if (previous == null) {
+                    DiagnosticsStore.record(type.name, "posted", sbn.packageName, "live-update")
+                }
 
                 handlePostNotificationSideEffects(effectiveKey, decision.bridgeId, processingGeneration, finalConfig, type, true, sbn, effectiveTitle, effectiveText)
                 return
@@ -1621,6 +1671,9 @@ class NotificationReaderService : NotificationListenerService() {
                 dismissSourceOnContentClick = false
             )
             updatePermanentIsland()
+            if (previous == null) {
+                DiagnosticsStore.record(type.name, "posted", sbn.packageName, "island")
+            }
 
             handlePostNotificationSideEffects(
                 originalKey = effectiveKey,
