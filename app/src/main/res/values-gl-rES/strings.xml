@@ -120,7 +120,7 @@
     <string name="title_0_2_0">The Information Update</string>
     <string name="title_0_1_0">The Expressive Update</string>
     <string name="priority_edu_title">New: Control the Island</string>
-    <string name="priority_edu_desc">Hyper Bridge can now manage how multiple notifications behave when the 9-island limit is reached.\n\n&lt;b&gt;Default: Most Recent&lt;/b&gt;\nNew notifications replace the oldest ones automatically.</string>
+    <string name="priority_edu_desc">Hyper Bridge can now manage how multiple notifications behave when the 9-island limit is reached.\n\n<b>Default: Most Recent</b>\nNew notifications replace the oldest ones automatically.</string>
     <string name="badge_new">NEW</string>
     <string name="nav_layout_title">Navigation Layout</string>
     <string name="nav_layout_desc">Choose where information appears</string>

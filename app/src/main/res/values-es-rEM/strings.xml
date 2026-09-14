@@ -120,7 +120,7 @@
     <string name="title_0_2_0">La Actualización de Información</string>
     <string name="title_0_1_0">La Actualización Expresiva</string>
     <string name="priority_edu_title">Nuevo: Controla la Isla</string>
-    <string name="priority_edu_desc">Hyper Bridge ahora gestiona cómo se comportan múltiples notificaciones cuando se alcanza el límite de 9.\n\n&lt;b&gt;Por Defecto: Más Reciente&lt;/b&gt;\nLas nuevas notificaciones reemplazan a las más antiguas automáticamente.</string>
+    <string name="priority_edu_desc">Hyper Bridge ahora gestiona cómo se comportan múltiples notificaciones cuando se alcanza el límite de 9.\n\n<b>Por Defecto: Más Reciente</b>\nLas nuevas notificaciones reemplazan a las más antiguas automáticamente.</string>
     <string name="badge_new">NUEVO</string>
     <string name="nav_layout_title">Diseño de Navegación</string>
     <string name="nav_layout_desc">Elige dónde aparece la información</string>
