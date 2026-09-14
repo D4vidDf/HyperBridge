@@ -133,7 +133,10 @@ class NotificationReaderService : NotificationListenerService() {
     )
 
     private val recentlyRemovedKeys = ConcurrentHashMap<String, RemovedSource>()
-    private val nativeIslands = ConcurrentHashMap.newKeySet<String>()
+    // Other apps' islands. The permanent island yields to a native island only for a short window
+    // after it first appears, not for the notification's whole lifetime (see NativeIslandTracker).
+    private val nativeIslands = NativeIslandTracker()
+    private var nativeYieldJob: Job? = null
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
     private val reverseTranslations = ConcurrentHashMap<Int, String>()
@@ -825,13 +828,30 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun logStateChange(isLandscape: Boolean) {
         val orientation = if (isLandscape) "Landscape" else "Portrait"
-        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || vpnIslandActive || nativeIslands.isNotEmpty() || permanentIslandManager.isIslandActive()
+        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || vpnIslandActive || nativeIslands.hasFresh() || permanentIslandManager.isIslandActive()
         val islandState = if (isIslandExhibited) "Showing Island" else "No Island"
         Log.d(TAG, "State: $orientation | $islandState")
     }
 
+    /**
+     * Records a native island sighting. The yield window closing is a timer, not a notification
+     * event — nothing else re-evaluates the permanent island until the next sync tick (up to 60 s,
+     * screen on only) — so the pill is re-asserted right after the newest window ends.
+     */
+    private fun noteNativeIsland(key: String): Boolean {
+        val firstSighting = nativeIslands.note(key)
+        if (firstSighting) {
+            nativeYieldJob?.cancel()
+            nativeYieldJob = serviceScope.launch {
+                delay(nativeIslands.remainingYieldMs() + 1_000L)
+                updatePermanentIsland()
+            }
+        }
+        return firstSighting
+    }
+
     private fun updatePermanentIsland() {
-        permanentIslandManager.onActiveNotificationsChanged(activeIslandCount(), nativeIslands.isNotEmpty())
+        permanentIslandManager.onActiveNotificationsChanged(activeIslandCount(), nativeIslands.hasFresh())
         DiagnosticsStore.setActiveIslands(activeIslands.size + if (vpnIslandActive) 1 else 0)
         val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         logStateChange(isLandscape)
@@ -871,7 +891,7 @@ class NotificationReaderService : NotificationListenerService() {
                     }
                 }
                 if (isNative) {
-                    if (nativeIslands.add(it.key)) updatePermanentIsland()
+                    if (noteNativeIsland(it.key)) updatePermanentIsland()
                 } else {
                     if (nativeIslands.remove(it.key)) updatePermanentIsland()
                 }
@@ -2180,13 +2200,13 @@ class NotificationReaderService : NotificationListenerService() {
                             }
                         }
                         if (isNative) {
-                            if (nativeIslands.add(sbn.key)) nativeChanged = true
+                            if (noteNativeIsland(sbn.key)) nativeChanged = true
                         } else {
                             if (nativeIslands.remove(sbn.key)) nativeChanged = true
                         }
                     }
                 }
-                val currentNatives = nativeIslands.toList()
+                val currentNatives = nativeIslands.keys()
                 for (key in currentNatives) {
                     if (!systemNotificationKeys.contains(key)) {
                         if (nativeIslands.remove(key)) nativeChanged = true
@@ -2255,7 +2275,7 @@ class NotificationReaderService : NotificationListenerService() {
                 }
                 permanentIslandManager.reconcile(
                     activeIslandCount(),
-                    nativeIslands.isNotEmpty(),
+                    nativeIslands.hasFresh(),
                     islandPresent,
                     refresh
                 )
