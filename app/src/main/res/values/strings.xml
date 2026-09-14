@@ -62,7 +62,10 @@
     <string name="special_thanks">Special Thanks</string>
     <string name="xmsf_workaround_credit_title">XMSF Workaround</string>
     <string name="xmsf_workaround_credit_subtitle">Research by Stardawn (星间晞)</string>
+    <string name="sykeptical_credit_title">System Islands &amp; Enhancements</string>
+    <string name="sykeptical_credit_subtitle">Screen recorder, VPN, call and message improvements by Sykeptical</string>
     <string name="developer">Developer</string>
+
     <string name="developer_subtitle">Visit d4viddf.com</string>
     <string name="source_code">Source Code</string>
     <string name="source_code_subtitle">GitHub Repository</string>
