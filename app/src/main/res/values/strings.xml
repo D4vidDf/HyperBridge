@@ -866,7 +866,7 @@
 
     <!-- Smart Actions (issue #270) -->
     <string name="smart_actions_title">Smart Actions</string>
-    <string name="smart_actions_desc">One-tap buttons for codes, links, phone numbers, parcels and map links</string>
+    <string name="smart_actions_desc">One-tap buttons for codes, links, phone numbers, parcels and addresses</string>
     <string name="setting_smart_actions">Enable Smart Actions</string>
     <string name="setting_smart_actions_desc">Scan notification text for actionable content and add buttons to the island and the shade. Nothing is scanned while this is off.</string>
     <string name="smart_actions_group_detect">Detect</string>
@@ -879,7 +879,7 @@
     <string name="setting_smart_actions_tracking">Parcel tracking</string>
     <string name="setting_smart_actions_tracking_desc">Track shipments from UPS, FedEx, USPS, DHL, Correos and others</string>
     <string name="setting_smart_actions_navigation">Directions</string>
-    <string name="setting_smart_actions_navigation_desc">Open shared map links in your maps app instead of the browser</string>
+    <string name="setting_smart_actions_navigation_desc">Open street addresses and shared map links in your maps app</string>
     <string name="smart_actions_group_excluded">Excluded apps</string>
     <string name="smart_actions_excluded_desc">Notifications from these apps are never scanned</string>
     <string name="smart_actions_no_apps">Enable some apps in HyperBridge first</string>
@@ -900,7 +900,7 @@
     <string name="smart_actions_all_apps_excluded">Every bridged app is already excluded</string>
     <string name="cd_smart_actions_remove_excluded">Remove from excluded apps</string>
     <string name="app_smart_actions_title">Smart Actions</string>
-    <string name="app_smart_actions_subtitle_on">Codes, links, phone numbers, parcels and map links</string>
+    <string name="app_smart_actions_subtitle_on">Codes, links, phone numbers, parcels and addresses</string>
     <string name="app_smart_actions_subtitle_off">Off for this app</string>
     <string name="app_smart_actions_subtitle_global_off">Enable Smart Actions in Global settings first</string>
     <string name="app_smart_actions_enable">Smart Actions for this app</string>

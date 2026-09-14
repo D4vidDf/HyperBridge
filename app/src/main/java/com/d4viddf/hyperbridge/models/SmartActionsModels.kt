@@ -10,8 +10,8 @@ enum class SmartActionType { OTP, TRACKING, NAVIGATION, URL, PHONE }
  * - URL: [value] = the text as written, [target] = absolute URL (https:// prepended when missing)
  * - PHONE: [value] = the number as written, [target] = dialable number (`+34612345678`)
  * - TRACKING: [value] = tracking id, [target] = carrier tracking page URL, [carrier] = human name
- * - NAVIGATION: [value] = the map link as written, [target] = the link itself (https:// prepended
- *   when missing, `geo:` URIs kept as-is) so the app that owns it opens it directly
+ * - NAVIGATION: [value] = the address or map link as written, [target] = what to open: the map link
+ *   itself (so the owning app handles it) or a `geo:0,0?q=` search for a street address
  */
 data class SmartAction(
     val type: SmartActionType,
