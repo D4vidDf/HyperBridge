@@ -75,7 +75,10 @@ class VpnIslandController(
                 enabled = shouldEnable
                 if (shouldEnable) {
                     providerRegistry.providerPackages(refresh = true)
-                    initialNotifications().forEach(::onSourceNotificationPosted)
+                    // The listener may not be bound yet; the service re-seeds via onListenerConnected.
+                    runCatching { initialNotifications() }
+                        .getOrDefault(emptyArray())
+                        .forEach(::onSourceNotificationPosted)
                     observer.start()
                 } else {
                     observer.stop()
@@ -90,6 +93,20 @@ class VpnIslandController(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Re-scan the shade once the listener is actually bound. [start] runs from the service's
+     * onCreate, which can precede onListenerConnected, so its initial scan may legitimately
+     * have seen nothing. Feeding the same source twice is idempotent (keyed by sbn.key).
+     */
+    fun onListenerConnected() {
+        if (!enabled) return
+        scope.launch {
+            runCatching { initialNotifications() }
+                .getOrDefault(emptyArray())
+                .forEach(::onSourceNotificationPosted)
         }
     }
 
