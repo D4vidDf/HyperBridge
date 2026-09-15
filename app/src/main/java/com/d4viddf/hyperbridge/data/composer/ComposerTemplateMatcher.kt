@@ -1,6 +1,5 @@
 package com.d4viddf.hyperbridge.data.composer
 
-import android.util.Log
 import com.d4viddf.hyperbridge.models.composer.ComposerTemplate
 
 /**
@@ -8,10 +7,13 @@ import com.d4viddf.hyperbridge.models.composer.ComposerTemplate
  * [com.d4viddf.hyperbridge.data.theme.RulesEngine]'s matching logic, kept separate so it can be
  * unit tested with plain strings (no StatusBarNotification needed) and so a future
  * TranslatorRegistry (Phase 3) can absorb it without depending on NotificationReaderService.
+ *
+ * Deliberately free of android.util.Log (unlike RulesEngine): keeping this class a pure Kotlin
+ * object with no Android framework calls is what makes it plain-JUnit testable in this codebase,
+ * which has neither Robolectric nor a shadow for Log.
  */
 object ComposerTemplateMatcher {
 
-    private const val TAG = "ComposerTemplateMatcher"
     private val regexCache = mutableMapOf<String, Regex>()
 
     /**
@@ -54,7 +56,6 @@ object ComposerTemplateMatcher {
             val regex = regexCache.getOrPut(pattern) { Regex(pattern, RegexOption.IGNORE_CASE) }
             regex.containsMatchIn(input)
         } catch (e: Exception) {
-            Log.e(TAG, "Invalid regex in composer template rule: $pattern")
             false
         }
     }
