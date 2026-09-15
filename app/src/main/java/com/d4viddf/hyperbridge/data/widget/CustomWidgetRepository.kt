@@ -59,17 +59,6 @@ class CustomWidgetRepository(private val context: Context) {
         }
     }
 
-    /** Synchronous variant for call sites that cannot suspend (e.g. [com.d4viddf.hyperbridge.service.PermanentIslandManager]). */
-    fun getWidgetSync(id: String): CustomWidgetDocument? {
-        return try {
-            val configFile = File(widgetsDir, "$id/widget.json")
-            if (configFile.exists()) json.decodeFromString(CustomWidgetDocument.serializer(), configFile.readText()) else null
-        } catch (e: Exception) {
-            Log.e(tag, "Failed to load widget $id", e)
-            null
-        }
-    }
-
     suspend fun getWidgetForPackage(pkg: String): CustomWidgetDocument? {
         return getAvailableWidgets().firstOrNull { it.boundPackage == pkg }
     }
@@ -93,7 +82,11 @@ class CustomWidgetRepository(private val context: Context) {
         val sourceFolder = File(widgetsDir, id)
         if (!sourceFolder.exists()) return@withContext null
 
-        val exportDir = File(context.cacheDir, "widget_exports")
+        // Must be a directory FileProvider actually serves: res/xml/file_paths.xml only declares
+        // a `<cache-path name="exports" path="exports/" />` root (shared with ThemeRepository's own
+        // export dir) - a different folder name here made WidgetStudioScreen's Export button throw
+        // "Failed to find configured root" from FileProvider.getUriForFile at runtime.
+        val exportDir = File(context.cacheDir, "exports")
         if (!exportDir.exists()) exportDir.mkdirs()
 
         val zipFile = File(exportDir, "$id.hwidget")

@@ -77,6 +77,19 @@ class WidgetDimensionValidatorTest {
     }
 
     @Test
+    fun flagsButDoesNotBlockTooManyButtons() {
+        val children = (1..WidgetDimensionValidator.MAX_RECOMMENDED_BUTTONS + 1).map {
+            ButtonNode(id = "b$it", label = "B$it")
+        }
+        val root = LayoutContainer(id = "root", children = children)
+        val result = WidgetDimensionValidator.validate(doc(root))
+
+        assertTrue(result.errors.any { it.contains("buttons") })
+        // Warning only: every button node survives the clamp.
+        assertEquals(children.size, result.clamped.root.children.size)
+    }
+
+    @Test
     fun leavesAWellFormedDocumentUnchanged() {
         val root = LayoutContainer(
             id = "root",

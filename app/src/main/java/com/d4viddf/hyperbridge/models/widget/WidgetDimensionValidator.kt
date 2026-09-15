@@ -13,6 +13,8 @@ object WidgetDimensionValidator {
     const val MAX_NODE_COUNT = 40
     const val MIN_FONT_SP = 8
     const val MAX_FONT_SP = 28
+    /** HyperOS islands realistically fit 2-3 tappable buttons; more is a warning, not a hard block. */
+    const val MAX_RECOMMENDED_BUTTONS = 3
 
     data class ValidationResult(
         val errors: List<String>,
@@ -25,6 +27,7 @@ object WidgetDimensionValidator {
         val errors = mutableListOf<String>()
         val canvasHeight = doc.canvas.heightDp
         var totalNodes = 0
+        var buttonCount = 0
 
         fun clampBounds(bounds: NodeBounds): NodeBounds {
             val x = bounds.x.coerceIn(0, CANVAS_WIDTH_DP)
@@ -58,7 +61,10 @@ object WidgetDimensionValidator {
                 }
                 is ImageNode -> node.copy(bounds = clampedBounds)
                 is ProgressNode -> node.copy(bounds = clampedBounds)
-                is ButtonNode -> node.copy(bounds = clampedBounds)
+                is ButtonNode -> {
+                    buttonCount++
+                    node.copy(bounds = clampedBounds)
+                }
                 is LayoutContainer -> {
                     val clampedChildren = node.children.map { clampNode(it, depth + 1) }
                     if (node.layout == ContainerLayout.ABSOLUTE) {
@@ -70,6 +76,9 @@ object WidgetDimensionValidator {
         }
 
         val clampedRoot = clampNode(doc.root, depth = 1) as LayoutContainer
+        if (buttonCount > MAX_RECOMMENDED_BUTTONS) {
+            errors.add("Warning: widget has $buttonCount buttons; HyperOS islands realistically fit at most $MAX_RECOMMENDED_BUTTONS")
+        }
         return ValidationResult(errors.toList(), doc.copy(root = clampedRoot))
     }
 
