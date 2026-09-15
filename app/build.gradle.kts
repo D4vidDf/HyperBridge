@@ -15,8 +15,8 @@ android {
         applicationId = "com.d4viddf.hyperbridge"
         minSdk = 35
         targetSdk = 37
-        versionCode = 34
-        versionName = "0.6.0-dev1"
+        versionCode = 36
+        versionName = "0.6.0-dev3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
