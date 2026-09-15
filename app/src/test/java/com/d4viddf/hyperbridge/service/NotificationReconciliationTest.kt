@@ -53,4 +53,58 @@ class NotificationReconciliationTest {
 
         assertEquals(setOf("active-call"), plan.missingSourceKeys)
     }
+
+    /** Regression for #323 / #278: a message island is keyed by a logical id, not by its shade key. */
+    @Test
+    fun logicalIdThatIsNotAShadeKeyIsNotStaleWhileItsSourceIsPosted() {
+        val plan = NotificationReconciliation.plan(
+            ReconciliationInput(
+                activeLogicalSources = mapOf(
+                    "message:com.whatsapp:shortcut:abc" to "0|com.whatsapp|1|null|10123",
+                    "call:com.whatsapp:1" to "0|com.whatsapp|2|call|10123"
+                ),
+                currentSourceKeys = setOf("0|com.whatsapp|1|null|10123", "0|com.whatsapp|2|call|10123"),
+                trackedBridgeIds = emptySet(),
+                postedBridgeIds = emptySet(),
+                recoverableSourceKeys = emptySet(),
+                mappedSourceKeys = emptySet()
+            )
+        )
+
+        assertEquals(emptySet<String>(), plan.staleLogicalIds)
+    }
+
+    @Test
+    fun aliasSourceKeepsLogicalIslandAliveAfterPrimarySourceIsGone() {
+        val plan = NotificationReconciliation.plan(
+            ReconciliationInput(
+                activeLogicalSources = mapOf("message:pkg:slot:1" to "source-old"),
+                currentSourceKeys = setOf("source-replacement"),
+                trackedBridgeIds = emptySet(),
+                postedBridgeIds = emptySet(),
+                recoverableSourceKeys = emptySet(),
+                mappedSourceKeys = emptySet(),
+                activeLogicalSourceAliases = mapOf("message:pkg:slot:1" to setOf("source-old", "source-replacement"))
+            )
+        )
+
+        assertEquals(emptySet<String>(), plan.staleLogicalIds)
+    }
+
+    @Test
+    fun logicalIslandIsStaleOnlyWhenEveryAliasLeftTheShade() {
+        val plan = NotificationReconciliation.plan(
+            ReconciliationInput(
+                activeLogicalSources = mapOf("message:pkg:slot:1" to "source-old"),
+                currentSourceKeys = setOf("unrelated"),
+                trackedBridgeIds = emptySet(),
+                postedBridgeIds = emptySet(),
+                recoverableSourceKeys = emptySet(),
+                mappedSourceKeys = emptySet(),
+                activeLogicalSourceAliases = mapOf("message:pkg:slot:1" to setOf("source-old", "source-replacement"))
+            )
+        )
+
+        assertEquals(setOf("message:pkg:slot:1"), plan.staleLogicalIds)
+    }
 }
