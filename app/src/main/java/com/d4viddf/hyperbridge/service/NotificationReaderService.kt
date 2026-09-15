@@ -2289,10 +2289,33 @@ class NotificationReaderService : NotificationListenerService() {
                 if (nativeChanged) updatePermanentIsland()
 
                 val currentKeys = currentNotifications.map { it.key }.toSet()
-                
+
+                // activeIslands is keyed by the LOGICAL id, which for messages ("message:pkg:...")
+                // and calls ("call:pkg:N") is never a shade key. Comparing that id against the
+                // shade made every such island look stuck on the next 60 s tick and, with
+                // "dismiss with original" on (the default), cancelled it (#278, #323). Judge
+                // staleness on the island's source key plus every alias mapped to it instead.
+                val aliasesByLogicalId = HashMap<String, MutableSet<String>>()
+                for ((sourceKey, logicalId) in sourceToLogicalKeys) {
+                    aliasesByLogicalId.getOrPut(logicalId) { mutableSetOf() }.add(sourceKey)
+                }
+                val staleLogicalIds = NotificationReconciliation.plan(
+                    ReconciliationInput(
+                        activeLogicalSources = activeIslands.mapValues { (logicalId, island) ->
+                            island.sourceKey.ifEmpty { logicalId }
+                        },
+                        currentSourceKeys = currentKeys,
+                        trackedBridgeIds = emptySet(),
+                        postedBridgeIds = emptySet(),
+                        recoverableSourceKeys = emptySet(),
+                        mappedSourceKeys = emptySet(),
+                        activeLogicalSourceAliases = aliasesByLogicalId
+                    )
+                ).staleLogicalIds
+
                 val keysToRemove = mutableListOf<String>()
                 for ((originalKey, activeIsland) in activeIslands) {
-                    if (!currentKeys.contains(originalKey)) {
+                    if (originalKey in staleLogicalIds) {
                         val appConfig = preferences.getAppIslandConfigSync(activeIsland.packageName)
                         val globalConfig = preferences.getGlobalConfigSync()
                         val finalConfig = appConfig.mergeWith(globalConfig)
