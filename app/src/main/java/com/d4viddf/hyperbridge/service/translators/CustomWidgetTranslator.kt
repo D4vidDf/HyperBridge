@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.core.graphics.drawable.toBitmap
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.DeviceVariables
 import com.d4viddf.hyperbridge.data.widget.SourceRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
@@ -87,6 +88,8 @@ class CustomWidgetTranslator(
             notifText = effectiveText,
             notifProgress = progress,
             notifPackage = sbn.packageName,
+            deviceBatteryPercent = DeviceVariables.batteryPercent(context),
+            timeNowFormatted = DeviceVariables.timeNow(),
             sourceLookup = { id, field -> runBlocking { sourceRepo.lookup(id, field) } }
         )
 

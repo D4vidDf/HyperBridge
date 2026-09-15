@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.DeviceVariables
 import com.d4viddf.hyperbridge.data.widget.SourceRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
@@ -25,9 +26,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -215,8 +213,8 @@ class PermanentIslandManager(
                 // blank spacer, so e.g. a weather app driving {source.weather.text} shows on the
                 // always-on permanent island.
                 val ctx = VariableContext(
-                    deviceBatteryPercent = readBatteryPercent(),
-                    timeNowFormatted = formatNow(),
+                    deviceBatteryPercent = DeviceVariables.batteryPercent(context),
+                    timeNowFormatted = DeviceVariables.timeNow(),
                     sourceLookup = { id, field -> runBlocking { sourceRepository.lookup(id, field) } }
                 )
                 val widgetView = widgetRenderer.render(widgetDoc, ctx, bridgeId = PERMANENT_BRIDGE_ID)
@@ -256,20 +254,6 @@ class PermanentIslandManager(
             Log.e(TAG, "Error dispatching permanent island", e)
         }
     }
-
-    private fun readBatteryPercent(): Int? {
-        return try {
-            val filter = android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-            val batteryStatus = context.registerReceiver(null, filter) ?: return null
-            val level = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1)
-            val scale = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1)
-            if (level < 0 || scale <= 0) null else (level * 100 / scale)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    private fun formatNow(): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
 
     private fun removePermanentIsland() {
         try {
