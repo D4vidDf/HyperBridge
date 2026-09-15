@@ -61,7 +61,6 @@ import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
 import com.d4viddf.hyperbridge.models.widget.ButtonAction
 import com.d4viddf.hyperbridge.models.widget.ButtonNode
-import com.d4viddf.hyperbridge.models.widget.CanvasSize
 import com.d4viddf.hyperbridge.models.widget.ContainerLayout
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
@@ -71,7 +70,6 @@ import com.d4viddf.hyperbridge.models.widget.ImageSource
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 import com.d4viddf.hyperbridge.models.widget.NodeBounds
 import com.d4viddf.hyperbridge.models.widget.ProgressNode
-import com.d4viddf.hyperbridge.models.widget.TextGravity
 import com.d4viddf.hyperbridge.models.widget.TextNode
 import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
 import com.d4viddf.hyperbridge.models.widget.addChild
