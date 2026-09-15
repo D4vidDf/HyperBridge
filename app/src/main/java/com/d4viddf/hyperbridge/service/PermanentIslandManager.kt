@@ -219,7 +219,11 @@ class PermanentIslandManager(
                     timeNowFormatted = formatNow(),
                     sourceLookup = { id, field -> runBlocking { sourceRepository.lookup(id, field) } }
                 )
-                builder.setCustomRemoteView(widgetRenderer.render(widgetDoc, ctx, bridgeId = PERMANENT_BRIDGE_ID))
+                val widgetView = widgetRenderer.render(widgetDoc, ctx, bridgeId = PERMANENT_BRIDGE_ID)
+                builder.setCustomRemoteView(widgetView)
+                // The expanded island reads its content from the island-expand slot; the custom
+                // notification view alone leaves a pill that never expands (verified on device).
+                builder.setCustomIslandExpandRemoteView(widgetView)
                 builder.setSmallIsland("")
             } else {
                 // Only big paramislands with empty values for textonleft and picKey = null

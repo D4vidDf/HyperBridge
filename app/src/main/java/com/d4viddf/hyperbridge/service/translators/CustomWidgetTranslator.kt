@@ -1,8 +1,10 @@
 package com.d4viddf.hyperbridge.service.translators
 
 import android.content.Context
+import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.core.graphics.drawable.toBitmap
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.data.widget.SourceRepository
@@ -13,6 +15,9 @@ import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.service.widget.CustomWidgetRenderer
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
+import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentHashMap
 
@@ -88,7 +93,27 @@ class CustomWidgetTranslator(
         val rv = renderer.render(doc, ctx)
 
         val builder = HyperIslandNotification.Builder(context, "custom_widget_channel", effectiveTitle)
+        // Collapsed pill: the source app's icon (same recipe as WidgetTranslator). Without a big
+        // island info block HyperOS shows an anonymous pill that never expands.
+        val iconBitmap = try {
+            context.packageManager.getApplicationIcon(sbn.packageName).toBitmap()
+        } catch (_: Exception) {
+            null
+        }
+        if (iconBitmap != null) {
+            builder.addPicture(HyperPicture(picKey, Icon.createWithBitmap(iconBitmap)))
+            builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = picKey)))
+            builder.setSmallIsland(picKey)
+        } else {
+            builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = "default_icon")))
+            builder.setSmallIsland("default_icon")
+            builder.addPicture(getTransparentPicture("default_icon"))
+        }
+        // Expanded island: the rendered micro-widget. HyperOS reads the expanded content from the
+        // island-expand slot, not from the notification's custom view, so both must be set
+        // (verified on device: with setCustomRemoteView alone the pill shows but never expands).
         builder.setCustomRemoteView(rv)
+        builder.setCustomIslandExpandRemoteView(rv)
         builder.setIslandConfig(timeout = config.timeout, dismissible = true)
         builder.setEnableFloat(config.isFloat == true)
         builder.setShowNotification(config.isShowShade == true)
