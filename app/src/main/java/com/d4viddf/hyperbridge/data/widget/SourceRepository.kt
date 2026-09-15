@@ -53,8 +53,23 @@ class SourceRepository(
         withContext(Dispatchers.IO) { dao.setAllowed(pkg, allowed) }
     }
 
-    suspend fun update(sourceId: String, ownerPackage: String, text: String?, icon: Bitmap?, ttlMs: Long?) {
-        withContext(Dispatchers.IO) {
+    /**
+     * Writes a new value for [sourceId] on behalf of [ownerPackage].
+     *
+     * A source id belongs to the first allowed package that writes it: a later write from a
+     * different package is refused (returns false) so two allowed apps sharing an id cannot
+     * clobber each other's value. The id is released when its current row expires or is deleted.
+     */
+    suspend fun update(sourceId: String, ownerPackage: String, text: String?, icon: Bitmap?, ttlMs: Long?): Boolean {
+        return withContext(Dispatchers.IO) {
+            val current = dao.getValue(sourceId)
+            if (current != null && current.ownerPackage != ownerPackage) {
+                val currentExpired = current.ttlMs != null && (current.updatedAt + current.ttlMs) < System.currentTimeMillis()
+                if (!currentExpired) {
+                    Log.w(tag, "Refused update of source '$sourceId' from $ownerPackage: owned by ${current.ownerPackage}")
+                    return@withContext false
+                }
+            }
             var iconPath: String? = null
             if (icon != null) {
                 try {
@@ -77,14 +92,19 @@ class SourceRepository(
                 )
             )
             updates.tryEmit(sourceId)
+            true
         }
     }
 
-    /** field is "text" or "icon" (returns a file path for "icon"). Expired values resolve to null. */
+    /**
+     * field is "text" or "icon" (returns a file path for "icon"). Expired values resolve to null,
+     * and so do values whose owner package has since been revoked in Settings.
+     */
     suspend fun lookup(sourceId: String, field: String): String? = withContext(Dispatchers.IO) {
         val value = dao.getValue(sourceId) ?: return@withContext null
         val expired = value.ttlMs != null && (value.updatedAt + value.ttlMs) < System.currentTimeMillis()
         if (expired) return@withContext null
+        if (dao.getApp(value.ownerPackage)?.allowed != true) return@withContext null
         when (field) {
             "text" -> value.text
             "icon" -> value.iconPath

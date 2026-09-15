@@ -37,17 +37,22 @@ class UpdateSourceReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val repository = SourceRepository(appContext)
+                // The owner package is self-reported (see class comment); at minimum it must be
+                // an installed app, otherwise the Settings allow-list would show phantom entries.
                 val label = try {
                     appContext.packageManager.getApplicationLabel(
                         appContext.packageManager.getApplicationInfo(ownerPackage, 0)
                     ).toString()
                 } catch (_: Exception) {
-                    ownerPackage
+                    Log.w(TAG, "Dropped source update claiming uninstalled package: $ownerPackage")
+                    return@launch
                 }
                 repository.recordSighting(ownerPackage, label)
 
                 if (repository.isAllowed(ownerPackage)) {
-                    repository.update(sourceId, ownerPackage, text, icon, ttlMs)
+                    if (!repository.update(sourceId, ownerPackage, text, icon, ttlMs)) {
+                        Log.i(TAG, "Source '$sourceId' is owned by another package; update from $ownerPackage ignored")
+                    }
                 } else {
                     Log.i(TAG, "Dropped source update from not-yet-allowed package: $ownerPackage")
                 }
