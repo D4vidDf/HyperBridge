@@ -908,6 +908,13 @@
     <string name="app_smart_actions_types_title">Actions for this app</string>
     <string name="app_smart_actions_types_desc">Choose which buttons this app may show. Each one follows the global setting until you change it here.</string>
     <string name="app_smart_actions_global_off_banner">Smart Actions are turned off globally. Turn them on in Global settings &gt; Smart Actions to use these options.</string>
+
+    <!-- Enable All Apps -->
+    <string name="bridge_all_apps">Enable all apps</string>
+    <string name="bridge_all_apps_desc">Enable HyperIsland for all apps in the list</string>
+    <string name="bridge_all_apps_enabled_desc">HyperIsland enabled for all apps in the list</string>
+    <string name="auto_add_new_apps_title">Add new apps</string>
+    <string name="auto_add_new_apps_desc">Automatically enable bridging for newly installed applications</string>
 </resources>
 
 

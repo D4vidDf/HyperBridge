@@ -256,9 +256,41 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     // --- PREFERENCE ACTIONS ---
 
+    val isBridgeAllAppsEnabled: StateFlow<Boolean> = preferences.bridgeAllAppsEnabledFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val autoAddNewApps: StateFlow<Boolean> = preferences.autoAddNewAppsFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val areAllLibraryAppsBridged: StateFlow<Boolean> = combine(
+        _installedApps, preferences.allowedPackagesFlow
+    ) { installed, allowedSet ->
+        !installed.isNullOrEmpty() && installed.all { allowedSet.contains(it.packageName) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun toggleApp(packageName: String, isEnabled: Boolean) {
         viewModelScope.launch {
             preferences.toggleApp(packageName, isEnabled)
+        }
+    }
+
+    fun toggleAllApps(packageNames: Collection<String>, isEnabled: Boolean) {
+        viewModelScope.launch {
+            preferences.toggleApps(packageNames, isEnabled)
+        }
+    }
+
+    fun toggleAllLibraryApps(isEnabled: Boolean) {
+        viewModelScope.launch {
+            val installed = _installedApps.value ?: emptyList()
+            val pkgNames = installed.map { it.packageName }
+            preferences.toggleApps(pkgNames, isEnabled)
+        }
+    }
+
+    fun setAutoAddNewApps(enabled: Boolean) {
+        viewModelScope.launch {
+            preferences.setAutoAddNewApps(enabled)
         }
     }
 
@@ -416,15 +448,11 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     private suspend fun loadPackageAppInfo(packageName: String): AppInfo? = withContext(Dispatchers.IO) {
         try {
-            val appInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val appInfo =
                 packageManager.getApplicationInfo(
                     packageName,
                     android.content.pm.PackageManager.ApplicationInfoFlags.of(0)
                 )
-            } else {
-                @Suppress("DEPRECATION")
-                packageManager.getApplicationInfo(packageName, 0)
-            }
             AppInfo(
                 name = packageManager.getApplicationLabel(appInfo).toString(),
                 packageName = packageName,

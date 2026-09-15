@@ -219,11 +219,41 @@ class AppPreferences internal constructor(
         save(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES, updated.serialize())
     }
 
+    val bridgeAllAppsEnabledFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.BRIDGE_ALL_APPS_ENABLED).map { it.toBoolean(false) }
+
+    val autoAddNewAppsFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.AUTO_ADD_NEW_APPS).map { it.toBoolean(true) }
+
+    suspend fun setBridgeAllAppsEnabled(enabled: Boolean) =
+        save(SettingsKeys.BRIDGE_ALL_APPS_ENABLED, enabled.toString())
+
+    suspend fun setAutoAddNewApps(enabled: Boolean) =
+        save(SettingsKeys.AUTO_ADD_NEW_APPS, enabled.toString())
+
+    suspend fun toggleApps(packageNames: Collection<String>, isEnabled: Boolean) {
+        if (packageNames.isEmpty()) return
+        val currentString = dao.getSetting(SettingsKeys.ALLOWED_PACKAGES)
+        val currentSet = currentString.deserializeSet()
+        val newSet = if (isEnabled) currentSet + packageNames else currentSet - packageNames.toSet()
+        save(SettingsKeys.ALLOWED_PACKAGES, newSet.serialize())
+        save(SettingsKeys.BRIDGE_ALL_APPS_ENABLED, isEnabled.toString())
+        if (isEnabled) {
+            val confirmed = dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()
+            if (packageNames.any { it !in confirmed }) {
+                save(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING, "true")
+            }
+        }
+    }
+
     suspend fun toggleApp(packageName: String, isEnabled: Boolean) {
         val currentString = dao.getSetting(SettingsKeys.ALLOWED_PACKAGES)
         val currentSet = currentString.deserializeSet()
         val newSet = if (isEnabled) currentSet + packageName else currentSet - packageName
         save(SettingsKeys.ALLOWED_PACKAGES, newSet.serialize())
+        if (!isEnabled) {
+            save(SettingsKeys.BRIDGE_ALL_APPS_ENABLED, "false")
+        }
         if (isEnabled && packageName !in dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()) {
             save(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING, "true")
         }
@@ -846,6 +876,14 @@ class AppPreferences internal constructor(
 
     fun useNativeLiveUpdatesSync(): Boolean {
         return memoryCache[USE_NATIVE_ENGINE]?.toBoolean() ?: false
+    }
+
+    fun isBridgeAllAppsEnabledSync(): Boolean {
+        return memoryCache[SettingsKeys.BRIDGE_ALL_APPS_ENABLED]?.toBoolean() ?: false
+    }
+
+    fun isAutoAddNewAppsEnabledSync(): Boolean {
+        return memoryCache[SettingsKeys.AUTO_ADD_NEW_APPS]?.toBoolean() ?: true
     }
 
     fun isAppAllowedSync(packageName: String): Boolean {

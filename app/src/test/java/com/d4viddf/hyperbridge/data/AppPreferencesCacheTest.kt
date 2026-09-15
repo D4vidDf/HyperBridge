@@ -125,4 +125,44 @@ class AppPreferencesCacheTest {
         assertTrue(preferences.isDndModeEnabledSync())
         assertTrue(preferences.autoDetectDndSync())
     }
+
+    @Test
+    fun toggleAppsBulkEnablesAndDisablesCorrectly() = kotlinx.coroutines.runBlocking {
+        preferences.toggleApps(listOf("com.app1", "com.app2"), true)
+        assertTrue(preferences.isBridgeAllAppsEnabledSync())
+        assertTrue(preferences.isAppAllowedSync("com.app1"))
+        assertTrue(preferences.isAppAllowedSync("com.app2"))
+
+        // Disabling one app individually clears bridge-all-apps flag
+        preferences.toggleApp("com.app1", false)
+        assertFalse(preferences.isBridgeAllAppsEnabledSync())
+        assertFalse(preferences.isAppAllowedSync("com.app1"))
+        assertTrue(preferences.isAppAllowedSync("com.app2"))
+
+        // Bulk disable
+        preferences.toggleApps(listOf("com.app2"), false)
+        assertFalse(preferences.isBridgeAllAppsEnabledSync())
+        assertFalse(preferences.isAppAllowedSync("com.app2"))
+    }
+
+    @Test
+    fun autoAddNewAppsOptionDefaultsToTrueAndUpdates() = kotlinx.coroutines.runBlocking {
+        assertTrue(preferences.isAutoAddNewAppsEnabledSync())
+
+        preferences.setAutoAddNewApps(false)
+        assertFalse(preferences.isAutoAddNewAppsEnabledSync())
+
+        preferences.setAutoAddNewApps(true)
+        assertTrue(preferences.isAutoAddNewAppsEnabledSync())
+    }
+
+    @Test
+    fun isAppAllowedSyncOnlyAllowsAppsInAllowedPackagesEvenIfBridgeAllEnabled() = kotlinx.coroutines.runBlocking {
+        preferences.setBridgeAllAppsEnabled(true)
+        assertTrue(preferences.isBridgeAllAppsEnabledSync())
+        assertFalse(preferences.isAppAllowedSync("com.unbridged.phone.service"))
+
+        preferences.toggleApp("com.unbridged.phone.service", true)
+        assertTrue(preferences.isAppAllowedSync("com.unbridged.phone.service"))
+    }
 }

@@ -71,6 +71,16 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".receiver.PackageChangeReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".service.NotificationReaderService"
             android:label="HyperBridge Listener"
