@@ -343,10 +343,87 @@ class SmartActionsExtractorTest {
     }
 
     @Test
+    fun navigationSpanishStreetWithPostalCodeAndCity() {
+        val nav = only("Tu pedido llega hoy a Calle Mayor 12, 28013 Madrid", SmartActionType.NAVIGATION)
+        assertEquals("Calle Mayor 12, 28013 Madrid", nav?.value)
+        assertEquals("geo:0,0?q=Calle+Mayor+12%2C+28013+Madrid", nav?.target)
+    }
+
+    @Test
+    fun navigationSpanishAbbreviationsAndNumeroSign() {
+        assertEquals("Av. Diagonal nº 640", only("Nos vemos en Av. Diagonal nº 640 a las 18:00", SmartActionType.NAVIGATION)?.value)
+        assertEquals("C/ Alcalá, 45", only("Recogida en C/ Alcalá, 45 mañana", SmartActionType.NAVIGATION)?.value)
+        assertEquals("Plaza de España 1", only("Cita en Plaza de España 1", SmartActionType.NAVIGATION)?.value)
+    }
+
+    @Test
+    fun navigationTailOnlyTakesCapitalisedWords() {
+        assertEquals("Calle Mayor 12", only("Estoy en Calle Mayor 12, ven cuando puedas", SmartActionType.NAVIGATION)?.value)
+        assertEquals("Calle Mayor 12, Madrid", only("Estoy en Calle Mayor 12, Madrid, ven cuando puedas", SmartActionType.NAVIGATION)?.value)
+    }
+
+    @Test
+    fun navigationGalicianAndPortuguese() {
+        assertEquals("Rúa do Vilar 5, Santiago de Compostela", only("Quedamos na Rúa do Vilar 5, Santiago de Compostela", SmartActionType.NAVIGATION)?.value)
+        assertEquals("Praza do Obradoiro 1", only("Estamos na Praza do Obradoiro 1", SmartActionType.NAVIGATION)?.value)
+        assertEquals("Rua Augusta 120, Lisboa", only("Entrega: Rua Augusta 120, Lisboa", SmartActionType.NAVIGATION)?.value)
+    }
+
+    @Test
+    fun navigationItalianAndFrench() {
+        assertEquals("Via Roma 3, Milano", only("Ci vediamo in Via Roma 3, Milano", SmartActionType.NAVIGATION)?.value)
+        assertEquals("12 rue de la Paix, Paris", only("Rendez-vous au 12 rue de la Paix, Paris", SmartActionType.NAVIGATION)?.value)
+        assertEquals("5 boulevard Haussmann", only("Livraison au 5 boulevard Haussmann demain", SmartActionType.NAVIGATION)?.value)
+    }
+
+    @Test
+    fun navigationEnglishNumberFirst() {
+        assertEquals("221B Baker Street, London", only("Meet me at 221B Baker Street, London", SmartActionType.NAVIGATION)?.value)
+        assertEquals("1600 Pennsylvania Avenue NW", only("Tour starts at 1600 Pennsylvania Avenue NW at 9am", SmartActionType.NAVIGATION)?.value)
+        assertEquals("10 Downing St", only("Your Uber is arriving at 10 Downing St in 3 min", SmartActionType.NAVIGATION)?.value)
+        assertEquals("742 Evergreen Terrace, Springfield, IL 62701", only("Ship to 742 Evergreen Terrace, Springfield, IL 62701", SmartActionType.NAVIGATION)?.value)
+    }
+
+    @Test
+    fun navigationGermanNeedsPostalCodeOrContext() {
+        assertEquals("Hauptstraße 5, 10115 Berlin", only("Hauptstraße 5, 10115 Berlin", SmartActionType.NAVIGATION)?.value)
+        assertEquals("Berliner Straße 12", only("Lieferadresse: Berliner Straße 12", SmartActionType.NAVIGATION)?.value)
+        assertEquals("Kalverstraat 92", only("Ophalen bij Kalverstraat 92", SmartActionType.NAVIGATION)?.value)
+        // A bare "word ending in -ring + number" with no context is prose, not an address.
+        assertNull(only("Spring 5 is the new release", SmartActionType.NAVIGATION))
+        assertNull(only("Hauptstraße 5", SmartActionType.NAVIGATION))
+    }
+
+    @Test
+    fun navigationDoesNotTakeYearsPricesTimesOrDates() {
+        assertNull(only("Calle Mayor 2026 edition", SmartActionType.NAVIGATION))
+        assertNull(only("Plaza de la Tecnología 12 € de descuento", SmartActionType.NAVIGATION))
+        assertNull(only("Reunión en la sala Calle 12:30", SmartActionType.NAVIGATION))
+        assertNull(only("Delivery on 12/05/2026 street closed", SmartActionType.NAVIGATION))
+        assertNull(only("Via 3 min the app will restart", SmartActionType.NAVIGATION))
+    }
+
+    @Test
+    fun navigationIgnoresPlainProseWithStreetLikeWords() {
+        assertNull(only("Walk down the street and turn left", SmartActionType.NAVIGATION))
+        assertNull(only("St. Louis won 3 games", SmartActionType.NAVIGATION))
+        assertNull(only("Your verification code is 483920", SmartActionType.NAVIGATION))
+        assertNull(only("Call +34 600 123 456", SmartActionType.NAVIGATION))
+    }
+
+    @Test
     fun navigationDisabledTypeIsSkipped() {
         val noNav = all.copy(navigation = false)
+        assertNull(extract("Meet me at Calle Mayor 12", noNav).firstOrNull { it.type == SmartActionType.NAVIGATION })
         // With navigation off a map link falls through to the ordinary link button.
         assertEquals(SmartActionType.URL, extract("https://maps.app.goo.gl/AbC123xyz", noNav).single().type)
+    }
+
+    @Test
+    fun navigationStreetNumberIsNotAlsoAPhoneNumber() {
+        val actions = extract("Tu pedido llega a Calle Mayor 12, 28013 Madrid. Repartidor: +34 600 123 456")
+        assertEquals(1, actions.count { it.type == SmartActionType.NAVIGATION })
+        assertEquals("+34600123456", actions.single { it.type == SmartActionType.PHONE }.target)
     }
 
     @Test
@@ -356,14 +433,14 @@ class SmartActionsExtractorTest {
 
     @Test
     fun navigationOtpStillWinsAndCountsTowardsTheCap() {
-        val actions = extract("Your code is 483920. Pickup: https://maps.app.goo.gl/AbC123xyz. Track at https://example.com/t", max = 2)
+        val actions = extract("Your code is 483920. Pickup at Calle Mayor 12, Madrid. Track at https://example.com/t", max = 2)
         assertEquals(listOf(SmartActionType.OTP, SmartActionType.NAVIGATION), actions.map { it.type })
     }
 
     @Test
     fun navigationOnlyOnePerNotification() {
-        val actions = extract("From https://maps.app.goo.gl/AbC123xyz to https://maps.app.goo.gl/Zyx987cba", max = 4)
+        val actions = extract("From Calle Mayor 12 to Plaza de España 1", max = 4)
         assertEquals(1, actions.count { it.type == SmartActionType.NAVIGATION })
-        assertEquals("https://maps.app.goo.gl/AbC123xyz", actions.single { it.type == SmartActionType.NAVIGATION }.value)
+        assertEquals("Calle Mayor 12", actions.single { it.type == SmartActionType.NAVIGATION }.value)
     }
 }

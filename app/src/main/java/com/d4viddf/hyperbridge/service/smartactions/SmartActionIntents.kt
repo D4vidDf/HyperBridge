@@ -65,7 +65,8 @@ object SmartActionIntents {
                 PendingIntent.getBroadcast(context, requestCode, intent, flags)
             }
             SmartActionType.URL, SmartActionType.TRACKING, SmartActionType.NAVIGATION -> {
-                // NAVIGATION targets are map links / geo: URIs, opened by whichever maps app owns them.
+                // NAVIGATION targets are either a map link (opened by whichever app owns it) or a
+                // geo: search, which lets the system offer every installed maps app.
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(action.target)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }

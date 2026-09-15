@@ -3,6 +3,7 @@ package com.d4viddf.hyperbridge.service.smartactions
 import com.d4viddf.hyperbridge.models.SmartAction
 import com.d4viddf.hyperbridge.models.SmartActionType
 import com.d4viddf.hyperbridge.models.SmartActionsConfig
+import java.net.URLEncoder
 
 /**
  * Pure-Kotlin entity extractor behind Smart Actions (issue #270).
@@ -177,6 +178,95 @@ object SmartActionsExtractor {
                 ")"
     )
 
+    /**
+     * Words that make an otherwise weak address pattern trustworthy: the notification is clearly
+     * telling the user where something is. Used only by the suffix-style (German / Dutch) pattern,
+     * which has no leading street word to anchor on.
+     */
+    private val NAV_CONTEXT = Regex(
+        "(?i)address|adresse|direcci[oó]n|enderezo|indirizzo|morada|adres|" +
+                "pickup|pick-up|pick up|recogida|recoger|abhol|ophalen|" +
+                "delivery|deliver|entrega|livraison|consegna|lieferung|bezorg|" +
+                "meet|nos vemos|quedamos|rendez-vous|treffen|" +
+                "location|ubicaci[oó]n|localizaci[oó]n|standort|locatie|" +
+                "venue|office|oficina|store|tienda|restaurant|restaurante|hotel|clinic|cl[ií]nica|" +
+                "appointment|cita|reserva|booking|visit|visita|" +
+                "arriv|lleg|driver|conductor|chauffeur|fahrer"
+    )
+
+    /** Street words that come BEFORE the name: "Calle Mayor 12", "Rúa do Vilar 5", "Via Roma 3". */
+    private const val STREET_PREFIX =
+        "calle|c/|c\\.|cl\\.|avenida|avda\\.?|av\\.|paseo|p[ºo°]\\.?|plaza|pza\\.?|pl\\.|camino|carretera|ctra\\.?|" +
+                "ronda|rda\\.?|traves[ií]a|trav\\.?|glorieta|bulevar|urbanizaci[oó]n|urb\\.?|pol[ií]gono|pol\\.|" +
+                "r[uú]a|praza|pra[çc]a|avinguda|carrer|passeig|pla[çc]a|lugar|estrada|largo|" +
+                "via|viale|piazza|corso|vicolo|strada|" +
+                "rue|boulevard|bd\\.?|chemin|all[ée]e|impasse|quai|cours|route|passage"
+
+    /** Street words that come AFTER the name (English): "12 Baker Street", "221B Baker St". */
+    private const val STREET_SUFFIX_EN =
+        "street|st\\.?|avenue|ave\\.?|road|rd\\.?|boulevard|blvd\\.?|lane|ln\\.?|drive|dr\\.?|court|ct\\.?|" +
+                "place|pl\\.?|square|sq\\.?|way|highway|hwy\\.?|terrace|ter\\.?|parkway|pkwy\\.?|crescent|cres\\.?|" +
+                "close|grove|gardens|row|walk|circle|cir\\.?|trail|trl\\.?"
+
+    /** Street words glued to the name (German / Dutch): "Hauptstraße 5", "Kalverstraat 12". */
+    private const val STREET_SUFFIX_GLUED =
+        "stra(?:ß|ss)e|str\\.|platz|allee|gasse|damm|ufer|markt|steig|chaussee|" +
+                "straat|laan|plein|gracht|kade|singel|dijk|dreef"
+
+    /**
+     * House number: "12", "12B", "12-14", "12/3", "4 bis". Rejects years and anything that
+     * continues as a decimal, a time or an amount.
+     */
+    private const val HOUSE_NUMBER =
+        "(?!(?:19|20)\\d{2}(?![\\p{N}\\p{L}]))\\d{1,4}[a-zA-Z]?(?:\\s?(?:bis|ter)\\b)?(?:\\s*[-–/]\\s*\\d{1,4}[a-zA-Z]?)?"
+    private const val AFTER_NUMBER =
+        "(?![\\p{N}])(?![.,:]\\d)(?!\\s?(?:[%€$£¥]|h\\b|am\\b|pm\\b|min\\b|km\\b|kg\\b|eur\\b|usd\\b))"
+
+    /**
+     * Optional ", 28013 Madrid" / ", Springfield, IL 62701" tail: only capitalised words (plus the
+     * usual connectors) so prose after the address is not swallowed.
+     */
+    private const val CITY_TAIL =
+        "(?:\\s*,\\s*(?:\\d{4,5}(?:-\\d{4})?\\s+)?\\p{Lu}[\\p{L}'’.\\-]*" +
+                "(?:\\s+(?:\\p{Lu}[\\p{L}'’.\\-]*|(?:de|del|la|las|los|da|do|das|dos|di|della|dei|du|des|sur|sous|le|les|y|e|of|the|upon|am|an|der|im)\\b))*" +
+                "(?:,\\s*[A-Z]{2}\\b)?(?:\\s+\\d{4,5}(?:-\\d{4})?)?)?"
+
+    private const val NAME_TOKEN = "(?:\\p{L}[\\p{L}'’.\\-]*|\\d{1,3}\\b)"
+
+    /** "Calle Mayor 12", "Rúa do Vilar, 5", "Av. Diagonal nº 640", "Via Roma 3", "Plaza de España 1". */
+    private val ADDRESS_PREFIX = Regex(
+        // Case-insensitivity is scoped to the keyword: CITY_TAIL relies on capitalisation.
+        "(?u)(?<![\\p{L}\\p{N}])(?i:$STREET_PREFIX)\\s+" +
+                "($NAME_TOKEN(?:\\s+$NAME_TOKEN){0,5}?)" +
+                "\\s*,?\\s*(?i:n[ºo°]\\.?\\s*|n\\.\\s*|n[uú]mero\\s+|#\\s*)?" +
+                "($HOUSE_NUMBER)$AFTER_NUMBER$CITY_TAIL"
+    )
+
+    /** "12 rue de la Paix", "5 boulevard Haussmann" (French: number first, street word next). */
+    private val ADDRESS_FR = Regex(
+        "(?u)(?<![\\p{L}\\p{N}/.\\-])($HOUSE_NUMBER)\\s*,?\\s+" +
+                "(?i:rue|avenue|av\\.|boulevard|bd\\.?|place|chemin|all[ée]e|impasse|quai|cours|route|square|passage)\\s+" +
+                // Name = first word, then capitalised words or French connectors only, so prose
+                // after the street ("... Haussmann demain") is left out.
+                "(\\p{L}[\\p{L}'’\\-]*(?:\\s+(?:(?:de|du|des|la|le|les|d'\\p{L}+|l'\\p{L}+)\\b|\\p{Lu}[\\p{L}'’\\-]*)){0,5})$CITY_TAIL"
+    )
+
+    /** "221B Baker Street", "1600 Pennsylvania Avenue NW", "10 Downing St, London". */
+    private val ADDRESS_EN = Regex(
+        "(?u)(?<![\\p{L}\\p{N}/.\\-])($HOUSE_NUMBER)\\s+" +
+                "((?:[NSEW]\\.?\\s+)?\\p{Lu}[\\p{L}'’.\\-]*(?:\\s+\\p{Lu}[\\p{L}'’.\\-]*){0,3}\\s+(?i:$STREET_SUFFIX_EN))" +
+                "(?![\\p{L}])(?:\\s+(?:N|S|E|W|NE|NW|SE|SW)\\b\\.?)?$CITY_TAIL"
+    )
+
+    /** "Hauptstraße 5", "Berliner Straße 12, 10115 Berlin", "Kalverstraat 92". */
+    private val ADDRESS_GLUED = Regex(
+        "(?u)(?<![\\p{L}\\p{N}])(\\p{Lu}[\\p{L}\\-]{2,}(?:$STREET_SUFFIX_GLUED)" +
+                "|\\p{Lu}[\\p{L}\\-]{2,}(?:\\s+\\p{Lu}[\\p{L}\\-]+)?\\s+(?:Straße|Strasse|Str\\.|Platz|Allee|Gasse|Weg|Ring|Damm|Ufer|Chaussee))" +
+                "\\s+($HOUSE_NUMBER)$AFTER_NUMBER$CITY_TAIL"
+    )
+
+    private val POSTAL_CITY = Regex("\\d{4,5}\\s+\\p{Lu}")
+
     private fun findNavigation(text: String, taken: List<IntRange>): Pair<SmartAction, IntRange>? {
         for (m in MAP_LINK.findAll(text)) {
             if (taken.any { it.overlaps(m.range) }) continue
@@ -188,6 +278,26 @@ object SmartActionsExtractor {
                 else -> "https://$raw"
             }
             return SmartAction(SmartActionType.NAVIGATION, value = raw, target = target) to m.range
+        }
+
+        val hasContext = NAV_CONTEXT.containsMatchIn(text)
+        val candidates = sequence {
+            yieldAll(ADDRESS_PREFIX.findAll(text).map { it to false })
+            yieldAll(ADDRESS_FR.findAll(text).map { it to false })
+            yieldAll(ADDRESS_EN.findAll(text).map { it to false })
+            // No leading street word to anchor on: needs a postal code + city or explicit context.
+            yieldAll(ADDRESS_GLUED.findAll(text).map { it to true })
+        }
+        for ((m, weak) in candidates) {
+            if (taken.any { it.overlaps(m.range) }) continue
+            val address = m.value.trim().trimEnd(',', '.', ';')
+            if (weak && !hasContext && !POSTAL_CITY.containsMatchIn(address)) continue
+            if (address.count { it.isLetter() } < 4) continue
+            return SmartAction(
+                SmartActionType.NAVIGATION,
+                value = address,
+                target = "geo:0,0?q=" + URLEncoder.encode(address, "UTF-8")
+            ) to m.range
         }
         return null
     }
