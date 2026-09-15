@@ -22,6 +22,8 @@ object SettingsKeys {
     const val FEATURED_PERMISSION_WARNING = "featured_permission_warning"
     const val FLOATING_SETUP_NOTICE_PENDING = "floating_setup_notice_pending"
     const val FLOATING_SETUP_CONFIRMED_PACKAGES = "floating_setup_confirmed_packages"
+    const val BRIDGE_ALL_APPS_ENABLED = "bridge_all_apps_enabled"
+    const val AUTO_ADD_NEW_APPS = "auto_add_new_apps"
 
     // Global Configs
     const val GLOBAL_FLOAT = "global_float"

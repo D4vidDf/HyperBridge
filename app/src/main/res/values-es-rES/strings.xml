@@ -709,4 +709,11 @@
     <string name="app_smart_actions_types_title">Acciones para esta app</string>
     <string name="app_smart_actions_types_desc">Elige qué botones puede mostrar esta app. Cada uno sigue el ajuste global hasta que lo cambies aquí.</string>
     <string name="app_smart_actions_global_off_banner">Las Acciones Inteligentes están desactivadas globalmente. Actívalas en Ajustes globales > Acciones Inteligentes para usar estas opciones.</string>
+
+    <!-- Enable All Apps -->
+    <string name="bridge_all_apps">Activar todas las apps</string>
+    <string name="bridge_all_apps_desc">Activar HyperIsland para todas las apps de la lista</string>
+    <string name="bridge_all_apps_enabled_desc">HyperIsland activado para todas las apps de la lista</string>
+    <string name="auto_add_new_apps_title">Añadir apps nuevas</string>
+    <string name="auto_add_new_apps_desc">Vincular automáticamente las aplicaciones recién instaladas</string>
 </resources>
