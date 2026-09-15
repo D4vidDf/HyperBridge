@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Island content sources (issue #273): other apps must hold this to drive a micro-widget. -->
+    <permission
+        android:name="com.d4viddf.hyperbridge.permission.UPDATE_SOURCE"
+        android:protectionLevel="normal" />
+    <uses-permission android:name="com.d4viddf.hyperbridge.permission.UPDATE_SOURCE" />
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
@@ -142,6 +148,19 @@
         <receiver
             android:name=".receiver.SmartActionReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".receiver.WidgetActionReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".receiver.UpdateSourceReceiver"
+            android:exported="true"
+            android:permission="com.d4viddf.hyperbridge.permission.UPDATE_SOURCE">
+            <intent-filter>
+                <action android:name="com.d4viddf.hyperbridge.action.UPDATE_SOURCE" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.InlineReplyService"

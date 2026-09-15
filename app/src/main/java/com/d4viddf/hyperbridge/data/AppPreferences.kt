@@ -764,6 +764,7 @@ class AppPreferences internal constructor(
     private val SHOW_PERMANENT_ISLAND = "show_permanent_island"
     private val PERMANENT_ISLAND_WIDTH = "permanent_island_width"
     private val HIDE_PERMANENT_ISLAND_LANDSCAPE = "hide_permanent_island_landscape"
+    private val PERMANENT_ISLAND_WIDGET_ID = "permanent_island_widget_id"
 
     val isPermanentIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow(SHOW_PERMANENT_ISLAND)
         .map { it?.toBoolean() ?: false }
@@ -773,6 +774,9 @@ class AppPreferences internal constructor(
 
     val hidePermanentIslandLandscapeFlow: Flow<Boolean> = dao.getSettingFlow(HIDE_PERMANENT_ISLAND_LANDSCAPE)
         .map { it?.toBoolean() ?: false }
+
+    /** The custom micro-widget (#273), if any, currently bound to the permanent island. */
+    val permanentIslandWidgetIdFlow: Flow<String?> = dao.getSettingFlow(PERMANENT_ISLAND_WIDGET_ID)
 
     suspend fun setPermanentIslandEnabled(value: Boolean) {
         save(SHOW_PERMANENT_ISLAND, value.toString())
@@ -784,6 +788,10 @@ class AppPreferences internal constructor(
 
     suspend fun setHidePermanentIslandLandscape(value: Boolean) {
         save(HIDE_PERMANENT_ISLAND_LANDSCAPE, value.toString())
+    }
+
+    suspend fun setPermanentIslandWidgetId(value: String?) {
+        if (value != null) save(PERMANENT_ISLAND_WIDGET_ID, value) else remove(PERMANENT_ISLAND_WIDGET_ID)
     }
 
     fun hidePermanentIslandLandscapeSync(): Boolean {

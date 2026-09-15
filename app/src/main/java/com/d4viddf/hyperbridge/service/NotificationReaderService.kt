@@ -193,6 +193,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var liveUpdateTranslator: LiveUpdateTranslator
     private lateinit var screenRecordingTranslator: ScreenRecordingTranslator
     private lateinit var screenRecordingSavedTranslator: ScreenRecordingSavedTranslator
+    private lateinit var customWidgetTranslator: com.d4viddf.hyperbridge.service.translators.CustomWidgetTranslator
 
     // --- COMPOSER TEMPLATES (Phase 4, #272) ---
     private lateinit var composerTemplateRepository: ComposerTemplateRepository
@@ -289,6 +290,7 @@ class NotificationReaderService : NotificationListenerService() {
         widgetTranslator = WidgetTranslator(this)
         screenRecordingTranslator = ScreenRecordingTranslator(this)
         screenRecordingSavedTranslator = ScreenRecordingSavedTranslator(this, themeRepository)
+        customWidgetTranslator = com.d4viddf.hyperbridge.service.translators.CustomWidgetTranslator(this, themeRepository)
         screenRecordingControlBackend = XiaomiScreenRecordingControlBackend(this)
 
         // [INIT] Composer Templates (Phase 4, #272)
@@ -1315,6 +1317,12 @@ class NotificationReaderService : NotificationListenerService() {
                 type == NotificationType.CALL || type == NotificationType.NAVIGATION ||
                 type == NotificationType.SCREEN_RECORDING || type == NotificationType.TIMER
             ) null else ComposerTemplateMatcher.match(composerTemplatesCache, sbn.packageName, effectiveTitle, effectiveText)
+            // Custom micro-widgets (Phase 5, #273) share the same eligibility as composer templates
+            // and rank below them: a rule-matched template is more specific than a per-package binding.
+            val matchedCustomWidget: Boolean = matchedComposerTemplate == null &&
+                type != NotificationType.CALL && type != NotificationType.NAVIGATION &&
+                type != NotificationType.SCREEN_RECORDING && type != NotificationType.TIMER &&
+                customWidgetTranslator.hasBinding(sbn.packageName)
             val isSavedScreenRecording = isSavedScreenRecordingNotification(sbn)
             val isMessagingLifecycle = isMessagingLifecycleEvent(sbn, type, resolvedContent)
 
@@ -1495,6 +1503,7 @@ class NotificationReaderService : NotificationListenerService() {
             val useLiveUpdates = type != NotificationType.SCREEN_RECORDING &&
                     !isSavedScreenRecording &&
                     matchedComposerTemplate == null &&
+                    !matchedCustomWidget &&
                     getEffectiveEngine(sbn.packageName)
             val appIslandConfig = preferences.getAppIslandConfigSync(sbn.packageName)
             val globalConfig = preferences.getGlobalConfigSync()
@@ -1625,9 +1634,13 @@ class NotificationReaderService : NotificationListenerService() {
             val data: HyperIslandData = if (isSavedScreenRecording) {
                 screenRecordingSavedTranslator.translate(sbn, picKey, finalConfig, activeTheme)
             } else if (matchedComposerTemplate != null) {
+                // Precedence: a composer template (Phase 4) is rule-matched on package + title/text,
+                // so it is more specific than a per-package custom widget binding (Phase 5) and wins.
                 composerTemplateTranslator.translate(
                     sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme, matchedComposerTemplate
                 )
+            } else if (matchedCustomWidget) {
+                customWidgetTranslator.translate(sbn, picKey, effectiveTitle, effectiveText, finalConfig, activeTheme)
             } else when (type) {
                 NotificationType.CALL -> callTranslator.translate(
                     sbn, picKey, finalConfig, activeTheme,
