@@ -48,6 +48,8 @@ import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
+import com.d4viddf.hyperbridge.ui.screens.design.templates.ComposerTemplateListScreen
+import com.d4viddf.hyperbridge.ui.screens.design.templates.IslandComposerScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeCreatorScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeManagerScreen
 import kotlinx.coroutines.launch
@@ -56,7 +58,9 @@ private enum class DesignRoute {
     DASHBOARD,
     WIDGET_LIST,
     THEME_MANAGER,
-    THEME_CREATOR
+    THEME_CREATOR,
+    TEMPLATE_LIST,
+    TEMPLATE_COMPOSER
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +76,7 @@ fun HomeScreen(
     var selectedTab by remember { mutableIntStateOf(1) }
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
+    var editingComposerTemplateId by remember { mutableStateOf<String?>(null) }
 
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
@@ -92,6 +97,10 @@ fun HomeScreen(
                 DesignRoute.THEME_CREATOR -> {
                     editingThemeId = null
                     DesignRoute.THEME_MANAGER
+                }
+                DesignRoute.TEMPLATE_COMPOSER -> {
+                    editingComposerTemplateId = null
+                    DesignRoute.TEMPLATE_LIST
                 }
                 else -> DesignRoute.DASHBOARD
             }
@@ -166,7 +175,36 @@ fun HomeScreen(
                                                 designRoute = DesignRoute.THEME_CREATOR
                                             },
                                             onLaunchPicker = { showWidgetPicker = true },
+                                            onLaunchTemplates = { designRoute = DesignRoute.TEMPLATE_LIST },
                                             onSettingsClick = onSettingsClick
+                                        )
+                                    }
+
+                                    DesignRoute.TEMPLATE_LIST -> {
+                                        ComposerTemplateListScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onAddNew = {
+                                                editingComposerTemplateId = null
+                                                designRoute = DesignRoute.TEMPLATE_COMPOSER
+                                            },
+                                            onEdit = { id ->
+                                                editingComposerTemplateId = id
+                                                designRoute = DesignRoute.TEMPLATE_COMPOSER
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.TEMPLATE_COMPOSER -> {
+                                        IslandComposerScreen(
+                                            templateId = editingComposerTemplateId,
+                                            onBack = {
+                                                editingComposerTemplateId = null
+                                                designRoute = DesignRoute.TEMPLATE_LIST
+                                            },
+                                            onSaved = {
+                                                editingComposerTemplateId = null
+                                                designRoute = DesignRoute.TEMPLATE_LIST
+                                            }
                                         )
                                     }
 

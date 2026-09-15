@@ -984,7 +984,7 @@
     <string name="template_rule_advanced_regex">Advanced regex</string>
     <string name="template_rule_title_regex">Title contains (regex)</string>
     <string name="template_rule_text_regex">Text contains (regex)</string>
-    <string name="template_rule_priority">Priority</string>
+    <string name="template_rule_priority">Priority: %1$d</string>
 
     <string name="template_list_empty_title">No island templates yet</string>
     <string name="template_list_empty_subtitle">Design a custom island layout from one of the 10 Xiaomi templates</string>
