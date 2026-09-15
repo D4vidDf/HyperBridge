@@ -46,10 +46,12 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
+import com.d4viddf.hyperbridge.ui.screens.design.SavedCustomWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 import com.d4viddf.hyperbridge.ui.screens.design.templates.ComposerTemplateListScreen
 import com.d4viddf.hyperbridge.ui.screens.design.templates.IslandComposerScreen
+import com.d4viddf.hyperbridge.ui.screens.design.widgets.WidgetStudioScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeCreatorScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeManagerScreen
 import kotlinx.coroutines.launch
@@ -61,6 +63,8 @@ private enum class DesignRoute {
     THEME_CREATOR,
     TEMPLATE_LIST,
     TEMPLATE_COMPOSER
+    WIDGET_STUDIO_LIST,
+    WIDGET_STUDIO_EDITOR
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +81,7 @@ fun HomeScreen(
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
     var editingComposerTemplateId by remember { mutableStateOf<String?>(null) }
+    var editingCustomWidgetId by remember { mutableStateOf<String?>(null) }
 
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
@@ -101,6 +106,11 @@ fun HomeScreen(
                 DesignRoute.TEMPLATE_COMPOSER -> {
                     editingComposerTemplateId = null
                     DesignRoute.TEMPLATE_LIST
+                }
+
+                DesignRoute.WIDGET_STUDIO_EDITOR -> {
+                    editingCustomWidgetId = null
+                    DesignRoute.WIDGET_STUDIO_LIST
                 }
                 else -> DesignRoute.DASHBOARD
             }
@@ -176,6 +186,7 @@ fun HomeScreen(
                                             },
                                             onLaunchPicker = { showWidgetPicker = true },
                                             onLaunchTemplates = { designRoute = DesignRoute.TEMPLATE_LIST },
+                                            onLaunchWidgetStudio = { designRoute = DesignRoute.WIDGET_STUDIO_LIST },
                                             onSettingsClick = onSettingsClick
                                         )
                                     }
@@ -194,6 +205,20 @@ fun HomeScreen(
                                         )
                                     }
 
+                                    DesignRoute.WIDGET_STUDIO_LIST -> {
+                                        SavedCustomWidgetsScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onEditWidget = { id ->
+                                                editingCustomWidgetId = id
+                                                designRoute = DesignRoute.WIDGET_STUDIO_EDITOR
+                                            },
+                                            onCreateNew = {
+                                                editingCustomWidgetId = null
+                                                designRoute = DesignRoute.WIDGET_STUDIO_EDITOR
+                                            }
+                                        )
+                                    }
+
                                     DesignRoute.TEMPLATE_COMPOSER -> {
                                         IslandComposerScreen(
                                             templateId = editingComposerTemplateId,
@@ -204,6 +229,16 @@ fun HomeScreen(
                                             onSaved = {
                                                 editingComposerTemplateId = null
                                                 designRoute = DesignRoute.TEMPLATE_LIST
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.WIDGET_STUDIO_EDITOR -> {
+                                        WidgetStudioScreen(
+                                            widgetId = editingCustomWidgetId,
+                                            onBack = {
+                                                editingCustomWidgetId = null
+                                                designRoute = DesignRoute.WIDGET_STUDIO_LIST
                                             }
                                         )
                                     }

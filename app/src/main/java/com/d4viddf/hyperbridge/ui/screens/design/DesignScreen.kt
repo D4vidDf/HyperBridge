@@ -101,6 +101,7 @@ fun DesignScreen(
     onEditTheme: (String) -> Unit,
     onLaunchPicker: () -> Unit,
     onLaunchTemplates: () -> Unit,
+    onLaunchWidgetStudio: () -> Unit = {},
     onSettingsClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -219,6 +220,20 @@ fun DesignScreen(
                 ) {
                     Icon(Icons.Rounded.Dashboard, null, modifier = Modifier.padding(end = 8.dp))
                     Text(stringResource(R.string.design_create_template), style = MaterialTheme.typography.titleMedium)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        showBottomSheet = false
+                        onLaunchWidgetStudio()
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Rounded.Widgets, null, modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.design_widget_studio_beta), style = MaterialTheme.typography.titleMedium)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
