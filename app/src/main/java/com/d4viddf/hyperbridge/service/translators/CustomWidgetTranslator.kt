@@ -2,6 +2,7 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.content.Context
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.data.widget.SourceRepository
@@ -32,15 +33,30 @@ class CustomWidgetTranslator(
     private val renderer = CustomWidgetRenderer(context, WidgetVariableEngine(), widgetRepo)
 
     // Cheap in-memory package -> widget id cache so hasBinding() is safe to call on every posted
-    // notification (mirrors AppPreferences' memoryCache pattern); invalidated on save/delete.
-    private val bindingCache = ConcurrentHashMap<String, String?>()
+    // notification. "No binding" is cached too (widgetId == null) — never store a null VALUE in
+    // the ConcurrentHashMap itself, that throws NPE and used to kill island processing for every
+    // package without a binding. Entries expire so a widget bound in the Studio (a different
+    // process/screen) is picked up without restarting the service.
+    private data class CachedBinding(val widgetId: String?, val cachedAt: Long)
+    private val bindingCache = ConcurrentHashMap<String, CachedBinding>()
 
-    suspend fun hasBinding(packageName: String): Boolean = resolveWidgetId(packageName) != null
+    /**
+     * True when a custom widget is bound to [packageName]. Never throws: island processing must
+     * not depend on this lookup succeeding, so any failure is logged and treated as "no binding".
+     */
+    suspend fun hasBinding(packageName: String): Boolean = try {
+        resolveWidgetId(packageName) != null
+    } catch (e: Exception) {
+        Log.w(TAG, "Custom widget binding lookup failed for $packageName; treating as unbound", e)
+        false
+    }
 
     private suspend fun resolveWidgetId(packageName: String): String? {
-        if (bindingCache.containsKey(packageName)) return bindingCache[packageName]
+        val now = System.currentTimeMillis()
+        val cached = bindingCache[packageName]
+        if (cached != null && now - cached.cachedAt < BINDING_CACHE_TTL_MS) return cached.widgetId
         val doc = widgetRepo.getWidgetForPackage(packageName)
-        bindingCache[packageName] = doc?.id
+        bindingCache[packageName] = CachedBinding(doc?.id, now)
         return doc?.id
     }
 
@@ -79,5 +95,10 @@ class CustomWidgetTranslator(
         builder.setReopen(true)
 
         return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
+    }
+
+    companion object {
+        private const val TAG = "CustomWidgetTranslator"
+        private const val BINDING_CACHE_TTL_MS = 15_000L
     }
 }
