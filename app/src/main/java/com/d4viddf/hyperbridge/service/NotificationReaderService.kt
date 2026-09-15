@@ -21,6 +21,9 @@ import com.d4viddf.hyperbridge.MainActivity
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
+import com.d4viddf.hyperbridge.data.composer.ComposerTemplateMatcher
+import com.d4viddf.hyperbridge.data.composer.ComposerTemplateRepository
+import com.d4viddf.hyperbridge.models.composer.ComposerTemplate
 import com.d4viddf.hyperbridge.data.theme.RulesEngine
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
@@ -45,6 +48,7 @@ import com.d4viddf.hyperbridge.service.translators.TimerTranslator
 import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
 import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
 import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
+import com.d4viddf.hyperbridge.service.translators.ComposerTemplateTranslator
 import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
 import com.d4viddf.hyperbridge.service.recording.ScreenRecordingControlBackend
 import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
@@ -190,6 +194,11 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var screenRecordingTranslator: ScreenRecordingTranslator
     private lateinit var screenRecordingSavedTranslator: ScreenRecordingSavedTranslator
 
+    // --- COMPOSER TEMPLATES (Phase 4, #272) ---
+    private lateinit var composerTemplateRepository: ComposerTemplateRepository
+    private lateinit var composerTemplateTranslator: ComposerTemplateTranslator
+    @Volatile private var composerTemplatesCache: List<ComposerTemplate> = emptyList()
+
     @Volatile
     private var isScreenOn = true
 
@@ -281,6 +290,13 @@ class NotificationReaderService : NotificationListenerService() {
         screenRecordingTranslator = ScreenRecordingTranslator(this)
         screenRecordingSavedTranslator = ScreenRecordingSavedTranslator(this, themeRepository)
         screenRecordingControlBackend = XiaomiScreenRecordingControlBackend(this)
+
+        // [INIT] Composer Templates (Phase 4, #272)
+        composerTemplateRepository = ComposerTemplateRepository(AppDatabase.getDatabase(this).composerTemplateDao())
+        composerTemplateTranslator = ComposerTemplateTranslator(this, themeRepository)
+        serviceScope.launch {
+            composerTemplateRepository.templatesFlow.collect { composerTemplatesCache = it }
+        }
 
         val userManager = getSystemService(USER_SERVICE) as android.os.UserManager
         if (userManager.isUserUnlocked) {
@@ -1292,6 +1308,13 @@ class NotificationReaderService : NotificationListenerService() {
                 return
             }
             val type = NotificationType.valueOf(enabledTypeName)
+            // Composer templates (Phase 4, #272) only apply to the "layered custom island" types
+            // whose rendering is a generic slot layout; stateful session-tracked flows (calls,
+            // navigation, screen recording) keep their dedicated translators untouched.
+            val matchedComposerTemplate: ComposerTemplate? = if (
+                type == NotificationType.CALL || type == NotificationType.NAVIGATION ||
+                type == NotificationType.SCREEN_RECORDING || type == NotificationType.TIMER
+            ) null else ComposerTemplateMatcher.match(composerTemplatesCache, sbn.packageName, effectiveTitle, effectiveText)
             val isSavedScreenRecording = isSavedScreenRecordingNotification(sbn)
             val isMessagingLifecycle = isMessagingLifecycleEvent(sbn, type, resolvedContent)
 
@@ -1465,8 +1488,13 @@ class NotificationReaderService : NotificationListenerService() {
             val isSummary = (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
 
             // --- LAYERED ENGINE LOGIC ---
+            // A matched composer template always wins over the "use native live updates" app
+            // setting: the template controls the exact big-island layout, which native Live
+            // Updates rendering cannot express. This is a silent behavior change for any app that
+            // both has native live updates enabled AND a matching composer template.
             val useLiveUpdates = type != NotificationType.SCREEN_RECORDING &&
                     !isSavedScreenRecording &&
+                    matchedComposerTemplate == null &&
                     getEffectiveEngine(sbn.packageName)
             val appIslandConfig = preferences.getAppIslandConfigSync(sbn.packageName)
             val globalConfig = preferences.getGlobalConfigSync()
@@ -1596,6 +1624,10 @@ class NotificationReaderService : NotificationListenerService() {
             val picKey = "pic_${candidateBridgeId}"
             val data: HyperIslandData = if (isSavedScreenRecording) {
                 screenRecordingSavedTranslator.translate(sbn, picKey, finalConfig, activeTheme)
+            } else if (matchedComposerTemplate != null) {
+                composerTemplateTranslator.translate(
+                    sbn, effectiveTitle, effectiveText, picKey, finalConfig, activeTheme, matchedComposerTemplate
+                )
             } else when (type) {
                 NotificationType.CALL -> callTranslator.translate(
                     sbn, picKey, finalConfig, activeTheme,

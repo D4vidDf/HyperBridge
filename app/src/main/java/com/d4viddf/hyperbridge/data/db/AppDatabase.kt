@@ -4,14 +4,35 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.d4viddf.hyperbridge.data.composer.ComposerTemplateDao
+import com.d4viddf.hyperbridge.data.composer.ComposerTemplateEntity
 
-@Database(entities = [AppSetting::class], version = 1, exportSchema = false)
+@Database(entities = [AppSetting::class, ComposerTemplateEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
+    abstract fun composerTemplateDao(): ComposerTemplateDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
+
+        // Adds the composer_templates table (Phase 4, #272). MUST stay registered: without it,
+        // the version bump above falls through to fallbackToDestructiveMigration and wipes the
+        // entire `settings` table (every user preference) on the next app update.
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `composer_templates` (" +
+                        "`id` TEXT NOT NULL, `name` TEXT NOT NULL, `definitionJson` TEXT NOT NULL, " +
+                        "`packageNameRegex` TEXT, `titleRegex` TEXT, `textRegex` TEXT, " +
+                        "`priority` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`id`))"
+                )
+            }
+        }
 
         fun getDatabase(context: Context): AppDatabase {
             val storageContext = context.createDeviceProtectedStorageContext()
@@ -31,6 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     dbName
                 )
+                    .addMigrations(MIGRATION_1_2)
                     .fallbackToDestructiveMigration(false)
                     .build().also { INSTANCE = it }
             }
