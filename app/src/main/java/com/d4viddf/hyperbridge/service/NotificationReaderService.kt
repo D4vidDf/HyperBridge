@@ -293,7 +293,7 @@ class NotificationReaderService : NotificationListenerService() {
             serviceScope,
             preferences,
             themeRepository,
-            initialNotifications = { activeNotifications ?: emptyArray() },
+            initialNotifications = { activeNotificationsOrNull() ?: emptyArray() },
             onIslandActiveChanged = { active ->
                 vpnIslandActive = active
                 updatePermanentIsland()
@@ -2202,10 +2202,31 @@ class NotificationReaderService : NotificationListenerService() {
 
     private var syncJob: Job? = null
 
-    override fun onListenerConnected() { 
+    /**
+     * [getActiveNotifications] is only legal while the system has this listener bound. Before
+     * onListenerConnected (service just created after a reboot / APK update) and after a
+     * disconnect (second space, user switch) it throws SecurityException "Disallowed call from
+     * unknown notification listener", and an uncaught throw inside serviceScope kills the whole
+     * process (#319). Every read that may run outside the connected window goes through here.
+     */
+    private fun activeNotificationsOrNull(): Array<StatusBarNotification>? {
+        if (!isConnected) return null
+        return try {
+            activeNotifications
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Listener not bound while reading active notifications: ${e.message}")
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    override fun onListenerConnected() {
         Log.i(TAG, "HyperBridge Service Connected")
         isConnected = true
         DiagnosticsStore.setServiceConnected(true)
+        // The VPN controller may have started (and found nothing) before the listener was bound.
+        if (::vpnIslandController.isInitialized) vpnIslandController.onListenerConnected()
         syncNotifications(refresh = true)
         syncJob?.cancel()
         syncJob = serviceScope.launch {
