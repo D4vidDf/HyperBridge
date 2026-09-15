@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.data.composer
 
 import com.d4viddf.hyperbridge.models.composer.ComposerTemplate
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Pure matcher for Phase 4 composer templates (issue #272) — a line-for-line clone of
@@ -11,10 +12,14 @@ import com.d4viddf.hyperbridge.models.composer.ComposerTemplate
  * Deliberately free of android.util.Log (unlike RulesEngine): keeping this class a pure Kotlin
  * object with no Android framework calls is what makes it plain-JUnit testable in this codebase,
  * which has neither Robolectric nor a shadow for Log.
+ *
+ * [regexCache] is a [ConcurrentHashMap] (unlike RulesEngine's plain map): NotificationReaderService
+ * dispatches each notification onto `Dispatchers.Default`, a real thread pool, so this singleton's
+ * cache can be read/written from multiple notifications concurrently.
  */
 object ComposerTemplateMatcher {
 
-    private val regexCache = mutableMapOf<String, Regex>()
+    private val regexCache = ConcurrentHashMap<String, Regex>()
 
     /**
      * Returns the highest-priority enabled template whose rule matches, or null if none does.
