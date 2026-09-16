@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
+import com.d4viddf.hyperbridge.service.ListenerWatchdog
+import com.d4viddf.hyperbridge.service.ServiceHealthNotifier
 import com.d4viddf.hyperbridge.ui.components.ChangelogSheet
 import com.d4viddf.hyperbridge.ui.navigation.Navigator
 import com.d4viddf.hyperbridge.ui.navigation.Screen
@@ -64,6 +66,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Access granted but listener not bound (process restarted, listener never rebound): ask once.
+        ListenerWatchdog.ensureBound(this)
     }
 }
 
@@ -139,6 +147,15 @@ private fun MainNavigationContent(
         topLevelRoutes = allPossibleTopLevel
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
+
+    // Tapping the listener-down notification lands on Diagnostics (#330).
+    LaunchedEffect(navigator) {
+        val intent = activity?.intent ?: return@LaunchedEffect
+        if (isSetupComplete && intent.getBooleanExtra(ServiceHealthNotifier.EXTRA_OPEN_DIAGNOSTICS, false)) {
+            intent.removeExtra(ServiceHealthNotifier.EXTRA_OPEN_DIAGNOSTICS)
+            navigator.navigate(Screen.Diagnostics)
+        }
+    }
 
     LaunchedEffect(isSetupComplete, lastSeenVersion) {
         if (isSetupComplete && isInitiallySetup && lastSeenVersion != -1) {
