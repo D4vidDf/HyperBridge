@@ -16,7 +16,7 @@ import com.d4viddf.hyperbridge.data.composer.ComposerTemplateEntity
         SourceAppEntity::class,
         SourceValueEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,10 +28,11 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Version 2 adds the composer_templates table (Phase 4, #272) and the island content
-        // source tables (Phase 5, #273). MUST stay registered: without it, the version bump above
-        // falls through to fallbackToDestructiveMigration and wipes the entire `settings` table
-        // (every user preference) on the next app update.
+        // Version 2 adds the composer_templates table (Phase 4, #272). Kept byte-identical to the
+        // composer branch so a v2 database created by that build opens here without an identity
+        // mismatch. MUST stay registered: without it, the version bump above falls through to
+        // fallbackToDestructiveMigration and wipes the entire `settings` table (every user
+        // preference) on the next app update.
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -42,6 +43,14 @@ abstract class AppDatabase : RoomDatabase() {
                         "`createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, " +
                         "PRIMARY KEY(`id`))"
                 )
+            }
+        }
+
+        // Version 3 adds the island content source tables (Phase 5, #273) on top of the composer
+        // schema, so both a v1 (dev/0_6_0) and a v2 (template-composer build) database upgrade
+        // cleanly instead of crashing with "Room cannot verify the data integrity".
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     """
                     CREATE TABLE IF NOT EXISTS `source_apps` (
@@ -88,7 +97,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     dbName
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .fallbackToDestructiveMigration(false)
                     .build().also { INSTANCE = it }
             }
