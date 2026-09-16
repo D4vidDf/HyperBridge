@@ -938,6 +938,13 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland enabled for all apps in the list</string>
     <string name="auto_add_new_apps_title">Add new apps</string>
     <string name="auto_add_new_apps_desc">Automatically enable bridging for newly installed applications</string>
+    <!-- Listener watchdog (#330) -->
+    <string name="channel_service_health">Service status</string>
+    <string name="listener_down_title">HyperBridge stopped receiving notifications</string>
+    <string name="listener_down_text">The notification service disconnected and could not be reconnected automatically. Tap to open diagnostics.</string>
+    <string name="listener_down_action_reconnect">Reconnect</string>
+    <string name="diagnostic_reconnect_service">Reconnect service</string>
+    <string name="diagnostic_reconnecting_toast">Reconnecting service…</string>
 </resources>
 
 

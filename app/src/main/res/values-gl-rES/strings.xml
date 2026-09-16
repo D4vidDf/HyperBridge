@@ -387,6 +387,13 @@
         <item quantity="one">%1$d custom action</item>
         <item quantity="other">%1$d custom actions</item>
     </plurals>
+    <!-- Listener watchdog (#330) -->
+    <string name="channel_service_health">Estado do servizo</string>
+    <string name="listener_down_title">HyperBridge deixou de recibir notificacións</string>
+    <string name="listener_down_text">O servizo de notificacións desconectouse e non se puido reconectar automaticamente. Toca para abrir o diagnóstico.</string>
+    <string name="listener_down_action_reconnect">Reconectar</string>
+    <string name="diagnostic_reconnect_service">Reconectar servizo</string>
+    <string name="diagnostic_reconnecting_toast">Reconectando o servizo…</string>
 </resources>
 
 

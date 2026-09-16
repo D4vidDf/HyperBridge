@@ -809,4 +809,11 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland activado para todas las apps de la lista</string>
     <string name="auto_add_new_apps_title">Añadir apps nuevas</string>
     <string name="auto_add_new_apps_desc">Vincular automáticamente las aplicaciones recién instaladas</string>
+    <!-- Listener watchdog (#330) -->
+    <string name="channel_service_health">Estado del servicio</string>
+    <string name="listener_down_title">HyperBridge ha dejado de recibir notificaciones</string>
+    <string name="listener_down_text">El servicio de notificaciones se ha desconectado y no se ha podido reconectar automáticamente. Toca para abrir el diagnóstico.</string>
+    <string name="listener_down_action_reconnect">Reconectar</string>
+    <string name="diagnostic_reconnect_service">Reconectar servicio</string>
+    <string name="diagnostic_reconnecting_toast">Reconectando el servicio…</string>
 </resources>

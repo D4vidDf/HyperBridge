@@ -490,6 +490,8 @@ class NotificationReaderService : NotificationListenerService() {
             val notifKey = it.key
 
             if (isOurApp) {
+                // The listener-down warning is not an island; dismissing it is not a bridge event.
+                if (BridgeNotificationChannels.isServiceHealth(it.notification.channelId)) return
                 val replacement = internalBridgeReplacements.consume(notifId, System.currentTimeMillis())
                 if (replacement != null) {
                     Log.d(
@@ -2058,6 +2060,8 @@ class NotificationReaderService : NotificationListenerService() {
             setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(watchRelayChannel)
+
+        ServiceHealthNotifier.ensureChannel(this)
     }
 
     private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
@@ -2225,6 +2229,7 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, "HyperBridge Service Connected")
         isConnected = true
         DiagnosticsStore.setServiceConnected(true)
+        ListenerWatchdog.onConnected(this)
         // The VPN controller may have started (and found nothing) before the listener was bound.
         if (::vpnIslandController.isInitialized) vpnIslandController.onListenerConnected()
         syncNotifications(refresh = true)
@@ -2246,6 +2251,8 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, "HyperBridge Service Disconnected")
         isConnected = false
         DiagnosticsStore.setServiceConnected(false)
+        // The service scope dies with onDestroy; the watchdog retries from the process (#330).
+        ListenerWatchdog.onDisconnected(this)
     }
 
     private fun syncNotifications(refresh: Boolean = false) {

@@ -2,10 +2,7 @@ package com.d4viddf.hyperbridge.ui.screens.settings
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
-import android.service.notification.NotificationListenerService
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +33,7 @@ import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.Button
@@ -80,6 +78,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.service.ListenerWatchdog
 import com.d4viddf.hyperbridge.service.NotificationReaderService
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticEvent
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
@@ -128,19 +127,12 @@ fun DiagnosticsScreen(
     var focusPermission by remember { mutableStateOf(XiaomiNotificationHelper.hasFocusPermission(context)) }
     val focusSupported = remember { XiaomiNotificationHelper.isSupportIsland() }
     val diagnosticsTitle = stringResource(R.string.diagnostics_title)
+    val reconnectingToast = stringResource(R.string.diagnostic_reconnecting_toast)
     val exportHeader = stringResource(R.string.diagnostic_export_header)
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(notificationAccess) {
-        if (notificationAccess && !NotificationReaderService.isConnected && !state.serviceConnected) {
-            try {
-                NotificationListenerService.requestRebind(
-                    ComponentName(context, NotificationReaderService::class.java)
-                )
-            } catch (e: Exception) {
-                Log.w("DiagnosticsScreen", "Failed to requestRebind", e)
-            }
-        }
+        if (notificationAccess) ListenerWatchdog.ensureBound(context)
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -150,15 +142,7 @@ fun DiagnosticsScreen(
                 postPermission = isPostNotificationsEnabled(context)
                 focusPermission = XiaomiNotificationHelper.hasFocusPermission(context)
                 restrictedSettingsAllowed = isRestrictedSettingsAllowed(context)
-                if (notificationAccess && !NotificationReaderService.isConnected && !state.serviceConnected) {
-                    try {
-                        NotificationListenerService.requestRebind(
-                            ComponentName(context, NotificationReaderService::class.java)
-                        )
-                    } catch (e: Exception) {
-                        Log.w("DiagnosticsScreen", "Failed to requestRebind", e)
-                    }
-                }
+                if (notificationAccess) ListenerWatchdog.ensureBound(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -187,6 +171,10 @@ fun DiagnosticsScreen(
         onBack = onBack,
         onReportError = onReportError,
         onNavigateToHealth = onNavigateToHealth,
+        onReconnect = {
+            ListenerWatchdog.reconnectNow(context, "diagnostics")
+            Toast.makeText(context, reconnectingToast, Toast.LENGTH_SHORT).show()
+        },
         onCopyDiagnostics = {
             val text = buildDiagnosticExport(exportHeader, state.events)
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -203,6 +191,7 @@ fun DiagnosticsContent(
     onBack: () -> Unit,
     onReportError: (() -> Unit)? = null,
     onNavigateToHealth: (() -> Unit)? = null,
+    onReconnect: (() -> Unit)? = null,
     onCopyDiagnostics: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -308,6 +297,27 @@ fun DiagnosticsContent(
                                     fontWeight = FontWeight.Bold,
                                     color = if (data.serviceConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+
+                        // Access is granted but nothing is bound: offer a manual reconnect (#330).
+                        if (onReconnect != null && data.notificationAccess && !data.serviceConnected) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            FilledTonalButton(
+                                onClick = onReconnect,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.diagnostic_reconnect_service),
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
