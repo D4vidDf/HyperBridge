@@ -428,7 +428,7 @@ Por favor, verifique manualmente para garantir que o serviço funcione corretame
     <string name="share_theme">Compartilhar tema</string>
     <string name="my_theme">Meu tema</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">aÃ§Ã£o personalizada</item>
+        <item quantity="one">ação personalizada</item>
         <item quantity="other">Ações personalizadas de %1$d</item>
     </plurals>
     <string name="title_0_4_0">A Atualização da Customização</string>
