@@ -190,12 +190,14 @@ class PermanentIslandManager(
                 .setContentText("Empty Island")
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setOngoing(true)
+            BridgeIslandGroup.asChild(notifBuilder)
 
             notifBuilder.addExtras(data.resources)
 
             val notification = notifBuilder.build()
             notification.extras.putString("miui.focus.param", data.jsonParam)
 
+            BridgeIslandGroup.ensureSummaryFor(context, notification)
             ShizukuManager.notify(context, PERMANENT_BRIDGE_ID, notification)
         } catch (e: Exception) {
             Log.e(TAG, "Error dispatching permanent island", e)
