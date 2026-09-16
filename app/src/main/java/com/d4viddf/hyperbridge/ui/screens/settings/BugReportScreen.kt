@@ -89,6 +89,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -124,6 +125,7 @@ import com.d4viddf.hyperbridge.util.ThemeDiagnosticInfo
 import com.d4viddf.hyperbridge.util.WidgetDiagnosticInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class AppEntry(
@@ -446,6 +448,21 @@ fun BugReportContent(
     var showWidgetPickerDialog by remember { mutableStateOf(false) }
     var showShareWarningDialog by remember { mutableStateOf(false) }
     var pendingShareAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var showDescriptionError by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val validateAndRun: (() -> Unit) -> Unit = { action ->
+        if (userDescription.isBlank()) {
+            showDescriptionError = true
+            coroutineScope.launch {
+                scrollState.animateScrollTo(0)
+            }
+        } else {
+            showDescriptionError = false
+            action()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -472,7 +489,7 @@ fun BugReportContent(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
         ) {
             // --- SCREEN DESCRIPTION AT TOP ---
@@ -515,9 +532,18 @@ fun BugReportContent(
             ExpressiveSectionTitle(stringResource(R.string.bug_report_details_title))
             OutlinedTextField(
                 value = userDescription,
-                onValueChange = onUserDescriptionChange,
+                onValueChange = {
+                    onUserDescriptionChange(it)
+                    if (showDescriptionError && it.isNotBlank()) {
+                        showDescriptionError = false
+                    }
+                },
                 label = { Text(stringResource(R.string.bug_report_what_happened)) },
                 placeholder = { Text(stringResource(R.string.bug_report_what_happened_hint)) },
+                isError = showDescriptionError,
+                supportingText = if (showDescriptionError) {
+                    { Text(stringResource(R.string.bug_report_what_happened_error), color = MaterialTheme.colorScheme.error) }
+                } else null,
                 minLines = 2,
                 maxLines = 5,
                 modifier = Modifier.fillMaxWidth(),
@@ -983,8 +1009,10 @@ fun BugReportContent(
             // 1. Primary: Submit on GitHub
             Button(
                 onClick = {
-                    pendingShareAction = onSubmitGitHub
-                    showShareWarningDialog = true
+                    validateAndRun {
+                        pendingShareAction = onSubmitGitHub
+                        showShareWarningDialog = true
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1000,7 +1028,11 @@ fun BugReportContent(
 
             // 2. Secondary: Send via Email
             OutlinedButton(
-                onClick = onSendEmail,
+                onClick = {
+                    validateAndRun {
+                        onSendEmail()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -1019,7 +1051,11 @@ fun BugReportContent(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FilledTonalButton(
-                    onClick = onCopyClipboard,
+                    onClick = {
+                        validateAndRun {
+                            onCopyClipboard()
+                        }
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
@@ -1032,8 +1068,10 @@ fun BugReportContent(
 
                 FilledTonalButton(
                     onClick = {
-                        pendingShareAction = onShare
-                        showShareWarningDialog = true
+                        validateAndRun {
+                            pendingShareAction = onShare
+                            showShareWarningDialog = true
+                        }
                     },
                     modifier = Modifier
                         .weight(1f)

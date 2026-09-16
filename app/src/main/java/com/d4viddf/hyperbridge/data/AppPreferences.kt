@@ -219,6 +219,13 @@ class AppPreferences internal constructor(
         save(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES, updated.serialize())
     }
 
+    suspend fun setAllFloatingSetupConfirmed(packageNames: Collection<String>, confirmed: Boolean) {
+        if (packageNames.isEmpty()) return
+        val current = dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()
+        val updated = if (confirmed) current + packageNames else current - packageNames.toSet()
+        save(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES, updated.serialize())
+    }
+
     val bridgeAllAppsEnabledFlow: Flow<Boolean> =
         dao.getSettingFlow(SettingsKeys.BRIDGE_ALL_APPS_ENABLED).map { it.toBoolean(false) }
 

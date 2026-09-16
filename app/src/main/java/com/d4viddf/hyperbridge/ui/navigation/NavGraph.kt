@@ -118,7 +118,8 @@ fun mainNavGraph(
     entry<Screen.Diagnostics> {
         DiagnosticsScreen(
             onBack = { navigator.goBack() },
-            onReportError = { navigator.navigate(Screen.BugReport) }
+            onReportError = { navigator.navigate(Screen.BugReport) },
+            onNavigateToHealth = { navigator.navigate(Screen.Setup) }
         )
     }
     entry<Screen.Licenses> {

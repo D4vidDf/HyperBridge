@@ -279,18 +279,18 @@
     <string name="config_timeout_title">Automatické zatvorenie</string>
     <string name="config_timeout_desc">Zatvoriť ostrov po oneskorení</string>
     <plurals name="config_timeout_fmt">
-        <item quantity="many">%d sekÃºnd</item>
-        <item quantity="other">%d sekÃºnd</item>
+        <item quantity="many">%d sekúnd</item>
+        <item quantity="other">%d sekúnd</item>
         <item quantity="one">%d sekunda</item>
-        <item quantity="few">%d sekÃºnd</item>
+        <item quantity="few">%d sekúnd</item>
     </plurals>
     <string name="config_refresh_title">Automatické obnovenie</string>
     <string name="config_refresh_desc">Pravidelne aktualizujte snímku</string>
     <plurals name="config_refresh_fmt">
-        <item quantity="many">KaÅ¾dÃ½ch %d minÃºt</item>
-        <item quantity="other">KaÅ¾dÃ½ch %d minÃºt</item>
-        <item quantity="one">KaÅ¾dÃ¡ minÃºta</item>
-        <item quantity="few">KaÅ¾dÃ½ch %d minÃºt</item>
+        <item quantity="many">Každých %d minút</item>
+        <item quantity="other">Každých %d minút</item>
+        <item quantity="one">Každá minúta</item>
+        <item quantity="few">Každých %d minút</item>
     </plurals>
     <string name="config_refresh_warning">Vyššia frekvencia spotrebuje viac batérie.</string>
     <string name="render_interactive_label">Interaktívne</string>
@@ -428,10 +428,10 @@
     <string name="share_theme">Zdieľať tému</string>
     <string name="my_theme">Moje témy</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d vlastnÃ¡ akcia</item>
-        <item quantity="few">%1$d vlastnÃ© akcie</item>
-        <item quantity="other">%1$d vlastnÃ© akcie</item>
-        <item quantity="many">%1$d vlastnÃ© akcie</item>
+        <item quantity="one">%1$d vlastná akcia</item>
+        <item quantity="few">%1$d vlastné akcie</item>
+        <item quantity="other">%1$d vlastné akcie</item>
+        <item quantity="many">%1$d vlastné akcie</item>
     </plurals>
     <string name="title_0_4_0">Aktualizácia prispôsobenia</string>
     <string name="title_0_4_2">Hotfix Update</string>

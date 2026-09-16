@@ -422,8 +422,8 @@
     <string name="share_theme">Partager le thème</string>
     <string name="my_theme">Mes thèmes</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d action personnalisÃ©e</item>
-        <item quantity="other">%1$d actions personnalisÃ©es</item>
+        <item quantity="one">%1$d action personnalisée</item>
+        <item quantity="other">%1$d actions personnalisées</item>
     </plurals>
     <string name="title_0_4_0">La version de la personnalisation</string>
     <string name="title_0_4_2">Mise à jour de corrections de bugs</string>

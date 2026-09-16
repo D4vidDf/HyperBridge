@@ -5,7 +5,6 @@ import android.app.AppOpsManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.net.toUri
@@ -57,19 +56,27 @@ fun openBatterySettings(context: Context) {
  * Checks if Notification Listener permission is granted.
  */
 fun isNotificationServiceEnabled(context: Context): Boolean {
-    val pkgName = context.packageName
-    val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-    return flat != null && flat.contains(pkgName)
+    return try {
+        val pkgName = context.packageName
+        val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+        flat != null && flat.contains(pkgName)
+    } catch (_: Throwable) {
+        false
+    }
 }
 
 /**
  * Checks if Post Notification permission (Android 13+) is granted.
  */
 fun isPostNotificationsEnabled(context: Context): Boolean {
-    return androidx.core.content.ContextCompat.checkSelfPermission(
+    return try {
+        androidx.core.content.ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.POST_NOTIFICATIONS
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    } catch (_: Throwable) {
+        false
+    }
 }
 
 /**
@@ -79,7 +86,6 @@ fun isPostNotificationsEnabled(context: Context): Boolean {
  */
 @Suppress("DEPRECATION")
 fun isRestrictedSettingsAllowed(context: Context): Boolean {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
     return try {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager
         val mode = appOps?.unsafeCheckOpNoThrow(
