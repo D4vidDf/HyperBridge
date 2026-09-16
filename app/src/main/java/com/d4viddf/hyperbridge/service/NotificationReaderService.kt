@@ -1078,7 +1078,7 @@ class NotificationReaderService : NotificationListenerService() {
         val extras = notification.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE).orEmpty()
         val isMessageStyle = notification.category == Notification.CATEGORY_MESSAGE ||
-                template.contains("MessagingStyle")
+                NotificationTemplates.isMessagingStyle(template)
         val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)
             ?.takeUnless { it.toString().trim().equals(sbn.packageName, ignoreCase = true) }
         return NotificationContentResolver.resolve(
@@ -1142,7 +1142,7 @@ class NotificationReaderService : NotificationListenerService() {
                 isMessageNotificationType = type == NotificationType.MESSAGE,
                 isStandardNotificationType = type == NotificationType.STANDARD,
                 hasMessageCategory = notification.category == Notification.CATEGORY_MESSAGE,
-                hasMessagingStyleTemplate = template.contains("MessagingStyle"),
+                hasMessagingStyleTemplate = NotificationTemplates.isMessagingStyle(template),
                 extractedMessageCount = content.messageCount,
                 hasConversationShortcut = !notification.shortcutId.isNullOrBlank(),
                 hasConversationLocus = !notification.locusId?.id.isNullOrBlank(),
@@ -1281,8 +1281,9 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             val effectiveTypes = getEffectiveTypes(sbn.packageName)
-            val hasDirectMessagingStyle = extras.getString(Notification.EXTRA_TEMPLATE)
-                ?.contains("MessagingStyle") == true
+            val hasDirectMessagingStyle = NotificationTemplates.isMessagingStyle(
+                extras.getString(Notification.EXTRA_TEMPLATE)
+            )
             val enabledTypeName = NotificationTypeEnablementPolicy.resolveEnabledType(
                 effectiveTypes = effectiveTypes,
                 detectedType = detectedType.name,
@@ -1914,7 +1915,10 @@ class NotificationReaderService : NotificationListenerService() {
         val isNav = n.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.let { it.contains("maps") || it.contains("waze") }
         val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || n.category == Notification.CATEGORY_ALARM) && n.`when` > 0
         val isMedia = template.contains("MediaStyle") || n.category == Notification.CATEGORY_TRANSPORT
-        val isMessage = n.category == Notification.CATEGORY_MESSAGE || template == "android.app.Notification.MessagingStyle"
+        // EXTRA_TEMPLATE holds the binary class name ("android.app.Notification$MessagingStyle");
+        // the old dotted equality never matched, so MessagingStyle without a msg category fell
+        // through to STANDARD (#331).
+        val isMessage = n.category == Notification.CATEGORY_MESSAGE || NotificationTemplates.isMessagingStyle(template)
         
         val title = resolveTitle(sbn)
         val text = resolveText(extras)
