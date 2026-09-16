@@ -2,12 +2,20 @@ package com.d4viddf.hyperbridge.service
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.DeviceVariables
+import com.d4viddf.hyperbridge.data.widget.SourceRepository
+import com.d4viddf.hyperbridge.data.widget.VariableContext
+import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
 import com.d4viddf.hyperbridge.models.HyperIslandData
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.service.widget.CustomWidgetRenderer
 import com.d4viddf.hyperbridge.util.ShizukuManager
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
@@ -17,6 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -45,7 +54,32 @@ class PermanentIslandManager(
     private var isHideInLandscapeEnabled = false
     private var pendingDispatchJob: Job? = null
 
+    // --- Custom micro-widget on the permanent island (#273 "island content sources") ---
+    private val customWidgetRepository = CustomWidgetRepository(context)
+    private val sourceRepository = SourceRepository(context)
+    private val widgetRenderer = CustomWidgetRenderer(context, WidgetVariableEngine(), customWidgetRepository)
+    private var currentCustomWidgetId: String? = null
+    private var currentCustomWidgetDoc: CustomWidgetDocument? = null
+
     init {
+        scope.launch {
+            preferences.permanentIslandWidgetIdFlow.collectLatest { widgetId ->
+                currentCustomWidgetId = widgetId
+                currentCustomWidgetDoc = widgetId?.let { customWidgetRepository.getWidget(it) }
+                if (isIslandActive) {
+                    dispatchPermanentIsland()
+                }
+            }
+        }
+        scope.launch {
+            sourceRepository.updates.collectLatest {
+                // A bound widget may reference any source id in its templates; re-dispatch on any
+                // source update rather than parsing which ids a widget actually references.
+                if (isIslandActive && currentCustomWidgetDoc != null) {
+                    dispatchPermanentIsland()
+                }
+            }
+        }
         scope.launch {
             preferences.isPermanentIslandEnabledFlow.collectLatest { enabled ->
                 synchronized(this@PermanentIslandManager) {
@@ -173,16 +207,35 @@ class PermanentIslandManager(
             builder.setReopen(true)
             builder.setIslandFirstFloat(false)
 
-            // Only big paramislands with empty values for textonleft and picKey = null
-            // Use width spaces to change width
-            val emptyString = "\u00A0".repeat(currentWidth)
-            builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, null, TextInfo(emptyString, emptyString)),
-                right = null
-            )
-            builder.setSmallIsland("")
+            val widgetDoc = currentCustomWidgetDoc
+            if (widgetDoc != null) {
+                // #273 "island content sources": render the bound micro-widget instead of the
+                // blank spacer, so e.g. a weather app driving {source.weather.text} shows on the
+                // always-on permanent island.
+                val ctx = VariableContext(
+                    deviceBatteryPercent = DeviceVariables.batteryPercent(context),
+                    timeNowFormatted = DeviceVariables.timeNow(),
+                    sourceLookup = { id, field -> runBlocking { sourceRepository.lookup(id, field) } }
+                )
+                val widgetView = widgetRenderer.render(widgetDoc, ctx, bridgeId = PERMANENT_BRIDGE_ID)
+                builder.setCustomRemoteView(widgetView)
+                // The expanded island reads its content from the island-expand slot; the custom
+                // notification view alone leaves a pill that never expands (verified on device).
+                builder.setCustomIslandExpandRemoteView(widgetView)
+                builder.setSmallIsland("")
+            } else {
+                // Only big paramislands with empty values for textonleft and picKey = null
+                // Use width spaces to change width
+                val emptyString = "\u00A0".repeat(currentWidth)
+                builder.setBigIslandInfo(
+                    left = ImageTextInfoLeft(1, null, TextInfo(emptyString, emptyString)),
+                    right = null
+                )
+                builder.setSmallIsland("")
+            }
 
-            val data = HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
+            val resourceBundle = if (widgetDoc != null) builder.buildCustomExtras() else builder.buildResourceBundle()
+            val data = HyperIslandData(resourceBundle, builder.buildJsonParam())
 
             val notifBuilder = NotificationCompat.Builder(context, "hyper_bridge_notification_channel")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)

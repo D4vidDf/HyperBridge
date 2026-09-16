@@ -472,15 +472,52 @@
 
     <string name="design_section_themes">Themes</string>
     <string name="design_section_widgets">Widgets</string>
+    <string name="design_section_templates">Island Templates</string>
+    <string name="design_create_template">Create Island Template</string>
+    <string name="design_empty_template_title">Design your first island template</string>
 
     <string name="design_browse_more">Browse More</string>
     <string name="design_add_new">Add New</string>
     <string name="design_add_design">Add Design</string>
     <string name="design_add_to_island">Customization</string>
     <string name="design_system_widget_beta">System Widget (Beta)</string>
+    <string name="design_widget_studio_beta">Widget Studio (Beta)</string>
     <string name="design_get_themes">Get Themes</string>
     <string name="design_empty_widget_title">Add your first Widget</string>
     <string name="design">Design</string>
+
+    <!-- Micro-Widget Studio (issue #273) -->
+    <string name="widget_studio_title">Widget Studio</string>
+    <string name="widget_studio_new_widget">New Widget</string>
+    <string name="widget_studio_empty">No custom widgets yet. Create one to design a spatial micro-widget for the island.</string>
+    <string name="widget_studio_add_text">Text</string>
+    <string name="widget_studio_add_image">Image</string>
+    <string name="widget_studio_add_progress">Progress</string>
+    <string name="widget_studio_add_button">Button</string>
+    <string name="widget_studio_add_container">Container</string>
+    <string name="widget_studio_save">Save</string>
+    <string name="widget_studio_export">Export</string>
+    <string name="widget_studio_import">Import</string>
+    <string name="widget_studio_delete_node">Delete</string>
+    <string name="widget_studio_node_image">Widget image</string>
+    <string name="widget_studio_property_template">Text / template</string>
+    <string name="widget_studio_property_insert_variable">Insert variable</string>
+    <string name="widget_studio_property_font_size">Font size (sp)</string>
+    <string name="widget_studio_property_color">Color (hex)</string>
+    <string name="widget_studio_property_bound_package">Bound app package (optional)</string>
+    <string name="widget_studio_property_x">X (dp)</string>
+    <string name="widget_studio_property_y">Y (dp)</string>
+    <string name="widget_studio_property_width">Width (dp)</string>
+    <string name="widget_studio_property_height">Height (dp)</string>
+    <string name="widget_studio_validation_errors">%1$d issue(s) fixed automatically</string>
+
+    <!-- Island content sources (issue #273 add-on) -->
+    <string name="permanent_island_widget_label">Micro-widget shown here</string>
+    <string name="permanent_island_widget_none">None</string>
+    <string name="permanent_island_manage_sources">Manage island content sources</string>
+    <string name="source_apps_title">Island content sources</string>
+    <string name="source_apps_description">Apps you allow here can drive a micro-widget on the permanent island (for example, a weather app showing current conditions). HyperBridge trusts each app\'s self-reported identity when it first reports in — this is a lighter guarantee than a cryptographically verified sender, so only allow apps you trust.</string>
+    <string name="source_apps_empty">No apps have reported in yet. An app must broadcast to HyperBridge at least once before it appears here.</string>
 
     <string name="creator_nav_actions">Global Actions</string>
     <string name="creator_sub_actions">Style buttons by keyword</string>
@@ -938,6 +975,80 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland enabled for all apps in the list</string>
     <string name="auto_add_new_apps_title">Add new apps</string>
     <string name="auto_add_new_apps_desc">Automatically enable bridging for newly installed applications</string>
+
+    <!-- Island Template Composer (Phase 4, #272) -->
+    <string name="template_type_t1">Weather &amp; Navigation</string>
+    <string name="template_type_t2">Payment &amp; OTP</string>
+    <string name="template_type_t3">Call &amp; Meeting</string>
+    <string name="template_type_t4">Ride Waypoints</string>
+    <string name="template_type_t5">Queueing</string>
+    <string name="template_type_t6">Parking &amp; Charging</string>
+    <string name="template_type_t7">Upload &amp; Download</string>
+    <string name="template_type_t8">Coupon</string>
+    <string name="template_type_t9">Boarding Pass</string>
+    <string name="template_type_t10">Courier Tracking</string>
+
+    <string name="template_composer_title">Island Template</string>
+    <string name="template_composer_title_new">New Island Template</string>
+    <string name="template_composer_name_label">Template name</string>
+    <string name="template_composer_name_placeholder">e.g. Delivery tracker</string>
+    <string name="template_composer_preview_title">Live preview</string>
+    <string name="template_composer_section_left_graphic">Left graphic</string>
+    <string name="template_composer_section_text">Center text</string>
+    <string name="template_composer_section_progress">Progress</string>
+    <string name="template_composer_section_buttons">Action buttons</string>
+    <string name="template_composer_section_rule">When to apply</string>
+    <string name="template_composer_save">Save template</string>
+    <string name="template_composer_delete">Delete template</string>
+
+    <string name="template_left_graphic_source">Graphic source</string>
+    <string name="template_left_graphic_app_icon">App icon</string>
+    <string name="template_left_graphic_large_icon">Notification image</string>
+    <string name="template_left_graphic_static">Custom (coming soon)</string>
+    <string name="template_left_graphic_shape">Shape</string>
+    <string name="template_left_graphic_padding">Padding</string>
+
+    <string name="template_field_title">Title</string>
+    <string name="template_field_content">Content</string>
+    <string name="template_field_bind_to">Bind to</string>
+    <string name="template_field_static_value">Custom text</string>
+    <string name="template_field_source_title">{title}</string>
+    <string name="template_field_source_text">{text}</string>
+    <string name="template_field_source_subtext">{subtext}</string>
+    <string name="template_field_source_progress">{progress}</string>
+    <string name="template_field_source_static">Custom text</string>
+    <string name="template_text_title_color">Title color</string>
+    <string name="template_text_content_color">Content color</string>
+
+    <string name="template_progress_kind">Progress type</string>
+    <string name="template_progress_none">None</string>
+    <string name="template_progress_linear">Linear bar</string>
+    <string name="template_progress_circular">Circular ring</string>
+    <string name="template_progress_multi_step">Multi-step</string>
+    <string name="template_progress_active_color">Active color</string>
+    <string name="template_progress_finished_color">Finished color</string>
+
+    <string name="template_button_label">Button label</string>
+    <string name="template_button_bind_native">Bind to notification action</string>
+    <string name="template_button_native_index">Action #%1$d</string>
+    <string name="template_button_color">Button color</string>
+    <string name="template_button_add">Add button</string>
+    <string name="template_button_remove">Remove button</string>
+
+    <string name="template_rule_package">Matching app</string>
+    <string name="template_rule_package_any">Any app</string>
+    <string name="template_rule_package_pick">Choose app</string>
+    <string name="template_rule_advanced_regex">Advanced regex</string>
+    <string name="template_rule_title_regex">Title contains (regex)</string>
+    <string name="template_rule_text_regex">Text contains (regex)</string>
+    <string name="template_rule_priority">Priority: %1$d</string>
+
+    <string name="template_list_empty_title">No island templates yet</string>
+    <string name="template_list_empty_subtitle">Design a custom island layout from one of the 10 Xiaomi templates</string>
+    <string name="template_list_delete_confirm_title">Delete this template?</string>
+    <string name="template_list_delete_confirm_body">This can\'t be undone.</string>
+    <string name="cd_delete_template">Delete template</string>
+    <string name="cd_template_enabled_toggle">Enable or disable this template</string>
 </resources>
 
 

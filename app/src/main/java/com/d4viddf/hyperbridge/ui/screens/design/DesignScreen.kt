@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Settings
@@ -77,6 +78,8 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.composer.ComposerTemplateRepository
+import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.util.DocumentationUrls
@@ -97,14 +100,18 @@ fun DesignScreen(
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
     onLaunchPicker: () -> Unit,
+    onLaunchTemplates: () -> Unit,
+    onLaunchWidgetStudio: () -> Unit = {},
     onSettingsClick: () -> Unit
 ) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
     val themeRepo = remember { ThemeRepository(context.applicationContext) }
+    val composerTemplateRepo = remember { ComposerTemplateRepository(AppDatabase.getDatabase(context.applicationContext).composerTemplateDao()) }
 
     val activeThemeId by preferences.activeThemeIdFlow.collectAsState(initial = null)
     val savedWidgetIds by preferences.savedWidgetIdsFlow.collectAsState(initial = emptyList())
+    val composerTemplateCount by composerTemplateRepo.templatesFlow.collectAsState(initial = emptyList())
 
     var availableThemes by remember { mutableStateOf<List<HyperTheme>>(emptyList()) }
     var widgetIcons by remember { mutableStateOf<List<Drawable>>(emptyList()) }
@@ -163,9 +170,11 @@ fun DesignScreen(
         themeIcons = themeIcons, // [NEW] Pass icons down
         savedWidgetCount = savedWidgetIds.size,
         widgetIcons = widgetIcons,
+        templateCount = composerTemplateCount.size,
         onNavigateToWidgets = onNavigateToWidgets,
         onNavigateToThemes = onNavigateToThemes,
         onEditTheme = onEditTheme,
+        onNavigateToTemplates = onLaunchTemplates,
         onFabClick = { showBottomSheet = true },
         onSettingsClick = onSettingsClick
     )
@@ -204,6 +213,34 @@ fun DesignScreen(
                 OutlinedButton(
                     onClick = {
                         showBottomSheet = false
+                        onLaunchTemplates()
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Rounded.Dashboard, null, modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.design_create_template), style = MaterialTheme.typography.titleMedium)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        showBottomSheet = false
+                        onLaunchWidgetStudio()
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Rounded.Widgets, null, modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.design_widget_studio_beta), style = MaterialTheme.typography.titleMedium)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        showBottomSheet = false
                         onNavigateToThemes()
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -226,9 +263,11 @@ fun DesignScreenContent(
     themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
     savedWidgetCount: Int,
     widgetIcons: List<Drawable>,
+    templateCount: Int = 0,
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
+    onNavigateToTemplates: () -> Unit = {},
     onFabClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -297,6 +336,16 @@ fun DesignScreenContent(
                     icons = widgetIcons,
                     onNavigateToWidgets = onNavigateToWidgets,
                     onAddWidget = onFabClick
+                )
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SectionHeader(stringResource(R.string.design_section_templates), onNavigateToTemplates)
+                TemplatesCarousel(
+                    templateCount = templateCount,
+                    onNavigateToTemplates = onNavigateToTemplates
                 )
             }
             Spacer(Modifier.height(24.dp))
@@ -473,6 +522,44 @@ fun WidgetsCarousel(
                     onClick = onAddWidget,
                     modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun TemplatesCarousel(
+    templateCount: Int,
+    onNavigateToTemplates: () -> Unit
+) {
+    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Card(
+            onClick = onNavigateToTemplates,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+            modifier = Modifier.fillMaxWidth().height(120.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Rounded.Dashboard, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.design_section_templates),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        if (templateCount == 0) stringResource(R.string.design_empty_template_title)
+                        else stringResource(R.string.design_create_template),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
