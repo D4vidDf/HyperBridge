@@ -11,28 +11,34 @@ class NativeIslandYieldPolicyTest {
 
     @Test
     fun ordinaryNotificationIsNotNative() {
-        assertNull(NativeIslandYieldPolicy.yieldMsFor(hasFocusParam = false, focusParam = null, isMediaStyle = false))
+        assertNull(NativeIslandYieldPolicy.yieldMsFor(hasFocusParam = false, focusParam = null, isMediaPlayer = false))
     }
 
     @Test
-    fun mediaPlayerKeepsTheShortWindow() {
+    fun mediaPlayerIsTheOnlyIslandWithATimeLimit() {
         assertEquals(
             NativeIslandYieldPolicy.MEDIA_YIELD_MS,
-            NativeIslandYieldPolicy.yieldMsFor(hasFocusParam = false, focusParam = null, isMediaStyle = true)
+            NativeIslandYieldPolicy.yieldMsFor(hasFocusParam = false, focusParam = null, isMediaPlayer = true)
         )
     }
 
     @Test
-    fun focusParamWinsOverMediaStyle() {
-        val json = focus("""{"islandTimeout":120}""")
-        assertEquals(120_000L, NativeIslandYieldPolicy.yieldMsFor(hasFocusParam = true, focusParam = json, isMediaStyle = true))
+    fun mediaPlayerWinsOverItsFocusParam() {
+        // A player that also declares a long island (e.g. drag-to-share data) is still a player:
+        // HyperOS drops its island on pause while the notification stays, so the short window applies.
+        val json = focus("""{"islandTimeout":43200}""")
+        assertEquals(
+            NativeIslandYieldPolicy.MEDIA_YIELD_MS,
+            NativeIslandYieldPolicy.yieldMsFor(hasFocusParam = true, focusParam = json, isMediaPlayer = true)
+        )
     }
 
     @Test
-    fun declaredIslandTimeoutIsSeconds() {
+    fun focusIslandHidesThePillForTheLifetimeItDeclares() {
         // A stopwatch-style island that declares a 12 h life keeps the pill away for 12 h (#335).
         assertEquals(43_200_000L, NativeIslandYieldPolicy.focusYieldMs(focus("""{"islandTimeout":43200,"bigIslandArea":{}}""")))
         assertEquals(5_000L, NativeIslandYieldPolicy.focusYieldMs(focus("""{"islandTimeout":"5"}""")))
+        assertEquals(5_000L, NativeIslandYieldPolicy.yieldMsFor(true, focus("""{"islandTimeout":5}"""), false))
     }
 
     @Test
@@ -52,13 +58,14 @@ class NativeIslandYieldPolicyTest {
     }
 
     @Test
-    fun unreadablePayloadFallsBackToTheFlatWindow() {
-        assertEquals(NativeIslandYieldPolicy.FALLBACK_YIELD_MS, NativeIslandYieldPolicy.focusYieldMs(null))
-        assertEquals(NativeIslandYieldPolicy.FALLBACK_YIELD_MS, NativeIslandYieldPolicy.focusYieldMs(""))
-        assertEquals(NativeIslandYieldPolicy.FALLBACK_YIELD_MS, NativeIslandYieldPolicy.focusYieldMs("{not json"))
-        assertEquals(NativeIslandYieldPolicy.FALLBACK_YIELD_MS, NativeIslandYieldPolicy.focusYieldMs("[1,2]"))
-        assertEquals(NativeIslandYieldPolicy.FALLBACK_YIELD_MS, NativeIslandYieldPolicy.focusYieldMs("""{"param_v1":{}}"""))
-        assertEquals(NativeIslandYieldPolicy.FALLBACK_YIELD_MS, NativeIslandYieldPolicy.yieldMsFor(true, null, false))
+    fun unreadablePayloadHidesThePillUntilTheNotificationGoes() {
+        val unbounded = NativeIslandYieldPolicy.UNBOUNDED_YIELD_MS
+        assertEquals(unbounded, NativeIslandYieldPolicy.focusYieldMs(null))
+        assertEquals(unbounded, NativeIslandYieldPolicy.focusYieldMs(""))
+        assertEquals(unbounded, NativeIslandYieldPolicy.focusYieldMs("{not json"))
+        assertEquals(unbounded, NativeIslandYieldPolicy.focusYieldMs("[1,2]"))
+        assertEquals(unbounded, NativeIslandYieldPolicy.focusYieldMs("""{"param_v1":{}}"""))
+        assertEquals(unbounded, NativeIslandYieldPolicy.yieldMsFor(true, null, false))
     }
 
     @Test

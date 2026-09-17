@@ -877,7 +877,8 @@ class NotificationReaderService : NotificationListenerService() {
 
     /**
      * The yield window another app's notification earns from the permanent island, or null when
-     * it is not a native island (see [NativeIslandYieldPolicy]).
+     * it is not a native island: a media player gets the short window, anything else hides the
+     * permanent island for as long as it is posted (see [NativeIslandYieldPolicy]).
      */
     private fun nativeIslandYieldMs(sbn: StatusBarNotification): Long? {
         val extras = sbn.notification.extras ?: return null
@@ -886,9 +887,13 @@ class NotificationReaderService : NotificationListenerService() {
             extras.getString("miui.focus.param") ?: extras.getString("miui.system.focus.param")
         } else null
         val template = extras.getString(Notification.EXTRA_TEMPLATE)
-        val isMediaStyle = template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
+        // HyperOS renders every notification with a MediaSession as an island player, MediaStyle
+        // or not, so the session token is the signal; the template covers players that hide it.
+        val isMediaPlayer = extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
+            extras.containsKey("miui.focus.param.media") ||
+            template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
             template == "android.app.Notification\$MediaStyle"
-        return NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaStyle)
+        return NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaPlayer)
     }
 
     /**
