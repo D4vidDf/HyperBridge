@@ -481,7 +481,7 @@ class NotificationReaderService : NotificationListenerService() {
         }
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationRemoved(it)
-            if (nativeIslands.remove(it.key)) {
+            if (forgetNativeIsland(it.key)) {
                 updatePermanentIsland()
             }
 
@@ -876,20 +876,54 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     /**
+     * The yield window another app's notification earns from the permanent island, or null when
+     * it is not a native island (see [NativeIslandYieldPolicy]).
+     */
+    private fun nativeIslandYieldMs(sbn: StatusBarNotification): Long? {
+        val extras = sbn.notification.extras ?: return null
+        val hasFocusParam = extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")
+        val focusParam = if (hasFocusParam) {
+            extras.getString("miui.focus.param") ?: extras.getString("miui.system.focus.param")
+        } else null
+        val template = extras.getString(Notification.EXTRA_TEMPLATE)
+        val isMediaStyle = template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
+            template == "android.app.Notification\$MediaStyle"
+        return NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaStyle)
+    }
+
+    /**
      * Records a native island sighting. The yield window closing is a timer, not a notification
      * event — nothing else re-evaluates the permanent island until the next sync tick (up to 60 s,
-     * screen on only) — so the pill is re-asserted right after the newest window ends.
+     * screen on only) — so the pill is re-asserted right after the last open window ends.
      */
-    private fun noteNativeIsland(key: String): Boolean {
-        val firstSighting = nativeIslands.note(key)
-        if (firstSighting) {
-            nativeYieldJob?.cancel()
-            nativeYieldJob = serviceScope.launch {
-                delay(nativeIslands.remainingYieldMs() + 1_000L)
-                updatePermanentIsland()
-            }
-        }
+    private fun noteNativeIsland(key: String, yieldMs: Long): Boolean {
+        val firstSighting = nativeIslands.note(key, yieldMs)
+        if (firstSighting) rescheduleNativeYield()
         return firstSighting
+    }
+
+    /**
+     * Forgets a native island. The re-assert timer follows the *remaining* windows: with a
+     * long-lived island gone, a shorter one still tracked must not leave the pill dead until
+     * the long window would have closed.
+     */
+    private fun forgetNativeIsland(key: String): Boolean {
+        val removed = nativeIslands.remove(key)
+        if (removed) rescheduleNativeYield()
+        return removed
+    }
+
+    private fun rescheduleNativeYield() {
+        nativeYieldJob?.cancel()
+        val remaining = nativeIslands.remainingYieldMs()
+        if (remaining <= 0L || remaining == Long.MAX_VALUE) {
+            nativeYieldJob = null
+            return
+        }
+        nativeYieldJob = serviceScope.launch {
+            delay(remaining + 1_000L)
+            updatePermanentIsland()
+        }
     }
 
     private fun updatePermanentIsland() {
@@ -920,22 +954,11 @@ class NotificationReaderService : NotificationListenerService() {
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
             if (it.packageName != packageName) {
-                val extras = it.notification.extras
-                var isNative = false
-                if (extras != null) {
-                    if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
-                        isNative = true
-                    }
-                    val template = extras.getString(Notification.EXTRA_TEMPLATE)
-                    if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
-                        template == "android.app.Notification\$MediaStyle") {
-                        isNative = true
-                    }
-                }
-                if (isNative) {
-                    if (noteNativeIsland(it.key)) updatePermanentIsland()
+                val yieldMs = nativeIslandYieldMs(it)
+                if (yieldMs != null) {
+                    if (noteNativeIsland(it.key, yieldMs)) updatePermanentIsland()
                 } else {
-                    if (nativeIslands.remove(it.key)) updatePermanentIsland()
+                    if (forgetNativeIsland(it.key)) updatePermanentIsland()
                 }
             }
 
@@ -2272,29 +2295,18 @@ class NotificationReaderService : NotificationListenerService() {
                 var nativeChanged = false
                 for (sbn in currentNotifications) {
                     if (sbn.packageName != packageName) {
-                        val extras = sbn.notification.extras
-                        var isNative = false
-                        if (extras != null) {
-                            if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
-                                isNative = true
-                            }
-                            val template = extras.getString(Notification.EXTRA_TEMPLATE)
-                            if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
-                                template == "android.app.Notification\$MediaStyle") {
-                                isNative = true
-                            }
-                        }
-                        if (isNative) {
-                            if (noteNativeIsland(sbn.key)) nativeChanged = true
+                        val yieldMs = nativeIslandYieldMs(sbn)
+                        if (yieldMs != null) {
+                            if (noteNativeIsland(sbn.key, yieldMs)) nativeChanged = true
                         } else {
-                            if (nativeIslands.remove(sbn.key)) nativeChanged = true
+                            if (forgetNativeIsland(sbn.key)) nativeChanged = true
                         }
                     }
                 }
                 val currentNatives = nativeIslands.keys()
                 for (key in currentNatives) {
                     if (!systemNotificationKeys.contains(key)) {
-                        if (nativeIslands.remove(key)) nativeChanged = true
+                        if (forgetNativeIsland(key)) nativeChanged = true
                     }
                 }
                 if (nativeChanged) updatePermanentIsland()
