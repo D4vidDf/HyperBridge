@@ -158,7 +158,7 @@ enum class AppConfigSubscreen {
 fun AppConfigScreen(
     packageName: String,
     viewModel: AppListViewModel = viewModel(),
-    translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel = viewModel(),
     onBack: () -> Unit,
     onNavConfigClick: (String) -> Unit,
     onCreateTranslator: (String) -> Unit = {},
@@ -1962,21 +1962,52 @@ fun AppConfigTranslatorChildItem(
     onToggle: (Boolean) -> Unit,
     onEdit: () -> Unit
 ) {
-    Card(
+    Surface(
+        onClick = onEdit,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (translator.isEnabled) MaterialTheme.colorScheme.surfaceContainerHigh
-            else MaterialTheme.colorScheme.surfaceContainer
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onEdit)
+        color = if (translator.isEnabled) MaterialTheme.colorScheme.surfaceContainerHigh
+        else MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(14.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // Outlined Icon Badge
+                Surface(
+                    modifier = Modifier.size(40.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (translator.isEnabled) {
+                        when (translator.targetScope) {
+                            com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
+                            com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
+                            com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
+                        }
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon(translator.meta.iconName),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = if (translator.isEnabled) {
+                                when (translator.targetScope) {
+                                    com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
+                                    com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
+                                }
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.width(12.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = translator.meta.name,

@@ -564,6 +564,8 @@ fun TranslatorsCarousel(
                         com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, item.targetPackages.size)
                         com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, item.targetNotificationTypes.size)
                     },
+                    iconName = item.meta.iconName,
+                    targetScope = item.targetScope,
                     isActive = item.isEnabled,
                     onClick = { onEditTranslator(item.id) },
                     modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
@@ -572,6 +574,7 @@ fun TranslatorsCarousel(
                 TranslatorPreviewCard(
                     title = stringResource(R.string.design_browse_more),
                     subtitle = "",
+                    iconName = null,
                     isActive = false,
                     isAction = true,
                     onClick = onNavigateToTranslators,
@@ -586,6 +589,8 @@ fun TranslatorsCarousel(
 fun TranslatorPreviewCard(
     title: String,
     subtitle: String,
+    iconName: String? = null,
+    targetScope: com.d4viddf.hyperbridge.models.translator.TargetScope? = null,
     isActive: Boolean,
     isAction: Boolean = false,
     onClick: () -> Unit,
@@ -617,12 +622,36 @@ fun TranslatorPreviewCard(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Extension,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
+                    Surface(
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (isActive && targetScope != null) {
+                            when (targetScope) {
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
+                            }
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon(iconName),
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = if (isActive && targetScope != null) {
+                                    when (targetScope) {
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
+                                    }
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                }
+                            )
+                        }
+                    }
 
                     if (isActive) {
                         Box(

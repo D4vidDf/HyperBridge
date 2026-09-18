@@ -27,6 +27,21 @@ enum class TranslatorFilterScope {
     ALL, ACTIVE, INACTIVE, GLOBAL, APPS, NOTIF_TYPES
 }
 
+data class TranslatorFilterState(
+    val statusScope: TranslatorFilterScope = TranslatorFilterScope.ALL,
+    val selectedNotificationTypes: Set<String> = emptySet(),
+    val selectedPackages: Set<String> = emptySet(),
+    val selectedAuthors: Set<String> = emptySet(),
+    val selectedIcons: Set<String> = emptySet()
+) {
+    val isCustomFilterActive: Boolean
+        get() = statusScope != TranslatorFilterScope.ALL ||
+                selectedNotificationTypes.isNotEmpty() ||
+                selectedPackages.isNotEmpty() ||
+                selectedAuthors.isNotEmpty() ||
+                selectedIcons.isNotEmpty()
+}
+
 data class NotificationChannelInfo(
     val id: String,
     val name: String,
@@ -78,15 +93,28 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _selectedFilter = MutableStateFlow(TranslatorFilterScope.ALL)
-    val selectedFilter: StateFlow<TranslatorFilterScope> = _selectedFilter.asStateFlow()
+    private val _filterState = MutableStateFlow(TranslatorFilterState())
+    val filterState: StateFlow<TranslatorFilterState> = _filterState.asStateFlow()
+
+    // Backwards-compatible alias for single scope selection
+    val selectedFilter: StateFlow<TranslatorFilterScope> = _filterState
+        .map { it.statusScope }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TranslatorFilterScope.ALL)
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
     }
 
     fun setFilter(filter: TranslatorFilterScope) {
-        _selectedFilter.value = filter
+        _filterState.value = _filterState.value.copy(statusScope = filter)
+    }
+
+    fun setFilterState(state: TranslatorFilterState) {
+        _filterState.value = state
+    }
+
+    fun resetFilterState() {
+        _filterState.value = TranslatorFilterState()
     }
 
     fun getTranslatorsForApp(packageName: String): StateFlow<List<CustomTranslator>> {
@@ -104,13 +132,37 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
 
     fun toggleTranslator(id: String, isEnabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            translatorDao.setTranslatorEnabled(id, isEnabled)
+            val existing = translatorDao.getTranslatorById(id)
+            if (existing != null) {
+                val updatedCustom = existing.toCustomTranslator().getOrNull()?.copy(isEnabled = isEnabled)
+                val updatedJson = updatedCustom?.let { CustomTranslator.toJson(it) } ?: existing.jsonContent
+                val updatedEntity = existing.copy(
+                    isEnabled = isEnabled,
+                    jsonContent = updatedJson,
+                    updatedAt = System.currentTimeMillis()
+                )
+                translatorDao.updateTranslator(updatedEntity)
+            } else {
+                translatorDao.setTranslatorEnabled(id, isEnabled)
+            }
         }
     }
 
     fun updatePriority(id: String, newPriority: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            translatorDao.updatePriority(id, newPriority)
+            val existing = translatorDao.getTranslatorById(id)
+            if (existing != null) {
+                val updatedCustom = existing.toCustomTranslator().getOrNull()?.copy(priority = newPriority)
+                val updatedJson = updatedCustom?.let { CustomTranslator.toJson(it) } ?: existing.jsonContent
+                val updatedEntity = existing.copy(
+                    priority = newPriority,
+                    jsonContent = updatedJson,
+                    updatedAt = System.currentTimeMillis()
+                )
+                translatorDao.updateTranslator(updatedEntity)
+            } else {
+                translatorDao.updatePriority(id, newPriority)
+            }
         }
     }
 
@@ -158,18 +210,16 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
 
         for (pkg in packagesToQuery) {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    val channels = service.getNotificationChannels(pkg, userHandle) ?: emptyList()
-                    for (ch in channels) {
-                        result.add(
-                            NotificationChannelInfo(
-                                id = ch.id,
-                                name = ch.name?.toString() ?: ch.id,
-                                description = ch.description,
-                                packageName = pkg
-                            )
+                val channels = service.getNotificationChannels(pkg, userHandle) ?: emptyList()
+                for (ch in channels) {
+                    result.add(
+                        NotificationChannelInfo(
+                            id = ch.id,
+                            name = ch.name?.toString() ?: ch.id,
+                            description = ch.description,
+                            packageName = pkg
                         )
-                    }
+                    )
                 }
             } catch (_: Exception) {
                 // Ignore permissions or missing package exceptions
