@@ -1157,4 +1157,20 @@
     <string name="translator_actions_matcher_by_title">Por Regex del Título del Botón</string>
     <string name="translator_actions_matcher_index_label">Índice del Botón (0 = 1º, 1 = 2º, etc.)</string>
     <string name="translator_actions_matcher_regex_label">Regex del Título (ej. Responder|Reply)</string>
+
+    <!-- Behavior & Engine Strings -->
+    <string name="translator_behavior_learn_btn">Cómo funciona el comportamiento y motor</string>
+    <string name="translator_behavior_learn_sheet_title">Guía de Comportamiento y Motor</string>
+    <string name="translator_behavior_learn_engine_title">1. Motor de Renderizado</string>
+    <string name="translator_behavior_learn_engine_desc">Elige entre Isla personalizada de HyperOS (estilo y animaciones completas), Live Updates nativas de Android (píldora y barra de estado del sistema), o heredar la configuración global de la app.</string>
+    <string name="translator_behavior_learn_timeout_title">2. Duración y Auto-ocultado</string>
+    <string name="translator_behavior_learn_timeout_desc">Controla cuántos segundos permanece la Dynamic Island en pantalla antes de ocultarse automáticamente, o déjala visible hasta descartarla manualmente.</string>
+    <string name="translator_behavior_learn_float_title">3. Ventana Emergente y Panel</string>
+    <string name="translator_behavior_learn_float_desc">Configura las ventanas emergentes flotantes de Xiaomi y si la notificación debe permanecer en el panel de notificaciones de Android.</string>
+    <string name="translator_behavior_learn_mgmt_title">4. Gestión de la Notificación Original</string>
+    <string name="translator_behavior_learn_mgmt_desc">Descarta automáticamente la notificación original cuando la isla esté activa, sincroniza el cierre al limpiar la original, o activa la superposición de respuesta rápida.</string>
+    <string name="translator_behavior_engine_mode_sheet_title">Seleccionar Modo de Motor</string>
+    <string name="translator_behavior_engine_mode_inherit">Heredar Ajustes Globales</string>
+    <string name="translator_behavior_engine_mode_inherit_desc">Sigue el motor global configurado en los ajustes de HyperBridge</string>
+    <string name="translator_behavior_engine_change_btn">Cambiar Motor</string>
 </resources>

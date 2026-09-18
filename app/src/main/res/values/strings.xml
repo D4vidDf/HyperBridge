@@ -1286,6 +1286,22 @@
     <string name="translator_actions_matcher_by_title">By Button Title Regex</string>
     <string name="translator_actions_matcher_index_label">Button Index (0 = 1st, 1 = 2nd, etc.)</string>
     <string name="translator_actions_matcher_regex_label">Action Title Regex (e.g. Reply|Responder)</string>
+
+    <!-- Behavior & Engine Strings -->
+    <string name="translator_behavior_learn_btn">Learn How Behavior &amp; Engine Works</string>
+    <string name="translator_behavior_learn_sheet_title">Behavior &amp; Engine Guide</string>
+    <string name="translator_behavior_learn_engine_title">1. Rendering Engine</string>
+    <string name="translator_behavior_learn_engine_desc">Choose between HyperOS Custom Island (full custom styling &amp; animations), Native Android Live Updates (system pill &amp; status), or inheriting your global app default.</string>
+    <string name="translator_behavior_learn_timeout_title">2. Lifetime &amp; Auto-Hide</string>
+    <string name="translator_behavior_learn_timeout_desc">Control how many seconds the Dynamic Island stays on screen before automatically hiding, or leave it visible until manually dismissed.</string>
+    <string name="translator_behavior_learn_float_title">3. Heads-Up Popup &amp; Shade</string>
+    <string name="translator_behavior_learn_float_desc">Configure Xiaomi featured notification popups and whether the notification should remain in your Android notification shade.</string>
+    <string name="translator_behavior_learn_mgmt_title">4. Original Notification Handling</string>
+    <string name="translator_behavior_learn_mgmt_desc">Automatically dismiss the source notification when an island appears, sync dismissal when clearing the source, or enable inline reply overlays.</string>
+    <string name="translator_behavior_engine_mode_sheet_title">Select Engine Mode</string>
+    <string name="translator_behavior_engine_mode_inherit">Inherit App Default</string>
+    <string name="translator_behavior_engine_mode_inherit_desc">Follows the global engine set in HyperBridge settings</string>
+    <string name="translator_behavior_engine_change_btn">Change Engine</string>
 </resources>
 
 

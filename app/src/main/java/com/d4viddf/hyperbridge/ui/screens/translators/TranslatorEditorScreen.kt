@@ -35,8 +35,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.outlined.Subject
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -45,6 +47,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PlayArrow
@@ -364,9 +368,7 @@ fun TranslatorEditorContent(
                             onChange = { onTranslatorChange(translator.copy(presentation = translator.presentation.copy(actionSlots = it))) }
                         )
                     }
-                    TranslatorRoute.BEHAVIOR -> TranslatorDetailShell(
-                        previewContent = { TranslatorLivePreviewBar(translator, installedThemes) }
-                    ) {
+                    TranslatorRoute.BEHAVIOR -> Box(Modifier.fillMaxSize()) {
                         TranslatorBehaviorContent(
                             behavior = translator.behaviorOverride,
                             engineMode = translator.engineMode,
@@ -4852,6 +4854,7 @@ fun ActionDisplayModeSelectionContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorBehaviorContent(
     behavior: BehaviorOverride,
@@ -4859,6 +4862,23 @@ fun TranslatorBehaviorContent(
     onBehaviorChange: (BehaviorOverride) -> Unit,
     onEngineModeChange: (EngineMode) -> Unit
 ) {
+    var showLearnSheet by remember { mutableStateOf(false) }
+    var showEngineSheet by remember { mutableStateOf(false) }
+
+    val timeoutSteps = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 45, 60, 300, 900, 1800, 3600)
+    val timePopUpSteps = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30)
+
+    val currentTimeout = behavior.timeoutSeconds ?: 10
+    val isTimeoutEnabled = (behavior.timeoutSeconds != null && behavior.timeoutSeconds > 0)
+
+    val isFloatEnabled = behavior.isFloat ?: true
+    val currentFloatTimeout = behavior.floatTimeoutSeconds ?: 10
+    val isShowShade = behavior.isShowShade ?: false
+
+    val removeOriginalOn = behavior.removeOriginalNotification == true
+    val dismissWithOriginal = behavior.dismissWithOriginal ?: false
+    val enableInlineReply = behavior.enableInlineReply ?: true
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -4866,98 +4886,796 @@ fun TranslatorBehaviorContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = stringResource(R.string.translator_behavior_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = stringResource(R.string.engine),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Educational Banner / Learn Sheet Trigger
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            EngineMode.entries.forEach { mode ->
-                FilterChip(
-                    selected = engineMode == mode,
-                    onClick = { onEngineModeChange(mode) },
-                    label = { Text(mode.name) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Outlined.Tune,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.translator_behavior_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(R.string.island_behavior_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = { showLearnSheet = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
+                ) {
+                    Icon(Icons.Outlined.TouchApp, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.translator_behavior_learn_btn),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+
+        // --- SECTION 1: ENGINE CONFIGURATION ---
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(R.string.engine_config_title),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Outlined.Tune,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.engine),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            val engineTitleRes = when (engineMode) {
+                                EngineMode.INHERIT -> R.string.translator_behavior_engine_mode_inherit
+                                EngineMode.CUSTOM_ISLAND -> R.string.engine_xiaomi_title
+                                EngineMode.NATIVE_LIVE_UPDATE -> R.string.engine_native_title
+                            }
+                            Text(
+                                text = stringResource(engineTitleRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = { showEngineSheet = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Text(stringResource(R.string.translator_behavior_engine_change_btn))
+                    }
+                }
+            }
+        }
+
+        // --- SECTION 2: GLOBAL BEHAVIOR & TIMEOUTS ---
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(R.string.global_behavior),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                    // Header with Switch
+                    Row(verticalAlignment = Alignment.Top) {
+                        Icon(
+                            Icons.Default.AccessTime,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.width(20.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.auto_hide_island),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = if (isTimeoutEnabled) stringResource(R.string.hides_after_a_set_time) else stringResource(R.string.behavior_hide_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(Modifier.width(20.dp))
+                        Switch(
+                            checked = isTimeoutEnabled,
+                            onCheckedChange = { enabled ->
+                                val newTimeout = if (enabled) 5 else null
+                                onBehaviorChange(behavior.copy(timeoutSeconds = newTimeout))
+                            }
+                        )
+                    }
+
+                    // Expandable Slider Section
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isTimeoutEnabled,
+                        enter = androidx.compose.animation.expandVertically(),
+                        exit = androidx.compose.animation.shrinkVertically()
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(16.dp))
+
+                            Text(
+                                text = com.d4viddf.hyperbridge.ui.components.formatSeconds(currentTimeout),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            val currentIndex = timeoutSteps.indexOf(currentTimeout).coerceAtLeast(0).toFloat()
+
+                            androidx.compose.material3.Slider(
+                                value = currentIndex,
+                                onValueChange = { index ->
+                                    val selectedSeconds = timeoutSteps[index.toInt()]
+                                    onBehaviorChange(behavior.copy(timeoutSeconds = selectedSeconds))
+                                },
+                                valueRange = 0f..(timeoutSteps.size - 1).toFloat(),
+                                steps = timeoutSteps.size - 2
+                            )
+
+                            Text(
+                                text = stringResource(R.string.behavior_desc_hide_long),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- SECTION 3: XIAOMI FEATURED NOTIFICATIONS ---
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.xiaomi_featured_notifications),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
+            )
+
+            // Float Settings Card (Heads-up Popup)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        Icon(
+                            Icons.Default.Visibility,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.width(20.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.setting_float),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                stringResource(R.string.setting_float_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(Modifier.width(20.dp))
+                        Switch(
+                            checked = isFloatEnabled,
+                            onCheckedChange = { onBehaviorChange(behavior.copy(isFloat = it)) }
+                        )
+                    }
+
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isFloatEnabled,
+                        enter = androidx.compose.animation.expandVertically(),
+                        exit = androidx.compose.animation.shrinkVertically()
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.seconds_suffix, currentFloatTimeout),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            val currentIndexPop = timePopUpSteps.indexOf(currentFloatTimeout).coerceAtLeast(1).toFloat()
+
+                            androidx.compose.material3.Slider(
+                                value = currentIndexPop,
+                                onValueChange = { index ->
+                                    val selectedSeconds = timePopUpSteps[index.toInt()]
+                                    onBehaviorChange(behavior.copy(floatTimeoutSeconds = selectedSeconds))
+                                },
+                                valueRange = 0f..(timePopUpSteps.size - 1).toFloat(),
+                                steps = timePopUpSteps.size - 2
+                            )
+                            Text(
+                                text = stringResource(R.string.setting_float_timeout_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Notification Shade Toggle Card
+            Card(
+                onClick = { onBehaviorChange(behavior.copy(isShowShade = !isShowShade)) },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        Icons.Default.Layers,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(20.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.setting_shade),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            stringResource(R.string.setting_shade_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(20.dp))
+                    Switch(
+                        checked = isShowShade,
+                        onCheckedChange = { onBehaviorChange(behavior.copy(isShowShade = it)) }
+                    )
+                }
+            }
+        }
+
+        // --- SECTION 4: NOTIFICATION MANAGEMENT ---
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.notification_management),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
+            )
+
+            // Remove Original Notification Card
+            Card(
+                onClick = { onBehaviorChange(behavior.copy(removeOriginalNotification = !removeOriginalOn)) },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        Icons.Default.DeleteSweep,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(20.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.remove_original_notification),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            stringResource(R.string.remove_original_notification_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(20.dp))
+                    Switch(
+                        checked = removeOriginalOn,
+                        onCheckedChange = { onBehaviorChange(behavior.copy(removeOriginalNotification = it)) }
+                    )
+                }
+            }
+
+            // Dismiss With Original Notification Card
+            Card(
+                onClick = { if (!removeOriginalOn) onBehaviorChange(behavior.copy(dismissWithOriginal = !dismissWithOriginal)) },
+                enabled = !removeOriginalOn,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        Icons.Default.DeleteSweep,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(20.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.dismiss_with_original),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            stringResource(R.string.dismiss_with_original_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(20.dp))
+                    Switch(
+                        checked = dismissWithOriginal,
+                        enabled = !removeOriginalOn,
+                        onCheckedChange = { onBehaviorChange(behavior.copy(dismissWithOriginal = it)) }
+                    )
+                }
+            }
+
+            // Enable Inline Reply Overlay Card
+            Card(
+                onClick = { if (!removeOriginalOn) onBehaviorChange(behavior.copy(enableInlineReply = !enableInlineReply)) },
+                enabled = !removeOriginalOn,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = if (removeOriginalOn) 4.dp else 24.dp, bottomEnd = if (removeOriginalOn) 4.dp else 24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Reply,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(20.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.enable_inline_reply),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            stringResource(R.string.enable_inline_reply_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(20.dp))
+                    Switch(
+                        checked = enableInlineReply,
+                        enabled = !removeOriginalOn,
+                        onCheckedChange = { onBehaviorChange(behavior.copy(enableInlineReply = it)) }
+                    )
+                }
+            }
+
+            // Warning Banner if Remove Original Notification is enabled
+            androidx.compose.animation.AnimatedVisibility(
+                visible = removeOriginalOn,
+                enter = androidx.compose.animation.expandVertically(),
+                exit = androidx.compose.animation.shrinkVertically()
+            ) {
+                Text(
+                    text = stringResource(R.string.remove_original_notification_hidden_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)
                 )
             }
         }
+    }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.translator_behavior_float), style = MaterialTheme.typography.bodyLarge)
+    // --- BOTTOM SHEETS ---
+    if (showEngineSheet) {
+        TranslatorEngineSelectionSheet(
+            currentMode = engineMode,
+            onDismiss = { showEngineSheet = false },
+            onModeSelected = {
+                onEngineModeChange(it)
+                onBehaviorChange(behavior.copy(engineMode = it))
+                showEngineSheet = false
             }
-            Switch(
-                checked = behavior.isFloat == true,
-                onCheckedChange = { onBehaviorChange(behavior.copy(isFloat = if (it) true else null)) }
-            )
-        }
-
-        OutlinedTextField(
-            value = behavior.timeoutSeconds?.toString() ?: "",
-            onValueChange = { onBehaviorChange(behavior.copy(timeoutSeconds = it.toIntOrNull())) },
-            label = { Text(stringResource(R.string.translator_behavior_timeout)) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
+    }
 
+    if (showLearnSheet) {
+        TranslatorBehaviorGuideSheet(
+            onDismiss = { showLearnSheet = false }
+        )
+    }
+}
+
+// --- ENGINE MODE SELECTION BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorEngineSelectionSheet(
+    currentMode: EngineMode,
+    onDismiss: () -> Unit,
+    onModeSelected: (EngineMode) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorEngineSelectionContent(
+            currentMode = currentMode,
+            onModeSelected = onModeSelected
+        )
+    }
+}
+
+@Composable
+fun TranslatorEngineSelectionContent(
+    currentMode: EngineMode,
+    onModeSelected: (EngineMode) -> Unit
+) {
+    val options = listOf(
+        Triple(
+            EngineMode.INHERIT,
+            R.string.translator_behavior_engine_mode_inherit,
+            R.string.translator_behavior_engine_mode_inherit_desc
+        ),
+        Triple(
+            EngineMode.CUSTOM_ISLAND,
+            R.string.engine_xiaomi_title,
+            R.string.engine_xiaomi_desc
+        ),
+        Triple(
+            EngineMode.NATIVE_LIVE_UPDATE,
+            R.string.engine_native_title,
+            R.string.engine_native_desc
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.translator_behavior_shade), style = MaterialTheme.typography.bodyLarge)
-            }
-            Switch(
-                checked = behavior.isShowShade == true,
-                onCheckedChange = { onBehaviorChange(behavior.copy(isShowShade = if (it) true else null)) }
+            Icon(
+                Icons.Outlined.Tune,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_behavior_engine_mode_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
             )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.translator_behavior_remove_orig), style = MaterialTheme.typography.bodyLarge)
+            items(options) { (mode, titleRes, descRes) ->
+                val isSelected = currentMode == mode
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    onClick = { onModeSelected(mode) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    when (mode) {
+                                        EngineMode.INHERIT -> Icons.Outlined.Tune
+                                        EngineMode.CUSTOM_ISLAND -> Icons.Outlined.DashboardCustomize
+                                        EngineMode.NATIVE_LIVE_UPDATE -> Icons.Outlined.Notifications
+                                    },
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
-            Switch(
-                checked = behavior.removeOriginalNotification == true,
-                onCheckedChange = { onBehaviorChange(behavior.copy(removeOriginalNotification = if (it) true else null)) }
+        }
+    }
+}
+
+// --- BEHAVIOR GUIDE BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorBehaviorGuideSheet(
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorBehaviorGuideContent()
+    }
+}
+
+@Composable
+fun TranslatorBehaviorGuideContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.TouchApp,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_behavior_learn_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
             )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.translator_behavior_dismiss_with_orig), style = MaterialTheme.typography.bodyLarge)
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_engine_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_engine_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
-            Switch(
-                checked = behavior.dismissWithOriginal == true,
-                onCheckedChange = { onBehaviorChange(behavior.copy(dismissWithOriginal = if (it) true else null)) }
-            )
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_timeout_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_timeout_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_float_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_float_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_mgmt_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_behavior_learn_mgmt_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
         }
     }
 }
