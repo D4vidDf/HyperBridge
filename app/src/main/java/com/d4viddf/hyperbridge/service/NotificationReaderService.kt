@@ -23,44 +23,19 @@ import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.RulesEngine
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
-import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.ActiveIsland
+import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
+import com.d4viddf.hyperbridge.models.MessageEventFingerprint
 import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
-import com.d4viddf.hyperbridge.service.translators.CallTranslator
-import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
-import com.d4viddf.hyperbridge.service.translators.MediaTranslator
-import com.d4viddf.hyperbridge.service.translators.MessageTranslator
-import com.d4viddf.hyperbridge.service.translators.NavTranslator
-import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
-import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
-import com.d4viddf.hyperbridge.service.translators.StandardTranslator
-import com.d4viddf.hyperbridge.service.translators.TimerTranslator
-import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
-import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
-import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingControlBackend
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSemanticFingerprint
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionInput
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionTracker
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSignals
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingTimeoutPolicy
-import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBackend
-import com.d4viddf.hyperbridge.util.ShizukuManager
-import com.d4viddf.hyperbridge.models.CallStage
-import com.d4viddf.hyperbridge.models.MessageEventFingerprint
-import com.d4viddf.hyperbridge.models.MessageEventFingerprintSource
+import com.d4viddf.hyperbridge.models.translator.EngineMode
 import com.d4viddf.hyperbridge.service.call.CallActionSignal
-import com.d4viddf.hyperbridge.service.call.CallClassification
 import com.d4viddf.hyperbridge.service.call.CallNotificationClassifier
 import com.d4viddf.hyperbridge.service.call.CallNotificationSignals
 import com.d4viddf.hyperbridge.service.call.CallReplacementPolicy
@@ -76,11 +51,34 @@ import com.d4viddf.hyperbridge.service.message.MessageNotificationResolver
 import com.d4viddf.hyperbridge.service.message.MessageNotificationSignals
 import com.d4viddf.hyperbridge.service.message.MessagePresentationFamilyTracker
 import com.d4viddf.hyperbridge.service.message.MessagePresentationSource
-import com.d4viddf.hyperbridge.service.message.MessageSourceQuality
 import com.d4viddf.hyperbridge.service.message.MessagingEventSignals
 import com.d4viddf.hyperbridge.service.message.isMessagingEvent
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSemanticFingerprint
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionInput
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionTracker
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSignals
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingTimeoutPolicy
+import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBackend
+import com.d4viddf.hyperbridge.service.translators.CallTranslator
+import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
+import com.d4viddf.hyperbridge.service.translators.DynamicTranslator
+import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
+import com.d4viddf.hyperbridge.service.translators.MediaTranslator
+import com.d4viddf.hyperbridge.service.translators.MessageTranslator
+import com.d4viddf.hyperbridge.service.translators.NavTranslator
+import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
+import com.d4viddf.hyperbridge.service.translators.StandardTranslator
+import com.d4viddf.hyperbridge.service.translators.TimerTranslator
+import com.d4viddf.hyperbridge.service.translators.TranslatorRegistry
+import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
+import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
+import com.d4viddf.hyperbridge.util.ShizukuManager
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -189,6 +187,8 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var liveUpdateTranslator: LiveUpdateTranslator
     private lateinit var screenRecordingTranslator: ScreenRecordingTranslator
     private lateinit var screenRecordingSavedTranslator: ScreenRecordingSavedTranslator
+    private lateinit var dynamicTranslator: DynamicTranslator
+    private lateinit var translatorRegistry: TranslatorRegistry
 
     @Volatile
     private var isScreenOn = true
@@ -281,6 +281,11 @@ class NotificationReaderService : NotificationListenerService() {
         screenRecordingTranslator = ScreenRecordingTranslator(this)
         screenRecordingSavedTranslator = ScreenRecordingSavedTranslator(this, themeRepository)
         screenRecordingControlBackend = XiaomiScreenRecordingControlBackend(this)
+
+        // Custom Translators Framework
+        val database = com.d4viddf.hyperbridge.data.db.AppDatabase.getDatabase(this)
+        translatorRegistry = TranslatorRegistry(database.translatorDao(), serviceScope)
+        dynamicTranslator = DynamicTranslator(this, themeRepository)
 
         val userManager = getSystemService(USER_SERVICE) as android.os.UserManager
         if (userManager.isUserUnlocked) {
@@ -1474,20 +1479,50 @@ class NotificationReaderService : NotificationListenerService() {
 
             val isSummary = (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
 
+            // --- CUSTOM TRANSLATOR MATCHING ---
+            val matchedCustomTranslator = translatorRegistry.findMatchingTranslator(
+                packageName = sbn.packageName,
+                notificationCategory = sbn.notification.category,
+                title = effectiveTitle,
+                text = effectiveText,
+                subtext = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString(),
+                channelId = sbn.notification.channelId,
+                extrasKeys = extras.keySet() ?: emptySet(),
+                hasActions = (sbn.notification.actions?.size ?: 0) > 0,
+                hasProgress = hasProgress,
+                senderName = (extras.getCharSequence(Notification.EXTRA_TITLE))?.toString(),
+                conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString(),
+                mediaArtist = extras.getCharSequence(Notification.EXTRA_MEDIA_SESSION)?.let { effectiveText }
+            )
+
             // --- LAYERED ENGINE LOGIC ---
-            val useLiveUpdates = type != NotificationType.SCREEN_RECORDING &&
-                    !isSavedScreenRecording &&
-                    getEffectiveEngine(sbn.packageName)
+            val useLiveUpdates = if (matchedCustomTranslator != null) {
+                when (matchedCustomTranslator.behaviorOverride.engineMode) {
+                    EngineMode.CUSTOM_ISLAND -> false
+                    EngineMode.NATIVE_LIVE_UPDATE -> true
+                    EngineMode.INHERIT -> {
+                        type != NotificationType.SCREEN_RECORDING && !isSavedScreenRecording && getEffectiveEngine(sbn.packageName)
+                    }
+                }
+            } else {
+                type != NotificationType.SCREEN_RECORDING &&
+                        !isSavedScreenRecording &&
+                        getEffectiveEngine(sbn.packageName)
+            }
+
             val appIslandConfig = preferences.getAppIslandConfigSync(sbn.packageName)
             val globalConfig = preferences.getGlobalConfigSync()
             val finalConfig = appIslandConfig.mergeWith(globalConfig).let { config ->
                 config.copy(
-                    timeout = ScreenRecordingTimeoutPolicy.resolve(
+                    isFloat = matchedCustomTranslator?.behaviorOverride?.isFloat ?: config.isFloat,
+                    isShowShade = matchedCustomTranslator?.behaviorOverride?.isShowShade ?: config.isShowShade,
+                    timeout = matchedCustomTranslator?.behaviorOverride?.timeoutSeconds ?: ScreenRecordingTimeoutPolicy.resolve(
                         configuredTimeout = config.timeout,
                         systemScreenRecordingTimeout = preferences.getScreenRecordingTimeoutSync(),
                         isActiveRecording = type == NotificationType.SCREEN_RECORDING,
                         isSavedRecording = isSavedScreenRecording
-                    )
+                    ),
+                    floatTimeout = matchedCustomTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout
                 )
             }
 
@@ -1606,7 +1641,18 @@ class NotificationReaderService : NotificationListenerService() {
 
             // --- LAYERED CUSTOM ISLAND LOGIC ---
             val picKey = "pic_${candidateBridgeId}"
-            val data: HyperIslandData = if (isSavedScreenRecording) {
+            val data: HyperIslandData = if (matchedCustomTranslator != null) {
+                Log.i(TAG, " POSTING via Custom Translator '${matchedCustomTranslator.meta.name}' -> ID: $candidateBridgeId")
+                dynamicTranslator.translate(
+                    sbn = sbn,
+                    customTranslator = matchedCustomTranslator,
+                    picKey = picKey,
+                    config = finalConfig,
+                    activeTheme = activeTheme,
+                    extractedSenderName = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
+                    extractedConversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()
+                )
+            } else if (isSavedScreenRecording) {
                 screenRecordingSavedTranslator.translate(sbn, picKey, finalConfig, activeTheme)
             } else when (type) {
                 NotificationType.CALL -> callTranslator.translate(

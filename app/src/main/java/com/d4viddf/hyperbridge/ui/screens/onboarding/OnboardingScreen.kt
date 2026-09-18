@@ -167,6 +167,9 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 isListenerGranted = isNotificationServiceEnabled(context)
                 isPostGranted = isPostNotificationsEnabled(context)
                 isOverlayGranted = Settings.canDrawOverlays(context)
+                if (isListenerGranted) {
+                    com.d4viddf.hyperbridge.service.ListenerWatchdog.ensureBound(context)
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

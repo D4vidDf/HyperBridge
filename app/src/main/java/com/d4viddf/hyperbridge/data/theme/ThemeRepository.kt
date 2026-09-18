@@ -36,6 +36,21 @@ class ThemeRepository(private val context: Context) {
     }
 
     /**
+     * Synchronously or quickly reads a theme by ID if it exists on disk.
+     */
+    fun getThemeById(themeId: String): HyperTheme? {
+        return try {
+            val themeFile = File(themesDir, "$themeId/theme_config.json")
+            if (themeFile.exists()) {
+                json.decodeFromString<HyperTheme>(themeFile.readText())
+            } else null
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to load theme by id $themeId", e)
+            null
+        }
+    }
+
+    /**
      * Loads a theme from disk into memory by ID.
      */
     suspend fun activateTheme(themeId: String) {
