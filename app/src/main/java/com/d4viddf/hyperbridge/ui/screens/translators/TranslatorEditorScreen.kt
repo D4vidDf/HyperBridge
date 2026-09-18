@@ -342,14 +342,7 @@ fun TranslatorEditorContent(
                         onNavigate = { currentRoute = it },
                         onEditMetadata = { showMetaSheet = true }
                     )
-                    TranslatorRoute.CONDITIONS -> TranslatorDetailShell(
-                        previewContent = {
-                            HyperOsIslandPreview(
-                                translator = translator,
-                                installedThemes = installedThemes
-                            )
-                        }
-                    ) {
+                    TranslatorRoute.CONDITIONS -> Box(Modifier.fillMaxSize()) {
                         TranslatorConditionsContent(
                             conditions = translator.conditions,
                             targetPackages = translator.targetPackages,
@@ -6932,16 +6925,7 @@ fun TranslatorEditorMainListPreview() {
 @Composable
 fun TranslatorConditionsContentPreview() {
     MaterialTheme {
-        TranslatorDetailShell(
-            previewContent = {
-                TranslatorLivePreviewBar(
-                    CustomTranslator(
-                        id = "preview",
-                        meta = TranslatorMetadata(name = "Preview", author = "Author")
-                    )
-                )
-            }
-        ) {
+        Surface {
             TranslatorConditionsContent(
                 conditions = TranslatorConditions(
                     titleRegex = "^OTP: (\\d{6})",
