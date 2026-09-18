@@ -985,6 +985,15 @@
     <string name="translator_tab_actions">Actions</string>
     <string name="translator_tab_behavior">Behavior</string>
 
+    <string name="translator_meta_icon_title">Translator Icon</string>
+    <string name="translator_meta_icon_desc">Select an icon to easily identify this translator</string>
+    <string name="translator_meta_priority_title">Execution Priority</string>
+    <string name="translator_meta_priority_desc">When multiple translators match a notification, the one with the highest priority number is evaluated first.</string>
+    <string name="translator_priority_preset_low">50 (Low)</string>
+    <string name="translator_priority_preset_default">100 (Default)</string>
+    <string name="translator_priority_preset_high">200 (High)</string>
+    <string name="translator_priority_preset_urgent">500 (Urgent)</string>
+
     <string name="translator_field_name">Translator Name</string>
     <string name="translator_field_name_hint">e.g. Clean WhatsApp Group Notifications</string>
     <string name="translator_field_author">Author</string>
@@ -1348,6 +1357,18 @@
     <!-- Preview Mode Strings -->
     <string name="translator_preview_mode_expanded">Expanded Island</string>
     <string name="translator_preview_mode_pill">Compact Pill</string>
+
+    <!-- Priority & Icon Sheet Strings -->
+    <string name="translator_icon_sheet_title">Select Translator Icon</string>
+    <string name="translator_icon_sheet_desc">Choose an outlined icon that represents the notification style</string>
+    <string name="translator_priority_sheet_title">Execution Priority</string>
+    <string name="translator_priority_card_subtitle">Determines evaluation order among translators</string>
+    <string name="translator_priority_sheet_desc">When incoming notifications match multiple translator rules, the rule with the highest priority is chosen and executed first.</string>
+    <string name="translator_priority_input_label">Priority Number (0 - 9999)</string>
+    <string name="translator_priority_guide_title">How Priority Works</string>
+    <string name="translator_priority_guide_p1">• Higher priority rules (e.g. 500) run before lower ones (e.g. 50).</string>
+    <string name="translator_priority_guide_p2">• Default custom rules have a priority of 100.</string>
+    <string name="translator_priority_guide_p3">• Use high values (200-500) for critical notifications like phone calls or active rideshares that should take precedence.</string>
 </resources>
 
 

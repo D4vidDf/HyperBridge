@@ -26,10 +26,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -349,11 +346,7 @@ fun TranslatorCardItem(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = when (translator.targetScope) {
-                                TargetScope.GLOBAL -> Icons.Default.Public
-                                TargetScope.SPECIFIC_APPS -> Icons.Outlined.Apps
-                                TargetScope.NOTIFICATION_TYPE -> Icons.Outlined.Category
-                            },
+                            imageVector = getTranslatorOutlinedIcon(translator.meta.iconName),
                             contentDescription = null,
                             tint = when (translator.targetScope) {
                                 TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer

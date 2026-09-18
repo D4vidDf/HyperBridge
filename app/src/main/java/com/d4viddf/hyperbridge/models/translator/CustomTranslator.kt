@@ -59,6 +59,7 @@ data class TranslatorMetadata(
     val version: Int = 1,
     val description: String = "",
     val icon: ThemeResource? = null,
+    @SerialName("icon_name") val iconName: String = "AutoAwesome",
     @SerialName("share_link") val shareLink: String? = null
 )
 
