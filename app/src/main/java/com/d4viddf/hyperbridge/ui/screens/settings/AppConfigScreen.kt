@@ -62,6 +62,7 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -157,8 +158,11 @@ enum class AppConfigSubscreen {
 fun AppConfigScreen(
     packageName: String,
     viewModel: AppListViewModel = viewModel(),
+    translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onBack: () -> Unit,
-    onNavConfigClick: (String) -> Unit
+    onNavConfigClick: (String) -> Unit,
+    onCreateTranslator: (String) -> Unit = {},
+    onEditTranslator: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -182,6 +186,7 @@ fun AppConfigScreen(
 
     val allowedPackages by preferences.allowedPackagesFlow.collectAsState(initial = emptySet())
     val isBridged = allowedPackages.contains(packageName)
+    val appTranslators by translatorViewModel.getTranslatorsForApp(packageName).collectAsState(initial = emptyList())
 
     var appInfo by remember { mutableStateOf<AppInfo?>(null) }
     LaunchedEffect(packageName) {
@@ -255,6 +260,7 @@ fun AppConfigScreen(
             globalSmartActionsConfig = globalSmartActionsConfig,
             savedWidgetIds = appSavedWidgetIds,
             availableProviders = availableProviders,
+            translators = appTranslators,
             currentSubscreen = currentSubscreen,
             onNavigateSubscreen = { currentSubscreen = it },
             onBack = onBack,
@@ -279,7 +285,10 @@ fun AppConfigScreen(
                     preferences.removeWidgetId(widgetId)
                     refreshWidgetTrigger.intValue++
                 }
-            }
+            },
+            onToggleTranslator = { id, enabled -> translatorViewModel.toggleTranslator(id, enabled) },
+            onCreateTranslator = { onCreateTranslator(packageName) },
+            onEditTranslator = onEditTranslator
         )
 
         // --- OVERLAYS ---
@@ -354,6 +363,7 @@ fun AppConfigContent(
     globalSmartActionsConfig: SmartActionsConfig,
     savedWidgetIds: List<Int>,
     availableProviders: List<AppWidgetProviderInfo>,
+    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     currentSubscreen: AppConfigSubscreen? = null,
     onNavigateSubscreen: (AppConfigSubscreen?) -> Unit = {},
     onBack: () -> Unit,
@@ -368,7 +378,10 @@ fun AppConfigContent(
     onNavConfigClick: () -> Unit,
     onAddWidgetClick: () -> Unit,
     onEditWidget: (Int) -> Unit,
-    onDeleteWidget: (Int) -> Unit
+    onDeleteWidget: (Int) -> Unit,
+    onToggleTranslator: (String, Boolean) -> Unit = { _, _ -> },
+    onCreateTranslator: () -> Unit = {},
+    onEditTranslator: (String) -> Unit = {}
 ) {
     val activeDesc = stringResource(R.string.cd_app_state_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
@@ -392,6 +405,11 @@ fun AppConfigContent(
         "${savedWidgetIds.size} configured"
     } else {
         stringResource(R.string.no_widgets_for_app)
+    }
+    val translatorsSubtitle = if (translators.isNotEmpty()) {
+        stringResource(R.string.design_translators_carousel_desc, translators.count { it.isEnabled })
+    } else {
+        stringResource(R.string.custom_translators_desc)
     }
 
     AnimatedContent(
@@ -571,8 +589,8 @@ fun AppConfigContent(
                                     )
                                     AppConfigSubscreen.CUSTOM_TRANSLATORS -> AppConfigOptionCard(
                                         title = stringResource(R.string.custom_translators_title),
-                                        subtitle = stringResource(R.string.custom_translators_desc),
-                                        badge = stringResource(R.string.custom_translators_badge),
+                                        subtitle = translatorsSubtitle,
+                                        badge = null,
                                         icon = Icons.Default.Extension,
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_TRANSLATORS) }
@@ -703,13 +721,25 @@ fun AppConfigContent(
                     SubscreenScaffold(
                         title = stringResource(R.string.custom_translators_title),
                         appName = appName,
-                        onBack = { onNavigateSubscreen(null) }
+                        onBack = { onNavigateSubscreen(null) },
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = onCreateTranslator,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = stringResource(R.string.app_translators_create_for_app)
+                                )
+                            }
+                        }
                     ) {
-                        FutureFeaturePlaceholderCard(
-                            title = stringResource(R.string.custom_translators_title),
-                            badge = stringResource(R.string.custom_translators_badge),
-                            icon = Icons.Default.Extension,
-                            description = stringResource(R.string.custom_translators_desc)
+                        AppTranslatorsSectionCard(
+                            translators = translators,
+                            onToggleTranslator = onToggleTranslator,
+                            onEditTranslator = onEditTranslator,
+                            onCreateTranslator = onCreateTranslator
                         )
                     }
                 }
@@ -1850,6 +1880,148 @@ fun FutureFeaturePlaceholderCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// CUSTOM TRANSLATORS SECTION (App-specific)
+// ------------------------------------------------------------------------------------------------
+
+@Composable
+fun AppTranslatorsSectionCard(
+    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onToggleTranslator: (String, Boolean) -> Unit,
+    onEditTranslator: (String) -> Unit,
+    onCreateTranslator: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.app_translators_section_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            if (translators.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Extension,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.app_translators_empty),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = onCreateTranslator,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.app_translators_create_for_app))
+                        }
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    translators.forEach { translator ->
+                        AppConfigTranslatorChildItem(
+                            translator = translator,
+                            onToggle = { isChecked -> onToggleTranslator(translator.id, isChecked) },
+                            onEdit = { onEditTranslator(translator.id) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppConfigTranslatorChildItem(
+    translator: com.d4viddf.hyperbridge.models.translator.CustomTranslator,
+    onToggle: (Boolean) -> Unit,
+    onEdit: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (translator.isEnabled) MaterialTheme.colorScheme.surfaceContainerHigh
+            else MaterialTheme.colorScheme.surfaceContainer
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit)
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = translator.meta.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (translator.meta.description.isNotEmpty()) {
+                        Text(
+                            text = translator.meta.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.translators_priority_label, translator.priority),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.translators_action_edit),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Switch(
+                    checked = translator.isEnabled,
+                    onCheckedChange = onToggle
+                )
             }
         }
     }

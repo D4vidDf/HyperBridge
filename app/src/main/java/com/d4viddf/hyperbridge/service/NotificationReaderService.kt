@@ -102,6 +102,10 @@ class NotificationReaderService : NotificationListenerService() {
         @Volatile
         var isConnected: Boolean = false
             internal set
+
+        @Volatile
+        var instance: NotificationReaderService? = null
+            private set
     }
 
     private val TAG = "HyperBridgeDebug"
@@ -237,6 +241,7 @@ class NotificationReaderService : NotificationListenerService() {
     @RequiresPermission(allOf = [Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.ACCESS_NETWORK_STATE])
     override fun onCreate() {
         super.onCreate()
+        instance = this
         
         val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
         filter.addAction(Intent.ACTION_SCREEN_ON)
@@ -2462,6 +2467,9 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (instance == this) {
+            instance = null
+        }
         isConnected = false
         DiagnosticsStore.setServiceConnected(false)
         if (::vpnIslandController.isInitialized) vpnIslandController.stop()
