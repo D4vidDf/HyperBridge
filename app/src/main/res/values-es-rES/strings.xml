@@ -1065,9 +1065,15 @@
     <string name="translator_pres_select_widget_btn">Seleccionar Widget</string>
     <string name="translator_pres_template_sheet_title">Seleccionar Plantilla</string>
     <string name="translator_pres_widget_sheet_title">Seleccionar Widget</string>
-    <string name="translator_pres_template_default">Plantilla de Notificación Predeterminada</string>
-    <string name="translator_pres_template_media">Reproductor Multimedia Compacto</string>
-    <string name="translator_pres_template_nav">Navegación Paso a Paso</string>
+    <string name="translator_pres_template_default">Plantilla 1: Clima y Navegación</string>
+    <string name="translator_pres_template_payment">Plantilla 2: Pagos y Cartera</string>
+    <string name="translator_pres_template_call">Plantilla 3: Llamadas y CallKit</string>
+    <string name="translator_pres_template_delivery">Plantilla 4: Transporte y Envíos</string>
+    <string name="translator_pres_template_queue">Plantilla 5: Colas y Turnos</string>
+    <string name="translator_pres_template_parking">Plantilla 6: Parking y Tarifas</string>
+    <string name="translator_pres_template_download">Plantilla 7: Subidas y Descargas</string>
+    <string name="translator_pres_template_promo">Plantilla 8: Cupones y Recompensas</string>
+    <string name="translator_pres_template_media">Plantilla 12: Reproductor Multimedia Compacto</string>
     <string name="translator_pres_widget_default">Widget de Estado del Sistema</string>
     <string name="translator_pres_widget_counter">Widget de Temporizador y Contador</string>
 
@@ -1209,4 +1215,8 @@
     <string name="translator_pill_right_highlight_desc">Muestra texto destacado o estado breve</string>
     <string name="translator_pill_right_none">Vacío</string>
     <string name="translator_pill_right_none_desc">Deja vacía la ranura derecha de la píldora</string>
+
+    <!-- Preview Mode Strings -->
+    <string name="translator_preview_mode_expanded">Isla Expandida</string>
+    <string name="translator_preview_mode_pill">Píldora Compacta</string>
 </resources>

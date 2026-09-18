@@ -17,10 +17,12 @@ import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
 import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
+import androidx.core.graphics.toColorInt
 
 class DynamicTranslator(
     context: Context,
@@ -71,7 +73,12 @@ class DynamicTranslator(
         // 4. Build HyperIsland Data
         val isFloat = config.isFloat ?: customTranslator.behaviorOverride.isFloat ?: false
         val isShade = config.isShowShade ?: customTranslator.behaviorOverride.isShowShade ?: false
-        val highlightColor = resolveColor(effectiveTheme, sbn.packageName, "#007AFF")
+        val defaultHighlight = if (customTranslator.presentation.progressSlot.type == ProgressSlotType.TIMER) "#FF9500" else "#007AFF"
+        val highlightColor = if (customTranslator.themeBinding.overrideHighlightColor != null) {
+            customTranslator.themeBinding.overrideHighlightColor
+        } else {
+            resolveColor(effectiveTheme, sbn.packageName, defaultHighlight)
+        }
 
         val builder = HyperIslandNotification.Builder(
             context,
@@ -89,40 +96,116 @@ class DynamicTranslator(
         builder.setShowNotification(isShade)
         if (!isUpdate) builder.setReopen(true)
 
-        // 5. Left Slot (Avatar / App Icon) & Hidden Pixel
+        // 5. Left Slot Graphic & Hidden Pixel
         val hiddenKey = "hidden_pixel"
-        builder.addPicture(resolveIcon(sbn, picKey))
+        val leftSlotConfig = customTranslator.presentation.leftSlot
+        val leftPic = when (leftSlotConfig.source) {
+            "HIDDEN" -> getTransparentPicture(picKey)
+            else -> {
+                // If custom icon res exists in repo/theme
+                var customBmp: android.graphics.Bitmap? = null
+                if (leftSlotConfig.customIconRes != null && repository != null) {
+                    customBmp = repository.getResourceBitmap(leftSlotConfig.customIconRes)
+                }
+                if (customBmp != null) {
+                    val shapeId = leftSlotConfig.shape ?: resolveShape(effectiveTheme, sbn.packageName)
+                    val pad = resolvePadding(effectiveTheme, sbn.packageName)
+                    val themedBmp = applyThemeToActionIcon(customBmp, shapeId, pad, android.graphics.Color.TRANSPARENT)
+                    HyperPicture(picKey, themedBmp)
+                } else {
+                    resolveIcon(sbn, picKey)
+                }
+            }
+        }
+
+        builder.addPicture(leftPic)
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        // 6. Base Info & Chat Info
+        // 6. Base Info & Chat Info (Expanded Island)
+        val progressConfig = customTranslator.presentation.progressSlot
+        val isTimer = progressConfig.type == ProgressSlotType.TIMER
+        val baseTime = sbn.notification.`when`.let { if (it > 0) it else System.currentTimeMillis() }
+        val now = System.currentTimeMillis()
+        val isCountdown = baseTime > now
+        val timerType = if (isCountdown) -1 else 1
+
+        val chatTimerInfo = if (isTimer) {
+            io.github.d4viddf.hyperisland_kit.models.TimerInfo(
+                timerType,
+                baseTime,
+                if (isCountdown) baseTime - now else now - baseTime,
+                now
+            )
+        } else {
+            null
+        }
+
+        val bridgeActions = resolveActionSlots(
+            sbn = sbn,
+            customTranslator = customTranslator,
+            rawText = rawText,
+            theme = effectiveTheme,
+            config = config
+        )
+        val actionKeys = bridgeActions.map { it.action.key }
+
+        builder.setChatInfo(
+            title = finalTitle,
+            content = finalText,
+            pictureKey = if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey,
+            appPkg = sbn.packageName,
+            timer = chatTimerInfo,
+            actionKeys = if (actionKeys.isNotEmpty()) actionKeys else null
+        )
+
         builder.setBaseInfo(
             type = 2,
             title = finalTitle,
             content = finalText
         )
         builder.setIconTextInfo(
-            picKey = picKey,
+            picKey = if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey,
             title = finalTitle,
             content = finalText
         )
 
-        // 7. Dynamic Island Presentation (Big & Small Island)
+        // 7. Progress & Expanded Bar
+        val hasProgress = progressConfig.type == ProgressSlotType.PROGRESS_BAR && progressValue != null
+        val progressPercent = if (hasProgress && progressValue != null) {
+            if (maxProgressValue > 0) {
+                ((progressValue.toFloat() / maxProgressValue.toFloat()) * 100).toInt().coerceIn(0, 100)
+            } else {
+                progressValue.coerceIn(0, 100)
+            }
+        } else 0
+
+        val progressColor = if (effectiveTheme?.defaultProgress?.activeColor != null) {
+            effectiveTheme.defaultProgress.activeColor
+        } else {
+            highlightColor
+        }
+
+        if (hasProgress) {
+            builder.setProgressBar(progressPercent, progressColor)
+        }
+
+        // 8. Compact Pill Presentation (Big & Small Island)
         val pillConfig = customTranslator.presentation.pill
         val leftDesign = pillConfig.leftDesign
         val rightDesign = pillConfig.rightDesign
 
-        val leftPicKey = when (leftDesign) {
+        val pillLeftPicKey = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN -> hiddenKey
-            else -> picKey
+            else -> if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey
         }
 
-        val leftText = when (leftDesign) {
+        val pillLeftText = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.ICON_AND_TEXT,
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY -> finalTitle
             else -> ""
         }
 
-        val rightText = when (rightDesign) {
+        val pillRightText = when (rightDesign) {
             com.d4viddf.hyperbridge.models.translator.PillRightDesign.HIGHLIGHT_TEXT -> {
                 val highlightTpl = customTranslator.presentation.textSlot.highlightTextTemplate
                 if (!highlightTpl.isNullOrBlank()) interpolate(highlightTpl, variableMap) else finalText
@@ -131,63 +214,46 @@ class DynamicTranslator(
             else -> finalText
         }
 
-        val hasProgress = customTranslator.presentation.progressSlot.type != ProgressSlotType.NONE && progressValue != null
-        val shouldShowProgress = when (rightDesign) {
-            com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT -> true
+        val shouldShowProgressCircle = when (rightDesign) {
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT -> hasProgress
             com.d4viddf.hyperbridge.models.translator.PillRightDesign.AUTO -> hasProgress
             else -> false
         }
 
-        if (hasProgress) {
-            val progressPercent = if (maxProgressValue > 0) {
-                ((progressValue.toFloat() / maxProgressValue.toFloat()) * 100).toInt().coerceIn(0, 100)
-            } else {
-                progressValue.coerceIn(0, 100)
+        when {
+            shouldShowProgressCircle -> {
+                builder.setBigIslandProgressCircle(pillLeftPicKey, pillLeftText, progressPercent, progressColor, true)
+                builder.setSmallIslandCircularProgress(pillLeftPicKey, progressPercent, progressColor, isCCW = true)
             }
-            builder.setProgressBar(progressPercent, highlightColor)
-
-            if (shouldShowProgress) {
-                builder.setBigIslandProgressCircle(leftPicKey, leftText, progressPercent, highlightColor, true)
-                builder.setSmallIslandCircularProgress(leftPicKey, progressPercent, highlightColor, isCCW = true)
-            } else {
+            rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.TIMER || isTimer -> {
+                if (isCountdown) {
+                    builder.setBigIslandCountdown(baseTime, pillLeftPicKey)
+                } else {
+                    builder.setBigIslandCountUp(baseTime, pillLeftPicKey)
+                }
+                builder.setSmallIsland(pillLeftPicKey)
+            }
+            else -> {
                 builder.setBigIslandInfo(
-                    left = ImageTextInfoLeft(1, PicInfo(1, leftPicKey), TextInfo(leftText, "")),
-                    right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, rightText))
+                    left = ImageTextInfoLeft(1, PicInfo(1, pillLeftPicKey), TextInfo(pillLeftText, "")),
+                    right = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) {
+                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, pillRightText))
+                    } else {
+                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo("", ""))
+                    }
                 )
-                builder.setSmallIsland(leftPicKey)
+                builder.setSmallIsland(pillLeftPicKey)
             }
-        } else {
-            builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, PicInfo(1, leftPicKey), TextInfo(leftText, "")),
-                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, rightText))
-            )
-            builder.setSmallIsland(leftPicKey)
         }
 
-        // 8. Action Slots & Smart Actions
-        val bridgeActions = resolveActionSlots(
-            sbn = sbn,
-            customTranslator = customTranslator,
-            rawText = rawText,
-            theme = effectiveTheme,
-            config = config
-        )
-
+        // 9. Register Actions & Hidden Actions
         if (bridgeActions.isNotEmpty()) {
-            val textActions = bridgeActions.map { it.action }.map { original ->
-                HyperAction(
-                    key = original.key,
-                    title = original.title,
-                    icon = original.icon,
-                    pendingIntent = original.pendingIntent,
-                    actionIntentType = original.actionIntentType,
-                    actionBgColor = null,
-                    titleColor = "#FFFFFF"
-                )
-            }.toTypedArray()
-
+            val textActions = bridgeActions.map { it.action }.toTypedArray()
             builder.setTextButtons(*textActions)
-            textActions.forEach { builder.addHiddenAction(it) }
+            textActions.forEach {
+                builder.addAction(it)
+                builder.addHiddenAction(it)
+            }
             bridgeActions.forEach { it.actionImage?.let { pic -> builder.addPicture(pic) } }
         }
 
@@ -284,6 +350,20 @@ class DynamicTranslator(
         val bridgeActions = mutableListOf<com.d4viddf.hyperbridge.models.BridgeAction>()
         val notifActions = sbn.notification.actions ?: emptyArray()
 
+        val defaultActionBg = if (theme != null) {
+            try {
+                val hex = resolveColor(theme, sbn.packageName, "#007AFF")
+                hex.toColorInt()
+            } catch (_: Exception) {
+                "#007AFF".toColorInt()
+            }
+        } else {
+            "#007AFF".toColorInt()
+        }
+
+        val themeShape = resolveShape(theme, sbn.packageName)
+        val themePadding = resolvePadding(theme, sbn.packageName)
+
         for (slot in configuredSlots) {
             if (!slot.isVisible) continue
 
@@ -293,20 +373,41 @@ class DynamicTranslator(
                     if (notifAction != null) {
                         val label = slot.customLabel ?: notifAction.title?.toString() ?: "Action"
                         val uniqueKey = "act_${sbn.key.hashCode()}_slot_${slot.slotPosition}"
+
+                        var actionIcon: android.graphics.drawable.Icon? = null
+                        var hyperPic: HyperPicture? = null
+                        if (slot.displayMode != com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.TEXT_ONLY) {
+                            var bmp: android.graphics.Bitmap? = null
+                            if (slot.overrideIcon != null && repository != null) {
+                                bmp = repository.getResourceBitmap(slot.overrideIcon)
+                            }
+                            if (bmp == null && notifAction.getIcon() != null) {
+                                bmp = loadIconBitmap(notifAction.getIcon()!!, sbn.packageName)
+                            }
+                            if (bmp != null) {
+                                val processed = applyThemeToActionIcon(bmp, themeShape, themePadding, defaultActionBg)
+                                actionIcon = android.graphics.drawable.Icon.createWithBitmap(processed)
+                                hyperPic = HyperPicture("${uniqueKey}_icon", processed)
+                            }
+                        }
+
+                        val actionBgHex = if (slot.displayMode == com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.TEXT_ONLY) null
+                        else String.format("#%08X", (0xFFFFFFFF and defaultActionBg.toLong()))
+
                         val hyperAction = HyperAction(
                             key = uniqueKey,
-                            title = label,
-                            icon = notifAction.getIcon(),
+                            title = if (slot.displayMode == com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.ICON_ONLY) "" else label,
+                            icon = actionIcon,
                             pendingIntent = notifAction.actionIntent,
                             actionIntentType = 1,
-                            actionBgColor = null,
+                            actionBgColor = actionBgHex,
                             titleColor = "#FFFFFF"
                         )
-                        bridgeActions.add(com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, null))
+                        bridgeActions.add(com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, hyperPic))
                     }
                 }
                 ActionSource.SMART_ACTION -> {
-                    val smartAction = resolveSmartAction(sbn.key, slot, rawText)
+                    val smartAction = resolveSmartAction(sbn.key, slot, rawText, defaultActionBg, themeShape, themePadding)
                     if (smartAction != null) {
                         bridgeActions.add(smartAction)
                     } else if (slot.fallbackToSource == ActionSource.NOTIFICATION_ACTION) {
@@ -314,16 +415,26 @@ class DynamicTranslator(
                         if (notifAction != null) {
                             val label = slot.customLabel ?: notifAction.title?.toString() ?: "Action"
                             val uniqueKey = "act_${sbn.key.hashCode()}_slot_${slot.slotPosition}"
+                            var actionIcon: android.graphics.drawable.Icon? = null
+                            var hyperPic: HyperPicture? = null
+                            if (slot.displayMode != com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.TEXT_ONLY) {
+                                val bmp = notifAction.getIcon()?.let { loadIconBitmap(it, sbn.packageName) }
+                                if (bmp != null) {
+                                    val processed = applyThemeToActionIcon(bmp, themeShape, themePadding, defaultActionBg)
+                                    actionIcon = android.graphics.drawable.Icon.createWithBitmap(processed)
+                                    hyperPic = HyperPicture("${uniqueKey}_icon", processed)
+                                }
+                            }
                             val hyperAction = HyperAction(
                                 key = uniqueKey,
-                                title = label,
-                                icon = notifAction.getIcon(),
+                                title = if (slot.displayMode == com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.ICON_ONLY) "" else label,
+                                icon = actionIcon,
                                 pendingIntent = notifAction.actionIntent,
                                 actionIntentType = 1,
                                 actionBgColor = null,
                                 titleColor = "#FFFFFF"
                             )
-                            bridgeActions.add(com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, null))
+                            bridgeActions.add(com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, hyperPic))
                         }
                     }
                 }
@@ -346,16 +457,26 @@ class DynamicTranslator(
                             replyIntent,
                             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_MUTABLE
                         )
+                        var actionIcon: android.graphics.drawable.Icon? = null
+                        var hyperPic: HyperPicture? = null
+                        if (slot.displayMode != com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.TEXT_ONLY) {
+                            val bmp = notifActionWithRemoteInput?.getIcon()?.let { loadIconBitmap(it, sbn.packageName) }
+                            if (bmp != null) {
+                                val processed = applyThemeToActionIcon(bmp, themeShape, themePadding, defaultActionBg)
+                                actionIcon = android.graphics.drawable.Icon.createWithBitmap(processed)
+                                hyperPic = HyperPicture("${uniqueKey}_icon", processed)
+                            }
+                        }
                         val hyperAction = HyperAction(
                             key = uniqueKey,
-                            title = label,
-                            icon = notifActionWithRemoteInput?.getIcon(),
+                            title = if (slot.displayMode == com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.ICON_ONLY) "" else label,
+                            icon = actionIcon,
                             pendingIntent = pending,
                             actionIntentType = 1,
                             actionBgColor = null,
                             titleColor = "#FFFFFF"
                         )
-                        bridgeActions.add(com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, null))
+                        bridgeActions.add(com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, hyperPic))
                     }
                 }
                 ActionSource.CUSTOM_BROADCAST -> {
@@ -392,7 +513,10 @@ class DynamicTranslator(
     private fun resolveSmartAction(
         notificationKey: String,
         slot: ActionSlotConfig,
-        rawText: String
+        rawText: String,
+        defaultActionBg: Int,
+        themeShape: String,
+        themePadding: Int
     ): com.d4viddf.hyperbridge.models.BridgeAction? {
         val targetAction = when (slot.smartActionType) {
             com.d4viddf.hyperbridge.models.translator.SmartActionType.OTP_COPY -> {
@@ -414,16 +538,31 @@ class DynamicTranslator(
         val title = slot.customLabel ?: SmartActionIntents.label(context, targetAction)
         val pendingIntent = SmartActionIntents.pendingIntent(context, targetAction, key)
 
+        var actionIcon: android.graphics.drawable.Icon? = null
+        var hyperPic: HyperPicture? = null
+        if (slot.displayMode != com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.TEXT_ONLY) {
+            val iconRes = SmartActionIntents.iconRes(targetAction.type)
+            val bmp = loadIconBitmap(android.graphics.drawable.Icon.createWithResource(context, iconRes), context.packageName)
+            if (bmp != null) {
+                val processed = applyThemeToActionIcon(bmp, themeShape, themePadding, defaultActionBg)
+                actionIcon = android.graphics.drawable.Icon.createWithBitmap(processed)
+                hyperPic = HyperPicture("${key}_icon", processed)
+            }
+        }
+
+        val actionBgHex = if (slot.displayMode == com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.TEXT_ONLY) null
+        else String.format("#%08X", (0xFFFFFFFF and defaultActionBg.toLong()))
+
         val hyperAction = HyperAction(
             key = key,
-            title = title,
-            icon = null,
+            title = if (slot.displayMode == com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.ICON_ONLY) "" else title,
+            icon = actionIcon,
             pendingIntent = pendingIntent,
             actionIntentType = 1,
-            actionBgColor = null,
+            actionBgColor = actionBgHex,
             titleColor = "#FFFFFF"
         )
-        return com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, null)
+        return com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, hyperPic)
     }
 
     private fun extractOtpFromText(text: String): String? {

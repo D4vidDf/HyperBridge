@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.outlined.Subject
+import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
@@ -54,7 +55,6 @@ import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Reply
 import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
@@ -88,7 +88,6 @@ import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Title
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Button
@@ -136,18 +135,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
@@ -180,6 +174,7 @@ import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.translator.TypeSpecificConditions
 import com.d4viddf.hyperbridge.ui.components.EmptyState
+import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
 import com.d4viddf.hyperbridge.ui.screens.theme.AppItem
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.content.AppIcon
@@ -340,7 +335,12 @@ fun TranslatorEditorContent(
                         onEditMetadata = { showMetaSheet = true }
                     )
                     TranslatorRoute.CONDITIONS -> TranslatorDetailShell(
-                        previewContent = { TranslatorLivePreviewBar(translator, installedThemes) }
+                        previewContent = {
+                            HyperOsIslandPreview(
+                                translator = translator,
+                                installedThemes = installedThemes
+                            )
+                        }
                     ) {
                         TranslatorConditionsContent(
                             conditions = translator.conditions,
@@ -351,7 +351,12 @@ fun TranslatorEditorContent(
                         )
                     }
                     TranslatorRoute.PRESENTATION -> TranslatorDetailShell(
-                        previewContent = { TranslatorLivePreviewBar(translator, installedThemes) }
+                        previewContent = {
+                            HyperOsIslandPreview(
+                                translator = translator,
+                                installedThemes = installedThemes
+                            )
+                        }
                     ) {
                         TranslatorPresentationContent(
                             presentation = translator.presentation,
@@ -370,7 +375,12 @@ fun TranslatorEditorContent(
                         )
                     }
                     TranslatorRoute.PROGRESS -> TranslatorDetailShell(
-                        previewContent = { TranslatorLivePreviewBar(translator, installedThemes) }
+                        previewContent = {
+                            HyperOsIslandPreview(
+                                translator = translator,
+                                installedThemes = installedThemes
+                            )
+                        }
                     ) {
                         TranslatorProgressContent(
                             progressSlot = translator.presentation.progressSlot,
@@ -380,7 +390,12 @@ fun TranslatorEditorContent(
                         )
                     }
                     TranslatorRoute.ACTIONS -> TranslatorDetailShell(
-                        previewContent = { TranslatorLivePreviewBar(translator, installedThemes) }
+                        previewContent = {
+                            HyperOsIslandPreview(
+                                translator = translator,
+                                installedThemes = installedThemes
+                            )
+                        }
                     ) {
                         TranslatorActionsContent(
                             actionSlots = translator.presentation.actionSlots,
@@ -436,23 +451,13 @@ fun TranslatorMainList(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(vertical = 12.dp)
-                ) {
-                    TranslatorLivePreviewBar(translator, installedThemes)
-                }
-            }
+            HyperOsIslandPreview(
+                translator = translator,
+                installedThemes = installedThemes
+            )
         }
 
         Column(
@@ -499,7 +504,7 @@ fun TranslatorMainList(
                     val icon = when (route) {
                         TranslatorRoute.APPS -> Icons.Outlined.Apps
                         TranslatorRoute.CONDITIONS -> Icons.Outlined.FilterList
-                        TranslatorRoute.PRESENTATION -> Icons.Outlined.ViewQuilt
+                        TranslatorRoute.PRESENTATION -> Icons.AutoMirrored.Outlined.ViewQuilt
                         TranslatorRoute.PILL -> Icons.Outlined.DashboardCustomize
                         TranslatorRoute.PROGRESS -> Icons.Outlined.Speed
                         TranslatorRoute.ACTIONS -> Icons.Outlined.TouchApp
@@ -600,20 +605,10 @@ fun TranslatorDetailShell(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 12.dp)) {
-                    previewContent()
-                }
-            }
+            previewContent()
         }
         Box(
             modifier = Modifier
@@ -1768,7 +1763,7 @@ fun TranslatorPresentationContent(
             PresentationMode.WIDGET -> stringResource(R.string.translator_pres_mode_widget_desc)
         }
         val currentModeIcon = when (presentation.mode) {
-            PresentationMode.STANDARD -> Icons.Outlined.ViewQuilt
+            PresentationMode.STANDARD -> Icons.AutoMirrored.Outlined.ViewQuilt
             PresentationMode.TEMPLATE -> Icons.Outlined.DashboardCustomize
             PresentationMode.WIDGET -> Icons.Outlined.Widgets
         }
@@ -1916,7 +1911,7 @@ fun TranslatorPresentationContent(
                             text = if (presentation.templateId.isNullOrBlank()) {
                                 stringResource(R.string.translator_pres_select_template_btn)
                             } else {
-                                presentation.templateId.orEmpty()
+                                presentation.templateId
                             }
                         )
                     }
@@ -1979,7 +1974,7 @@ fun TranslatorPresentationContent(
                             text = if (presentation.widgetId.isNullOrBlank()) {
                                 stringResource(R.string.translator_pres_select_widget_btn)
                             } else {
-                                presentation.widgetId.orEmpty()
+                                presentation.widgetId
                             }
                         )
                     }
@@ -2441,7 +2436,7 @@ fun PresentationModeSelectionContent(
         Triple(
             PresentationMode.STANDARD,
             Pair(R.string.translator_pres_mode_standard, R.string.translator_pres_mode_standard_desc),
-            Icons.Outlined.ViewQuilt
+            Icons.AutoMirrored.Outlined.ViewQuilt
         ),
         Triple(
             PresentationMode.TEMPLATE,
@@ -2467,7 +2462,7 @@ fun PresentationModeSelectionContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                Icons.Outlined.ViewQuilt,
+                Icons.AutoMirrored.Outlined.ViewQuilt,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
@@ -2686,7 +2681,7 @@ fun ThemeSelectionContent(
                     ) {
                         val colorHex = theme.global.highlightColor ?: "#6750A4"
                         val parsedColor = try {
-                            Color(android.graphics.Color.parseColor(colorHex))
+                            Color(colorHex.toColorInt())
                         } catch (_: Exception) {
                             MaterialTheme.colorScheme.primary
                         }
@@ -2752,9 +2747,15 @@ fun TemplateSelectionContent(
     onTemplateSelected: (String) -> Unit
 ) {
     val templates = listOf(
-        Triple("tpl_standard_notification", R.string.translator_pres_template_default, Icons.Outlined.Notifications),
-        Triple("tpl_media_compact", R.string.translator_pres_template_media, Icons.Outlined.MusicNote),
-        Triple("tpl_navigation_route", R.string.translator_pres_template_nav, Icons.Outlined.Navigation)
+        Triple("tpl_weather_nav", R.string.translator_pres_template_default, Icons.Outlined.Navigation),
+        Triple("tpl_payment_wallet", R.string.translator_pres_template_payment, Icons.Outlined.AutoAwesome),
+        Triple("tpl_call_kit", R.string.translator_pres_template_call, Icons.Outlined.Call),
+        Triple("tpl_ride_delivery", R.string.translator_pres_template_delivery, Icons.Default.LocalShipping),
+        Triple("tpl_queue_wait", R.string.translator_pres_template_queue, Icons.Outlined.Speed),
+        Triple("tpl_parking_meter", R.string.translator_pres_template_parking, Icons.Outlined.Timer),
+        Triple("tpl_file_transfer", R.string.translator_pres_template_download, Icons.Default.ArrowDownward),
+        Triple("tpl_promo_coupon", R.string.translator_pres_template_promo, Icons.Outlined.AutoAwesome),
+        Triple("tpl_media_compact", R.string.translator_pres_template_media, Icons.Outlined.MusicNote)
     )
 
     Column(
@@ -4009,7 +4010,9 @@ fun TranslatorActionsContent(
                                 val (sourceTitleRes, sourceIcon) = when (slot.source) {
                                     ActionSource.NOTIFICATION_ACTION -> Pair(R.string.translator_actions_source_notif_title, Icons.Outlined.TouchApp)
                                     ActionSource.SMART_ACTION -> Pair(R.string.translator_actions_source_smart_title, Icons.Outlined.AutoAwesome)
-                                    ActionSource.INLINE_REPLY -> Pair(R.string.translator_actions_source_reply_title, Icons.Default.Reply)
+                                    ActionSource.INLINE_REPLY -> Pair(R.string.translator_actions_source_reply_title,
+                                        Icons.AutoMirrored.Filled.Reply
+                                    )
                                     ActionSource.CUSTOM_BROADCAST -> Pair(R.string.translator_actions_source_broadcast_title, Icons.Default.RssFeed)
                                 }
 
@@ -4511,7 +4514,7 @@ fun ActionSourceSelectionContent(
         Triple(
             ActionSource.INLINE_REPLY,
             Pair(R.string.translator_actions_source_reply_title, R.string.translator_actions_source_reply_desc),
-            Icons.Default.Reply
+            Icons.AutoMirrored.Filled.Reply
         ),
         Triple(
             ActionSource.CUSTOM_BROADCAST,
@@ -4789,7 +4792,7 @@ fun ActionDisplayModeSelectionContent(
         Triple(
             ActionDisplayMode.ICON_AND_TEXT,
             R.string.translator_actions_display_mode_both,
-            Icons.Outlined.ViewQuilt
+            Icons.AutoMirrored.Outlined.ViewQuilt
         )
     )
 
@@ -6925,7 +6928,7 @@ fun ActionDisplayModeSelectionSheetPreview() {
 fun TranslatorPillContent(
     pillConfig: com.d4viddf.hyperbridge.models.translator.CompactPillConfig,
     installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme> = emptyList(),
-    themeBinding: com.d4viddf.hyperbridge.models.translator.ThemeBinding = com.d4viddf.hyperbridge.models.translator.ThemeBinding(),
+    themeBinding: ThemeBinding = ThemeBinding(),
     onPillConfigChange: (com.d4viddf.hyperbridge.models.translator.CompactPillConfig) -> Unit
 ) {
     var showLeftSheet by remember { mutableStateOf(false) }
@@ -7179,240 +7182,14 @@ private fun TranslatorPillIslandPreview(
                 .padding(vertical = 36.dp, horizontal = 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(Color.Black)
-                    .animateContentSize(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                TranslatorSymmetricalIslandLayout(
-                    left = left,
-                    right = right,
-                    highlightColor = highlightColor,
-                    iconShape = iconShape
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TranslatorSymmetricalIslandLayout(
-    left: PillLeftDesign,
-    right: PillRightDesign,
-    highlightColor: Color,
-    iconShape: Shape,
-    modifier: Modifier = Modifier
-) {
-    val horizontalPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
-    val cameraGapPx = with(LocalDensity.current) { 10.dp.roundToPx() }
-    val minSideWidthPx = with(LocalDensity.current) { 16.dp.roundToPx() }
-    val pillHeightPx = with(LocalDensity.current) { 44.dp.roundToPx() }
-
-    Layout(
-        modifier = modifier,
-        content = {
-            // Measurable 0: Left Content
-            Box(contentAlignment = Alignment.CenterStart) {
-                when (left) {
-                    PillLeftDesign.ICON_ONLY -> {
-                        Box(
-                            modifier = Modifier
-                                .size(18.dp)
-                                .clip(iconShape)
-                                .background(highlightColor),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Outlined.AutoAwesome,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(11.dp)
-                            )
-                        }
-                    }
-                    PillLeftDesign.ICON_AND_TEXT -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clip(iconShape)
-                                    .background(highlightColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Outlined.AutoAwesome,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(11.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "App Alert",
-                                color = Color.White,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                    PillLeftDesign.TEXT_ONLY -> {
-                        Text(
-                            text = "App Alert",
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1
-                        )
-                    }
-                    PillLeftDesign.AVATAR -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clip(CircleShape)
-                                    .background(highlightColor.copy(alpha = 0.8f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Person,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "Alice",
-                                color = Color.White,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                    PillLeftDesign.HIDDEN -> {
-                        // Empty slot
-                    }
-                }
-            }
-
-            // Measurable 1: Camera Cutout (Realistic punch-hole)
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF1E1E1E)),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF0F0F0F))
-                )
-            }
-
-            // Measurable 2: Right Content
-            Box(contentAlignment = Alignment.CenterEnd) {
-                when (right) {
-                    PillRightDesign.AUTO -> {
-                        Text(
-                            text = "00:05",
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal,
-                            maxLines = 1
-                        )
-                    }
-                    PillRightDesign.PROGRESS_PERCENT -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clip(CircleShape)
-                                    .background(highlightColor.copy(alpha = 0.25f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Speed,
-                                    contentDescription = null,
-                                    tint = highlightColor,
-                                    modifier = Modifier.size(11.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                text = "65%",
-                                color = Color.White,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Normal,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                    PillRightDesign.TIMER -> {
-                        Text(
-                            text = "00:05",
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal,
-                            maxLines = 1
-                        )
-                    }
-                    PillRightDesign.HIGHLIGHT_TEXT -> {
-                        Text(
-                            text = "Done",
-                            color = highlightColor,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1
-                        )
-                    }
-                    PillRightDesign.NONE -> {
-                        // Empty slot
-                    }
-                }
-            }
-        }
-    ) { measurables, constraints ->
-        val unconstrained = constraints.copy(minWidth = 0, minHeight = 0)
-        val leftPlaceable = measurables[0].measure(unconstrained)
-        val cameraPlaceable = measurables[1].measure(unconstrained)
-        val rightPlaceable = measurables[2].measure(unconstrained)
-
-        // Make left and right symmetrical by taking the width of the widest side
-        val sideWidth = maxOf(leftPlaceable.width, rightPlaceable.width, minSideWidthPx)
-
-        val totalWidth = (horizontalPaddingPx * 2) + (sideWidth * 2) + cameraPlaceable.width + (cameraGapPx * 2)
-        val totalHeight = pillHeightPx
-
-        layout(totalWidth, totalHeight) {
-            // Left content aligned at start of left side
-            leftPlaceable.placeRelative(
-                x = horizontalPaddingPx,
-                y = (totalHeight - leftPlaceable.height) / 2
-            )
-
-            // Camera placed in the exact center
-            val cameraX = horizontalPaddingPx + sideWidth + cameraGapPx
-            cameraPlaceable.placeRelative(
-                x = cameraX,
-                y = (totalHeight - cameraPlaceable.height) / 2
-            )
-
-            // Right content aligned at end of right side
-            val rightX = totalWidth - horizontalPaddingPx - rightPlaceable.width
-            rightPlaceable.placeRelative(
-                x = rightX,
-                y = (totalHeight - rightPlaceable.height) / 2
+            com.d4viddf.hyperbridge.ui.components.island.HyperOsCompactPill(
+                leftDesign = left,
+                rightDesign = right,
+                title = "App Alert",
+                rightText = if (right == PillRightDesign.TIMER) "00:05" else "00:05",
+                progressPercent = 65,
+                highlightColor = highlightColor,
+                iconShape = iconShape
             )
         }
     }

@@ -1194,9 +1194,15 @@
     <string name="translator_pres_select_widget_btn">Select Widget</string>
     <string name="translator_pres_template_sheet_title">Select Template Layout</string>
     <string name="translator_pres_widget_sheet_title">Select Widget</string>
-    <string name="translator_pres_template_default">Default Notification Template</string>
-    <string name="translator_pres_template_media">Compact Media Player</string>
-    <string name="translator_pres_template_nav">Navigation Turn-by-Turn</string>
+    <string name="translator_pres_template_default">Template 1: Weather &amp; Navigation</string>
+    <string name="translator_pres_template_payment">Template 2: Payment &amp; Wallet</string>
+    <string name="translator_pres_template_call">Template 3: Voice Call &amp; CallKit</string>
+    <string name="translator_pres_template_delivery">Template 4: Ride-Hail &amp; Food Delivery</string>
+    <string name="translator_pres_template_queue">Template 5: Queue &amp; Waiting</string>
+    <string name="translator_pres_template_parking">Template 6: Parking &amp; Metering</string>
+    <string name="translator_pres_template_download">Template 7: File Upload &amp; Download</string>
+    <string name="translator_pres_template_promo">Template 8: Coupon &amp; Red Packet</string>
+    <string name="translator_pres_template_media">Template 12: Compact Media Player</string>
     <string name="translator_pres_widget_default">System Status Widget</string>
     <string name="translator_pres_widget_counter">Timer &amp; Counter Widget</string>
 
@@ -1338,6 +1344,10 @@
     <string name="translator_pill_right_highlight_desc">Shows custom highlight text or status snippet</string>
     <string name="translator_pill_right_none">Empty</string>
     <string name="translator_pill_right_none_desc">Leaves the right pill slot empty</string>
+
+    <!-- Preview Mode Strings -->
+    <string name="translator_preview_mode_expanded">Expanded Island</string>
+    <string name="translator_preview_mode_pill">Compact Pill</string>
 </resources>
 
 
