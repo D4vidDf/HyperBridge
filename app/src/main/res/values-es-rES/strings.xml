@@ -894,10 +894,14 @@
     <string name="translator_icon_none">Oculto</string>
 
     <string name="translator_prog_type">Tipo de ranura de progreso</string>
-    <string name="translator_prog_type_none">Ninguno</string>
+    <string name="translator_prog_type_none">Desactivado / Ninguno</string>
+    <string name="translator_prog_type_none_desc">No mostrar barra de progreso ni temporizadores</string>
     <string name="translator_prog_type_bar">Barra de progreso</string>
-    <string name="translator_prog_type_timer">Temporizador</string>
-    <string name="translator_prog_type_waypoint">Punto de referencia</string>
+    <string name="translator_prog_type_bar_desc">Barra lineal en la isla expandida, indicador circular en la píldora</string>
+    <string name="translator_prog_type_waypoint">Puntos de Ruta / Pasos</string>
+    <string name="translator_prog_type_waypoint_desc">Progreso por etapas para envíos, rutas o entregas</string>
+    <string name="translator_prog_type_timer">Cuenta Atrás / Temporizador</string>
+    <string name="translator_prog_type_timer_desc">Indicador de tiempo transcurrido o cuenta regresiva</string>
     <string name="translator_prog_extract_from_text">Extraer progreso del texto</string>
     <string name="translator_prog_regex">Regex de progreso (ej. (\\d+)%)</string>
 
@@ -1034,4 +1038,72 @@
     <string name="translator_cond_channel_empty">No se encontraron canales para las apps objetivo</string>
     <string name="translator_cond_channel_custom_desc">O introduce manualmente el ID del canal:</string>
     <string name="translator_cond_channel_select_desc">Elige un canal de notificación existente detectado en tu dispositivo:</string>
+
+    <!-- Presentation & Layout Strings -->
+    <string name="translator_pres_mode_title">Modo de Presentación</string>
+    <string name="translator_pres_mode_desc">Elige cómo se muestra esta notificación en la isla</string>
+    <string name="translator_pres_mode_standard">Estándar</string>
+    <string name="translator_pres_mode_standard_desc">Isla dinámica con título, subtítulo e iconos personalizados</string>
+    <string name="translator_pres_mode_template">Plantilla</string>
+    <string name="translator_pres_mode_template_desc">Diseños de isla dinámica predefinidos</string>
+    <string name="translator_pres_mode_widget">Widget</string>
+    <string name="translator_pres_mode_widget_desc">Componente widget interactivo avanzado</string>
+    <string name="translator_pres_mode_sheet_title">Seleccionar Modo de Presentación</string>
+    <string name="translator_pres_mode_select_btn">Cambiar Modo</string>
+    
+    <string name="translator_pres_theme_title">Tema Vinculado</string>
+    <string name="translator_pres_theme_desc">Vincula un tema específico o usa el activo por defecto</string>
+    <string name="translator_pres_theme_active">Tema Activo (Predeterminado)</string>
+    <string name="translator_pres_theme_active_desc">Sigue el tema que esté activo actualmente en HyperBridge</string>
+    <string name="translator_pres_theme_sheet_title">Seleccionar Tema</string>
+    <string name="translator_pres_theme_select_btn">Cambiar Tema</string>
+
+    <string name="translator_pres_wip_title">En Desarrollo</string>
+    <string name="translator_pres_template_wip_desc">Las plantillas personalizadas se completarán en una próxima versión. Puedes previsualizar los ajustes disponibles abajo.</string>
+    <string name="translator_pres_widget_wip_desc">La integración de widgets interactivos estará disponible próximamente. Puedes seleccionar tu widget objetivo abajo.</string>
+    <string name="translator_pres_select_template_btn">Seleccionar Plantilla</string>
+    <string name="translator_pres_select_widget_btn">Seleccionar Widget</string>
+    <string name="translator_pres_template_sheet_title">Seleccionar Plantilla</string>
+    <string name="translator_pres_widget_sheet_title">Seleccionar Widget</string>
+    <string name="translator_pres_template_default">Plantilla de Notificación Predeterminada</string>
+    <string name="translator_pres_template_media">Reproductor Multimedia Compacto</string>
+    <string name="translator_pres_template_nav">Navegación Paso a Paso</string>
+    <string name="translator_pres_widget_default">Widget de Estado del Sistema</string>
+    <string name="translator_pres_widget_counter">Widget de Temporizador y Contador</string>
+
+    <string name="translator_pres_icon_source_title">Icono Izquierdo</string>
+    <string name="translator_pres_icon_source_desc">Elige el icono mostrado en el lado izquierdo de la isla</string>
+    <string name="translator_pres_icon_source_app">Icono de la App</string>
+    <string name="translator_pres_icon_source_avatar">Remitente / Avatar de Imagen Grande</string>
+    <string name="translator_pres_icon_source_hidden">Oculto / Ninguno</string>
+    <string name="translator_pres_icon_sheet_title">Seleccionar Icono Izquierdo</string>
+    <string name="translator_pres_icon_select_btn">Cambiar Icono</string>
+
+    <string name="translator_pres_tags_hint">Insertar Variable Rápida:</string>
+    <string name="translator_pres_text_title">Texto y Plantillas</string>
+    <string name="translator_pres_text_desc">Define el título y subtítulo dinámico con variables</string>
+
+    <!-- Progress & Timing Strings -->
+    <string name="translator_prog_info_title">Cómo Funciona el Progreso</string>
+    <string name="translator_prog_info_desc">Los indicadores de progreso solo se mostrarán si la notificación entrante contiene progreso nativo de Android o si se extrae mediante una expresión regular a continuación.\n\nEn la notificación de la isla se muestra como una barra lineal. En la píldora compacta puede verse como un círculo (el diseño de la píldora se personalizará en una actualización posterior).</string>
+    <string name="translator_prog_learn_btn">Cómo funciona el progreso</string>
+    <string name="translator_prog_learn_sheet_title">Guía de Progreso y Temporización</string>
+    <string name="translator_prog_learn_native_title">1. Progreso Nativo de Android</string>
+    <string name="translator_prog_learn_native_desc">Las notificaciones de Android pueden incluir barras de progreso nativas (como descargas de archivos o renderizado). HyperBridge las detecta automáticamente y las asigna a la isla.</string>
+    <string name="translator_prog_learn_regex_title">2. Extracción de Texto (Regex)</string>
+    <string name="translator_prog_learn_regex_desc">Si una app incluye el progreso en el texto (ej. \"Subiendo 45%\" o \"3/10 listo\"), puedes configurar una expresión regular abajo para analizarlo y mostrarlo como barra de progreso.</string>
+    <string name="translator_prog_learn_display_title">3. Barra vs. Píldora</string>
+    <string name="translator_prog_learn_display_desc">En la isla de notificación expandida, el progreso se muestra como una barra horizontal lineal. En la píldora compacta, puede representarse como un anillo circular.</string>
+    <string name="translator_prog_type_card_title">Tipo de Progreso</string>
+    <string name="translator_prog_type_card_desc">Elige si se muestra el progreso y cómo se renderiza</string>
+    <string name="translator_prog_type_select_btn">Cambiar Tipo</string>
+    <string name="translator_prog_type_sheet_title">Seleccionar Tipo de Progreso</string>
+
+    <string name="translator_prog_show_pct_desc">Muestra el porcentaje numérico (ej. 75%) junto al indicador</string>
+    <string name="translator_prog_extract_card_title">Extracción de Texto</string>
+    <string name="translator_prog_extract_card_desc">Extrae porcentajes de progreso del título, texto o subtítulo de la notificación</string>
+    <string name="translator_prog_regex_desc">Captura el progreso numérico con un grupo regex (\\d+)</string>
+    <string name="translator_prog_regex_chips_title">Plantillas Regex:</string>
+    <string name="translator_prog_max_title">Valor Máximo Personalizado</string>
+    <string name="translator_prog_max_desc">Denominador para calcular el porcentaje (por defecto 100)</string>
 </resources>

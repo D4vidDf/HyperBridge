@@ -39,12 +39,17 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     private val db = AppDatabase.getDatabase(application)
     private val translatorDao = db.translatorDao()
     private val pm = application.packageManager
+    private val themeRepo = com.d4viddf.hyperbridge.data.theme.ThemeRepository(application)
 
     private val _installedApps = MutableStateFlow<List<AppItem>>(emptyList())
     val installedApps: StateFlow<List<AppItem>> = _installedApps.asStateFlow()
 
+    private val _installedThemes = MutableStateFlow<List<com.d4viddf.hyperbridge.models.theme.HyperTheme>>(emptyList())
+    val installedThemes: StateFlow<List<com.d4viddf.hyperbridge.models.theme.HyperTheme>> = _installedThemes.asStateFlow()
+
     init {
         loadInstalledApps()
+        loadInstalledThemes()
     }
 
     private fun loadInstalledApps() {
@@ -54,6 +59,13 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                 .map { AppItem(it.packageName, it.loadLabel(pm).toString()) }
                 .sortedBy { it.label }
             _installedApps.value = apps
+        }
+    }
+
+    private fun loadInstalledThemes() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val themes = themeRepo.getAvailableThemes()
+            _installedThemes.value = themes
         }
     }
 

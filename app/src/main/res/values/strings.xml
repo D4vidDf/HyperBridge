@@ -1025,10 +1025,14 @@
     <string name="translator_icon_none">Hidden</string>
 
     <string name="translator_prog_type">Progress Slot Type</string>
-    <string name="translator_prog_type_none">None</string>
+    <string name="translator_prog_type_none">Disabled / None</string>
+    <string name="translator_prog_type_none_desc">Do not show progress bar or timing indicators</string>
     <string name="translator_prog_type_bar">Progress Bar</string>
-    <string name="translator_prog_type_timer">Timer</string>
-    <string name="translator_prog_type_waypoint">Waypoint</string>
+    <string name="translator_prog_type_bar_desc">Linear bar in expanded island, circular indicator on pill</string>
+    <string name="translator_prog_type_waypoint">Waypoint / Stepper</string>
+    <string name="translator_prog_type_waypoint_desc">Step-by-step progress points for deliveries or routes</string>
+    <string name="translator_prog_type_timer">Countdown / Timer</string>
+    <string name="translator_prog_type_timer_desc">Active elapsed or remaining countdown time indicator</string>
     <string name="translator_prog_extract_from_text">Extract progress from text</string>
     <string name="translator_prog_regex">Progress Regex (e.g. (\\d+)%)</string>
 
@@ -1163,6 +1167,74 @@
     <string name="translator_cond_channel_empty">No channels found for target apps</string>
     <string name="translator_cond_channel_custom_desc">Or enter custom / manual Channel ID:</string>
     <string name="translator_cond_channel_select_desc">Pick an existing notification channel detected on your device:</string>
+
+    <!-- Presentation & Layout Strings -->
+    <string name="translator_pres_mode_title">Presentation Mode</string>
+    <string name="translator_pres_mode_desc">Choose how this notification is rendered in the island</string>
+    <string name="translator_pres_mode_standard">Standard</string>
+    <string name="translator_pres_mode_standard_desc">Dynamic island with custom title, subtitle, and icons</string>
+    <string name="translator_pres_mode_template">Template</string>
+    <string name="translator_pres_mode_template_desc">Predefined dynamic island template layouts</string>
+    <string name="translator_pres_mode_widget">Widget</string>
+    <string name="translator_pres_mode_widget_desc">Custom interactive rich widget component</string>
+    <string name="translator_pres_mode_sheet_title">Select Presentation Mode</string>
+    <string name="translator_pres_mode_select_btn">Change Mode</string>
+    
+    <string name="translator_pres_theme_title">Linked Theme</string>
+    <string name="translator_pres_theme_desc">Bind a specific theme styling or follow the active default</string>
+    <string name="translator_pres_theme_active">Active Theme (Default)</string>
+    <string name="translator_pres_theme_active_desc">Follows whichever theme is currently active in HyperBridge</string>
+    <string name="translator_pres_theme_sheet_title">Select Theme</string>
+    <string name="translator_pres_theme_select_btn">Change Theme</string>
+
+    <string name="translator_pres_wip_title">Work in Progress</string>
+    <string name="translator_pres_template_wip_desc">Custom template layouts are being finalized in an upcoming PR. You can preview available presets below.</string>
+    <string name="translator_pres_widget_wip_desc">Interactive widget embedding will be enabled in an upcoming release. You can select your target widget below.</string>
+    <string name="translator_pres_select_template_btn">Select Template</string>
+    <string name="translator_pres_select_widget_btn">Select Widget</string>
+    <string name="translator_pres_template_sheet_title">Select Template Layout</string>
+    <string name="translator_pres_widget_sheet_title">Select Widget</string>
+    <string name="translator_pres_template_default">Default Notification Template</string>
+    <string name="translator_pres_template_media">Compact Media Player</string>
+    <string name="translator_pres_template_nav">Navigation Turn-by-Turn</string>
+    <string name="translator_pres_widget_default">System Status Widget</string>
+    <string name="translator_pres_widget_counter">Timer &amp; Counter Widget</string>
+
+    <string name="translator_pres_icon_source_title">Left Icon Slot</string>
+    <string name="translator_pres_icon_source_desc">Choose the icon displayed on the left side of the island</string>
+    <string name="translator_pres_icon_source_app">App Icon</string>
+    <string name="translator_pres_icon_source_avatar">Sender / Large Icon Avatar</string>
+    <string name="translator_pres_icon_source_hidden">Hidden / None</string>
+    <string name="translator_pres_icon_sheet_title">Select Left Icon Slot</string>
+    <string name="translator_pres_icon_select_btn">Change Icon Slot</string>
+
+    <string name="translator_pres_tags_hint">Quick Insert Variable:</string>
+    <string name="translator_pres_text_title">Text &amp; Templates</string>
+    <string name="translator_pres_text_desc">Define dynamic title and subtitle with variable tokens</string>
+
+    <!-- Progress & Timing Strings -->
+    <string name="translator_prog_info_title">How Progress Works</string>
+    <string name="translator_prog_info_desc">Progress indicators will only display if the incoming notification contains native Android progress data or if a percentage is matched and extracted from text below.\n\nIn the island notification, progress is displayed as a linear bar. On the compact pill, it can be rendered as a circle (pill appearance customizable in a future update).</string>
+    <string name="translator_prog_learn_btn">Learn How Progress Works</string>
+    <string name="translator_prog_learn_sheet_title">Progress &amp; Timing Guide</string>
+    <string name="translator_prog_learn_native_title">1. Native Android Progress</string>
+    <string name="translator_prog_learn_native_desc">Android notifications can include native progress bars (like file downloads or media rendering). HyperBridge detects these automatically and maps them to the island.</string>
+    <string name="translator_prog_learn_regex_title">2. Text Extraction (Regex)</string>
+    <string name="translator_prog_learn_regex_desc">If an app includes progress in text (e.g., \"Uploading 45%\" or \"3/10 done\"), you can configure a regular expression below to parse and display it as a progress bar.</string>
+    <string name="translator_prog_learn_display_title">3. Bar vs. Pill Rendering</string>
+    <string name="translator_prog_learn_display_desc">On the expanded notification island, progress is rendered as a linear horizontal bar. On the compact pill, it can be displayed as a circular ring indicator.</string>
+    <string name="translator_prog_type_card_title">Progress Slot Type</string>
+    <string name="translator_prog_type_card_desc">Choose whether and how progress is displayed</string>
+    <string name="translator_prog_type_select_btn">Change Type</string>
+    <string name="translator_prog_type_sheet_title">Select Progress Type</string>
+
+    <string name="translator_prog_show_pct_desc">Display numerical percentage text (e.g. 75%) alongside indicator</string>
+    <string name="translator_prog_extract_card_title">Text Extraction</string>
+    <string name="translator_prog_extract_card_desc">Parse progress percentages from notification title, text, or subtext</string>
+    <string name="translator_prog_regex_desc">Capture numerical progress with regex group (\\d+)</string>
+    <string name="translator_prog_regex_chips_title">Regex Presets:</string>
+    <string name="translator_prog_max_title">Custom Maximum Value</string>
+    <string name="translator_prog_max_desc">Denominator when calculating percentage (defaults to 100)</string>
 </resources>
 
 
