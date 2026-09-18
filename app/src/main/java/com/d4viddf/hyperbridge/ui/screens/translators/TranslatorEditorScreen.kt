@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,25 +27,32 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Subject
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Reply
+import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -84,6 +92,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
@@ -92,6 +101,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -105,6 +116,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -122,15 +134,12 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.toShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
-import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.translator.ActionDisplayMode
 import com.d4viddf.hyperbridge.models.translator.ActionMatchBy
 import com.d4viddf.hyperbridge.models.translator.ActionMatcher
 import com.d4viddf.hyperbridge.models.translator.ActionSlotConfig
@@ -162,6 +171,8 @@ import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.content.AppIcon
 import com.d4viddf.hyperbridge.ui.screens.theme.content.AppSelectionSheet
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
+import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
+import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 import java.util.UUID
 
 enum class TranslatorRoute {
@@ -2501,6 +2512,7 @@ fun PresentationModeSelectionContent(
                             )
                         }
                         if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = null,
@@ -2619,6 +2631,7 @@ fun ThemeSelectionContent(
                             )
                         }
                         if (isActiveSelected) {
+                            Spacer(Modifier.width(12.dp))
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = null,
@@ -2673,6 +2686,7 @@ fun ThemeSelectionContent(
                             )
                         }
                         if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = null,
@@ -2799,6 +2813,7 @@ fun TemplateSelectionContent(
                             )
                         }
                         if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = null,
@@ -2839,8 +2854,8 @@ fun WidgetSelectionContent(
     onWidgetSelected: (String) -> Unit
 ) {
     val widgets = listOf(
-        Triple("widget_system_status", R.string.translator_pres_widget_default, Icons.Outlined.Speed),
-        Triple("widget_timer_counter", R.string.translator_pres_widget_counter, Icons.Outlined.Timer)
+        Triple("widget_default_status", R.string.translator_pres_widget_default, Icons.Outlined.Widgets),
+        Triple("widget_counter_timer", R.string.translator_pres_widget_counter, Icons.Outlined.Timer)
     )
 
     Column(
@@ -2867,12 +2882,6 @@ fun WidgetSelectionContent(
                 fontWeight = FontWeight.Bold
             )
         }
-
-        Text(
-            text = stringResource(R.string.translator_pres_widget_wip_desc),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
 
         LazyColumn(
             modifier = Modifier
@@ -2924,6 +2933,7 @@ fun WidgetSelectionContent(
                             )
                         }
                         if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = null,
@@ -3050,6 +3060,7 @@ fun LeftIconSelectionContent(
                             )
                         }
                         if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = null,
@@ -3684,6 +3695,7 @@ fun ProgressSlotTypeSelectionContent(
                             )
                         }
                         if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = null,
@@ -3702,6 +3714,11 @@ fun TranslatorActionsContent(
     actionSlots: List<ActionSlotConfig>,
     onChange: (List<ActionSlotConfig>) -> Unit
 ) {
+    var showLearnSheet by remember { mutableStateOf(false) }
+    var activeSlotForSourceSheet by remember { mutableStateOf<Int?>(null) }
+    var activeSlotForSmartTypeSheet by remember { mutableStateOf<Int?>(null) }
+    var activeSlotForDisplayModeSheet by remember { mutableStateOf<Int?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -3709,6 +3726,65 @@ fun TranslatorActionsContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // --- 1. HOW ACTIONS WORK / EDUCATIONAL BANNER CARD ---
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+            ),
+            onClick = { showLearnSheet = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Outlined.TouchApp,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(14.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.translator_actions_info_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_actions_learn_btn),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+
+        // --- 2. HEADER BAR & ADD BUTTON ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -3724,34 +3800,40 @@ fun TranslatorActionsContent(
                 onClick = {
                     val newSlot = ActionSlotConfig(
                         slotPosition = actionSlots.size,
+                        isVisible = true,
                         source = ActionSource.NOTIFICATION_ACTION,
                         actionMatcher = ActionMatcher(
                             matchBy = ActionMatchBy.INDEX,
                             actionIndex = actionSlots.size
-                        )
+                        ),
+                        displayMode = ActionDisplayMode.ICON_ONLY
                     )
                     onChange(actionSlots + newSlot)
                 },
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.translator_actions_add_slot))
             }
         }
 
+        // --- 3. EMPTY STATE OR SLOTS LIST ---
         if (actionSlots.isEmpty()) {
             EmptyState(
                 icon = Icons.Outlined.TouchApp,
                 title = stringResource(R.string.translator_actions_empty_title),
                 description = stringResource(R.string.translator_actions_empty_desc),
-                modifier = Modifier.padding(top = 32.dp)
+                modifier = Modifier.padding(top = 24.dp)
             )
         } else {
             actionSlots.forEachIndexed { index, slot ->
-                val shape = getExpressiveShape(actionSlots.size, index, ShapeStyle.Large)
+                val shape = RoundedCornerShape(20.dp)
+
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (slot.isVisible) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerLowest
+                    ),
                     shape = shape,
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -3761,74 +3843,395 @@ fun TranslatorActionsContent(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Slot Header: Badge, Move Up/Down, Visibility Toggle, Delete
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Slot #${slot.slotPosition + 1}",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                            IconButton(
-                                onClick = {
-                                    val updated = actionSlots.toMutableList().apply { removeAt(index) }
-                                    onChange(updated)
-                                }
-                            ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            ActionSource.entries.forEach { source ->
-                                FilterChip(
-                                    selected = slot.source == source,
-                                    onClick = {
-                                        val updated = actionSlots.toMutableList()
-                                        updated[index] = slot.copy(source = source)
-                                        onChange(updated)
-                                    },
-                                    label = { Text(source.name) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                )
-                            }
-                        }
-
-                        if (slot.source == ActionSource.SMART_ACTION) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                SmartActionType.entries.forEach { smartType ->
-                                    FilterChip(
-                                        selected = slot.smartActionType == smartType,
-                                        onClick = {
-                                            val updated = actionSlots.toMutableList()
-                                            updated[index] = slot.copy(smartActionType = smartType)
-                                            onChange(updated)
-                                        },
-                                        label = { Text(smartType.name) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (slot.isVisible) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.translator_actions_slot_badge, index + 1),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (slot.isVisible) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+
+                                if (!slot.isVisible) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.translator_actions_visibility_hidden),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                         )
+                                    }
+                                }
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                // Move Up
+                                IconButton(
+                                    onClick = {
+                                        if (index > 0) {
+                                            val updated = actionSlots.toMutableList()
+                                            val item = updated.removeAt(index)
+                                            updated.add(index - 1, item)
+                                            val reindexed = updated.mapIndexed { idx, s -> s.copy(slotPosition = idx) }
+                                            onChange(reindexed)
+                                        }
+                                    },
+                                    enabled = index > 0,
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.ArrowUpward,
+                                        contentDescription = "Move Up",
+                                        tint = if (index > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outlineVariant,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+
+                                // Move Down
+                                IconButton(
+                                    onClick = {
+                                        if (index < actionSlots.size - 1) {
+                                            val updated = actionSlots.toMutableList()
+                                            val item = updated.removeAt(index)
+                                            updated.add(index + 1, item)
+                                            val reindexed = updated.mapIndexed { idx, s -> s.copy(slotPosition = idx) }
+                                            onChange(reindexed)
+                                        }
+                                    },
+                                    enabled = index < actionSlots.size - 1,
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.ArrowDownward,
+                                        contentDescription = "Move Down",
+                                        tint = if (index < actionSlots.size - 1) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outlineVariant,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+
+                                // Visibility Toggle
+                                IconButton(
+                                    onClick = {
+                                        val updated = actionSlots.toMutableList()
+                                        updated[index] = slot.copy(isVisible = !slot.isVisible)
+                                        onChange(updated)
+                                    },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (slot.isVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = if (slot.isVisible) "Hide Action" else "Show Action",
+                                        tint = if (slot.isVisible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+
+                                // Delete Slot
+                                IconButton(
+                                    onClick = {
+                                        val updated = actionSlots.toMutableList().apply { removeAt(index) }
+                                        val reindexed = updated.mapIndexed { idx, s -> s.copy(slotPosition = idx) }
+                                        onChange(reindexed)
+                                    },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = stringResource(R.string.translator_actions_remove_slot),
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
                                     )
                                 }
                             }
                         }
 
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                        // Action Source Selector Row
+                        Card(
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                            onClick = { activeSlotForSourceSheet = index },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                val (sourceTitleRes, sourceIcon) = when (slot.source) {
+                                    ActionSource.NOTIFICATION_ACTION -> Pair(R.string.translator_actions_source_notif_title, Icons.Outlined.TouchApp)
+                                    ActionSource.SMART_ACTION -> Pair(R.string.translator_actions_source_smart_title, Icons.Outlined.AutoAwesome)
+                                    ActionSource.INLINE_REPLY -> Pair(R.string.translator_actions_source_reply_title, Icons.Default.Reply)
+                                    ActionSource.CUSTOM_BROADCAST -> Pair(R.string.translator_actions_source_broadcast_title, Icons.Default.RssFeed)
+                                }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                sourceIcon,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = stringResource(R.string.translator_actions_source_title),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = stringResource(sourceTitleRes),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+
+                                FilledTonalButton(
+                                    onClick = { activeSlotForSourceSheet = index },
+                                    shape = RoundedCornerShape(10.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(stringResource(R.string.translator_actions_source_change_btn), style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+
+                        // Specific Configuration according to Source
+                        when (slot.source) {
+                            ActionSource.SMART_ACTION -> {
+                                Card(
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                                    onClick = { activeSlotForSmartTypeSheet = index },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        val smartTitleRes = when (slot.smartActionType) {
+                                            SmartActionType.OTP_COPY -> R.string.translator_actions_smart_otp
+                                            SmartActionType.OPEN_URL -> R.string.translator_actions_smart_url
+                                            SmartActionType.DIAL_NUMBER -> R.string.translator_actions_smart_dial
+                                            SmartActionType.TRACK_PACKAGE -> R.string.translator_actions_smart_track
+                                            null -> R.string.translator_actions_smart_otp
+                                        }
+                                        val smartIcon = when (slot.smartActionType) {
+                                            SmartActionType.OTP_COPY -> Icons.Default.ContentCopy
+                                            SmartActionType.OPEN_URL -> Icons.Default.OpenInBrowser
+                                            SmartActionType.DIAL_NUMBER -> Icons.Default.Call
+                                            SmartActionType.TRACK_PACKAGE -> Icons.Default.LocalShipping
+                                            null -> Icons.Default.ContentCopy
+                                        }
+
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                                modifier = Modifier.size(32.dp)
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center) {
+                                                    Icon(
+                                                        smartIcon,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            }
+                                            Spacer(Modifier.width(10.dp))
+                                            Column {
+                                                Text(
+                                                    text = stringResource(R.string.translator_actions_smart_type),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                Text(
+                                                    text = stringResource(smartTitleRes),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    fontWeight = FontWeight.SemiBold
+                                                )
+                                            }
+                                        }
+
+                                        Icon(
+                                            Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            ActionSource.NOTIFICATION_ACTION -> {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(
+                                        text = stringResource(R.string.translator_actions_matcher_title),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        FilterChip(
+                                            selected = slot.actionMatcher.matchBy == ActionMatchBy.INDEX,
+                                            onClick = {
+                                                val updated = actionSlots.toMutableList()
+                                                updated[index] = slot.copy(
+                                                    actionMatcher = slot.actionMatcher.copy(matchBy = ActionMatchBy.INDEX)
+                                                )
+                                                onChange(updated)
+                                            },
+                                            label = { Text(stringResource(R.string.translator_actions_matcher_by_index)) }
+                                        )
+                                        FilterChip(
+                                            selected = slot.actionMatcher.matchBy == ActionMatchBy.TITLE,
+                                            onClick = {
+                                                val updated = actionSlots.toMutableList()
+                                                updated[index] = slot.copy(
+                                                    actionMatcher = slot.actionMatcher.copy(matchBy = ActionMatchBy.TITLE)
+                                                )
+                                                onChange(updated)
+                                            },
+                                            label = { Text(stringResource(R.string.translator_actions_matcher_by_title)) }
+                                        )
+                                    }
+
+                                    if (slot.actionMatcher.matchBy == ActionMatchBy.INDEX) {
+                                        OutlinedTextField(
+                                            value = (slot.actionMatcher.actionIndex ?: 0).toString(),
+                                            onValueChange = {
+                                                val idx = it.filter { c -> c.isDigit() }.toIntOrNull() ?: 0
+                                                val updated = actionSlots.toMutableList()
+                                                updated[index] = slot.copy(
+                                                    actionMatcher = slot.actionMatcher.copy(actionIndex = idx)
+                                                )
+                                                onChange(updated)
+                                            },
+                                            label = { Text(stringResource(R.string.translator_actions_matcher_index_label)) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(12.dp),
+                                            singleLine = true
+                                        )
+                                    } else {
+                                        OutlinedTextField(
+                                            value = slot.actionMatcher.titleRegex ?: "",
+                                            onValueChange = {
+                                                val updated = actionSlots.toMutableList()
+                                                updated[index] = slot.copy(
+                                                    actionMatcher = slot.actionMatcher.copy(titleRegex = it.ifBlank { null })
+                                                )
+                                                onChange(updated)
+                                            },
+                                            label = { Text(stringResource(R.string.translator_actions_matcher_regex_label)) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(12.dp),
+                                            singleLine = true
+                                        )
+                                    }
+                                }
+                            }
+                            ActionSource.INLINE_REPLY -> {
+                                Text(
+                                    text = stringResource(R.string.translator_actions_source_reply_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            ActionSource.CUSTOM_BROADCAST -> {
+                                Text(
+                                    text = stringResource(R.string.translator_actions_source_broadcast_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Display Mode Selector Row (Icon only, Text only, Icon & Text)
+                        Card(
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                            onClick = { activeSlotForDisplayModeSheet = index },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                val displayTitleRes = when (slot.displayMode) {
+                                    ActionDisplayMode.ICON_ONLY -> R.string.translator_actions_display_mode_icon
+                                    ActionDisplayMode.TEXT_ONLY -> R.string.translator_actions_display_mode_text
+                                    ActionDisplayMode.ICON_AND_TEXT -> R.string.translator_actions_display_mode_both
+                                }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.translator_actions_display_mode_title),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = stringResource(displayTitleRes),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+
+                                Icon(
+                                    Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
+
+                        // Optional Custom Button Label
                         OutlinedTextField(
                             value = slot.customLabel ?: "",
                             onValueChange = {
@@ -3837,9 +4240,611 @@ fun TranslatorActionsContent(
                                 onChange(updated)
                             },
                             label = { Text(stringResource(R.string.translator_action_custom_label)) },
+                            placeholder = { Text("Auto (From Notification or Preset)") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    // --- BOTTOM SHEETS ---
+    if (activeSlotForSourceSheet != null) {
+        val slotIndex = activeSlotForSourceSheet!!
+        val currentSlot = actionSlots.getOrNull(slotIndex)
+        if (currentSlot != null) {
+            ActionSourceSelectionSheet(
+                currentSource = currentSlot.source,
+                onDismiss = { activeSlotForSourceSheet = null },
+                onSourceSelected = { newSource ->
+                    val updated = actionSlots.toMutableList()
+                    val defaultSmart = if (newSource == ActionSource.SMART_ACTION && currentSlot.smartActionType == null) {
+                        SmartActionType.OTP_COPY
+                    } else currentSlot.smartActionType
+                    updated[slotIndex] = currentSlot.copy(source = newSource, smartActionType = defaultSmart)
+                    onChange(updated)
+                    activeSlotForSourceSheet = null
+                }
+            )
+        }
+    }
+
+    if (activeSlotForSmartTypeSheet != null) {
+        val slotIndex = activeSlotForSmartTypeSheet!!
+        val currentSlot = actionSlots.getOrNull(slotIndex)
+        if (currentSlot != null) {
+            SmartActionTypeSelectionSheet(
+                currentType = currentSlot.smartActionType ?: SmartActionType.OTP_COPY,
+                onDismiss = { activeSlotForSmartTypeSheet = null },
+                onTypeSelected = { newType ->
+                    val updated = actionSlots.toMutableList()
+                    updated[slotIndex] = currentSlot.copy(smartActionType = newType)
+                    onChange(updated)
+                    activeSlotForSmartTypeSheet = null
+                }
+            )
+        }
+    }
+
+    if (activeSlotForDisplayModeSheet != null) {
+        val slotIndex = activeSlotForDisplayModeSheet!!
+        val currentSlot = actionSlots.getOrNull(slotIndex)
+        if (currentSlot != null) {
+            ActionDisplayModeSelectionSheet(
+                currentMode = currentSlot.displayMode,
+                onDismiss = { activeSlotForDisplayModeSheet = null },
+                onModeSelected = { newMode ->
+                    val updated = actionSlots.toMutableList()
+                    updated[slotIndex] = currentSlot.copy(displayMode = newMode)
+                    onChange(updated)
+                    activeSlotForDisplayModeSheet = null
+                }
+            )
+        }
+    }
+
+    if (showLearnSheet) {
+        ActionGuideSheet(
+            onDismiss = { showLearnSheet = false }
+        )
+    }
+}
+
+// --- ACTION GUIDE BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActionGuideSheet(
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        ActionGuideContent()
+    }
+}
+
+@Composable
+fun ActionGuideContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.TouchApp,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_actions_learn_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_actions_learn_order_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_actions_learn_order_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_actions_learn_sources_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_actions_learn_sources_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_actions_learn_visibility_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_actions_learn_visibility_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- ACTION SOURCE SELECTION SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActionSourceSelectionSheet(
+    currentSource: ActionSource,
+    onDismiss: () -> Unit,
+    onSourceSelected: (ActionSource) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        ActionSourceSelectionContent(
+            currentSource = currentSource,
+            onSourceSelected = onSourceSelected
+        )
+    }
+}
+
+@Composable
+fun ActionSourceSelectionContent(
+    currentSource: ActionSource,
+    onSourceSelected: (ActionSource) -> Unit
+) {
+    val options = listOf(
+        Triple(
+            ActionSource.NOTIFICATION_ACTION,
+            Pair(R.string.translator_actions_source_notif_title, R.string.translator_actions_source_notif_desc),
+            Icons.Outlined.TouchApp
+        ),
+        Triple(
+            ActionSource.SMART_ACTION,
+            Pair(R.string.translator_actions_source_smart_title, R.string.translator_actions_source_smart_desc),
+            Icons.Outlined.AutoAwesome
+        ),
+        Triple(
+            ActionSource.INLINE_REPLY,
+            Pair(R.string.translator_actions_source_reply_title, R.string.translator_actions_source_reply_desc),
+            Icons.Default.Reply
+        ),
+        Triple(
+            ActionSource.CUSTOM_BROADCAST,
+            Pair(R.string.translator_actions_source_broadcast_title, R.string.translator_actions_source_broadcast_desc),
+            Icons.Default.RssFeed
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.TouchApp,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_actions_source_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(options) { (source, textResPair, icon) ->
+                val (titleRes, descRes) = textResPair
+                val isSelected = currentSource == source
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    onClick = { onSourceSelected(source) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- SMART ACTION TYPE SELECTION SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SmartActionTypeSelectionSheet(
+    currentType: SmartActionType,
+    onDismiss: () -> Unit,
+    onTypeSelected: (SmartActionType) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        SmartActionTypeSelectionContent(
+            currentType = currentType,
+            onTypeSelected = onTypeSelected
+        )
+    }
+}
+
+@Composable
+fun SmartActionTypeSelectionContent(
+    currentType: SmartActionType,
+    onTypeSelected: (SmartActionType) -> Unit
+) {
+    val options = listOf(
+        Triple(
+            SmartActionType.OTP_COPY,
+            Pair(R.string.translator_actions_smart_otp, R.string.translator_actions_smart_otp_desc),
+            Icons.Default.ContentCopy
+        ),
+        Triple(
+            SmartActionType.OPEN_URL,
+            Pair(R.string.translator_actions_smart_url, R.string.translator_actions_smart_url_desc),
+            Icons.Default.OpenInBrowser
+        ),
+        Triple(
+            SmartActionType.DIAL_NUMBER,
+            Pair(R.string.translator_actions_smart_dial, R.string.translator_actions_smart_dial_desc),
+            Icons.Default.Call
+        ),
+        Triple(
+            SmartActionType.TRACK_PACKAGE,
+            Pair(R.string.translator_actions_smart_track, R.string.translator_actions_smart_track_desc),
+            Icons.Default.LocalShipping
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_actions_smart_type_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(options) { (smartType, textResPair, icon) ->
+                val (titleRes, descRes) = textResPair
+                val isSelected = currentType == smartType
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    onClick = { onTypeSelected(smartType) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- ACTION DISPLAY MODE SELECTION SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActionDisplayModeSelectionSheet(
+    currentMode: ActionDisplayMode,
+    onDismiss: () -> Unit,
+    onModeSelected: (ActionDisplayMode) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        ActionDisplayModeSelectionContent(
+            currentMode = currentMode,
+            onModeSelected = onModeSelected
+        )
+    }
+}
+
+@Composable
+fun ActionDisplayModeSelectionContent(
+    currentMode: ActionDisplayMode,
+    onModeSelected: (ActionDisplayMode) -> Unit
+) {
+    val options = listOf(
+        Triple(
+            ActionDisplayMode.ICON_ONLY,
+            R.string.translator_actions_display_mode_icon,
+            Icons.Outlined.AutoAwesome
+        ),
+        Triple(
+            ActionDisplayMode.TEXT_ONLY,
+            R.string.translator_actions_display_mode_text,
+            Icons.Outlined.TextFields
+        ),
+        Triple(
+            ActionDisplayMode.ICON_AND_TEXT,
+            R.string.translator_actions_display_mode_both,
+            Icons.Outlined.ViewQuilt
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.DisplaySettings,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_actions_display_mode_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(options) { (mode, titleRes, icon) ->
+                val isSelected = currentMode == mode
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    onClick = { onModeSelected(mode) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
@@ -5117,6 +6122,55 @@ fun ProgressGuideSheetPreview() {
     MaterialTheme {
         Surface {
             ProgressGuideContent()
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActionGuideSheetPreview() {
+    MaterialTheme {
+        Surface {
+            ActionGuideContent()
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActionSourceSelectionSheetPreview() {
+    MaterialTheme {
+        Surface {
+            ActionSourceSelectionContent(
+                currentSource = ActionSource.NOTIFICATION_ACTION,
+                onSourceSelected = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SmartActionTypeSelectionSheetPreview() {
+    MaterialTheme {
+        Surface {
+            SmartActionTypeSelectionContent(
+                currentType = SmartActionType.OTP_COPY,
+                onTypeSelected = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActionDisplayModeSelectionSheetPreview() {
+    MaterialTheme {
+        Surface {
+            ActionDisplayModeSelectionContent(
+                currentMode = ActionDisplayMode.ICON_ONLY,
+                onModeSelected = {}
+            )
         }
     }
 }

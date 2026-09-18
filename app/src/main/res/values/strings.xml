@@ -1036,7 +1036,7 @@
     <string name="translator_prog_extract_from_text">Extract progress from text</string>
     <string name="translator_prog_regex">Progress Regex (e.g. (\\d+)%)</string>
 
-    <string name="translator_actions_slot_title">Action Slot %1$d</string>
+    <string name="translator_actions_slot_title">Button %1$d</string>
     <string name="translator_actions_match_mode">Match Action By</string>
     <string name="translator_actions_match_index">Index in notification</string>
     <string name="translator_actions_match_title">Title Regex</string>
@@ -1044,8 +1044,8 @@
     <string name="translator_actions_source_notif">Original Notification Action</string>
     <string name="translator_actions_source_smart">Smart Action</string>
     <string name="translator_actions_smart_type">Smart Action Type</string>
-    <string name="translator_actions_add_slot">Add Action Slot</string>
-    <string name="translator_actions_remove_slot">Remove Slot</string>
+    <string name="translator_actions_add_slot">Add Button</string>
+    <string name="translator_actions_remove_slot">Remove Button</string>
 
     <string name="translator_behavior_engine">Engine Mode</string>
     <string name="translator_engine_inherit">Inherit App Default</string>
@@ -1065,8 +1065,8 @@
     <string name="translator_menu_presentation_sub">Title, subtitle templates, tags</string>
     <string name="translator_menu_progress">Progress &amp; Timing</string>
     <string name="translator_menu_progress_sub">Bar, timer, waypoints, text regex</string>
-    <string name="translator_menu_actions">Action Slots</string>
-    <string name="translator_menu_actions_sub">Smart actions, intent triggers, slot mapping</string>
+    <string name="translator_menu_actions">Buttons</string>
+    <string name="translator_menu_actions_sub">Smart actions, intent triggers, action buttons</string>
     <string name="translator_menu_behavior">Behavior &amp; Engine</string>
     <string name="translator_menu_behavior_sub">Island timeouts, popup floats, engine mode</string>
     <string name="translator_menu_apps">Target Applications</string>
@@ -1093,9 +1093,9 @@
     <string name="translator_prog_show_pct">Show Percentage</string>
     <string name="translator_prog_extract_text">Extract Progress from Text</string>
     <string name="translator_prog_regex_tpl">Progress Regex (e.g. (\\d+)%)</string>
-    <string name="translator_actions_title">Action Slots</string>
-    <string name="translator_actions_empty_title">No Action Slots</string>
-    <string name="translator_actions_empty_desc">Add action slots to map original notification actions or smart actions.</string>
+    <string name="translator_actions_title">Buttons</string>
+    <string name="translator_actions_empty_title">No Buttons Configured</string>
+    <string name="translator_actions_empty_desc">Add buttons to map original notification actions, smart actions, or quick replies.</string>
     <string name="translator_action_custom_label">Custom Button Label</string>
     <string name="translator_behavior_title">Behavior &amp; Island Lifetime</string>
     <string name="translator_no_apps_selected">No apps selected</string>
@@ -1235,6 +1235,57 @@
     <string name="translator_prog_regex_chips_title">Regex Presets:</string>
     <string name="translator_prog_max_title">Custom Maximum Value</string>
     <string name="translator_prog_max_desc">Denominator when calculating percentage (defaults to 100)</string>
+
+    <!-- Buttons Strings -->
+    <string name="translator_actions_info_title">How Buttons Work</string>
+    <string name="translator_actions_learn_btn">Learn How Buttons Work</string>
+    <string name="translator_actions_learn_sheet_title">Buttons Guide</string>
+    <string name="translator_actions_learn_order_title">1. Order of Appearance</string>
+    <string name="translator_actions_learn_order_desc">Buttons are placed on the Dynamic Island from left to right in the exact order configured below. Use the up and down arrows on each button to adjust its priority.</string>
+    <string name="translator_actions_learn_sources_title">2. Button Types &amp; Sources</string>
+    <string name="translator_actions_learn_sources_desc">You can map native notification buttons, synthesized Smart Actions (like copying OTP codes, dialing numbers, or opening tracking links), direct inline replies, or custom broadcasts.</string>
+    <string name="translator_actions_learn_visibility_title">3. Visibility &amp; Styling</string>
+    <string name="translator_actions_learn_visibility_desc">You can temporarily hide any button using the visibility eye toggle without deleting its settings. Each button can be displayed as icon-only, text-only, or icon with text.</string>
+    <string name="translator_actions_banner_title">Button Order &amp; Layout</string>
+    <string name="translator_actions_banner_desc">Buttons appear left-to-right in the exact order configured below. You can reorder buttons, customize icons/text, or hide individual buttons without deleting them.</string>
+    <string name="translator_actions_slot_badge">Button %1$d</string>
+    <string name="translator_actions_visibility_visible">Visible in Island</string>
+    <string name="translator_actions_visibility_hidden">Hidden</string>
+    <string name="translator_actions_source_title">Button Source</string>
+    <string name="translator_actions_source_desc">Choose what trigger or behavior is mapped to this button</string>
+    <string name="translator_actions_source_notif_title">Notification Button</string>
+    <string name="translator_actions_source_notif_desc">Trigger original button from notification (e.g. Mark as read, Pause)</string>
+    <string name="translator_actions_source_smart_title">Smart Action</string>
+    <string name="translator_actions_source_smart_desc">Synthesized actions like Copy OTP, Open Link, Dial, or Track</string>
+    <string name="translator_actions_source_reply_title">Inline Reply Overlay</string>
+    <string name="translator_actions_source_reply_desc">Open quick text reply dialog to answer messaging conversations</string>
+    <string name="translator_actions_source_broadcast_title">Custom Broadcast Intent</string>
+    <string name="translator_actions_source_broadcast_desc">Send custom Android broadcast to external apps or Tasker</string>
+    <string name="translator_actions_source_sheet_title">Select Action Source</string>
+    <string name="translator_actions_source_change_btn">Change Source</string>
+
+    <string name="translator_actions_display_mode_title">Display Style</string>
+    <string name="translator_actions_display_mode_icon">Icon Only</string>
+    <string name="translator_actions_display_mode_text">Text Only</string>
+    <string name="translator_actions_display_mode_both">Icon &amp; Text</string>
+    <string name="translator_actions_display_theme_style">Use Theme Action Styling</string>
+    <string name="translator_actions_display_theme_style_desc">Applies theme icon shape, padding, and accent tint</string>
+
+    <string name="translator_actions_smart_type_sheet_title">Select Smart Action</string>
+    <string name="translator_actions_smart_otp">Copy 2FA / OTP Code</string>
+    <string name="translator_actions_smart_otp_desc">Extracts one-time passcodes and copies to clipboard</string>
+    <string name="translator_actions_smart_url">Open URL / Link</string>
+    <string name="translator_actions_smart_url_desc">Opens URLs detected in notification text in browser</string>
+    <string name="translator_actions_smart_dial">Dial Phone Number</string>
+    <string name="translator_actions_smart_dial_desc">Calls phone numbers detected in notification body</string>
+    <string name="translator_actions_smart_track">Track Package</string>
+    <string name="translator_actions_smart_track_desc">Opens package tracking info for delivery notifications</string>
+
+    <string name="translator_actions_matcher_title">Match Notification Button</string>
+    <string name="translator_actions_matcher_by_index">By Button Position / Index</string>
+    <string name="translator_actions_matcher_by_title">By Button Title Regex</string>
+    <string name="translator_actions_matcher_index_label">Button Index (0 = 1st, 1 = 2nd, etc.)</string>
+    <string name="translator_actions_matcher_regex_label">Action Title Regex (e.g. Reply|Responder)</string>
 </resources>
 
 

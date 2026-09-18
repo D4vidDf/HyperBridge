@@ -226,6 +226,7 @@ data class ActionSlotConfig(
 enum class ActionSource {
     @SerialName("NOTIFICATION_ACTION") NOTIFICATION_ACTION,
     @SerialName("SMART_ACTION") SMART_ACTION,
+    @SerialName("INLINE_REPLY") INLINE_REPLY,
     @SerialName("CUSTOM_BROADCAST") CUSTOM_BROADCAST
 }
 

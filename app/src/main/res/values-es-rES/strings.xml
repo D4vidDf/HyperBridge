@@ -905,7 +905,7 @@
     <string name="translator_prog_extract_from_text">Extraer progreso del texto</string>
     <string name="translator_prog_regex">Regex de progreso (ej. (\\d+)%)</string>
 
-    <string name="translator_actions_slot_title">Ranura de acción %1$d</string>
+    <string name="translator_actions_slot_title">Botón %1$d</string>
     <string name="translator_actions_match_mode">Coincidir acción por</string>
     <string name="translator_actions_match_index">Índice en la notificación</string>
     <string name="translator_actions_match_title">Regex del título</string>
@@ -913,8 +913,8 @@
     <string name="translator_actions_source_notif">Acción de la notificación original</string>
     <string name="translator_actions_source_smart">Acción inteligente</string>
     <string name="translator_actions_smart_type">Tipo de acción inteligente</string>
-    <string name="translator_actions_add_slot">Añadir ranura de acción</string>
-    <string name="translator_actions_remove_slot">Eliminar ranura</string>
+    <string name="translator_actions_add_slot">Añadir botón</string>
+    <string name="translator_actions_remove_slot">Eliminar botón</string>
 
     <string name="translator_behavior_engine">Modo de motor</string>
     <string name="translator_engine_inherit">Heredar predeterminado de la app</string>
@@ -934,8 +934,8 @@
     <string name="translator_menu_presentation_sub">Plantillas de título, subtítulo, etiquetas</string>
     <string name="translator_menu_progress">Progreso y tiempos</string>
     <string name="translator_menu_progress_sub">Barra, temporizador, regex de texto</string>
-    <string name="translator_menu_actions">Ranuras de acción</string>
-    <string name="translator_menu_actions_sub">Acciones inteligentes, activadores, asignación</string>
+    <string name="translator_menu_actions">Botones</string>
+    <string name="translator_menu_actions_sub">Acciones inteligentes, activadores, botones</string>
     <string name="translator_menu_behavior">Comportamiento y motor</string>
     <string name="translator_menu_behavior_sub">Tiempos de espera, emergentes, modo de motor</string>
     <string name="translator_menu_apps">Aplicaciones objetivo</string>
@@ -962,9 +962,9 @@
     <string name="translator_prog_show_pct">Mostrar porcentaje</string>
     <string name="translator_prog_extract_text">Extraer progreso del texto</string>
     <string name="translator_prog_regex_tpl">Regex de progreso (ej. (\\d+)%)</string>
-    <string name="translator_actions_title">Ranuras de acción</string>
-    <string name="translator_actions_empty_title">Sin ranuras de acción</string>
-    <string name="translator_actions_empty_desc">Añade ranuras de acción para asignar acciones de la notificación o inteligentes.</string>
+    <string name="translator_actions_title">Botones</string>
+    <string name="translator_actions_empty_title">Sin botones configurados</string>
+    <string name="translator_actions_empty_desc">Añade botones para asignar acciones de la notificación, inteligentes o respuestas rápidas.</string>
     <string name="translator_action_custom_label">Etiqueta de botón personalizada</string>
     <string name="translator_behavior_title">Comportamiento y duración de la isla</string>
     <string name="translator_no_apps_selected">Ninguna app seleccionada</string>
@@ -1106,4 +1106,55 @@
     <string name="translator_prog_regex_chips_title">Plantillas Regex:</string>
     <string name="translator_prog_max_title">Valor Máximo Personalizado</string>
     <string name="translator_prog_max_desc">Denominador para calcular el porcentaje (por defecto 100)</string>
+
+    <!-- Botones Strings -->
+    <string name="translator_actions_info_title">Cómo Funcionan los Botones</string>
+    <string name="translator_actions_learn_btn">Aprende Cómo Funcionan los Botones</string>
+    <string name="translator_actions_learn_sheet_title">Guía de Botones</string>
+    <string name="translator_actions_learn_order_title">1. Orden de Visualización</string>
+    <string name="translator_actions_learn_order_desc">Los botones se sitúan en la Dynamic Island de izquierda a derecha en el orden exacto configurado abajo. Usa las flechas arriba y abajo de cada botón para ajustar su prioridad.</string>
+    <string name="translator_actions_learn_sources_title">2. Tipos de Botón y Orígenes</string>
+    <string name="translator_actions_learn_sources_desc">Puedes vincular botones nativos de la notificación, Acciones Inteligentes sintéticas (como copiar OTP, marcar números o abrir enlaces), respuestas directas o broadcasts personalizados.</string>
+    <string name="translator_actions_learn_visibility_title">3. Visibilidad y Estilo</string>
+    <string name="translator_actions_learn_visibility_desc">Puedes ocultar temporalmente cualquier botón con el selector de visibilidad sin borrar su configuración. Cada botón puede verse solo con icono, solo texto o ambos.</string>
+    <string name="translator_actions_banner_title">Orden y Diseño de Botones</string>
+    <string name="translator_actions_banner_desc">Los botones se muestran de izquierda a derecha en el orden configurado abajo. Puedes reordenar botones, personalizar iconos/texto u ocultar botones individuales sin eliminarlos.</string>
+    <string name="translator_actions_slot_badge">Botón %1$d</string>
+    <string name="translator_actions_visibility_visible">Visible en la Isla</string>
+    <string name="translator_actions_visibility_hidden">Oculto</string>
+    <string name="translator_actions_source_title">Origen del Botón</string>
+    <string name="translator_actions_source_desc">Elige el activador o comportamiento asignado a este botón</string>
+    <string name="translator_actions_source_notif_title">Botón de la Notificación</string>
+    <string name="translator_actions_source_notif_desc">Ejecuta el botón original de la notificación (ej. Marcar leído, Pausa)</string>
+    <string name="translator_actions_source_smart_title">Acción Inteligente</string>
+    <string name="translator_actions_source_smart_desc">Acciones sintéticas como Copiar OTP, Abrir Enlace, Llamar o Rastrear</string>
+    <string name="translator_actions_source_reply_title">Ventana de Respuesta Rápida</string>
+    <string name="translator_actions_source_reply_desc">Abre el cuadro de diálogo de respuesta rápida para mensajes</string>
+    <string name="translator_actions_source_broadcast_title">Intent Broadcast Personalizado</string>
+    <string name="translator_actions_source_broadcast_desc">Envía un broadcast de Android a aplicaciones externas o Tasker</string>
+    <string name="translator_actions_source_sheet_title">Seleccionar Origen de Acción</string>
+    <string name="translator_actions_source_change_btn">Cambiar Origen</string>
+
+    <string name="translator_actions_display_mode_title">Estilo Visual</string>
+    <string name="translator_actions_display_mode_icon">Solo Icono</string>
+    <string name="translator_actions_display_mode_text">Solo Texto</string>
+    <string name="translator_actions_display_mode_both">Icono y Texto</string>
+    <string name="translator_actions_display_theme_style">Usar Estilo del Tema</string>
+    <string name="translator_actions_display_theme_style_desc">Aplica la forma de icono, padding y tono de acento del tema</string>
+
+    <string name="translator_actions_smart_type_sheet_title">Seleccionar Acción Inteligente</string>
+    <string name="translator_actions_smart_otp">Copiar Código 2FA / OTP</string>
+    <string name="translator_actions_smart_otp_desc">Extrae códigos de un solo uso y los copia al portapapeles</string>
+    <string name="translator_actions_smart_url">Abrir URL / Enlace</string>
+    <string name="translator_actions_smart_url_desc">Abre enlaces detectados en el texto de la notificación en el navegador</string>
+    <string name="translator_actions_smart_dial">Marcar Número de Teléfono</string>
+    <string name="translator_actions_smart_dial_desc">Llama a números de teléfono detectados en la notificación</string>
+    <string name="translator_actions_smart_track">Rastrear Paquete</string>
+    <string name="translator_actions_smart_track_desc">Abre información de seguimiento para notificaciones de entrega</string>
+
+    <string name="translator_actions_matcher_title">Coincidir Botón de Notificación</string>
+    <string name="translator_actions_matcher_by_index">Por Posición / Índice del Botón</string>
+    <string name="translator_actions_matcher_by_title">Por Regex del Título del Botón</string>
+    <string name="translator_actions_matcher_index_label">Índice del Botón (0 = 1º, 1 = 2º, etc.)</string>
+    <string name="translator_actions_matcher_regex_label">Regex del Título (ej. Responder|Reply)</string>
 </resources>

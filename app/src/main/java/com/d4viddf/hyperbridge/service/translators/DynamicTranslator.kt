@@ -287,6 +287,37 @@ class DynamicTranslator(
                         }
                     }
                 }
+                ActionSource.INLINE_REPLY -> {
+                    val notifActionWithRemoteInput = notifActions.firstOrNull { it.remoteInputs?.isNotEmpty() == true }
+                        ?: findNotificationAction(notifActions, slot)
+                    val remoteInput = notifActionWithRemoteInput?.remoteInputs?.firstOrNull()
+                    val targetIntent = notifActionWithRemoteInput?.actionIntent ?: sbn.notification.contentIntent
+                    if (targetIntent != null) {
+                        val uniqueKey = "reply_${sbn.key.hashCode()}_slot_${slot.slotPosition}"
+                        val label = slot.customLabel ?: notifActionWithRemoteInput?.title?.toString() ?: "Reply"
+                        val replyIntent = android.content.Intent(context, com.d4viddf.hyperbridge.receiver.InlineReplyReceiver::class.java).apply {
+                            putExtra("pending_intent", targetIntent)
+                            putExtra("result_key", remoteInput?.resultKey ?: "key_text_reply")
+                            putExtra("package_name", sbn.packageName)
+                        }
+                        val pending = android.app.PendingIntent.getBroadcast(
+                            context,
+                            uniqueKey.hashCode(),
+                            replyIntent,
+                            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_MUTABLE
+                        )
+                        val hyperAction = HyperAction(
+                            key = uniqueKey,
+                            title = label,
+                            icon = notifActionWithRemoteInput?.getIcon(),
+                            pendingIntent = pending,
+                            actionIntentType = 1,
+                            actionBgColor = null,
+                            titleColor = "#FFFFFF"
+                        )
+                        bridgeActions.add(com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, null))
+                    }
+                }
                 ActionSource.CUSTOM_BROADCAST -> {
                     // Custom broadcast intent
                 }
