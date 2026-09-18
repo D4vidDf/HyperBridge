@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
@@ -134,10 +136,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -157,6 +165,8 @@ import com.d4viddf.hyperbridge.models.translator.EngineMode
 import com.d4viddf.hyperbridge.models.translator.MediaConditions
 import com.d4viddf.hyperbridge.models.translator.MessagingConditions
 import com.d4viddf.hyperbridge.models.translator.NavigationConditions
+import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
+import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.ProgressConditions
@@ -180,7 +190,7 @@ import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 import java.util.UUID
 
 enum class TranslatorRoute {
-    MAIN_MENU, CONDITIONS, PRESENTATION, PROGRESS, ACTIONS, BEHAVIOR, APPS
+    MAIN_MENU, CONDITIONS, PRESENTATION, PILL, PROGRESS, ACTIONS, BEHAVIOR, APPS
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -268,6 +278,7 @@ fun TranslatorEditorContent(
                             TranslatorRoute.MAIN_MENU -> if (translator.meta.name.isBlank()) stringResource(R.string.translator_editor_title_edit) else translator.meta.name
                             TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_menu_conditions)
                             TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation)
+                            TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill)
                             TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress)
                             TranslatorRoute.ACTIONS -> stringResource(R.string.translator_menu_actions)
                             TranslatorRoute.BEHAVIOR -> stringResource(R.string.translator_menu_behavior)
@@ -348,6 +359,14 @@ fun TranslatorEditorContent(
                             installedThemes = installedThemes,
                             onPresentationChange = { onTranslatorChange(translator.copy(presentation = it)) },
                             onThemeBindingChange = { onTranslatorChange(translator.copy(themeBinding = it)) }
+                        )
+                    }
+                    TranslatorRoute.PILL -> Box(Modifier.fillMaxSize()) {
+                        TranslatorPillContent(
+                            pillConfig = translator.presentation.pill,
+                            installedThemes = installedThemes,
+                            themeBinding = translator.themeBinding,
+                            onPillConfigChange = { onTranslatorChange(translator.copy(presentation = translator.presentation.copy(pill = it))) }
                         )
                     }
                     TranslatorRoute.PROGRESS -> TranslatorDetailShell(
@@ -464,6 +483,7 @@ fun TranslatorMainList(
                 TranslatorRoute.APPS,
                 TranslatorRoute.CONDITIONS,
                 TranslatorRoute.PRESENTATION,
+                TranslatorRoute.PILL,
                 TranslatorRoute.PROGRESS,
                 TranslatorRoute.ACTIONS,
                 TranslatorRoute.BEHAVIOR
@@ -480,6 +500,7 @@ fun TranslatorMainList(
                         TranslatorRoute.APPS -> Icons.Outlined.Apps
                         TranslatorRoute.CONDITIONS -> Icons.Outlined.FilterList
                         TranslatorRoute.PRESENTATION -> Icons.Outlined.ViewQuilt
+                        TranslatorRoute.PILL -> Icons.Outlined.DashboardCustomize
                         TranslatorRoute.PROGRESS -> Icons.Outlined.Speed
                         TranslatorRoute.ACTIONS -> Icons.Outlined.TouchApp
                         TranslatorRoute.BEHAVIOR -> Icons.Outlined.DisplaySettings
@@ -490,6 +511,7 @@ fun TranslatorMainList(
                         TranslatorRoute.APPS -> stringResource(R.string.translator_menu_apps)
                         TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_menu_conditions)
                         TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation)
+                        TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill)
                         TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress)
                         TranslatorRoute.ACTIONS -> stringResource(R.string.translator_menu_actions)
                         TranslatorRoute.BEHAVIOR -> stringResource(R.string.translator_menu_behavior)
@@ -504,6 +526,7 @@ fun TranslatorMainList(
                         }
                         TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_menu_conditions_sub)
                         TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation_sub)
+                        TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill_sub)
                         TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress_sub)
                         TranslatorRoute.ACTIONS -> stringResource(R.string.translator_menu_actions_sub)
                         TranslatorRoute.BEHAVIOR -> stringResource(R.string.translator_menu_behavior_sub)
@@ -6892,5 +6915,941 @@ fun ActionDisplayModeSelectionSheetPreview() {
         }
     }
 }
+
+// =========================================================================
+// PILL CUSTOMIZATION CONTENT, PREVIEW & BOTTOM SHEETS
+// =========================================================================
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun TranslatorPillContent(
+    pillConfig: com.d4viddf.hyperbridge.models.translator.CompactPillConfig,
+    installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme> = emptyList(),
+    themeBinding: com.d4viddf.hyperbridge.models.translator.ThemeBinding = com.d4viddf.hyperbridge.models.translator.ThemeBinding(),
+    onPillConfigChange: (com.d4viddf.hyperbridge.models.translator.CompactPillConfig) -> Unit
+) {
+    var showLeftSheet by remember { mutableStateOf(false) }
+    var showRightSheet by remember { mutableStateOf(false) }
+    var showLearnSheet by remember { mutableStateOf(false) }
+
+    val leftDesign = pillConfig.leftDesign
+    val rightDesign = pillConfig.rightDesign
+
+    val linkedTheme = if (themeBinding.themeId.isNotBlank() && themeBinding.themeId != "active") {
+        installedThemes.find { it.id == themeBinding.themeId }
+    } else {
+        null
+    }
+
+    val highlightColor = if (linkedTheme?.global?.highlightColor != null) {
+        safeParseColor(linkedTheme.global.highlightColor)
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+
+    val iconShapeId = linkedTheme?.global?.iconShapeId ?: "circle"
+    val iconShape = getShapeFromId(iconShapeId).toShape()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // --- PREVIEW CARD ---
+        Text(
+            stringResource(R.string.preview),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        TranslatorPillIslandPreview(
+            left = leftDesign,
+            right = rightDesign,
+            highlightColor = highlightColor,
+            iconShape = iconShape
+        )
+
+        // --- LEARN HOW COMPACT PILL WORKS BUTTON ---
+        Button(
+            onClick = { showLearnSheet = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        ) {
+            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(R.string.translator_pill_learn_btn),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        // --- GROUP CONFIGURATION HEADER ---
+        Text(
+            stringResource(R.string.group_configuration),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        // --- SLOTS CARD ---
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(vertical = 4.dp)) {
+                // Left Content Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                        .clickable { showLeftSheet = true }
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                when (leftDesign) {
+                                    PillLeftDesign.ICON_ONLY,
+                                    PillLeftDesign.ICON_AND_TEXT -> Icons.Outlined.AutoAwesome
+                                    PillLeftDesign.AVATAR -> Icons.Outlined.Person
+                                    PillLeftDesign.TEXT_ONLY -> Icons.Outlined.TextFields
+                                    PillLeftDesign.HIDDEN -> Icons.Outlined.VisibilityOff
+                                },
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.left_content),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = when (leftDesign) {
+                                PillLeftDesign.ICON_AND_TEXT -> stringResource(R.string.translator_pill_left_icon_and_text)
+                                PillLeftDesign.ICON_ONLY -> stringResource(R.string.translator_pill_left_icon_only)
+                                PillLeftDesign.TEXT_ONLY -> stringResource(R.string.translator_pill_left_text_only)
+                                PillLeftDesign.AVATAR -> stringResource(R.string.translator_pill_left_avatar)
+                                PillLeftDesign.HIDDEN -> stringResource(R.string.translator_pill_left_hidden)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                // Right Content Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+                        .clickable { showRightSheet = true }
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                when (rightDesign) {
+                                    PillRightDesign.AUTO -> Icons.Outlined.Tune
+                                    PillRightDesign.PROGRESS_PERCENT -> Icons.Outlined.Speed
+                                    PillRightDesign.TIMER -> Icons.Outlined.Timer
+                                    PillRightDesign.HIGHLIGHT_TEXT -> Icons.Outlined.Subtitles
+                                    PillRightDesign.NONE -> Icons.Outlined.VisibilityOff
+                                },
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.right_content),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = when (rightDesign) {
+                                PillRightDesign.AUTO -> stringResource(R.string.translator_pill_right_auto)
+                                PillRightDesign.PROGRESS_PERCENT -> stringResource(R.string.translator_pill_right_progress)
+                                PillRightDesign.TIMER -> stringResource(R.string.translator_pill_right_timer)
+                                PillRightDesign.HIGHLIGHT_TEXT -> stringResource(R.string.translator_pill_right_highlight)
+                                PillRightDesign.NONE -> stringResource(R.string.translator_pill_right_none)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+
+    // Left Design Bottom Sheet
+    if (showLeftSheet) {
+        TranslatorPillLeftSelectionSheet(
+            selected = leftDesign,
+            onSelect = {
+                onPillConfigChange(pillConfig.copy(leftDesign = it))
+                showLeftSheet = false
+            },
+            onDismiss = { showLeftSheet = false }
+        )
+    }
+
+    // Right Design Bottom Sheet
+    if (showRightSheet) {
+        TranslatorPillRightSelectionSheet(
+            selected = rightDesign,
+            onSelect = {
+                onPillConfigChange(pillConfig.copy(rightDesign = it))
+                showRightSheet = false
+            },
+            onDismiss = { showRightSheet = false }
+        )
+    }
+
+    // Learn Guide Bottom Sheet
+    if (showLearnSheet) {
+        TranslatorPillGuideSheet(
+            onDismiss = { showLearnSheet = false }
+        )
+    }
+}
+
+// --- PILL PREVIEW COMPONENT ---
+@Composable
+private fun TranslatorPillIslandPreview(
+    left: PillLeftDesign,
+    right: PillRightDesign,
+    highlightColor: Color,
+    iconShape: Shape
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 36.dp, horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.Black)
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                TranslatorSymmetricalIslandLayout(
+                    left = left,
+                    right = right,
+                    highlightColor = highlightColor,
+                    iconShape = iconShape
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TranslatorSymmetricalIslandLayout(
+    left: PillLeftDesign,
+    right: PillRightDesign,
+    highlightColor: Color,
+    iconShape: Shape,
+    modifier: Modifier = Modifier
+) {
+    val horizontalPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
+    val cameraGapPx = with(LocalDensity.current) { 10.dp.roundToPx() }
+    val minSideWidthPx = with(LocalDensity.current) { 16.dp.roundToPx() }
+    val pillHeightPx = with(LocalDensity.current) { 44.dp.roundToPx() }
+
+    Layout(
+        modifier = modifier,
+        content = {
+            // Measurable 0: Left Content
+            Box(contentAlignment = Alignment.CenterStart) {
+                when (left) {
+                    PillLeftDesign.ICON_ONLY -> {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clip(iconShape)
+                                .background(highlightColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.AutoAwesome,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(11.dp)
+                            )
+                        }
+                    }
+                    PillLeftDesign.ICON_AND_TEXT -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clip(iconShape)
+                                    .background(highlightColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "App Alert",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                    PillLeftDesign.TEXT_ONLY -> {
+                        Text(
+                            text = "App Alert",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
+                        )
+                    }
+                    PillLeftDesign.AVATAR -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clip(CircleShape)
+                                    .background(highlightColor.copy(alpha = 0.8f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Person,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Alice",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                    PillLeftDesign.HIDDEN -> {
+                        // Empty slot
+                    }
+                }
+            }
+
+            // Measurable 1: Camera Cutout (Realistic punch-hole)
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF1E1E1E)),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF0F0F0F))
+                )
+            }
+
+            // Measurable 2: Right Content
+            Box(contentAlignment = Alignment.CenterEnd) {
+                when (right) {
+                    PillRightDesign.AUTO -> {
+                        Text(
+                            text = "00:05",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1
+                        )
+                    }
+                    PillRightDesign.PROGRESS_PERCENT -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clip(CircleShape)
+                                    .background(highlightColor.copy(alpha = 0.25f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Speed,
+                                    contentDescription = null,
+                                    tint = highlightColor,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = "65%",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Normal,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                    PillRightDesign.TIMER -> {
+                        Text(
+                            text = "00:05",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1
+                        )
+                    }
+                    PillRightDesign.HIGHLIGHT_TEXT -> {
+                        Text(
+                            text = "Done",
+                            color = highlightColor,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                    }
+                    PillRightDesign.NONE -> {
+                        // Empty slot
+                    }
+                }
+            }
+        }
+    ) { measurables, constraints ->
+        val unconstrained = constraints.copy(minWidth = 0, minHeight = 0)
+        val leftPlaceable = measurables[0].measure(unconstrained)
+        val cameraPlaceable = measurables[1].measure(unconstrained)
+        val rightPlaceable = measurables[2].measure(unconstrained)
+
+        // Make left and right symmetrical by taking the width of the widest side
+        val sideWidth = maxOf(leftPlaceable.width, rightPlaceable.width, minSideWidthPx)
+
+        val totalWidth = (horizontalPaddingPx * 2) + (sideWidth * 2) + cameraPlaceable.width + (cameraGapPx * 2)
+        val totalHeight = pillHeightPx
+
+        layout(totalWidth, totalHeight) {
+            // Left content aligned at start of left side
+            leftPlaceable.placeRelative(
+                x = horizontalPaddingPx,
+                y = (totalHeight - leftPlaceable.height) / 2
+            )
+
+            // Camera placed in the exact center
+            val cameraX = horizontalPaddingPx + sideWidth + cameraGapPx
+            cameraPlaceable.placeRelative(
+                x = cameraX,
+                y = (totalHeight - cameraPlaceable.height) / 2
+            )
+
+            // Right content aligned at end of right side
+            val rightX = totalWidth - horizontalPaddingPx - rightPlaceable.width
+            rightPlaceable.placeRelative(
+                x = rightX,
+                y = (totalHeight - rightPlaceable.height) / 2
+            )
+        }
+    }
+}
+
+// --- LEFT PILL SELECTION BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorPillLeftSelectionSheet(
+    selected: PillLeftDesign,
+    onSelect: (PillLeftDesign) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorPillLeftSelectionContent(
+            selected = selected,
+            onSelect = onSelect
+        )
+    }
+}
+
+@Composable
+fun TranslatorPillLeftSelectionContent(
+    selected: PillLeftDesign,
+    onSelect: (PillLeftDesign) -> Unit
+) {
+    val options = listOf(
+        Triple(PillLeftDesign.ICON_AND_TEXT, Pair(R.string.translator_pill_left_icon_and_text, R.string.translator_pill_left_icon_and_text_desc), Icons.Outlined.AutoAwesome),
+        Triple(PillLeftDesign.ICON_ONLY, Pair(R.string.translator_pill_left_icon_only, R.string.translator_pill_left_icon_only_desc), Icons.Outlined.AutoAwesome),
+        Triple(PillLeftDesign.TEXT_ONLY, Pair(R.string.translator_pill_left_text_only, R.string.translator_pill_left_text_only_desc), Icons.Outlined.TextFields),
+        Triple(PillLeftDesign.AVATAR, Pair(R.string.translator_pill_left_avatar, R.string.translator_pill_left_avatar_desc), Icons.Outlined.Person),
+        Triple(PillLeftDesign.HIDDEN, Pair(R.string.translator_pill_left_hidden, R.string.translator_pill_left_hidden_desc), Icons.Outlined.VisibilityOff)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.DashboardCustomize,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_pill_left_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(options) { (option, textResPair, icon) ->
+                val (titleRes, descRes) = textResPair
+                val isSelected = selected == option
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    onClick = { onSelect(option) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- RIGHT PILL SELECTION BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorPillRightSelectionSheet(
+    selected: PillRightDesign,
+    onSelect: (PillRightDesign) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorPillRightSelectionContent(
+            selected = selected,
+            onSelect = onSelect
+        )
+    }
+}
+
+@Composable
+fun TranslatorPillRightSelectionContent(
+    selected: PillRightDesign,
+    onSelect: (PillRightDesign) -> Unit
+) {
+    val options = listOf(
+        Triple(PillRightDesign.AUTO, Pair(R.string.translator_pill_right_auto, R.string.translator_pill_right_auto_desc), Icons.Outlined.Tune),
+        Triple(PillRightDesign.PROGRESS_PERCENT, Pair(R.string.translator_pill_right_progress, R.string.translator_pill_right_progress_desc), Icons.Outlined.Speed),
+        Triple(PillRightDesign.TIMER, Pair(R.string.translator_pill_right_timer, R.string.translator_pill_right_timer_desc), Icons.Outlined.Timer),
+        Triple(PillRightDesign.HIGHLIGHT_TEXT, Pair(R.string.translator_pill_right_highlight, R.string.translator_pill_right_highlight_desc), Icons.Outlined.Subtitles),
+        Triple(PillRightDesign.NONE, Pair(R.string.translator_pill_right_none, R.string.translator_pill_right_none_desc), Icons.Outlined.VisibilityOff)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.Tune,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_pill_right_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(options) { (option, textResPair, icon) ->
+                val (titleRes, descRes) = textResPair
+                val isSelected = selected == option
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    onClick = { onSelect(option) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- PILL GUIDE BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorPillGuideSheet(
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorPillGuideContent()
+    }
+}
+
+@Composable
+fun TranslatorPillGuideContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.translator_pill_learn_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_pill_learn_symmetry_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_pill_learn_symmetry_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_pill_learn_left_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_pill_learn_left_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.translator_pill_learn_right_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.translator_pill_learn_right_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TranslatorPillContentPreview() {
+    MaterialTheme {
+        Surface {
+            TranslatorPillContent(
+                pillConfig = com.d4viddf.hyperbridge.models.translator.CompactPillConfig(
+                    leftDesign = PillLeftDesign.ICON_AND_TEXT,
+                    rightDesign = PillRightDesign.TIMER
+                ),
+                onPillConfigChange = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TranslatorPillLeftSelectionSheetPreview() {
+    MaterialTheme {
+        Surface {
+            TranslatorPillLeftSelectionContent(
+                selected = PillLeftDesign.ICON_AND_TEXT,
+                onSelect = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TranslatorPillRightSelectionSheetPreview() {
+    MaterialTheme {
+        Surface {
+            TranslatorPillRightSelectionContent(
+                selected = PillRightDesign.AUTO,
+                onSelect = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TranslatorPillGuideSheetPreview() {
+    MaterialTheme {
+        Surface {
+            TranslatorPillGuideContent()
+        }
+    }
+}
+
 
 

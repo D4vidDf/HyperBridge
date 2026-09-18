@@ -106,22 +106,62 @@ class DynamicTranslator(
             content = finalText
         )
 
-        // 7. Progress or Standard Big Island Info
-        if (customTranslator.presentation.progressSlot.type != ProgressSlotType.NONE && progressValue != null) {
+        // 7. Dynamic Island Presentation (Big & Small Island)
+        val pillConfig = customTranslator.presentation.pill
+        val leftDesign = pillConfig.leftDesign
+        val rightDesign = pillConfig.rightDesign
+
+        val leftPicKey = when (leftDesign) {
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN -> hiddenKey
+            else -> picKey
+        }
+
+        val leftText = when (leftDesign) {
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.ICON_AND_TEXT,
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY -> finalTitle
+            else -> ""
+        }
+
+        val rightText = when (rightDesign) {
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.HIGHLIGHT_TEXT -> {
+                val highlightTpl = customTranslator.presentation.textSlot.highlightTextTemplate
+                if (!highlightTpl.isNullOrBlank()) interpolate(highlightTpl, variableMap) else finalText
+            }
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE -> ""
+            else -> finalText
+        }
+
+        val hasProgress = customTranslator.presentation.progressSlot.type != ProgressSlotType.NONE && progressValue != null
+        val shouldShowProgress = when (rightDesign) {
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT -> true
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.AUTO -> hasProgress
+            else -> false
+        }
+
+        if (hasProgress) {
             val progressPercent = if (maxProgressValue > 0) {
                 ((progressValue.toFloat() / maxProgressValue.toFloat()) * 100).toInt().coerceIn(0, 100)
             } else {
                 progressValue.coerceIn(0, 100)
             }
             builder.setProgressBar(progressPercent, highlightColor)
-            builder.setBigIslandProgressCircle(picKey, "", progressPercent, highlightColor, true)
-            builder.setSmallIslandCircularProgress(picKey, progressPercent, highlightColor, isCCW = true)
+
+            if (shouldShowProgress) {
+                builder.setBigIslandProgressCircle(leftPicKey, leftText, progressPercent, highlightColor, true)
+                builder.setSmallIslandCircularProgress(leftPicKey, progressPercent, highlightColor, isCCW = true)
+            } else {
+                builder.setBigIslandInfo(
+                    left = ImageTextInfoLeft(1, PicInfo(1, leftPicKey), TextInfo(leftText, "")),
+                    right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, rightText))
+                )
+                builder.setSmallIsland(leftPicKey)
+            }
         } else {
             builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
-                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, finalText))
+                left = ImageTextInfoLeft(1, PicInfo(1, leftPicKey), TextInfo(leftText, "")),
+                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, rightText))
             )
-            builder.setSmallIsland(picKey)
+            builder.setSmallIsland(leftPicKey)
         }
 
         // 8. Action Slots & Smart Actions

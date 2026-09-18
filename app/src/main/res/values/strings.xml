@@ -1302,6 +1302,42 @@
     <string name="translator_behavior_engine_mode_inherit">Inherit App Default</string>
     <string name="translator_behavior_engine_mode_inherit_desc">Follows the global engine set in HyperBridge settings</string>
     <string name="translator_behavior_engine_change_btn">Change Engine</string>
+
+    <!-- Pill Customization Strings -->
+    <string name="translator_menu_pill">Pill Customization</string>
+    <string name="translator_menu_pill_sub">Compact island left &amp; right slot design</string>
+    <string name="translator_pill_title">Pill Customization</string>
+    <string name="translator_pill_desc">Customize the compact pill presentation around the punch-hole camera</string>
+    <string name="translator_pill_learn_btn">Learn How Compact Pill Works</string>
+    <string name="translator_pill_learn_sheet_title">Compact Pill Guide</string>
+    <string name="translator_pill_learn_symmetry_title">1. Symmetrical Layout</string>
+    <string name="translator_pill_learn_symmetry_desc">The Dynamic Island is split into left and right slots centered symmetrically around your device\'s camera cutout.</string>
+    <string name="translator_pill_learn_left_title">2. Left Slot Options</string>
+    <string name="translator_pill_learn_left_desc">Choose between app icon with title text, icon only, compact text only, contact avatar, or hidden.</string>
+    <string name="translator_pill_learn_right_title">3. Right Slot &amp; Auto-Detection</string>
+    <string name="translator_pill_learn_right_desc">Auto mode intelligently displays active timers or circular progress indicators if present. You can also explicitly lock the slot to timers, circular progress percentages, highlight text, or empty.</string>
+    <string name="translator_pill_left_sheet_title">Select Left Pill Design</string>
+    <string name="translator_pill_right_sheet_title">Select Right Pill Design</string>
+    <string name="translator_pill_left_icon_and_text">Icon and message</string>
+    <string name="translator_pill_left_icon_and_text_desc">Shows the app icon alongside a short title</string>
+    <string name="translator_pill_left_icon_only">Icon only</string>
+    <string name="translator_pill_left_icon_only_desc">Shows only the app icon in a circular badge</string>
+    <string name="translator_pill_left_text_only">Message only</string>
+    <string name="translator_pill_left_text_only_desc">Shows the short title text without an icon</string>
+    <string name="translator_pill_left_avatar">Contact avatar</string>
+    <string name="translator_pill_left_avatar_desc">Displays the sender picture or contact avatar</string>
+    <string name="translator_pill_left_hidden">Hidden / Empty</string>
+    <string name="translator_pill_left_hidden_desc">Leaves the left pill slot empty</string>
+    <string name="translator_pill_right_auto">Auto-detect (Recommended)</string>
+    <string name="translator_pill_right_auto_desc">Automatically renders timer or progress percent if available</string>
+    <string name="translator_pill_right_progress">Circular progress</string>
+    <string name="translator_pill_right_progress_desc">Shows animated circular progress ring</string>
+    <string name="translator_pill_right_timer">Timer</string>
+    <string name="translator_pill_right_timer_desc">Displays live counting timer</string>
+    <string name="translator_pill_right_highlight">Highlight text</string>
+    <string name="translator_pill_right_highlight_desc">Shows custom highlight text or status snippet</string>
+    <string name="translator_pill_right_none">Empty</string>
+    <string name="translator_pill_right_none_desc">Leaves the right pill slot empty</string>
 </resources>
 
 

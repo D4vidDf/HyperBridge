@@ -1173,4 +1173,40 @@
     <string name="translator_behavior_engine_mode_inherit">Heredar Ajustes Globales</string>
     <string name="translator_behavior_engine_mode_inherit_desc">Sigue el motor global configurado en los ajustes de HyperBridge</string>
     <string name="translator_behavior_engine_change_btn">Cambiar Motor</string>
+
+    <!-- Pill Customization Strings -->
+    <string name="translator_menu_pill">Personalización de Píldora</string>
+    <string name="translator_menu_pill_sub">Diseño de los lados izquierdo y derecho de la píldora</string>
+    <string name="translator_pill_title">Personalización de Píldora</string>
+    <string name="translator_pill_desc">Personaliza la presentación de la píldora compacta alrededor del orificio de la cámara</string>
+    <string name="translator_pill_learn_btn">Cómo funciona la píldora compacta</string>
+    <string name="translator_pill_learn_sheet_title">Guía de Píldora Compacta</string>
+    <string name="translator_pill_learn_symmetry_title">1. Diseño Simétrico</string>
+    <string name="translator_pill_learn_symmetry_desc">La Dynamic Island se divide en ranuras izquierda y derecha centradas simétricamente alrededor del orificio de la cámara de tu dispositivo.</string>
+    <string name="translator_pill_learn_left_title">2. Opciones del Lado Izquierdo</string>
+    <string name="translator_pill_learn_left_desc">Elige entre icono de la app con texto de título, solo icono, solo texto breve, avatar del remitente u oculto.</string>
+    <string name="translator_pill_learn_right_title">3. Lado Derecho y Detección Automática</string>
+    <string name="translator_pill_learn_right_desc">El modo automático detecta e ilustra temporizadores activos o círculos de progreso si están presentes. También puedes fijarlo a temporizadores, porcentaje circular, texto destacado o dejarlo vacío.</string>
+    <string name="translator_pill_left_sheet_title">Seleccionar Diseño Izquierdo</string>
+    <string name="translator_pill_right_sheet_title">Seleccionar Diseño Derecho</string>
+    <string name="translator_pill_left_icon_and_text">Icono y mensaje</string>
+    <string name="translator_pill_left_icon_and_text_desc">Muestra el icono de la app junto con un título breve</string>
+    <string name="translator_pill_left_icon_only">Solo icono</string>
+    <string name="translator_pill_left_icon_only_desc">Muestra únicamente el icono de la app en insignia circular</string>
+    <string name="translator_pill_left_text_only">Solo mensaje</string>
+    <string name="translator_pill_left_text_only_desc">Muestra el texto breve sin icono</string>
+    <string name="translator_pill_left_avatar">Avatar de contacto</string>
+    <string name="translator_pill_left_avatar_desc">Muestra la foto del remitente o avatar del contacto</string>
+    <string name="translator_pill_left_hidden">Oculto / Vacío</string>
+    <string name="translator_pill_left_hidden_desc">Deja vacía la ranura izquierda de la píldora</string>
+    <string name="translator_pill_right_auto">Detección automática (Recomendado)</string>
+    <string name="translator_pill_right_auto_desc">Muestra automáticamente temporizador o progreso si está disponible</string>
+    <string name="translator_pill_right_progress">Progreso circular</string>
+    <string name="translator_pill_right_progress_desc">Muestra un anillo circular de progreso</string>
+    <string name="translator_pill_right_timer">Temporizador</string>
+    <string name="translator_pill_right_timer_desc">Muestra temporizador o contador en vivo</string>
+    <string name="translator_pill_right_highlight">Texto destacado</string>
+    <string name="translator_pill_right_highlight_desc">Muestra texto destacado o estado breve</string>
+    <string name="translator_pill_right_none">Vacío</string>
+    <string name="translator_pill_right_none_desc">Deja vacía la ranura derecha de la píldora</string>
 </resources>
