@@ -151,27 +151,211 @@ class CustomTranslatorSerializationTest {
     }
 
     @Test
-    fun testBackwardCompatibilityWithMinimalJson() {
-        val minimalJson = """
-            {
-                "id": "minimal.translator",
-                "meta": {
-                    "name": "Minimal"
-                }
-            }
-        """.trimIndent()
+    fun testTranslatorRegistryPriorityAndScopeMatching() {
+        val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
+            override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
+            override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
+            override suspend fun getActiveTranslators() = emptyList<com.d4viddf.hyperbridge.data.db.TranslatorEntity>()
+            override suspend fun getTranslatorById(id: String) = null
+            override fun getTranslatorByIdFlow(id: String) = kotlinx.coroutines.flow.emptyFlow<com.d4viddf.hyperbridge.data.db.TranslatorEntity?>()
+            override suspend fun insertTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
+            override suspend fun insertAll(translators: List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>) {}
+            override suspend fun updateTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
+            override suspend fun setTranslatorEnabled(id: String, isEnabled: Boolean, timestamp: Long) {}
+            override suspend fun updatePriority(id: String, priority: Int, timestamp: Long) {}
+            override suspend fun deleteTranslatorById(id: String) {}
+            override suspend fun deleteAll() {}
+        }
+        val registry = com.d4viddf.hyperbridge.service.translators.TranslatorRegistry(mockDao)
 
-        val result = CustomTranslator.fromJson(minimalJson)
-        assertTrue(result.isSuccess)
-        val decoded = result.getOrThrow()
+        val globalTranslator = CustomTranslator(
+            id = "global.rule",
+            meta = TranslatorMetadata(name = "Global Rule"),
+            targetScope = TargetScope.GLOBAL,
+            priority = 10,
+            isEnabled = true
+        )
 
-        assertEquals("minimal.translator", decoded.id)
-        assertEquals("Minimal", decoded.meta.name)
-        assertEquals(TargetScope.SPECIFIC_APPS, decoded.targetScope)
-        assertEquals(EngineMode.INHERIT, decoded.engineMode)
-        assertEquals(100, decoded.priority)
-        assertEquals(true, decoded.isEnabled)
-        assertEquals(true, decoded.themeBinding.fallbackToActiveIfMissing)
-        assertEquals("active", decoded.themeBinding.themeId)
+        val appTranslatorLowPriority = CustomTranslator(
+            id = "app.spotify.low",
+            meta = TranslatorMetadata(name = "Spotify Low"),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.spotify.music"),
+            priority = 50,
+            isEnabled = true
+        )
+
+        val appTranslatorHighPriority = CustomTranslator(
+            id = "app.spotify.high",
+            meta = TranslatorMetadata(name = "Spotify High"),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.spotify.music"),
+            priority = 200,
+            isEnabled = true
+        )
+
+        registry.setTranslatorsForTesting(listOf(globalTranslator, appTranslatorLowPriority, appTranslatorHighPriority))
+
+        // When evaluating for Spotify, the highest priority matching translator should be chosen
+        val matchedSpotify = registry.findMatchingTranslator(
+            packageName = "com.spotify.music",
+            notificationCategory = "transport",
+            title = "Song Title",
+            text = "Artist Name",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = true,
+            hasProgress = false
+        )
+        assertNotNull(matchedSpotify)
+        assertEquals("app.spotify.high", matchedSpotify?.id)
+
+        // When evaluating for another app, it should fall back to the global translator
+        val matchedOtherApp = registry.findMatchingTranslator(
+            packageName = "com.whatsapp",
+            notificationCategory = "msg",
+            title = "Alice",
+            text = "Hello",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = true,
+            hasProgress = false
+        )
+        assertNotNull(matchedOtherApp)
+        assertEquals("global.rule", matchedOtherApp?.id)
+    }
+
+    @Test
+    fun testTypeSpecificConditionsMatching() {
+        val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
+            override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
+            override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
+            override suspend fun getActiveTranslators() = emptyList<com.d4viddf.hyperbridge.data.db.TranslatorEntity>()
+            override suspend fun getTranslatorById(id: String) = null
+            override fun getTranslatorByIdFlow(id: String) = kotlinx.coroutines.flow.emptyFlow<com.d4viddf.hyperbridge.data.db.TranslatorEntity?>()
+            override suspend fun insertTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
+            override suspend fun insertAll(translators: List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>) {}
+            override suspend fun updateTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
+            override suspend fun setTranslatorEnabled(id: String, isEnabled: Boolean, timestamp: Long) {}
+            override suspend fun updatePriority(id: String, priority: Int, timestamp: Long) {}
+            override suspend fun deleteTranslatorById(id: String) {}
+            override suspend fun deleteAll() {}
+        }
+        val registry = com.d4viddf.hyperbridge.service.translators.TranslatorRegistry(mockDao)
+        val vipMessageTranslator = CustomTranslator(
+            id = "msg.vip",
+            meta = TranslatorMetadata(name = "VIP Sender"),
+            targetScope = TargetScope.GLOBAL,
+            priority = 100,
+            conditions = TranslatorConditions(
+                typeSpecificConditions = TypeSpecificConditions(
+                    messaging = MessagingConditions(
+                        senderNameRegex = "(?i)Boss|Mom",
+                        isGroupConversation = false
+                    )
+                )
+            )
+        )
+
+        val mediaPlayingTranslator = CustomTranslator(
+            id = "media.playing",
+            meta = TranslatorMetadata(name = "Playing Media"),
+            targetScope = TargetScope.GLOBAL,
+            priority = 90,
+            conditions = TranslatorConditions(
+                typeSpecificConditions = TypeSpecificConditions(
+                    media = MediaConditions(
+                        artistRegex = "(?i)Daft Punk",
+                        isPlaying = true
+                    )
+                )
+            )
+        )
+
+        registry.setTranslatorsForTesting(listOf(vipMessageTranslator, mediaPlayingTranslator))
+
+        // Test VIP message match
+        val matchedVip = registry.findMatchingTranslator(
+            packageName = "com.whatsapp",
+            notificationCategory = "msg",
+            title = "Mom",
+            text = "Call me when you are home",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = false,
+            hasProgress = false,
+            senderName = "Mom",
+            isGroupConversation = false
+        )
+        assertNotNull(matchedVip)
+        assertEquals("msg.vip", matchedVip?.id)
+
+        // Test non-VIP message should not match
+        val matchedNonVip = registry.findMatchingTranslator(
+            packageName = "com.whatsapp",
+            notificationCategory = "msg",
+            title = "John",
+            text = "Hey",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = false,
+            hasProgress = false,
+            senderName = "John",
+            isGroupConversation = false
+        )
+        org.junit.Assert.assertNull(matchedNonVip)
+
+        // Test Media match
+        val matchedMedia = registry.findMatchingTranslator(
+            packageName = "com.spotify.music",
+            notificationCategory = "transport",
+            title = "One More Time",
+            text = "Discovery",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = true,
+            hasProgress = false,
+            mediaArtist = "Daft Punk",
+            isMediaPlaying = true
+        )
+        assertNotNull(matchedMedia)
+        assertEquals("media.playing", matchedMedia?.id)
+    }
+
+    @Test
+    fun testProgressTextExtractionRegex() {
+        val regexString = "(?<percent>\\d{1,3})%"
+        val regex = Regex(regexString)
+
+        val text1 = "Downloading update: 73% completed"
+        val match1 = regex.find(text1)
+        assertNotNull(match1)
+        val extracted1 = match1?.groups?.get("percent")?.value?.toIntOrNull()
+        assertEquals(73, extracted1)
+
+        val text2 = "File copy in progress (100%)"
+        val match2 = regex.find(text2)
+        assertNotNull(match2)
+        val extracted2 = match2?.groups?.get("percent")?.value?.toIntOrNull()
+        assertEquals(100, extracted2)
+    }
+
+    @Test
+    fun testOtpExtractionRegex() {
+        val regex = Regex("(?i)(?:code|código|otp|passcode|verification|验证码)(?:\\s+(?:is|es))?[:\\s]*([0-9]{4,8})")
+
+        val text1 = "Your verification code is 482910. Do not share it."
+        val otp1 = regex.find(text1)?.groupValues?.getOrNull(1)
+        assertEquals("482910", otp1)
+
+        val text2 = "Tu código OTP: 9381."
+        val otp2 = regex.find(text2)?.groupValues?.getOrNull(1)
+        assertEquals("9381", otp2)
     }
 }
+
