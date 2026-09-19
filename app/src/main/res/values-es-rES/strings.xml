@@ -828,6 +828,7 @@
     <string name="translators_filter_inactive">Inactivos</string>
     <string name="translators_filter_global">Global</string>
     <string name="translators_filter_apps">Apps</string>
+    <string name="translators_filter_system_apps">Apps del sistema</string>
     <string name="translators_filter_types">Tipos</string>
     <string name="translators_empty_title">No se encontraron traductores</string>
     <string name="translators_empty_desc">Crea tu primera regla de traductor personalizada para formatear y mejorar las islas de notificación.</string>
@@ -838,6 +839,7 @@
     <string name="translators_priority_label">Prioridad %1$d</string>
     <string name="translators_scope_global">Regla global</string>
     <string name="translators_scope_apps">%1$d apps seleccionadas</string>
+    <string name="translators_scope_system_apps">%1$d apps del sistema</string>
     <string name="translators_scope_types">%1$d tipos seleccionados</string>
 
     <!-- Translator Visual Editor -->
@@ -970,10 +972,13 @@
     <string name="translator_no_apps_selected">Ninguna app seleccionada</string>
     <string name="translator_target_scope_card_title">Alcance objetivo</string>
     <string name="translator_target_scope_global_title">Global</string>
-    <string name="translator_target_scope_global_desc">Se aplica a todas las aplicaciones instaladas</string>
+    <string name="translator_target_scope_global_desc">Se aplica a todas las aplicaciones permitidas en la Biblioteca</string>
     <string name="translator_target_scope_apps_title">Apps específicas</string>
     <string name="translator_target_scope_apps_desc">Se aplica solo a las aplicaciones seleccionadas (%1$d seleccionadas)</string>
+    <string name="translator_target_scope_system_title">Apps del sistema</string>
+    <string name="translator_target_scope_system_desc">Se aplica a las aplicaciones del sistema seleccionadas (%1$d seleccionadas)</string>
     <string name="translator_select_apps_action">Seleccionar aplicaciones</string>
+    <string name="translator_select_system_apps_action">Seleccionar apps del sistema</string>
     <string name="translator_notif_types_filter_title">Filtrar por tipo de notificación</string>
     <string name="translator_notif_types_filter_desc">Restringir la regla a categorías específicas de notificación de Android</string>
     <string name="translator_notif_types_select_action">Seleccionar tipos de notificación</string>

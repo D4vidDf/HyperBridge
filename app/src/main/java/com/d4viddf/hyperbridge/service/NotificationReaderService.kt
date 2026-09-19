@@ -1305,6 +1305,7 @@ class NotificationReaderService : NotificationListenerService() {
                 extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: effectiveText
             } else null
 
+            val isLibraryAllowed = preferences.isAppAllowedSync(sbn.packageName) || allowedPackageSet.contains(sbn.packageName)
             val matchedCustomTranslator = if (::translatorRegistry.isInitialized) {
                 translatorRegistry.findMatchingTranslator(
                     packageName = sbn.packageName,
@@ -1319,7 +1320,8 @@ class NotificationReaderService : NotificationListenerService() {
                     senderName = (extras.getCharSequence(Notification.EXTRA_TITLE))?.toString(),
                     conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString(),
                     mediaArtist = mediaArtist,
-                    notificationType = detectedType.name
+                    notificationType = detectedType.name,
+                    isLibraryAllowed = isLibraryAllowed
                 )
             } else null
 
@@ -2305,11 +2307,23 @@ class NotificationReaderService : NotificationListenerService() {
         try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (_: Exception) { "" }
     }
 
-    private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
-    private fun isAppAllowed(packageName: String): Boolean =
-        preferences.isAppAllowedSync(packageName) ||
-        allowedPackageSet.contains(packageName) ||
-        (::translatorRegistry.isInitialized && translatorRegistry.hasActiveTranslatorsForPackage(packageName))
+    private fun shouldIgnore(packageName: String): Boolean {
+        if (packageName == this.packageName || packageName.contains("miui.notification")) return true
+        if (packageName == "android") {
+            val hasCustom = ::translatorRegistry.isInitialized && translatorRegistry.hasActiveTranslatorsForPackage(packageName, isLibraryAllowed = false)
+            return !hasCustom
+        }
+        return false
+    }
+
+    private fun isAppAllowed(packageName: String): Boolean {
+        val isLibraryAllowed = preferences.isAppAllowedSync(packageName) || allowedPackageSet.contains(packageName)
+        if (isLibraryAllowed) return true
+        if (::translatorRegistry.isInitialized && translatorRegistry.hasActiveTranslatorsForPackage(packageName, isLibraryAllowed = false)) {
+            return true
+        }
+        return false
+    }
 
     private var syncJob: Job? = null
 

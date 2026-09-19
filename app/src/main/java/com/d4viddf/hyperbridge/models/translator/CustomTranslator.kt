@@ -49,6 +49,7 @@ data class CustomTranslator(
 enum class TargetScope {
     @SerialName("GLOBAL") GLOBAL,
     @SerialName("SPECIFIC_APPS") SPECIFIC_APPS,
+    @SerialName("SYSTEM_APPS") SYSTEM_APPS,
     @SerialName("NOTIFICATION_TYPE") NOTIFICATION_TYPE
 }
 

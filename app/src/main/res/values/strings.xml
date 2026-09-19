@@ -973,6 +973,7 @@
     <string name="translators_filter_inactive">Inactive</string>
     <string name="translators_filter_global">Global</string>
     <string name="translators_filter_apps">Apps</string>
+    <string name="translators_filter_system_apps">System Apps</string>
     <string name="translators_filter_types">Types</string>
     <string name="translators_empty_title">No Translators Found</string>
     <string name="translators_empty_desc">Create your first custom translator rule to format and enhance notification islands.</string>
@@ -983,6 +984,7 @@
     <string name="translators_priority_label">Priority %1$d</string>
     <string name="translators_scope_global">Global Rule</string>
     <string name="translators_scope_apps">%1$d apps targeted</string>
+    <string name="translators_scope_system_apps">%1$d system apps targeted</string>
     <string name="translators_scope_types">%1$d types targeted</string>
 
     <!-- Translator Visual Editor -->
@@ -1124,10 +1126,13 @@
     <string name="translator_no_apps_selected">No apps selected</string>
     <string name="translator_target_scope_card_title">Target Scope</string>
     <string name="translator_target_scope_global_title">Global</string>
-    <string name="translator_target_scope_global_desc">Applies to all installed applications</string>
+    <string name="translator_target_scope_global_desc">Applies to all allowed applications in Library</string>
     <string name="translator_target_scope_apps_title">Specific Apps</string>
     <string name="translator_target_scope_apps_desc">Applies only to selected applications (%1$d selected)</string>
+    <string name="translator_target_scope_system_title">System Apps</string>
+    <string name="translator_target_scope_system_desc">Applies to selected system applications (%1$d selected)</string>
     <string name="translator_select_apps_action">Select Apps</string>
+    <string name="translator_select_system_apps_action">Select System Apps</string>
     <string name="translator_notif_types_filter_title">Filter by Notification Type</string>
     <string name="translator_notif_types_filter_desc">Restrict rule to specific Android notification categories</string>
     <string name="translator_notif_types_select_action">Select Notification Types</string>

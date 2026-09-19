@@ -220,6 +220,7 @@ fun TranslatorEditorScreen(
     }
 
     val installedApps by viewModel.installedApps.collectAsState()
+    val systemApps by viewModel.systemApps.collectAsState()
     val installedThemes by viewModel.installedThemes.collectAsState()
 
     LaunchedEffect(translatorId) {
@@ -235,6 +236,7 @@ fun TranslatorEditorScreen(
         translator = translator,
         onTranslatorChange = { translator = it },
         installedApps = installedApps,
+        systemApps = systemApps,
         installedThemes = installedThemes,
         onFetchChannels = { pkgs -> viewModel.getNotificationChannelsForPackages(pkgs) },
         onSave = {
@@ -252,6 +254,7 @@ fun TranslatorEditorContent(
     translator: CustomTranslator,
     onTranslatorChange: (CustomTranslator) -> Unit,
     installedApps: List<AppItem>,
+    systemApps: List<AppItem> = emptyList(),
     installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme> = emptyList(),
     onFetchChannels: suspend (List<String>) -> List<NotificationChannelInfo> = { emptyList() },
     onSave: () -> Unit,
@@ -415,6 +418,7 @@ fun TranslatorEditorContent(
                         TranslatorAppsContent(
                             translator = translator,
                             installedApps = installedApps,
+                            systemApps = systemApps,
                             onTargetScopeChange = { scope, packages ->
                                 onTranslatorChange(translator.copy(targetScope = scope, targetPackages = packages))
                             },
@@ -533,10 +537,11 @@ fun TranslatorMainList(
                     }
 
                     val subtitle = when (route) {
-                        TranslatorRoute.APPS -> if (translator.targetScope == TargetScope.GLOBAL) {
-                            stringResource(R.string.translator_scope_global)
-                        } else {
-                            stringResource(R.string.translator_scope_apps_fmt, translator.targetPackages.size)
+                        TranslatorRoute.APPS -> when (translator.targetScope) {
+                            TargetScope.GLOBAL -> stringResource(R.string.translator_scope_global)
+                            TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, translator.targetPackages.size)
+                            TargetScope.SPECIFIC_APPS -> stringResource(R.string.translator_scope_apps_fmt, translator.targetPackages.size)
+                            TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, translator.targetNotificationTypes.size)
                         }
                         TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_menu_conditions_sub)
                         TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation_sub)
@@ -5720,13 +5725,14 @@ fun TranslatorBehaviorGuideContent() {
 fun TranslatorAppsContent(
     translator: CustomTranslator,
     installedApps: List<AppItem>,
+    systemApps: List<AppItem> = emptyList(),
     onTargetScopeChange: (TargetScope, List<String>) -> Unit,
     onTargetNotificationTypesChange: (List<String>) -> Unit
 ) {
     var showScopeSheet by remember { mutableStateOf(false) }
     var showAppPicker by remember { mutableStateOf(false) }
+    var showSystemAppPicker by remember { mutableStateOf(false) }
     var showNotifTypePicker by remember { mutableStateOf(false) }
-
     val isFilterByNotifType = translator.targetNotificationTypes.isNotEmpty()
 
     Column(
@@ -5736,7 +5742,7 @@ fun TranslatorAppsContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Card 1: Target Scope (Global vs Specific Apps)
+        // Card 1: Target Scope (Global vs Specific Apps vs System Apps)
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
@@ -5766,10 +5772,11 @@ fun TranslatorAppsContent(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = if (translator.targetScope == TargetScope.GLOBAL) {
-                                stringResource(R.string.translator_target_scope_global_desc)
-                            } else {
-                                stringResource(R.string.translator_target_scope_apps_desc, translator.targetPackages.size)
+                            text = when (translator.targetScope) {
+                                TargetScope.GLOBAL -> stringResource(R.string.translator_target_scope_global_desc)
+                                TargetScope.SYSTEM_APPS -> stringResource(R.string.translator_target_scope_system_desc, translator.targetPackages.size)
+                                TargetScope.SPECIFIC_APPS -> stringResource(R.string.translator_target_scope_apps_desc, translator.targetPackages.size)
+                                TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, translator.targetNotificationTypes.size)
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -5791,10 +5798,11 @@ fun TranslatorAppsContent(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = if (translator.targetScope == TargetScope.GLOBAL) {
-                                stringResource(R.string.translator_target_scope_global_title)
-                            } else {
-                                stringResource(R.string.translator_target_scope_apps_title)
+                            text = when (translator.targetScope) {
+                                TargetScope.GLOBAL -> stringResource(R.string.translator_target_scope_global_title)
+                                TargetScope.SYSTEM_APPS -> stringResource(R.string.translator_target_scope_system_title)
+                                TargetScope.SPECIFIC_APPS -> stringResource(R.string.translator_target_scope_apps_title)
+                                TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_filter_types)
                             }
                         )
                     }
@@ -5809,17 +5817,29 @@ fun TranslatorAppsContent(
                             Spacer(Modifier.width(4.dp))
                             Text(stringResource(R.string.translator_select_apps_action))
                         }
+                    } else if (translator.targetScope == TargetScope.SYSTEM_APPS) {
+                        Button(
+                            onClick = { showSystemAppPicker = true },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(stringResource(R.string.translator_select_system_apps_action))
+                        }
                     }
                 }
 
-                // Show selected apps chips / list if specific apps
-                if (translator.targetScope == TargetScope.SPECIFIC_APPS && translator.targetPackages.isNotEmpty()) {
+                // Show selected apps chips / list if specific or system apps
+                if ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) && translator.targetPackages.isNotEmpty()) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         translator.targetPackages.forEach { pkg ->
-                            val label = installedApps.find { it.packageName == pkg }?.label ?: pkg
+                            val label = installedApps.find { it.packageName == pkg }?.label
+                                ?: systemApps.find { it.packageName == pkg }?.label
+                                ?: pkg
                             Card(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -5840,7 +5860,7 @@ fun TranslatorAppsContent(
                                     IconButton(
                                         onClick = {
                                             val updated = translator.targetPackages.toMutableList().apply { remove(pkg) }
-                                            onTargetScopeChange(TargetScope.SPECIFIC_APPS, updated)
+                                            onTargetScopeChange(translator.targetScope, updated)
                                         },
                                         modifier = Modifier.size(32.dp)
                                     ) {
@@ -5968,25 +5988,43 @@ fun TranslatorAppsContent(
             onDismiss = { showScopeSheet = false },
             onScopeSelected = { scope ->
                 showScopeSheet = false
-                if (scope == TargetScope.GLOBAL) {
-                    onTargetScopeChange(TargetScope.GLOBAL, emptyList())
-                } else {
-                    onTargetScopeChange(TargetScope.SPECIFIC_APPS, translator.targetPackages)
+                when (scope) {
+                    TargetScope.GLOBAL -> onTargetScopeChange(TargetScope.GLOBAL, emptyList())
+                    TargetScope.SYSTEM_APPS -> onTargetScopeChange(TargetScope.SYSTEM_APPS, if (translator.targetScope == TargetScope.SYSTEM_APPS) translator.targetPackages else emptyList())
+                    TargetScope.SPECIFIC_APPS -> onTargetScopeChange(TargetScope.SPECIFIC_APPS, if (translator.targetScope == TargetScope.SPECIFIC_APPS) translator.targetPackages else emptyList())
+                    TargetScope.NOTIFICATION_TYPE -> onTargetScopeChange(TargetScope.NOTIFICATION_TYPE, emptyList())
                 }
             }
         )
     }
 
-    // Bottom Sheet: App Selection
+    // Bottom Sheet: Specific App Selection
     if (showAppPicker) {
         AppSelectionSheet(
             apps = installedApps,
+            title = stringResource(R.string.translator_select_apps_action),
             onDismiss = { showAppPicker = false },
             onAppSelected = { app ->
                 showAppPicker = false
                 if (!translator.targetPackages.contains(app.packageName)) {
                     val updated = translator.targetPackages + app.packageName
                     onTargetScopeChange(TargetScope.SPECIFIC_APPS, updated)
+                }
+            }
+        )
+    }
+
+    // Bottom Sheet: System App Selection
+    if (showSystemAppPicker) {
+        AppSelectionSheet(
+            apps = systemApps,
+            title = stringResource(R.string.translator_select_system_apps_action),
+            onDismiss = { showSystemAppPicker = false },
+            onAppSelected = { app ->
+                showSystemAppPicker = false
+                if (!translator.targetPackages.contains(app.packageName)) {
+                    val updated = translator.targetPackages + app.packageName
+                    onTargetScopeChange(TargetScope.SYSTEM_APPS, updated)
                 }
             }
         )
@@ -6104,6 +6142,40 @@ fun TranslatorScopeSelectionContent(
                     )
                     Text(
                         text = stringResource(R.string.translator_target_scope_apps_desc, 0),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (currentScope == TargetScope.SYSTEM_APPS) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+            ),
+            onClick = { onScopeSelected(TargetScope.SYSTEM_APPS) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = currentScope == TargetScope.SYSTEM_APPS,
+                    onClick = { onScopeSelected(TargetScope.SYSTEM_APPS) }
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.translator_target_scope_system_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.translator_target_scope_system_desc, 0),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

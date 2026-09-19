@@ -562,6 +562,7 @@ fun TranslatorsCarousel(
                     subtitle = when (item.targetScope) {
                         com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> stringResource(R.string.translators_scope_global)
                         com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, item.targetPackages.size)
+                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, item.targetPackages.size)
                         com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, item.targetNotificationTypes.size)
                     },
                     iconName = item.meta.iconName,
@@ -629,6 +630,7 @@ fun TranslatorPreviewCard(
                             when (targetScope) {
                                 com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
                                 com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.errorContainer
                                 com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
                             }
                         } else {
@@ -644,6 +646,7 @@ fun TranslatorPreviewCard(
                                     when (targetScope) {
                                         com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
                                         com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.onErrorContainer
                                         com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
                                     }
                                 } else {

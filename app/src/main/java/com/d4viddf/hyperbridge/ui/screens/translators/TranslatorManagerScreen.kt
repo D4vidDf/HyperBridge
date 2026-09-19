@@ -145,6 +145,7 @@ fun TranslatorManagerContent(
                 TranslatorFilterScope.INACTIVE -> !translator.isEnabled
                 TranslatorFilterScope.GLOBAL -> translator.targetScope == TargetScope.GLOBAL
                 TranslatorFilterScope.APPS -> translator.targetScope == TargetScope.SPECIFIC_APPS
+                TranslatorFilterScope.SYSTEM_APPS -> translator.targetScope == TargetScope.SYSTEM_APPS
                 TranslatorFilterScope.NOTIF_TYPES -> translator.targetScope == TargetScope.NOTIFICATION_TYPE
             }
 
@@ -426,6 +427,7 @@ fun TranslatorCardItem(
                         when (translator.targetScope) {
                             TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
                             TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
+                            TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.errorContainer
                             TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
                         }
                     } else {
@@ -441,6 +443,7 @@ fun TranslatorCardItem(
                                 when (translator.targetScope) {
                                     TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
                                     TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
+                                    TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.onErrorContainer
                                     TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
                                 }
                             } else {
@@ -472,6 +475,7 @@ fun TranslatorCardItem(
                             color = when (translator.targetScope) {
                                 TargetScope.GLOBAL -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                                 TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
+                                TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
                                 TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f)
                             }
                         ) {
@@ -479,6 +483,7 @@ fun TranslatorCardItem(
                                 text = when (translator.targetScope) {
                                     TargetScope.GLOBAL -> stringResource(R.string.translators_scope_global)
                                     TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, translator.targetPackages.size)
+                                    TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, translator.targetPackages.size)
                                     TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, translator.targetNotificationTypes.size)
                                 },
                                 style = MaterialTheme.typography.labelSmall,
@@ -486,6 +491,7 @@ fun TranslatorCardItem(
                                 color = when (translator.targetScope) {
                                     TargetScope.GLOBAL -> MaterialTheme.colorScheme.primary
                                     TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondary
+                                    TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.error
                                     TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiary
                                 },
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -620,6 +626,7 @@ fun TranslatorFilterSheet(
             TranslatorFilterScope.INACTIVE -> availableTranslators.filter { !it.isEnabled }
             TranslatorFilterScope.GLOBAL -> availableTranslators.filter { it.targetScope == TargetScope.GLOBAL }
             TranslatorFilterScope.APPS -> availableTranslators.filter { it.targetScope == TargetScope.SPECIFIC_APPS }
+            TranslatorFilterScope.SYSTEM_APPS -> availableTranslators.filter { it.targetScope == TargetScope.SYSTEM_APPS }
             TranslatorFilterScope.NOTIF_TYPES -> availableTranslators.filter { it.targetScope == TargetScope.NOTIFICATION_TYPE }
         }
     }
@@ -709,6 +716,7 @@ fun TranslatorFilterSheet(
                             TranslatorFilterScope.INACTIVE to R.string.translators_filter_inactive,
                             TranslatorFilterScope.GLOBAL to R.string.translators_filter_global,
                             TranslatorFilterScope.APPS to R.string.translators_filter_apps,
+                            TranslatorFilterScope.SYSTEM_APPS to R.string.translators_filter_system_apps,
                             TranslatorFilterScope.NOTIF_TYPES to R.string.translators_filter_types
                         )
                         scopeOptions.forEach { (scope, labelRes) ->

@@ -419,7 +419,7 @@ class CustomTranslatorSerializationTest {
         assertNotNull(matchedType)
         assertEquals("type.message", matchedType?.id)
 
-        // Add Global translator
+        // Add Global translator (only matches when isLibraryAllowed = true)
         val globalTranslator = CustomTranslator(
             id = "global.catchall",
             meta = TranslatorMetadata(name = "Global Catchall"),
@@ -429,9 +429,10 @@ class CustomTranslatorSerializationTest {
         )
         registry.setTranslatorsForTesting(listOf(globalTranslator))
 
-        assertTrue(registry.hasActiveTranslatorsForPackage("com.any.unregistered.app"))
+        assertTrue(registry.hasActiveTranslatorsForPackage("com.any.unregistered.app", isLibraryAllowed = true))
+        assertFalse(registry.hasActiveTranslatorsForPackage("com.any.unregistered.app", isLibraryAllowed = false))
 
-        val matchedGlobal = registry.findMatchingTranslator(
+        val matchedGlobalAllowed = registry.findMatchingTranslator(
             packageName = "com.any.unregistered.app",
             notificationCategory = null,
             notificationType = "STANDARD",
@@ -441,10 +442,74 @@ class CustomTranslatorSerializationTest {
             channelId = null,
             extrasKeys = emptySet(),
             hasActions = false,
-            hasProgress = false
+            hasProgress = false,
+            isLibraryAllowed = true
         )
-        assertNotNull(matchedGlobal)
-        assertEquals("global.catchall", matchedGlobal?.id)
+        assertNotNull(matchedGlobalAllowed)
+        assertEquals("global.catchall", matchedGlobalAllowed?.id)
+
+        val matchedGlobalDisallowed = registry.findMatchingTranslator(
+            packageName = "com.any.unregistered.app",
+            notificationCategory = null,
+            notificationType = "STANDARD",
+            title = "System",
+            text = "Alert",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = false,
+            hasProgress = false,
+            isLibraryAllowed = false
+        )
+        org.junit.Assert.assertNull(matchedGlobalDisallowed)
+
+        // Add System Apps translator
+        val systemAppsTranslator = CustomTranslator(
+            id = "system.battery",
+            meta = TranslatorMetadata(name = "System Battery Warning"),
+            targetScope = TargetScope.SYSTEM_APPS,
+            targetPackages = listOf("android", "com.android.systemui"),
+            priority = 80,
+            isEnabled = true
+        )
+        registry.setTranslatorsForTesting(listOf(systemAppsTranslator))
+
+        assertTrue(registry.hasActiveTranslatorsForPackage("android", isLibraryAllowed = false))
+        assertTrue(registry.hasActiveTranslatorsForPackage("com.android.systemui", isLibraryAllowed = false))
+        assertFalse(registry.hasActiveTranslatorsForPackage("com.random.user.app", isLibraryAllowed = false))
+
+        val matchedSystemApp = registry.findMatchingTranslator(
+            packageName = "android",
+            notificationCategory = "sys",
+            notificationType = "STANDARD",
+            title = "Low Battery",
+            text = "15% remaining",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = false,
+            hasProgress = false,
+            isLibraryAllowed = false
+        )
+        assertNotNull(matchedSystemApp)
+        assertEquals("system.battery", matchedSystemApp?.id)
+    }
+
+    @Test
+    fun testSystemAppsScopeSerialization() {
+        val translator = CustomTranslator(
+            id = "test_system_scope",
+            meta = TranslatorMetadata(name = "System Scope Test"),
+            targetScope = TargetScope.SYSTEM_APPS,
+            targetPackages = listOf("com.miui.securitycenter", "android")
+        )
+        val json = CustomTranslator.toJson(translator)
+        assertTrue(json.contains("\"target_scope\": \"SYSTEM_APPS\""))
+
+        val decoded = CustomTranslator.fromJson(json).getOrThrow()
+        assertEquals(TargetScope.SYSTEM_APPS, decoded.targetScope)
+        assertEquals(listOf("com.miui.securitycenter", "android"), decoded.targetPackages)
     }
 }
+
 

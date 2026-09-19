@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 
 enum class TranslatorFilterScope {
-    ALL, ACTIVE, INACTIVE, GLOBAL, APPS, NOTIF_TYPES
+    ALL, ACTIVE, INACTIVE, GLOBAL, APPS, SYSTEM_APPS, NOTIF_TYPES
 }
 
 data class TranslatorFilterState(
@@ -59,21 +59,57 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     private val _installedApps = MutableStateFlow<List<AppItem>>(emptyList())
     val installedApps: StateFlow<List<AppItem>> = _installedApps.asStateFlow()
 
+    private val _systemApps = MutableStateFlow<List<AppItem>>(emptyList())
+    val systemApps: StateFlow<List<AppItem>> = _systemApps.asStateFlow()
+
     private val _installedThemes = MutableStateFlow<List<com.d4viddf.hyperbridge.models.theme.HyperTheme>>(emptyList())
     val installedThemes: StateFlow<List<com.d4viddf.hyperbridge.models.theme.HyperTheme>> = _installedThemes.asStateFlow()
 
     init {
         loadInstalledApps()
+        loadSystemApps()
         loadInstalledThemes()
     }
 
     private fun loadInstalledApps() {
         viewModelScope.launch(Dispatchers.IO) {
-            val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-                .filter { (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0 || (it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0 }
-                .map { AppItem(it.packageName, it.loadLabel(pm).toString()) }
-                .sortedBy { it.label }
+            val intent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
+                addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+            }
+            val resolveInfos = pm.queryIntentActivities(intent, 0)
+            val currentPkg = getApplication<Application>().packageName
+
+            val apps = resolveInfos.mapNotNull { resolveInfo ->
+                try {
+                    val pkg = resolveInfo.activityInfo.packageName
+                    if (pkg == currentPkg || pkg == "com.d4viddf.hyperbridge" || pkg == "com.d4viddf.hyperbridge.screenrecorder") return@mapNotNull null
+                    val label = resolveInfo.loadLabel(pm).toString()
+                    AppItem(pkg, label)
+                } catch (_: Exception) { null }
+            }.distinctBy { it.packageName }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.label })
+
             _installedApps.value = apps
+        }
+    }
+
+    private fun loadSystemApps() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentPkg = getApplication<Application>().packageName
+            val allApps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+            val systemList = allApps.filter { appInfo ->
+                appInfo.packageName != currentPkg &&
+                appInfo.packageName != "com.d4viddf.hyperbridge" &&
+                (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+            }.map { appInfo ->
+                val label = try {
+                    appInfo.loadLabel(pm).toString().ifBlank { appInfo.packageName }
+                } catch (_: Exception) {
+                    appInfo.packageName
+                }
+                AppItem(packageName = appInfo.packageName, label = label)
+            }.distinctBy { it.packageName }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.label })
+
+            _systemApps.value = systemList
         }
     }
 
@@ -121,7 +157,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         return allTranslators.map { list ->
             list.filter { translator ->
                 translator.targetScope == TargetScope.GLOBAL ||
-                (translator.targetScope == TargetScope.SPECIFIC_APPS && translator.targetPackages.contains(packageName))
+                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) && translator.targetPackages.contains(packageName))
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     }

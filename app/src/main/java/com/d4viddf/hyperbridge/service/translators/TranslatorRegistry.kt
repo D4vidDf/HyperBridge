@@ -32,17 +32,21 @@ class TranslatorRegistry(
     }
 
     /**
-     * Returns true if there is any active custom translator that could apply to this package
-     * (i.e. Global scope, Notification Type scope, or Specific App matching this package).
+     * Returns true if there is any active custom translator that could apply to this package.
+     * For GLOBAL scope, it only matches if the app is allowed in the user's Library.
+     * For SPECIFIC_APPS and SYSTEM_APPS, explicit targets can bypass the general Library filter.
      */
-    fun hasActiveTranslatorsForPackage(packageName: String): Boolean {
+    fun hasActiveTranslatorsForPackage(packageName: String, isLibraryAllowed: Boolean = true): Boolean {
         return activeTranslators.any { translator ->
-            translator.isEnabled && (
-                translator.targetScope == TargetScope.GLOBAL ||
-                translator.targetScope == TargetScope.NOTIFICATION_TYPE ||
-                (translator.targetScope == TargetScope.SPECIFIC_APPS &&
-                    translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })
-            )
+            translator.isEnabled && when (translator.targetScope) {
+                TargetScope.GLOBAL -> isLibraryAllowed
+                TargetScope.SPECIFIC_APPS -> translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+                TargetScope.SYSTEM_APPS -> {
+                    if (translator.targetPackages.isEmpty()) true
+                    else translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+                }
+                TargetScope.NOTIFICATION_TYPE -> isLibraryAllowed || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
         }
     }
 
@@ -68,12 +72,13 @@ class TranslatorRegistry(
         isMediaPlaying: Boolean? = null,
         callerName: String? = null,
         progressPercent: Int? = null,
-        notificationType: String? = null
+        notificationType: String? = null,
+        isLibraryAllowed: Boolean = true
     ): CustomTranslator? {
         val candidates = activeTranslators.filter { it.isEnabled }
 
         for (translator in candidates) {
-            if (!matchesScope(translator, packageName, notificationCategory, notificationType)) {
+            if (!matchesScope(translator, packageName, notificationCategory, notificationType, isLibraryAllowed)) {
                 continue
             }
             if (!matchesConditions(
@@ -107,19 +112,25 @@ class TranslatorRegistry(
         translator: CustomTranslator,
         packageName: String,
         notificationCategory: String?,
-        notificationType: String?
+        notificationType: String?,
+        isLibraryAllowed: Boolean
     ): Boolean {
         return when (translator.targetScope) {
-            TargetScope.GLOBAL -> true
+            TargetScope.GLOBAL -> isLibraryAllowed
             TargetScope.SPECIFIC_APPS -> {
                 translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
             }
+            TargetScope.SYSTEM_APPS -> {
+                if (translator.targetPackages.isEmpty()) true
+                else translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
             TargetScope.NOTIFICATION_TYPE -> {
-                if (translator.targetNotificationTypes.isEmpty()) return true
-                translator.targetNotificationTypes.any { type ->
+                val matchesType = if (translator.targetNotificationTypes.isEmpty()) true
+                else translator.targetNotificationTypes.any { type ->
                     (notificationType != null && type.equals(notificationType, ignoreCase = true)) ||
                     (notificationCategory != null && type.equals(notificationCategory, ignoreCase = true))
                 }
+                matchesType && (isLibraryAllowed || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })
             }
         }
     }
