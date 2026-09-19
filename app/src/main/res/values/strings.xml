@@ -848,6 +848,10 @@
     <string name="diagnostic_active_count" translatable="false">%1$d active</string>
     <string name="diagnostic_last_classification_desc" translatable="false">Latest intercepted notification category</string>
     <string name="diagnostic_last_call_state_desc" translatable="false">Latest monitored call state</string>
+    <string name="diagnostic_last_custom_translator" translatable="false">Last custom translator</string>
+    <string name="diagnostic_last_custom_translator_desc" translatable="false">Latest applied custom translator</string>
+    <string name="bug_report_include_custom_translators" translatable="false">Include Custom Translators</string>
+    <string name="bug_report_include_custom_translators_desc" translatable="false">Sanitized configuration of installed custom translators</string>
     <string name="diagnostic_notification_access_desc" translatable="false">Required to intercept app events</string>
     <string name="diagnostic_post_notifications_desc" translatable="false">Required to display Island notifications</string>
     <string name="diagnostic_restricted_settings" translatable="false">Restricted permissions</string>

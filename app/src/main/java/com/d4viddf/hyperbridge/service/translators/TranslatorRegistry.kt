@@ -32,6 +32,21 @@ class TranslatorRegistry(
     }
 
     /**
+     * Returns true if there is any active custom translator that could apply to this package
+     * (i.e. Global scope, Notification Type scope, or Specific App matching this package).
+     */
+    fun hasActiveTranslatorsForPackage(packageName: String): Boolean {
+        return activeTranslators.any { translator ->
+            translator.isEnabled && (
+                translator.targetScope == TargetScope.GLOBAL ||
+                translator.targetScope == TargetScope.NOTIFICATION_TYPE ||
+                (translator.targetScope == TargetScope.SPECIFIC_APPS &&
+                    translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })
+            )
+        }
+    }
+
+    /**
      * Finds the highest-priority matching Custom Translator for a given notification.
      * Evaluates App-Specific translators first, then Notification-Type translators, then Global translators.
      */
@@ -52,12 +67,13 @@ class TranslatorRegistry(
         mediaAlbum: String? = null,
         isMediaPlaying: Boolean? = null,
         callerName: String? = null,
-        progressPercent: Int? = null
+        progressPercent: Int? = null,
+        notificationType: String? = null
     ): CustomTranslator? {
         val candidates = activeTranslators.filter { it.isEnabled }
 
         for (translator in candidates) {
-            if (!matchesScope(translator, packageName, notificationCategory)) {
+            if (!matchesScope(translator, packageName, notificationCategory, notificationType)) {
                 continue
             }
             if (!matchesConditions(
@@ -90,7 +106,8 @@ class TranslatorRegistry(
     private fun matchesScope(
         translator: CustomTranslator,
         packageName: String,
-        notificationCategory: String?
+        notificationCategory: String?,
+        notificationType: String?
     ): Boolean {
         return when (translator.targetScope) {
             TargetScope.GLOBAL -> true
@@ -99,8 +116,10 @@ class TranslatorRegistry(
             }
             TargetScope.NOTIFICATION_TYPE -> {
                 if (translator.targetNotificationTypes.isEmpty()) return true
-                if (notificationCategory == null) return false
-                translator.targetNotificationTypes.any { it.equals(notificationCategory, ignoreCase = true) }
+                translator.targetNotificationTypes.any { type ->
+                    (notificationType != null && type.equals(notificationType, ignoreCase = true)) ||
+                    (notificationCategory != null && type.equals(notificationCategory, ignoreCase = true))
+                }
             }
         }
     }

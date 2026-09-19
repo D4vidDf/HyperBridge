@@ -3,6 +3,7 @@ package com.d4viddf.hyperbridge.service.translators
 import android.app.Notification
 import android.content.Context
 import android.service.notification.StatusBarNotification
+import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
@@ -23,11 +24,13 @@ import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
 import androidx.core.graphics.toColorInt
+import android.util.Log
 
 class DynamicTranslator(
     context: Context,
     repository: ThemeRepository? = null
 ) : BaseTranslator(context, repository) {
+    private val TAG = "HyperBridgeDebug"
 
     /**
      * Translates a StatusBarNotification using a declarative CustomTranslator rule.
@@ -39,9 +42,12 @@ class DynamicTranslator(
         config: IslandConfig,
         activeTheme: HyperTheme? = null,
         isUpdate: Boolean = false,
+        resolvedTitle: String? = null,
+        resolvedText: String? = null,
         extractedSenderName: String? = null,
         extractedMediaArtist: String? = null,
-        extractedConversationTitle: String? = null
+        extractedConversationTitle: String? = null,
+        callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null
     ): HyperIslandData {
         val notif = sbn.notification
         val extras = notif.extras
@@ -50,25 +56,59 @@ class DynamicTranslator(
         val rawText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
         val rawSubtext = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
 
+        val appLabel = try {
+            context.packageManager.getApplicationLabel(
+                context.packageManager.getApplicationInfo(sbn.packageName, 0)
+            ).toString()
+        } catch (_: Exception) {
+            sbn.packageName
+        }
+
+        val notifTitle = if (!resolvedTitle.isNullOrBlank()) {
+            resolvedTitle
+        } else if (rawTitle.isNotBlank()) {
+            rawTitle
+        } else {
+            appLabel
+        }
+        val notifText = if (!resolvedText.isNullOrBlank()) resolvedText else rawText
+
+        val isCall = callSession != null ||
+                notif.category == Notification.CATEGORY_CALL ||
+                customTranslator.presentation.templateId == "tpl_call_kit"
+
+        val callStateText = when (callSession?.state) {
+            com.d4viddf.hyperbridge.service.call.CallState.INCOMING_RINGING -> context.getString(R.string.call_incoming)
+            com.d4viddf.hyperbridge.service.call.CallState.OUTGOING_CALLING -> context.getString(R.string.call_calling)
+            com.d4viddf.hyperbridge.service.call.CallState.OUTGOING_RINGING -> context.getString(R.string.call_ringing)
+            com.d4viddf.hyperbridge.service.call.CallState.CONNECTING -> context.getString(R.string.call_connecting)
+            com.d4viddf.hyperbridge.service.call.CallState.ACTIVE -> context.getString(R.string.call_ongoing)
+            com.d4viddf.hyperbridge.service.call.CallState.ENDED -> context.getString(R.string.call_ended)
+            null -> if (isCall) notifText.ifBlank { context.getString(R.string.call_incoming) } else ""
+        }
+
         // 1. Resolve Effective Theme
         val effectiveTheme = resolveTheme(customTranslator, activeTheme)
 
         // 2. Extract Progress & Numeric Data
-        val (progressValue, maxProgressValue) = extractProgress(customTranslator, notif, rawTitle, rawText)
+        val (progressValue, maxProgressValue) = extractProgress(customTranslator, notif, notifTitle, notifText)
 
         // 3. Resolve Dynamic Text Templates
         val variableMap = buildVariableMap(
             sbn = sbn,
-            title = rawTitle,
-            text = rawText,
+            title = notifTitle,
+            text = notifText,
             subtext = rawSubtext,
             sender = extractedSenderName,
             mediaArtist = extractedMediaArtist,
             conversationTitle = extractedConversationTitle,
-            progress = progressValue?.toString()
+            progress = progressValue?.toString(),
+            callerName = extractedSenderName ?: notifTitle,
+            callState = callStateText
         )
-        val finalTitle = interpolate(customTranslator.presentation.textSlot.titleTemplate, variableMap)
-        val finalText = interpolate(customTranslator.presentation.textSlot.subtitleTemplate, variableMap)
+        val interpolatedTitle = interpolate(customTranslator.presentation.textSlot.titleTemplate, variableMap).trim()
+        val finalTitle = if (interpolatedTitle.isNotBlank()) interpolatedTitle else notifTitle.ifBlank { appLabel.ifBlank { "Notification" } }
+        val finalText = interpolate(customTranslator.presentation.textSlot.subtitleTemplate, variableMap).trim()
 
         // 4. Build HyperIsland Data
         val isFloat = config.isFloat ?: customTranslator.behaviorOverride.isFloat ?: false
@@ -96,17 +136,21 @@ class DynamicTranslator(
         builder.setShowNotification(isShade)
         if (!isUpdate) builder.setReopen(true)
 
+        val isMedia = notif.extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
+                notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true ||
+                customTranslator.presentation.templateId == "tpl_media_compact"
+
         // 5. Left Slot Graphic & Hidden Pixel
         val hiddenKey = "hidden_pixel"
         val leftSlotConfig = customTranslator.presentation.leftSlot
-        val leftPic = when (leftSlotConfig.source) {
-            "HIDDEN" -> getTransparentPicture(picKey)
-            else -> {
-                // If custom icon res exists in repo/theme
-                var customBmp: android.graphics.Bitmap? = null
-                if (leftSlotConfig.customIconRes != null && repository != null) {
-                    customBmp = repository.getResourceBitmap(leftSlotConfig.customIconRes)
-                }
+        val isAvatarSource = leftSlotConfig.source.equals("AVATAR", ignoreCase = true) ||
+                leftSlotConfig.source.equals("SENDER_AVATAR", ignoreCase = true) ||
+                leftSlotConfig.source.equals("LARGE_ICON", ignoreCase = true)
+
+        val leftPic = when {
+            leftSlotConfig.source == "HIDDEN" -> getTransparentPicture(picKey)
+            leftSlotConfig.customIconRes != null && repository != null -> {
+                val customBmp = repository.getResourceBitmap(leftSlotConfig.customIconRes)
                 if (customBmp != null) {
                     val shapeId = leftSlotConfig.shape ?: resolveShape(effectiveTheme, sbn.packageName)
                     val pad = resolvePadding(effectiveTheme, sbn.packageName)
@@ -116,61 +160,60 @@ class DynamicTranslator(
                     resolveIcon(sbn, picKey)
                 }
             }
+            isAvatarSource -> {
+                val largeIcon = notif.getLargeIcon()
+                val avatarBmp: android.graphics.Bitmap? = if (largeIcon != null) {
+                    loadIconBitmap(largeIcon, sbn.packageName)
+                } else {
+                    try {
+                        extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                if (avatarBmp != null) {
+                    val shapeId = leftSlotConfig.shape ?: resolveShape(effectiveTheme, sbn.packageName)
+                    val themedBmp = applyThemeToActionIcon(avatarBmp, shapeId, 0, android.graphics.Color.TRANSPARENT)
+                    HyperPicture(picKey, themedBmp)
+                } else {
+                    resolveIcon(sbn, picKey)
+                }
+            }
+            isMedia -> {
+                val largeIcon = notif.getLargeIcon()
+                val albumArt: android.graphics.Bitmap? = if (largeIcon != null) {
+                    loadIconBitmap(largeIcon, sbn.packageName)
+                } else {
+                    try {
+                        extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                if (albumArt != null) {
+                    val shapeId = leftSlotConfig.shape ?: resolveShape(effectiveTheme, sbn.packageName)
+                    val themedBmp = applyThemeToActionIcon(albumArt, shapeId, 0, android.graphics.Color.TRANSPARENT)
+                    HyperPicture(picKey, themedBmp)
+                } else {
+                    resolveIcon(sbn, picKey)
+                }
+            }
+            else -> resolveIcon(sbn, picKey)
         }
 
         builder.addPicture(leftPic)
         builder.addPicture(getTransparentPicture(hiddenKey))
 
-        // 6. Base Info & Chat Info (Expanded Island)
+        // 6. Template Selection & Layout Building
         val progressConfig = customTranslator.presentation.progressSlot
-        val isTimer = progressConfig.type == ProgressSlotType.TIMER
-        val baseTime = sbn.notification.`when`.let { if (it > 0) it else System.currentTimeMillis() }
-        val now = System.currentTimeMillis()
-        val isCountdown = baseTime > now
-        val timerType = if (isCountdown) -1 else 1
+        val pillConfig = customTranslator.presentation.pill
+        val leftDesign = pillConfig.leftDesign
+        val rightDesign = pillConfig.rightDesign
 
-        val chatTimerInfo = if (isTimer) {
-            io.github.d4viddf.hyperisland_kit.models.TimerInfo(
-                timerType,
-                baseTime,
-                if (isCountdown) baseTime - now else now - baseTime,
-                now
-            )
-        } else {
-            null
-        }
+        val isTimer = (progressConfig.type == ProgressSlotType.TIMER || rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.TIMER) &&
+                notif.`when` > System.currentTimeMillis()
+        val hasProgress = (progressConfig.type == ProgressSlotType.PROGRESS_BAR || rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT) && progressValue != null
 
-        val bridgeActions = resolveActionSlots(
-            sbn = sbn,
-            customTranslator = customTranslator,
-            rawText = rawText,
-            theme = effectiveTheme,
-            config = config
-        )
-        val actionKeys = bridgeActions.map { it.action.key }
-
-        builder.setChatInfo(
-            title = finalTitle,
-            content = finalText,
-            pictureKey = if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey,
-            appPkg = sbn.packageName,
-            timer = chatTimerInfo,
-            actionKeys = if (actionKeys.isNotEmpty()) actionKeys else null
-        )
-
-        builder.setBaseInfo(
-            type = 2,
-            title = finalTitle,
-            content = finalText
-        )
-        builder.setIconTextInfo(
-            picKey = if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey,
-            title = finalTitle,
-            content = finalText
-        )
-
-        // 7. Progress & Expanded Bar
-        val hasProgress = progressConfig.type == ProgressSlotType.PROGRESS_BAR && progressValue != null
         val progressPercent = if (hasProgress && progressValue != null) {
             if (maxProgressValue > 0) {
                 ((progressValue.toFloat() / maxProgressValue.toFloat()) * 100).toInt().coerceIn(0, 100)
@@ -185,18 +228,10 @@ class DynamicTranslator(
             highlightColor
         }
 
-        if (hasProgress) {
-            builder.setProgressBar(progressPercent, progressColor)
-        }
-
-        // 8. Compact Pill Presentation (Big & Small Island)
-        val pillConfig = customTranslator.presentation.pill
-        val leftDesign = pillConfig.leftDesign
-        val rightDesign = pillConfig.rightDesign
-
+        val primaryPicKey = if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey
         val pillLeftPicKey = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN -> hiddenKey
-            else -> if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey
+            else -> primaryPicKey
         }
 
         val pillLeftText = when (leftDesign) {
@@ -214,28 +249,201 @@ class DynamicTranslator(
             else -> finalText
         }
 
-        val shouldShowProgressCircle = when (rightDesign) {
-            com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT -> hasProgress
-            com.d4viddf.hyperbridge.models.translator.PillRightDesign.AUTO -> hasProgress
-            else -> false
-        }
+        val showBigIslandPic = leftDesign != com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY &&
+                leftDesign != com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN &&
+                leftSlotConfig.source != "HIDDEN"
+
+        val isIncomingCall = callSession?.state == com.d4viddf.hyperbridge.service.call.CallState.INCOMING_RINGING ||
+                (callSession == null && isCall && (notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("CallStyle") == true || notif.category == Notification.CATEGORY_CALL))
+
+        val bridgeActions = resolveActionSlots(
+            sbn = sbn,
+            customTranslator = customTranslator,
+            rawText = rawText,
+            theme = effectiveTheme,
+            config = config
+        )
+        val actionKeys = bridgeActions.map { it.action.key }
 
         when {
-            shouldShowProgressCircle -> {
-                builder.setBigIslandProgressCircle(pillLeftPicKey, pillLeftText, progressPercent, progressColor, true)
+            // =========================================================================
+            //  TEMPLATE 1: PROGRESS / DOWNLOAD TEMPLATE (IM chatInfo + progressInfo + actions)
+            //  Used when progress bar or circle progress is active.
+            // =========================================================================
+            hasProgress -> {
+                builder.setChatInfo(
+                    title = finalTitle,
+                    content = finalText,
+                    pictureKey = primaryPicKey,
+                    appPkg = sbn.packageName
+                )
+                builder.setProgressBar(progressPercent, progressColor)
+                val progressPicKey = if (showBigIslandPic) pillLeftPicKey else ""
+                builder.setBigIslandProgressCircle(progressPicKey, pillLeftText, progressPercent, progressColor, true)
                 builder.setSmallIslandCircularProgress(pillLeftPicKey, progressPercent, progressColor, isCCW = true)
+
+                if (bridgeActions.isNotEmpty()) {
+                    bridgeActions.forEach {
+                        builder.addAction(it.action)
+                        builder.addHiddenAction(it.action)
+                        it.actionImage?.let { pic -> builder.addPicture(pic) }
+                    }
+                }
             }
-            rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.TIMER || isTimer -> {
+
+            // =========================================================================
+            //  TEMPLATE 2: TIMER / COUNTDOWN TEMPLATE (IM chatInfo with timerInfo + actions)
+            //  Used when countdown presentation is active.
+            // =========================================================================
+            isTimer -> {
+                val baseTime = sbn.notification.`when`.let { if (it > 0) it else System.currentTimeMillis() }
+                val now = System.currentTimeMillis()
+                val isCountdown = baseTime > now
+                val timerType = if (isCountdown) -1 else 1
+
+                val chatTimerInfo = io.github.d4viddf.hyperisland_kit.models.TimerInfo(
+                    timerType,
+                    baseTime,
+                    if (isCountdown) baseTime - now else now - baseTime,
+                    now
+                )
+
+                builder.setChatInfo(
+                    title = finalTitle,
+                    content = finalText,
+                    pictureKey = primaryPicKey,
+                    appPkg = sbn.packageName,
+                    timer = chatTimerInfo,
+                    actionKeys = if (actionKeys.isNotEmpty()) actionKeys else null
+                )
+
+                val timerPicKey = if (showBigIslandPic) pillLeftPicKey else ""
                 if (isCountdown) {
-                    builder.setBigIslandCountdown(baseTime, pillLeftPicKey)
+                    builder.setBigIslandCountdown(baseTime, timerPicKey)
                 } else {
-                    builder.setBigIslandCountUp(baseTime, pillLeftPicKey)
+                    builder.setBigIslandCountUp(baseTime, timerPicKey)
                 }
                 builder.setSmallIsland(pillLeftPicKey)
+
+                if (bridgeActions.isNotEmpty()) {
+                    bridgeActions.forEach {
+                        builder.addAction(it.action)
+                        builder.addHiddenAction(it.action)
+                        it.actionImage?.let { pic -> builder.addPicture(pic) }
+                    }
+                }
             }
-            else -> {
+
+            // =========================================================================
+            //  TEMPLATE 3: MEDIA TEMPLATE (chatInfo + actions + background + island)
+            //  Used when media playback notification is active.
+            // =========================================================================
+            isMedia -> {
+                builder.setBackground(
+                    picKey = null,
+                    color = highlightColor,
+                    type = 1
+                )
+                builder.setChatInfo(
+                    title = finalTitle,
+                    content = finalText,
+                    pictureKey = primaryPicKey,
+                    appPkg = sbn.packageName,
+                    actionKeys = if (actionKeys.isNotEmpty()) actionKeys.take(3) else null
+                )
+
+                val leftBigIslandText = if (rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) pillLeftText else ""
+                val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
                 builder.setBigIslandInfo(
-                    left = ImageTextInfoLeft(1, PicInfo(1, pillLeftPicKey), TextInfo(pillLeftText, "")),
+                    left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, ""))
+                )
+                builder.setSmallIsland(pillLeftPicKey)
+                builder.setHideDeco(true).setReopen(true).setShowSmallIcon(true)
+
+                if (bridgeActions.isNotEmpty()) {
+                    bridgeActions.take(3).forEach {
+                        builder.addAction(it.action)
+                        builder.addHiddenAction(it.action)
+                        it.actionImage?.let { pic -> builder.addPicture(pic) }
+                    }
+                }
+            }
+
+            // =========================================================================
+            //  TEMPLATE 4: CALL TEMPLATE (chatInfo + call actions + call timer / status)
+            //  Used when incoming or ongoing call notification is active.
+            // =========================================================================
+            isCall -> {
+                val connectedAtForTimer = callSession?.let { com.d4viddf.hyperbridge.service.call.CallTimerPolicy.connectedAtForTimer(it) }
+                val now = System.currentTimeMillis()
+                val callTimerInfo = if (connectedAtForTimer != null) {
+                    val duration = (now - connectedAtForTimer).coerceAtLeast(0L)
+                    io.github.d4viddf.hyperisland_kit.models.TimerInfo(1, connectedAtForTimer, duration, now)
+                } else null
+
+                builder.setChatInfo(
+                    title = finalTitle,
+                    content = if (finalText.isNotBlank()) finalText else callStateText,
+                    pictureKey = primaryPicKey,
+                    appPkg = sbn.packageName,
+                    actionKeys = if (actionKeys.isNotEmpty()) actionKeys else null,
+                    timer = callTimerInfo
+                )
+
+                val leftBigIslandText = if (rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) pillLeftText else finalTitle
+                val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
+
+                if (connectedAtForTimer != null && !isIncomingCall) {
+                    val timerPicKey = if (showBigIslandPic) pillLeftPicKey else ""
+                    builder.setBigIslandCountUp(connectedAtForTimer, timerPicKey)
+                } else {
+                    builder.setBigIslandInfo(
+                        left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
+                        right = ImageTextInfoRight(2, null, TextInfo(callStateText, ""))
+                    )
+                }
+
+                builder.setSmallIsland(pillLeftPicKey)
+
+                if (bridgeActions.isNotEmpty()) {
+                    bridgeActions.forEach {
+                        builder.addAction(it.action)
+                        builder.addHiddenAction(it.action)
+                        it.actionImage?.let { pic -> builder.addPicture(pic) }
+                    }
+                }
+            }
+
+            // =========================================================================
+            //  TEMPLATE 5: STANDARD / TEXT NOTICE / CHAT TEMPLATE
+            //  Used for generic text notifications, messages, alerts.
+            // =========================================================================
+            else -> {
+                if (isAvatarSource) {
+                    builder.setChatInfo(
+                        title = finalTitle,
+                        content = finalText,
+                        pictureKey = primaryPicKey,
+                        appPkg = sbn.packageName,
+                        actionKeys = if (actionKeys.isNotEmpty()) actionKeys else null
+                    )
+                } else {
+                    builder.setBaseInfo(
+                        type = 2,
+                        title = finalTitle,
+                        content = finalText
+                    )
+                    builder.setIconTextInfo(
+                        picKey = primaryPicKey,
+                        title = finalTitle,
+                        content = finalText
+                    )
+                }
+
+                val leftBigIslandText = if (rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) pillLeftText else ""
+                val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
+                builder.setBigIslandInfo(
+                    left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
                     right = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) {
                         ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, pillRightText))
                     } else {
@@ -243,21 +451,40 @@ class DynamicTranslator(
                     }
                 )
                 builder.setSmallIsland(pillLeftPicKey)
+
+                if (bridgeActions.isNotEmpty()) {
+                    if (isAvatarSource) {
+                        bridgeActions.forEach {
+                            builder.addAction(it.action)
+                            builder.addHiddenAction(it.action)
+                            it.actionImage?.let { pic -> builder.addPicture(pic) }
+                        }
+                    } else {
+                        val textActions = bridgeActions.map { it.action }.map { original ->
+                            HyperAction(
+                                key = original.key,
+                                title = original.title,
+                                icon = original.icon,
+                                pendingIntent = original.pendingIntent,
+                                actionIntentType = original.actionIntentType,
+                                actionBgColor = null,
+                                titleColor = "#FFFFFF"
+                            )
+                        }.toTypedArray()
+                        builder.setTextButtons(*textActions)
+                        textActions.forEach {
+                            builder.addHiddenAction(it)
+                        }
+                        bridgeActions.forEach { it.actionImage?.let { pic -> builder.addPicture(pic) } }
+                    }
+                }
             }
         }
 
-        // 9. Register Actions & Hidden Actions
-        if (bridgeActions.isNotEmpty()) {
-            val textActions = bridgeActions.map { it.action }.toTypedArray()
-            builder.setTextButtons(*textActions)
-            textActions.forEach {
-                builder.addAction(it)
-                builder.addHiddenAction(it)
-            }
-            bridgeActions.forEach { it.actionImage?.let { pic -> builder.addPicture(pic) } }
-        }
+        val jsonParam = builder.buildJsonParam()
+        Log.d(TAG, " [DynamicTranslator] '${customTranslator.meta.name}' (${sbn.packageName}): template=${customTranslator.presentation.templateId ?: customTranslator.presentation.mode.name}, float=$isFloat, shade=$isShade")
 
-        return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
+        return HyperIslandData(builder.buildResourceBundle(), jsonParam)
     }
 
     private fun resolveTheme(customTranslator: CustomTranslator, activeTheme: HyperTheme?): HyperTheme? {
@@ -313,7 +540,9 @@ class DynamicTranslator(
         sender: String?,
         mediaArtist: String?,
         conversationTitle: String?,
-        progress: String?
+        progress: String?,
+        callerName: String? = null,
+        callState: String? = null
     ): Map<String, String> {
         val map = mutableMapOf<String, String>()
         map["notif.title"] = title
@@ -322,8 +551,16 @@ class DynamicTranslator(
         map["notif.sender"] = sender ?: ""
         map["notif.conversation_title"] = conversationTitle ?: ""
         map["notif.media_artist"] = mediaArtist ?: ""
+        map["notif.caller_name"] = callerName ?: sender ?: title
+        map["notif.call_state"] = callState ?: ""
         map["notif.progress"] = progress ?: ""
-        map["app.name"] = sbn.packageName
+        map["app.name"] = try {
+            context.packageManager.getApplicationLabel(
+                context.packageManager.getApplicationInfo(sbn.packageName, 0)
+            ).toString()
+        } catch (_: Exception) {
+            sbn.packageName
+        }
         return map
     }
 
@@ -392,7 +629,7 @@ class DynamicTranslator(
                         }
 
                         val actionBgHex = if (slot.displayMode == com.d4viddf.hyperbridge.models.translator.ActionDisplayMode.TEXT_ONLY) null
-                        else String.format("#%08X", (0xFFFFFFFF and defaultActionBg.toLong()))
+                        else String.format("#%06X", (0xFFFFFF and defaultActionBg))
 
                         val hyperAction = HyperAction(
                             key = uniqueKey,

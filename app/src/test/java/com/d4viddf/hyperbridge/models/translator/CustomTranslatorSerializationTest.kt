@@ -2,6 +2,7 @@ package com.d4viddf.hyperbridge.models.translator
 
 import com.d4viddf.hyperbridge.data.db.TranslatorEntity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -153,14 +154,14 @@ class CustomTranslatorSerializationTest {
     @Test
     fun testTranslatorRegistryPriorityAndScopeMatching() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
-            override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
-            override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
-            override suspend fun getActiveTranslators() = emptyList<com.d4viddf.hyperbridge.data.db.TranslatorEntity>()
+            override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null
-            override fun getTranslatorByIdFlow(id: String) = kotlinx.coroutines.flow.emptyFlow<com.d4viddf.hyperbridge.data.db.TranslatorEntity?>()
-            override suspend fun insertTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
-            override suspend fun insertAll(translators: List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>) {}
-            override suspend fun updateTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
+            override fun getTranslatorByIdFlow(id: String) = kotlinx.coroutines.flow.emptyFlow<TranslatorEntity?>()
+            override suspend fun insertTranslator(translator: TranslatorEntity) {}
+            override suspend fun insertAll(translators: List<TranslatorEntity>) {}
+            override suspend fun updateTranslator(translator: TranslatorEntity) {}
             override suspend fun setTranslatorEnabled(id: String, isEnabled: Boolean, timestamp: Long) {}
             override suspend fun updatePriority(id: String, priority: Int, timestamp: Long) {}
             override suspend fun deleteTranslatorById(id: String) {}
@@ -230,14 +231,14 @@ class CustomTranslatorSerializationTest {
     @Test
     fun testTypeSpecificConditionsMatching() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
-            override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
-            override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>>()
-            override suspend fun getActiveTranslators() = emptyList<com.d4viddf.hyperbridge.data.db.TranslatorEntity>()
+            override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null
-            override fun getTranslatorByIdFlow(id: String) = kotlinx.coroutines.flow.emptyFlow<com.d4viddf.hyperbridge.data.db.TranslatorEntity?>()
-            override suspend fun insertTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
-            override suspend fun insertAll(translators: List<com.d4viddf.hyperbridge.data.db.TranslatorEntity>) {}
-            override suspend fun updateTranslator(translator: com.d4viddf.hyperbridge.data.db.TranslatorEntity) {}
+            override fun getTranslatorByIdFlow(id: String) = kotlinx.coroutines.flow.emptyFlow<TranslatorEntity?>()
+            override suspend fun insertTranslator(translator: TranslatorEntity) {}
+            override suspend fun insertAll(translators: List<TranslatorEntity>) {}
+            override suspend fun updateTranslator(translator: TranslatorEntity) {}
             override suspend fun setTranslatorEnabled(id: String, isEnabled: Boolean, timestamp: Long) {}
             override suspend fun updatePriority(id: String, priority: Int, timestamp: Long) {}
             override suspend fun deleteTranslatorById(id: String) {}
@@ -356,6 +357,94 @@ class CustomTranslatorSerializationTest {
         val text2 = "Tu código OTP: 9381."
         val otp2 = regex.find(text2)?.groupValues?.getOrNull(1)
         assertEquals("9381", otp2)
+    }
+
+    @Test
+    fun testHasActiveTranslatorsForPackageAndNotificationTypeScope() {
+        val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
+            override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
+            override suspend fun getTranslatorById(id: String) = null
+            override fun getTranslatorByIdFlow(id: String) = kotlinx.coroutines.flow.emptyFlow<TranslatorEntity?>()
+            override suspend fun insertTranslator(translator: TranslatorEntity) {}
+            override suspend fun insertAll(translators: List<TranslatorEntity>) {}
+            override suspend fun updateTranslator(translator: TranslatorEntity) {}
+            override suspend fun setTranslatorEnabled(id: String, isEnabled: Boolean, timestamp: Long) {}
+            override suspend fun updatePriority(id: String, priority: Int, timestamp: Long) {}
+            override suspend fun deleteTranslatorById(id: String) {}
+            override suspend fun deleteAll() {}
+        }
+        val registry = com.d4viddf.hyperbridge.service.translators.TranslatorRegistry(mockDao)
+
+        val appSpecific = CustomTranslator(
+            id = "app.telegram",
+            meta = TranslatorMetadata(name = "Telegram Translator"),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("org.telegram.messenger"),
+            priority = 100,
+            isEnabled = true
+        )
+        registry.setTranslatorsForTesting(listOf(appSpecific))
+
+        assertTrue(registry.hasActiveTranslatorsForPackage("org.telegram.messenger"))
+        assertTrue(registry.hasActiveTranslatorsForPackage("ORG.TELEGRAM.MESSENGER"))
+        assertFalse(registry.hasActiveTranslatorsForPackage("com.whatsapp"))
+
+        // Add NotificationType scope translator
+        val notifTypeTranslator = CustomTranslator(
+            id = "type.message",
+            meta = TranslatorMetadata(name = "Message Translator"),
+            targetScope = TargetScope.NOTIFICATION_TYPE,
+            targetNotificationTypes = listOf("MESSAGE"),
+            priority = 50,
+            isEnabled = true
+        )
+        registry.setTranslatorsForTesting(listOf(notifTypeTranslator))
+
+        assertTrue(registry.hasActiveTranslatorsForPackage("com.random.app"))
+
+        val matchedType = registry.findMatchingTranslator(
+            packageName = "com.random.app",
+            notificationCategory = null,
+            notificationType = "MESSAGE",
+            title = "Friend",
+            text = "Hello!",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = false,
+            hasProgress = false
+        )
+        assertNotNull(matchedType)
+        assertEquals("type.message", matchedType?.id)
+
+        // Add Global translator
+        val globalTranslator = CustomTranslator(
+            id = "global.catchall",
+            meta = TranslatorMetadata(name = "Global Catchall"),
+            targetScope = TargetScope.GLOBAL,
+            priority = 10,
+            isEnabled = true
+        )
+        registry.setTranslatorsForTesting(listOf(globalTranslator))
+
+        assertTrue(registry.hasActiveTranslatorsForPackage("com.any.unregistered.app"))
+
+        val matchedGlobal = registry.findMatchingTranslator(
+            packageName = "com.any.unregistered.app",
+            notificationCategory = null,
+            notificationType = "STANDARD",
+            title = "System",
+            text = "Alert",
+            subtext = null,
+            channelId = null,
+            extrasKeys = emptySet(),
+            hasActions = false,
+            hasProgress = false
+        )
+        assertNotNull(matchedGlobal)
+        assertEquals("global.catchall", matchedGlobal?.id)
     }
 }
 
