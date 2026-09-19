@@ -46,6 +46,8 @@
     <string name="permanent_island_screen_desc">Cuando esté activado, se mostrará una Isla Dinámica vacía de forma permanente en la pantalla. Se ocultará automáticamente cuando lleguen notificaciones reales y volverá a aparecer cuando se borren todas las notificaciones. No será visible en el panel de notificaciones.</string>
     <string name="permanent_island_width">Ancho de la Isla</string>
     <string name="permanent_island_hide_landscape">Ocultar en Horizontal</string>
+    <string name="lockscreen_island_title">Mostrar en Pantalla de Bloqueo</string>
+    <string name="lockscreen_island_desc">Mostrar la Isla Dinámica en la pantalla de bloqueo cuando lleguen notificaciones. También aplica a la Isla Permanente.</string>
     <string name="group_about">Sobre la aplicación</string>
     <string name="developer">Desarrollador</string>
     <string name="developer_subtitle">Visita d4viddf.com</string>

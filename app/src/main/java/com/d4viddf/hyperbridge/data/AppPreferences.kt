@@ -536,6 +536,23 @@ class AppPreferences(context: Context) {
     }
 
     // ========================================================================
+    //                        LOCKSCREEN ISLAND CONFIGURATION
+    // ========================================================================
+
+    private val SHOW_ISLAND_ON_LOCKSCREEN = "show_island_on_lockscreen"
+
+    val showIslandOnLockscreenFlow: Flow<Boolean> = dao.getSettingFlow(SHOW_ISLAND_ON_LOCKSCREEN)
+        .map { it?.toBoolean() ?: true }
+
+    suspend fun setShowIslandOnLockscreen(value: Boolean) {
+        save(SHOW_ISLAND_ON_LOCKSCREEN, value.toString())
+    }
+
+    fun showIslandOnLockscreenSync(): Boolean {
+        return memoryCache[SHOW_ISLAND_ON_LOCKSCREEN]?.toBoolean() ?: true
+    }
+
+    // ========================================================================
     //                        SYNCHRONOUS CACHE GETTERS
     // ========================================================================
 
