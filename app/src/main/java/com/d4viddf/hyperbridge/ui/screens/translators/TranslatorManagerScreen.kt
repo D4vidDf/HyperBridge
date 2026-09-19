@@ -1,5 +1,9 @@
 package com.d4viddf.hyperbridge.ui.screens.translators
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +32,10 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Speed
@@ -48,6 +55,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -58,10 +67,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -72,6 +83,7 @@ import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,11 +96,57 @@ fun TranslatorManagerScreen(
     val allTranslators by viewModel.allTranslators.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filterState by viewModel.filterState.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var pendingExportTranslator by remember { mutableStateOf<CustomTranslator?>(null) }
+
+    // SAF Import Launcher
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.importTranslator(uri) { result ->
+                if (result.isSuccess) {
+                    val imported = result.getOrNull()
+                    val msg = context.getString(R.string.translators_import_success, imported?.meta?.name ?: "")
+                    scope.launch { snackbarHostState.showSnackbar(msg) }
+                } else {
+                    val errorMsg = result.exceptionOrNull()?.localizedMessage ?: "Unknown error"
+                    val msg = context.getString(R.string.translators_import_failed, errorMsg)
+                    scope.launch { snackbarHostState.showSnackbar(msg) }
+                }
+            }
+        }
+    }
+
+    // SAF Export Launcher
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri: Uri? ->
+        val translator = pendingExportTranslator
+        if (uri != null && translator != null) {
+            viewModel.exportTranslatorToUri(translator, uri) { result ->
+                if (result.isSuccess) {
+                    val msg = context.getString(R.string.translators_export_success)
+                    scope.launch { snackbarHostState.showSnackbar(msg) }
+                } else {
+                    val msg = context.getString(R.string.translators_export_failed)
+                    scope.launch { snackbarHostState.showSnackbar(msg) }
+                }
+                pendingExportTranslator = null
+            }
+        } else {
+            pendingExportTranslator = null
+        }
+    }
 
     TranslatorManagerContent(
         translators = allTranslators,
         searchQuery = searchQuery,
         filterState = filterState,
+        snackbarHostState = snackbarHostState,
         onBack = onBack,
         onSearchQueryChange = { viewModel.setSearchQuery(it) },
         onFilterStateChange = { viewModel.setFilterState(it) },
@@ -97,7 +155,23 @@ fun TranslatorManagerScreen(
         onCreateTranslator = onCreateTranslator,
         onEditTranslator = onEditTranslator,
         onDuplicateTranslator = { viewModel.duplicateTranslator(it) },
-        onDeleteTranslator = { viewModel.deleteTranslator(it) }
+        onDeleteTranslator = { viewModel.deleteTranslator(it) },
+        onImportClick = {
+            importLauncher.launch(arrayOf("*/*", "application/zip", "application/octet-stream", "application/json"))
+        },
+        onExportTranslator = { translator ->
+            pendingExportTranslator = translator
+            val filename = "${translator.meta.name.ifBlank { translator.id }}.htrans"
+            exportLauncher.launch(filename)
+        },
+        onShareTranslator = { translator ->
+            viewModel.shareTranslator(context, translator) { result ->
+                if (result.isFailure) {
+                    val msg = context.getString(R.string.translators_share_failed)
+                    scope.launch { snackbarHostState.showSnackbar(msg) }
+                }
+            }
+        }
     )
 }
 
@@ -108,6 +182,7 @@ fun TranslatorManagerContent(
     searchQuery: String,
     filterState: TranslatorFilterState = TranslatorFilterState(),
     selectedFilter: TranslatorFilterScope = filterState.statusScope,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onBack: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onFilterStateChange: ((TranslatorFilterState) -> Unit)? = null,
@@ -117,7 +192,10 @@ fun TranslatorManagerContent(
     onCreateTranslator: (initialPackage: String?) -> Unit,
     onEditTranslator: (id: String) -> Unit,
     onDuplicateTranslator: (CustomTranslator) -> Unit,
-    onDeleteTranslator: (String) -> Unit
+    onDeleteTranslator: (String) -> Unit,
+    onImportClick: (() -> Unit)? = null,
+    onExportTranslator: ((CustomTranslator) -> Unit)? = null,
+    onShareTranslator: ((CustomTranslator) -> Unit)? = null
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var showFilterSheet by remember { mutableStateOf(false) }
@@ -167,6 +245,7 @@ fun TranslatorManagerContent(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
                 title = {
@@ -194,6 +273,21 @@ fun TranslatorManagerContent(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
                         )
+                    }
+                },
+                actions = {
+                    if (onImportClick != null) {
+                        FilledTonalIconButton(
+                            onClick = onImportClick,
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FileUpload,
+                                contentDescription = stringResource(R.string.translators_import_button)
+                            )
+                        }
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -384,7 +478,9 @@ fun TranslatorManagerContent(
                             onToggle = { isEnabled -> onToggleTranslator(translator.id, isEnabled) },
                             onClick = { onEditTranslator(translator.id) },
                             onDuplicate = { onDuplicateTranslator(translator) },
-                            onDelete = { onDeleteTranslator(translator.id) }
+                            onDelete = { onDeleteTranslator(translator.id) },
+                            onShare = { onShareTranslator?.invoke(translator) },
+                            onExport = { onExportTranslator?.invoke(translator) }
                         )
                     }
                 }
@@ -400,7 +496,9 @@ fun TranslatorCardItem(
     onToggle: (Boolean) -> Unit,
     onClick: () -> Unit,
     onDuplicate: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onShare: () -> Unit = {},
+    onExport: () -> Unit = {}
 ) {
     Surface(
         onClick = onClick,
@@ -560,6 +658,32 @@ fun TranslatorCardItem(
 
                 // Action buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FilledTonalIconButton(
+                        onClick = onShare,
+                        modifier = Modifier.size(36.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = stringResource(R.string.translators_share_button),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    FilledTonalIconButton(
+                        onClick = onExport,
+                        modifier = Modifier.size(36.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.FileDownload,
+                            contentDescription = stringResource(R.string.translators_export_button),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                     FilledTonalIconButton(
                         onClick = onDuplicate,
                         modifier = Modifier.size(36.dp),

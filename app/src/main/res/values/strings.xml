@@ -1388,6 +1388,16 @@
     <string name="translator_priority_guide_p1">• Higher priority rules (e.g. 500) run before lower ones (e.g. 50).</string>
     <string name="translator_priority_guide_p2">• Default custom rules have a priority of 100.</string>
     <string name="translator_priority_guide_p3">• Use high values (200-500) for critical notifications like phone calls or active rideshares that should take precedence.</string>
+
+    <!-- Import / Export / Sharing Strings -->
+    <string name="translators_import_button">Import</string>
+    <string name="translators_export_button">Export</string>
+    <string name="translators_share_button">Share</string>
+    <string name="translators_import_success">Translator \"%1$s\" imported successfully</string>
+    <string name="translators_import_failed">Failed to import translator: %1$s</string>
+    <string name="translators_export_success">Translator exported successfully</string>
+    <string name="translators_export_failed">Failed to export translator</string>
+    <string name="translators_share_failed">Failed to share translator</string>
 </resources>
 
 
