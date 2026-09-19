@@ -972,3 +972,46 @@ fun DiagnosticsScreenPreview() {
         )
     }
 }
+
+@Preview(showBackground = true, name = "Reconnect Service")
+@Composable
+fun DiagnosticsScreenReconnectServicePreview() {
+    HyperBridgeTheme {
+        DiagnosticsContent(
+            data = DiagnosticsData(
+                notificationAccess = true,
+                postPermission = true,
+                restrictedSettingsAllowed = true,
+                focusSupported = true,
+                focusPermission = true,
+                selectedAppsCount = 5,
+                floatingReviewCount = 2,
+                activeIslands = 1,
+                lastClassification = "MESSAGE",
+                lastCallState = "RINGING",
+                serviceConnected = false,
+                events = listOf(
+                    DiagnosticEvent(
+                        timestamp = 1700000000000L,
+                        packageName = "com.whatsapp",
+                        classification = "MESSAGE",
+                        action = "updated",
+                        reason = "active"
+                    ),
+                    DiagnosticEvent(
+                        timestamp = 1699999900000L,
+                        packageName = "org.telegram.messenger",
+                        classification = "CALL",
+                        action = "started",
+                        reason = "incoming"
+                    )
+                )
+            ),
+            onBack = {},
+            onReportError = {},
+            onReconnect = {},
+            onCopyDiagnostics = {}
+        )
+    }
+}
+
