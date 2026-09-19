@@ -137,6 +137,28 @@ class ThemeRepository(private val context: Context) {
                     targetDir.deleteRecursively()
                 }
 
+                // 4. BUNDLED TRANSLATORS DISCOVERY & IMPORT
+                val translatorsDir = File(tempDir, "translators")
+                if (translatorsDir.exists() && translatorsDir.isDirectory) {
+                    try {
+                        val translatorRepo = com.d4viddf.hyperbridge.data.translator.TranslatorRepository(context)
+                        translatorsDir.walkTopDown().filter { it.isFile }.forEach { file ->
+                            if (file.extension.equals("htrans", ignoreCase = true) || file.extension.equals("json", ignoreCase = true)) {
+                                file.inputStream().use { stream ->
+                                    val result = translatorRepo.importTranslatorFromStream(stream)
+                                    if (result.isSuccess) {
+                                        Log.i(tag, "Bundled translator imported from theme: ${result.getOrNull()?.meta?.name}")
+                                    } else {
+                                        Log.w(tag, "Failed to import bundled translator: ${file.name}", result.exceptionOrNull())
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w(tag, "Error processing bundled translators in theme $finalId", e)
+                    }
+                }
+
                 // Move temp to final
                 if (!tempDir.renameTo(targetDir)) {
                     // Fallback if rename fails (filesystems differ)

@@ -103,7 +103,7 @@ data class DiagnosticsData(
     val activeIslands: Int,
     val lastClassification: String?,
     val lastCallState: String?,
-    val lastCustomTranslator: String?,
+    val lastCustomTranslator: String? = null,
     val serviceConnected: Boolean,
     val events: List<DiagnosticEvent>
 ) {

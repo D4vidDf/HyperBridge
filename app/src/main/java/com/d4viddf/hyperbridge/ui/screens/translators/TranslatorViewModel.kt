@@ -1,8 +1,10 @@
 package com.d4viddf.hyperbridge.ui.screens.translators
 
 import android.app.Application
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -55,6 +57,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     private val translatorDao = db.translatorDao()
     private val pm = application.packageManager
     private val themeRepo = com.d4viddf.hyperbridge.data.theme.ThemeRepository(application)
+    private val translatorRepo = com.d4viddf.hyperbridge.data.translator.TranslatorRepository(application, translatorDao)
 
     private val _installedApps = MutableStateFlow<List<AppItem>>(emptyList())
     val installedApps: StateFlow<List<AppItem>> = _installedApps.asStateFlow()
@@ -229,6 +232,37 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
             translatorDao.deleteTranslatorById(id)
             withContext(Dispatchers.Main) {
                 onDone()
+            }
+        }
+    }
+
+    fun importTranslator(uri: Uri, onResult: (Result<CustomTranslator>) -> Unit) {
+        viewModelScope.launch {
+            val result = translatorRepo.importTranslatorFromUri(uri)
+            withContext(Dispatchers.Main) {
+                onResult(result)
+            }
+        }
+    }
+
+    fun exportTranslatorToUri(translator: CustomTranslator, uri: Uri, onResult: (Result<Unit>) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = runCatching {
+                getApplication<Application>().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    translatorRepo.exportTranslatorToZip(translator, outputStream).getOrThrow()
+                } ?: throw IllegalArgumentException("Could not open output stream for URI: $uri")
+            }
+            withContext(Dispatchers.Main) {
+                onResult(result)
+            }
+        }
+    }
+
+    fun shareTranslator(context: Context, translator: CustomTranslator, onResult: (Result<Unit>) -> Unit = {}) {
+        viewModelScope.launch {
+            val result = translatorRepo.shareTranslator(context, translator)
+            withContext(Dispatchers.Main) {
+                onResult(result)
             }
         }
     }
