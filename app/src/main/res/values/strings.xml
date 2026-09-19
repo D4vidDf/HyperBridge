@@ -848,6 +848,10 @@
     <string name="diagnostic_active_count" translatable="false">%1$d active</string>
     <string name="diagnostic_last_classification_desc" translatable="false">Latest intercepted notification category</string>
     <string name="diagnostic_last_call_state_desc" translatable="false">Latest monitored call state</string>
+    <string name="diagnostic_last_custom_translator" translatable="false">Last custom translator</string>
+    <string name="diagnostic_last_custom_translator_desc" translatable="false">Latest applied custom translator</string>
+    <string name="bug_report_include_custom_translators" translatable="false">Include Custom Translators</string>
+    <string name="bug_report_include_custom_translators_desc" translatable="false">Sanitized configuration of installed custom translators</string>
     <string name="diagnostic_notification_access_desc" translatable="false">Required to intercept app events</string>
     <string name="diagnostic_post_notifications_desc" translatable="false">Required to display Island notifications</string>
     <string name="diagnostic_restricted_settings" translatable="false">Restricted permissions</string>
@@ -945,6 +949,445 @@
     <string name="listener_down_action_reconnect">Reconnect</string>
     <string name="diagnostic_reconnect_service">Reconnect service</string>
     <string name="diagnostic_reconnecting_toast">Reconnecting service…</string>
+
+    <!-- Custom Translators Framework UI (#342) -->
+    <string name="design_section_translators">Translators</string>
+    <string name="design_translators_carousel_desc">%1$d active rules</string>
+    <string name="design_action_create_translator">New Translator</string>
+    <string name="design_translators_browse_all">Manage Translators</string>
+    <string name="translators_manager_title">Translators</string>
+    <string name="translators_manager_subtitle">Rule interception &amp; formatting</string>
+    <string name="translators_search_hint">Search translators…</string>
+    <string name="translators_filter_all">All</string>
+    <string name="translators_filter_btn">Filters</string>
+    <string name="translators_filter_sheet_title">Filter Translators</string>
+    <string name="translators_filter_sheet_desc">Filter custom translators by status, scope, notification types, or icons</string>
+    <string name="translators_filter_status_section">Status &amp; Scope</string>
+    <string name="translators_filter_types_section">Notification Types</string>
+    <string name="translators_filter_apps_section">Target Apps</string>
+    <string name="translators_filter_creators_section">Creator</string>
+    <string name="translators_filter_icons_section">Icons</string>
+    <string name="translators_filter_reset">Reset Filters</string>
+    <string name="translators_filter_apply">Apply</string>
+    <string name="translators_filter_active">Active</string>
+    <string name="translators_filter_inactive">Inactive</string>
+    <string name="translators_filter_global">Global</string>
+    <string name="translators_filter_apps">Apps</string>
+    <string name="translators_filter_system_apps">System Apps</string>
+    <string name="translators_filter_types">Types</string>
+    <string name="translators_empty_title">No Translators Found</string>
+    <string name="translators_empty_desc">Create your first custom translator rule to format and enhance notification islands.</string>
+    <string name="translators_create_button">Create Translator</string>
+    <string name="translators_action_edit">Edit</string>
+    <string name="translators_action_delete">Delete</string>
+    <string name="translators_action_duplicate">Duplicate</string>
+    <string name="translators_priority_label">Priority %1$d</string>
+    <string name="translators_scope_global">Global Rule</string>
+    <string name="translators_scope_apps">%1$d apps targeted</string>
+    <string name="translators_scope_system_apps">%1$d system apps targeted</string>
+    <string name="translators_scope_types">%1$d types targeted</string>
+
+    <!-- Translator Visual Editor -->
+    <string name="translator_editor_title_new">New Translator</string>
+    <string name="translator_editor_title_edit">Edit Translator</string>
+    <string name="translator_editor_save">Save</string>
+    <string name="translator_editor_preview_title">Live Island Preview</string>
+    <string name="translator_editor_preview_hint">Simulating live island rendering with current rules</string>
+    
+    <string name="translator_tab_general">General</string>
+    <string name="translator_tab_conditions">Match Conditions</string>
+    <string name="translator_tab_presentation">Presentation</string>
+    <string name="translator_tab_progress">Progress</string>
+    <string name="translator_tab_actions">Actions</string>
+    <string name="translator_tab_behavior">Behavior</string>
+
+    <string name="translator_meta_icon_title">Translator Icon</string>
+    <string name="translator_meta_icon_desc">Select an icon to easily identify this translator</string>
+    <string name="translator_meta_priority_title">Execution Priority</string>
+    <string name="translator_meta_priority_desc">When multiple translators match a notification, the one with the highest priority number is evaluated first.</string>
+    <string name="translator_priority_preset_low">50 (Low)</string>
+    <string name="translator_priority_preset_default">100 (Default)</string>
+    <string name="translator_priority_preset_high">200 (High)</string>
+    <string name="translator_priority_preset_urgent">500 (Urgent)</string>
+
+    <string name="translator_field_name">Translator Name</string>
+    <string name="translator_field_name_hint">e.g. Clean WhatsApp Group Notifications</string>
+    <string name="translator_field_author">Author</string>
+    <string name="translator_field_description">Description</string>
+    <string name="translator_field_priority">Priority (Higher runs first)</string>
+    <string name="translator_field_scope">Target Scope</string>
+    <string name="translator_scope_desc_global">Applies to all incoming notifications</string>
+    <string name="translator_scope_desc_apps">Applies only to selected applications</string>
+    <string name="translator_scope_desc_types">Applies only to specific notification types</string>
+    <string name="translator_select_apps">Target Applications</string>
+    <string name="translator_select_types">Target Notification Types</string>
+
+    <string name="translator_cond_title_regex">Title Pattern (Regex)</string>
+    <string name="translator_cond_title_regex_hint">e.g. ^(?&lt;sender&gt;.*?): (?&lt;msg&gt;.*)</string>
+    <string name="translator_cond_text_regex">Text / Body Pattern (Regex)</string>
+    <string name="translator_cond_text_regex_hint">e.g. OTP code is (\\d{4,8}) or .*arriving in (\\d+) mins.*</string>
+    <string name="translator_cond_subtext_regex">Subtext Pattern (Regex)</string>
+    <string name="translator_cond_subtext_regex_hint">e.g. (\\d+) new messages</string>
+    <string name="translator_cond_channel">Notification Channel ID</string>
+    <string name="translator_cond_channel_hint">e.g. urgent_alerts, messages_channel</string>
+    <string name="translator_cond_category">Category (e.g. msg, call, progress)</string>
+    <string name="translator_cond_sender_name_hint">e.g. ^(?&lt;name&gt;[A-Z][a-z]+) or Alex|Sarah</string>
+    <string name="translator_cond_conv_title_hint">e.g. Work Team|Family Group</string>
+    <string name="translator_cond_artist_hint">e.g. Queen|Daft Punk</string>
+    <string name="translator_cond_album_hint">e.g. Greatest Hits</string>
+    <string name="translator_cond_caller_name_hint">e.g. Mom|Boss|Doctor</string>
+    <string name="translator_cond_nav_instruction_hint">e.g. Turn (left|right) on .*</string>
+    <string name="translator_cond_nav_distance_hint">e.g. In (\\d+) (m|km|ft|mi)</string>
+    <string name="translator_cond_has_progress">Must Have Progress</string>
+    <string name="translator_cond_has_actions">Must Have Actions</string>
+
+    <string name="translator_pres_title_template">Title Template</string>
+    <string name="translator_pres_subtitle_template">Subtitle Template</string>
+    <string name="translator_pres_variables_hint">Available tags:</string>
+    <string name="translator_pres_icon_source">Left Icon Source</string>
+    <string name="translator_icon_app">App Icon</string>
+    <string name="translator_icon_avatar">Sender / Avatar</string>
+    <string name="translator_icon_none">Hidden</string>
+
+    <string name="translator_prog_type">Progress Slot Type</string>
+    <string name="translator_prog_type_none">Disabled / None</string>
+    <string name="translator_prog_type_none_desc">Do not show progress bar or timing indicators</string>
+    <string name="translator_prog_type_bar">Progress Bar</string>
+    <string name="translator_prog_type_bar_desc">Linear bar in expanded island, circular indicator on pill</string>
+    <string name="translator_prog_type_waypoint">Waypoint / Stepper</string>
+    <string name="translator_prog_type_waypoint_desc">Step-by-step progress points for deliveries or routes</string>
+    <string name="translator_prog_type_timer">Countdown / Timer</string>
+    <string name="translator_prog_type_timer_desc">Active elapsed or remaining countdown time indicator</string>
+    <string name="translator_prog_extract_from_text">Extract progress from text</string>
+    <string name="translator_prog_regex">Progress Regex (e.g. (\\d+)%)</string>
+
+    <string name="translator_actions_slot_title">Button %1$d</string>
+    <string name="translator_actions_match_mode">Match Action By</string>
+    <string name="translator_actions_match_index">Index in notification</string>
+    <string name="translator_actions_match_title">Title Regex</string>
+    <string name="translator_actions_source">Action Source</string>
+    <string name="translator_actions_source_notif">Original Notification Action</string>
+    <string name="translator_actions_source_smart">Smart Action</string>
+    <string name="translator_actions_smart_type">Smart Action Type</string>
+    <string name="translator_actions_add_slot">Add Button</string>
+    <string name="translator_actions_remove_slot">Remove Button</string>
+
+    <string name="translator_behavior_engine">Engine Mode</string>
+    <string name="translator_engine_inherit">Inherit App Default</string>
+    <string name="translator_engine_custom">HyperOS Custom Island</string>
+    <string name="translator_engine_native">Native Live Update</string>
+    <string name="translator_behavior_float">Heads-up Popup</string>
+    <string name="translator_behavior_float_timeout">Heads-up Duration (Seconds)</string>
+    <string name="translator_behavior_timeout">Island Timeout (Seconds)</string>
+    <string name="translator_behavior_shade">Show in Notification Shade</string>
+    <string name="translator_behavior_remove_orig">Dismiss Original Notification</string>
+    <string name="translator_behavior_dismiss_with_orig">Dismiss with Original Notification</string>
+
+    <string name="translator_meta_title">Translator Info</string>
+    <string name="translator_menu_conditions">Match Conditions</string>
+    <string name="translator_menu_conditions_sub">Filter by title, text regex, category</string>
+    <string name="translator_menu_presentation">Presentation &amp; Layout</string>
+    <string name="translator_menu_presentation_sub">Title, subtitle templates, tags</string>
+    <string name="translator_menu_progress">Progress &amp; Timing</string>
+    <string name="translator_menu_progress_sub">Bar, timer, waypoints, text regex</string>
+    <string name="translator_menu_actions">Buttons</string>
+    <string name="translator_menu_actions_sub">Smart actions, intent triggers, action buttons</string>
+    <string name="translator_menu_behavior">Behavior &amp; Engine</string>
+    <string name="translator_menu_behavior_sub">Island timeouts, popup floats, engine mode</string>
+    <string name="translator_menu_apps">Target Applications</string>
+    <string name="translator_menu_apps_sub">Select apps targeted by this translator</string>
+
+    <string name="translator_apps_empty">All applications targeted (Global)</string>
+    <string name="translator_apps_empty_desc">Tap + to restrict this translator to specific apps.</string>
+    <string name="translator_btn_edit_meta">Edit Info &amp; Priority</string>
+
+    <string name="translator_scope_global">Global</string>
+    <string name="translator_scope_apps">Apps</string>
+    <string name="translator_scope_apps_fmt">%1$d apps targeted</string>
+    <string name="translator_conditions_title">Match Conditions</string>
+    <string name="translator_conditions_desc">Define regular expressions and filters to match target notifications.</string>
+    <string name="translator_cond_channel_id">Notification Channel ID</string>
+    <string name="translator_cond_has_progress_desc">Notification must contain progress bar/indicator</string>
+    <string name="translator_cond_has_actions_desc">Notification must have action buttons</string>
+    <string name="translator_presentation_title">Presentation &amp; Layout</string>
+    <string name="translator_pres_mode">Presentation Mode</string>
+    <string name="translator_pres_title_tpl">Title Template ({notif.title})</string>
+    <string name="translator_pres_sub_tpl">Subtitle Template ({notif.text})</string>
+    <string name="translator_pres_highlight_tpl">Highlight Text Template</string>
+    <string name="translator_progress_title">Progress &amp; Timing</string>
+    <string name="translator_prog_show_pct">Show Percentage</string>
+    <string name="translator_prog_extract_text">Extract Progress from Text</string>
+    <string name="translator_prog_regex_tpl">Progress Regex (e.g. (\\d+)%)</string>
+    <string name="translator_actions_title">Buttons</string>
+    <string name="translator_actions_empty_title">No Buttons Configured</string>
+    <string name="translator_actions_empty_desc">Add buttons to map original notification actions, smart actions, or quick replies.</string>
+    <string name="translator_action_custom_label">Custom Button Label</string>
+    <string name="translator_behavior_title">Behavior &amp; Island Lifetime</string>
+    <string name="translator_no_apps_selected">No apps selected</string>
+    <string name="translator_target_scope_card_title">Target Scope</string>
+    <string name="translator_target_scope_global_title">Global</string>
+    <string name="translator_target_scope_global_desc">Applies to all allowed applications in Library</string>
+    <string name="translator_target_scope_apps_title">Specific Apps</string>
+    <string name="translator_target_scope_apps_desc">Applies only to selected applications (%1$d selected)</string>
+    <string name="translator_target_scope_system_title">System Apps</string>
+    <string name="translator_target_scope_system_desc">Applies to selected system applications (%1$d selected)</string>
+    <string name="translator_select_apps_action">Select Apps</string>
+    <string name="translator_select_system_apps_action">Select System Apps</string>
+    <string name="translator_notif_types_filter_title">Filter by Notification Type</string>
+    <string name="translator_notif_types_filter_desc">Restrict rule to specific Android notification categories</string>
+    <string name="translator_notif_types_select_action">Select Notification Types</string>
+    <string name="translator_notif_types_count_fmt">%1$d types selected</string>
+    <string name="translator_notif_types_sheet_title">Select Notification Types</string>
+    <string name="translator_scope_sheet_title">Select Target Scope</string>
+
+    <string name="app_translators_section_title">Custom Translators</string>
+    <string name="app_translators_section_desc">Active translator rules applied to this application.</string>
+    <string name="app_translators_create_for_app">Create for this app</string>
+    <string name="app_translators_empty">No custom translators configured for this app yet.</string>
+    <string name="translator_cond_add_btn">Add Condition Pattern</string>
+    <string name="translator_cond_sheet_title">Add Condition Pattern</string>
+    <string name="translator_cond_empty_title">No Condition Patterns</string>
+    <string name="translator_cond_empty_desc">Add patterns or property filters to specify when this translator triggers.</string>
+    <string name="translator_cond_group_standard">Standard Properties</string>
+    <string name="translator_cond_group_messaging">Messaging &amp; People</string>
+    <string name="translator_cond_group_media">Media &amp; Playback</string>
+    <string name="translator_cond_group_call">Phone Calls</string>
+    <string name="translator_cond_group_navigation">Navigation</string>
+    <string name="translator_cond_group_progress">Progress &amp; Downloads</string>
+    <string name="translator_cond_sender_name">Person / Sender Name (Regex)</string>
+    <string name="translator_cond_conv_title">Conversation / Group Title (Regex)</string>
+    <string name="translator_cond_is_group">Group Conversation</string>
+    <string name="translator_cond_is_group_desc">Only match messages from group chats</string>
+    <string name="translator_cond_artist">Artist / Performer (Regex)</string>
+    <string name="translator_cond_album">Album Name (Regex)</string>
+    <string name="translator_cond_is_playing">Playback State</string>
+    <string name="translator_cond_is_playing_desc">Only match when media is actively playing</string>
+    <string name="translator_cond_caller_name">Caller Name (Regex)</string>
+    <string name="translator_cond_call_type">Call State Filter</string>
+    <string name="translator_cond_call_type_incoming">Incoming Calls Only</string>
+    <string name="translator_cond_call_type_ongoing">Ongoing Calls Only</string>
+    <string name="translator_cond_call_type_missed">Missed Calls Only</string>
+    <string name="translator_cond_nav_instruction">Navigation Instruction (Regex)</string>
+    <string name="translator_cond_nav_distance">Distance Text (Regex)</string>
+    <string name="translator_cond_min_progress">Minimum Progress %</string>
+    <string name="translator_cond_max_progress">Maximum Progress %</string>
+    <string name="translator_cond_category_title">Android Notification Category</string>
+    <string name="translator_cond_category_desc">Low-level Android OS system category flag (Notification.category). Unlike Target Notification Types which are HyperBridge\'s high-level classifiers, this matches raw system tags.</string>
+    <string name="translator_cond_category_custom">Custom Category String</string>
+    <string name="translator_cond_category_custom_hint">e.g. custom_cat</string>
+    <string name="translator_cond_category_msg">Message (msg)</string>
+    <string name="translator_cond_category_email">Email (email)</string>
+    <string name="translator_cond_category_call">Call (call)</string>
+    <string name="translator_cond_category_alarm">Alarm (alarm)</string>
+    <string name="translator_cond_category_progress">Progress (progress)</string>
+    <string name="translator_cond_category_transport">Media Transport (transport)</string>
+    <string name="translator_cond_category_navigation">Navigation (navigation)</string>
+    <string name="translator_cond_category_promo">Promo / Recommendation (promo)</string>
+    <string name="translator_cond_category_service">Background Service (service)</string>
+    <string name="translator_cond_category_event">Calendar Event (event)</string>
+    <string name="translator_cond_category_social">Social (social)</string>
+    <string name="translator_cond_category_reminder">Reminder (reminder)</string>
+    <string name="translator_cond_category_system">System (sys)</string>
+    
+    <string name="translator_cond_channel_select_btn">Select Channel</string>
+    <string name="translator_cond_channel_sheet_title">Select Notification Channel</string>
+    <string name="translator_cond_channel_search_hint">Search notification channels...</string>
+    <string name="translator_cond_channel_empty">No channels found for target apps</string>
+    <string name="translator_cond_channel_custom_desc">Or enter custom / manual Channel ID:</string>
+    <string name="translator_cond_channel_select_desc">Pick an existing notification channel detected on your device:</string>
+
+    <!-- Presentation & Layout Strings -->
+    <string name="translator_pres_mode_title">Presentation Mode</string>
+    <string name="translator_pres_mode_desc">Choose how this notification is rendered in the island</string>
+    <string name="translator_pres_mode_standard">Standard</string>
+    <string name="translator_pres_mode_standard_desc">Dynamic island with custom title, subtitle, and icons</string>
+    <string name="translator_pres_mode_template">Template</string>
+    <string name="translator_pres_mode_template_desc">Predefined dynamic island template layouts</string>
+    <string name="translator_pres_mode_widget">Widget</string>
+    <string name="translator_pres_mode_widget_desc">Custom interactive rich widget component</string>
+    <string name="translator_pres_mode_sheet_title">Select Presentation Mode</string>
+    <string name="translator_pres_mode_select_btn">Change Mode</string>
+    
+    <string name="translator_pres_theme_title">Linked Theme</string>
+    <string name="translator_pres_theme_desc">Bind a specific theme styling or follow the active default</string>
+    <string name="translator_pres_theme_active">Active Theme (Default)</string>
+    <string name="translator_pres_theme_active_desc">Follows whichever theme is currently active in HyperBridge</string>
+    <string name="translator_pres_theme_sheet_title">Select Theme</string>
+    <string name="translator_pres_theme_select_btn">Change Theme</string>
+
+    <string name="translator_pres_wip_title">Work in Progress</string>
+    <string name="translator_pres_template_wip_desc">Custom template layouts are being finalized in an upcoming PR. You can preview available presets below.</string>
+    <string name="translator_pres_widget_wip_desc">Interactive widget embedding will be enabled in an upcoming release. You can select your target widget below.</string>
+    <string name="translator_pres_select_template_btn">Select Template</string>
+    <string name="translator_pres_select_widget_btn">Select Widget</string>
+    <string name="translator_pres_template_sheet_title">Select Template Layout</string>
+    <string name="translator_pres_widget_sheet_title">Select Widget</string>
+    <string name="translator_pres_template_default">Template 1: Weather &amp; Navigation</string>
+    <string name="translator_pres_template_payment">Template 2: Payment &amp; Wallet</string>
+    <string name="translator_pres_template_call">Template 3: Voice Call &amp; CallKit</string>
+    <string name="translator_pres_template_delivery">Template 4: Ride-Hail &amp; Food Delivery</string>
+    <string name="translator_pres_template_queue">Template 5: Queue &amp; Waiting</string>
+    <string name="translator_pres_template_parking">Template 6: Parking &amp; Metering</string>
+    <string name="translator_pres_template_download">Template 7: File Upload &amp; Download</string>
+    <string name="translator_pres_template_promo">Template 8: Coupon &amp; Red Packet</string>
+    <string name="translator_pres_template_media">Template 12: Compact Media Player</string>
+    <string name="translator_pres_widget_default">System Status Widget</string>
+    <string name="translator_pres_widget_counter">Timer &amp; Counter Widget</string>
+
+    <string name="translator_pres_icon_source_title">Left Icon Slot</string>
+    <string name="translator_pres_icon_source_desc">Choose the icon displayed on the left side of the island</string>
+    <string name="translator_pres_icon_source_app">App Icon</string>
+    <string name="translator_pres_icon_source_avatar">Sender / Large Icon Avatar</string>
+    <string name="translator_pres_icon_source_hidden">Hidden / None</string>
+    <string name="translator_pres_icon_sheet_title">Select Left Icon Slot</string>
+    <string name="translator_pres_icon_select_btn">Change Icon Slot</string>
+
+    <string name="translator_pres_tags_hint">Quick Insert Variable:</string>
+    <string name="translator_pres_text_title">Text &amp; Templates</string>
+    <string name="translator_pres_text_desc">Define dynamic title and subtitle with variable tokens</string>
+
+    <!-- Progress & Timing Strings -->
+    <string name="translator_prog_info_title">How Progress Works</string>
+    <string name="translator_prog_info_desc">Progress indicators will only display if the incoming notification contains native Android progress data or if a percentage is matched and extracted from text below.\n\nIn the island notification, progress is displayed as a linear bar. On the compact pill, it can be rendered as a circle (pill appearance customizable in a future update).</string>
+    <string name="translator_prog_learn_btn">Learn How Progress Works</string>
+    <string name="translator_prog_learn_sheet_title">Progress &amp; Timing Guide</string>
+    <string name="translator_prog_learn_native_title">1. Native Android Progress</string>
+    <string name="translator_prog_learn_native_desc">Android notifications can include native progress bars (like file downloads or media rendering). HyperBridge detects these automatically and maps them to the island.</string>
+    <string name="translator_prog_learn_regex_title">2. Text Extraction (Regex)</string>
+    <string name="translator_prog_learn_regex_desc">If an app includes progress in text (e.g., \"Uploading 45%\" or \"3/10 done\"), you can configure a regular expression below to parse and display it as a progress bar.</string>
+    <string name="translator_prog_learn_display_title">3. Bar vs. Pill Rendering</string>
+    <string name="translator_prog_learn_display_desc">On the expanded notification island, progress is rendered as a linear horizontal bar. On the compact pill, it can be displayed as a circular ring indicator.</string>
+    <string name="translator_prog_type_card_title">Progress Slot Type</string>
+    <string name="translator_prog_type_card_desc">Choose whether and how progress is displayed</string>
+    <string name="translator_prog_type_select_btn">Change Type</string>
+    <string name="translator_prog_type_sheet_title">Select Progress Type</string>
+
+    <string name="translator_prog_show_pct_desc">Display numerical percentage text (e.g. 75%) alongside indicator</string>
+    <string name="translator_prog_extract_card_title">Text Extraction</string>
+    <string name="translator_prog_extract_card_desc">Parse progress percentages from notification title, text, or subtext</string>
+    <string name="translator_prog_regex_desc">Capture numerical progress with regex group (\\d+)</string>
+    <string name="translator_prog_regex_chips_title">Regex Presets:</string>
+    <string name="translator_prog_max_title">Custom Maximum Value</string>
+    <string name="translator_prog_max_desc">Denominator when calculating percentage (defaults to 100)</string>
+
+    <!-- Buttons Strings -->
+    <string name="translator_actions_info_title">How Buttons Work</string>
+    <string name="translator_actions_learn_btn">Learn How Buttons Work</string>
+    <string name="translator_actions_learn_sheet_title">Buttons Guide</string>
+    <string name="translator_actions_learn_order_title">1. Order of Appearance</string>
+    <string name="translator_actions_learn_order_desc">Buttons are placed on the Dynamic Island from left to right in the exact order configured below. Use the up and down arrows on each button to adjust its priority.</string>
+    <string name="translator_actions_learn_sources_title">2. Button Types &amp; Sources</string>
+    <string name="translator_actions_learn_sources_desc">You can map native notification buttons, synthesized Smart Actions (like copying OTP codes, dialing numbers, or opening tracking links), direct inline replies, or custom broadcasts.</string>
+    <string name="translator_actions_learn_visibility_title">3. Visibility &amp; Styling</string>
+    <string name="translator_actions_learn_visibility_desc">You can temporarily hide any button using the visibility eye toggle without deleting its settings. Each button can be displayed as icon-only, text-only, or icon with text.</string>
+    <string name="translator_actions_banner_title">Button Order &amp; Layout</string>
+    <string name="translator_actions_banner_desc">Buttons appear left-to-right in the exact order configured below. You can reorder buttons, customize icons/text, or hide individual buttons without deleting them.</string>
+    <string name="translator_actions_slot_badge">Button %1$d</string>
+    <string name="translator_actions_visibility_visible">Visible in Island</string>
+    <string name="translator_actions_visibility_hidden">Hidden</string>
+    <string name="translator_actions_source_title">Button Source</string>
+    <string name="translator_actions_source_desc">Choose what trigger or behavior is mapped to this button</string>
+    <string name="translator_actions_source_notif_title">Notification Button</string>
+    <string name="translator_actions_source_notif_desc">Trigger original button from notification (e.g. Mark as read, Pause)</string>
+    <string name="translator_actions_source_smart_title">Smart Action</string>
+    <string name="translator_actions_source_smart_desc">Synthesized actions like Copy OTP, Open Link, Dial, or Track</string>
+    <string name="translator_actions_source_reply_title">Inline Reply Overlay</string>
+    <string name="translator_actions_source_reply_desc">Open quick text reply dialog to answer messaging conversations</string>
+    <string name="translator_actions_source_broadcast_title">Custom Broadcast Intent</string>
+    <string name="translator_actions_source_broadcast_desc">Send custom Android broadcast to external apps or Tasker</string>
+    <string name="translator_actions_source_sheet_title">Select Action Source</string>
+    <string name="translator_actions_source_change_btn">Change Source</string>
+
+    <string name="translator_actions_display_mode_title">Display Style</string>
+    <string name="translator_actions_display_mode_icon">Icon Only</string>
+    <string name="translator_actions_display_mode_text">Text Only</string>
+    <string name="translator_actions_display_mode_both">Icon &amp; Text</string>
+    <string name="translator_actions_display_theme_style">Use Theme Action Styling</string>
+    <string name="translator_actions_display_theme_style_desc">Applies theme icon shape, padding, and accent tint</string>
+
+    <string name="translator_actions_smart_type_sheet_title">Select Smart Action</string>
+    <string name="translator_actions_smart_otp">Copy 2FA / OTP Code</string>
+    <string name="translator_actions_smart_otp_desc">Extracts one-time passcodes and copies to clipboard</string>
+    <string name="translator_actions_smart_url">Open URL / Link</string>
+    <string name="translator_actions_smart_url_desc">Opens URLs detected in notification text in browser</string>
+    <string name="translator_actions_smart_dial">Dial Phone Number</string>
+    <string name="translator_actions_smart_dial_desc">Calls phone numbers detected in notification body</string>
+    <string name="translator_actions_smart_track">Track Package</string>
+    <string name="translator_actions_smart_track_desc">Opens package tracking info for delivery notifications</string>
+
+    <string name="translator_actions_matcher_title">Match Notification Button</string>
+    <string name="translator_actions_matcher_by_index">By Button Position / Index</string>
+    <string name="translator_actions_matcher_by_title">By Button Title Regex</string>
+    <string name="translator_actions_matcher_index_label">Button Index (0 = 1st, 1 = 2nd, etc.)</string>
+    <string name="translator_actions_matcher_regex_label">Action Title Regex (e.g. Reply|Responder)</string>
+
+    <!-- Behavior & Engine Strings -->
+    <string name="translator_behavior_learn_btn">Learn How Behavior &amp; Engine Works</string>
+    <string name="translator_behavior_learn_sheet_title">Behavior &amp; Engine Guide</string>
+    <string name="translator_behavior_learn_engine_title">1. Rendering Engine</string>
+    <string name="translator_behavior_learn_engine_desc">Choose between HyperOS Custom Island (full custom styling &amp; animations), Native Android Live Updates (system pill &amp; status), or inheriting your global app default.</string>
+    <string name="translator_behavior_learn_timeout_title">2. Lifetime &amp; Auto-Hide</string>
+    <string name="translator_behavior_learn_timeout_desc">Control how many seconds the Dynamic Island stays on screen before automatically hiding, or leave it visible until manually dismissed.</string>
+    <string name="translator_behavior_learn_float_title">3. Heads-Up Popup &amp; Shade</string>
+    <string name="translator_behavior_learn_float_desc">Configure Xiaomi featured notification popups and whether the notification should remain in your Android notification shade.</string>
+    <string name="translator_behavior_learn_mgmt_title">4. Original Notification Handling</string>
+    <string name="translator_behavior_learn_mgmt_desc">Automatically dismiss the source notification when an island appears, sync dismissal when clearing the source, or enable inline reply overlays.</string>
+    <string name="translator_behavior_engine_mode_sheet_title">Select Engine Mode</string>
+    <string name="translator_behavior_engine_mode_inherit">Inherit App Default</string>
+    <string name="translator_behavior_engine_mode_inherit_desc">Follows the global engine set in HyperBridge settings</string>
+    <string name="translator_behavior_engine_change_btn">Change Engine</string>
+
+    <!-- Pill Customization Strings -->
+    <string name="translator_menu_pill">Pill Customization</string>
+    <string name="translator_menu_pill_sub">Compact island left &amp; right slot design</string>
+    <string name="translator_pill_title">Pill Customization</string>
+    <string name="translator_pill_desc">Customize the compact pill presentation around the punch-hole camera</string>
+    <string name="translator_pill_learn_btn">Learn How Compact Pill Works</string>
+    <string name="translator_pill_learn_sheet_title">Compact Pill Guide</string>
+    <string name="translator_pill_learn_symmetry_title">1. Symmetrical Layout</string>
+    <string name="translator_pill_learn_symmetry_desc">The Dynamic Island is split into left and right slots centered symmetrically around your device\'s camera cutout.</string>
+    <string name="translator_pill_learn_left_title">2. Left Slot Options</string>
+    <string name="translator_pill_learn_left_desc">Choose between app icon with title text, icon only, compact text only, contact avatar, or hidden.</string>
+    <string name="translator_pill_learn_right_title">3. Right Slot &amp; Auto-Detection</string>
+    <string name="translator_pill_learn_right_desc">Auto mode intelligently displays active timers or circular progress indicators if present. You can also explicitly lock the slot to timers, circular progress percentages, highlight text, or empty.</string>
+    <string name="translator_pill_left_sheet_title">Select Left Pill Design</string>
+    <string name="translator_pill_right_sheet_title">Select Right Pill Design</string>
+    <string name="translator_pill_left_icon_and_text">Icon and message</string>
+    <string name="translator_pill_left_icon_and_text_desc">Shows the app icon alongside a short title</string>
+    <string name="translator_pill_left_icon_only">Icon only</string>
+    <string name="translator_pill_left_icon_only_desc">Shows only the app icon in a circular badge</string>
+    <string name="translator_pill_left_text_only">Message only</string>
+    <string name="translator_pill_left_text_only_desc">Shows the short title text without an icon</string>
+    <string name="translator_pill_left_avatar">Contact avatar</string>
+    <string name="translator_pill_left_avatar_desc">Displays the sender picture or contact avatar</string>
+    <string name="translator_pill_left_hidden">Hidden / Empty</string>
+    <string name="translator_pill_left_hidden_desc">Leaves the left pill slot empty</string>
+    <string name="translator_pill_right_auto">Auto-detect (Recommended)</string>
+    <string name="translator_pill_right_auto_desc">Automatically renders timer or progress percent if available</string>
+    <string name="translator_pill_right_progress">Circular progress</string>
+    <string name="translator_pill_right_progress_desc">Shows animated circular progress ring</string>
+    <string name="translator_pill_right_timer">Timer</string>
+    <string name="translator_pill_right_timer_desc">Displays live counting timer</string>
+    <string name="translator_pill_right_highlight">Highlight text</string>
+    <string name="translator_pill_right_highlight_desc">Shows custom highlight text or status snippet</string>
+    <string name="translator_pill_right_none">Empty</string>
+    <string name="translator_pill_right_none_desc">Leaves the right pill slot empty</string>
+
+    <!-- Preview Mode Strings -->
+    <string name="translator_preview_mode_expanded">Expanded Island</string>
+    <string name="translator_preview_mode_pill">Compact Pill</string>
+
+    <!-- Priority & Icon Sheet Strings -->
+    <string name="translator_icon_sheet_title">Select Translator Icon</string>
+    <string name="translator_icon_sheet_desc">Choose an outlined icon that represents the notification style</string>
+    <string name="translator_priority_sheet_title">Execution Priority</string>
+    <string name="translator_priority_card_subtitle">Determines evaluation order among translators</string>
+    <string name="translator_priority_sheet_desc">When incoming notifications match multiple translator rules, the rule with the highest priority is chosen and executed first.</string>
+    <string name="translator_priority_input_label">Priority Number (0 - 9999)</string>
+    <string name="translator_priority_guide_title">How Priority Works</string>
+    <string name="translator_priority_guide_p1">• Higher priority rules (e.g. 500) run before lower ones (e.g. 50).</string>
+    <string name="translator_priority_guide_p2">• Default custom rules have a priority of 100.</string>
+    <string name="translator_priority_guide_p3">• Use high values (200-500) for critical notifications like phone calls or active rideshares that should take precedence.</string>
 </resources>
 
 

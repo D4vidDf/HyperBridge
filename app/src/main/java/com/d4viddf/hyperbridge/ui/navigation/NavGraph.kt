@@ -191,7 +191,23 @@ fun mainNavGraph(
         AppConfigScreen(
             packageName = key.packageName,
             onBack = { navigator.goBack() },
-            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) }
+            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
+            onCreateTranslator = { pkg -> navigator.navigate(Screen.TranslatorEditor(null, pkg)) },
+            onEditTranslator = { id -> navigator.navigate(Screen.TranslatorEditor(id, null)) }
+        )
+    }
+    entry<Screen.TranslatorManager> {
+        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorManagerScreen(
+            onBack = { navigator.goBack() },
+            onCreateTranslator = { pkg -> navigator.navigate(Screen.TranslatorEditor(null, pkg)) },
+            onEditTranslator = { id -> navigator.navigate(Screen.TranslatorEditor(id, null)) }
+        )
+    }
+    entry<Screen.TranslatorEditor> { key ->
+        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorEditorScreen(
+            translatorId = key.translatorId,
+            initialPackageName = key.initialPackageName,
+            onBack = { navigator.goBack() }
         )
     }
 }

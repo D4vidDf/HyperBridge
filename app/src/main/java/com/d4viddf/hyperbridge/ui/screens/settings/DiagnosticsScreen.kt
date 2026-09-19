@@ -103,6 +103,7 @@ data class DiagnosticsData(
     val activeIslands: Int,
     val lastClassification: String?,
     val lastCallState: String?,
+    val lastCustomTranslator: String?,
     val serviceConnected: Boolean,
     val events: List<DiagnosticEvent>
 ) {
@@ -162,6 +163,7 @@ fun DiagnosticsScreen(
         activeIslands = state.activeIslands,
         lastClassification = state.lastClassification,
         lastCallState = state.lastCallState,
+        lastCustomTranslator = state.lastCustomTranslator,
         serviceConnected = isConnected,
         events = state.events
     )
@@ -451,6 +453,20 @@ fun DiagnosticsContent(
                             ValueBadge(text = data.lastCallState ?: "—")
                         }
                     )
+                    if (data.lastCustomTranslator != null) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                        ExpressiveDiagnosticRow(
+                            icon = Icons.Default.Code,
+                            title = stringResource(R.string.diagnostic_last_custom_translator),
+                            subtitle = stringResource(R.string.diagnostic_last_custom_translator_desc),
+                            trailingBadge = {
+                                ValueBadge(text = data.lastCustomTranslator)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -931,6 +947,7 @@ fun DiagnosticsScreenPreview() {
                 activeIslands = 1,
                 lastClassification = "MESSAGE",
                 lastCallState = "RINGING",
+                lastCustomTranslator = "WhatsApp Voice Notes",
                 serviceConnected = true,
                 events = listOf(
                     DiagnosticEvent(

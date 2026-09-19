@@ -275,4 +275,58 @@ class BugReportCollectorTest {
         assertTrue(decoded.contains("Last Classification: MESSAGE"))
         assertTrue(decoded.contains("com.whatsapp"))
     }
+
+    @Test
+    fun testBuildMarkdownReportAndUrlWithCustomTranslators() {
+        val customTranslators = listOf(
+            com.d4viddf.hyperbridge.util.CustomTranslatorDiagnosticInfo(
+                id = "whatsapp_voice_note",
+                name = "WhatsApp Voice Notes",
+                author = "Community",
+                version = "1.0.0",
+                isEnabled = true,
+                priority = 10,
+                targetScope = "SPECIFIC_APPS",
+                targetPackages = listOf("com.whatsapp"),
+                targetNotificationTypes = listOf("MESSAGE"),
+                engineMode = "CUSTOM_ISLAND",
+                presentationMode = "STANDARD",
+                templateId = null,
+                leftSlotSource = "AVATAR",
+                hasProgress = true,
+                actionSlotsCount = 2,
+                hasMessagingConditions = true,
+                hasCallConditions = false,
+                hasMediaConditions = false
+            )
+        )
+
+        val report = BugReportCollector.buildMarkdownReport(
+            userDescription = "Testing custom translators report",
+            userSteps = "Steps",
+            deviceInfo = null,
+            permissions = null,
+            themeInfo = null,
+            widgetList = null,
+            appConfigScope = AppConfigScope.NONE,
+            targetPackage = null,
+            appConfigText = null,
+            logcatText = null,
+            customTranslators = customTranslators
+        )
+
+        assertTrue(report.contains("#### Custom Translators (1 configured, 1 active)"))
+        assertTrue(report.contains("WhatsApp Voice Notes"))
+        assertTrue(report.contains("`whatsapp_voice_note`"))
+        assertTrue(report.contains("Scope: SPECIFIC_APPS [com.whatsapp]"))
+        assertTrue(report.contains("Active Conditions: Messaging, Progress"))
+
+        val url = BugReportCollector.buildGitHubIssueUrl(
+            userDescription = "Testing custom translators issue url",
+            customTranslators = customTranslators
+        )
+        val decoded = java.net.URLDecoder.decode(url, "UTF-8")
+        assertTrue(decoded.contains("**Custom Translators:**"))
+        assertTrue(decoded.contains("WhatsApp Voice Notes (Scope: SPECIFIC_APPS, Engine: CUSTOM_ISLAND)"))
+    }
 }

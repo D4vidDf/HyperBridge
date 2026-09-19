@@ -49,6 +49,7 @@ data class CustomTranslator(
 enum class TargetScope {
     @SerialName("GLOBAL") GLOBAL,
     @SerialName("SPECIFIC_APPS") SPECIFIC_APPS,
+    @SerialName("SYSTEM_APPS") SYSTEM_APPS,
     @SerialName("NOTIFICATION_TYPE") NOTIFICATION_TYPE
 }
 
@@ -59,6 +60,7 @@ data class TranslatorMetadata(
     val version: Int = 1,
     val description: String = "",
     val icon: ThemeResource? = null,
+    @SerialName("icon_name") val iconName: String = "AutoAwesome",
     @SerialName("share_link") val shareLink: String? = null
 )
 
@@ -169,8 +171,33 @@ data class PresentationConfig(
     @SerialName("left_slot") val leftSlot: SlotConfig = SlotConfig(),
     @SerialName("text_slot") val textSlot: TextSlotConfig = TextSlotConfig(),
     @SerialName("progress_slot") val progressSlot: ProgressSlotConfig = ProgressSlotConfig(),
-    @SerialName("action_slots") val actionSlots: List<ActionSlotConfig> = emptyList()
+    @SerialName("action_slots") val actionSlots: List<ActionSlotConfig> = emptyList(),
+    @SerialName("pill") val pill: CompactPillConfig = CompactPillConfig()
 )
+
+@Serializable
+data class CompactPillConfig(
+    @SerialName("left_design") val leftDesign: PillLeftDesign = PillLeftDesign.ICON_AND_TEXT,
+    @SerialName("right_design") val rightDesign: PillRightDesign = PillRightDesign.AUTO
+)
+
+@Serializable
+enum class PillLeftDesign {
+    @SerialName("ICON_AND_TEXT") ICON_AND_TEXT,
+    @SerialName("ICON_ONLY") ICON_ONLY,
+    @SerialName("TEXT_ONLY") TEXT_ONLY,
+    @SerialName("AVATAR") AVATAR,
+    @SerialName("HIDDEN") HIDDEN
+}
+
+@Serializable
+enum class PillRightDesign {
+    @SerialName("AUTO") AUTO,
+    @SerialName("PROGRESS_PERCENT") PROGRESS_PERCENT,
+    @SerialName("TIMER") TIMER,
+    @SerialName("HIGHLIGHT_TEXT") HIGHLIGHT_TEXT,
+    @SerialName("NONE") NONE
+}
 
 @Serializable
 enum class PresentationMode {
@@ -226,6 +253,7 @@ data class ActionSlotConfig(
 enum class ActionSource {
     @SerialName("NOTIFICATION_ACTION") NOTIFICATION_ACTION,
     @SerialName("SMART_ACTION") SMART_ACTION,
+    @SerialName("INLINE_REPLY") INLINE_REPLY,
     @SerialName("CUSTOM_BROADCAST") CUSTOM_BROADCAST
 }
 

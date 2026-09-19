@@ -26,7 +26,12 @@ data class TranslatorEntity(
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     fun toCustomTranslator(): Result<CustomTranslator> {
-        return CustomTranslator.fromJson(jsonContent)
+        return CustomTranslator.fromJson(jsonContent).map { translator ->
+            translator.copy(
+                isEnabled = isEnabled,
+                priority = priority
+            )
+        }
     }
 
     companion object {
