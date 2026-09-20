@@ -277,8 +277,8 @@
     <string name="config_timeout_title">Automatikus bezárás</string>
     <string name="config_timeout_desc">Island bezárása késleltetéssel</string>
     <plurals name="config_timeout_fmt">
-        <item quantity="other">%d mÃ¡sodperc</item>
-        <item quantity="one">%d mÃ¡sodperc</item>
+        <item quantity="other">%d másodperc</item>
+        <item quantity="one">%d másodperc</item>
     </plurals>
     <string name="config_refresh_title">Automatikus frissítés</string>
     <string name="config_refresh_desc">Rendszeresen frissíti a pillanatképet</string>

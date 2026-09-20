@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BugReport
@@ -31,12 +32,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.Button
@@ -51,7 +48,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,12 +75,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import android.content.ComponentName
-import android.service.notification.NotificationListenerService
-import android.util.Log
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.service.ListenerWatchdog
 import com.d4viddf.hyperbridge.service.NotificationReaderService
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticEvent
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
@@ -111,12 +105,16 @@ data class DiagnosticsData(
     val lastCallState: String?,
     val serviceConnected: Boolean,
     val events: List<DiagnosticEvent>
-)
+) {
+    val allPermissionsGranted: Boolean
+        get() = notificationAccess && postPermission && restrictedSettingsAllowed && (!focusSupported || focusPermission)
+}
 
 @Composable
 fun DiagnosticsScreen(
     onBack: () -> Unit,
-    onReportError: (() -> Unit)? = null
+    onReportError: (() -> Unit)? = null,
+    onNavigateToHealth: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
@@ -129,19 +127,12 @@ fun DiagnosticsScreen(
     var focusPermission by remember { mutableStateOf(XiaomiNotificationHelper.hasFocusPermission(context)) }
     val focusSupported = remember { XiaomiNotificationHelper.isSupportIsland() }
     val diagnosticsTitle = stringResource(R.string.diagnostics_title)
+    val reconnectingToast = stringResource(R.string.diagnostic_reconnecting_toast)
     val exportHeader = stringResource(R.string.diagnostic_export_header)
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(notificationAccess) {
-        if (notificationAccess && !NotificationReaderService.isConnected && !state.serviceConnected) {
-            try {
-                NotificationListenerService.requestRebind(
-                    ComponentName(context, NotificationReaderService::class.java)
-                )
-            } catch (e: Exception) {
-                Log.w("DiagnosticsScreen", "Failed to requestRebind", e)
-            }
-        }
+        if (notificationAccess) ListenerWatchdog.ensureBound(context)
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -151,15 +142,7 @@ fun DiagnosticsScreen(
                 postPermission = isPostNotificationsEnabled(context)
                 focusPermission = XiaomiNotificationHelper.hasFocusPermission(context)
                 restrictedSettingsAllowed = isRestrictedSettingsAllowed(context)
-                if (notificationAccess && !NotificationReaderService.isConnected && !state.serviceConnected) {
-                    try {
-                        NotificationListenerService.requestRebind(
-                            ComponentName(context, NotificationReaderService::class.java)
-                        )
-                    } catch (e: Exception) {
-                        Log.w("DiagnosticsScreen", "Failed to requestRebind", e)
-                    }
-                }
+                if (notificationAccess) ListenerWatchdog.ensureBound(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -187,6 +170,11 @@ fun DiagnosticsScreen(
         data = data,
         onBack = onBack,
         onReportError = onReportError,
+        onNavigateToHealth = onNavigateToHealth,
+        onReconnect = {
+            ListenerWatchdog.reconnectNow(context, "diagnostics")
+            Toast.makeText(context, reconnectingToast, Toast.LENGTH_SHORT).show()
+        },
         onCopyDiagnostics = {
             val text = buildDiagnosticExport(exportHeader, state.events)
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -202,6 +190,8 @@ fun DiagnosticsContent(
     data: DiagnosticsData,
     onBack: () -> Unit,
     onReportError: (() -> Unit)? = null,
+    onNavigateToHealth: (() -> Unit)? = null,
+    onReconnect: (() -> Unit)? = null,
     onCopyDiagnostics: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -307,6 +297,27 @@ fun DiagnosticsContent(
                                     fontWeight = FontWeight.Bold,
                                     color = if (data.serviceConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+
+                        // Access is granted but nothing is bound: offer a manual reconnect (#330).
+                        if (onReconnect != null && data.notificationAccess && !data.serviceConnected) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            FilledTonalButton(
+                                onClick = onReconnect,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.diagnostic_reconnect_service),
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -446,83 +457,77 @@ fun DiagnosticsContent(
             // --- 4. PERMISSIONS & HYPEROS INTEGRATION ---
             item {
                 ExpressiveSectionTitle(stringResource(R.string.diagnostic_section_permissions))
-                ExpressiveGroupCard {
-                    ExpressiveDiagnosticRow(
-                        icon = Icons.Default.NotificationsActive,
-                        title = stringResource(R.string.diagnostic_notification_access),
-                        subtitle = stringResource(R.string.diagnostic_notification_access_desc),
-                        trailingBadge = {
-                            StatusBadge(
-                                text = yesNo(data.notificationAccess),
-                                isSuccess = data.notificationAccess,
-                                isWarning = !data.notificationAccess
+                Card(
+                    onClick = { onNavigateToHealth?.invoke() },
+                    enabled = onNavigateToHealth != null,
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .background(
+                                    if (data.allPermissionsGranted) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (data.allPermissionsGranted) Icons.Default.CheckCircle else Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = if (data.allPermissionsGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    ExpressiveDiagnosticRow(
-                        icon = Icons.Default.Notifications,
-                        title = stringResource(R.string.diagnostic_post_notifications),
-                        subtitle = stringResource(R.string.diagnostic_post_notifications_desc),
-                        trailingBadge = {
-                            StatusBadge(
-                                text = yesNo(data.postPermission),
-                                isSuccess = data.postPermission,
-                                isWarning = !data.postPermission
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(
+                                        if (data.allPermissionsGranted) R.string.diagnostic_permissions_granted_title
+                                        else R.string.setup_status_action_required
+                                    ),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(
+                                    if (data.allPermissionsGranted) R.string.diagnostic_permissions_granted_desc
+                                    else R.string.diagnostic_permissions_action_desc
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    ExpressiveDiagnosticRow(
-                        icon = Icons.Default.Lock,
-                        title = stringResource(R.string.diagnostic_restricted_settings),
-                        subtitle = stringResource(R.string.diagnostic_restricted_settings_desc),
-                        trailingBadge = {
-                            StatusBadge(
-                                text = stringResource(if (data.restrictedSettingsAllowed) R.string.diagnostic_restricted_allowed else R.string.diagnostic_restricted_blocked),
-                                isSuccess = data.restrictedSettingsAllowed,
-                                isWarning = !data.restrictedSettingsAllowed
+
+                        if (onNavigateToHealth != null) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    ExpressiveDiagnosticRow(
-                        icon = Icons.Default.Smartphone,
-                        title = stringResource(R.string.diagnostic_focus_support),
-                        subtitle = stringResource(R.string.diagnostic_focus_support_desc),
-                        trailingBadge = {
-                            StatusBadge(
-                                text = stringResource(if (data.focusSupported) R.string.diagnostic_supported else R.string.diagnostic_unsupported),
-                                isSuccess = data.focusSupported,
-                                isWarning = !data.focusSupported
-                            )
-                        }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    ExpressiveDiagnosticRow(
-                        icon = Icons.Default.Security,
-                        title = stringResource(R.string.diagnostic_featured_permission),
-                        subtitle = stringResource(R.string.diagnostic_featured_permission_desc),
-                        trailingBadge = {
-                            StatusBadge(
-                                text = yesNo(data.focusPermission),
-                                isSuccess = data.focusPermission,
-                                isWarning = !data.focusPermission
-                            )
-                        }
-                    )
+                    }
                 }
             }
 

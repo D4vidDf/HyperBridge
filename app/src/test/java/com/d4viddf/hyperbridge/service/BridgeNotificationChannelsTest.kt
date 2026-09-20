@@ -19,4 +19,12 @@ class BridgeNotificationChannelsTest {
         assertTrue(!BridgeNotificationChannels.isWidget(BridgeNotificationChannels.ACTIVE))
         assertTrue(!BridgeNotificationChannels.isWidget(null))
     }
+
+    @Test
+    fun serviceHealthChannelIsNotABridgeChannel() {
+        assertTrue(BridgeNotificationChannels.contracts.none { it.id == BridgeNotificationChannels.SERVICE_HEALTH })
+        assertTrue(BridgeNotificationChannels.isServiceHealth(BridgeNotificationChannels.SERVICE_HEALTH))
+        assertTrue(!BridgeNotificationChannels.isServiceHealth(BridgeNotificationChannels.ACTIVE))
+        assertTrue(!BridgeNotificationChannels.isServiceHealth(null))
+    }
 }

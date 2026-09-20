@@ -408,8 +408,10 @@ class NotificationReaderService : NotificationListenerService() {
                 notificationBuilder.setProgress(100, progress, progress < 0)
                 notificationBuilder.setOngoing(progress in 0..99)
                 notificationBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
+                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
+                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             } else {
                 val builder = HyperIslandNotification.Builder(this@NotificationReaderService, "migration", title)
@@ -428,10 +430,12 @@ class NotificationReaderService : NotificationListenerService() {
                     .setOngoing(progress in 0..99)
                     .setProgress(100, progress, progress < 0)
                     .addExtras(data.resources)
+                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
                 notification.extras.putString("miui.focus.param", data.jsonParam)
 
+                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             }
 
@@ -508,6 +512,11 @@ class NotificationReaderService : NotificationListenerService() {
             val notifKey = it.key
 
             if (isOurApp) {
+                // The listener-down warning is not an island; dismissing it is not a bridge event.
+                if (BridgeNotificationChannels.isServiceHealth(it.notification.channelId)) return
+                // The group summary is bookkeeping, not an island: never a bridge event (#331).
+                if (notifId == BridgeIslandGroup.SUMMARY_ID) return
+                BridgeIslandGroup.scheduleRelease(this)
                 val replacement = internalBridgeReplacements.consume(notifId, System.currentTimeMillis())
                 if (replacement != null) {
                     Log.d(
@@ -1094,7 +1103,7 @@ class NotificationReaderService : NotificationListenerService() {
         val extras = notification.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE).orEmpty()
         val isMessageStyle = notification.category == Notification.CATEGORY_MESSAGE ||
-                template.contains("MessagingStyle")
+                NotificationTemplates.isMessagingStyle(template)
         val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)
             ?.takeUnless { it.toString().trim().equals(sbn.packageName, ignoreCase = true) }
         return NotificationContentResolver.resolve(
@@ -1158,7 +1167,7 @@ class NotificationReaderService : NotificationListenerService() {
                 isMessageNotificationType = type == NotificationType.MESSAGE,
                 isStandardNotificationType = type == NotificationType.STANDARD,
                 hasMessageCategory = notification.category == Notification.CATEGORY_MESSAGE,
-                hasMessagingStyleTemplate = template.contains("MessagingStyle"),
+                hasMessagingStyleTemplate = NotificationTemplates.isMessagingStyle(template),
                 extractedMessageCount = content.messageCount,
                 hasConversationShortcut = !notification.shortcutId.isNullOrBlank(),
                 hasConversationLocus = !notification.locusId?.id.isNullOrBlank(),
@@ -1297,8 +1306,9 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             val effectiveTypes = getEffectiveTypes(sbn.packageName)
-            val hasDirectMessagingStyle = extras.getString(Notification.EXTRA_TEMPLATE)
-                ?.contains("MessagingStyle") == true
+            val hasDirectMessagingStyle = NotificationTemplates.isMessagingStyle(
+                extras.getString(Notification.EXTRA_TEMPLATE)
+            )
             val enabledTypeName = NotificationTypeEnablementPolicy.resolveEnabledType(
                 effectiveTypes = effectiveTypes,
                 detectedType = detectedType.name,
@@ -1560,6 +1570,7 @@ class NotificationReaderService : NotificationListenerService() {
                 }
 
                 builder.setOnlyAlertOnce(decision.onlyAlertOnce)
+                BridgeIslandGroup.asChild(builder)
 
                 val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
                 if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
@@ -1587,6 +1598,7 @@ class NotificationReaderService : NotificationListenerService() {
                     NotificationManagerCompat.from(this).cancel(decision.bridgeId)
                 }
 
+                BridgeIslandGroup.ensureSummaryFor(this, notification)
                 if (!decision.onlyAlertOnce) {
                     ShizukuManager.notify(this, decision.bridgeId, notification)
                 } else {
@@ -1957,7 +1969,10 @@ class NotificationReaderService : NotificationListenerService() {
         val isNav = n.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.let { it.contains("maps") || it.contains("waze") }
         val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || n.category == Notification.CATEGORY_ALARM) && n.`when` > 0
         val isMedia = template.contains("MediaStyle") || n.category == Notification.CATEGORY_TRANSPORT
-        val isMessage = n.category == Notification.CATEGORY_MESSAGE || template == "android.app.Notification.MessagingStyle"
+        // EXTRA_TEMPLATE holds the binary class name ("android.app.Notification$MessagingStyle");
+        // the old dotted equality never matched, so MessagingStyle without a msg category fell
+        // through to STANDARD (#331).
+        val isMessage = n.category == Notification.CATEGORY_MESSAGE || NotificationTemplates.isMessagingStyle(template)
         
         val title = resolveTitle(sbn)
         val text = resolveText(extras)
@@ -2022,6 +2037,9 @@ class NotificationReaderService : NotificationListenerService() {
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
+        // One app group with a real summary keeps Android 16+ from force-grouping (and
+        // silencing) our islands (#331).
+        BridgeIslandGroup.asChild(builder)
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
@@ -2068,6 +2086,7 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
+        BridgeIslandGroup.ensureSummaryFor(this, notification)
         if (!shouldAlertOnce) {
             ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
@@ -2103,6 +2122,8 @@ class NotificationReaderService : NotificationListenerService() {
             setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(watchRelayChannel)
+
+        ServiceHealthNotifier.ensureChannel(this)
     }
 
     private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
@@ -2270,6 +2291,7 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, "HyperBridge Service Connected")
         isConnected = true
         DiagnosticsStore.setServiceConnected(true)
+        ListenerWatchdog.onConnected(this)
         // The VPN controller may have started (and found nothing) before the listener was bound.
         if (::vpnIslandController.isInitialized) vpnIslandController.onListenerConnected()
         syncNotifications(refresh = true)
@@ -2291,6 +2313,8 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, "HyperBridge Service Disconnected")
         isConnected = false
         DiagnosticsStore.setServiceConnected(false)
+        // The service scope dies with onDestroy; the watchdog retries from the process (#330).
+        ListenerWatchdog.onDisconnected(this)
     }
 
     private fun syncNotifications(refresh: Boolean = false) {

@@ -150,6 +150,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".receiver.ListenerReconnectReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".receiver.WidgetActionReceiver"
             android:exported="false" />
 
