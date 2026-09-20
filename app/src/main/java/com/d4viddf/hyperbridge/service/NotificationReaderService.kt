@@ -406,8 +406,10 @@ class NotificationReaderService : NotificationListenerService() {
                 notificationBuilder.setProgress(100, progress, progress < 0)
                 notificationBuilder.setOngoing(progress in 0..99)
                 notificationBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
+                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
+                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             } else {
                 val builder = HyperIslandNotification.Builder(this@NotificationReaderService, "migration", title)
@@ -426,10 +428,12 @@ class NotificationReaderService : NotificationListenerService() {
                     .setOngoing(progress in 0..99)
                     .setProgress(100, progress, progress < 0)
                     .addExtras(data.resources)
+                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
                 notification.extras.putString("miui.focus.param", data.jsonParam)
 
+                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             }
 
@@ -497,7 +501,7 @@ class NotificationReaderService : NotificationListenerService() {
         }
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationRemoved(it)
-            if (nativeIslands.remove(it.key)) {
+            if (forgetNativeIsland(it.key)) {
                 updatePermanentIsland()
             }
 
@@ -506,6 +510,11 @@ class NotificationReaderService : NotificationListenerService() {
             val notifKey = it.key
 
             if (isOurApp) {
+                // The listener-down warning is not an island; dismissing it is not a bridge event.
+                if (BridgeNotificationChannels.isServiceHealth(it.notification.channelId)) return
+                // The group summary is bookkeeping, not an island: never a bridge event (#331).
+                if (notifId == BridgeIslandGroup.SUMMARY_ID) return
+                BridgeIslandGroup.scheduleRelease(this)
                 val replacement = internalBridgeReplacements.consume(notifId, System.currentTimeMillis())
                 if (replacement != null) {
                     Log.d(
@@ -890,20 +899,59 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     /**
+     * The yield window another app's notification earns from the permanent island, or null when
+     * it is not a native island: a media player gets the short window, anything else hides the
+     * permanent island for as long as it is posted (see [NativeIslandYieldPolicy]).
+     */
+    private fun nativeIslandYieldMs(sbn: StatusBarNotification): Long? {
+        val extras = sbn.notification.extras ?: return null
+        val hasFocusParam = extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")
+        val focusParam = if (hasFocusParam) {
+            extras.getString("miui.focus.param") ?: extras.getString("miui.system.focus.param")
+        } else null
+        val template = extras.getString(Notification.EXTRA_TEMPLATE)
+        // HyperOS renders every notification with a MediaSession as an island player, MediaStyle
+        // or not, so the session token is the signal; the template covers players that hide it.
+        val isMediaPlayer = extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
+            extras.containsKey("miui.focus.param.media") ||
+            template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
+            template == "android.app.Notification\$MediaStyle"
+        return NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaPlayer)
+    }
+
+    /**
      * Records a native island sighting. The yield window closing is a timer, not a notification
      * event — nothing else re-evaluates the permanent island until the next sync tick (up to 60 s,
-     * screen on only) — so the pill is re-asserted right after the newest window ends.
+     * screen on only) — so the pill is re-asserted right after the last open window ends.
      */
-    private fun noteNativeIsland(key: String): Boolean {
-        val firstSighting = nativeIslands.note(key)
-        if (firstSighting) {
-            nativeYieldJob?.cancel()
-            nativeYieldJob = serviceScope.launch {
-                delay(nativeIslands.remainingYieldMs() + 1_000L)
-                updatePermanentIsland()
-            }
-        }
+    private fun noteNativeIsland(key: String, yieldMs: Long): Boolean {
+        val firstSighting = nativeIslands.note(key, yieldMs)
+        if (firstSighting) rescheduleNativeYield()
         return firstSighting
+    }
+
+    /**
+     * Forgets a native island. The re-assert timer follows the *remaining* windows: with a
+     * long-lived island gone, a shorter one still tracked must not leave the pill dead until
+     * the long window would have closed.
+     */
+    private fun forgetNativeIsland(key: String): Boolean {
+        val removed = nativeIslands.remove(key)
+        if (removed) rescheduleNativeYield()
+        return removed
+    }
+
+    private fun rescheduleNativeYield() {
+        nativeYieldJob?.cancel()
+        val remaining = nativeIslands.remainingYieldMs()
+        if (remaining <= 0L || remaining == Long.MAX_VALUE) {
+            nativeYieldJob = null
+            return
+        }
+        nativeYieldJob = serviceScope.launch {
+            delay(remaining + 1_000L)
+            updatePermanentIsland()
+        }
     }
 
     private fun updatePermanentIsland() {
@@ -934,22 +982,11 @@ class NotificationReaderService : NotificationListenerService() {
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
             if (it.packageName != packageName) {
-                val extras = it.notification.extras
-                var isNative = false
-                if (extras != null) {
-                    if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
-                        isNative = true
-                    }
-                    val template = extras.getString(Notification.EXTRA_TEMPLATE)
-                    if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
-                        template == "android.app.Notification\$MediaStyle") {
-                        isNative = true
-                    }
-                }
-                if (isNative) {
-                    if (noteNativeIsland(it.key)) updatePermanentIsland()
+                val yieldMs = nativeIslandYieldMs(it)
+                if (yieldMs != null) {
+                    if (noteNativeIsland(it.key, yieldMs)) updatePermanentIsland()
                 } else {
-                    if (nativeIslands.remove(it.key)) updatePermanentIsland()
+                    if (forgetNativeIsland(it.key)) updatePermanentIsland()
                 }
             }
 
@@ -1092,7 +1129,7 @@ class NotificationReaderService : NotificationListenerService() {
         val extras = notification.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE).orEmpty()
         val isMessageStyle = notification.category == Notification.CATEGORY_MESSAGE ||
-                template.contains("MessagingStyle")
+                NotificationTemplates.isMessagingStyle(template)
         val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)
             ?.takeUnless { it.toString().trim().equals(sbn.packageName, ignoreCase = true) }
         return NotificationContentResolver.resolve(
@@ -1156,7 +1193,7 @@ class NotificationReaderService : NotificationListenerService() {
                 isMessageNotificationType = type == NotificationType.MESSAGE,
                 isStandardNotificationType = type == NotificationType.STANDARD,
                 hasMessageCategory = notification.category == Notification.CATEGORY_MESSAGE,
-                hasMessagingStyleTemplate = template.contains("MessagingStyle"),
+                hasMessagingStyleTemplate = NotificationTemplates.isMessagingStyle(template),
                 extractedMessageCount = content.messageCount,
                 hasConversationShortcut = !notification.shortcutId.isNullOrBlank(),
                 hasConversationLocus = !notification.locusId?.id.isNullOrBlank(),
@@ -1295,8 +1332,9 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             val effectiveTypes = getEffectiveTypes(sbn.packageName)
-            val hasDirectMessagingStyle = extras.getString(Notification.EXTRA_TEMPLATE)
-                ?.contains("MessagingStyle") == true
+            val hasDirectMessagingStyle = NotificationTemplates.isMessagingStyle(
+                extras.getString(Notification.EXTRA_TEMPLATE)
+            )
             val enabledTypeName = NotificationTypeEnablementPolicy.resolveEnabledType(
                 effectiveTypes = effectiveTypes,
                 detectedType = detectedType.name,
@@ -1551,6 +1589,7 @@ class NotificationReaderService : NotificationListenerService() {
                 }
 
                 builder.setOnlyAlertOnce(decision.onlyAlertOnce)
+                BridgeIslandGroup.asChild(builder)
 
                 val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
                 if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
@@ -1578,6 +1617,7 @@ class NotificationReaderService : NotificationListenerService() {
                     NotificationManagerCompat.from(this).cancel(decision.bridgeId)
                 }
 
+                BridgeIslandGroup.ensureSummaryFor(this, notification)
                 if (!decision.onlyAlertOnce) {
                     ShizukuManager.notify(this, decision.bridgeId, notification)
                 } else {
@@ -1944,7 +1984,10 @@ class NotificationReaderService : NotificationListenerService() {
         val isNav = n.category == Notification.CATEGORY_NAVIGATION || sbn.packageName.let { it.contains("maps") || it.contains("waze") }
         val isTimer = (extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER) || n.category == Notification.CATEGORY_ALARM) && n.`when` > 0
         val isMedia = template.contains("MediaStyle") || n.category == Notification.CATEGORY_TRANSPORT
-        val isMessage = n.category == Notification.CATEGORY_MESSAGE || template == "android.app.Notification.MessagingStyle"
+        // EXTRA_TEMPLATE holds the binary class name ("android.app.Notification$MessagingStyle");
+        // the old dotted equality never matched, so MessagingStyle without a msg category fell
+        // through to STANDARD (#331).
+        val isMessage = n.category == Notification.CATEGORY_MESSAGE || NotificationTemplates.isMessagingStyle(template)
         
         val title = resolveTitle(sbn)
         val text = resolveText(extras)
@@ -2009,6 +2052,9 @@ class NotificationReaderService : NotificationListenerService() {
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
+        // One app group with a real summary keeps Android 16+ from force-grouping (and
+        // silencing) our islands (#331).
+        BridgeIslandGroup.asChild(builder)
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
@@ -2055,6 +2101,7 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
+        BridgeIslandGroup.ensureSummaryFor(this, notification)
         if (!shouldAlertOnce) {
             ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
@@ -2090,6 +2137,8 @@ class NotificationReaderService : NotificationListenerService() {
             setSound(null, null); enableVibration(false); setShowBadge(false)
         }
         manager.createNotificationChannel(watchRelayChannel)
+
+        ServiceHealthNotifier.ensureChannel(this)
     }
 
     private fun shouldProcessWidgetUpdate(widgetId: Int, config: WidgetConfig): Boolean {
@@ -2257,6 +2306,7 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, "HyperBridge Service Connected")
         isConnected = true
         DiagnosticsStore.setServiceConnected(true)
+        ListenerWatchdog.onConnected(this)
         // The VPN controller may have started (and found nothing) before the listener was bound.
         if (::vpnIslandController.isInitialized) vpnIslandController.onListenerConnected()
         syncNotifications(refresh = true)
@@ -2278,6 +2328,8 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, "HyperBridge Service Disconnected")
         isConnected = false
         DiagnosticsStore.setServiceConnected(false)
+        // The service scope dies with onDestroy; the watchdog retries from the process (#330).
+        ListenerWatchdog.onDisconnected(this)
     }
 
     private fun syncNotifications(refresh: Boolean = false) {
@@ -2293,29 +2345,18 @@ class NotificationReaderService : NotificationListenerService() {
                 var nativeChanged = false
                 for (sbn in currentNotifications) {
                     if (sbn.packageName != packageName) {
-                        val extras = sbn.notification.extras
-                        var isNative = false
-                        if (extras != null) {
-                            if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
-                                isNative = true
-                            }
-                            val template = extras.getString(Notification.EXTRA_TEMPLATE)
-                            if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
-                                template == "android.app.Notification\$MediaStyle") {
-                                isNative = true
-                            }
-                        }
-                        if (isNative) {
-                            if (noteNativeIsland(sbn.key)) nativeChanged = true
+                        val yieldMs = nativeIslandYieldMs(sbn)
+                        if (yieldMs != null) {
+                            if (noteNativeIsland(sbn.key, yieldMs)) nativeChanged = true
                         } else {
-                            if (nativeIslands.remove(sbn.key)) nativeChanged = true
+                            if (forgetNativeIsland(sbn.key)) nativeChanged = true
                         }
                     }
                 }
                 val currentNatives = nativeIslands.keys()
                 for (key in currentNatives) {
                     if (!systemNotificationKeys.contains(key)) {
-                        if (nativeIslands.remove(key)) nativeChanged = true
+                        if (forgetNativeIsland(key)) nativeChanged = true
                     }
                 }
                 if (nativeChanged) updatePermanentIsland()

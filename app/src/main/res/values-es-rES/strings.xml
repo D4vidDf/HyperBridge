@@ -425,7 +425,7 @@
     <string name="share_theme">Compartir tema</string>
     <string name="my_theme">Mi tema</string>
     <plurals name="creator_sub_actions_count">
-        <item quantity="one">%1$d acciÃ³n personalizada</item>
+        <item quantity="one">%1$d acción personalizada</item>
         <item quantity="other">%1$d acciones personalizadas</item>
     </plurals>
     <string name="title_0_4_0">La Actualización de Personalización</string>
@@ -567,8 +567,9 @@
     <string name="bug_report_privacy_desc">Enviar un reporte en GitHub hará que esta información sea PÚBLICA para cualquier persona en internet. Si prefieres que sea privado, puedes enviarlo por correo directamente al desarrollador a %s.</string>
     <string name="bug_report_view_privacy">Ver Política de Privacidad</string>
     <string name="bug_report_details_title">Detalles del Problema</string>
-    <string name="bug_report_what_happened">¿Qué ocurrió?</string>
+    <string name="bug_report_what_happened">¿Qué ocurrió? *</string>
     <string name="bug_report_what_happened_hint">Describe el problema o comportamiento inesperado...</string>
+    <string name="bug_report_what_happened_error">Por favor, describe qué ocurrió antes de enviar</string>
     <string name="bug_report_steps">Pasos para reproducir</string>
     <string name="bug_report_steps_hint">1. Abrir Spotify…\n2. Bloquear pantalla…\n3. La isla desaparece</string>
     <string name="bug_report_options_title">Información a Incluir</string>
@@ -644,6 +645,98 @@
     <string name="vpn_blocking">Bloqueando internet</string>
     <string name="vpn_error">Error de VPN</string>
     <string name="vpn_disconnected">VPN desconectada</string>
+    <string name="floating_filter_all">Todas (%1$d)</string>
+    <string name="floating_filter_needs_review">Requieren revisión (%1$d)</string>
+    <string name="floating_filter_confirmed">Confirmadas (%1$d)</string>
+    <string name="floating_setup_info_toggle">Cómo funciona y consejos</string>
+    <string name="floating_setup_search_empty">No se encontraron aplicaciones</string>
+    <string name="floating_setup_completed_all">Todas revisadas</string>
+    <string name="floating_setup_progress_summary">%1$d de %2$d revisadas</string>
+    <!-- Setup Health & Diagnostics -->
+    <string name="restricted_permissions_title">Permisos restringidos</string>
+    <string name="restricted_permissions_desc">Ajustes restringidos de Android 13+ para apps instaladas externamente</string>
+    <string name="setup_action_grant">Conceder</string>
+    <string name="setup_action_check">Comprobar</string>
+    <string name="setup_status_ready">Todos los permisos concedidos</string>
+    <string name="setup_status_ready_desc">Todos los permisos y servicios están configurados correctamente</string>
+    <string name="setup_status_action_required">Acción requerida</string>
+    <string name="setup_status_action_desc">Algunos permisos o servicios requieren tu atención</string>
+    <string name="setup_status_progress">%1$d de %2$d configurados</string>
+    <string name="setup_compatible">Compatible</string>
+    <string name="diagnostic_permissions_granted_title">Permisos y salud del sistema</string>
+    <string name="diagnostic_permissions_granted_desc">Todos los permisos y servicios en segundo plano están configurados correctamente</string>
+    <string name="diagnostic_permissions_action_desc">Toca para revisar y configurar los permisos o servicios pendientes</string>
+
+    <!-- Floating Notification Setup -->
+    <string name="floating_setup_title">Configuración de notificaciones flotantes</string>
+    <string name="floating_setup_intro">HyperBridge muestra las notificaciones seleccionadas en la Isla. La app de origen sigue gestionando el sonido, vibración y su entrada en el panel.</string>
+    <string name="floating_setup_limitation">Para evitar banners flotantes duplicados, abre los ajustes de notificaciones del sistema de cada app, desactiva sus notificaciones emergentes y confírmalo abajo.</string>
+    <string name="floating_setup_alternative_title">¿Prefieres mantener las notificaciones flotantes nativas?</string>
+    <string name="floating_setup_alternative_desc">Puedes mantener activadas las notificaciones flotantes de tus apps y simplemente desactivar \"Notificación Emergente\" en los Ajustes Globales de HyperBridge para evitar duplicados.</string>
+    <string name="floating_setup_no_apps_title">Sin apps conectadas</string>
+    <string name="floating_setup_no_apps">Selecciona apps en la biblioteca primero. Esta configuración seguirá disponible después.</string>
+    <string name="floating_status_user_confirmed">Confirmado</string>
+    <string name="floating_status_needs_review">Revisión pendiente</string>
+    <string name="floating_status_not_required">No requerido en este dispositivo</string>
+    <string name="floating_disabled_confirmation">He desactivado las notificaciones emergentes en esta app</string>
+    <string name="open_notification_settings">Abrir ajustes de notificaciones</string>
+    <string name="settings_not_available">No se encontró una pantalla de ajustes compatible</string>
+    <string name="finish_notification_setup">Completar configuración de notificaciones</string>
+    <string name="finish_notification_setup_desc">Revisa los banners flotantes nativos de tus apps seleccionadas. Esto es opcional y puedes volver a consultarlo.</string>
+    <string name="floating_setup_onboarding_title">Evitar banners flotantes duplicados</string>
+    <string name="floating_setup_onboarding_desc">Tras seleccionar las apps, HyperBridge puede llevarte directamente a los ajustes de notificaciones de cada app. Este paso opcional no requiere root, Shizuku ni ADB.</string>
+
+    <!-- Diagnostics -->
+    <string name="diagnostics_title">Diagnóstico</string>
+    <string name="diagnostics_subtitle">Permisos, estado del servicio y eventos recientes anonimizados</string>
+    <string name="diagnostic_notification_access">Acceso a notificaciones</string>
+    <string name="diagnostic_post_notifications">Enviar notificaciones</string>
+    <string name="diagnostic_focus_support">Compatibilidad con Isla HyperOS</string>
+    <string name="diagnostic_featured_permission">Notificaciones destacadas</string>
+    <string name="diagnostic_selected_apps">Apps seleccionadas</string>
+    <string name="diagnostic_floating_review">Apps pendientes de revisión flotante</string>
+    <string name="diagnostic_active_islands">Islas activas</string>
+    <string name="diagnostic_last_classification">Última clasificación</string>
+    <string name="diagnostic_last_call_state">Último estado de llamada</string>
+    <string name="diagnostic_service">Servicio</string>
+    <string name="diagnostic_recent_events">Eventos recientes anonimizados</string>
+    <string name="diagnostic_privacy_note">El contenido de las notificaciones, remitentes y datos de llamadas nunca se almacenan en este registro.</string>
+    <string name="copy">Copiar</string>
+    <string name="bug_report">Informe de error</string>
+    <string name="copy_sanitized_diagnostics">Copiar</string>
+    <string name="diagnostic_export_header">Diagnóstico anonimizado de HyperBridge</string>
+    <string name="connected">Conectado</string>
+    <string name="disconnected">Desconectado</string>
+    <string name="granted">Concedido</string>
+    <string name="not_granted">No concedido</string>
+    <string name="bug_report_include_diagnostics">Incluir diagnósticos y eventos</string>
+    <string name="bug_report_include_diagnostics_desc">Clasificaciones recientes en la Isla e historial de eventos anonimizado</string>
+    <string name="view_diagnostics">Ver diagnósticos</string>
+    <string name="diagnostic_section_service">Estado del servicio y puente</string>
+    <string name="diagnostic_section_permissions">Permisos e integración con HyperOS</string>
+    <string name="diagnostic_section_apps">Apps y notificaciones flotantes</string>
+    <string name="diagnostic_no_events">No hay eventos recientes</string>
+    <string name="diagnostic_no_events_desc">Las interacciones del sistema y las notificaciones aparecerán aquí en tiempo real.</string>
+    <string name="diagnostic_copied_toast">Diagnóstico anonimizado copiado al portapapeles</string>
+    <string name="diagnostic_supported">Compatible</string>
+    <string name="diagnostic_unsupported">No compatible</string>
+    <string name="diagnostic_all_clear">Todo en orden</string>
+    <string name="diagnostic_metric_review">Revisión</string>
+    <string name="diagnostic_service_active_desc">Servicio de interceptor de notificaciones activo</string>
+    <string name="diagnostic_service_disconnected_desc">Servicio desconectado</string>
+    <string name="diagnostic_active_islands_desc">Vistas de Dynamic Island activas actualmente</string>
+    <string name="diagnostic_active_count">%1$d activas</string>
+    <string name="diagnostic_last_classification_desc">Última categoría de notificación interceptada</string>
+    <string name="diagnostic_last_call_state_desc">Último estado de llamada detectado</string>
+    <string name="diagnostic_notification_access_desc">Necesario para interceptar eventos de aplicaciones</string>
+    <string name="diagnostic_post_notifications_desc">Necesario para mostrar notificaciones en la Isla</string>
+    <string name="diagnostic_focus_support_desc">Compatibilidad con la Isla en Xiaomi HyperOS</string>
+    <string name="diagnostic_featured_permission_desc">Permiso para mostrar notificaciones destacadas</string>
+    <string name="diagnostic_selected_apps_desc">Aplicaciones activadas para mostrarse en la Isla</string>
+    <string name="diagnostic_apps_count">%1$d apps</string>
+    <string name="diagnostic_floating_review_desc">Apps que necesitan desactivar su banner flotante nativo</string>
+    <string name="diagnostic_pending_count">%1$d pendientes</string>
+    <string name="diagnostic_reason_prefix">Motivo: %1$s</string>
     <!-- App Configuration Screen -->
     <string name="app_config_title">Configuración de la app</string>
     <string name="app_config_subtitle">Comportamientos, widgets y extensiones</string>
@@ -716,4 +809,11 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland activado para todas las apps de la lista</string>
     <string name="auto_add_new_apps_title">Añadir apps nuevas</string>
     <string name="auto_add_new_apps_desc">Vincular automáticamente las aplicaciones recién instaladas</string>
+    <!-- Listener watchdog (#330) -->
+    <string name="channel_service_health">Estado del servicio</string>
+    <string name="listener_down_title">HyperBridge ha dejado de recibir notificaciones</string>
+    <string name="listener_down_text">El servicio de notificaciones se ha desconectado y no se ha podido reconectar automáticamente. Toca para abrir el diagnóstico.</string>
+    <string name="listener_down_action_reconnect">Reconectar</string>
+    <string name="diagnostic_reconnect_service">Reconectar servicio</string>
+    <string name="diagnostic_reconnecting_toast">Reconectando el servicio…</string>
 </resources>

@@ -17,6 +17,9 @@ object BridgeNotificationChannels {
     const val LIVE_UPDATE = "hyper_bridge_live_update_channel"
     const val WATCH_RELAY = "hyper_bridge_watch_relay_channel"
 
+    /** HyperBridge talking about itself (listener down). Not a bridge channel: it must alert. */
+    const val SERVICE_HEALTH = "hyper_bridge_service_health_channel"
+
     val contracts = listOf(
         BridgeChannelContract(ACTIVE, sourceOwnsAudibleAlert = true, showsBadge = false),
         BridgeChannelContract(WIDGET, sourceOwnsAudibleAlert = true, showsBadge = false),
@@ -26,4 +29,5 @@ object BridgeNotificationChannels {
 
     fun isWidget(channelId: String?): Boolean = channelId == WIDGET
     fun isWatchRelay(channelId: String?): Boolean = channelId == WATCH_RELAY
+    fun isServiceHealth(channelId: String?): Boolean = channelId == SERVICE_HEALTH
 }

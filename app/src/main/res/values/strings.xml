@@ -676,6 +676,18 @@
     <string name="perm_display_title">Display over other apps</string>
     <string name="perm_display_onboard_desc">Required to show the custom inline reply overlay.</string>
 
+    <!-- Setup Health Screen -->
+    <string name="restricted_permissions_title">Restricted permissions</string>
+    <string name="restricted_permissions_desc">Android 13+ restricted settings for sideloaded app</string>
+    <string name="setup_action_grant">Grant</string>
+    <string name="setup_action_check">Check</string>
+    <string name="setup_status_ready">All permissions granted</string>
+    <string name="setup_status_ready_desc">All permissions and services are properly configured</string>
+    <string name="setup_status_action_required">Action required</string>
+    <string name="setup_status_action_desc">Some permissions or services need your attention</string>
+    <string name="setup_status_progress">%1$d of %2$d configured</string>
+    <string name="setup_compatible">Compatible</string>
+
     <!-- Guides & Documentation -->
     <string name="group_guides">Guides &amp; Help</string>
     <string name="documentation_title">Guides &amp; Documentation</string>
@@ -693,8 +705,9 @@
     <string name="bug_report_privacy_desc">Submitting an issue on GitHub will make this information PUBLIC to anyone on the internet. If you prefer to keep your report private, you can email it directly to the developer at %s.</string>
     <string name="bug_report_view_privacy">View Privacy Policy</string>
     <string name="bug_report_details_title">Issue Details</string>
-    <string name="bug_report_what_happened">What happened?</string>
+    <string name="bug_report_what_happened">What happened? *</string>
     <string name="bug_report_what_happened_hint">Describe the problem or unexpected behavior...</string>
+    <string name="bug_report_what_happened_error">Please describe what happened before submitting</string>
     <string name="bug_report_steps">Steps to Reproduce</string>
     <string name="bug_report_steps_hint">1. Open Spotify&#8230;\n2. Lock screen&#8230;\n3. Island disappears</string>
     <string name="bug_report_options_title">Information to Include</string>
@@ -789,6 +802,13 @@
     <string name="finish_notification_setup_desc" translatable="false">Review native floating banners for your selected apps. This is optional and can be revisited.</string>
     <string name="floating_setup_onboarding_title" translatable="false">Avoid duplicate floating banners</string>
     <string name="floating_setup_onboarding_desc" translatable="false">After selecting apps, HyperBridge can take you directly to each app’s notification settings. This optional step never requires root, Shizuku, or ADB.</string>
+    <string name="floating_filter_all">All (%1$d)</string>
+    <string name="floating_filter_needs_review">Needs review (%1$d)</string>
+    <string name="floating_filter_confirmed">Confirmed (%1$d)</string>
+    <string name="floating_setup_info_toggle">How it works &amp; tips</string>
+    <string name="floating_setup_search_empty">No matching apps found</string>
+    <string name="floating_setup_completed_all">All reviewed</string>
+    <string name="floating_setup_progress_summary">%1$d of %2$d reviewed</string>
 
     <string name="diagnostics_title" translatable="false">Diagnostics</string>
     <string name="diagnostics_subtitle" translatable="false">Permissions, service health, and sanitized recent events</string>
@@ -844,6 +864,9 @@
     <string name="diagnostic_floating_review_desc" translatable="false">Apps needing native floating banner disabled</string>
     <string name="diagnostic_pending_count" translatable="false">%1$d pending</string>
     <string name="diagnostic_reason_prefix" translatable="false">Reason: %1$s</string>
+    <string name="diagnostic_permissions_granted_title">Permissions &amp; Health</string>
+    <string name="diagnostic_permissions_granted_desc">All permissions and background services are configured properly</string>
+    <string name="diagnostic_permissions_action_desc">Tap to review and configure missing permissions or services</string>
 
     <!-- App Configuration Screen -->
     <string name="app_config_title">App Configuration</string>
@@ -918,6 +941,13 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland enabled for all apps in the list</string>
     <string name="auto_add_new_apps_title">Add new apps</string>
     <string name="auto_add_new_apps_desc">Automatically enable bridging for newly installed applications</string>
+    <!-- Listener watchdog (#330) -->
+    <string name="channel_service_health">Service status</string>
+    <string name="listener_down_title">HyperBridge stopped receiving notifications</string>
+    <string name="listener_down_text">The notification service disconnected and could not be reconnected automatically. Tap to open diagnostics.</string>
+    <string name="listener_down_action_reconnect">Reconnect</string>
+    <string name="diagnostic_reconnect_service">Reconnect service</string>
+    <string name="diagnostic_reconnecting_toast">Reconnecting service…</string>
 
     <!-- Island Template Composer (Phase 4, #272) -->
     <string name="template_type_t1">Weather &amp; Navigation</string>
