@@ -3,6 +3,7 @@ package com.d4viddf.hyperbridge.service
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -13,7 +14,8 @@ import com.d4viddf.hyperbridge.service.BridgeIslandGroupPolicy.OwnNotification
 
 /**
  * Keeps every bridged island inside one app-provided notification group so Android 16+ never
- * force-groups (and silences) them. See [BridgeIslandGroupPolicy] for the why.
+ * force-groups (and silences) them. See [BridgeIslandGroupPolicy] for the why, and for why this
+ * is a no-op below Android 16 (#358).
  *
  * Usage: [asChild] on the builder, [ensureSummaryFor] right before `notify`, and
  * [scheduleRelease] whenever one of our notifications is removed.
@@ -26,13 +28,19 @@ object BridgeIslandGroup {
     private val handler = Handler(Looper.getMainLooper())
     private val releaseToken = Any()
 
-    /** Marks a bridged notification as a child. Children alert; the summary never does. */
+    private val enabled: Boolean get() = BridgeIslandGroupPolicy.appliesTo(Build.VERSION.SDK_INT)
+
+    /**
+     * Marks a bridged notification as a child. Children alert; the summary never does.
+     * Below Android 16 the builder is returned untouched: no group, no summary.
+     */
     fun asChild(builder: NotificationCompat.Builder): NotificationCompat.Builder =
-        builder.setGroup(GROUP_KEY).setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
+        if (!enabled) builder
+        else builder.setGroup(GROUP_KEY).setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
 
     /** Posts the summary if [notification] is a child and no summary is active. */
     fun ensureSummaryFor(context: Context, notification: Notification) {
-        if (notification.group != GROUP_KEY) return
+        if (!enabled || notification.group != GROUP_KEY) return
         val active = ownNotifications(context) ?: return
         if (!BridgeIslandGroupPolicy.needsSummary(active)) return
         val summary = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
