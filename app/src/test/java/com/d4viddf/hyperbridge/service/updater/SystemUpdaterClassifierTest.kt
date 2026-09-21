@@ -38,6 +38,18 @@ class SystemUpdaterClassifierTest {
             )
         )
 
+        // System update without progress (e.g. update available / restart phone): uses system update timeout
+        assertEquals(
+            5,
+            SystemUpdateTimeoutPolicy.resolve(
+                configuredTimeout = 10,
+                systemUpdateTimeout = 5,
+                isSystemUpdate = true,
+                isFinished = false,
+                hasProgress = false
+            )
+        )
+
         // Non-system update: uses configured timeout
         assertEquals(
             10,

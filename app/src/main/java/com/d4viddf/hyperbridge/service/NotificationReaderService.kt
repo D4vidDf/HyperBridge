@@ -341,7 +341,7 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch {
             preferences.systemUpdateDesignFlow.drop(1).collect {
                 val activeUpdateIsland = activeIslands.values.firstOrNull { island ->
-                    com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.isSystemUpdater(island.packageName)
+                    SystemUpdaterClassifier.isSystemUpdater(island.packageName)
                 } ?: return@collect
 
                 val sbn = activeNotificationsOrNull()?.firstOrNull { it.key == activeUpdateIsland.sourceKey }
@@ -629,9 +629,9 @@ class NotificationReaderService : NotificationListenerService() {
                     if (finalConfig.dismissWithOriginal == true || forceDismiss) {
                         // Debounce updates if the app canceled it programmatically
                         if (islandType == NotificationType.CALL) {
-                            kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                            delay(CallReplacementPolicy.REMOVAL_DELAY_MS.milliseconds)
                         } else if (reason == REASON_APP_CANCEL && islandType != NotificationType.SCREEN_RECORDING) {
-                            kotlinx.coroutines.delay(300)
+                            delay(300.milliseconds)
                         }
                         notificationLifecycleMutex.withLock {
                             val current = activeIslands[logicalKey]
@@ -670,7 +670,7 @@ class NotificationReaderService : NotificationListenerService() {
                 callSessionTracker.markSourceRemoved(notifKey, System.currentTimeMillis())
                 lateinit var job: Job
                 job = serviceScope.launch(Dispatchers.IO) {
-                    kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                    delay(CallReplacementPolicy.REMOVAL_DELAY_MS.milliseconds)
                     notificationLifecycleMutex.withLock {
                         if (isSourceNotificationActive(notifKey) ||
                             callSessionTracker.logicalIdForSource(notifKey) != trackedCallLogicalId
@@ -948,7 +948,7 @@ class NotificationReaderService : NotificationListenerService() {
             return
         }
         nativeYieldJob = serviceScope.launch {
-            delay(remaining + 1_000L)
+            delay((remaining + 1_000L).milliseconds)
             updatePermanentIsland()
         }
     }
@@ -1029,7 +1029,7 @@ class NotificationReaderService : NotificationListenerService() {
             }
         }
         processingJobs[processingGeneration] = job
-        job.invokeOnCompletion { cause ->
+        job.invokeOnCompletion { _ ->
             processingJobs.remove(processingGeneration, job)
             sourceProcessingGeneration.finish(sourceSlot, processingGeneration)
         }
@@ -1172,10 +1172,10 @@ class NotificationReaderService : NotificationListenerService() {
         val extras = notification.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE).orEmpty()
         val hasMessagePersonMetadata = try {
-            extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, android.app.Person::class.java) != null ||
+            extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, Person::class.java) != null ||
                     extras.getParcelableArrayList(
                         Notification.EXTRA_PEOPLE_LIST,
-                        android.app.Person::class.java
+                        Person::class.java
                     )?.isNotEmpty() == true ||
                     extras.containsKey(Notification.EXTRA_MESSAGES)
         } catch (_: Exception) {
@@ -1535,7 +1535,8 @@ class NotificationReaderService : NotificationListenerService() {
                     configuredTimeout = baseTimeout,
                     systemUpdateTimeout = preferences.getSystemUpdateTimeoutSync(),
                     isSystemUpdate = isSystemUpdate,
-                    isFinished = false // Will be dismissed with timeout when finished
+                    isFinished = false, // Will be dismissed with timeout when finished
+                    hasProgress = hasProgress
                 )
                 config.copy(timeout = updateResolvedTimeout)
             }
@@ -1655,7 +1656,16 @@ class NotificationReaderService : NotificationListenerService() {
 
             // --- LAYERED CUSTOM ISLAND LOGIC ---
             val picKey = "pic_${candidateBridgeId}"
-            val data: HyperIslandData = if (isSavedScreenRecording) {
+            val data: HyperIslandData = if (isSystemUpdate) {
+                systemUpdateTranslator.translate(
+                    sbn = sbn,
+                    picKey = picKey,
+                    config = finalConfig,
+                    theme = activeTheme,
+                    isUpdate = isUpdate,
+                    design = preferences.getSystemUpdateDesignSync()
+                )
+            } else if (isSavedScreenRecording) {
                 screenRecordingSavedTranslator.translate(sbn, picKey, finalConfig, activeTheme)
             } else when (type) {
                 NotificationType.CALL -> callTranslator.translate(
@@ -1668,30 +1678,8 @@ class NotificationReaderService : NotificationListenerService() {
                     navTranslator.translate(sbn, picKey, finalConfig, navLayout.first, navLayout.second, activeTheme)
                 }
                 NotificationType.TIMER -> timerTranslator.translate(sbn, picKey, finalConfig, activeTheme)
-                NotificationType.PROGRESS -> if (isSystemUpdate) {
-                    systemUpdateTranslator.translate(
-                        sbn = sbn,
-                        picKey = picKey,
-                        config = finalConfig,
-                        theme = activeTheme,
-                        isUpdate = isUpdate,
-                        design = preferences.getSystemUpdateDesignSync()
-                    )
-                } else {
-                    progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
-                }
-                NotificationType.DOWNLOAD -> if (isSystemUpdate) {
-                    systemUpdateTranslator.translate(
-                        sbn = sbn,
-                        picKey = picKey,
-                        config = finalConfig,
-                        theme = activeTheme,
-                        isUpdate = isUpdate,
-                        design = preferences.getSystemUpdateDesignSync()
-                    )
-                } else {
-                    downloadTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
-                }
+                NotificationType.PROGRESS -> progressTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
+                NotificationType.DOWNLOAD -> downloadTranslator.translate(sbn, effectiveTitle, picKey, finalConfig, activeTheme, isUpdate)
                 NotificationType.MEDIA -> mediaTranslator.translate(sbn, picKey, finalConfig)
                 NotificationType.SCREEN_RECORDING -> screenRecordingTranslator.translate(
                     requireNotNull(screenRecordingSession),
@@ -2328,7 +2316,7 @@ class NotificationReaderService : NotificationListenerService() {
         syncJob?.cancel()
         syncJob = serviceScope.launch {
             while (true) {
-                delay(60_000) // 1 minute periodic sync
+                delay(60_000.milliseconds) // 1 minute periodic sync
                 // Screen off: nothing to keep in sync visually, and SCREEN_ON runs a full
                 // refresh sync on wake — skip the tick instead of waking up all night.
                 if (isScreenOn) {

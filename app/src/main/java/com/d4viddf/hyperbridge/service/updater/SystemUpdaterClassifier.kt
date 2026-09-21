@@ -12,10 +12,12 @@ object SystemUpdateTimeoutPolicy {
         configuredTimeout: Int?,
         systemUpdateTimeout: Int,
         isSystemUpdate: Boolean,
-        isFinished: Boolean
+        isFinished: Boolean,
+        hasProgress: Boolean = true
     ): Int? = when {
         isSystemUpdate && isFinished -> systemUpdateTimeout
-        isSystemUpdate && !isFinished -> null
+        isSystemUpdate && hasProgress -> null
+        isSystemUpdate && !hasProgress -> systemUpdateTimeout
         else -> configuredTimeout
     }
 }

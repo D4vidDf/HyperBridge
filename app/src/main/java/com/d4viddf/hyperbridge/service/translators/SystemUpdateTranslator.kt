@@ -13,9 +13,11 @@ import com.d4viddf.hyperbridge.models.SystemUpdateRightDesign
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.HyperPicture
+import io.github.d4viddf.hyperisland_kit.models.CircularProgressInfo
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
+import io.github.d4viddf.hyperisland_kit.models.ProgressTextInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
 
 class SystemUpdateTranslator(
@@ -71,7 +73,8 @@ class SystemUpdateTranslator(
         }).coerceIn(0, 100)
 
         val isIndeterminate = indeterminate && textPercent == null
-        val isTextFinished = finishKeywords.any { 
+        val isActivelyProgressing = (max > 0 && current < max) || indeterminate
+        val isTextFinished = !isActivelyProgressing && finishKeywords.any { 
             versionText.contains(it, ignoreCase = true) || rawTitle.contains(it, ignoreCase = true)
         }
         val isFinished = percent >= 100 || isTextFinished
@@ -94,15 +97,25 @@ class SystemUpdateTranslator(
 
         val actions = extractBridgeActions(sbn, config, theme)
 
+        val displayContent = if (isFinished) {
+            context.getString(R.string.download_complete)
+        } else if (versionText.isNotEmpty()) {
+            versionText
+        } else {
+            effectiveTitle
+        }
+
         // Set chat info without package overlay badge using blank app badge
         builder.setChatInfo(
             title = effectiveTitle,
-            content = if (isFinished) context.getString(R.string.download_complete) else versionText,
+            content = displayContent,
             pictureKey = picKey,
             appPkg = blankBadgeKey
         )
 
-        if (!isFinished && !isIndeterminate) {
+        val hasProgress = max > 0 || indeterminate || textPercent != null
+
+        if (!isFinished && !isIndeterminate && hasProgress) {
             builder.setProgressBar(percent, themeProgressColor)
         }
 
@@ -112,6 +125,44 @@ class SystemUpdateTranslator(
                 right = ImageTextInfoRight(2, PicInfo(1, tickKey))
             )
             builder.setSmallIsland(tickKey)
+            builder.setIslandConfig(
+                timeout = config.timeout,
+                dismissible = true,
+                expandedTimeMs = if (isFloatEnabled) config.floatTimeout else null
+            )
+        } else if (!hasProgress) {
+            val compactText = versionText.ifEmpty { effectiveTitle }
+
+            val leftInfo = when (design.left) {
+                SystemUpdateLeftDesign.ICON_ONLY -> ImageTextInfoLeft(
+                    type = 1,
+                    picInfo = PicInfo(1, picKey)
+                )
+                SystemUpdateLeftDesign.ICON_AND_TEXT -> ImageTextInfoLeft(
+                    type = 1,
+                    picInfo = PicInfo(1, picKey),
+                    textInfo = TextInfo(compactText, "")
+                )
+                SystemUpdateLeftDesign.TEXT_ONLY -> ImageTextInfoLeft(
+                    type = 1,
+                    textInfo = TextInfo(compactText, "")
+                )
+            }
+
+            // In static notifications without progress (e.g. update available / restart phone),
+            // if left design is ICON_ONLY, provide the title/content on the right so text isn't lost.
+            val rightInfo = if (design.left == SystemUpdateLeftDesign.ICON_ONLY) {
+                ImageTextInfoRight(
+                    type = 1,
+                    picInfo = PicInfo(1, hiddenKey),
+                    textInfo = TextInfo(effectiveTitle, versionText)
+                )
+            } else {
+                null
+            }
+
+            builder.setBigIslandInfo(left = leftInfo, right = rightInfo)
+            builder.setSmallIsland(picKey)
             builder.setIslandConfig(
                 timeout = config.timeout,
                 dismissible = true,
@@ -138,16 +189,23 @@ class SystemUpdateTranslator(
 
             val rightInfo = when (design.right) {
                 SystemUpdateRightDesign.PERCENTAGE -> ImageTextInfoRight(
-                    type = 1,
-                    picInfo = PicInfo(1, hiddenKey),
-                    textInfo = TextInfo("$percent%", "")
+                    type = 2,
+                    textInfo = TextInfo(title = "$percent%", content = "")
                 )
                 SystemUpdateRightDesign.PROGRESS_CIRCLE -> null // Handled below by circular progress if preferred or custom
                 SystemUpdateRightDesign.NONE -> null
             }
 
             if (design.right == SystemUpdateRightDesign.PROGRESS_CIRCLE) {
-                builder.setBigIslandProgressCircle(picKey, compactText, percent, themeProgressColor, true)
+                if (design.left == SystemUpdateLeftDesign.TEXT_ONLY) {
+                    val progressComponent = ProgressTextInfo(
+                        progressInfo = CircularProgressInfo(progress = percent, colorReach = themeProgressColor, isCCW = true),
+                        textInfo = null
+                    )
+                    builder.setBigIslandInfo(left = leftInfo, progressText = progressComponent)
+                } else {
+                    builder.setBigIslandProgressCircle(picKey, compactText, percent, themeProgressColor, true)
+                }
             } else {
                 builder.setBigIslandInfo(left = leftInfo, right = rightInfo)
             }
