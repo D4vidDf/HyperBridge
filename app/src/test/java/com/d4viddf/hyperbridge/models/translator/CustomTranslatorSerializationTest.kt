@@ -510,6 +510,112 @@ class CustomTranslatorSerializationTest {
         assertEquals(TargetScope.SYSTEM_APPS, decoded.targetScope)
         assertEquals(listOf("com.miui.securitycenter", "android"), decoded.targetPackages)
     }
+
+    @Test
+    fun testRawParamV2AndCustomVariablesSerialization() {
+        val rawParamJson = """{"param_v2":{"bigIslandArea":{"title":"Test Title","info":"Test Info"}}}"""
+        val translator = CustomTranslator(
+            id = "custom.delivery.tracker",
+            meta = TranslatorMetadata(
+                name = "Delivery Tracker Raw Param",
+                author = "ThemeDev",
+                version = 2
+            ),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.delivery.app"),
+            presentation = PresentationConfig(
+                mode = PresentationMode.RAW_PARAM_V2,
+                rawParamV2 = RawParamV2Config(
+                    jsonTemplate = rawParamJson,
+                    fallbackToStandardOnError = true
+                )
+            ),
+            customVariables = listOf(
+                CustomVariableDefinition(
+                    id = "step_idx",
+                    label = "Step Index",
+                    type = VariableType.NUMBER,
+                    source = VariableSource.NOTIFICATION_TEXT,
+                    regexPattern = "Step (\\d+) of (\\d+)",
+                    regexGroup = "1",
+                    fallbackValue = "0"
+                ),
+                CustomVariableDefinition(
+                    id = "driver_avatar",
+                    label = "Driver Avatar",
+                    type = VariableType.IMAGE,
+                    source = VariableSource.NOTIFICATION_LARGE_ICON,
+                    imageConfig = VariableImageConfig(
+                        shapeId = "circle",
+                        paddingPercent = 0
+                    )
+                )
+            ),
+            customActions = listOf(
+                CustomActionDefinition(
+                    id = "otp_copy_btn",
+                    label = "Copy OTP",
+                    source = CustomActionSource.SMART_ACTION,
+                    smartActionType = SmartActionCategory.OTP
+                )
+            )
+        )
+
+        val json = CustomTranslator.toJson(translator)
+        assertTrue(json.contains("\"mode\": \"RAW_PARAM_V2\""))
+        assertTrue(json.contains("\"json_template\""))
+        assertTrue(json.contains("\"custom_variables\""))
+        assertTrue(json.contains("\"custom_actions\""))
+        assertTrue(json.contains("\"step_idx\""))
+        assertTrue(json.contains("\"otp_copy_btn\""))
+
+        val decoded = CustomTranslator.fromJson(json).getOrThrow()
+        assertEquals(PresentationMode.RAW_PARAM_V2, decoded.presentation.mode)
+        assertEquals(rawParamJson, decoded.presentation.rawParamV2?.jsonTemplate)
+        assertEquals(2, decoded.customVariables.size)
+        assertEquals("step_idx", decoded.customVariables[0].id)
+        assertEquals(VariableType.NUMBER, decoded.customVariables[0].type)
+        assertEquals("1", decoded.customVariables[0].regexGroup)
+        assertEquals(VariableSource.NOTIFICATION_LARGE_ICON, decoded.customVariables[1].source)
+        assertEquals("circle", decoded.customVariables[1].imageConfig?.shapeId)
+        assertEquals(1, decoded.customActions.size)
+        assertEquals(SmartActionCategory.OTP, decoded.customActions[0].smartActionType)
+    }
+
+    @Test
+    fun testYouTubeMovieTicketTemplate() {
+        val translator = CustomTranslator(
+            id = "tpl_youtube_movie_ticket_v2",
+            meta = TranslatorMetadata(
+                name = "YouTube Movie Ticket",
+                author = "HyperBridge Team",
+                version = 1,
+                description = "Xiaomi Super Island Template 9 movie poster / media style for YouTube"
+            ),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf(
+                "com.google.android.youtube",
+                "com.google.android.apps.youtube.music",
+                "com.vanced.android.youtube",
+                "app.revanced.android.youtube"
+            ),
+            behaviorOverride = BehaviorOverride(
+                timeoutSeconds = 0,
+                isFloat = true,
+                isShowShade = true
+            ),
+            presentation = PresentationConfig(
+                mode = PresentationMode.RAW_PARAM_V2,
+                rawParamV2 = RawParamV2Config(
+                    jsonTemplate = "{\"param_v2\":{\"bgInfo\":{\"type\":2,\"color\":\"#1C1C1E\",\"pic\":\"{pic.poster | pic.primary}\"},\"baseInfo\":{\"type\":2,\"title\":\"{notif.title}\",\"subTitle\":\"{notif.subtext | media.artist | 'YouTube'}\",\"content\":\"Playing\",\"subContent\":\"{media.artist | notif.text}\",\"pic\":\"{pic.poster | pic.primary}\"},\"param_island\":{\"islandProperty\":1,\"smallIslandArea\":{\"leftImage\":\"{pic.poster | pic.primary}\",\"rightImage\":\"hidden_pixel\"},\"bigIslandArea\":{\"imageTextInfoLeft\":{\"type\":1,\"pic\":\"{pic.poster | pic.primary}\",\"textInfo\":{\"title\":\"{notif.title}\",\"content\":\"{media.artist | notif.text}\"}}}}}}"
+                )
+            )
+        )
+        val json = CustomTranslator.toJson(translator)
+        println("SERIALIZED_YOUTUBE_HTRANS:\n$json")
+        val parsed = CustomTranslator.fromJson(json).getOrThrow()
+        assertEquals("tpl_youtube_movie_ticket_v2", parsed.id)
+    }
 }
 
 
