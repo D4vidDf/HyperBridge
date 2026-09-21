@@ -26,6 +26,7 @@
         </intent>
 
         <package android:name="com.miui.screenrecorder" />
+        <package android:name="com.android.updater" />
 
         <intent>
             <action android:name="com.aios.osbot.action.APP_TOOL_PROVIDER" />

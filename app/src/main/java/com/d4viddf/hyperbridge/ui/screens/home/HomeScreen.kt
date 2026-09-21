@@ -68,6 +68,7 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNavConfigClick: (String) -> Unit,
     onScreenRecordingConfigClick: () -> Unit = {},
+    onSystemUpdateConfigClick: () -> Unit = {},
     onAppConfigClick: (String) -> Unit = {},
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: (String?) -> Unit = {},
@@ -305,6 +306,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
@@ -320,6 +322,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
