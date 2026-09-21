@@ -42,7 +42,7 @@ data class AppInfo(
     val category: AppCategory = AppCategory.OTHER
 )
 
-enum class SystemIntegrationId { SCREEN_RECORDER, VPN }
+enum class SystemIntegrationId { SCREEN_RECORDER, VPN, SYSTEM_UPDATER }
 
 data class SystemIntegrationInfo(
     val id: SystemIntegrationId,
@@ -104,7 +104,9 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         // 2. Identify Missing (Uninstalled) Apps
         val installedPkgSet = installed.map { it.packageName }.toSet()
         val uninstalledPkgs = allowedSet.filter {
-            !installedPkgSet.contains(it) && it != ScreenRecordingClassifier.PACKAGE_NAME
+            !installedPkgSet.contains(it) &&
+                it != ScreenRecordingClassifier.PACKAGE_NAME &&
+                it != com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME
         }
 
         // 3. Reconstruct Uninstalled Apps from Cache
@@ -139,12 +141,14 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _screenRecorderIntegrationApp = MutableStateFlow<AppInfo?>(null)
+    private val _systemUpdaterIntegrationApp = MutableStateFlow<AppInfo?>(null)
 
     val systemIntegrationsState: StateFlow<List<SystemIntegrationInfo>> = combine(
         preferences.allowedPackagesFlow,
         preferences.vpnIslandEnabledFlow,
-        _screenRecorderIntegrationApp
-    ) { allowedPackages, vpnEnabled, recorderApp ->
+        _screenRecorderIntegrationApp,
+        _systemUpdaterIntegrationApp
+    ) { allowedPackages, vpnEnabled, recorderApp, updaterApp ->
         listOf(
             SystemIntegrationInfo(
                 id = SystemIntegrationId.SCREEN_RECORDER,
@@ -152,6 +156,13 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 available = recorderApp != null,
                 icon = recorderApp?.icon,
                 configurationApp = recorderApp
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.SYSTEM_UPDATER,
+                enabled = com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME in allowedPackages,
+                available = updaterApp != null,
+                icon = updaterApp?.icon,
+                configurationApp = updaterApp
             ),
             SystemIntegrationInfo(
                 id = SystemIntegrationId.VPN,
@@ -189,6 +200,9 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             _installedApps.value = apps
             _screenRecorderIntegrationApp.value = loadPackageAppInfo(
                 ScreenRecordingClassifier.PACKAGE_NAME
+            )
+            _systemUpdaterIntegrationApp.value = loadPackageAppInfo(
+                com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME
             )
             _isLoading.value = false
         }
@@ -321,6 +335,10 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                     ScreenRecordingClassifier.PACKAGE_NAME,
                     enabled
                 )
+                SystemIntegrationId.SYSTEM_UPDATER -> preferences.toggleApp(
+                    com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME,
+                    enabled
+                )
                 SystemIntegrationId.VPN -> preferences.setVpnIslandEnabled(enabled)
             }
         }
@@ -415,6 +433,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 val pkg = resolveInfo.activityInfo.packageName
                 if (pkg == getApplication<Application>().packageName) return@mapNotNull null
                 if (pkg == ScreenRecordingClassifier.PACKAGE_NAME) return@mapNotNull null
+                if (pkg == com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME) return@mapNotNull null
 
                 val name = resolveInfo.loadLabel(packageManager).toString()
                 val icon = resolveInfo.loadIcon(packageManager).toBitmap()

@@ -54,6 +54,7 @@ fun mainNavGraph(
             onSettingsClick = { navigator.navigate(Screen.Info) },
             onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
             onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) },
+            onSystemUpdateConfigClick = { navigator.navigate(Screen.SystemUpdateCustomization) },
             onAppConfigClick = { pkg -> navigator.navigate(Screen.AppConfig(pkg)) }
         )
     }
@@ -186,6 +187,9 @@ fun mainNavGraph(
     }
     entry<Screen.ScreenRecordingCustomization> {
         com.d4viddf.hyperbridge.ui.screens.settings.ScreenRecordingSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.SystemUpdateCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.settings.SystemUpdateSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.AppConfig> { key ->
         AppConfigScreen(
