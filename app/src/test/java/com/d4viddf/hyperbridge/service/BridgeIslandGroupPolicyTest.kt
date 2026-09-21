@@ -18,6 +18,15 @@ class BridgeIslandGroupPolicyTest {
     }
 
     @Test
+    fun groupOnlyAppliesFromAndroid16() {
+        // Force grouping at 2 is Android 16+; below that the summary only adds a shade row (#358).
+        assertFalse(BridgeIslandGroupPolicy.appliesTo(34))
+        assertFalse(BridgeIslandGroupPolicy.appliesTo(35))
+        assertTrue(BridgeIslandGroupPolicy.appliesTo(36))
+        assertTrue(BridgeIslandGroupPolicy.appliesTo(37))
+    }
+
+    @Test
     fun childrenAreOnlyGroupedNonSummaryNotifications() {
         assertTrue(BridgeIslandGroupPolicy.isChild(island))
         assertFalse(BridgeIslandGroupPolicy.isChild(summary))
