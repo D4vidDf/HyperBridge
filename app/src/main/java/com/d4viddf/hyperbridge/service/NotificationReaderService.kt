@@ -23,44 +23,18 @@ import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.RulesEngine
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
-import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.ActiveIsland
+import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
+import com.d4viddf.hyperbridge.models.MessageEventFingerprint
 import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
-import com.d4viddf.hyperbridge.service.translators.CallTranslator
-import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
-import com.d4viddf.hyperbridge.service.translators.MediaTranslator
-import com.d4viddf.hyperbridge.service.translators.MessageTranslator
-import com.d4viddf.hyperbridge.service.translators.NavTranslator
-import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
-import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
-import com.d4viddf.hyperbridge.service.translators.StandardTranslator
-import com.d4viddf.hyperbridge.service.translators.TimerTranslator
-import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
-import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
-import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingControlBackend
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSemanticFingerprint
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionInput
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionTracker
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSignals
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingTimeoutPolicy
-import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBackend
-import com.d4viddf.hyperbridge.util.ShizukuManager
-import com.d4viddf.hyperbridge.models.CallStage
-import com.d4viddf.hyperbridge.models.MessageEventFingerprint
-import com.d4viddf.hyperbridge.models.MessageEventFingerprintSource
 import com.d4viddf.hyperbridge.service.call.CallActionSignal
-import com.d4viddf.hyperbridge.service.call.CallClassification
 import com.d4viddf.hyperbridge.service.call.CallNotificationClassifier
 import com.d4viddf.hyperbridge.service.call.CallNotificationSignals
 import com.d4viddf.hyperbridge.service.call.CallReplacementPolicy
@@ -76,17 +50,42 @@ import com.d4viddf.hyperbridge.service.message.MessageNotificationResolver
 import com.d4viddf.hyperbridge.service.message.MessageNotificationSignals
 import com.d4viddf.hyperbridge.service.message.MessagePresentationFamilyTracker
 import com.d4viddf.hyperbridge.service.message.MessagePresentationSource
-import com.d4viddf.hyperbridge.service.message.MessageSourceQuality
 import com.d4viddf.hyperbridge.service.message.MessagingEventSignals
 import com.d4viddf.hyperbridge.service.message.isMessagingEvent
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSemanticFingerprint
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionInput
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionTracker
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSignals
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingTimeoutPolicy
+import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBackend
+import com.d4viddf.hyperbridge.service.translators.CallTranslator
+import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
+import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
+import com.d4viddf.hyperbridge.service.translators.MediaTranslator
+import com.d4viddf.hyperbridge.service.translators.MessageTranslator
+import com.d4viddf.hyperbridge.service.translators.NavTranslator
+import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
+import com.d4viddf.hyperbridge.service.translators.StandardTranslator
+import com.d4viddf.hyperbridge.service.translators.SystemUpdateTranslator
+import com.d4viddf.hyperbridge.service.translators.TimerTranslator
+import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
+import com.d4viddf.hyperbridge.service.updater.SystemUpdateTimeoutPolicy
+import com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier
+import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
+import com.d4viddf.hyperbridge.util.ShizukuManager
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -182,6 +181,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var timerTranslator: TimerTranslator
     private lateinit var progressTranslator: ProgressTranslator
     private lateinit var downloadTranslator: DownloadTranslator
+    private lateinit var systemUpdateTranslator: SystemUpdateTranslator
     private lateinit var standardTranslator: StandardTranslator
     private lateinit var messageTranslator: MessageTranslator
     private lateinit var mediaTranslator: MediaTranslator
@@ -272,6 +272,7 @@ class NotificationReaderService : NotificationListenerService() {
         timerTranslator = TimerTranslator(this, themeRepository)
         progressTranslator = ProgressTranslator(this, themeRepository)
         downloadTranslator = DownloadTranslator(this, themeRepository)
+        systemUpdateTranslator = SystemUpdateTranslator(this, themeRepository)
         standardTranslator = StandardTranslator(this, themeRepository)
         messageTranslator = MessageTranslator(this, themeRepository)
         liveUpdateTranslator = LiveUpdateTranslator(this, themeRepository)
@@ -333,6 +334,20 @@ class NotificationReaderService : NotificationListenerService() {
                         }
                     }
                 }
+            }
+        }
+
+        // --- SYSTEM UPDATE DESIGN LISTENER ---
+        serviceScope.launch {
+            preferences.systemUpdateDesignFlow.drop(1).collect {
+                val activeUpdateIsland = activeIslands.values.firstOrNull { island ->
+                    SystemUpdaterClassifier.isSystemUpdater(island.packageName)
+                } ?: return@collect
+
+                val sbn = activeNotificationsOrNull()?.firstOrNull { it.key == activeUpdateIsland.sourceKey }
+                    ?: return@collect
+
+                enqueueSourceNotification(sbn, recovery = true)
             }
         }
     }
@@ -614,9 +629,9 @@ class NotificationReaderService : NotificationListenerService() {
                     if (finalConfig.dismissWithOriginal == true || forceDismiss) {
                         // Debounce updates if the app canceled it programmatically
                         if (islandType == NotificationType.CALL) {
-                            kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                            delay(CallReplacementPolicy.REMOVAL_DELAY_MS.milliseconds)
                         } else if (reason == REASON_APP_CANCEL && islandType != NotificationType.SCREEN_RECORDING) {
-                            kotlinx.coroutines.delay(300)
+                            delay(300.milliseconds)
                         }
                         notificationLifecycleMutex.withLock {
                             val current = activeIslands[logicalKey]
@@ -655,7 +670,7 @@ class NotificationReaderService : NotificationListenerService() {
                 callSessionTracker.markSourceRemoved(notifKey, System.currentTimeMillis())
                 lateinit var job: Job
                 job = serviceScope.launch(Dispatchers.IO) {
-                    kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                    delay(CallReplacementPolicy.REMOVAL_DELAY_MS.milliseconds)
                     notificationLifecycleMutex.withLock {
                         if (isSourceNotificationActive(notifKey) ||
                             callSessionTracker.logicalIdForSource(notifKey) != trackedCallLogicalId
@@ -933,7 +948,7 @@ class NotificationReaderService : NotificationListenerService() {
             return
         }
         nativeYieldJob = serviceScope.launch {
-            delay(remaining + 1_000L)
+            delay((remaining + 1_000L).milliseconds)
             updatePermanentIsland()
         }
     }
@@ -1014,7 +1029,7 @@ class NotificationReaderService : NotificationListenerService() {
             }
         }
         processingJobs[processingGeneration] = job
-        job.invokeOnCompletion { cause ->
+        job.invokeOnCompletion { _ ->
             processingJobs.remove(processingGeneration, job)
             sourceProcessingGeneration.finish(sourceSlot, processingGeneration)
         }
@@ -1157,10 +1172,10 @@ class NotificationReaderService : NotificationListenerService() {
         val extras = notification.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE).orEmpty()
         val hasMessagePersonMetadata = try {
-            extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, android.app.Person::class.java) != null ||
+            extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, Person::class.java) != null ||
                     extras.getParcelableArrayList(
                         Notification.EXTRA_PEOPLE_LIST,
-                        android.app.Person::class.java
+                        Person::class.java
                     )?.isNotEmpty() == true ||
                     extras.containsKey(Notification.EXTRA_MESSAGES)
         } catch (_: Exception) {
@@ -1508,15 +1523,22 @@ class NotificationReaderService : NotificationListenerService() {
                     getEffectiveEngine(sbn.packageName)
             val appIslandConfig = preferences.getAppIslandConfigSync(sbn.packageName)
             val globalConfig = preferences.getGlobalConfigSync()
+            val isSystemUpdate = SystemUpdaterClassifier.isSystemUpdater(sbn.packageName)
             val finalConfig = appIslandConfig.mergeWith(globalConfig).let { config ->
-                config.copy(
-                    timeout = ScreenRecordingTimeoutPolicy.resolve(
-                        configuredTimeout = config.timeout,
-                        systemScreenRecordingTimeout = preferences.getScreenRecordingTimeoutSync(),
-                        isActiveRecording = type == NotificationType.SCREEN_RECORDING,
-                        isSavedRecording = isSavedScreenRecording
-                    )
+                val baseTimeout = ScreenRecordingTimeoutPolicy.resolve(
+                    configuredTimeout = config.timeout,
+                    systemScreenRecordingTimeout = preferences.getScreenRecordingTimeoutSync(),
+                    isActiveRecording = type == NotificationType.SCREEN_RECORDING,
+                    isSavedRecording = isSavedScreenRecording
                 )
+                val updateResolvedTimeout = SystemUpdateTimeoutPolicy.resolve(
+                    configuredTimeout = baseTimeout,
+                    systemUpdateTimeout = preferences.getSystemUpdateTimeoutSync(),
+                    isSystemUpdate = isSystemUpdate,
+                    isFinished = false, // Will be dismissed with timeout when finished
+                    hasProgress = hasProgress
+                )
+                config.copy(timeout = updateResolvedTimeout)
             }
 
             if (useLiveUpdates) {
@@ -1634,7 +1656,16 @@ class NotificationReaderService : NotificationListenerService() {
 
             // --- LAYERED CUSTOM ISLAND LOGIC ---
             val picKey = "pic_${candidateBridgeId}"
-            val data: HyperIslandData = if (isSavedScreenRecording) {
+            val data: HyperIslandData = if (isSystemUpdate) {
+                systemUpdateTranslator.translate(
+                    sbn = sbn,
+                    picKey = picKey,
+                    config = finalConfig,
+                    theme = activeTheme,
+                    isUpdate = isUpdate,
+                    design = preferences.getSystemUpdateDesignSync()
+                )
+            } else if (isSavedScreenRecording) {
                 screenRecordingSavedTranslator.translate(sbn, picKey, finalConfig, activeTheme)
             } else when (type) {
                 NotificationType.CALL -> callTranslator.translate(
@@ -1663,6 +1694,10 @@ class NotificationReaderService : NotificationListenerService() {
                     screenRecordingSession,
                     preferences.getScreenRecordingDesignSync()
                 )
+            } else if (isSystemUpdate) {
+                val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
+                val baseHash = normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
+                baseHash xor preferences.getSystemUpdateDesignSync().hashCode()
             } else {
                 val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
                 normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
@@ -1764,8 +1799,8 @@ class NotificationReaderService : NotificationListenerService() {
             pkg.contains("vending") || pkg.contains("play.store") || pkg.contains("playstore") || 
             pkg.contains("store") || pkg.contains("fdroid") || pkg.contains("samsungapps") || 
             pkg.contains("mipicks") || pkg.contains("venezia") || pkg.contains("packageinstaller") || 
-            pkg.contains("installer") || pkg.contains("gms") || channelId.contains("download") || 
-            channelId.contains("install")) {
+            pkg.contains("installer") || pkg.contains("gms") || pkg == SystemUpdaterClassifier.PACKAGE_NAME ||
+            channelId.contains("download") || channelId.contains("install")) {
             true
         } else {
             val extras = sbn.notification.extras
@@ -2281,7 +2316,7 @@ class NotificationReaderService : NotificationListenerService() {
         syncJob?.cancel()
         syncJob = serviceScope.launch {
             while (true) {
-                delay(60_000) // 1 minute periodic sync
+                delay(60_000.milliseconds) // 1 minute periodic sync
                 // Screen off: nothing to keep in sync visually, and SCREEN_ON runs a full
                 // refresh sync on wake — skip the tick instead of waking up all night.
                 if (isScreenOn) {

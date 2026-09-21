@@ -53,4 +53,8 @@ object SettingsKeys {
     const val SCREEN_RECORDING_TIMEOUT = "screen_recording_timeout"
     const val SCREEN_RECORDING_LEFT_DESIGN = "screen_recording_left_design"
     const val SCREEN_RECORDING_RIGHT_DESIGN = "screen_recording_right_design"
+    const val SYSTEM_UPDATE_TIMEOUT = "system_update_timeout"
+    const val SYSTEM_UPDATE_LEFT_DESIGN = "system_update_left_design"
+    const val SYSTEM_UPDATE_RIGHT_DESIGN = "system_update_right_design"
+    const val SYSTEM_UPDATE_ICON_SOURCE = "system_update_icon_source"
 }
