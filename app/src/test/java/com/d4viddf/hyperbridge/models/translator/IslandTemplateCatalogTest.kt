@@ -66,19 +66,53 @@ class IslandTemplateCatalogTest {
     }
 
     @Test
-    fun whatTheUserEditedWinsOverThePreset() {
+    fun anEditedTemplateIsRenderedExactlyAsSaved() {
         val edited = TextSlotConfig(titleTemplate = "{notif.sender}", subtitleTemplate = "{notif.conversation}")
-        val resolved = IslandTemplateCatalog.effectivePresentation(
-            PresentationConfig(
-                mode = PresentationMode.TEMPLATE,
-                templateId = "tpl_file_transfer",
-                textSlot = edited
-            )
+        val config = PresentationConfig(
+            mode = PresentationMode.TEMPLATE,
+            templateId = "tpl_file_transfer",
+            textSlot = edited
         )
 
-        assertEquals(edited, resolved.textSlot)
-        // Untouched slots still come from the template.
-        assertEquals(ProgressSlotType.PROGRESS_BAR, resolved.progressSlot.type)
+        assertEquals(config, IslandTemplateCatalog.effectivePresentation(config))
+    }
+
+    @Test
+    fun editingOneTextFieldKeepsThePresetsOtherFields() {
+        // Pick a template in the editor, then change only the subtitle.
+        val picked = IslandTemplateCatalog.applyTemplate(PresentationConfig(), "tpl_payment_wallet")
+        val edited = picked.copy(textSlot = picked.textSlot.copy(subtitleTemplate = "{notif.subtext}"))
+
+        val resolved = IslandTemplateCatalog.effectivePresentation(edited)
+
+        val preset = IslandTemplateCatalog.find("tpl_payment_wallet")!!.presentation
+        assertNotNull(preset.textSlot.highlightTextTemplate)
+        assertEquals(preset.textSlot.highlightTextTemplate, resolved.textSlot.highlightTextTemplate)
+        assertEquals("{notif.subtext}", resolved.textSlot.subtitleTemplate)
+    }
+
+    @Test
+    fun deletingThePresetsActionsSticks() {
+        val picked = IslandTemplateCatalog.applyTemplate(PresentationConfig(), "tpl_boarding_pass")
+        assertTrue(picked.actionSlots.isNotEmpty())
+
+        val resolved = IslandTemplateCatalog.effectivePresentation(picked.copy(actionSlots = emptyList()))
+
+        assertTrue(resolved.actionSlots.isEmpty())
+    }
+
+    @Test
+    fun applyingATemplateStartsFromItsPreset() {
+        val template = IslandTemplateCatalog.find("tpl_courier_tracking")!!
+        val applied = IslandTemplateCatalog.applyTemplate(
+            PresentationConfig(textSlot = TextSlotConfig(titleTemplate = "old")),
+            template.id
+        )
+
+        assertEquals(PresentationMode.TEMPLATE, applied.mode)
+        assertEquals(template.id, applied.templateId)
+        assertEquals(template.presentation.textSlot, applied.textSlot)
+        assertEquals(template.presentation.actionSlots, applied.actionSlots)
     }
 
     @Test
