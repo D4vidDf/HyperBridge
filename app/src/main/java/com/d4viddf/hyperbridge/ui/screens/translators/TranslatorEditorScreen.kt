@@ -497,15 +497,65 @@ fun TranslatorMainList(
 
             Spacer(Modifier.height(16.dp))
 
-            val menuItems = listOf(
-                TranslatorRoute.APPS,
-                TranslatorRoute.CONDITIONS,
-                TranslatorRoute.PRESENTATION,
-                TranslatorRoute.PILL,
-                TranslatorRoute.PROGRESS,
-                TranslatorRoute.ACTIONS,
-                TranslatorRoute.BEHAVIOR
-            )
+            val isRawParamV2 = translator.presentation.mode == PresentationMode.RAW_PARAM_V2
+
+            if (isRawParamV2) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Construction,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.translator_raw_param_banner_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.translator_raw_param_banner_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.9f)
+                        )
+                    }
+                }
+            }
+
+            val menuItems = if (isRawParamV2) {
+                listOf(
+                    TranslatorRoute.APPS,
+                    TranslatorRoute.CONDITIONS,
+                    TranslatorRoute.BEHAVIOR
+                )
+            } else {
+                listOf(
+                    TranslatorRoute.APPS,
+                    TranslatorRoute.CONDITIONS,
+                    TranslatorRoute.PRESENTATION,
+                    TranslatorRoute.PILL,
+                    TranslatorRoute.PROGRESS,
+                    TranslatorRoute.ACTIONS,
+                    TranslatorRoute.BEHAVIOR
+                )
+            }
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -1770,16 +1820,19 @@ fun TranslatorPresentationContent(
             PresentationMode.STANDARD -> stringResource(R.string.translator_pres_mode_standard)
             PresentationMode.TEMPLATE -> stringResource(R.string.translator_pres_mode_template)
             PresentationMode.WIDGET -> stringResource(R.string.translator_pres_mode_widget)
+            PresentationMode.RAW_PARAM_V2 -> stringResource(R.string.translator_raw_param_badge)
         }
         val currentModeDesc = when (presentation.mode) {
             PresentationMode.STANDARD -> stringResource(R.string.translator_pres_mode_standard_desc)
             PresentationMode.TEMPLATE -> stringResource(R.string.translator_pres_mode_template_desc)
             PresentationMode.WIDGET -> stringResource(R.string.translator_pres_mode_widget_desc)
+            PresentationMode.RAW_PARAM_V2 -> stringResource(R.string.translator_raw_param_banner_desc)
         }
         val currentModeIcon = when (presentation.mode) {
             PresentationMode.STANDARD -> Icons.AutoMirrored.Outlined.ViewQuilt
             PresentationMode.TEMPLATE -> Icons.Outlined.DashboardCustomize
             PresentationMode.WIDGET -> Icons.Outlined.Widgets
+            PresentationMode.RAW_PARAM_V2 -> Icons.Outlined.Construction
         }
 
         Card(

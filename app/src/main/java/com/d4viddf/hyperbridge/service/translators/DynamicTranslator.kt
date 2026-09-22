@@ -2,7 +2,10 @@ package com.d4viddf.hyperbridge.service.translators
 
 import android.app.Notification
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.service.notification.StatusBarNotification
+import android.util.Log
+import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.HyperIslandData
@@ -13,9 +16,16 @@ import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.translator.ActionMatchBy
 import com.d4viddf.hyperbridge.models.translator.ActionSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ActionSource
+import com.d4viddf.hyperbridge.models.translator.CustomActionSource
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.CustomVariableDefinition
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
+import com.d4viddf.hyperbridge.models.translator.SmartActionCategory
+import com.d4viddf.hyperbridge.models.translator.VariableSource
+import com.d4viddf.hyperbridge.models.translator.VariableType
 import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
+import com.google.gson.JsonParser
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import io.github.d4viddf.hyperisland_kit.HyperPicture
@@ -23,8 +33,7 @@ import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
-import androidx.core.graphics.toColorInt
-import android.util.Log
+import java.io.File
 
 class DynamicTranslator(
     context: Context,
@@ -93,9 +102,10 @@ class DynamicTranslator(
         // 2. Extract Progress & Numeric Data
         val (progressValue, maxProgressValue) = extractProgress(customTranslator, notif, notifTitle, notifText)
 
-        // 3. Resolve Dynamic Text Templates
+        // 3. Resolve Dynamic Text Templates & Notification Catalog
         val variableMap = buildVariableMap(
             sbn = sbn,
+            picKey = picKey,
             title = notifTitle,
             text = notifText,
             subtext = rawSubtext,
@@ -104,13 +114,11 @@ class DynamicTranslator(
             conversationTitle = extractedConversationTitle,
             progress = progressValue?.toString(),
             callerName = extractedSenderName ?: notifTitle,
-            callState = callStateText
+            callState = callStateText,
+            theme = effectiveTheme
         )
-        val interpolatedTitle = interpolate(customTranslator.presentation.textSlot.titleTemplate, variableMap).trim()
-        val finalTitle = if (interpolatedTitle.isNotBlank()) interpolatedTitle else notifTitle.ifBlank { appLabel.ifBlank { "Notification" } }
-        val finalText = interpolate(customTranslator.presentation.textSlot.subtitleTemplate, variableMap).trim()
 
-        // 4. Build HyperIsland Data
+        // 4. Build HyperIsland Base Config
         val isFloat = config.isFloat ?: customTranslator.behaviorOverride.isFloat ?: false
         val isShade = config.isShowShade ?: customTranslator.behaviorOverride.isShowShade ?: false
         val defaultHighlight = if (customTranslator.presentation.progressSlot.type == ProgressSlotType.TIMER) "#FF9500" else "#007AFF"
@@ -119,6 +127,10 @@ class DynamicTranslator(
         } else {
             resolveColor(effectiveTheme, sbn.packageName, defaultHighlight)
         }
+
+        val interpolatedTitle = interpolate(customTranslator.presentation.textSlot.titleTemplate, variableMap).trim()
+        val finalTitle = if (interpolatedTitle.isNotBlank()) interpolatedTitle else notifTitle.ifBlank { appLabel.ifBlank { "Notification" } }
+        val finalText = interpolate(customTranslator.presentation.textSlot.subtitleTemplate, variableMap).trim()
 
         val builder = HyperIslandNotification.Builder(
             context,
@@ -136,12 +148,168 @@ class DynamicTranslator(
         builder.setShowNotification(isShade)
         if (!isUpdate) builder.setReopen(true)
 
+        val hiddenKey = "hidden_pixel"
+        builder.addPicture(getTransparentPicture(hiddenKey))
+        builder.addPicture(resolveIcon(sbn, picKey))
+
+        val themeShape = resolveShape(effectiveTheme, sbn.packageName)
+        val themePadding = resolvePadding(effectiveTheme, sbn.packageName)
+        val defaultActionBg = try {
+            resolveColor(effectiveTheme, sbn.packageName, "#007AFF").toColorInt()
+        } catch (_: Exception) {
+            "#007AFF".toColorInt()
+        }
+
+        // 1. Resolve pictures from Notification
+        val notifLargeIcon = sbn.notification.getLargeIcon()
+        val notifPictureBmp = try {
+            extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_PICTURE)
+                ?: (extras.getParcelable<android.graphics.drawable.Icon>("android.pictureIcon")?.let { loadIconBitmap(it, sbn.packageName) })
+                ?: (extras.getParcelable<android.graphics.drawable.Icon>(Notification.EXTRA_PICTURE_ICON)?.let { loadIconBitmap(it, sbn.packageName) })
+        } catch (_: Exception) {
+            null
+        }
+
+        val largeBmp = if (notifLargeIcon != null) {
+            loadIconBitmap(notifLargeIcon, sbn.packageName)
+        } else {
+            try {
+                extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
+                    ?: notifPictureBmp
+            } catch (_: Exception) {
+                null
+            }
+        } ?: notifPictureBmp ?: getNotificationBitmap(sbn)
+
+        val posterBmp = notifPictureBmp ?: largeBmp
+
+        if (largeBmp != null) {
+            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", largeBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", largeBmp))
+            builder.addPicture(HyperPicture("album_art", largeBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_imageText", largeBmp))
+        }
+        if (posterBmp != null) {
+            builder.addPicture(HyperPicture("poster", posterBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_poster", posterBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_imageText", posterBmp))
+        }
+        val appIconPic = getAppIconBitmap(sbn.packageName)
+        if (appIconPic != null) {
+            builder.addPicture(HyperPicture("miui.focus.pic_app_icon", appIconPic))
+        }
+        builder.addPicture(resolveIcon(sbn, "default_icon"))
+
+        // 5. Extract & Bundle Custom Dynamic Variables & Images
+        val availablePictureKeys = mutableSetOf(
+            picKey,
+            "picKey",
+            hiddenKey,
+            "miui.focus.pic_app_icon",
+            "miui.focus.pic_large_icon",
+            "miui.focus.pic_sender_avatar",
+            "miui.focus.pic_imageText",
+            "miui.focus.pic_poster",
+            "album_art",
+            "poster",
+            "default_icon"
+        )
+        extractCustomVariables(
+            customTranslator = customTranslator,
+            sbn = sbn,
+            extras = extras,
+            variableMap = variableMap,
+            builder = builder,
+            effectiveTheme = effectiveTheme,
+            themeShape = themeShape,
+            themePadding = themePadding,
+            availablePictures = availablePictureKeys
+        )
+
+        // 6. Extract & Bundle Custom Actions
+        extractCustomActions(
+            customTranslator = customTranslator,
+            sbn = sbn,
+            extras = extras,
+            rawText = rawText,
+            variableMap = variableMap,
+            builder = builder,
+            effectiveTheme = effectiveTheme,
+            defaultActionBg = defaultActionBg,
+            themeShape = themeShape,
+            themePadding = themePadding
+        )
+
+        // 7. Check for RAW_PARAM_V2 Mode
+        if (customTranslator.presentation.mode == PresentationMode.RAW_PARAM_V2) {
+            val rawConfig = customTranslator.presentation.rawParamV2
+            val template = rawConfig?.jsonTemplate ?: ""
+            if (template.isNotBlank()) {
+                val interpolatedJson = interpolate(template, variableMap, availablePictureKeys)
+                val validatedJson = validateOrNormalizeParamV2(interpolatedJson)
+                val bundle = builder.buildResourceBundle()
+                val picsBundle = bundle.getBundle("miui.focus.pics")
+                if (picsBundle != null) {
+                    val currentKeys = picsBundle.keySet().toList()
+                    for (k in currentKeys) {
+                        if (k.startsWith("miui.focus.pic_")) {
+                            val rawKey = k.removePrefix("miui.focus.pic_")
+                            val icon = picsBundle.getParcelable<android.graphics.drawable.Icon>(k)
+                            if (icon != null && !picsBundle.containsKey(rawKey)) {
+                                picsBundle.putParcelable(rawKey, icon)
+                            }
+                        } else {
+                            val prefixed = "miui.focus.pic_$k"
+                            val icon = picsBundle.getParcelable<android.graphics.drawable.Icon>(k)
+                            if (icon != null && !picsBundle.containsKey(prefixed)) {
+                                picsBundle.putParcelable(prefixed, icon)
+                            }
+                        }
+                    }
+                }
+
+                val actionsBundle = bundle.getBundle("miui.focus.actions")
+                if (actionsBundle != null) {
+                    val currentActionKeys = actionsBundle.keySet().toList()
+                    for (k in currentActionKeys) {
+                        if (k.startsWith("miui.focus.action_")) {
+                            val rawKey = k.removePrefix("miui.focus.action_")
+                            val parcelableObj = actionsBundle.getParcelable<android.os.Parcelable>(k)
+                            if (parcelableObj != null && !actionsBundle.containsKey(rawKey)) {
+                                actionsBundle.putParcelable(rawKey, parcelableObj)
+                            }
+                        } else {
+                            val prefixed = "miui.focus.action_$k"
+                            val parcelableObj = actionsBundle.getParcelable<android.os.Parcelable>(k)
+                            if (parcelableObj != null && !actionsBundle.containsKey(prefixed)) {
+                                actionsBundle.putParcelable(prefixed, parcelableObj)
+                            }
+                        }
+                    }
+                }
+                val picKeys = picsBundle?.keySet()?.joinToString(", ") ?: "none"
+                val actionKeys = actionsBundle?.keySet()?.joinToString(", ") ?: "none"
+
+                Log.i(TAG, " [DynamicTranslator RAW_PARAM_V2] Translator: '${customTranslator.meta.name}' (pkg=${sbn.packageName})")
+                Log.i(TAG, " [DynamicTranslator RAW_PARAM_V2] Available Pics in Bundle: [$picKeys]")
+                Log.i(TAG, " [DynamicTranslator RAW_PARAM_V2] Available Actions in Bundle: [$actionKeys]")
+
+                if (validatedJson != null) {
+                    Log.i(TAG, " [DynamicTranslator RAW_PARAM_V2] Output JSON:\n$validatedJson")
+                    return HyperIslandData(bundle, validatedJson)
+                } else if (rawConfig?.fallbackToStandardOnError == false) {
+                    Log.w(TAG, " [DynamicTranslator RAW_PARAM_V2] Invalid JSON but fallback disabled, Output JSON:\n$interpolatedJson")
+                    return HyperIslandData(bundle, interpolatedJson)
+                }
+                Log.w(TAG, " [DynamicTranslator RAW_PARAM_V2] Validation failed for JSON:\n$interpolatedJson\nFalling back to standard builder")
+            }
+        }
+
         val isMedia = notif.extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
                 notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true ||
                 customTranslator.presentation.templateId == "tpl_media_compact"
 
         // 5. Left Slot Graphic & Hidden Pixel
-        val hiddenKey = "hidden_pixel"
         val leftSlotConfig = customTranslator.presentation.leftSlot
         val isAvatarSource = leftSlotConfig.source.equals("AVATAR", ignoreCase = true) ||
                 leftSlotConfig.source.equals("SENDER_AVATAR", ignoreCase = true) ||
@@ -534,6 +702,7 @@ class DynamicTranslator(
 
     private fun buildVariableMap(
         sbn: StatusBarNotification,
+        picKey: String = "pic_${sbn.key.hashCode()}",
         title: String,
         text: String,
         subtext: String?,
@@ -542,18 +711,53 @@ class DynamicTranslator(
         conversationTitle: String?,
         progress: String?,
         callerName: String? = null,
-        callState: String? = null
-    ): Map<String, String> {
+        callState: String? = null,
+        theme: HyperTheme? = null
+    ): MutableMap<String, String> {
         val map = mutableMapOf<String, String>()
+        val extras = sbn.notification.extras
+
+        // Base text & notification fields
         map["notif.title"] = title
         map["notif.text"] = text
         map["notif.subtext"] = subtext ?: ""
+        map["notif.info_text"] = extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString() ?: ""
+        map["notif.big_text"] = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
+        map["notif.summary_text"] = extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString() ?: ""
+
+        val textLines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+        textLines?.forEachIndexed { index, line ->
+            map["notif.text_lines[$index]"] = line.toString()
+        }
+
+        // Messaging fields
         map["notif.sender"] = sender ?: ""
+        map["msg.sender_name"] = sender ?: extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
         map["notif.conversation_title"] = conversationTitle ?: ""
-        map["notif.media_artist"] = mediaArtist ?: ""
-        map["notif.caller_name"] = callerName ?: sender ?: title
-        map["notif.call_state"] = callState ?: ""
+        map["msg.conversation_title"] = conversationTitle ?: extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString() ?: ""
+        map["msg.is_group"] = (extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false) || !conversationTitle.isNullOrBlank()).toString()
+        map["msg.latest_message"] = text
+
+        // Progress fields
         map["notif.progress"] = progress ?: ""
+        map["progress.percent"] = progress ?: ""
+        val currentProgress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
+        val maxProgress = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
+        map["progress.current"] = if (currentProgress > 0) currentProgress.toString() else ""
+        map["progress.max"] = if (maxProgress > 0) maxProgress.toString() else "100"
+        map["progress.is_indeterminate"] = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false).toString()
+
+        // Call & Media fields
+        map["notif.caller_name"] = callerName ?: sender ?: title
+        map["call.caller_name"] = callerName ?: sender ?: title
+        map["notif.call_state"] = callState ?: ""
+        map["call.state"] = callState ?: ""
+        map["notif.media_artist"] = mediaArtist ?: ""
+        map["media.artist"] = mediaArtist ?: ""
+        map["media.album"] = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
+        map["media.track"] = title
+
+        // App & System metadata
         map["app.name"] = try {
             context.packageManager.getApplicationLabel(
                 context.packageManager.getApplicationInfo(sbn.packageName, 0)
@@ -561,16 +765,532 @@ class DynamicTranslator(
         } catch (_: Exception) {
             sbn.packageName
         }
+        map["app.package"] = sbn.packageName
+        map["notif.channel"] = sbn.notification.channelId ?: ""
+        map["notif.category"] = sbn.notification.category ?: ""
+        map["notif.when_millis"] = sbn.notification.`when`.toString()
+        map["system.time_millis"] = System.currentTimeMillis().toString()
+
+        // Colors
+        val highlightHex = resolveColor(theme, sbn.packageName, "#007AFF")
+        map["color.highlight"] = highlightHex
+        map["color.progress"] = theme?.defaultProgress?.activeColor ?: highlightHex
+
+        // Smart Action extractions
+        val otpCode = extractOtpFromText(text) ?: extractOtpFromText(title)
+        if (otpCode != null) {
+            map["smart_action.OTP.code"] = otpCode
+            map["smart_action.OTP"] = "miui.focus.action_smart_otp"
+            map["smart_actions.OTP"] = "miui.focus.action_smart_otp"
+        }
+        val url = extractUrlFromText(text) ?: extractUrlFromText(title)
+        if (url != null) {
+            map["smart_action.URL.link"] = url
+            map["smart_action.URL"] = "miui.focus.action_smart_url"
+            map["smart_actions.OPEN_URL"] = "miui.focus.action_smart_url"
+        }
+        val phone = extractPhoneFromText(text) ?: extractPhoneFromText(title)
+        if (phone != null) {
+            map["smart_action.PHONE.number"] = phone
+            map["smart_action.PHONE"] = "miui.focus.action_smart_phone"
+            map["smart_actions.DIAL_NUMBER"] = "miui.focus.action_smart_phone"
+        }
+        map["action.REPLY"] = "miui.focus.action_reply"
+
+        // Default Picture keys
+        map["pic.primary"] = picKey
+        map["pic.poster"] = "poster"
+        map["pic.album_art"] = "album_art"
+        map["pic.hidden"] = "hidden_pixel"
+        map["pic.app_icon"] = "miui.focus.pic_app_icon"
+        map["pic.large_icon"] = "miui.focus.pic_large_icon"
+        map["pic.sender_avatar"] = "miui.focus.pic_sender_avatar"
+        map["pic.default_icon"] = "default_icon"
+
         return map
     }
 
-    private fun interpolate(template: String, variables: Map<String, String>): String {
-        var result = template
-        for ((key, value) in variables) {
-            result = result.replace("{$key}", value)
+    private fun extractCustomVariables(
+        customTranslator: CustomTranslator,
+        sbn: StatusBarNotification,
+        extras: android.os.Bundle,
+        variableMap: MutableMap<String, String>,
+        builder: HyperIslandNotification,
+        effectiveTheme: HyperTheme?,
+        themeShape: String,
+        themePadding: Int,
+        availablePictures: MutableSet<String>
+    ) {
+        val variables = customTranslator.customVariables
+        if (variables.isEmpty()) return
+
+        for (v in variables) {
+            when (v.type) {
+                VariableType.IMAGE -> {
+                    val picKey = "pic_var_${v.id}"
+                    val bmp = resolveVariableImage(v, sbn, extras, effectiveTheme)
+                    if (bmp != null) {
+                        val shape = v.imageConfig?.shapeId ?: themeShape
+                        val padding = v.imageConfig?.paddingPercent ?: themePadding
+                        val tint = v.imageConfig?.tintColor?.let { runCatching { it.toColorInt() }.getOrNull() } ?: android.graphics.Color.TRANSPARENT
+                        val processed = applyThemeToActionIcon(bmp, shape, padding, tint)
+                        builder.addPicture(HyperPicture(picKey, processed))
+                        builder.addPicture(HyperPicture("miui.focus.pic_${v.id}", processed))
+                        availablePictures.add(picKey)
+                        availablePictures.add("miui.focus.pic_${v.id}")
+                        variableMap["pic.${v.id}"] = picKey
+                        variableMap["pic.var.${v.id}"] = picKey
+                        variableMap["var.${v.id}"] = picKey
+                        variableMap[v.id] = picKey
+                    } else if (v.fallbackValue.isNotBlank()) {
+                        variableMap["pic.${v.id}"] = v.fallbackValue
+                        variableMap["pic.var.${v.id}"] = v.fallbackValue
+                        variableMap["var.${v.id}"] = v.fallbackValue
+                        variableMap[v.id] = v.fallbackValue
+                    }
+                }
+                VariableType.STEP_PROGRESS -> {
+                    val stepConfig = v.stepConfig
+                    val textToSearch = "${extras.getCharSequence(Notification.EXTRA_TITLE)} ${extras.getCharSequence(Notification.EXTRA_TEXT)} ${extras.getCharSequence(Notification.EXTRA_BIG_TEXT)}"
+                    var currentStep = 1
+                    val totalSteps = stepConfig?.totalSteps ?: 4
+                    var stepLabel = ""
+
+                    if (stepConfig != null && stepConfig.stepKeywords.isNotEmpty()) {
+                        for ((keyword, stepIndex) in stepConfig.stepKeywords) {
+                            if (textToSearch.contains(keyword, ignoreCase = true)) {
+                                currentStep = stepIndex
+                                stepLabel = keyword
+                                break
+                            }
+                        }
+                    } else if (stepConfig?.stepRegex != null) {
+                        val regex = runCatching { Regex(stepConfig.stepRegex) }.getOrNull()
+                        val match = regex?.find(textToSearch)
+                        if (match != null) {
+                            currentStep = match.groupValues.getOrNull(stepConfig.stepGroup)?.toIntOrNull() ?: 1
+                        }
+                    }
+
+                    variableMap["progress.step_current"] = currentStep.toString()
+                    variableMap["progress.step_total"] = totalSteps.toString()
+                    variableMap["progress.step_label"] = stepLabel
+                    variableMap["var.${v.id}"] = currentStep.toString()
+                    variableMap[v.id] = currentStep.toString()
+                }
+                else -> {
+                    val rawVal = extractRawString(v.source, v.extraKey, sbn, extras)
+                    val extracted = if (v.regexPattern != null && rawVal != null) {
+                        val regex = runCatching { Regex(v.regexPattern) }.getOrNull()
+                        val match = regex?.find(rawVal)
+                        if (match != null) {
+                            val groupVal = runCatching { match.groups[v.regexGroup]?.value }.getOrNull()
+                                ?: v.regexGroup.toIntOrNull()?.let { match.groupValues.getOrNull(it) }
+                                ?: match.value
+                            if (v.transformTemplate != null) {
+                                v.transformTemplate.replace("$1", groupVal)
+                            } else groupVal
+                        } else null
+                    } else rawVal
+
+                    val finalVal = if (!extracted.isNullOrBlank()) {
+                        extracted
+                    } else if (v.fallbackChain.isNotEmpty()) {
+                        evaluateFallbackChain(v.fallbackChain, variableMap) ?: v.fallbackValue
+                    } else {
+                        v.fallbackValue
+                    }
+
+                    variableMap["var.${v.id}"] = finalVal
+                    variableMap[v.id] = finalVal
+                }
+            }
         }
-        return result
     }
+
+    private fun resolveVariableImage(
+        v: CustomVariableDefinition,
+        sbn: StatusBarNotification,
+        extras: android.os.Bundle,
+        effectiveTheme: HyperTheme?
+    ): android.graphics.Bitmap? {
+        val notif = sbn.notification
+        return when (v.source) {
+            VariableSource.THEME_RESOURCE_PATH -> {
+                v.imageConfig?.themeResource?.let { repository?.getResourceBitmap(it) }
+            }
+            VariableSource.HTRANS_EMBEDDED_ASSET -> {
+                val path = v.imageConfig?.assetPath
+                if (path != null) {
+                    val file = File(context.filesDir, "translators_assets/$path")
+                    if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+                } else null
+            }
+            VariableSource.PERSON_ICON -> {
+                val largeIcon = notif.getLargeIcon()
+                if (largeIcon != null) loadIconBitmap(largeIcon, sbn.packageName) else null
+            }
+            VariableSource.NOTIFICATION_LARGE_ICON -> {
+                val largeIcon = notif.getLargeIcon()
+                val fromLargeIcon = if (largeIcon != null) {
+                    loadIconBitmap(largeIcon, sbn.packageName)
+                } else {
+                    try {
+                        extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
+                            ?: extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_PICTURE)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                fromLargeIcon ?: getNotificationBitmap(sbn) ?: getAppIconBitmap(sbn.packageName)
+            }
+            VariableSource.NOTIFICATION_APP_ICON -> {
+                try {
+                    val appInfo = context.packageManager.getApplicationInfo(sbn.packageName, 0)
+                    val drawable = context.packageManager.getApplicationIcon(appInfo)
+                    loadIconBitmap(android.graphics.drawable.Icon.createWithResource(sbn.packageName, appInfo.icon), sbn.packageName)
+                } catch (_: Exception) {
+                    null
+                }
+            }
+            VariableSource.NOTIFICATION_EXTRA_BITMAP -> {
+                v.extraKey?.let { key ->
+                    try {
+                        extras.getParcelable<android.graphics.Bitmap>(key)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+            }
+            else -> null
+        }
+    }
+
+    private fun extractRawString(
+        source: VariableSource,
+        extraKey: String?,
+        sbn: StatusBarNotification,
+        extras: android.os.Bundle
+    ): String? {
+        return when (source) {
+            VariableSource.NOTIFICATION_TITLE -> extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+            VariableSource.NOTIFICATION_TEXT -> extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+            VariableSource.NOTIFICATION_SUBTEXT -> extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
+            VariableSource.NOTIFICATION_INFO_TEXT -> extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()
+            VariableSource.NOTIFICATION_BIG_TEXT -> extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+            VariableSource.NOTIFICATION_SUMMARY_TEXT -> extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString()
+            VariableSource.NOTIFICATION_TEXT_LINES -> extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)?.joinToString("\n")
+            VariableSource.NOTIFICATION_EXTRA -> extraKey?.let { extras.get(it)?.toString() }
+            VariableSource.SENDER_NAME -> extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+            VariableSource.CONVERSATION_TITLE -> extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()
+            VariableSource.NOTIFICATION_PROGRESS -> extras.getInt(Notification.EXTRA_PROGRESS, 0).toString()
+            VariableSource.STATIC_VALUE -> extraKey
+            else -> null
+        }
+    }
+
+    private fun extractCustomActions(
+        customTranslator: CustomTranslator,
+        sbn: StatusBarNotification,
+        extras: android.os.Bundle,
+        rawText: String,
+        variableMap: MutableMap<String, String>,
+        builder: HyperIslandNotification,
+        effectiveTheme: HyperTheme?,
+        defaultActionBg: Int,
+        themeShape: String,
+        themePadding: Int
+    ) {
+        val notifActions = sbn.notification.actions ?: emptyArray()
+
+        // Register default notification actions
+        notifActions.forEachIndexed { idx, action ->
+            val key = "miui.focus.action_$idx"
+            variableMap["action.$idx"] = key
+            variableMap["action.$idx.title"] = action.title?.toString() ?: "Action $idx"
+            val hyperAction = HyperAction(
+                key = key,
+                title = action.title?.toString() ?: "",
+                icon = null,
+                pendingIntent = action.actionIntent,
+                actionIntentType = 1,
+                actionBgColor = null,
+                titleColor = "#FFFFFF"
+            )
+            builder.addAction(hyperAction)
+        }
+
+        val customActions = customTranslator.customActions
+        for (act in customActions) {
+            val key = "miui.focus.action_${act.id}"
+            variableMap["action.${act.id}"] = key
+            val label = act.label ?: "Action"
+            variableMap["action.${act.id}.title"] = label
+
+            when (act.source) {
+                CustomActionSource.NOTIFICATION_ACTION_INDEX -> {
+                    val notifAction = notifActions.getOrNull(act.actionIndex)
+                    if (notifAction != null) {
+                        val hyperAction = HyperAction(
+                            key = key,
+                            title = act.label ?: notifAction.title?.toString() ?: "",
+                            icon = null,
+                            pendingIntent = notifAction.actionIntent,
+                            actionIntentType = 1,
+                            actionBgColor = null,
+                            titleColor = "#FFFFFF"
+                        )
+                        builder.addAction(hyperAction)
+                    }
+                }
+                CustomActionSource.SMART_ACTION -> {
+                    val targetSmart = when (act.smartActionType) {
+                        SmartActionCategory.OTP -> extractOtpFromText(rawText)?.let { SmartAction(SmartActionType.OTP, it, it) }
+                        SmartActionCategory.URL -> extractUrlFromText(rawText)?.let { SmartAction(SmartActionType.URL, it, it) }
+                        SmartActionCategory.PHONE -> extractPhoneFromText(rawText)?.let { SmartAction(SmartActionType.PHONE, it, it) }
+                        else -> null
+                    }
+                    if (targetSmart != null) {
+                        val pending = SmartActionIntents.pendingIntent(context, targetSmart, key)
+                        val hyperAction = HyperAction(
+                            key = key,
+                            title = act.label ?: SmartActionIntents.label(context, targetSmart),
+                            icon = null,
+                            pendingIntent = pending,
+                            actionIntentType = 1,
+                            actionBgColor = null,
+                            titleColor = "#FFFFFF"
+                        )
+                        builder.addAction(hyperAction)
+                    }
+                }
+                CustomActionSource.INLINE_REPLY -> {
+                    val notifActionWithRemoteInput = notifActions.firstOrNull { it.remoteInputs?.isNotEmpty() == true }
+                    val remoteInput = notifActionWithRemoteInput?.remoteInputs?.firstOrNull()
+                    val targetIntent = notifActionWithRemoteInput?.actionIntent ?: sbn.notification.contentIntent
+                    if (targetIntent != null) {
+                        val replyIntent = android.content.Intent(context, com.d4viddf.hyperbridge.receiver.InlineReplyReceiver::class.java).apply {
+                            putExtra("pending_intent", targetIntent)
+                            putExtra("result_key", remoteInput?.resultKey ?: "key_text_reply")
+                            putExtra("package_name", sbn.packageName)
+                        }
+                        val pending = android.app.PendingIntent.getBroadcast(
+                            context,
+                            key.hashCode(),
+                            replyIntent,
+                            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_MUTABLE
+                        )
+                        val hyperAction = HyperAction(
+                            key = key,
+                            title = act.label ?: "Reply",
+                            icon = null,
+                            pendingIntent = pending,
+                            actionIntentType = 1,
+                            actionBgColor = null,
+                            titleColor = "#FFFFFF"
+                        )
+                        builder.addAction(hyperAction)
+                    }
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun evaluateFallbackChain(
+        chain: List<String>,
+        variables: Map<String, String>
+    ): String? {
+        for (item in chain) {
+            val v = variables[item]
+            if (!v.isNullOrBlank()) return v
+        }
+        return null
+    }
+
+    companion object {
+        private const val TAG = "DynamicTranslator"
+
+        fun interpolateStatic(
+            template: String,
+            variables: Map<String, String>,
+            availablePictures: Set<String> = emptySet(),
+            escapeJson: Boolean = true
+        ): String {
+            val tokenRegex = Regex("\\{([a-zA-Z0-9_.'\"|?:\$\\s-]+)\\}")
+            return tokenRegex.replace(template) { match ->
+                val rawExpression = match.groupValues[1].trim()
+                if (isJsonFragment(rawExpression)) {
+                    return@replace match.value
+                }
+
+                val alternatives = rawExpression.split(Regex("\\s*(?:\\|\\||\\?:|\\|)\\s*"))
+                var matchedValue: String? = null
+
+                for (i in alternatives.indices) {
+                    val candidate = alternatives[i].trim()
+                    if (isQuotedLiteral(candidate)) {
+                        matchedValue = candidate.substring(1, candidate.length - 1)
+                        break
+                    }
+                    if (isValidIdentifier(candidate)) {
+                        val value = variables[candidate]
+                        if (!value.isNullOrBlank()) {
+                            if (candidate.startsWith("pic.") && availablePictures.isNotEmpty() &&
+                                !availablePictures.contains(value) &&
+                                !availablePictures.contains(value.removePrefix("miui.focus.pic_"))
+                            ) {
+                                continue
+                            }
+                            matchedValue = value
+                            break
+                        }
+                    } else if (i == alternatives.lastIndex && !variables.containsKey(candidate) && !isJsonFragment(candidate)) {
+                        // Unquoted fallback literal (e.g. {var.empty ?: Fallback Literal})
+                        matchedValue = candidate
+                        break
+                    }
+                }
+
+                if (matchedValue == null) {
+                    if (alternatives.all { isValidIdentifier(it) || isQuotedLiteral(it) }) {
+                        matchedValue = ""
+                    } else {
+                        return@replace match.value
+                    }
+                }
+
+                val raw = matchedValue ?: ""
+                if (escapeJson) escapeJsonValue(raw) else raw
+            }
+        }
+
+        private fun isValidIdentifier(s: String): Boolean {
+            return s.matches(Regex("^[a-zA-Z0-9_.-]+$"))
+        }
+
+        private fun isQuotedLiteral(s: String): Boolean {
+            return (s.startsWith("\"") && s.endsWith("\"") && s.length >= 2) ||
+                   (s.startsWith("'") && s.endsWith("'") && s.length >= 2)
+        }
+
+        private fun isJsonFragment(s: String): Boolean {
+            val withoutElvis = s.replace("?:", "")
+            return withoutElvis.contains(":") || withoutElvis.contains(",")
+        }
+
+        private fun escapeJsonValue(value: String): String {
+            return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+        }
+
+        fun validateOrNormalizeParamV2(jsonString: String): String? {
+            return try {
+                val element = JsonParser.parseString(jsonString)
+                if (!element.isJsonObject) {
+                    runCatching { Log.w(TAG, " [validateOrNormalizeParamV2] Root element is not JsonObject: $jsonString") }
+                    return null
+                }
+                val root = element.asJsonObject
+                val paramV2 = if (root.has("param_v2") && root.get("param_v2").isJsonObject) {
+                    root.getAsJsonObject("param_v2")
+                } else {
+                    root
+                }
+
+                // Resolve primary pic key candidate from coverInfo, baseInfo, or bgInfo
+                val leftPicKey = if (paramV2.has("coverInfo") && paramV2.get("coverInfo").isJsonObject) {
+                    val cover = paramV2.getAsJsonObject("coverInfo")
+                    when {
+                        cover.has("picCover") && cover.get("picCover").isJsonPrimitive -> cover.get("picCover").asString
+                        cover.has("pic") && cover.get("pic").isJsonPrimitive -> cover.get("pic").asString
+                        cover.has("pictureKey") && cover.get("pictureKey").isJsonPrimitive -> cover.get("pictureKey").asString
+                        cover.has("picKey") && cover.get("picKey").isJsonPrimitive -> cover.get("picKey").asString
+                        else -> null
+                    }
+                } else if (paramV2.has("baseInfo") && paramV2.get("baseInfo").isJsonObject) {
+                    val base = paramV2.getAsJsonObject("baseInfo")
+                    when {
+                        base.has("pic") && base.get("pic").isJsonPrimitive -> base.get("pic").asString
+                        base.has("pictureKey") && base.get("pictureKey").isJsonPrimitive -> base.get("pictureKey").asString
+                        base.has("picKey") && base.get("picKey").isJsonPrimitive -> base.get("picKey").asString
+                        else -> null
+                    }
+                } else if (paramV2.has("bgInfo") && paramV2.get("bgInfo").isJsonObject) {
+                    val bg = paramV2.getAsJsonObject("bgInfo")
+                    when {
+                        bg.has("picBg") && bg.get("picBg").isJsonPrimitive -> bg.get("picBg").asString
+                        bg.has("pic") && bg.get("pic").isJsonPrimitive -> bg.get("pic").asString
+                        else -> null
+                    }
+                } else null
+
+                // Ensure param_island exists and has both smallIslandArea and bigIslandArea
+                val islandObj = if (paramV2.has("param_island") && paramV2.get("param_island").isJsonObject) {
+                    paramV2.getAsJsonObject("param_island")
+                } else {
+                    val newIsland = com.google.gson.JsonObject()
+                    paramV2.add("param_island", newIsland)
+                    newIsland
+                }
+
+                if (!islandObj.has("islandProperty")) {
+                    islandObj.addProperty("islandProperty", 1)
+                }
+
+                if (!islandObj.has("smallIslandArea")) {
+                    if (paramV2.has("smallIslandArea")) {
+                        islandObj.add("smallIslandArea", paramV2.get("smallIslandArea"))
+                    } else {
+                        val smallIsland = com.google.gson.JsonObject()
+                        smallIsland.addProperty("leftImage", leftPicKey ?: "poster")
+                        smallIsland.addProperty("rightImage", "hidden_pixel")
+                        islandObj.add("smallIslandArea", smallIsland)
+                    }
+                }
+
+                if (!islandObj.has("bigIslandArea")) {
+                    if (paramV2.has("bigIslandArea")) {
+                        islandObj.add("bigIslandArea", paramV2.get("bigIslandArea"))
+                    } else if (paramV2.has("baseInfo") && paramV2.get("baseInfo").isJsonObject) {
+                        val base = paramV2.getAsJsonObject("baseInfo")
+                        val bigIsland = com.google.gson.JsonObject()
+                        val left = com.google.gson.JsonObject()
+                        left.addProperty("type", 1)
+                        if (leftPicKey != null) {
+                            left.addProperty("pic", leftPicKey)
+                        } else if (base.has("picInfo")) {
+                            left.add("picInfo", base.get("picInfo"))
+                        }
+                        val textInfo = com.google.gson.JsonObject()
+                        if (base.has("title")) textInfo.add("title", base.get("title"))
+                        if (base.has("subTitle")) textInfo.add("content", base.get("subTitle"))
+                        else if (base.has("content")) textInfo.add("content", base.get("content"))
+                        left.add("textInfo", textInfo)
+                        bigIsland.add("imageTextInfoLeft", left)
+                        islandObj.add("bigIslandArea", bigIsland)
+                    }
+                }
+
+                val finalRoot = com.google.gson.JsonObject()
+                finalRoot.add("param_v2", paramV2)
+                com.google.gson.Gson().toJson(finalRoot)
+            } catch (e: Exception) {
+                runCatching { Log.e(TAG, " [validateOrNormalizeParamV2] JSON parse failed: ${e.message}\nJSON was:\n$jsonString", e) }
+                null
+            }
+        }
+    }
+
+    private fun interpolate(
+        template: String,
+        variables: Map<String, String>,
+        availablePictures: Set<String> = emptySet()
+    ): String = interpolateStatic(template, variables, availablePictures)
 
     private fun resolveActionSlots(
         sbn: StatusBarNotification,

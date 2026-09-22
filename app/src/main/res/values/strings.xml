@@ -1413,6 +1413,11 @@
     <string name="translators_export_success">Translator exported successfully</string>
     <string name="translators_export_failed">Failed to export translator</string>
     <string name="translators_share_failed">Failed to share translator</string>
+
+    <!-- Raw Param V2 Strings -->
+    <string name="translator_raw_param_badge">Developer Raw Param V2</string>
+    <string name="translator_raw_param_banner_title">Direct JSON Island Template</string>
+    <string name="translator_raw_param_banner_desc">This translator uses a developer-defined raw param_v2 structure with custom variables and actions. Layout, compact pill, progress, and actions are managed within the raw template.</string>
 </resources>
 
 

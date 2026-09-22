@@ -24,6 +24,8 @@ data class CustomTranslator(
     @SerialName("engine_mode") val engineMode: EngineMode = EngineMode.INHERIT,
     @SerialName("behavior_override") val behaviorOverride: BehaviorOverride = BehaviorOverride(),
     @SerialName("data_extraction") val dataExtraction: DataExtractionConfig = DataExtractionConfig(),
+    @SerialName("custom_variables") val customVariables: List<CustomVariableDefinition> = emptyList(),
+    @SerialName("custom_actions") val customActions: List<CustomActionDefinition> = emptyList(),
     val presentation: PresentationConfig = PresentationConfig()
 ) {
     companion object {
@@ -164,6 +166,103 @@ data class DataExtractionConfig(
 )
 
 @Serializable
+data class CustomVariableDefinition(
+    val id: String,
+    val label: String = "",
+    val type: VariableType = VariableType.TEXT,
+    val source: VariableSource = VariableSource.NOTIFICATION_TEXT,
+    @SerialName("extra_key") val extraKey: String? = null,
+    @SerialName("regex_pattern") val regexPattern: String? = null,
+    @SerialName("regex_group") val regexGroup: String = "1",
+    @SerialName("transform_template") val transformTemplate: String? = null,
+    @SerialName("fallback_chain") val fallbackChain: List<String> = emptyList(),
+    @SerialName("fallback_value") val fallbackValue: String = "",
+    @SerialName("step_config") val stepConfig: StepExtractionConfig? = null,
+    @SerialName("image_config") val imageConfig: VariableImageConfig? = null
+)
+
+@Serializable
+enum class VariableType {
+    @SerialName("TEXT") TEXT,
+    @SerialName("NUMBER") NUMBER,
+    @SerialName("BOOLEAN") BOOLEAN,
+    @SerialName("COLOR") COLOR,
+    @SerialName("IMAGE") IMAGE,
+    @SerialName("STEP_PROGRESS") STEP_PROGRESS
+}
+
+@Serializable
+enum class VariableSource {
+    @SerialName("NOTIFICATION_TITLE") NOTIFICATION_TITLE,
+    @SerialName("NOTIFICATION_TEXT") NOTIFICATION_TEXT,
+    @SerialName("NOTIFICATION_SUBTEXT") NOTIFICATION_SUBTEXT,
+    @SerialName("NOTIFICATION_INFO_TEXT") NOTIFICATION_INFO_TEXT,
+    @SerialName("NOTIFICATION_BIG_TEXT") NOTIFICATION_BIG_TEXT,
+    @SerialName("NOTIFICATION_SUMMARY_TEXT") NOTIFICATION_SUMMARY_TEXT,
+    @SerialName("NOTIFICATION_TEXT_LINES") NOTIFICATION_TEXT_LINES,
+    @SerialName("NOTIFICATION_EXTRA") NOTIFICATION_EXTRA,
+    @SerialName("SENDER_NAME") SENDER_NAME,
+    @SerialName("CONVERSATION_TITLE") CONVERSATION_TITLE,
+    @SerialName("IS_GROUP_CONVERSATION") IS_GROUP_CONVERSATION,
+    @SerialName("NOTIFICATION_PROGRESS") NOTIFICATION_PROGRESS,
+    @SerialName("STEP_PROGRESS_AUTO") STEP_PROGRESS_AUTO,
+    @SerialName("PERSON_ICON") PERSON_ICON,
+    @SerialName("NOTIFICATION_LARGE_ICON") NOTIFICATION_LARGE_ICON,
+    @SerialName("NOTIFICATION_APP_ICON") NOTIFICATION_APP_ICON,
+    @SerialName("NOTIFICATION_EXTRA_BITMAP") NOTIFICATION_EXTRA_BITMAP,
+    @SerialName("HTRANS_EMBEDDED_ASSET") HTRANS_EMBEDDED_ASSET,
+    @SerialName("THEME_RESOURCE_PATH") THEME_RESOURCE_PATH,
+    @SerialName("STATIC_VALUE") STATIC_VALUE
+}
+
+@Serializable
+data class StepExtractionConfig(
+    @SerialName("total_steps") val totalSteps: Int = 4,
+    @SerialName("step_regex") val stepRegex: String? = null,
+    @SerialName("step_group") val stepGroup: Int = 1,
+    @SerialName("step_keywords") val stepKeywords: Map<String, Int> = emptyMap()
+)
+
+@Serializable
+data class VariableImageConfig(
+    @SerialName("asset_path") val assetPath: String? = null,
+    @SerialName("theme_resource") val themeResource: ThemeResource? = null,
+    @SerialName("shape_id") val shapeId: String = "circle",
+    @SerialName("padding_percent") val paddingPercent: Int = 0,
+    @SerialName("tint_color") val tintColor: String? = null,
+    @SerialName("fallback_image_source") val fallbackImageSource: VariableSource? = VariableSource.NOTIFICATION_APP_ICON
+)
+
+@Serializable
+data class CustomActionDefinition(
+    val id: String,
+    val label: String? = null,
+    val source: CustomActionSource = CustomActionSource.NOTIFICATION_ACTION_INDEX,
+    @SerialName("action_index") val actionIndex: Int = 0,
+    @SerialName("title_regex") val titleRegex: String? = null,
+    @SerialName("smart_action_type") val smartActionType: SmartActionCategory? = null,
+    @SerialName("fallback_action_id") val fallbackActionId: String? = null,
+    @SerialName("icon_override") val iconOverride: VariableImageConfig? = null
+)
+
+@Serializable
+enum class CustomActionSource {
+    @SerialName("NOTIFICATION_ACTION_INDEX") NOTIFICATION_ACTION_INDEX,
+    @SerialName("NOTIFICATION_ACTION_TITLE_REGEX") NOTIFICATION_ACTION_TITLE_REGEX,
+    @SerialName("SMART_ACTION") SMART_ACTION,
+    @SerialName("INLINE_REPLY") INLINE_REPLY,
+    @SerialName("CUSTOM_BROADCAST") CUSTOM_BROADCAST
+}
+
+@Serializable
+enum class SmartActionCategory {
+    @SerialName("OTP") OTP,
+    @SerialName("URL") URL,
+    @SerialName("PHONE") PHONE,
+    @SerialName("TRACKING") TRACKING
+}
+
+@Serializable
 data class PresentationConfig(
     val mode: PresentationMode = PresentationMode.STANDARD,
     @SerialName("template_id") val templateId: String? = null,
@@ -172,7 +271,24 @@ data class PresentationConfig(
     @SerialName("text_slot") val textSlot: TextSlotConfig = TextSlotConfig(),
     @SerialName("progress_slot") val progressSlot: ProgressSlotConfig = ProgressSlotConfig(),
     @SerialName("action_slots") val actionSlots: List<ActionSlotConfig> = emptyList(),
-    @SerialName("pill") val pill: CompactPillConfig = CompactPillConfig()
+    @SerialName("pill") val pill: CompactPillConfig = CompactPillConfig(),
+    @SerialName("raw_param_v2") val rawParamV2: RawParamV2Config? = null
+)
+
+@Serializable
+enum class PresentationMode {
+    @SerialName("STANDARD") STANDARD,
+    @SerialName("TEMPLATE") TEMPLATE,
+    @SerialName("WIDGET") WIDGET,
+    @SerialName("RAW_PARAM_V2") RAW_PARAM_V2
+}
+
+@Serializable
+data class RawParamV2Config(
+    @SerialName("json_template") val jsonTemplate: String = "",
+    @SerialName("fallback_to_standard_on_error") val fallbackToStandardOnError: Boolean = true,
+    @SerialName("bundle_pictures") val bundlePictures: Boolean = true,
+    @SerialName("bundle_actions") val bundleActions: Boolean = true
 )
 
 @Serializable
@@ -197,13 +313,6 @@ enum class PillRightDesign {
     @SerialName("TIMER") TIMER,
     @SerialName("HIGHLIGHT_TEXT") HIGHLIGHT_TEXT,
     @SerialName("NONE") NONE
-}
-
-@Serializable
-enum class PresentationMode {
-    @SerialName("STANDARD") STANDARD,
-    @SerialName("TEMPLATE") TEMPLATE,
-    @SerialName("WIDGET") WIDGET
 }
 
 @Serializable

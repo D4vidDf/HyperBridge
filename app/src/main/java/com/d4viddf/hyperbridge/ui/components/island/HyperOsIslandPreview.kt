@@ -117,29 +117,104 @@ fun HyperOsIslandPreview(
         Color.White
     }
 
-    // 2. Interpolate Real Dynamic Values
-    val titleText = translator.presentation.textSlot.titleTemplate
+    // 2. Interpolate Dynamic Values (Supporting both Visual Slots and RAW_PARAM_V2)
+    val isRawMode = translator.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.RAW_PARAM_V2
+    val rawJson = translator.presentation.rawParamV2?.jsonTemplate ?: ""
+
+    var titleText = translator.presentation.textSlot.titleTemplate
+    var subtitleText = translator.presentation.textSlot.subtitleTemplate
+    var highlightText = translator.presentation.textSlot.highlightTextTemplate
+    var parsedHighlightColor = highlightColor
+    var pillTitle = titleText
+    var pillRightText = if (translator.presentation.progressSlot.type == ProgressSlotType.TIMER) "04:25" else "00:05"
+    var isTimerMode = translator.presentation.progressSlot.type == ProgressSlotType.TIMER
+    var hasProgress = translator.presentation.progressSlot.type != ProgressSlotType.NONE && translator.presentation.progressSlot.type != ProgressSlotType.TIMER
+    var progressPercent = 65
+
+    if (isRawMode && rawJson.isNotBlank()) {
+        try {
+            val element = com.google.gson.JsonParser.parseString(rawJson)
+            val root = if (element.isJsonObject) {
+                val obj = element.asJsonObject
+                if (obj.has("param_v2")) obj.getAsJsonObject("param_v2") else obj
+            } else null
+
+            if (root != null) {
+                val island = root.getAsJsonObject("param_island")
+                val bigIsland = island?.getAsJsonObject("bigIslandArea")
+                val leftInfo = bigIsland?.getAsJsonObject("imageTextInfoLeft")
+                val textInfo = leftInfo?.getAsJsonObject("textInfo") ?: leftInfo?.getAsJsonObject("miui.focus.paramtextInfo")
+                val baseInfo = root.getAsJsonObject("baseInfo")
+
+                val extractedTitle = textInfo?.get("title")?.asString
+                    ?: baseInfo?.get("title")?.asString
+                    ?: root.get("ticker")?.asString
+                val extractedContent = textInfo?.get("content")?.asString
+                    ?: baseInfo?.get("content")?.asString
+                val extractedFront = textInfo?.get("frontTitle")?.asString
+
+                val rawHighlight = island?.get("highlightColor")?.asString
+                if (!rawHighlight.isNullOrBlank()) {
+                    parsedHighlightColor = safeParseColor(rawHighlight)
+                }
+
+                if (!extractedTitle.isNullOrBlank()) {
+                    titleText = extractedTitle
+                    pillTitle = extractedTitle
+                }
+                if (!extractedContent.isNullOrBlank()) {
+                    subtitleText = extractedContent
+                }
+                if (!extractedFront.isNullOrBlank()) {
+                    highlightText = extractedFront
+                }
+
+                val rightInfo = bigIsland?.getAsJsonObject("imageTextInfoRight")
+                val rightText = rightInfo?.getAsJsonObject("textInfo")?.get("title")?.asString
+                if (!rightText.isNullOrBlank()) {
+                    pillRightText = rightText
+                }
+
+                val progressInfo = bigIsland?.getAsJsonObject("progressInfo")
+                if (progressInfo != null) {
+                    hasProgress = true
+                    progressPercent = progressInfo.get("progress")?.asInt ?: 65
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    titleText = titleText
+        .replace("{media.track}", "Never Gonna Give You Up")
+        .replace("{media.artist}", "Rick Astley")
         .replace("{notif.title}", "Ride Arriving Soon")
         .replace("{notif.text}", "Driver is 2 minutes away (Toyota Camry)")
         .replace("{notif.subtext}", "License: ABC-1234")
         .replace("{notif.sender}", "Alex")
         .replace("{notif.conversation}", "Trip Updates")
         .replace("{notif.app}", "RideApp")
+        .replace("{app.name}", "RideApp")
 
-    val subtitleText = translator.presentation.textSlot.subtitleTemplate
+    subtitleText = subtitleText
+        .replace("{media.track}", "Never Gonna Give You Up")
+        .replace("{media.artist}", "Rick Astley")
         .replace("{notif.title}", "Ride Arriving Soon")
         .replace("{notif.text}", "Driver is 2 minutes away (Toyota Camry)")
         .replace("{notif.subtext}", "License: ABC-1234")
         .replace("{notif.sender}", "Alex")
         .replace("{notif.conversation}", "Trip Updates")
         .replace("{notif.app}", "RideApp")
+        .replace("{app.name}", "RideApp")
 
-    val highlightText = translator.presentation.textSlot.highlightTextTemplate
+    highlightText = highlightText
+        ?.replace("{media.track}", "Never Gonna Give You Up")
+        ?.replace("{media.artist}", "Rick Astley")
         ?.replace("{notif.title}", "Ride Arriving Soon")
         ?.replace("{notif.text}", "Driver is 2 minutes away (Toyota Camry)")
         ?.replace("{notif.subtext}", "License: ABC-1234")
         ?.replace("{notif.sender}", "Alex")
         ?.replace("{notif.app}", "RideApp")
+        ?.replace("{app.name}", "RideApp")
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -250,11 +325,11 @@ fun HyperOsIslandPreview(
                             HyperOsCompactPill(
                                 leftDesign = translator.presentation.pill.leftDesign,
                                 rightDesign = translator.presentation.pill.rightDesign,
-                                title = titleText,
-                                rightText = if (translator.presentation.progressSlot.type == ProgressSlotType.TIMER) "04:25" else "00:05",
-                                progressPercent = 65,
-                                hasProgress = translator.presentation.progressSlot.type != ProgressSlotType.NONE && translator.presentation.progressSlot.type != ProgressSlotType.TIMER,
-                                highlightColor = highlightColor,
+                                title = pillTitle,
+                                rightText = pillRightText,
+                                progressPercent = progressPercent,
+                                hasProgress = hasProgress,
+                                highlightColor = parsedHighlightColor,
                                 iconShape = iconShape
                             )
                         }
@@ -285,7 +360,7 @@ fun HyperOsIslandPreview(
                             ) {
                                 HyperOsLeftGraphic(
                                     source = translator.presentation.leftSlot.source,
-                                    highlightColor = highlightColor,
+                                    highlightColor = parsedHighlightColor,
                                     iconShape = iconShape
                                 )
 
@@ -293,17 +368,17 @@ fun HyperOsIslandPreview(
                                     title = titleText,
                                     subtitle = subtitleText,
                                     highlightText = highlightText,
-                                    highlightColor = highlightColor,
+                                    highlightColor = parsedHighlightColor,
                                     textColor = textColor,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
 
                             // Row 2: Progress (if configured)
-                            if (translator.presentation.progressSlot.type != ProgressSlotType.NONE) {
+                            if (hasProgress || translator.presentation.progressSlot.type != ProgressSlotType.NONE) {
                                 Spacer(Modifier.height(2.dp))
                                 HyperOsProgressBar(
-                                    progressPercent = 65,
+                                    progressPercent = progressPercent,
                                     progressSlot = translator.presentation.progressSlot,
                                     highlightColor = progressColor
                                 )
@@ -314,7 +389,7 @@ fun HyperOsIslandPreview(
                                 Spacer(Modifier.height(4.dp))
                                 HyperOsActionButtons(
                                     actionSlots = translator.presentation.actionSlots,
-                                    highlightColor = highlightColor,
+                                    highlightColor = parsedHighlightColor,
                                     buttonShape = iconShape,
                                     buttonPaddingPercent = buttonPaddingPercent,
                                     buttonBackgroundColor = buttonBackgroundColor,

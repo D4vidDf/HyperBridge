@@ -2199,7 +2199,10 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
+        val picsKeys = data.resources.getBundle("miui.focus.pics")?.keySet()?.joinToString(", ") ?: "none"
         Log.i(TAG, " [POSTING ISLAND] id=$bridgeId, pkg=${sbn.packageName}, shouldAlertOnce=$shouldAlertOnce")
+        Log.i(TAG, " [POSTING ISLAND] miui.focus.param:\n${data.jsonParam}")
+        Log.i(TAG, " [POSTING ISLAND] miui.focus.pics: [$picsKeys]")
 
         BridgeIslandGroup.ensureSummaryFor(this, notification)
         if (!shouldAlertOnce) {
