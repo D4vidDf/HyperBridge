@@ -87,6 +87,7 @@ private fun String.withSample(sample: IslandPreviewSample): String = this
     .replace("{notif.app}", sample.app)
     .replace("{app.name}", sample.app)
     .replace("{regex.1}", sample.subtext)
+    .replace("{smart_action.OTP.code}", sample.subtext)
 
 /**
  * Top-Level Realistic HyperOS 3 Island Previewer

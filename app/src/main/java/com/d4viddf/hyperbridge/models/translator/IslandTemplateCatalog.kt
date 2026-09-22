@@ -75,7 +75,8 @@ object IslandTemplateCatalog {
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
                     subtitleTemplate = "{notif.text}",
-                    highlightTextTemplate = "{regex.1}"
+                    // Filled by DynamicTranslator's OTP extraction; nothing ever fills {regex.N}.
+                    highlightTextTemplate = "{smart_action.OTP.code}"
                 ),
                 actionSlots = listOf(
                     ActionSlotConfig(

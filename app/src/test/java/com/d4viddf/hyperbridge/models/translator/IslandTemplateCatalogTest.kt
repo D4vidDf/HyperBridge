@@ -42,6 +42,22 @@ class IslandTemplateCatalogTest {
     }
 
     @Test
+    fun presetsOnlyUseVariablesTheTranslatorFills() {
+        // DynamicTranslator.buildVariableMap has no {regex.N}: a preset using it rendered blank.
+        val filled = setOf(
+            "notif.title", "notif.text", "notif.subtext", "notif.sender", "notif.caller_name",
+            "media.track", "media.artist", "smart_action.OTP.code", "progress.percent"
+        )
+        val token = Regex("\\{([^}]+)\\}")
+        IslandTemplateCatalog.all.forEach { template ->
+            val slot = template.presentation.textSlot
+            listOfNotNull(slot.titleTemplate, slot.subtitleTemplate, slot.highlightTextTemplate)
+                .flatMap { t -> token.findAll(t).map { it.groupValues[1] }.toList() }
+                .forEach { assertTrue("${template.id} uses {$it}", it in filled) }
+        }
+    }
+
+    @Test
     fun unknownTemplateIdLeavesThePresentationAlone() {
         val config = PresentationConfig(mode = PresentationMode.TEMPLATE, templateId = "tpl_not_a_template")
         assertEquals(config, IslandTemplateCatalog.effectivePresentation(config))
