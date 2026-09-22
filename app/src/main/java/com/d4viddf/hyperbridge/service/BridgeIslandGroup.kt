@@ -42,9 +42,25 @@ object BridgeIslandGroup {
     /** Posts the summary if [notification] is a child and no summary is active. */
     fun ensureSummaryFor(context: Context, notification: Notification) {
         if (!enabled || notification.group != GROUP_KEY) return
+        // A child is on its way. Its post can sit in the Shizuku queue for a while, so a release
+        // armed by an earlier removal must not fire and pull the summary out from under it.
+        handler.removeCallbacksAndMessages(releaseToken)
         val active = ownNotifications(context) ?: return
         if (!BridgeIslandGroupPolicy.needsSummary(active)) return
         postSummary(context)
+    }
+
+    /**
+     * Called when one of our children actually reaches the shade (listener callback). Covers the
+     * case where the release still won the race against a slow post: the child must not sit there
+     * without a summary until the next sync tick.
+     */
+    fun onChildPosted(context: Context, notification: Notification) {
+        if (!enabled || notification.group != GROUP_KEY) return
+        if (notification.flags and Notification.FLAG_GROUP_SUMMARY != 0) return
+        handler.removeCallbacksAndMessages(releaseToken)
+        val active = ownNotifications(context) ?: return
+        if (BridgeIslandGroupPolicy.shouldRestoreSummary(active)) postSummary(context)
     }
 
     /**
@@ -88,8 +104,10 @@ object BridgeIslandGroup {
     }
 
     /**
-     * Cancels the summary once no child is left. Debounced: a Shizuku-style cancel+repost of the
-     * only child must not tear the summary down in between.
+     * Cancels the summary once no child is left, or brings it back if children outlived it (the
+     * user swiped the summary row). Debounced: a Shizuku-style cancel+repost of the only child
+     * must not tear the summary down in between, and swiping the summary usually takes its
+     * children with it a moment later.
      */
     fun scheduleRelease(context: Context) {
         val app = context.applicationContext
@@ -99,6 +117,10 @@ object BridgeIslandGroup {
 
     private fun releaseIfEmpty(context: Context) {
         val active = ownNotifications(context) ?: return
+        if (enabled && BridgeIslandGroupPolicy.shouldRestoreSummary(active)) {
+            postSummary(context)
+            return
+        }
         if (!BridgeIslandGroupPolicy.shouldReleaseSummary(active)) return
         try {
             NotificationManagerCompat.from(context).cancel(SUMMARY_ID)

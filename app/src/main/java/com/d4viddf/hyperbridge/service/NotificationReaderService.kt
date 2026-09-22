@@ -543,7 +543,11 @@ class NotificationReaderService : NotificationListenerService() {
                 // The listener-down warning is not an island; dismissing it is not a bridge event.
                 if (BridgeNotificationChannels.isServiceHealth(it.notification.channelId)) return
                 // The group summary is bookkeeping, not an island: never a bridge event (#331).
-                if (notifId == BridgeIslandGroup.SUMMARY_ID) return
+                // If the user swiped it while islands are still up, it has to come back.
+                if (notifId == BridgeIslandGroup.SUMMARY_ID) {
+                    BridgeIslandGroup.scheduleRelease(this)
+                    return
+                }
                 BridgeIslandGroup.scheduleRelease(this)
                 val replacement = internalBridgeReplacements.consume(notifId, System.currentTimeMillis())
                 if (replacement != null) {
@@ -1011,7 +1015,9 @@ class NotificationReaderService : NotificationListenerService() {
         }
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
-            if (it.packageName != packageName) {
+            if (it.packageName == packageName) {
+                BridgeIslandGroup.onChildPosted(this, it.notification)
+            } else {
                 val yieldMs = nativeIslandYieldMs(it)
                 if (yieldMs != null) {
                     if (noteNativeIsland(it.key, yieldMs)) updatePermanentIsland()
