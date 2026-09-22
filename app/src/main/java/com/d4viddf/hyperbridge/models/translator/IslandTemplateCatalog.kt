@@ -1,0 +1,341 @@
+package com.d4viddf.hyperbridge.models.translator
+
+import androidx.annotation.StringRes
+import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.models.NotificationType
+import java.util.UUID
+
+/**
+ * One of Xiaomi's official Super Island templates (#272).
+ *
+ * A template is not a storage format of its own: it is a named [PresentationConfig] preset plus
+ * the metadata needed to show it in the gallery. Picking one produces an ordinary
+ * [CustomTranslator] with `presentation.mode = TEMPLATE`, so templates ride the Phase 3 translator
+ * pipeline (matching, priority, .htrans import/export, theming) instead of a parallel one.
+ */
+data class IslandTemplate(
+    val id: String,
+    @StringRes val nameRes: Int,
+    @StringRes val descriptionRes: Int,
+    val iconName: String,
+    val suggestedTypes: List<NotificationType>,
+    @StringRes val sampleTitleRes: Int,
+    @StringRes val sampleTextRes: Int,
+    @StringRes val sampleHighlightRes: Int? = null,
+    /** T12 (compact media) is kept resolvable for existing translators but is not one of the ten. */
+    val showInGallery: Boolean = true,
+    val presentation: PresentationConfig
+) {
+    val showsProgress: Boolean get() = presentation.progressSlot.type != ProgressSlotType.NONE
+    val showsActions: Boolean get() = presentation.actionSlots.any { it.isVisible }
+
+    /** The translator a gallery card previews: this template applied to nothing in particular. */
+    fun previewTranslator(): CustomTranslator = CustomTranslator(
+        id = "preview_$id",
+        meta = TranslatorMetadata(name = id),
+        presentation = presentation.copy(mode = PresentationMode.TEMPLATE, templateId = id)
+    )
+}
+
+object IslandTemplateCatalog {
+
+    /**
+     * The ten official templates, in Xiaomi's own order, plus the compact media player (T12) that
+     * [com.d4viddf.hyperbridge.service.translators.DynamicTranslator] already recognises by id.
+     */
+    val all: List<IslandTemplate> = listOf(
+        IslandTemplate(
+            id = "tpl_weather_nav",
+            nameRes = R.string.translator_pres_template_default,
+            descriptionRes = R.string.island_template_desc_weather_nav,
+            iconName = "Navigation",
+            suggestedTypes = listOf(NotificationType.NAVIGATION, NotificationType.STANDARD),
+            sampleTitleRes = R.string.island_template_sample_weather_nav_title,
+            sampleTextRes = R.string.island_template_sample_weather_nav_text,
+            sampleHighlightRes = R.string.island_template_sample_weather_nav_highlight,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}",
+                    highlightTextTemplate = "{notif.subtext}"
+                ),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_payment_wallet",
+            nameRes = R.string.translator_pres_template_payment,
+            descriptionRes = R.string.island_template_desc_payment,
+            iconName = "Star",
+            suggestedTypes = listOf(NotificationType.MESSAGE, NotificationType.STANDARD),
+            sampleTitleRes = R.string.island_template_sample_payment_title,
+            sampleTextRes = R.string.island_template_sample_payment_text,
+            sampleHighlightRes = R.string.island_template_sample_payment_highlight,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}",
+                    highlightTextTemplate = "{regex.1}"
+                ),
+                actionSlots = listOf(
+                    ActionSlotConfig(
+                        slotPosition = 0,
+                        source = ActionSource.SMART_ACTION,
+                        smartActionType = SmartActionType.OTP_COPY,
+                        displayMode = ActionDisplayMode.ICON_AND_TEXT
+                    )
+                ),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_call_kit",
+            nameRes = R.string.translator_pres_template_call,
+            descriptionRes = R.string.island_template_desc_call,
+            iconName = "Call",
+            suggestedTypes = listOf(NotificationType.CALL),
+            sampleTitleRes = R.string.island_template_sample_call_title,
+            sampleTextRes = R.string.island_template_sample_call_text,
+            presentation = PresentationConfig(
+                leftSlot = SlotConfig(source = "AVATAR"),
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}"
+                ),
+                actionSlots = listOf(
+                    ActionSlotConfig(
+                        slotPosition = 0,
+                        actionMatcher = ActionMatcher(actionIndex = 0),
+                        displayMode = ActionDisplayMode.ICON_ONLY
+                    ),
+                    ActionSlotConfig(
+                        slotPosition = 1,
+                        actionMatcher = ActionMatcher(actionIndex = 1),
+                        displayMode = ActionDisplayMode.ICON_ONLY
+                    )
+                ),
+                pill = CompactPillConfig(PillLeftDesign.AVATAR, PillRightDesign.TIMER)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_ride_delivery",
+            nameRes = R.string.translator_pres_template_delivery,
+            descriptionRes = R.string.island_template_desc_delivery,
+            iconName = "DirectionsCar",
+            suggestedTypes = listOf(NotificationType.PROGRESS, NotificationType.STANDARD),
+            sampleTitleRes = R.string.island_template_sample_delivery_title,
+            sampleTextRes = R.string.island_template_sample_delivery_text,
+            sampleHighlightRes = R.string.island_template_sample_delivery_highlight,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}",
+                    highlightTextTemplate = "{notif.subtext}"
+                ),
+                progressSlot = ProgressSlotConfig(type = ProgressSlotType.WAYPOINT, showPercentage = false),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_queue_wait",
+            nameRes = R.string.translator_pres_template_queue,
+            descriptionRes = R.string.island_template_desc_queue,
+            iconName = "Speed",
+            suggestedTypes = listOf(NotificationType.PROGRESS, NotificationType.STANDARD),
+            sampleTitleRes = R.string.island_template_sample_queue_title,
+            sampleTextRes = R.string.island_template_sample_queue_text,
+            sampleHighlightRes = R.string.island_template_sample_queue_highlight,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}",
+                    highlightTextTemplate = "{notif.subtext}"
+                ),
+                progressSlot = ProgressSlotConfig(type = ProgressSlotType.WAYPOINT, showPercentage = false),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_parking_meter",
+            nameRes = R.string.translator_pres_template_parking,
+            descriptionRes = R.string.island_template_desc_parking,
+            iconName = "Timer",
+            suggestedTypes = listOf(NotificationType.TIMER, NotificationType.PROGRESS),
+            sampleTitleRes = R.string.island_template_sample_parking_title,
+            sampleTextRes = R.string.island_template_sample_parking_text,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}"
+                ),
+                progressSlot = ProgressSlotConfig(type = ProgressSlotType.TIMER),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.TIMER)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_file_transfer",
+            nameRes = R.string.translator_pres_template_download,
+            descriptionRes = R.string.island_template_desc_transfer,
+            iconName = "Download",
+            suggestedTypes = listOf(NotificationType.DOWNLOAD, NotificationType.PROGRESS),
+            sampleTitleRes = R.string.island_template_sample_transfer_title,
+            sampleTextRes = R.string.island_template_sample_transfer_text,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}"
+                ),
+                progressSlot = ProgressSlotConfig(type = ProgressSlotType.PROGRESS_BAR, showPercentage = true),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.PROGRESS_PERCENT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_promo_coupon",
+            nameRes = R.string.translator_pres_template_promo,
+            descriptionRes = R.string.island_template_desc_promo,
+            iconName = "ShoppingBag",
+            suggestedTypes = listOf(NotificationType.STANDARD),
+            sampleTitleRes = R.string.island_template_sample_promo_title,
+            sampleTextRes = R.string.island_template_sample_promo_text,
+            sampleHighlightRes = R.string.island_template_sample_promo_highlight,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}",
+                    highlightTextTemplate = "{notif.subtext}"
+                ),
+                actionSlots = listOf(
+                    ActionSlotConfig(
+                        slotPosition = 0,
+                        source = ActionSource.SMART_ACTION,
+                        smartActionType = SmartActionType.OPEN_URL,
+                        fallbackToSource = ActionSource.NOTIFICATION_ACTION,
+                        displayMode = ActionDisplayMode.ICON_AND_TEXT
+                    )
+                ),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_boarding_pass",
+            nameRes = R.string.island_template_boarding,
+            descriptionRes = R.string.island_template_desc_boarding,
+            iconName = "Flight",
+            suggestedTypes = listOf(NotificationType.STANDARD),
+            sampleTitleRes = R.string.island_template_sample_boarding_title,
+            sampleTextRes = R.string.island_template_sample_boarding_text,
+            sampleHighlightRes = R.string.island_template_sample_boarding_highlight,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}",
+                    highlightTextTemplate = "{notif.subtext}"
+                ),
+                actionSlots = listOf(
+                    ActionSlotConfig(
+                        slotPosition = 0,
+                        actionMatcher = ActionMatcher(actionIndex = 0),
+                        displayMode = ActionDisplayMode.ICON_AND_TEXT
+                    )
+                ),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_courier_tracking",
+            nameRes = R.string.island_template_courier,
+            descriptionRes = R.string.island_template_desc_courier,
+            iconName = "LocalShipping",
+            suggestedTypes = listOf(NotificationType.PROGRESS, NotificationType.STANDARD),
+            sampleTitleRes = R.string.island_template_sample_courier_title,
+            sampleTextRes = R.string.island_template_sample_courier_text,
+            sampleHighlightRes = R.string.island_template_sample_courier_highlight,
+            presentation = PresentationConfig(
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{notif.title}",
+                    subtitleTemplate = "{notif.text}",
+                    highlightTextTemplate = "{notif.subtext}"
+                ),
+                progressSlot = ProgressSlotConfig(type = ProgressSlotType.WAYPOINT, showPercentage = false),
+                actionSlots = listOf(
+                    ActionSlotConfig(
+                        slotPosition = 0,
+                        source = ActionSource.SMART_ACTION,
+                        smartActionType = SmartActionType.TRACK_PACKAGE,
+                        fallbackToSource = ActionSource.NOTIFICATION_ACTION,
+                        displayMode = ActionDisplayMode.ICON_AND_TEXT
+                    )
+                ),
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+            )
+        ),
+        IslandTemplate(
+            id = "tpl_media_compact",
+            nameRes = R.string.translator_pres_template_media,
+            descriptionRes = R.string.island_template_desc_media,
+            iconName = "MusicNote",
+            suggestedTypes = listOf(NotificationType.MEDIA),
+            sampleTitleRes = R.string.island_template_sample_media_title,
+            sampleTextRes = R.string.island_template_sample_media_text,
+            showInGallery = false,
+            presentation = PresentationConfig(
+                leftSlot = SlotConfig(source = "LARGE_ICON"),
+                textSlot = TextSlotConfig(
+                    titleTemplate = "{media.track}",
+                    subtitleTemplate = "{media.artist}"
+                ),
+                pill = CompactPillConfig(PillLeftDesign.ICON_ONLY, PillRightDesign.NONE)
+            )
+        )
+    )
+
+    /** The ten templates offered when adding a design. */
+    val gallery: List<IslandTemplate> = all.filter { it.showInGallery }
+
+    fun find(templateId: String?): IslandTemplate? =
+        templateId?.let { id -> all.firstOrNull { it.id == id } }
+
+    /**
+     * Fills the slots a TEMPLATE translator never touched with the template's own preset, so a
+     * translator that only carries a `templateId` (an imported .htrans, or one built before the
+     * gallery existed) still renders as that template. Anything the user edited wins.
+     */
+    fun effectivePresentation(config: PresentationConfig): PresentationConfig {
+        if (config.mode != PresentationMode.TEMPLATE) return config
+        val preset = find(config.templateId)?.presentation ?: return config
+        val defaults = PresentationConfig()
+        return config.copy(
+            leftSlot = if (config.leftSlot == defaults.leftSlot) preset.leftSlot else config.leftSlot,
+            textSlot = if (config.textSlot == defaults.textSlot) preset.textSlot else config.textSlot,
+            progressSlot = if (config.progressSlot == defaults.progressSlot) preset.progressSlot else config.progressSlot,
+            actionSlots = config.actionSlots.ifEmpty { preset.actionSlots },
+            pill = if (config.pill == defaults.pill) preset.pill else config.pill
+        )
+    }
+
+    /**
+     * A ready-to-save design: the template, shown for one notification type and nothing else.
+     * Everything finer grained (match conditions, per-element bindings) lives in the translator
+     * editor afterwards.
+     */
+    fun newDesign(
+        template: IslandTemplate,
+        notificationType: NotificationType,
+        name: String
+    ): CustomTranslator = CustomTranslator(
+        id = UUID.randomUUID().toString(),
+        meta = TranslatorMetadata(name = name, iconName = template.iconName),
+        targetScope = TargetScope.NOTIFICATION_TYPE,
+        targetNotificationTypes = listOf(notificationType.name),
+        presentation = template.presentation.copy(
+            mode = PresentationMode.TEMPLATE,
+            templateId = template.id
+        )
+    )
+}
+
+/** Resolves the template preset before rendering, so the pipeline only ever sees full slots. */
+fun CustomTranslator.withResolvedTemplate(): CustomTranslator {
+    val resolved = IslandTemplateCatalog.effectivePresentation(presentation)
+    return if (resolved == presentation) this else copy(presentation = resolved)
+}

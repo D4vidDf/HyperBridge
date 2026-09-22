@@ -1421,6 +1421,69 @@
     <string name="translator_raw_param_badge">Developer Raw Param V2</string>
     <string name="translator_raw_param_banner_title">Direct JSON Island Template</string>
     <string name="translator_raw_param_banner_desc">This translator uses a developer-defined raw param_v2 structure with custom variables and actions. Layout, compact pill, progress, and actions are managed within the raw template.</string>
+
+    <!-- Island Templates (Phase 4, #272) -->
+    <string name="island_template_boarding">Template 9: Boarding Pass</string>
+    <string name="island_template_courier">Template 10: Courier Tracking</string>
+
+    <string name="island_template_desc_weather_nav">Turn-by-turn directions or a weather alert, with the next step highlighted.</string>
+    <string name="island_template_desc_payment">A payment or one-time code, with the code pulled out and a copy button.</string>
+    <string name="island_template_desc_call">Caller avatar with the answer and hang-up buttons from the notification.</string>
+    <string name="island_template_desc_delivery">A ride or food order moving through its waypoints.</string>
+    <string name="island_template_desc_queue">Your place in a queue and how long is left.</string>
+    <string name="island_template_desc_parking">A parking or charging session counting up as a timer.</string>
+    <string name="island_template_desc_transfer">An upload or download with a percentage bar.</string>
+    <string name="island_template_desc_promo">A coupon or offer, with a button to open it.</string>
+    <string name="island_template_desc_boarding">Gate, seat and boarding time, with the airline action kept.</string>
+    <string name="island_template_desc_courier">A parcel moving through its delivery steps, with a tracking button.</string>
+    <string name="island_template_desc_media">Compact now-playing island for media notifications.</string>
+
+    <string name="island_template_sample_weather_nav_title">Turn right onto Gran Vía</string>
+    <string name="island_template_sample_weather_nav_text">450 m · 12 min to arrival</string>
+    <string name="island_template_sample_weather_nav_highlight">450 m</string>
+    <string name="island_template_sample_payment_title">Your verification code</string>
+    <string name="island_template_sample_payment_text">Never share this code with anyone</string>
+    <string name="island_template_sample_payment_highlight">418 302</string>
+    <string name="island_template_sample_call_title">Alex Moreno</string>
+    <string name="island_template_sample_call_text">Incoming call</string>
+    <string name="island_template_sample_delivery_title">Your order is on the way</string>
+    <string name="island_template_sample_delivery_text">Picked up · 2 stops away</string>
+    <string name="island_template_sample_delivery_highlight">8 min</string>
+    <string name="island_template_sample_queue_title">Table for two</string>
+    <string name="island_template_sample_queue_text">3 groups ahead of you</string>
+    <string name="island_template_sample_queue_highlight">~15 min</string>
+    <string name="island_template_sample_parking_title">Parking · Level 2</string>
+    <string name="island_template_sample_parking_text">Bay 114 · 2.40 € so far</string>
+    <string name="island_template_sample_transfer_title">holidays-2026.zip</string>
+    <string name="island_template_sample_transfer_text">Downloading · 128 MB of 200 MB</string>
+    <string name="island_template_sample_promo_title">Save 15 € on your next order</string>
+    <string name="island_template_sample_promo_text">Ends tonight at midnight</string>
+    <string name="island_template_sample_promo_highlight">HYPER15</string>
+    <string name="island_template_sample_boarding_title">IB3721 to Barcelona</string>
+    <string name="island_template_sample_boarding_text">Gate B14 · Seat 12A</string>
+    <string name="island_template_sample_boarding_highlight">Boarding 18:40</string>
+    <string name="island_template_sample_courier_title">Parcel out for delivery</string>
+    <string name="island_template_sample_courier_text">Left the local depot</string>
+    <string name="island_template_sample_courier_highlight">Today</string>
+    <string name="island_template_sample_media_title">Never Gonna Give You Up</string>
+    <string name="island_template_sample_media_text">Rick Astley</string>
+
+    <string name="island_template_badge_progress">Progress</string>
+    <string name="island_template_badge_actions">Buttons</string>
+
+    <string name="design_section_designs">Designs</string>
+    <string name="design_designs_empty_title">No designs yet</string>
+    <string name="design_designs_empty_subtitle">Start from one of the ten Xiaomi island templates</string>
+    <string name="design_add_design_title">Add a design</string>
+    <string name="design_add_from_template">From a template</string>
+    <string name="design_add_from_template_desc">Pick one of the ten official island templates</string>
+    <string name="design_add_custom">Custom design</string>
+    <string name="design_add_custom_desc">Build an island element by element (coming with the Widget Studio)</string>
+    <string name="design_template_gallery_title">Choose a template</string>
+    <string name="design_template_type_title">When should it show?</string>
+    <string name="design_template_type_desc">Pick the kind of notification this design applies to. You can add match conditions later from the translator editor.</string>
+    <string name="design_design_created">Design added</string>
+    <string name="translator_pres_template_gallery_desc">Pick a layout, then bind each element to the notification below.</string>
 </resources>
 
 
