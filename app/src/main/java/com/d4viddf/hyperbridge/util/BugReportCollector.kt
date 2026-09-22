@@ -1,6 +1,5 @@
 package com.d4viddf.hyperbridge.util
 
-import android.app.AppOpsManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -65,6 +64,27 @@ data class WidgetDiagnosticInfo(
     val showInShade: Boolean,
     val autoUpdate: Boolean,
     val updateIntervalMinutes: Int
+)
+
+data class CustomTranslatorDiagnosticInfo(
+    val id: String,
+    val name: String,
+    val author: String,
+    val version: String,
+    val isEnabled: Boolean,
+    val priority: Int,
+    val targetScope: String,
+    val targetPackages: List<String>,
+    val targetNotificationTypes: List<String>,
+    val engineMode: String,
+    val presentationMode: String,
+    val templateId: String?,
+    val leftSlotSource: String,
+    val hasProgress: Boolean,
+    val actionSlotsCount: Int,
+    val hasMessagingConditions: Boolean,
+    val hasCallConditions: Boolean,
+    val hasMediaConditions: Boolean
 )
 
 enum class AppConfigScope {
@@ -247,6 +267,40 @@ object BugReportCollector {
         }
     }
 
+    suspend fun collectCustomTranslatorsInfo(context: Context): List<CustomTranslatorDiagnosticInfo> {
+        return try {
+            val db = AppDatabase.getDatabase(context)
+            val entities = db.translatorDao().getAllTranslatorsFlow().first()
+            entities.mapNotNull { entity ->
+                val translator = entity.toCustomTranslator().getOrNull()
+                if (translator != null) {
+                    CustomTranslatorDiagnosticInfo(
+                        id = translator.id,
+                        name = translator.meta.name,
+                        author = translator.meta.author,
+                        version = translator.meta.version.toString(),
+                        isEnabled = translator.isEnabled,
+                        priority = translator.priority,
+                        targetScope = translator.targetScope.name,
+                        targetPackages = translator.targetPackages,
+                        targetNotificationTypes = translator.targetNotificationTypes,
+                        engineMode = translator.engineMode.name,
+                        presentationMode = translator.presentation.mode.name,
+                        templateId = translator.presentation.templateId,
+                        leftSlotSource = translator.presentation.leftSlot.source,
+                        hasProgress = translator.presentation.progressSlot.type != com.d4viddf.hyperbridge.models.translator.ProgressSlotType.NONE,
+                        actionSlotsCount = translator.presentation.actionSlots.size,
+                        hasMessagingConditions = translator.conditions.typeSpecificConditions?.messaging != null,
+                        hasCallConditions = translator.conditions.typeSpecificConditions?.call != null,
+                        hasMediaConditions = translator.conditions.typeSpecificConditions?.media != null
+                    )
+                } else null
+            }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
     fun collectDiagnosticsInfo(): DiagnosticsState {
         val baseState = DiagnosticsStore.state.value
         val isConnected = NotificationReaderService.isConnected || baseState.serviceConnected
@@ -268,7 +322,8 @@ object BugReportCollector {
         targetPackage: String?,
         appConfigText: String?,
         logcatText: String?,
-        diagnosticsState: DiagnosticsState? = null
+        diagnosticsState: DiagnosticsState? = null,
+        customTranslators: List<CustomTranslatorDiagnosticInfo>? = null
     ): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
         val timestamp = dateFormat.format(Date())
@@ -327,6 +382,29 @@ object BugReportCollector {
             sb.append("- **Engine Preference:** ${if (themeInfo.useNativeEngine) "Native Live Updates" else "Standard Engine"}\n\n")
         }
 
+        // Custom Translators
+        if (!customTranslators.isNullOrEmpty()) {
+            val enabledCount = customTranslators.count { it.isEnabled }
+            sb.append("#### Custom Translators (${customTranslators.size} configured, $enabledCount active)\n")
+            customTranslators.forEach { t ->
+                val status = if (t.isEnabled) "ACTIVE" else "DISABLED"
+                val pkgs = if (t.targetPackages.isNotEmpty()) " [${t.targetPackages.joinToString(", ")}]" else ""
+                val types = if (t.targetNotificationTypes.isNotEmpty()) " [Types: ${t.targetNotificationTypes.joinToString(", ")}]" else ""
+                sb.append("- **${t.name}** (`${t.id}`, v${t.version}) - **$status** (Priority: ${t.priority})\n")
+                sb.append("  Scope: ${t.targetScope}$pkgs$types | Engine: ${t.engineMode}\n")
+                sb.append("  Presentation: ${t.presentationMode}${if (t.templateId != null) " (${t.templateId})" else ""} | Left Slot: ${t.leftSlotSource} | Actions: ${t.actionSlotsCount}\n")
+                val conditions = mutableListOf<String>()
+                if (t.hasMessagingConditions) conditions.add("Messaging")
+                if (t.hasCallConditions) conditions.add("Call")
+                if (t.hasMediaConditions) conditions.add("Media")
+                if (t.hasProgress) conditions.add("Progress")
+                if (conditions.isNotEmpty()) {
+                    sb.append("  Active Conditions: ${conditions.joinToString(", ")}\n")
+                }
+            }
+            sb.append("\n")
+        }
+
         // Widgets
         if (!widgetList.isNullOrEmpty()) {
             sb.append("#### Widget Configuration (${widgetList.size} widgets)\n")
@@ -359,6 +437,9 @@ object BugReportCollector {
             if (diagnosticsState.lastCallState != null) {
                 sb.append("- **Last Call State:** ${diagnosticsState.lastCallState}\n")
             }
+            if (diagnosticsState.lastCustomTranslator != null) {
+                sb.append("- **Last Custom Translator:** ${diagnosticsState.lastCustomTranslator}\n")
+            }
             if (diagnosticsState.events.isNotEmpty()) {
                 sb.append("- **Recent Events (${diagnosticsState.events.size}):**\n")
                 diagnosticsState.events.takeLast(20).forEach { ev ->
@@ -390,7 +471,8 @@ object BugReportCollector {
         selectedAppPackage: String? = null,
         appConfigText: String? = null,
         logcatText: String? = null,
-        diagnosticsState: DiagnosticsState? = null
+        diagnosticsState: DiagnosticsState? = null,
+        customTranslators: List<CustomTranslatorDiagnosticInfo>? = null
     ): String {
         val androidOption = when {
             deviceInfo == null -> "Other"
@@ -450,6 +532,15 @@ object BugReportCollector {
             diagSummary.append("- Theme: $themeName | Engine: $engine\n")
         }
 
+        if (!customTranslators.isNullOrEmpty()) {
+            val enabledCount = customTranslators.count { it.isEnabled }
+            diagSummary.append("\n**Custom Translators:**\n")
+            diagSummary.append("- Configured: ${customTranslators.size} ($enabledCount active)\n")
+            customTranslators.filter { it.isEnabled }.take(5).forEach { t ->
+                diagSummary.append("  - ${t.name} (Scope: ${t.targetScope}, Engine: ${t.engineMode})\n")
+            }
+        }
+
         if (!widgetList.isNullOrEmpty()) {
             diagSummary.append("\n**Active Widgets (${widgetList.size}):**\n")
             val widgetSummary = widgetList.take(3).joinToString("; ") { "#${it.widgetId} ${it.providerPackage} (${it.size}, ${it.renderMode})" }
@@ -466,6 +557,9 @@ object BugReportCollector {
             diagSummary.append("- Service: ${if (diagnosticsState.serviceConnected) "Connected" else "Disconnected"} | Active Islands: ${diagnosticsState.activeIslands}\n")
             if (diagnosticsState.lastClassification != null) {
                 diagSummary.append("- Last Classification: ${diagnosticsState.lastClassification}\n")
+            }
+            if (diagnosticsState.lastCustomTranslator != null) {
+                diagSummary.append("- Last Custom Translator: ${diagnosticsState.lastCustomTranslator}\n")
             }
             if (diagnosticsState.events.isNotEmpty()) {
                 val recentEventsStr = diagnosticsState.events.takeLast(5).joinToString("\n") { ev ->

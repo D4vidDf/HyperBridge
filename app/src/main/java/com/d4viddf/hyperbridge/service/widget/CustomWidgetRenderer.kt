@@ -23,6 +23,7 @@ import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
 import com.d4viddf.hyperbridge.models.widget.ButtonAction
+import com.d4viddf.hyperbridge.models.widget.NodeConditionEvaluator
 import com.d4viddf.hyperbridge.models.widget.ButtonNode
 import com.d4viddf.hyperbridge.models.widget.ContainerLayout
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
@@ -50,24 +51,51 @@ class CustomWidgetRenderer(
     private val widgetRepository: CustomWidgetRepository = CustomWidgetRepository(context)
 ) {
 
-    /** [bridgeId], when known, lets a Dismiss button cancel the actual posted notification. */
-    fun render(doc: CustomWidgetDocument, ctx: VariableContext, bridgeId: Int? = null): RemoteViews {
+    /**
+     * [bridgeId], when known, lets a Dismiss button cancel the actual posted notification.
+     * [intents] carries the notification's own action buttons and Smart Actions, so a node can
+     * fire one of them (#328).
+     */
+    fun render(
+        doc: CustomWidgetDocument,
+        ctx: VariableContext,
+        bridgeId: Int? = null,
+        intents: WidgetActionIntents = WidgetActionIntents()
+    ): RemoteViews {
         val root = RemoteViews(context.packageName, R.layout.layout_widget_canvas_root)
-        val built = renderNode(doc, doc.root, ctx, bridgeId)
+        // Conditional nodes (#328) are dropped before rendering, so a button bound to an inline
+        // reply simply does not exist on a notification that has none.
+        val visibleRoot = NodeConditionEvaluator.prune(doc.root, ctx, engine) as? LayoutContainer
+            ?: LayoutContainer(id = doc.root.id, layout = doc.root.layout)
+        val built = renderNode(doc, visibleRoot, ctx, bridgeId, intents)
         root.removeAllViews(R.id.widget_canvas_insertion_point)
         root.addView(R.id.widget_canvas_insertion_point, built)
         return root
     }
 
-    private fun renderNode(doc: CustomWidgetDocument, node: CustomWidgetNode, ctx: VariableContext, bridgeId: Int?): RemoteViews {
+    private fun renderNode(
+        doc: CustomWidgetDocument,
+        node: CustomWidgetNode,
+        ctx: VariableContext,
+        bridgeId: Int?,
+        intents: WidgetActionIntents
+    ): RemoteViews {
         val rv = when (node) {
-            is LayoutContainer -> renderContainer(doc, node, ctx, bridgeId)
+            is LayoutContainer -> renderContainer(doc, node, ctx, bridgeId, intents)
             is TextNode -> renderText(node, ctx)
             is ImageNode -> renderImage(doc, node, ctx)
             is ProgressNode -> renderProgress(node, ctx)
-            is ButtonNode -> renderButton(node, bridgeId)
+            is ButtonNode -> renderButton(node, bridgeId, intents)
         }
         applySize(rv, rootViewId(node), node.bounds.widthDp, node.bounds.heightDp)
+        // Any element can carry a tap action, not just buttons (#328); ButtonNode wired its own.
+        if (node !is ButtonNode) {
+            node.onClick?.let { action ->
+                resolveAction(node.id, action, bridgeId, intents)?.let { pending ->
+                    rv.setOnClickPendingIntent(rootViewId(node), pending)
+                }
+            }
+        }
         return rv
     }
 
@@ -84,7 +112,13 @@ class CustomWidgetRenderer(
         if (heightDp != null) rv.setViewLayoutHeight(viewId, heightDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
     }
 
-    private fun renderContainer(doc: CustomWidgetDocument, node: LayoutContainer, ctx: VariableContext, bridgeId: Int?): RemoteViews {
+    private fun renderContainer(
+        doc: CustomWidgetDocument,
+        node: LayoutContainer,
+        ctx: VariableContext,
+        bridgeId: Int?,
+        intents: WidgetActionIntents
+    ): RemoteViews {
         val layoutRes = when (node.layout) {
             ContainerLayout.ROW -> R.layout.layout_widget_container_row
             ContainerLayout.COLUMN -> R.layout.layout_widget_container_column
@@ -102,7 +136,7 @@ class CustomWidgetRenderer(
         )
 
         node.children.forEachIndexed { index, child ->
-            val childRv = renderNode(doc, child, ctx, bridgeId)
+            val childRv = renderNode(doc, child, ctx, bridgeId, intents)
             if (node.layout == ContainerLayout.ABSOLUTE) {
                 rv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_LEFT, child.bounds.x.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
                 rv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_TOP, child.bounds.y.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
@@ -230,7 +264,7 @@ class CustomWidgetRenderer(
         }
     }
 
-    private fun renderButton(node: ButtonNode, bridgeId: Int?): RemoteViews {
+    private fun renderButton(node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_button)
         rv.setTextViewText(R.id.node_button, node.label)
         try {
@@ -242,32 +276,56 @@ class CustomWidgetRenderer(
             } catch (_: Exception) { /* ignore */ }
         }
 
-        val pendingIntent: PendingIntent? = when (val buttonAction = node.action) {
-            is ButtonAction.OpenApp -> {
-                context.packageManager.getLaunchIntentForPackage(buttonAction.packageName)?.let {
-                    PendingIntent.getActivity(context, node.id.hashCode(), it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-                }
-            }
-            is ButtonAction.DeepLink -> {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(buttonAction.uri))
-                PendingIntent.getActivity(context, node.id.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-            }
-            is ButtonAction.Dismiss -> {
-                val intent = Intent(context, WidgetActionReceiver::class.java).apply {
-                    setAction(WidgetActionReceiver.ACTION_DISMISS)
-                    putExtra(WidgetActionReceiver.EXTRA_BRIDGE_ID, bridgeId ?: -1)
-                }
-                PendingIntent.getBroadcast(context, node.id.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-            }
-            // Inline reply needs a RemoteInput target tied to the *original* notification's own
-            // reply action, which a hand-drawn widget button doesn't have - descoped for this
-            // vertical slice (see #273 scope notes); tapping it currently does nothing.
-            is ButtonAction.InlineReply -> null
-        }
+        val pendingIntent: PendingIntent? = resolveAction(node.id, node.action, bridgeId, intents)
+
         if (pendingIntent != null) {
             rv.setOnClickPendingIntent(R.id.node_button, pendingIntent)
         }
         return rv
+    }
+
+    /** Turns a [ButtonAction] into something tappable, or null when there is nothing to fire. */
+    private fun resolveAction(
+        nodeId: String,
+        action: ButtonAction,
+        bridgeId: Int?,
+        intents: WidgetActionIntents
+    ): PendingIntent? = when (action) {
+        is ButtonAction.OpenApp ->
+            context.packageManager.getLaunchIntentForPackage(action.packageName)?.let {
+                PendingIntent.getActivity(context, nodeId.hashCode(), it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            }
+
+        is ButtonAction.DeepLink -> {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(action.uri))
+            PendingIntent.getActivity(context, nodeId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
+        is ButtonAction.Dismiss -> {
+            val intent = Intent(context, WidgetActionReceiver::class.java).apply {
+                setAction(WidgetActionReceiver.ACTION_DISMISS)
+                putExtra(WidgetActionReceiver.EXTRA_BRIDGE_ID, bridgeId ?: -1)
+            }
+            PendingIntent.getBroadcast(context, nodeId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
+        // The notification's own button, handed to us by the translator.
+        is ButtonAction.NotificationAction -> intents.notificationActions.getOrNull(action.index)
+
+        is ButtonAction.SmartAction -> intents.smartActions.entries
+            .firstOrNull { it.key.equals(action.type, ignoreCase = true) }?.value
+
+        is ButtonAction.Broadcast -> {
+            val intent = Intent(action.action).apply {
+                action.packageName?.takeIf { it.isNotBlank() }?.let { setPackage(it) }
+                if (!action.extraKey.isNullOrBlank()) putExtra(action.extraKey, action.extraValue.orEmpty())
+            }
+            PendingIntent.getBroadcast(context, nodeId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
+        // Inline reply fires the notification's own reply action when it has one; a hand-drawn
+        // button still cannot open the keyboard by itself.
+        is ButtonAction.InlineReply -> intents.inlineReply
     }
 
     private fun dpToPx(dp: Int): Int {

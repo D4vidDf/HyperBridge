@@ -3,6 +3,7 @@ package com.d4viddf.hyperbridge.service
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -13,10 +14,12 @@ import com.d4viddf.hyperbridge.service.BridgeIslandGroupPolicy.OwnNotification
 
 /**
  * Keeps every bridged island inside one app-provided notification group so Android 16+ never
- * force-groups (and silences) them. See [BridgeIslandGroupPolicy] for the why.
+ * force-groups (and silences) them. See [BridgeIslandGroupPolicy] for the why, and for why this
+ * is a no-op below Android 16 (#358).
  *
  * Usage: [asChild] on the builder, [ensureSummaryFor] right before `notify`, and
- * [scheduleRelease] whenever one of our notifications is removed.
+ * [scheduleRelease] whenever one of our notifications is removed. [reconcile] is the safety net
+ * for the removals nobody told us about (#372).
  */
 object BridgeIslandGroup {
     private const val TAG = "HyperBridgeDebug"
@@ -26,15 +29,46 @@ object BridgeIslandGroup {
     private val handler = Handler(Looper.getMainLooper())
     private val releaseToken = Any()
 
-    /** Marks a bridged notification as a child. Children alert; the summary never does. */
+    private val enabled: Boolean get() = BridgeIslandGroupPolicy.appliesTo(Build.VERSION.SDK_INT)
+
+    /**
+     * Marks a bridged notification as a child. Children alert; the summary never does.
+     * Below Android 16 the builder is returned untouched: no group, no summary.
+     */
     fun asChild(builder: NotificationCompat.Builder): NotificationCompat.Builder =
-        builder.setGroup(GROUP_KEY).setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
+        if (!enabled) builder
+        else builder.setGroup(GROUP_KEY).setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
 
     /** Posts the summary if [notification] is a child and no summary is active. */
     fun ensureSummaryFor(context: Context, notification: Notification) {
-        if (notification.group != GROUP_KEY) return
+        if (!enabled || notification.group != GROUP_KEY) return
         val active = ownNotifications(context) ?: return
         if (!BridgeIslandGroupPolicy.needsSummary(active)) return
+        postSummary(context)
+    }
+
+    /**
+     * Re-derives the summary from what is actually posted: it goes away once no child is left, and
+     * comes back when children outlive it.
+     *
+     * [scheduleRelease] only ever runs off `onNotificationRemoved`, so a child that disappeared
+     * while the listener was unbound (reboot, HyperOS killing the service, the app being updated),
+     * or a summary posted for a child that never made it to the shade, left "Hyper Bridge / Active
+     * Islands" sitting in the shade with nothing under it -- and the orphan sweep skips summaries
+     * on purpose. Call this from the periodic sync, which also runs on connect (#372).
+     */
+    fun reconcile(context: Context) {
+        val app = context.applicationContext
+        val active = ownNotifications(app) ?: return
+        when {
+            // Debounced, like every other release: a cancel+repost of the only child must not be
+            // mistaken for an empty group just because the sync tick landed in between.
+            BridgeIslandGroupPolicy.shouldReleaseSummary(active) -> scheduleRelease(app)
+            enabled && BridgeIslandGroupPolicy.shouldRestoreSummary(active) -> postSummary(app)
+        }
+    }
+
+    private fun postSummary(context: Context) {
         val summary = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(context.getString(R.string.app_name))

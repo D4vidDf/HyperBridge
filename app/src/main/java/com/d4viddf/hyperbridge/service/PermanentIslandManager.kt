@@ -132,12 +132,22 @@ class PermanentIslandManager(
     // superseded it, or a re-post landed too soon after a cancel). So on a discrete
     // transition (screen on / unlock / (re)connect) callers pass refresh=true to re-assert
     // the island even when present; the periodic tick passes false, trusting presence.
-    // Bridged islands deliberately do NOT hide the permanent island: HyperOS shows the newest
-    // focus island on top, so keeping 9999 posted makes the permanent island reappear instantly
-    // when a bridged island collapses or expires (removing it would leave a gap until the TTL).
+    // The permanent island also steps aside for our own bridged islands (and widgets / the VPN
+    // island). #243 kept 9999 posted underneath them so it was revealed the instant a bridged
+    // island collapsed, which was fine while HyperOS drew one island at a time. HyperOS 3 draws
+    // two: the newest big and the other as a mini island showing only the app icon, so a posted
+    // pill turns into a HyperBridge bubble next to every WhatsApp island (#335). The price is a
+    // ~1 s re-post after the last island goes, and, when the user swipes an island away early,
+    // a gap until its lifecycle timeout (the same moment HyperOS would have hidden it anyway).
     private fun desiredActive(): Boolean {
         val isLandscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        return isPermanentIslandEnabled && !hasNativeIsland && !(isHideInLandscapeEnabled && isLandscape)
+        return PermanentIslandVisibilityPolicy.desiredActive(
+            enabled = isPermanentIslandEnabled,
+            realNotificationCount = currentRealNotifications,
+            hasNativeIsland = hasNativeIsland,
+            hideInLandscape = isHideInLandscapeEnabled,
+            isLandscape = isLandscape
+        )
     }
 
     @Synchronized
@@ -261,6 +271,9 @@ class PermanentIslandManager(
         try {
             Log.d(TAG, "Removing permanent island")
             ShizukuManager.cancel(context, PERMANENT_BRIDGE_ID)
+            // Usually the last child standing: release the group even if the removal callback
+            // never arrives (service shutting down, listener unbound) (#372).
+            BridgeIslandGroup.scheduleRelease(context)
         } catch (e: Exception) {
             Log.e(TAG, "Error removing permanent island", e)
         }

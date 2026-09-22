@@ -16,6 +16,11 @@ data class VariableContext(
     val notifPackage: String? = null,
     val deviceBatteryPercent: Int? = null,
     val timeNowFormatted: String? = null,
+    /** Titles of the notification's own action buttons, in order. */
+    val notificationActionTitles: List<String> = emptyList(),
+    val hasInlineReply: Boolean = false,
+    /** Smart Action types (#270) detected on this notification: OTP, URL, PHONE, TRACKING. */
+    val smartActionTypes: Set<String> = emptySet(),
     val sourceLookup: (sourceId: String, field: String) -> String? = { _, _ -> null }
 )
 

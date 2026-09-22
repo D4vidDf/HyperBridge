@@ -82,7 +82,7 @@ fun SavedCustomWidgetsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.widget_studio_title)) },
+                title = { Text(stringResource(R.string.studio_title)) },
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
@@ -90,14 +90,14 @@ fun SavedCustomWidgetsScreen(
                 },
                 actions = {
                     IconButton(onClick = { importLauncher.launch(arrayOf("application/zip", "application/octet-stream")) }) {
-                        Icon(Icons.Outlined.FileUpload, stringResource(R.string.widget_studio_import))
+                        Icon(Icons.Outlined.FileUpload, stringResource(R.string.studio_import))
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onCreateNew) {
-                Icon(Icons.Default.Add, stringResource(R.string.widget_studio_new_widget))
+                Icon(Icons.Default.Add, stringResource(R.string.studio_new_design))
             }
         }
     ) { padding ->
@@ -106,7 +106,7 @@ fun SavedCustomWidgetsScreen(
                 widgets == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
                 widgets!!.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     EmptyState(
-                        title = stringResource(R.string.widget_studio_empty),
+                        title = stringResource(R.string.studio_empty),
                         description = "",
                         icon = Icons.Outlined.Widgets
                     )
@@ -142,7 +142,7 @@ fun SavedCustomWidgetsScreen(
                                             refreshTrigger++
                                         }
                                     }) {
-                                        Icon(Icons.Outlined.Delete, stringResource(R.string.widget_studio_delete_node))
+                                        Icon(Icons.Outlined.Delete, stringResource(R.string.studio_delete_element))
                                     }
                                 }
                             }

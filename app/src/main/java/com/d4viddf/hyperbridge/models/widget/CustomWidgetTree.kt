@@ -66,3 +66,33 @@ fun CustomWidgetNode.countNodes(): Int {
     }
     return count
 }
+
+/**
+ * Moves a node [delta] places within its parent. Inside a BOX or ABSOLUTE container the child
+ * order *is* the stacking order, so this is what "bring forward" / "send back" does in the
+ * Studio's layer list (#328).
+ */
+fun CustomWidgetDocument.moveNode(id: String, delta: Int): CustomWidgetDocument =
+    copy(root = root.moveNode(id, delta) as? LayoutContainer ?: root)
+
+fun CustomWidgetNode.moveNode(id: String, delta: Int): CustomWidgetNode {
+    if (this !is LayoutContainer) return this
+    val index = children.indexOfFirst { it.id == id }
+    if (index < 0) return copy(children = children.map { it.moveNode(id, delta) })
+
+    val target = (index + delta).coerceIn(0, children.lastIndex)
+    if (target == index) return this
+    val reordered = children.toMutableList()
+    reordered.add(target, reordered.removeAt(index))
+    return copy(children = reordered)
+}
+
+/** The node's parent container, or null for the root. */
+fun CustomWidgetNode.parentOf(id: String): LayoutContainer? {
+    if (this !is LayoutContainer) return null
+    if (children.any { it.id == id }) return this
+    children.forEach { child -> child.parentOf(id)?.let { return it } }
+    return null
+}
+
+fun CustomWidgetDocument.parentOf(id: String): LayoutContainer? = root.parentOf(id)

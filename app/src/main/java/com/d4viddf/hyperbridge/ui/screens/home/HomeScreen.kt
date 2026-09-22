@@ -44,14 +44,12 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppListViewModel
+import com.d4viddf.hyperbridge.ui.screens.design.SavedCustomWidgetsScreen
+import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioDesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
-import com.d4viddf.hyperbridge.ui.screens.design.SavedCustomWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
-import com.d4viddf.hyperbridge.ui.screens.design.templates.ComposerTemplateListScreen
-import com.d4viddf.hyperbridge.ui.screens.design.templates.IslandComposerScreen
-import com.d4viddf.hyperbridge.ui.screens.design.widgets.WidgetStudioScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeCreatorScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeManagerScreen
 import kotlinx.coroutines.launch
@@ -61,10 +59,10 @@ private enum class DesignRoute {
     WIDGET_LIST,
     THEME_MANAGER,
     THEME_CREATOR,
-    TEMPLATE_LIST,
-    TEMPLATE_COMPOSER,
-    WIDGET_STUDIO_LIST,
-    WIDGET_STUDIO_EDITOR
+    TRANSLATOR_MANAGER,
+    TRANSLATOR_EDITOR,
+    STUDIO_LIST,
+    STUDIO_EDITOR
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,14 +72,19 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNavConfigClick: (String) -> Unit,
     onScreenRecordingConfigClick: () -> Unit = {},
-    onAppConfigClick: (String) -> Unit = {}
+    onSystemUpdateConfigClick: () -> Unit = {},
+    onAppConfigClick: (String) -> Unit = {},
+    onNavigateToTranslators: () -> Unit = {},
+    onCreateTranslator: (String?) -> Unit = {},
+    onEditTranslator: (String) -> Unit = {}
 ) {
 
     var selectedTab by remember { mutableIntStateOf(1) }
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
-    var editingComposerTemplateId by remember { mutableStateOf<String?>(null) }
+    var editingTranslatorId by remember { mutableStateOf<String?>(null) }
     var editingCustomWidgetId by remember { mutableStateOf<String?>(null) }
+    var newTranslatorPackageName by remember { mutableStateOf<String?>(null) }
 
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
@@ -103,14 +106,15 @@ fun HomeScreen(
                     editingThemeId = null
                     DesignRoute.THEME_MANAGER
                 }
-                DesignRoute.TEMPLATE_COMPOSER -> {
-                    editingComposerTemplateId = null
-                    DesignRoute.TEMPLATE_LIST
+                DesignRoute.STUDIO_EDITOR -> {
+                    editingCustomWidgetId = null
+                    DesignRoute.STUDIO_LIST
                 }
 
-                DesignRoute.WIDGET_STUDIO_EDITOR -> {
-                    editingCustomWidgetId = null
-                    DesignRoute.WIDGET_STUDIO_LIST
+                DesignRoute.TRANSLATOR_EDITOR -> {
+                    editingTranslatorId = null
+                    newTranslatorPackageName = null
+                    DesignRoute.TRANSLATOR_MANAGER
                 }
                 else -> DesignRoute.DASHBOARD
             }
@@ -184,61 +188,52 @@ fun HomeScreen(
                                                 editingThemeId = themeId
                                                 designRoute = DesignRoute.THEME_CREATOR
                                             },
+                                            onNavigateToTranslators = {
+                                                designRoute = DesignRoute.TRANSLATOR_MANAGER
+                                            },
+                                            onCreateTranslator = {
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onEditTranslator = { id ->
+                                                editingTranslatorId = id
+                                                newTranslatorPackageName = null
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
                                             onLaunchPicker = { showWidgetPicker = true },
-                                            onLaunchTemplates = { designRoute = DesignRoute.TEMPLATE_LIST },
-                                            onLaunchWidgetStudio = { designRoute = DesignRoute.WIDGET_STUDIO_LIST },
+                                            onLaunchStudio = { widgetId ->
+                                                editingCustomWidgetId = widgetId
+                                                designRoute = DesignRoute.STUDIO_EDITOR
+                                            },
+                                            onBrowseStudio = {
+                                                editingCustomWidgetId = null
+                                                designRoute = DesignRoute.STUDIO_LIST
+                                            },
                                             onSettingsClick = onSettingsClick
                                         )
                                     }
 
-                                    DesignRoute.TEMPLATE_LIST -> {
-                                        ComposerTemplateListScreen(
-                                            onBack = { designRoute = DesignRoute.DASHBOARD },
-                                            onAddNew = {
-                                                editingComposerTemplateId = null
-                                                designRoute = DesignRoute.TEMPLATE_COMPOSER
-                                            },
-                                            onEdit = { id ->
-                                                editingComposerTemplateId = id
-                                                designRoute = DesignRoute.TEMPLATE_COMPOSER
-                                            }
-                                        )
-                                    }
-
-                                    DesignRoute.WIDGET_STUDIO_LIST -> {
+                                    DesignRoute.STUDIO_LIST -> {
                                         SavedCustomWidgetsScreen(
                                             onBack = { designRoute = DesignRoute.DASHBOARD },
                                             onEditWidget = { id ->
                                                 editingCustomWidgetId = id
-                                                designRoute = DesignRoute.WIDGET_STUDIO_EDITOR
+                                                designRoute = DesignRoute.STUDIO_EDITOR
                                             },
                                             onCreateNew = {
                                                 editingCustomWidgetId = null
-                                                designRoute = DesignRoute.WIDGET_STUDIO_EDITOR
+                                                designRoute = DesignRoute.STUDIO_EDITOR
                                             }
                                         )
                                     }
 
-                                    DesignRoute.TEMPLATE_COMPOSER -> {
-                                        IslandComposerScreen(
-                                            templateId = editingComposerTemplateId,
-                                            onBack = {
-                                                editingComposerTemplateId = null
-                                                designRoute = DesignRoute.TEMPLATE_LIST
-                                            },
-                                            onSaved = {
-                                                editingComposerTemplateId = null
-                                                designRoute = DesignRoute.TEMPLATE_LIST
-                                            }
-                                        )
-                                    }
-
-                                    DesignRoute.WIDGET_STUDIO_EDITOR -> {
-                                        WidgetStudioScreen(
+                                    DesignRoute.STUDIO_EDITOR -> {
+                                        StudioDesignScreen(
                                             widgetId = editingCustomWidgetId,
                                             onBack = {
                                                 editingCustomWidgetId = null
-                                                designRoute = DesignRoute.WIDGET_STUDIO_LIST
+                                                designRoute = DesignRoute.STUDIO_LIST
                                             }
                                         )
                                     }
@@ -296,6 +291,34 @@ fun HomeScreen(
                                             }
                                         )
                                     }
+
+                                    DesignRoute.TRANSLATOR_MANAGER -> {
+                                        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorManagerScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onCreateTranslator = { pkg ->
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = pkg
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onEditTranslator = { id ->
+                                                editingTranslatorId = id
+                                                newTranslatorPackageName = null
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.TRANSLATOR_EDITOR -> {
+                                        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorEditorScreen(
+                                            translatorId = editingTranslatorId,
+                                            initialPackageName = newTranslatorPackageName,
+                                            onBack = {
+                                                designRoute = DesignRoute.TRANSLATOR_MANAGER
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -325,6 +348,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
@@ -340,6 +364,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },

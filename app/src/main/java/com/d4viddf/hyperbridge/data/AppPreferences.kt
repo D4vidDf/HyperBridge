@@ -406,6 +406,44 @@ class AppPreferences internal constructor(
     suspend fun setScreenRecordingRightDesign(design: com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign) =
         save(SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN, design.name)
 
+    val systemUpdateTimeoutFlow: Flow<Int> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_TIMEOUT).map { it.toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT) }
+
+    suspend fun setSystemUpdateTimeout(seconds: Int) =
+        save(SettingsKeys.SYSTEM_UPDATE_TIMEOUT, seconds.toString())
+
+    val systemUpdateLeftDesignFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_LEFT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.ICON_AND_TEXT
+        }
+
+    val systemUpdateRightDesignFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateRightDesign> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_RIGHT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.PERCENTAGE
+        }
+
+    val systemUpdateIconSourceFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateIconSource> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_ICON_SOURCE).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.SystemUpdateIconSource.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.SystemUpdateIconSource.NOTIFICATION_ICON
+        }
+
+    val systemUpdateDesignFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig> =
+        combine(systemUpdateLeftDesignFlow, systemUpdateRightDesignFlow, systemUpdateIconSourceFlow) { left, right, iconSource ->
+            com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig(left = left, right = right, iconSource = iconSource)
+        }
+
+    suspend fun setSystemUpdateLeftDesign(design: com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign) =
+        save(SettingsKeys.SYSTEM_UPDATE_LEFT_DESIGN, design.name)
+
+    suspend fun setSystemUpdateRightDesign(design: com.d4viddf.hyperbridge.models.SystemUpdateRightDesign) =
+        save(SettingsKeys.SYSTEM_UPDATE_RIGHT_DESIGN, design.name)
+
+    suspend fun setSystemUpdateIconSource(iconSource: com.d4viddf.hyperbridge.models.SystemUpdateIconSource) =
+        save(SettingsKeys.SYSTEM_UPDATE_ICON_SOURCE, iconSource.name)
+
 
     // --- SMART ACTIONS (issue #270) ---
     val smartActionsConfigFlow: Flow<SmartActionsConfig> = combine(
@@ -970,6 +1008,31 @@ class AppPreferences internal constructor(
         com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(
             left = getScreenRecordingLeftDesignSync(),
             right = getScreenRecordingRightDesignSync()
+        )
+
+    fun getSystemUpdateTimeoutSync(): Int =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_TIMEOUT].toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT)
+
+    fun getSystemUpdateLeftDesignSync(): com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_LEFT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.ICON_AND_TEXT
+
+    fun getSystemUpdateRightDesignSync(): com.d4viddf.hyperbridge.models.SystemUpdateRightDesign =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_RIGHT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.PERCENTAGE
+
+    fun getSystemUpdateIconSourceSync(): com.d4viddf.hyperbridge.models.SystemUpdateIconSource =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_ICON_SOURCE]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.SystemUpdateIconSource.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.SystemUpdateIconSource.NOTIFICATION_ICON
+
+    fun getSystemUpdateDesignSync(): com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig =
+        com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig(
+            left = getSystemUpdateLeftDesignSync(),
+            right = getSystemUpdateRightDesignSync(),
+            iconSource = getSystemUpdateIconSourceSync()
         )
 
     fun isVpnIslandEnabledSync(): Boolean = memoryCache["vpn_island_enabled"]?.toBoolean(true) ?: true

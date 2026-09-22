@@ -54,12 +54,26 @@ fun openBatterySettings(context: Context) {
 
 /**
  * Checks if Notification Listener permission is granted.
+ * Uses NotificationManagerCompat as primary source of truth, with fallback to Settings.Secure.
  */
 fun isNotificationServiceEnabled(context: Context): Boolean {
     return try {
-        val pkgName = context.packageName
+        val enabledListeners = androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(context)
+        if (enabledListeners.contains(context.packageName)) {
+            return true
+        }
+
         val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-        flat != null && flat.contains(pkgName)
+        if (flat.isNullOrEmpty()) return false
+
+        val expectedComponent = ComponentName(context, com.d4viddf.hyperbridge.service.NotificationReaderService::class.java)
+        val expectedFlattened = expectedComponent.flattenToString()
+        val expectedShort = expectedComponent.flattenToShortString()
+
+        flat.split(":").any { entry ->
+            val unflattened = ComponentName.unflattenFromString(entry)
+            entry == expectedFlattened || entry == expectedShort || unflattened?.packageName == context.packageName
+        }
     } catch (_: Throwable) {
         false
     }

@@ -59,6 +59,7 @@ class CustomWidgetRepository(private val context: Context) {
         }
     }
 
+    /** Legacy lookup for [CustomWidgetDocument.boundPackage]; designs are matched by translator now. */
     suspend fun getWidgetForPackage(pkg: String): CustomWidgetDocument? {
         return getAvailableWidgets().firstOrNull { it.boundPackage == pkg }
     }
@@ -84,7 +85,7 @@ class CustomWidgetRepository(private val context: Context) {
 
         // Must be a directory FileProvider actually serves: res/xml/file_paths.xml only declares
         // a `<cache-path name="exports" path="exports/" />` root (shared with ThemeRepository's own
-        // export dir) - a different folder name here made WidgetStudioScreen's Export button throw
+        // export dir) - a different folder name here made the Studio's Export button throw
         // "Failed to find configured root" from FileProvider.getUriForFile at runtime.
         val exportDir = File(context.cacheDir, "exports")
         if (!exportDir.exists()) exportDir.mkdirs()

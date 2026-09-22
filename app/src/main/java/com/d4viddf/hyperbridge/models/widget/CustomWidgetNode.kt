@@ -20,10 +20,58 @@ data class NodeBounds(
     val heightDp: Int? = null
 )
 
+/**
+ * When a node is shown. A design is rendered against one notification, so an element can be made
+ * conditional on what that notification actually carries -- "this button only exists when the
+ * notification has an inline reply", and so on (#328).
+ */
+@Serializable
+sealed interface NodeCondition {
+    @Serializable
+    @SerialName("always")
+    data object Always : NodeCondition
+
+    @Serializable
+    @SerialName("has_smart_action")
+    // The JSON name cannot be "type": that is the polymorphic discriminator for this hierarchy.
+    data class HasSmartAction(@SerialName("smart_action") val type: String) : NodeCondition
+
+    @Serializable
+    @SerialName("has_notification_action")
+    data class HasNotificationAction(val index: Int = 0) : NodeCondition
+
+    @Serializable
+    @SerialName("has_inline_reply")
+    data object HasInlineReply : NodeCondition
+
+    @Serializable
+    @SerialName("has_progress")
+    data object HasProgress : NodeCondition
+
+    /** True when [template], once resolved, is not blank. */
+    @Serializable
+    @SerialName("not_blank")
+    data class NotBlank(val template: String) : NodeCondition
+
+    @Serializable
+    @SerialName("matches")
+    data class Matches(val template: String, val regex: String) : NodeCondition
+
+    @Serializable
+    @SerialName("not")
+    data class Not(val condition: NodeCondition) : NodeCondition
+}
+
 @Serializable
 sealed interface CustomWidgetNode {
     val id: String
     val bounds: NodeBounds
+
+    /** Whether this node is rendered at all for a given notification. */
+    val showIf: NodeCondition
+
+    /** Optional tap target. [ButtonNode] uses its own `action` instead. */
+    val onClick: ButtonAction?
 }
 
 enum class TextGravity { START, CENTER, END }
@@ -39,7 +87,9 @@ data class TextNode(
     val bold: Boolean = false,
     val maxLines: Int = 1,
     val marquee: Boolean = false,
-    val gravity: TextGravity = TextGravity.START
+    val gravity: TextGravity = TextGravity.START,
+    override val showIf: NodeCondition = NodeCondition.Always,
+    override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
 
 @Serializable
@@ -72,7 +122,9 @@ data class ImageNode(
     override val bounds: NodeBounds = NodeBounds(widthDp = 24, heightDp = 24),
     val source: ImageSource = ImageSource.SystemGlyph("notification"),
     val shapeId: String = "circle",
-    val tintHex: String? = null
+    val tintHex: String? = null,
+    override val showIf: NodeCondition = NodeCondition.Always,
+    override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
 
 enum class ProgressStyle { LINEAR, RING }
@@ -86,7 +138,9 @@ data class ProgressNode(
     val valueTemplate: String = "{device.battery}",
     val maxValue: Int = 100,
     val trackColorHex: String = "#33FFFFFF",
-    val progressColorHex: String = "#FFFFFF"
+    val progressColorHex: String = "#FFFFFF",
+    override val showIf: NodeCondition = NodeCondition.Always,
+    override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
 
 @Serializable
@@ -106,6 +160,26 @@ sealed interface ButtonAction {
     @Serializable
     @SerialName("deep_link")
     data class DeepLink(val uri: String) : ButtonAction
+
+    /** Fires the notification's own action button at [index]. */
+    @Serializable
+    @SerialName("notification_action")
+    data class NotificationAction(val index: Int = 0) : ButtonAction
+
+    /** Fires a Smart Action (#270) detected on the notification: OTP, URL, PHONE, TRACKING. */
+    @Serializable
+    @SerialName("smart_action")
+    data class SmartAction(@SerialName("smart_action") val type: String) : ButtonAction
+
+    /** Sends a custom broadcast, so a design can drive another app the user owns. */
+    @Serializable
+    @SerialName("broadcast")
+    data class Broadcast(
+        val action: String,
+        val packageName: String? = null,
+        val extraKey: String? = null,
+        val extraValue: String? = null
+    ) : ButtonAction
 }
 
 @Serializable
@@ -116,8 +190,11 @@ data class ButtonNode(
     val label: String = "",
     val action: ButtonAction = ButtonAction.Dismiss,
     val backgroundHex: String? = null,
-    val textColorHex: String = "#FFFFFF"
-) : CustomWidgetNode
+    val textColorHex: String = "#FFFFFF",
+    override val showIf: NodeCondition = NodeCondition.Always
+) : CustomWidgetNode {
+    override val onClick: ButtonAction? get() = action
+}
 
 enum class ContainerLayout { ROW, COLUMN, BOX, ABSOLUTE }
 
@@ -130,7 +207,9 @@ data class LayoutContainer(
     val children: List<CustomWidgetNode> = emptyList(),
     val gapDp: Int = 4,
     val paddingDp: Int = 0,
-    val backgroundHex: String? = null
+    val backgroundHex: String? = null,
+    override val showIf: NodeCondition = NodeCondition.Always,
+    override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
 
 @Serializable
@@ -154,7 +233,11 @@ data class CustomWidgetDocument(
     val meta: CustomWidgetMetadata,
     val canvas: CanvasSize = CanvasSize.MEDIUM,
     val root: LayoutContainer,
-    /** If set, this widget replaces the normal translator output for notifications from this package. */
+    /**
+     * Legacy per-package binding. Which notifications a design applies to is decided by its
+     * translator now (#272 rework), so this is only read when showing where an imported
+     * `.hwidget` came from; it no longer selects anything.
+     */
     val boundPackage: String? = null,
     val permanentIslandEligible: Boolean = false
 )

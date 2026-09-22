@@ -103,6 +103,7 @@ data class DiagnosticsData(
     val activeIslands: Int,
     val lastClassification: String?,
     val lastCallState: String?,
+    val lastCustomTranslator: String? = null,
     val serviceConnected: Boolean,
     val events: List<DiagnosticEvent>
 ) {
@@ -162,6 +163,7 @@ fun DiagnosticsScreen(
         activeIslands = state.activeIslands,
         lastClassification = state.lastClassification,
         lastCallState = state.lastCallState,
+        lastCustomTranslator = state.lastCustomTranslator,
         serviceConnected = isConnected,
         events = state.events
     )
@@ -451,6 +453,20 @@ fun DiagnosticsContent(
                             ValueBadge(text = data.lastCallState ?: "—")
                         }
                     )
+                    if (data.lastCustomTranslator != null) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                        ExpressiveDiagnosticRow(
+                            icon = Icons.Default.Code,
+                            title = stringResource(R.string.diagnostic_last_custom_translator),
+                            subtitle = stringResource(R.string.diagnostic_last_custom_translator_desc),
+                            trailingBadge = {
+                                ValueBadge(text = data.lastCustomTranslator)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -931,6 +947,7 @@ fun DiagnosticsScreenPreview() {
                 activeIslands = 1,
                 lastClassification = "MESSAGE",
                 lastCallState = "RINGING",
+                lastCustomTranslator = "WhatsApp Voice Notes",
                 serviceConnected = true,
                 events = listOf(
                     DiagnosticEvent(
@@ -955,3 +972,46 @@ fun DiagnosticsScreenPreview() {
         )
     }
 }
+
+@Preview(showBackground = true, name = "Reconnect Service")
+@Composable
+fun DiagnosticsScreenReconnectServicePreview() {
+    HyperBridgeTheme {
+        DiagnosticsContent(
+            data = DiagnosticsData(
+                notificationAccess = true,
+                postPermission = true,
+                restrictedSettingsAllowed = true,
+                focusSupported = true,
+                focusPermission = true,
+                selectedAppsCount = 5,
+                floatingReviewCount = 2,
+                activeIslands = 1,
+                lastClassification = "MESSAGE",
+                lastCallState = "RINGING",
+                serviceConnected = false,
+                events = listOf(
+                    DiagnosticEvent(
+                        timestamp = 1700000000000L,
+                        packageName = "com.whatsapp",
+                        classification = "MESSAGE",
+                        action = "updated",
+                        reason = "active"
+                    ),
+                    DiagnosticEvent(
+                        timestamp = 1699999900000L,
+                        packageName = "org.telegram.messenger",
+                        classification = "CALL",
+                        action = "started",
+                        reason = "incoming"
+                    )
+                )
+            ),
+            onBack = {},
+            onReportError = {},
+            onReconnect = {},
+            onCopyDiagnostics = {}
+        )
+    }
+}
+

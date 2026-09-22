@@ -4,4 +4,4 @@
     android:layout_width="24dp"
     android:layout_height="24dp"
     android:scaleType="centerCrop"
-    android:contentDescription="@string/widget_studio_node_image" />
+    android:contentDescription="@string/studio_node_image" />

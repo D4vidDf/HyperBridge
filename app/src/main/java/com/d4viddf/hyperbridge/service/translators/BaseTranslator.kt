@@ -740,7 +740,7 @@ abstract class BaseTranslator(
         }
     }
 
-    private fun getAppIconBitmap(packageName: String): Bitmap? {
+    protected fun getAppIconBitmap(packageName: String): Bitmap? {
         return try {
             val drawable = context.packageManager.getApplicationIcon(packageName)
             drawable.toBitmap()
