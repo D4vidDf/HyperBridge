@@ -27,8 +27,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Settings
@@ -78,8 +78,6 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
-import com.d4viddf.hyperbridge.data.composer.ComposerTemplateRepository
-import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.util.DocumentationUrls
@@ -99,18 +97,20 @@ fun DesignScreen(
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
+    onNavigateToTranslators: () -> Unit = {},
+    onCreateTranslator: () -> Unit = {},
+    onEditTranslator: (String) -> Unit = {},
     onLaunchPicker: () -> Unit,
-    onLaunchTemplates: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
     val themeRepo = remember { ThemeRepository(context.applicationContext) }
-    val composerTemplateRepo = remember { ComposerTemplateRepository(AppDatabase.getDatabase(context.applicationContext).composerTemplateDao()) }
+    val translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
     val activeThemeId by preferences.activeThemeIdFlow.collectAsState(initial = null)
     val savedWidgetIds by preferences.savedWidgetIdsFlow.collectAsState(initial = emptyList())
-    val composerTemplateCount by composerTemplateRepo.templatesFlow.collectAsState(initial = emptyList())
+    val allTranslators by translatorViewModel.allTranslators.collectAsState()
 
     var availableThemes by remember { mutableStateOf<List<HyperTheme>>(emptyList()) }
     var widgetIcons by remember { mutableStateOf<List<Drawable>>(emptyList()) }
@@ -169,11 +169,13 @@ fun DesignScreen(
         themeIcons = themeIcons, // [NEW] Pass icons down
         savedWidgetCount = savedWidgetIds.size,
         widgetIcons = widgetIcons,
-        templateCount = composerTemplateCount.size,
+        translators = allTranslators,
         onNavigateToWidgets = onNavigateToWidgets,
         onNavigateToThemes = onNavigateToThemes,
         onEditTheme = onEditTheme,
-        onNavigateToTemplates = onLaunchTemplates,
+        onNavigateToTranslators = onNavigateToTranslators,
+        onCreateTranslator = onCreateTranslator,
+        onEditTranslator = onEditTranslator,
         onFabClick = { showBottomSheet = true },
         onSettingsClick = onSettingsClick
     )
@@ -212,20 +214,6 @@ fun DesignScreen(
                 OutlinedButton(
                     onClick = {
                         showBottomSheet = false
-                        onLaunchTemplates()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Rounded.Dashboard, null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.design_create_template), style = MaterialTheme.typography.titleMedium)
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedButton(
-                    onClick = {
-                        showBottomSheet = false
                         onNavigateToThemes()
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -233,6 +221,20 @@ fun DesignScreen(
                 ) {
                     Icon(Icons.Rounded.Palette, null, modifier = Modifier.padding(end = 8.dp))
                     Text(stringResource(R.string.design_get_themes), style = MaterialTheme.typography.titleMedium)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        showBottomSheet = false
+                        onCreateTranslator()
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.Extension, null, modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.design_action_create_translator), style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
@@ -248,11 +250,13 @@ fun DesignScreenContent(
     themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
     savedWidgetCount: Int,
     widgetIcons: List<Drawable>,
-    templateCount: Int = 0,
+    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
-    onNavigateToTemplates: () -> Unit = {},
+    onNavigateToTranslators: () -> Unit = {},
+    onCreateTranslator: () -> Unit = {},
+    onEditTranslator: (String) -> Unit = {},
     onFabClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -327,10 +331,12 @@ fun DesignScreenContent(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                SectionHeader(stringResource(R.string.design_section_templates), onNavigateToTemplates)
-                TemplatesCarousel(
-                    templateCount = templateCount,
-                    onNavigateToTemplates = onNavigateToTemplates
+                SectionHeader(stringResource(R.string.design_section_translators), onNavigateToTranslators)
+                TranslatorsCarousel(
+                    translators = translators,
+                    onNavigateToTranslators = onNavigateToTranslators,
+                    onCreateTranslator = onCreateTranslator,
+                    onEditTranslator = onEditTranslator
                 )
             }
             Spacer(Modifier.height(24.dp))
@@ -511,40 +517,161 @@ fun WidgetsCarousel(
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorsCarousel(
+    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onNavigateToTranslators: () -> Unit,
+    onCreateTranslator: () -> Unit,
+    onEditTranslator: (String) -> Unit
+) {
+    if (translators.isEmpty()) {
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Card(
+                onClick = onCreateTranslator,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                modifier = Modifier.fillMaxWidth().height(160.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(Icons.Default.Extension, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(16.dp))
+                    Text(stringResource(R.string.translators_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    } else {
+        val displayTranslators = translators.take(5)
+        val totalCount = displayTranslators.size + 1
+        val state = rememberCarouselState { totalCount }
+
+        HorizontalMultiBrowseCarousel(
+            modifier = Modifier.fillMaxWidth(),
+            state = state,
+            preferredItemWidth = 160.dp,
+            itemSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) { i ->
+            if (i < displayTranslators.size) {
+                val item = displayTranslators[i]
+                TranslatorPreviewCard(
+                    title = item.meta.name,
+                    subtitle = when (item.targetScope) {
+                        com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> stringResource(R.string.translators_scope_global)
+                        com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, item.targetPackages.size)
+                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, item.targetPackages.size)
+                        com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, item.targetNotificationTypes.size)
+                    },
+                    iconName = item.meta.iconName,
+                    targetScope = item.targetScope,
+                    isActive = item.isEnabled,
+                    onClick = { onEditTranslator(item.id) },
+                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
+                )
+            } else {
+                TranslatorPreviewCard(
+                    title = stringResource(R.string.design_browse_more),
+                    subtitle = "",
+                    iconName = null,
+                    isActive = false,
+                    isAction = true,
+                    onClick = onNavigateToTranslators,
+                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
+                )
+            }
+        }
+    }
+}
 
 @Composable
-fun TemplatesCarousel(
-    templateCount: Int,
-    onNavigateToTemplates: () -> Unit
+fun TranslatorPreviewCard(
+    title: String,
+    subtitle: String,
+    iconName: String? = null,
+    targetScope: com.d4viddf.hyperbridge.models.translator.TargetScope? = null,
+    isActive: Boolean,
+    isAction: Boolean = false,
+    onClick: () -> Unit,
+    modifier: Modifier
 ) {
-    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Card(
-            onClick = onNavigateToTemplates,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-            modifier = Modifier.fillMaxWidth().height(120.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize().padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Rounded.Dashboard, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.design_section_templates),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        if (templateCount == 0) stringResource(R.string.design_empty_template_title)
-                        else stringResource(R.string.design_create_template),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
+
+    Card(
+        onClick = onClick,
+        modifier = modifier
+            .height(180.dp)
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        if (isAction) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(8.dp))
+                    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (isActive && targetScope != null) {
+                            when (targetScope) {
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.errorContainer
+                                com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
+                            }
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon(iconName),
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = if (isActive && targetScope != null) {
+                                    when (targetScope) {
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.onErrorContainer
+                                        com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
+                                    }
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                }
+                            )
+                        }
+                    }
+
+                    if (isActive) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                .padding(4.dp)
+                        ) {
+                            Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.onPrimaryContainer, CircleShape))
+                        }
+                    }
+                }
+
+                Column {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                }
             }
         }
     }

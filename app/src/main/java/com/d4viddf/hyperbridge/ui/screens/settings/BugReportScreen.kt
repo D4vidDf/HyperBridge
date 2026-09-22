@@ -155,6 +155,7 @@ fun BugReportScreen(
     var includeDevice by remember { mutableStateOf(true) }
     var includePermissions by remember { mutableStateOf(true) }
     var includeTheme by remember { mutableStateOf(true) }
+    var includeCustomTranslators by remember { mutableStateOf(true) }
     var includeWidgets by remember { mutableStateOf(true) }
     var selectedWidgetId by remember { mutableStateOf<Int?>(null) } // null = all widgets
     var appConfigScope by remember { mutableStateOf(AppConfigScope.NONE) }
@@ -169,6 +170,7 @@ fun BugReportScreen(
     var deviceInfo by remember { mutableStateOf<DeviceDiagnosticInfo?>(null) }
     var permissionsInfo by remember { mutableStateOf<PermissionDiagnosticInfo?>(null) }
     var themeInfo by remember { mutableStateOf<ThemeDiagnosticInfo?>(null) }
+    var customTranslatorsList by remember { mutableStateOf<List<com.d4viddf.hyperbridge.util.CustomTranslatorDiagnosticInfo>?>(null) }
     var widgetList by remember { mutableStateOf<List<WidgetDiagnosticInfo>?>(null) }
     var appConfigText by remember { mutableStateOf<String?>(null) }
     var logcatText by remember { mutableStateOf<String?>(null) }
@@ -232,6 +234,7 @@ fun BugReportScreen(
             val dev = BugReportCollector.collectDeviceInfo(context)
             val perm = BugReportCollector.collectPermissions(context)
             val thm = BugReportCollector.collectThemeInfo(themeRepo, preferences)
+            val customTranslators = BugReportCollector.collectCustomTranslatorsInfo(context)
             val wgt = BugReportCollector.collectWidgetInfo(context, preferences, selectedWidgetId)
             val logs = BugReportCollector.collectLogcat(500)
 
@@ -239,6 +242,7 @@ fun BugReportScreen(
                 deviceInfo = dev
                 permissionsInfo = perm
                 themeInfo = thm
+                customTranslatorsList = customTranslators
                 widgetList = wgt
                 logcatText = logs
             }
@@ -279,6 +283,8 @@ fun BugReportScreen(
         permissionsInfo,
         includeTheme,
         themeInfo,
+        includeCustomTranslators,
+        customTranslatorsList,
         includeWidgets,
         widgetList,
         appConfigScope,
@@ -295,6 +301,7 @@ fun BugReportScreen(
             deviceInfo = if (includeDevice) deviceInfo else null,
             permissions = if (includePermissions) permissionsInfo else null,
             themeInfo = if (includeTheme) themeInfo else null,
+            customTranslators = if (includeCustomTranslators) customTranslatorsList else null,
             widgetList = if (includeWidgets) widgetList else null,
             appConfigScope = appConfigScope,
             targetPackage = selectedAppPackage,
@@ -321,6 +328,7 @@ fun BugReportScreen(
             userSteps = userSteps,
             permissionsInfo = if (includePermissions) permissionsInfo else null,
             themeInfo = if (includeTheme) themeInfo else null,
+            customTranslators = if (includeCustomTranslators) customTranslatorsList else null,
             widgetList = if (includeWidgets) widgetList else null,
             appConfigScope = appConfigScope,
             selectedAppPackage = selectedAppPackage,
@@ -377,6 +385,8 @@ fun BugReportScreen(
         onIncludePermissionsChange = { includePermissions = it },
         includeTheme = includeTheme,
         onIncludeThemeChange = { includeTheme = it },
+        includeCustomTranslators = includeCustomTranslators,
+        onIncludeCustomTranslatorsChange = { includeCustomTranslators = it },
         includeWidgets = includeWidgets,
         onIncludeWidgetsChange = { includeWidgets = it },
         selectedWidgetId = selectedWidgetId,
@@ -415,6 +425,8 @@ fun BugReportContent(
     onIncludePermissionsChange: (Boolean) -> Unit,
     includeTheme: Boolean,
     onIncludeThemeChange: (Boolean) -> Unit,
+    includeCustomTranslators: Boolean,
+    onIncludeCustomTranslatorsChange: (Boolean) -> Unit,
     includeWidgets: Boolean,
     onIncludeWidgetsChange: (Boolean) -> Unit,
     selectedWidgetId: Int?,
@@ -596,6 +608,17 @@ fun BugReportContent(
                     subtitle = stringResource(R.string.bug_report_include_theme_desc),
                     checked = includeTheme,
                     onCheckedChange = onIncludeThemeChange
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                // Custom Translators Toggle
+                ToggleSettingRow(
+                    icon = Icons.Default.Tune,
+                    title = stringResource(R.string.bug_report_include_custom_translators),
+                    subtitle = stringResource(R.string.bug_report_include_custom_translators_desc),
+                    checked = includeCustomTranslators,
+                    onCheckedChange = onIncludeCustomTranslatorsChange
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -1622,6 +1645,8 @@ fun BugReportScreenPreview() {
             onIncludePermissionsChange = {},
             includeTheme = true,
             onIncludeThemeChange = {},
+            includeCustomTranslators = true,
+            onIncludeCustomTranslatorsChange = {},
             includeWidgets = true,
             onIncludeWidgetsChange = {},
             selectedWidgetId = null,

@@ -9,9 +9,20 @@ package com.d4viddf.hyperbridge.service
  * whose summary was never posted counts as ungrouped too, so the only safe shape is one app
  * group with a real summary that exists whenever a child exists and goes away when the last
  * child does.
+ *
+ * The group is an Android 16+ workaround only. Below that the system never force-groups at 2, and
+ * the summary has a visible cost: HyperOS hides Focus children from the shade but not an ordinary
+ * summary, so a "Hyper Bridge / Active Islands" row stays in the shade for as long as any island
+ * (the permanent one included) exists (#358).
  */
 object BridgeIslandGroupPolicy {
     const val GROUP_KEY = "hyperbridge_islands"
+
+    /** First SDK where force grouping at 2 exists (`Build.VERSION_CODES.BAKLAVA`, Android 16). */
+    const val MIN_SDK = 36
+
+    /** True when the app group and its summary are needed at all on this SDK. */
+    fun appliesTo(sdkInt: Int): Boolean = sdkInt >= MIN_SDK
 
     /** Negative: can never collide with hash-derived bridge ids or the widget id range. */
     const val SUMMARY_ID = -20302
@@ -32,4 +43,12 @@ object BridgeIslandGroupPolicy {
     /** True when the summary is active but no child is left. */
     fun shouldReleaseSummary(active: List<OwnNotification>): Boolean =
         active.any(::isSummary) && active.none(::isChild)
+
+    /**
+     * True when children are live without a summary: the group is force-groupable again, so the
+     * summary has to come back. Happens when the user swipes the summary row away, or when the
+     * process was killed between posting a child and posting the summary (#372).
+     */
+    fun shouldRestoreSummary(active: List<OwnNotification>): Boolean =
+        active.none(::isSummary) && active.any(::isChild)
 }

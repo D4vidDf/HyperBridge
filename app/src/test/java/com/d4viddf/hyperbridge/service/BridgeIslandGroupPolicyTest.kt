@@ -18,6 +18,15 @@ class BridgeIslandGroupPolicyTest {
     }
 
     @Test
+    fun groupOnlyAppliesFromAndroid16() {
+        // Force grouping at 2 is Android 16+; below that the summary only adds a shade row (#358).
+        assertFalse(BridgeIslandGroupPolicy.appliesTo(34))
+        assertFalse(BridgeIslandGroupPolicy.appliesTo(35))
+        assertTrue(BridgeIslandGroupPolicy.appliesTo(36))
+        assertTrue(BridgeIslandGroupPolicy.appliesTo(37))
+    }
+
+    @Test
     fun childrenAreOnlyGroupedNonSummaryNotifications() {
         assertTrue(BridgeIslandGroupPolicy.isChild(island))
         assertFalse(BridgeIslandGroupPolicy.isChild(summary))
@@ -40,6 +49,31 @@ class BridgeIslandGroupPolicyTest {
         assertFalse(BridgeIslandGroupPolicy.shouldReleaseSummary(listOf(summary, island)))
         assertFalse(BridgeIslandGroupPolicy.shouldReleaseSummary(listOf(island)))
         assertFalse(BridgeIslandGroupPolicy.shouldReleaseSummary(emptyList()))
+    }
+
+    @Test
+    fun summaryIsRestoredOnlyWhenChildrenOutliveIt() {
+        // The user swiped the summary row away, or the process died between the two posts (#372).
+        assertTrue(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(island)))
+        assertTrue(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(island, widget, relay)))
+        assertFalse(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(summary, island)))
+        assertFalse(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(widget, relay)))
+        assertFalse(BridgeIslandGroupPolicy.shouldRestoreSummary(emptyList()))
+    }
+
+    @Test
+    fun reconcileNeverBothReleasesAndRestores() {
+        val worlds = listOf(
+            emptyList(), listOf(summary), listOf(island), listOf(summary, island),
+            listOf(widget, relay), listOf(summary, widget), listOf(island, relay)
+        )
+        for (active in worlds) {
+            assertFalse(
+                "ambiguous for $active",
+                BridgeIslandGroupPolicy.shouldReleaseSummary(active) &&
+                        BridgeIslandGroupPolicy.shouldRestoreSummary(active)
+            )
+        }
     }
 
     @Test

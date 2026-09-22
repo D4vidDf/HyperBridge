@@ -6,31 +6,38 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.d4viddf.hyperbridge.data.composer.ComposerTemplateDao
-import com.d4viddf.hyperbridge.data.composer.ComposerTemplateEntity
 
-@Database(entities = [AppSetting::class, ComposerTemplateEntity::class], version = 2, exportSchema = false)
+@Database(entities = [AppSetting::class, TranslatorEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
-    abstract fun composerTemplateDao(): ComposerTemplateDao
+    abstract fun translatorDao(): TranslatorDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Adds the composer_templates table (Phase 4, #272). MUST stay registered: without it,
-        // the version bump above falls through to fallbackToDestructiveMigration and wipes the
-        // entire `settings` table (every user preference) on the next app update.
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
-                    "CREATE TABLE IF NOT EXISTS `composer_templates` (" +
-                        "`id` TEXT NOT NULL, `name` TEXT NOT NULL, `definitionJson` TEXT NOT NULL, " +
-                        "`packageNameRegex` TEXT, `titleRegex` TEXT, `textRegex` TEXT, " +
-                        "`priority` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, " +
-                        "`createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, " +
-                        "PRIMARY KEY(`id`))"
+                    """
+                    CREATE TABLE IF NOT EXISTS `custom_translators` (
+                        `id` TEXT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `targetScope` TEXT NOT NULL,
+                        `targetPackages` TEXT NOT NULL,
+                        `targetNotificationTypes` TEXT NOT NULL,
+                        `priority` INTEGER NOT NULL,
+                        `isEnabled` INTEGER NOT NULL,
+                        `jsonContent` TEXT NOT NULL,
+                        `createdAt` INTEGER NOT NULL,
+                        `updatedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent()
                 )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_translators_priority` ON `custom_translators` (`priority`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_translators_isEnabled` ON `custom_translators` (`isEnabled`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_translators_targetScope` ON `custom_translators` (`targetScope`)")
             }
         }
 
