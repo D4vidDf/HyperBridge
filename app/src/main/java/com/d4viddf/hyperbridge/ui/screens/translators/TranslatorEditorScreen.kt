@@ -171,6 +171,7 @@ import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
 import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
+import com.d4viddf.hyperbridge.models.translator.withResolvedTemplate
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.ProgressConditions
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
@@ -229,7 +230,8 @@ fun TranslatorEditorScreen(
         if (translatorId != null) {
             val loaded = viewModel.getTranslatorById(translatorId)
             if (loaded != null) {
-                translator = loaded
+                // Edit concrete template slots, never a bare templateId (see effectivePresentation).
+                translator = loaded.withResolvedTemplate()
             }
         }
     }
@@ -2343,7 +2345,8 @@ fun TranslatorPresentationContent(
             currentMode = presentation.mode,
             onDismiss = { showModeSheet = false },
             onModeSelected = { newMode ->
-                onPresentationChange(presentation.copy(mode = newMode))
+                // A bare templateId is materialized here, so later edits start from the preset.
+                onPresentationChange(IslandTemplateCatalog.effectivePresentation(presentation.copy(mode = newMode)))
                 showModeSheet = false
             }
         )
@@ -2366,7 +2369,7 @@ fun TranslatorPresentationContent(
             currentTemplateId = presentation.templateId,
             onDismiss = { showTemplateSheet = false },
             onTemplateSelected = { newTemplateId ->
-                onPresentationChange(presentation.copy(templateId = newTemplateId))
+                onPresentationChange(IslandTemplateCatalog.applyTemplate(presentation, newTemplateId))
                 showTemplateSheet = false
             }
         )

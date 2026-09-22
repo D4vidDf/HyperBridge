@@ -296,21 +296,46 @@ object IslandTemplateCatalog {
         templateId?.let { id -> all.firstOrNull { it.id == id } }
 
     /**
-     * Fills the slots a TEMPLATE translator never touched with the template's own preset, so a
-     * translator that only carries a `templateId` (an imported .htrans, or one built before the
-     * gallery existed) still renders as that template. Anything the user edited wins.
+     * Renders a TEMPLATE translator that carries nothing but its `templateId` (an imported .htrans,
+     * or one whose mode was just switched) as that template's preset.
+     *
+     * All or nothing on purpose. A slot-by-slot merge cannot tell "left at the default" from
+     * "edited back to the default": editing one text field silently dropped the preset's other
+     * ones (the highlight / OTP text), and deleting a preset's only action brought it back on the
+     * next render. So a template is materialized once ([applyTemplate], [newDesign], or the editor
+     * resolving it on load) and from then on its slots are rendered exactly as saved.
      */
     fun effectivePresentation(config: PresentationConfig): PresentationConfig {
-        if (config.mode != PresentationMode.TEMPLATE) return config
+        if (config.mode != PresentationMode.TEMPLATE || !isBare(config)) return config
         val preset = find(config.templateId)?.presentation ?: return config
-        val defaults = PresentationConfig()
-        return config.copy(
-            leftSlot = if (config.leftSlot == defaults.leftSlot) preset.leftSlot else config.leftSlot,
-            textSlot = if (config.textSlot == defaults.textSlot) preset.textSlot else config.textSlot,
-            progressSlot = if (config.progressSlot == defaults.progressSlot) preset.progressSlot else config.progressSlot,
-            actionSlots = config.actionSlots.ifEmpty { preset.actionSlots },
-            pill = if (config.pill == defaults.pill) preset.pill else config.pill
+        return preset.copy(
+            mode = config.mode,
+            templateId = config.templateId,
+            widgetId = config.widgetId,
+            rawParamV2 = config.rawParamV2
         )
+    }
+
+    /** Switches [config] to [templateId], with that template's own slots as the starting point. */
+    fun applyTemplate(config: PresentationConfig, templateId: String): PresentationConfig {
+        val preset = find(templateId)?.presentation
+            ?: return config.copy(mode = PresentationMode.TEMPLATE, templateId = templateId)
+        return preset.copy(
+            mode = PresentationMode.TEMPLATE,
+            templateId = templateId,
+            widgetId = config.widgetId,
+            rawParamV2 = config.rawParamV2
+        )
+    }
+
+    /** True when every slot is still at its default, i.e. the config only names a template. */
+    private fun isBare(config: PresentationConfig): Boolean {
+        val defaults = PresentationConfig()
+        return config.leftSlot == defaults.leftSlot &&
+            config.textSlot == defaults.textSlot &&
+            config.progressSlot == defaults.progressSlot &&
+            config.actionSlots.isEmpty() &&
+            config.pill == defaults.pill
     }
 
     /**
