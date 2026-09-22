@@ -53,6 +53,9 @@ interface SourceDao {
     @Query("SELECT * FROM source_values WHERE sourceId = :id")
     suspend fun getValue(id: String): SourceValueEntity?
 
+    @Query("SELECT * FROM source_values WHERE ttlMs IS NOT NULL AND (updatedAt + ttlMs) < :now")
+    suspend fun getExpired(now: Long): List<SourceValueEntity>
+
     @Query("DELETE FROM source_values WHERE ttlMs IS NOT NULL AND (updatedAt + ttlMs) < :now")
     suspend fun deleteExpired(now: Long)
 }

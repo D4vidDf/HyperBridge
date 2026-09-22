@@ -15,20 +15,34 @@ import kotlinx.coroutines.launch
  * "Island content sources" (issue #273 add-on): any allow-listed app can drive a micro-widget's
  * `{source.<id>.text}` / `{source.<id>.icon}` tokens by broadcasting [ACTION_UPDATE_SOURCE].
  *
- * SECURITY NOTE: [android.content.BroadcastReceiver.onReceive] has no first-class API to learn
- * the *actual* sending app. The custom [PERMISSION_UPDATE_SOURCE] (OS-enforced, real) only proves
- * the sender declared that permission - it does not identify *which* app sent it. Per-app
- * allow/revoke here is therefore trust-on-first-use: the sender self-reports its package in
- * [EXTRA_OWNER_PACKAGE], and that name is what the user allows or revokes in Settings. This is
- * weaker than "verified sender identity" and is called out here deliberately rather than silently.
+ * SECURITY: the custom [PERMISSION_UPDATE_SOURCE] is `normal`, so any app can hold it; it only
+ * gates who may broadcast at all. Which app sent the update comes from the platform instead: the
+ * sender must opt in to sharing its identity (`BroadcastOptions.setShareIdentityEnabled(true)`,
+ * API 34+), and [getSentFromPackage] is what the Settings allow-list is checked against. A
+ * self-reported package could otherwise be spoofed by any app to write an allowed app's source.
+ * [EXTRA_OWNER_PACKAGE] is optional and, when present, must match. The source id is used as a
+ * file name, so it is restricted to [SourceRepository.isValidSourceId].
  */
 class UpdateSourceReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION_UPDATE_SOURCE) return
         val sourceId = intent.getStringExtra(EXTRA_SOURCE_ID) ?: return
-        val ownerPackage = intent.getStringExtra(EXTRA_OWNER_PACKAGE) ?: return
-        val text = intent.getStringExtra(EXTRA_TEXT)
+        if (!SourceRepository.isValidSourceId(sourceId)) {
+            Log.w(TAG, "Dropped source update with an invalid source id")
+            return
+        }
+        val ownerPackage = sentFromPackage
+        if (ownerPackage == null) {
+            Log.w(TAG, "Dropped source update from a sender that did not share its identity")
+            return
+        }
+        val claimed = intent.getStringExtra(EXTRA_OWNER_PACKAGE)
+        if (claimed != null && claimed != ownerPackage) {
+            Log.w(TAG, "Dropped source update: $ownerPackage claimed to be $claimed")
+            return
+        }
+        val text = intent.getStringExtra(EXTRA_TEXT)?.take(SourceRepository.MAX_TEXT_LENGTH)
         val icon = getIconExtra(intent)
         val ttlMs = intent.getLongExtra(EXTRA_TTL_MS, -1L).takeIf { it > 0 }
 
@@ -37,8 +51,6 @@ class UpdateSourceReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val repository = SourceRepository(appContext)
-                // The owner package is self-reported (see class comment); at minimum it must be
-                // an installed app, otherwise the Settings allow-list would show phantom entries.
                 val label = try {
                     appContext.packageManager.getApplicationLabel(
                         appContext.packageManager.getApplicationInfo(ownerPackage, 0)

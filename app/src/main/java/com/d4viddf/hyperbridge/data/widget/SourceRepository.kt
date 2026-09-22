@@ -61,7 +61,9 @@ class SourceRepository(
      * clobber each other's value. The id is released when its current row expires or is deleted.
      */
     suspend fun update(sourceId: String, ownerPackage: String, text: String?, icon: Bitmap?, ttlMs: Long?): Boolean {
+        if (!isValidSourceId(sourceId)) return false
         return withContext(Dispatchers.IO) {
+            pruneExpired()
             val current = dao.getValue(sourceId)
             if (current != null && current.ownerPackage != ownerPackage) {
                 val currentExpired = current.ttlMs != null && (current.updatedAt + current.ttlMs) < System.currentTimeMillis()
@@ -113,7 +115,27 @@ class SourceRepository(
     }
 
     fun loadIconBitmap(sourceId: String): Bitmap? {
+        if (!isValidSourceId(sourceId)) return null
         val file = File(iconsDir, "$sourceId.png")
         return if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+    }
+
+    /** Expired rows are never shown again: drop them and their icon files. */
+    private suspend fun pruneExpired() {
+        val now = System.currentTimeMillis()
+        dao.getExpired(now).forEach { value ->
+            value.iconPath?.let { runCatching { File(it).delete() } }
+        }
+        dao.deleteExpired(now)
+    }
+
+    companion object {
+        /** Cap on `{source.<id>.text}`: it ends up in an island, not in a document. */
+        const val MAX_TEXT_LENGTH = 512
+
+        private val SOURCE_ID = Regex("[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}")
+
+        /** Source ids become file names (`sources/<id>.png`), so no separators and no "..". */
+        fun isValidSourceId(id: String): Boolean = SOURCE_ID.matches(id)
     }
 }

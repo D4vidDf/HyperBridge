@@ -85,13 +85,13 @@ class CustomWidgetRenderer(
             is TextNode -> renderText(node, ctx)
             is ImageNode -> renderImage(doc, node, ctx)
             is ProgressNode -> renderProgress(node, ctx)
-            is ButtonNode -> renderButton(node, bridgeId, intents)
+            is ButtonNode -> renderButton(doc, node, bridgeId, intents)
         }
         applySize(rv, rootViewId(node), node.bounds.widthDp, node.bounds.heightDp)
         // Any element can carry a tap action, not just buttons (#328); ButtonNode wired its own.
         if (node !is ButtonNode) {
             node.onClick?.let { action ->
-                resolveAction(node.id, action, bridgeId, intents)?.let { pending ->
+                resolveAction(requestCode(doc, node, bridgeId), action, bridgeId, intents)?.let { pending ->
                     rv.setOnClickPendingIntent(rootViewId(node), pending)
                 }
             }
@@ -264,7 +264,7 @@ class CustomWidgetRenderer(
         }
     }
 
-    private fun renderButton(node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents): RemoteViews {
+    private fun renderButton(doc: CustomWidgetDocument, node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_button)
         rv.setTextViewText(R.id.node_button, node.label)
         try {
@@ -276,7 +276,7 @@ class CustomWidgetRenderer(
             } catch (_: Exception) { /* ignore */ }
         }
 
-        val pendingIntent: PendingIntent? = resolveAction(node.id, node.action, bridgeId, intents)
+        val pendingIntent: PendingIntent? = resolveAction(requestCode(doc, node, bridgeId), node.action, bridgeId, intents)
 
         if (pendingIntent != null) {
             rv.setOnClickPendingIntent(R.id.node_button, pendingIntent)
@@ -285,20 +285,28 @@ class CustomWidgetRenderer(
     }
 
     /** Turns a [ButtonAction] into something tappable, or null when there is nothing to fire. */
+    /**
+     * PendingIntents are matched without their extras, so a request code of just the node id let
+     * two islands built from the same design (or two designs sharing a node id) overwrite each
+     * other's intent under FLAG_UPDATE_CURRENT: Dismiss on one island closed the other.
+     */
+    private fun requestCode(doc: CustomWidgetDocument, node: CustomWidgetNode, bridgeId: Int?): Int =
+        "${doc.id}/${node.id}/${bridgeId ?: 0}".hashCode()
+
     private fun resolveAction(
-        nodeId: String,
+        requestCode: Int,
         action: ButtonAction,
         bridgeId: Int?,
         intents: WidgetActionIntents
     ): PendingIntent? = when (action) {
         is ButtonAction.OpenApp ->
             context.packageManager.getLaunchIntentForPackage(action.packageName)?.let {
-                PendingIntent.getActivity(context, nodeId.hashCode(), it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+                PendingIntent.getActivity(context, requestCode, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             }
 
         is ButtonAction.DeepLink -> {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(action.uri))
-            PendingIntent.getActivity(context, nodeId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
         is ButtonAction.Dismiss -> {
@@ -306,7 +314,7 @@ class CustomWidgetRenderer(
                 setAction(WidgetActionReceiver.ACTION_DISMISS)
                 putExtra(WidgetActionReceiver.EXTRA_BRIDGE_ID, bridgeId ?: -1)
             }
-            PendingIntent.getBroadcast(context, nodeId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
         // The notification's own button, handed to us by the translator.
@@ -320,7 +328,7 @@ class CustomWidgetRenderer(
                 action.packageName?.takeIf { it.isNotBlank() }?.let { setPackage(it) }
                 if (!action.extraKey.isNullOrBlank()) putExtra(action.extraKey, action.extraValue.orEmpty())
             }
-            PendingIntent.getBroadcast(context, nodeId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
         // Inline reply fires the notification's own reply action when it has one; a hand-drawn
