@@ -43,4 +43,12 @@ object BridgeIslandGroupPolicy {
     /** True when the summary is active but no child is left. */
     fun shouldReleaseSummary(active: List<OwnNotification>): Boolean =
         active.any(::isSummary) && active.none(::isChild)
+
+    /**
+     * True when children are live without a summary: the group is force-groupable again, so the
+     * summary has to come back. Happens when the user swipes the summary row away, or when the
+     * process was killed between posting a child and posting the summary (#372).
+     */
+    fun shouldRestoreSummary(active: List<OwnNotification>): Boolean =
+        active.none(::isSummary) && active.any(::isChild)
 }
