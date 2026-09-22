@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
+import com.d4viddf.hyperbridge.models.widget.WidgetImportGuard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -40,7 +41,7 @@ class CustomWidgetRepository(private val context: Context) {
             try {
                 val configFile = File(widgetFolder, "widget.json")
                 if (configFile.exists()) {
-                    list.add(json.decodeFromString(CustomWidgetDocument.serializer(), configFile.readText()))
+                    list.add(decodeStored(configFile.readText()))
                 }
             } catch (e: Exception) {
                 Log.e(tag, "Corrupt widget found in: ${widgetFolder.name}", e)
@@ -52,11 +53,17 @@ class CustomWidgetRepository(private val context: Context) {
     suspend fun getWidget(id: String): CustomWidgetDocument? = withContext(Dispatchers.IO) {
         try {
             val configFile = File(widgetsDir, "$id/widget.json")
-            if (configFile.exists()) json.decodeFromString(CustomWidgetDocument.serializer(), configFile.readText()) else null
+            if (WidgetImportGuard.isSafeId(id) && configFile.exists()) decodeStored(configFile.readText()) else null
         } catch (e: Exception) {
             Log.e(tag, "Failed to load widget $id", e)
             null
         }
+    }
+
+    /** Widgets saved before the import guard existed get the same nesting check before decoding. */
+    private fun decodeStored(text: String): CustomWidgetDocument {
+        require(WidgetImportGuard.jsonNestingDepth(text) <= WidgetImportGuard.MAX_JSON_NESTING) { "widget.json nested too deeply" }
+        return json.decodeFromString(CustomWidgetDocument.serializer(), text)
     }
 
     /** Legacy lookup for [CustomWidgetDocument.boundPackage]; designs are matched by translator now. */
@@ -74,12 +81,14 @@ class CustomWidgetRepository(private val context: Context) {
     }
 
     suspend fun deleteWidget(id: String) {
+        if (!WidgetImportGuard.isSafeId(id)) return
         withContext(Dispatchers.IO) {
             File(widgetsDir, id).deleteRecursively()
         }
     }
 
     suspend fun exportWidget(id: String): File? = withContext(Dispatchers.IO) {
+        if (!WidgetImportGuard.isSafeId(id)) return@withContext null
         val sourceFolder = File(widgetsDir, id)
         if (!sourceFolder.exists()) return@withContext null
 
@@ -116,19 +125,32 @@ class CustomWidgetRepository(private val context: Context) {
         if (!tempDir.exists()) tempDir.mkdirs()
 
         try {
+            val tempRoot = tempDir.canonicalPath + File.separator
+            var unpackedBytes = 0L
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 ZipInputStream(inputStream).use { zip ->
                     var entry = zip.nextEntry
                     while (entry != null) {
                         val file = File(tempDir, entry.name)
-                        if (!file.canonicalPath.startsWith(tempDir.canonicalPath)) {
+                        if (!file.canonicalPath.startsWith(tempRoot)) {
                             throw SecurityException("Invalid Zip Path: ${entry.name}")
                         }
                         if (entry.isDirectory) {
                             file.mkdirs()
                         } else {
                             file.parentFile?.mkdirs()
-                            file.outputStream().use { output -> zip.copyTo(output) }
+                            file.outputStream().use { output ->
+                                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                                while (true) {
+                                    val read = zip.read(buffer)
+                                    if (read < 0) break
+                                    unpackedBytes += read
+                                    if (unpackedBytes > WidgetImportGuard.MAX_UNPACKED_BYTES) {
+                                        throw IllegalArgumentException("Invalid widget: archive too large")
+                                    }
+                                    output.write(buffer, 0, read)
+                                }
+                            }
                         }
                         entry = zip.nextEntry
                     }
@@ -139,19 +161,32 @@ class CustomWidgetRepository(private val context: Context) {
             if (!configFile.exists()) {
                 throw IllegalArgumentException("Invalid widget: missing widget.json")
             }
+            if (configFile.length() > WidgetImportGuard.MAX_CONFIG_BYTES) {
+                throw IllegalArgumentException("Invalid widget: widget.json too large")
+            }
 
-            val doc = try {
-                json.decodeFromString(CustomWidgetDocument.serializer(), configFile.readText())
+            val configText = configFile.readText()
+            // Checked before decoding: kotlinx decodes the node tree recursively, and a
+            // StackOverflowError is an Error that no catch below would stop.
+            if (WidgetImportGuard.jsonNestingDepth(configText) > WidgetImportGuard.MAX_JSON_NESTING) {
+                throw IllegalArgumentException("Invalid widget: nested too deeply")
+            }
+            val decoded = try {
+                json.decodeFromString(CustomWidgetDocument.serializer(), configText)
             } catch (_: Exception) {
                 throw IllegalArgumentException("Invalid widget.json structure")
             }
 
+            // The id becomes a folder name that is deleted and replaced below: an id like
+            // "../../databases" must never reach File(widgetsDir, id).
+            val finalId = decoded.id.takeIf { WidgetImportGuard.isSafeId(it) } ?: tempId
+            val doc = if (finalId == decoded.id) decoded else decoded.copy(id = finalId)
+
             val validation = WidgetDimensionValidator.validate(doc)
-            if (validation.clamped != doc) {
+            if (validation.clamped != decoded) {
                 configFile.writeText(json.encodeToString(CustomWidgetDocument.serializer(), validation.clamped))
             }
 
-            val finalId = doc.id.ifEmpty { tempId }
             val targetDir = File(widgetsDir, finalId)
             if (targetDir.exists()) targetDir.deleteRecursively()
 

@@ -18,7 +18,9 @@ object WidgetDimensionValidator {
 
     data class ValidationResult(
         val errors: List<String>,
-        val clamped: CustomWidgetDocument
+        val clamped: CustomWidgetDocument,
+        /** True when nodes past [MAX_DEPTH] / [MAX_NODE_COUNT] were cut out of [clamped]. */
+        val pruned: Boolean = false
     ) {
         val isValid: Boolean get() = errors.isEmpty()
     }
@@ -28,6 +30,7 @@ object WidgetDimensionValidator {
         val canvasHeight = doc.canvas.heightDp
         var totalNodes = 0
         var buttonCount = 0
+        var pruned = false
 
         fun clampBounds(bounds: NodeBounds): NodeBounds {
             val x = bounds.x.coerceIn(0, CANVAS_WIDTH_DP)
@@ -42,14 +45,11 @@ object WidgetDimensionValidator {
             }
         }
 
+        // The limits are enforced, not just reported: the renderer, the condition pruner and this
+        // clamp all recurse over the tree on every notification, so an imported .hwidget nested
+        // thousands deep would otherwise end in a StackOverflowError (an Error, never caught).
         fun clampNode(node: CustomWidgetNode, depth: Int): CustomWidgetNode {
             totalNodes++
-            if (depth > MAX_DEPTH) {
-                errors.add("Node ${node.id} exceeds max recursion depth ($MAX_DEPTH)")
-            }
-            if (totalNodes > MAX_NODE_COUNT) {
-                errors.add("Widget exceeds max node count ($MAX_NODE_COUNT)")
-            }
             val clampedBounds = clampBounds(node.bounds)
             return when (node) {
                 is TextNode -> {
@@ -66,9 +66,27 @@ object WidgetDimensionValidator {
                     node.copy(bounds = clampedBounds)
                 }
                 is LayoutContainer -> {
-                    val clampedChildren = node.children.map { clampNode(it, depth + 1) }
+                    val clampedChildren = when {
+                        node.children.isEmpty() -> node.children
+                        depth >= MAX_DEPTH -> {
+                            errors.add("Node ${node.id} exceeds max recursion depth ($MAX_DEPTH), children removed")
+                            pruned = true
+                            emptyList()
+                        }
+                        else -> node.children.mapNotNull { child ->
+                            if (totalNodes >= MAX_NODE_COUNT) {
+                                if (errors.none { it.startsWith("Widget exceeds max node count") }) {
+                                    errors.add("Widget exceeds max node count ($MAX_NODE_COUNT), extra nodes removed")
+                                }
+                                pruned = true
+                                null
+                            } else {
+                                clampNode(child, depth + 1)
+                            }
+                        }
+                    }
                     if (node.layout == ContainerLayout.ABSOLUTE) {
-                        checkOverlaps(node.children, node.id, errors)
+                        checkOverlaps(clampedChildren, node.id, errors)
                     }
                     node.copy(bounds = clampedBounds, children = clampedChildren)
                 }
@@ -79,7 +97,7 @@ object WidgetDimensionValidator {
         if (buttonCount > MAX_RECOMMENDED_BUTTONS) {
             errors.add("Warning: widget has $buttonCount buttons; HyperOS islands realistically fit at most $MAX_RECOMMENDED_BUTTONS")
         }
-        return ValidationResult(errors.toList(), doc.copy(root = clampedRoot))
+        return ValidationResult(errors.toList(), doc.copy(root = clampedRoot), pruned)
     }
 
     /** Overlap is a warning only (added to [errors] but never blocks a save). */

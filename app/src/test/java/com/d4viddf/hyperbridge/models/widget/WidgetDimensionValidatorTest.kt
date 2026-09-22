@@ -77,6 +77,41 @@ class WidgetDimensionValidatorTest {
     }
 
     @Test
+    fun cutsTheTreeOffAtMaxDepth() {
+        var current: CustomWidgetNode = TextNode(id = "leaf")
+        repeat(500) { i ->
+            current = LayoutContainer(id = "c$i", children = listOf(current))
+        }
+        val result = WidgetDimensionValidator.validate(doc(current as LayoutContainer))
+
+        assertTrue(result.pruned)
+        assertTrue(depthOf(result.clamped.root) <= WidgetDimensionValidator.MAX_DEPTH)
+    }
+
+    @Test
+    fun cutsExtraNodesPastMaxNodeCount() {
+        val children = (1..WidgetDimensionValidator.MAX_NODE_COUNT * 10).map { TextNode(id = "t$it") }
+        val result = WidgetDimensionValidator.validate(doc(LayoutContainer(id = "root", children = children)))
+
+        assertTrue(result.pruned)
+        // The root counts as a node too.
+        assertEquals(WidgetDimensionValidator.MAX_NODE_COUNT - 1, result.clamped.root.children.size)
+        assertEquals(1, result.errors.count { it.contains("node count") })
+    }
+
+    @Test
+    fun aTreeWithinTheLimitsIsNotPruned() {
+        val root = LayoutContainer(id = "root", children = listOf(TextNode(id = "a"), ButtonNode(id = "b", label = "B")))
+        val result = WidgetDimensionValidator.validate(doc(root))
+
+        assertEquals(false, result.pruned)
+        assertEquals(root, result.clamped.root)
+    }
+
+    private fun depthOf(node: CustomWidgetNode): Int =
+        if (node is LayoutContainer && node.children.isNotEmpty()) 1 + node.children.maxOf(::depthOf) else 1
+
+    @Test
     fun flagsButDoesNotBlockTooManyButtons() {
         val children = (1..WidgetDimensionValidator.MAX_RECOMMENDED_BUTTONS + 1).map {
             ButtonNode(id = "b$it", label = "B$it")
