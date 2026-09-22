@@ -22,6 +22,7 @@ import com.d4viddf.hyperbridge.service.BridgeIslandGroup
 import com.d4viddf.hyperbridge.service.BridgeNotificationChannels
 import com.d4viddf.hyperbridge.service.translators.VpnTranslator
 import com.d4viddf.hyperbridge.util.ShizukuManager
+import com.d4viddf.hyperbridge.util.sendAllowingBackgroundLaunch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -395,7 +396,9 @@ class VpnIslandController(
             resolved
         }
         renderNow()
-        val sent = runCatching { control.pendingIntent.send(); true }.getOrDefault(false)
+        // Sent from our receiver, so an activity-type disconnect (OpenVPN for Android's DisconnectVPN)
+        // needs the same background-launch opt-in as the message island tap (#359).
+        val sent = runCatching { control.pendingIntent.sendAllowingBackgroundLaunch(); true }.getOrDefault(false)
         if (!sent) {
             applyEvent(VpnSessionEvent.DisconnectFailed(System.currentTimeMillis()), minor = false)
             return

@@ -1,7 +1,6 @@
 package com.d4viddf.hyperbridge.service
 
 import android.Manifest
-import android.app.ActivityOptions
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,7 +10,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -83,6 +81,7 @@ import com.d4viddf.hyperbridge.service.updater.SystemUpdateTimeoutPolicy
 import com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier
 import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.util.ShizukuManager
+import com.d4viddf.hyperbridge.util.sendAllowingBackgroundLaunch
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -234,15 +233,7 @@ class NotificationReaderService : NotificationListenerService() {
                         // unless it opts in, and since API 35 creators (Google Messages, any
                         // app targeting 35+) deny it by default. Without the opt-in the launch
                         // is silently dropped and only the cancel below happens (#359).
-                        val mode = if (Build.VERSION.SDK_INT >= 36) {
-                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
-                        } else {
-                            @Suppress("DEPRECATION")
-                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                        }
-                        val options = ActivityOptions.makeBasic()
-                            .setPendingIntentBackgroundActivityStartMode(mode)
-                        originalIntent.send(options.toBundle())
+                        originalIntent.sendAllowingBackgroundLaunch()
                     } catch (e: PendingIntent.CanceledException) {
                         Log.e("HyperBridge", "PendingIntent canceled", e)
                     }
