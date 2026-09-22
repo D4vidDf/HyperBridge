@@ -56,7 +56,9 @@ private enum class DesignRoute {
     DASHBOARD,
     WIDGET_LIST,
     THEME_MANAGER,
-    THEME_CREATOR
+    THEME_CREATOR,
+    TRANSLATOR_MANAGER,
+    TRANSLATOR_EDITOR
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,12 +69,17 @@ fun HomeScreen(
     onNavConfigClick: (String) -> Unit,
     onScreenRecordingConfigClick: () -> Unit = {},
     onSystemUpdateConfigClick: () -> Unit = {},
-    onAppConfigClick: (String) -> Unit = {}
+    onAppConfigClick: (String) -> Unit = {},
+    onNavigateToTranslators: () -> Unit = {},
+    onCreateTranslator: (String?) -> Unit = {},
+    onEditTranslator: (String) -> Unit = {}
 ) {
 
     var selectedTab by remember { mutableIntStateOf(1) }
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
+    var editingTranslatorId by remember { mutableStateOf<String?>(null) }
+    var newTranslatorPackageName by remember { mutableStateOf<String?>(null) }
 
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
@@ -93,6 +100,11 @@ fun HomeScreen(
                 DesignRoute.THEME_CREATOR -> {
                     editingThemeId = null
                     DesignRoute.THEME_MANAGER
+                }
+                DesignRoute.TRANSLATOR_EDITOR -> {
+                    editingTranslatorId = null
+                    newTranslatorPackageName = null
+                    DesignRoute.TRANSLATOR_MANAGER
                 }
                 else -> DesignRoute.DASHBOARD
             }
@@ -166,6 +178,19 @@ fun HomeScreen(
                                                 editingThemeId = themeId
                                                 designRoute = DesignRoute.THEME_CREATOR
                                             },
+                                            onNavigateToTranslators = {
+                                                designRoute = DesignRoute.TRANSLATOR_MANAGER
+                                            },
+                                            onCreateTranslator = {
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onEditTranslator = { id ->
+                                                editingTranslatorId = id
+                                                newTranslatorPackageName = null
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
                                             onLaunchPicker = { showWidgetPicker = true },
                                             onSettingsClick = onSettingsClick
                                         )
@@ -221,6 +246,34 @@ fun HomeScreen(
                                             onThemeCreated = {
                                                 designRoute = DesignRoute.THEME_MANAGER
                                                 editingThemeId = null
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.TRANSLATOR_MANAGER -> {
+                                        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorManagerScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onCreateTranslator = { pkg ->
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = pkg
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onEditTranslator = { id ->
+                                                editingTranslatorId = id
+                                                newTranslatorPackageName = null
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.TRANSLATOR_EDITOR -> {
+                                        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorEditorScreen(
+                                            translatorId = editingTranslatorId,
+                                            initialPackageName = newTranslatorPackageName,
+                                            onBack = {
+                                                designRoute = DesignRoute.TRANSLATOR_MANAGER
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
                                             }
                                         )
                                     }

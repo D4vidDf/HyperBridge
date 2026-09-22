@@ -36,6 +36,21 @@ class ThemeRepository(private val context: Context) {
     }
 
     /**
+     * Synchronously or quickly reads a theme by ID if it exists on disk.
+     */
+    fun getThemeById(themeId: String): HyperTheme? {
+        return try {
+            val themeFile = File(themesDir, "$themeId/theme_config.json")
+            if (themeFile.exists()) {
+                json.decodeFromString<HyperTheme>(themeFile.readText())
+            } else null
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to load theme by id $themeId", e)
+            null
+        }
+    }
+
+    /**
      * Loads a theme from disk into memory by ID.
      */
     suspend fun activateTheme(themeId: String) {
@@ -120,6 +135,28 @@ class ThemeRepository(private val context: Context) {
                 // If updating, clear old version
                 if (targetDir.exists()) {
                     targetDir.deleteRecursively()
+                }
+
+                // 4. BUNDLED TRANSLATORS DISCOVERY & IMPORT
+                val translatorsDir = File(tempDir, "translators")
+                if (translatorsDir.exists() && translatorsDir.isDirectory) {
+                    try {
+                        val translatorRepo = com.d4viddf.hyperbridge.data.translator.TranslatorRepository(context)
+                        translatorsDir.walkTopDown().filter { it.isFile }.forEach { file ->
+                            if (file.extension.equals("htrans", ignoreCase = true) || file.extension.equals("json", ignoreCase = true)) {
+                                file.inputStream().use { stream ->
+                                    val result = translatorRepo.importTranslatorFromStream(stream)
+                                    if (result.isSuccess) {
+                                        Log.i(tag, "Bundled translator imported from theme: ${result.getOrNull()?.meta?.name}")
+                                    } else {
+                                        Log.w(tag, "Failed to import bundled translator: ${file.name}", result.exceptionOrNull())
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w(tag, "Error processing bundled translators in theme $finalId", e)
+                    }
                 }
 
                 // Move temp to final

@@ -32,5 +32,7 @@ sealed interface Screen : NavKey {
     @Serializable data object FloatingSetup : Screen
     @Serializable data object Diagnostics : Screen
     @Serializable data class AppConfig(val packageName: String) : Screen
+    @Serializable data object TranslatorManager : Screen
+    @Serializable data class TranslatorEditor(val translatorId: String? = null, val initialPackageName: String? = null) : Screen
 }
 

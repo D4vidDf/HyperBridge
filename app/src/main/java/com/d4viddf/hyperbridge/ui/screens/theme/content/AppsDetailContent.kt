@@ -268,6 +268,7 @@ fun AppOverrideCard(
 @Composable
 fun AppSelectionSheet(
     apps: List<AppItem>,
+    title: String = stringResource(R.string.apps_sheet_select_title),
     onDismiss: () -> Unit,
     onAppSelected: (AppItem) -> Unit
 ) {
@@ -288,7 +289,7 @@ fun AppSelectionSheet(
         ) {
             // Sheet Header
             Text(
-                stringResource(R.string.apps_sheet_select_title),
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
