@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.service
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,6 +11,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -226,7 +228,21 @@ class NotificationReaderService : NotificationListenerService() {
 
                 if (originalIntent != null) {
                     try {
-                        originalIntent.send()
+                        // The island tap reaches us as a broadcast, so *we* (not the system)
+                        // are the sender of the app's content PendingIntent. Since API 34 a
+                        // sender no longer lends its background-activity-launch privilege
+                        // unless it opts in, and since API 35 creators (Google Messages, any
+                        // app targeting 35+) deny it by default. Without the opt-in the launch
+                        // is silently dropped and only the cancel below happens (#359).
+                        val mode = if (Build.VERSION.SDK_INT >= 36) {
+                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
+                        } else {
+                            @Suppress("DEPRECATION")
+                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                        }
+                        val options = ActivityOptions.makeBasic()
+                            .setPendingIntentBackgroundActivityStartMode(mode)
+                        originalIntent.send(options.toBundle())
                     } catch (e: PendingIntent.CanceledException) {
                         Log.e("HyperBridge", "PendingIntent canceled", e)
                     }
