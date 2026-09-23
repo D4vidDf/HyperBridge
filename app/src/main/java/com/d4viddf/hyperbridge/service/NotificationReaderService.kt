@@ -438,10 +438,8 @@ class NotificationReaderService : NotificationListenerService() {
                 notificationBuilder.setProgress(100, progress, progress < 0)
                 notificationBuilder.setOngoing(progress in 0..99)
                 notificationBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
-                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
-                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             } else {
                 val builder = HyperIslandNotification.Builder(this@NotificationReaderService, "migration", title)
@@ -460,12 +458,10 @@ class NotificationReaderService : NotificationListenerService() {
                     .setOngoing(progress in 0..99)
                     .setProgress(100, progress, progress < 0)
                     .addExtras(data.resources)
-                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
                 notification.extras.putString("miui.focus.param", data.jsonParam)
 
-                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             }
 
@@ -544,9 +540,6 @@ class NotificationReaderService : NotificationListenerService() {
             if (isOurApp) {
                 // The listener-down warning is not an island; dismissing it is not a bridge event.
                 if (BridgeNotificationChannels.isServiceHealth(it.notification.channelId)) return
-                // The group summary is bookkeeping, not an island: never a bridge event (#331).
-                if (notifId == BridgeIslandGroup.SUMMARY_ID) return
-                BridgeIslandGroup.scheduleRelease(this)
                 val replacement = internalBridgeReplacements.consume(notifId, System.currentTimeMillis())
                 if (replacement != null) {
                     Log.d(
@@ -1675,7 +1668,6 @@ class NotificationReaderService : NotificationListenerService() {
                 }
 
                 builder.setOnlyAlertOnce(decision.onlyAlertOnce)
-                BridgeIslandGroup.asChild(builder)
 
                 val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
                 if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
@@ -1703,7 +1695,6 @@ class NotificationReaderService : NotificationListenerService() {
                     NotificationManagerCompat.from(this).cancel(decision.bridgeId)
                 }
 
-                BridgeIslandGroup.ensureSummaryFor(this, notification)
                 if (!decision.onlyAlertOnce) {
                     ShizukuManager.notify(this, decision.bridgeId, notification)
                 } else {
@@ -2170,9 +2161,6 @@ class NotificationReaderService : NotificationListenerService() {
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
-        // One app group with a real summary keeps Android 16+ from force-grouping (and
-        // silencing) our islands (#331).
-        BridgeIslandGroup.asChild(builder)
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
@@ -2224,7 +2212,6 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, " [POSTING ISLAND] miui.focus.param:\n${data.jsonParam}")
         Log.i(TAG, " [POSTING ISLAND] miui.focus.pics: [$picsKeys]")
 
-        BridgeIslandGroup.ensureSummaryFor(this, notification)
         if (!shouldAlertOnce) {
             ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
