@@ -144,6 +144,8 @@ class NotificationReaderService : NotificationListenerService() {
     // Other apps' islands. The permanent island yields to a native island only for a short window
     // after it first appears, not for the notification's whole lifetime (see NativeIslandTracker).
     private val nativeIslands = NativeIslandTracker()
+    // Rescheduled from listener callbacks (main) and from the periodic sync (IO): guarded by its lock.
+    private val nativeYieldLock = Any()
     private var nativeYieldJob: Job? = null
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
@@ -972,15 +974,17 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun rescheduleNativeYield() {
-        nativeYieldJob?.cancel()
-        val remaining = nativeIslands.remainingYieldMs()
-        if (remaining <= 0L || remaining == Long.MAX_VALUE) {
-            nativeYieldJob = null
-            return
-        }
-        nativeYieldJob = serviceScope.launch {
-            delay((remaining + 1_000L).milliseconds)
-            updatePermanentIsland()
+        synchronized(nativeYieldLock) {
+            nativeYieldJob?.cancel()
+            val remaining = nativeIslands.remainingYieldMs()
+            if (remaining <= 0L || remaining == Long.MAX_VALUE) {
+                nativeYieldJob = null
+                return
+            }
+            nativeYieldJob = serviceScope.launch {
+                delay((remaining + 1_000L).milliseconds)
+                updatePermanentIsland()
+            }
         }
     }
 
