@@ -52,31 +52,6 @@ class BridgeIslandGroupPolicyTest {
     }
 
     @Test
-    fun summaryIsRestoredOnlyWhenChildrenOutliveIt() {
-        // The user swiped the summary row away, or the process died between the two posts (#372).
-        assertTrue(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(island)))
-        assertTrue(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(island, widget, relay)))
-        assertFalse(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(summary, island)))
-        assertFalse(BridgeIslandGroupPolicy.shouldRestoreSummary(listOf(widget, relay)))
-        assertFalse(BridgeIslandGroupPolicy.shouldRestoreSummary(emptyList()))
-    }
-
-    @Test
-    fun reconcileNeverBothReleasesAndRestores() {
-        val worlds = listOf(
-            emptyList(), listOf(summary), listOf(island), listOf(summary, island),
-            listOf(widget, relay), listOf(summary, widget), listOf(island, relay)
-        )
-        for (active in worlds) {
-            assertFalse(
-                "ambiguous for $active",
-                BridgeIslandGroupPolicy.shouldReleaseSummary(active) &&
-                        BridgeIslandGroupPolicy.shouldRestoreSummary(active)
-            )
-        }
-    }
-
-    @Test
     fun releaseWaitsLongerThanAShizukuCancelAndRepost() {
         // ShizukuManager.notifyWithCancel cancels, waits 20 ms, re-posts; plus binder latency.
         assertTrue(BridgeIslandGroupPolicy.RELEASE_DELAY_MS >= 1_000L)

@@ -415,9 +415,6 @@ class VpnIslandController(
 
     private fun cancelIsland() {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
-        // We own this island outside the listener's maps, and stop() cancels it while the service
-        // is going down, when no removal callback comes back to release the group (#372).
-        BridgeIslandGroup.scheduleRelease(context)
         setReportedActive(false)
     }
 

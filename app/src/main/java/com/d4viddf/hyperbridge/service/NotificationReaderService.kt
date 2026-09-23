@@ -2577,10 +2577,6 @@ class NotificationReaderService : NotificationListenerService() {
                     } catch (_: Exception) {}
                 }
 
-                // Islands can also vanish while the listener is unbound, and then no removal
-                // callback ever arms the group release. Re-derive the summary here (#372).
-                BridgeIslandGroup.reconcile(this@NotificationReaderService)
-
                 val islandPresent = currentNotifications.any {
                     it.packageName == packageName && it.id == PermanentIslandManager.PERMANENT_BRIDGE_ID
                 }

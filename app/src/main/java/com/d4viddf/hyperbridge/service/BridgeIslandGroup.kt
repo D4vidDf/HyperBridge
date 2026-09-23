@@ -18,8 +18,7 @@ import com.d4viddf.hyperbridge.service.BridgeIslandGroupPolicy.OwnNotification
  * is a no-op below Android 16 (#358).
  *
  * Usage: [asChild] on the builder, [ensureSummaryFor] right before `notify`, and
- * [scheduleRelease] whenever one of our notifications is removed. [reconcile] is the safety net
- * for the removals nobody told us about (#372).
+ * [scheduleRelease] whenever one of our notifications is removed.
  */
 object BridgeIslandGroup {
     private const val TAG = "HyperBridgeDebug"
@@ -44,31 +43,6 @@ object BridgeIslandGroup {
         if (!enabled || notification.group != GROUP_KEY) return
         val active = ownNotifications(context) ?: return
         if (!BridgeIslandGroupPolicy.needsSummary(active)) return
-        postSummary(context)
-    }
-
-    /**
-     * Re-derives the summary from what is actually posted: it goes away once no child is left, and
-     * comes back when children outlive it.
-     *
-     * [scheduleRelease] only ever runs off `onNotificationRemoved`, so a child that disappeared
-     * while the listener was unbound (reboot, HyperOS killing the service, the app being updated),
-     * or a summary posted for a child that never made it to the shade, left "Hyper Bridge / Active
-     * Islands" sitting in the shade with nothing under it -- and the orphan sweep skips summaries
-     * on purpose. Call this from the periodic sync, which also runs on connect (#372).
-     */
-    fun reconcile(context: Context) {
-        val app = context.applicationContext
-        val active = ownNotifications(app) ?: return
-        when {
-            // Debounced, like every other release: a cancel+repost of the only child must not be
-            // mistaken for an empty group just because the sync tick landed in between.
-            BridgeIslandGroupPolicy.shouldReleaseSummary(active) -> scheduleRelease(app)
-            enabled && BridgeIslandGroupPolicy.shouldRestoreSummary(active) -> postSummary(app)
-        }
-    }
-
-    private fun postSummary(context: Context) {
         val summary = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(context.getString(R.string.app_name))

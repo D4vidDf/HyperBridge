@@ -218,9 +218,6 @@ class PermanentIslandManager(
         try {
             Log.d(TAG, "Removing permanent island")
             ShizukuManager.cancel(context, PERMANENT_BRIDGE_ID)
-            // Usually the last child standing: release the group even if the removal callback
-            // never arrives (service shutting down, listener unbound) (#372).
-            BridgeIslandGroup.scheduleRelease(context)
         } catch (e: Exception) {
             Log.e(TAG, "Error removing permanent island", e)
         }
