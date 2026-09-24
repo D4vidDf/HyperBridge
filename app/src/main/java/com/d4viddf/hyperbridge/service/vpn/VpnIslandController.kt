@@ -18,10 +18,10 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.receiver.VpnActionReceiver
-import com.d4viddf.hyperbridge.service.BridgeIslandGroup
 import com.d4viddf.hyperbridge.service.BridgeNotificationChannels
 import com.d4viddf.hyperbridge.service.translators.VpnTranslator
 import com.d4viddf.hyperbridge.util.ShizukuManager
+import com.d4viddf.hyperbridge.util.sendAllowingBackgroundLaunch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -334,7 +334,6 @@ class VpnIslandController(
             .setSound(null)
             .setVibrate(null)
             .addExtras(data.resources)
-            .apply { BridgeIslandGroup.asChild(this) }
             .apply {
                 visualSource?.let { source ->
                     if (source.contentIntent != null) {
@@ -355,7 +354,6 @@ class VpnIslandController(
             }
             .build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
-        BridgeIslandGroup.ensureSummaryFor(context, notification)
         if (notificationPosted) NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
         else ShizukuManager.notifyInPlace(context, NOTIFICATION_ID, notification)
         postedGeneration = snapshot.generation
@@ -395,7 +393,9 @@ class VpnIslandController(
             resolved
         }
         renderNow()
-        val sent = runCatching { control.pendingIntent.send(); true }.getOrDefault(false)
+        // Sent from our receiver, so an activity-type disconnect (OpenVPN for Android's DisconnectVPN)
+        // needs the same background-launch opt-in as the message island tap (#359).
+        val sent = runCatching { control.pendingIntent.sendAllowingBackgroundLaunch(); true }.getOrDefault(false)
         if (!sent) {
             applyEvent(VpnSessionEvent.DisconnectFailed(System.currentTimeMillis()), minor = false)
             return
@@ -415,9 +415,6 @@ class VpnIslandController(
 
     private fun cancelIsland() {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
-        // We own this island outside the listener's maps, and stop() cancels it while the service
-        // is going down, when no removal callback comes back to release the group (#372).
-        BridgeIslandGroup.scheduleRelease(context)
         setReportedActive(false)
     }
 
