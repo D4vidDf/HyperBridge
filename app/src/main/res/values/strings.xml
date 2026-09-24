@@ -1512,6 +1512,29 @@
     <string name="design_variant_dashboard">Dashboard</string>
     <string name="design_variant_grouped">Grouped</string>
     <string name="design_variant_bento">Bento</string>
+
+    <!-- Design Screen Featured & Guides Sections -->
+    <string name="design_section_featured">Featured</string>
+    <string name="design_featured_themes_title">Hyper Themes</string>
+    <string name="design_featured_themes_subtitle">Explore custom color palettes and island styles</string>
+    <string name="design_featured_widgets_title">Island Widgets</string>
+    <string name="design_featured_widgets_subtitle">Control music, timers, and app shortcuts directly</string>
+    <string name="design_featured_designs_title">Interactive Designs</string>
+    <string name="design_featured_designs_subtitle">Craft custom layouts for boarding, tracking, and more</string>
+    <string name="design_featured_translators_title">Smart Translators</string>
+    <string name="design_featured_translators_subtitle">Intercept notifications with custom regex and rules</string>
+
+    <string name="design_section_guides">Guides &amp; Documentation</string>
+    <string name="design_guide_theme_creator_title">Theme Creator Guide</string>
+    <string name="design_guide_theme_creator_desc">Learn how to create, test, and package themes for HyperBridge</string>
+    <string name="design_guide_custom_translators_title">Custom Translators</string>
+    <string name="design_guide_custom_translators_desc">Create interceptor rules for your favorite notification apps</string>
+    <string name="design_guide_translators_spec_title">Translators Specification</string>
+    <string name="design_guide_translators_spec_desc">Deep dive into JSON rules, matchers, regex, and actions</string>
+    <string name="design_guide_smart_actions_title">Smart Actions</string>
+    <string name="design_guide_smart_actions_desc">Discover how button actions and notification callbacks operate</string>
+    <string name="design_guide_diagnostics_title">Diagnostics &amp; Troubleshooting</string>
+    <string name="design_guide_diagnostics_desc">Troubleshoot island display, permissions, and background services</string>
 </resources>
 
 

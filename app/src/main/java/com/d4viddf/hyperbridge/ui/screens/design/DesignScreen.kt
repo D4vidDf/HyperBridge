@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,11 +24,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -69,7 +72,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toDrawable
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
@@ -320,9 +322,7 @@ fun DesignScreenContent(
 
             // Bento Grid on common background surface with rounded top corners covering remaining height
             DesignVariantBento(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = false),
+                modifier = Modifier.fillMaxWidth(),
                 availableThemes = availableThemes,
                 activeThemeId = activeThemeId,
                 savedWidgetCount = savedWidgetCount,
@@ -406,9 +406,8 @@ fun DesignVariantBento(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
                 .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 48.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Row 1: Themes & Widgets
             Row(
@@ -465,6 +464,301 @@ fun DesignVariantBento(
                     onActionClick = onCreateTranslator
                 )
             }
+
+            // --- FEATURED SECTION ---
+            FeaturedSection(
+                onNavigateToThemes = onNavigateToThemes,
+                onNavigateToWidgets = onNavigateToWidgets,
+                onNavigateToDesigns = onNavigateToDesigns,
+                onNavigateToTranslators = onNavigateToTranslators
+            )
+
+            // --- GUIDES & DOCUMENTATION SECTION ---
+            GuidesSection()
+        }
+    }
+}
+
+data class FeaturedCarouselItem(
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector,
+    val containerColor: Color,
+    val contentColor: Color,
+    val onClick: () -> Unit
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeaturedSection(
+    modifier: Modifier = Modifier,
+    onNavigateToThemes: () -> Unit,
+    onNavigateToWidgets: () -> Unit,
+    onNavigateToDesigns: () -> Unit,
+    onNavigateToTranslators: () -> Unit
+) {
+    // TODO: In the future, clicking featured items will redirect to featured packs on the Hyper-Bridge.app website.
+    // The current internal navigation callbacks (onClick) are temporary placeholders.
+    val featuredItems = listOf(
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_themes_title),
+            subtitle = stringResource(R.string.design_featured_themes_subtitle),
+            icon = Icons.Rounded.Palette,
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            // TODO: Replace temporary onNavigateToThemes with redirect to featured themes pack on Hyper-Bridge.app website
+            onClick = onNavigateToThemes
+        ),
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_widgets_title),
+            subtitle = stringResource(R.string.design_featured_widgets_subtitle),
+            icon = Icons.Rounded.Widgets,
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            // TODO: Replace temporary onNavigateToWidgets with redirect to featured widgets pack on Hyper-Bridge.app website
+            onClick = onNavigateToWidgets
+        ),
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_designs_title),
+            subtitle = stringResource(R.string.design_featured_designs_subtitle),
+            icon = Icons.Outlined.DashboardCustomize,
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            // TODO: Replace temporary onNavigateToDesigns with redirect to featured interactive designs pack on Hyper-Bridge.app website
+            onClick = onNavigateToDesigns
+        ),
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_translators_title),
+            subtitle = stringResource(R.string.design_featured_translators_subtitle),
+            icon = Icons.Default.Extension,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            // TODO: Replace temporary onNavigateToTranslators with redirect to featured translators pack on Hyper-Bridge.app website
+            onClick = onNavigateToTranslators
+        )
+    )
+
+    val carouselState = rememberCarouselState { featuredItems.size }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.design_section_featured),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        HorizontalCenteredHeroCarousel(
+            modifier = Modifier.fillMaxWidth(),
+            state = carouselState,
+            itemSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 0.dp)
+        ) { page ->
+            val item = featuredItems[page]
+            Card(
+                onClick = item.onClick,
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = item.containerColor),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(145.dp)
+                    .maskClip(RoundedCornerShape(24.dp))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    // Decorative icon watermark in background
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = null,
+                        tint = item.contentColor.copy(alpha = 0.12f),
+                        modifier = Modifier
+                            .size(80.dp)
+                            .align(Alignment.BottomEnd)
+                            .offset(x = 10.dp, y = 10.dp)
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(36.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = null,
+                                    tint = item.contentColor,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Column {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = item.contentColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = item.subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = item.contentColor.copy(alpha = 0.85f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+data class GuideItem(
+    val title: String,
+    val description: String,
+    val icon: ImageVector,
+    val url: String
+)
+
+@Composable
+private fun GuidesSection(
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = LocalUriHandler.current
+    val guides = listOf(
+        GuideItem(
+            title = stringResource(R.string.design_guide_theme_creator_title),
+            description = stringResource(R.string.design_guide_theme_creator_desc),
+            icon = Icons.Rounded.Palette,
+            url = DocumentationUrls.THEME_CREATOR_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_custom_translators_title),
+            description = stringResource(R.string.design_guide_custom_translators_desc),
+            icon = Icons.Default.Extension,
+            url = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_translators_spec_title),
+            description = stringResource(R.string.design_guide_translators_spec_desc),
+            icon = Icons.Rounded.Code,
+            url = DocumentationUrls.TRANSLATORS_SPEC_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_smart_actions_title),
+            description = stringResource(R.string.design_guide_smart_actions_desc),
+            icon = Icons.Rounded.TouchApp,
+            url = DocumentationUrls.SMART_ACTIONS_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_diagnostics_title),
+            description = stringResource(R.string.design_guide_diagnostics_desc),
+            icon = Icons.Rounded.BugReport,
+            url = DocumentationUrls.DIAGNOSTICS_DOCS
+        )
+    )
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.design_section_guides),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            guides.forEach { guide ->
+                GuideCard(
+                    guide = guide,
+                    onClick = { uriHandler.openUri(guide.url) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GuideCard(
+    guide: GuideItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = guide.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = guide.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = guide.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
