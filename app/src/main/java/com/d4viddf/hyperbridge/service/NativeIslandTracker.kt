@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.service
 
+import android.os.SystemClock
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -18,7 +19,9 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class NativeIslandTracker(
     private val defaultYieldMs: Long = DEFAULT_YIELD_MS,
-    private val clock: () -> Long = System::currentTimeMillis
+    // Monotonic: a focus island can hold the pill for up to an hour, and a wall-clock jump in that
+    // window (timezone change, manual edit, NTP) would stretch or cut it short.
+    private val clock: () -> Long = SystemClock::elapsedRealtime
 ) {
     private class Sighting(val firstSeen: Long, yieldMs: Long) {
         val until: Long = if (yieldMs >= Long.MAX_VALUE - firstSeen) Long.MAX_VALUE else firstSeen + yieldMs
