@@ -51,7 +51,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -332,56 +331,34 @@ fun DesignScreenContent(
             HeroSection()
 
             // 1. Themes Section
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_themes), onNavigateToThemes)
-                ThemesCarousel(
-                    themes = availableThemes,
-                    themeIcons = themeIcons, // [NEW] Pass icons down
-                    activeId = activeThemeId,
-                    onNavigateToThemes = onNavigateToThemes,
-                    onEditTheme = onEditTheme
-                )
-            }
+            ThemeStatusCard(
+                themes = availableThemes,
+                activeId = activeThemeId,
+                onNavigateToThemes = onNavigateToThemes,
+                onCreateTheme = { onEditTheme("") }
+            )
 
             // 2. Widgets Section
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_widgets), onNavigateToWidgets)
-                WidgetsCarousel(
-                    savedCount = savedWidgetCount,
-                    icons = widgetIcons,
-                    onNavigateToWidgets = onNavigateToWidgets,
-                    onAddWidget = onFabClick
-                )
-            }
+            WidgetStatusCard(
+                savedCount = savedWidgetCount,
+                onNavigateToWidgets = onNavigateToWidgets,
+                onAddWidget = onFabClick
+            )
 
             // 3. Designs Section
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_designs), onNavigateToDesigns)
-                DesignStatusCard(
-                    designs = designs,
-                    onNavigateToDesigns = onNavigateToDesigns,
-                    onAddDesign = onAddDesign
-                )
-            }
+            DesignStatusCard(
+                designs = designs,
+                onNavigateToDesigns = onNavigateToDesigns,
+                onAddDesign = onAddDesign
+            )
 
             // 4. Translators Section
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_translators), onNavigateToTranslators)
-                TranslatorsCarousel(
-                    translators = translators,
-                    onNavigateToTranslators = onNavigateToTranslators,
-                    onCreateTranslator = onCreateTranslator,
-                    onEditTranslator = onEditTranslator
-                )
-            }
+            TranslatorStatusCard(
+                translators = translators,
+                onNavigateToTranslators = onNavigateToTranslators,
+                onCreateTranslator = onCreateTranslator
+            )
+
             Spacer(Modifier.height(24.dp))
         }
     }
@@ -433,197 +410,249 @@ fun HeroSection() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThemesCarousel(
+fun ThemeStatusCard(
     themes: List<HyperTheme>,
-    themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
     activeId: String?,
     onNavigateToThemes: () -> Unit,
-    onEditTheme: (String) -> Unit
+    onCreateTheme: () -> Unit
 ) {
-    val displayThemes = themes.take(5)
-    val totalCount = 1 + displayThemes.size + 1
+    val totalCount = themes.size
+    val activeThemeName = themes.find { it.id == activeId }?.meta?.name
 
-    val state = rememberCarouselState { totalCount }
+    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Card(
+            onClick = onNavigateToThemes,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Rounded.Palette,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
 
-    HorizontalMultiBrowseCarousel (
-        modifier = Modifier.fillMaxWidth(),
-        state = state,
-        preferredItemWidth = 160.dp,
-        itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ){ i ->
-        val isSystemDefault = i == 0
-        val isAction = i > displayThemes.size
+                    Spacer(Modifier.width(14.dp))
 
-        if (isAction) {
-            ThemePreviewCard(
-                title = stringResource(R.string.design_browse_more),
-                subtitle = "",
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                isActive = false,
-                icon = Icons.Rounded.Add,
-                isAction = true,
-                onClick = onNavigateToThemes,
-                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-            )
-        } else if (isSystemDefault) {
-            ThemePreviewCard(
-                title = stringResource(R.string.theme_system_default_title),
-                subtitle = stringResource(R.string.theme_system_default_desc),
-                color = MaterialTheme.colorScheme.secondary,
-                isActive = activeId == null,
-                icon = Icons.Rounded.PhoneAndroid,
-                onClick = onNavigateToThemes,
-                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-            )
-        } else {
-            val theme = displayThemes[i - 1]
-            val color = try {
-                Color((theme.global.highlightColor ?: "#000000").toColorInt())
-            } catch (_: Exception) { MaterialTheme.colorScheme.primary }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_section_themes),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.design_card_themes_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
 
-            // [NEW] Get custom icon if available
-            val customIcon = themeIcons[theme.id]
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            ThemePreviewCard(
-                title = theme.meta.name,
-                subtitle = stringResource(R.string.theme_card_author_format, theme.meta.author),
-                color = color,
-                isActive = theme.id == activeId,
-                icon = Icons.Rounded.Palette,
-                customIcon = customIcon, // [NEW] Pass icon
-                onClick = { onEditTheme(theme.id) },
-                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-            )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Active theme badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = if (activeThemeName != null) {
+                                stringResource(R.string.design_card_themes_active_named, activeThemeName)
+                            } else {
+                                stringResource(R.string.design_card_themes_active_default)
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    // Total installed badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Text(
+                            text = stringResource(R.string.design_card_themes_installed, totalCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.weight(1f))
+
+                    // Action button to create new theme
+                    Button(
+                        onClick = onCreateTheme,
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.design_card_themes_action),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WidgetsCarousel(
+fun WidgetStatusCard(
     savedCount: Int,
-    icons: List<Drawable>,
     onNavigateToWidgets: () -> Unit,
     onAddWidget: () -> Unit
 ) {
-    if (savedCount == 0) {
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Card(
-                onClick = onAddWidget,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier = Modifier.fillMaxWidth().height(160.dp)
+    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Card(
+            onClick = onNavigateToWidgets,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Rounded.Widgets, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.design_empty_widget_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    } else {
-        val displayCount = icons.size
-        val totalCount = displayCount + 1
-        val state = rememberCarouselState { totalCount }
+                    Surface(
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Rounded.Widgets,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
 
-        HorizontalMultiBrowseCarousel (
-            modifier = Modifier.fillMaxWidth(),
-            state = state,
-            preferredItemWidth = 140.dp,
-            itemSpacing = 8.dp,
-            contentPadding = PaddingValues(horizontal = 16.dp)
-        ) { i ->
-            if (i < displayCount) {
-                val icon = icons[i]
-                WidgetPreviewCard(
-                    label = stringResource(R.string.widget_id_fmt, i + 1),
-                    icon = icon,
-                    isAction = false,
-                    onClick = onNavigateToWidgets,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            } else {
-                WidgetPreviewCard(
-                    label = stringResource(R.string.design_add_new),
-                    icon = null,
-                    isAction = true,
-                    onClick = onAddWidget,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            }
-        }
-    }
-}
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TranslatorsCarousel(
-    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
-    onNavigateToTranslators: () -> Unit,
-    onCreateTranslator: () -> Unit,
-    onEditTranslator: (String) -> Unit
-) {
-    if (translators.isEmpty()) {
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Card(
-                onClick = onCreateTranslator,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier = Modifier.fillMaxWidth().height(160.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    Spacer(Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_section_widgets),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.design_card_widgets_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.Extension, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.translators_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    } else {
-        val displayTranslators = translators.take(5)
-        val totalCount = displayTranslators.size + 1
-        val state = rememberCarouselState { totalCount }
+                    // Configured count badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (savedCount > 0) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        }
+                    ) {
+                        Text(
+                            text = if (savedCount > 0) {
+                                stringResource(R.string.design_card_widgets_saved, savedCount)
+                            } else {
+                                stringResource(R.string.design_card_widgets_empty)
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (savedCount > 0) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
 
-        HorizontalMultiBrowseCarousel(
-            modifier = Modifier.fillMaxWidth(),
-            state = state,
-            preferredItemWidth = 160.dp,
-            itemSpacing = 8.dp,
-            contentPadding = PaddingValues(horizontal = 16.dp)
-        ) { i ->
-            if (i < displayTranslators.size) {
-                val item = displayTranslators[i]
-                TranslatorPreviewCard(
-                    title = item.meta.name,
-                    subtitle = when (item.targetScope) {
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> stringResource(R.string.translators_scope_global)
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, item.targetPackages.size)
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, item.targetPackages.size)
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, item.targetNotificationTypes.size)
-                    },
-                    iconName = item.meta.iconName,
-                    targetScope = item.targetScope,
-                    isActive = item.isEnabled,
-                    onClick = { onEditTranslator(item.id) },
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            } else {
-                TranslatorPreviewCard(
-                    title = stringResource(R.string.design_browse_more),
-                    subtitle = "",
-                    iconName = null,
-                    isActive = false,
-                    isAction = true,
-                    onClick = onNavigateToTranslators,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
+                    Spacer(Modifier.weight(1f))
+
+                    // Action button to add widget
+                    Button(
+                        onClick = onAddWidget,
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.design_card_widgets_action),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
             }
         }
     }
@@ -756,90 +785,122 @@ fun DesignStatusCard(
 }
 
 @Composable
-fun TranslatorPreviewCard(
-    title: String,
-    subtitle: String,
-    iconName: String? = null,
-    targetScope: com.d4viddf.hyperbridge.models.translator.TargetScope? = null,
-    isActive: Boolean,
-    isAction: Boolean = false,
-    onClick: () -> Unit,
-    modifier: Modifier
+fun TranslatorStatusCard(
+    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onNavigateToTranslators: () -> Unit,
+    onCreateTranslator: () -> Unit
 ) {
-    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
+    val totalCount = translators.size
+    val activeCount = translators.count { it.isEnabled }
 
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .height(180.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        if (isAction) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(8.dp))
-                    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        } else {
+    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Card(
+            onClick = onNavigateToTranslators,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
-                        modifier = Modifier.size(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (isActive && targetScope != null) {
-                            when (targetScope) {
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.errorContainer
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
-                            }
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        }
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon(iconName),
+                                imageVector = Icons.Default.Extension,
                                 contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = if (isActive && targetScope != null) {
-                                    when (targetScope) {
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.onErrorContainer
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
-                                    }
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                }
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
 
-                    if (isActive) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                                .padding(4.dp)
-                        ) {
-                            Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.onPrimaryContainer, CircleShape))
-                        }
+                    Spacer(Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_section_translators),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.design_card_translators_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
-                Column {
-                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Active badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.design_status_active, activeCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+
+                    // Total badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Text(
+                            text = stringResource(R.string.design_status_total, totalCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.weight(1f))
+
+                    // Action button to create translator / new rule
+                    Button(
+                        onClick = onCreateTranslator,
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.design_card_translators_action),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
         }
@@ -885,128 +946,7 @@ fun HeroCard(item: HeroItem, modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-fun ThemePreviewCard(
-    title: String,
-    subtitle: String,
-    color: Color,
-    isActive: Boolean,
-    icon: ImageVector,
-    customIcon: ImageBitmap? = null,
-    isAction: Boolean = false,
-    onClick: () -> Unit,
-    modifier: Modifier
-) {
-    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
 
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .height(180.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        if (isAction) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(icon, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(8.dp))
-                    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Box(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (customIcon != null) {
-                        Image(
-                            bitmap = customIcon,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(RoundedCornerShape(16.dp)), // [FIX] Rounded corners applied here
-                            contentScale = ContentScale.Crop // Ensure image fills the rounded box
-                        )
-                    } else {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = color
-                        )
-                    }
-
-                    if (isActive) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                                .padding(4.dp)
-                        ) {
-                            Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.onPrimaryContainer, CircleShape))
-                        }
-                    }
-                }
-
-                Column {
-                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun WidgetPreviewCard(
-    label: String,
-    icon: Drawable?,
-    isAction: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier
-) {
-    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
-
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .height(180.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        if (isAction) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(8.dp))
-                    Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                if (icon != null) {
-                    Image(
-                        bitmap = icon.toBitmap().asImageBitmap(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(64.dp)
-                    )
-                }
-                Spacer(Modifier.height(16.dp))
-                Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-            }
-        }
-    }
-}
 
 // --- 3. PREVIEWS ---
 

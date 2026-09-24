@@ -1248,4 +1248,19 @@
     <string name="design_view_mode_preview">Mostrar vista previa</string>
     <string name="design_view_mode_icon">Mostrar icono</string>
     <string name="design_toggle_preview_cd">Alternar vista previa o icono</string>
+    <string name="design_template_type_suggested">Sugerido</string>
+
+    <string name="design_card_themes_desc">Personaliza colores, tipografía y apariencia</string>
+    <string name="design_card_themes_installed">%d instalados</string>
+    <string name="design_card_themes_active_default">Predeterminado del sistema activo</string>
+    <string name="design_card_themes_active_named">%s activo</string>
+    <string name="design_card_themes_action">Crear</string>
+
+    <string name="design_card_widgets_desc">Coloca widgets de tus aplicaciones en la isla</string>
+    <string name="design_card_widgets_saved">%d configurados</string>
+    <string name="design_card_widgets_empty">Sin widgets</string>
+    <string name="design_card_widgets_action">Añadir</string>
+
+    <string name="design_card_translators_desc">Intercepta notificaciones y aplica reglas personalizadas</string>
+    <string name="design_card_translators_action">Nueva regla</string>
 </resources>

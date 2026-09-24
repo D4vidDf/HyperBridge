@@ -15,7 +15,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Message
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.DashboardCustomize
+import androidx.compose.material.icons.outlined.HourglassEmpty
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
@@ -141,6 +152,19 @@ private fun DesignSourceContent(
         )
     }
 }
+private fun getNotificationTypeIcon(type: NotificationType): ImageVector {
+    return when (type) {
+        NotificationType.STANDARD -> Icons.Outlined.Notifications
+        NotificationType.MESSAGE -> Icons.AutoMirrored.Outlined.Message
+        NotificationType.PROGRESS -> Icons.Outlined.HourglassEmpty
+        NotificationType.DOWNLOAD -> Icons.Outlined.CloudDownload
+        NotificationType.MEDIA -> Icons.Outlined.MusicNote
+        NotificationType.NAVIGATION -> Icons.Outlined.Map
+        NotificationType.CALL -> Icons.Outlined.Call
+        NotificationType.TIMER -> Icons.Outlined.Timer
+        NotificationType.SCREEN_RECORDING -> Icons.Outlined.Videocam
+    }
+}
 
 @Composable
 private fun NotificationTypeContent(
@@ -157,7 +181,7 @@ private fun NotificationTypeContent(
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp)
             .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         SheetHeader(
             icon = getTranslatorOutlinedIcon(template.iconName),
@@ -169,17 +193,108 @@ private fun NotificationTypeContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        types.forEach { type ->
-            DesignSourceCard(
-                icon = getTranslatorOutlinedIcon(template.iconName),
-                title = stringResource(type.labelRes),
-                subtitle = if (suggested.contains(type)) {
-                    stringResource(template.descriptionRes)
-                } else {
-                    ""
-                },
-                enabled = true,
-                onClick = { onTypeSelected(type) }
+        // 2-column card grid
+        val chunkedTypes = types.chunked(2)
+        chunkedTypes.forEach { rowTypes ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowTypes.forEach { type ->
+                    val isSuggested = suggested.contains(type)
+                    NotificationTypeGridCard(
+                        type = type,
+                        isSuggested = isSuggested,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onTypeSelected(type) }
+                    )
+                }
+                if (rowTypes.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationTypeGridCard(
+    type: NotificationType,
+    isSuggested: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val icon = getNotificationTypeIcon(type)
+
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSuggested) {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            }
+        ),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isSuggested) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .align(Alignment.Center)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (isSuggested) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            },
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                }
+
+                if (isSuggested) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.design_template_type_suggested),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(type.labelRes),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

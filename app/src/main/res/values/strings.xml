@@ -1492,6 +1492,21 @@
     <string name="design_view_mode_preview">Show Preview</string>
     <string name="design_view_mode_icon">Show Icon</string>
     <string name="design_toggle_preview_cd">Toggle preview or icon view</string>
+    <string name="design_template_type_suggested">Suggested</string>
+
+    <string name="design_card_themes_desc">Customize colors, typography and appearance</string>
+    <string name="design_card_themes_installed">%d installed</string>
+    <string name="design_card_themes_active_default">System Default active</string>
+    <string name="design_card_themes_active_named">%s active</string>
+    <string name="design_card_themes_action">Create</string>
+
+    <string name="design_card_widgets_desc">Place standard app widgets on your island</string>
+    <string name="design_card_widgets_saved">%d configured</string>
+    <string name="design_card_widgets_empty">No widgets</string>
+    <string name="design_card_widgets_action">Add</string>
+
+    <string name="design_card_translators_desc">Intercept notifications and apply custom rules</string>
+    <string name="design_card_translators_action">New Rule</string>
 </resources>
 
 
