@@ -100,6 +100,14 @@
             android:foregroundServiceType="shortService" />
 
         <activity
+            android:name=".service.IslandTapActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity
             android:name=".ui.screens.theme.ThemeInstallerActivity"
             android:exported="true"
             android:theme="@style/Theme.HyperBridge.Transparent"
