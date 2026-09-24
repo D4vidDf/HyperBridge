@@ -1,12 +1,10 @@
 package com.d4viddf.hyperbridge.ui.screens.design
 
-import android.widget.Toast
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,19 +20,15 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Button
@@ -67,7 +62,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -75,19 +69,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
-import com.d4viddf.hyperbridge.util.DocumentationUrls
 import com.d4viddf.hyperbridge.models.theme.CallModule
 import com.d4viddf.hyperbridge.models.theme.GlobalConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeMetadata
+import com.d4viddf.hyperbridge.util.DocumentationUrls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -102,7 +94,6 @@ fun DesignScreen(
     onNavigateToDesigns: () -> Unit = {},
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
-    onEditTranslator: (String) -> Unit = {},
     onLaunchPicker: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -176,9 +167,8 @@ fun DesignScreen(
     DesignScreenContent(
         activeThemeId = activeThemeId,
         availableThemes = availableThemes,
-        themeIcons = themeIcons, // [NEW] Pass icons down
+        // [NEW] Pass icons down
         savedWidgetCount = savedWidgetIds.size,
-        widgetIcons = widgetIcons,
         translators = allTranslators,
         designs = designs,
         onAddDesign = { showAddDesign = true },
@@ -188,7 +178,6 @@ fun DesignScreen(
         onEditTheme = onEditTheme,
         onNavigateToTranslators = onNavigateToTranslators,
         onCreateTranslator = onCreateTranslator,
-        onEditTranslator = onEditTranslator,
         onFabClick = { showBottomSheet = true },
         onSettingsClick = onSettingsClick
     )
@@ -271,9 +260,7 @@ fun DesignScreen(
 fun DesignScreenContent(
     activeThemeId: String?,
     availableThemes: List<HyperTheme>,
-    themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
     savedWidgetCount: Int,
-    widgetIcons: List<Drawable>,
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     onAddDesign: () -> Unit = {},
@@ -283,7 +270,6 @@ fun DesignScreenContent(
     onEditTheme: (String) -> Unit,
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
-    onEditTranslator: (String) -> Unit = {},
     onFabClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -299,7 +285,7 @@ fun DesignScreenContent(
                     Surface(
                         modifier = Modifier
                             .size(40.dp)
-                            .padding(end = 8.dp), // Added padding to fix layout
+                            .padding(end = 8.dp),
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         onClick = onSettingsClick
@@ -325,61 +311,37 @@ fun DesignScreenContent(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
+            // Top HeroSection carousel
             HeroSection()
 
-            // 1. Themes Section
-            ThemeStatusCard(
-                themes = availableThemes,
-                activeId = activeThemeId,
-                onNavigateToThemes = onNavigateToThemes,
-                onCreateTheme = { onEditTheme("") }
-            )
+            Spacer(Modifier.height(16.dp))
 
-            // 2. Widgets Section
-            WidgetStatusCard(
-                savedCount = savedWidgetCount,
-                onNavigateToWidgets = onNavigateToWidgets,
-                onAddWidget = onFabClick
-            )
-
-            // 3. Designs Section
-            DesignStatusCard(
+            // Bento Grid on common background surface with rounded top corners covering remaining height
+            DesignVariantBento(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false),
+                availableThemes = availableThemes,
+                activeThemeId = activeThemeId,
+                savedWidgetCount = savedWidgetCount,
                 designs = designs,
-                onNavigateToDesigns = onNavigateToDesigns,
-                onAddDesign = onAddDesign
-            )
-
-            // 4. Translators Section
-            TranslatorStatusCard(
                 translators = translators,
+                onNavigateToThemes = onNavigateToThemes,
+                onCreateTheme = { onEditTheme("") },
+                onNavigateToWidgets = onNavigateToWidgets,
+                onAddWidget = onFabClick,
+                onNavigateToDesigns = onNavigateToDesigns,
+                onAddDesign = onAddDesign,
                 onNavigateToTranslators = onNavigateToTranslators,
                 onCreateTranslator = onCreateTranslator
             )
-
-            Spacer(Modifier.height(24.dp))
         }
     }
 }
 
 // --- SECTIONS ---
-
-@Composable
-fun SectionHeader(title: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.width(8.dp))
-        Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -405,503 +367,174 @@ fun HeroSection() {
         contentPadding = PaddingValues(horizontal = 8.dp)
     ) { i ->
         val item = items[i]
-        HeroCard(item,
-            Modifier.maskClip(MaterialTheme.shapes.extraLarge))
-    }
-}
-
-@Composable
-fun ThemeStatusCard(
-    themes: List<HyperTheme>,
-    activeId: String?,
-    onNavigateToThemes: () -> Unit,
-    onCreateTheme: () -> Unit
-) {
-    val totalCount = themes.size
-    val activeThemeName = themes.find { it.id == activeId }?.meta?.name
-
-    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Card(
-            onClick = onNavigateToThemes,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        modifier = Modifier.size(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.Palette,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.design_section_themes),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.design_card_themes_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Active theme badge
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text = if (activeThemeName != null) {
-                                stringResource(R.string.design_card_themes_active_named, activeThemeName)
-                            } else {
-                                stringResource(R.string.design_card_themes_active_default)
-                            },
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    // Total installed badge
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ) {
-                        Text(
-                            text = stringResource(R.string.design_card_themes_installed, totalCount),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.weight(1f))
-
-                    // Action button to create new theme
-                    Button(
-                        onClick = onCreateTheme,
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(R.string.design_card_themes_action),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun WidgetStatusCard(
-    savedCount: Int,
-    onNavigateToWidgets: () -> Unit,
-    onAddWidget: () -> Unit
-) {
-    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Card(
-            onClick = onNavigateToWidgets,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        modifier = Modifier.size(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.Widgets,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.design_section_widgets),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.design_card_widgets_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Configured count badge
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = if (savedCount > 0) {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        }
-                    ) {
-                        Text(
-                            text = if (savedCount > 0) {
-                                stringResource(R.string.design_card_widgets_saved, savedCount)
-                            } else {
-                                stringResource(R.string.design_card_widgets_empty)
-                            },
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (savedCount > 0) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.weight(1f))
-
-                    // Action button to add widget
-                    Button(
-                        onClick = onAddWidget,
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(R.string.design_card_widgets_action),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                }
-            }
-        }
+        HeroCard(
+            item,
+            Modifier.maskClip(MaterialTheme.shapes.extraLarge)
+        )
     }
 }
 
 
-// --- DESIGNS (templates + custom islands, #272) ---
+// --- BENTO GRID LAYOUT ---
 
 @Composable
-fun DesignStatusCard(
+fun DesignVariantBento(
+    modifier: Modifier = Modifier,
+    availableThemes: List<HyperTheme>,
+    activeThemeId: String?,
+    savedWidgetCount: Int,
     designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
-    onNavigateToDesigns: () -> Unit,
-    onAddDesign: () -> Unit
-) {
-    val totalCount = designs.size
-    val activeCount = designs.count { it.isEnabled }
-
-    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Card(
-            onClick = onNavigateToDesigns,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        modifier = Modifier.size(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Outlined.DashboardCustomize,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.design_section_designs),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.design_status_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Active badge
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.design_status_active, activeCount),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        )
-                    }
-
-                    // Total badge
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ) {
-                        Text(
-                            text = stringResource(R.string.design_status_total, totalCount),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.weight(1f))
-
-                    // Action button to create/add new design
-                    Button(
-                        onClick = onAddDesign,
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(R.string.design_add_design_title),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TranslatorStatusCard(
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onNavigateToThemes: () -> Unit,
+    onCreateTheme: () -> Unit,
+    onNavigateToWidgets: () -> Unit,
+    onAddWidget: () -> Unit,
+    onNavigateToDesigns: () -> Unit,
+    onAddDesign: () -> Unit,
     onNavigateToTranslators: () -> Unit,
     onCreateTranslator: () -> Unit
 ) {
-    val totalCount = translators.size
-    val activeCount = translators.count { it.isEnabled }
+    val activeThemeName = availableThemes.find { it.id == activeThemeId }?.meta?.name
+    val activeDesignsCount = designs.count { it.isEnabled }
+    val activeTranslatorsCount = translators.count { it.isEnabled }
 
-    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Card(
-            onClick = onNavigateToTranslators,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.fillMaxWidth()
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 48.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            // Row 1: Themes & Widgets
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_themes),
+                    status = activeThemeName ?: stringResource(R.string.design_card_themes_active_default),
+                    icon = Icons.Rounded.Palette,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    onCardClick = onNavigateToThemes,
+                    onActionClick = onCreateTheme
+                )
+
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_widgets),
+                    status = if (savedWidgetCount > 0) stringResource(R.string.design_card_widgets_saved, savedWidgetCount) else stringResource(R.string.design_card_widgets_empty),
+                    icon = Icons.Rounded.Widgets,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+                    iconColor = MaterialTheme.colorScheme.secondary,
+                    onCardClick = onNavigateToWidgets,
+                    onActionClick = onAddWidget
+                )
+            }
+
+            // Row 2: Designs & Translators
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_designs),
+                    status = stringResource(R.string.design_status_active, activeDesignsCount),
+                    icon = Icons.Outlined.DashboardCustomize,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f),
+                    iconColor = MaterialTheme.colorScheme.tertiary,
+                    onCardClick = onNavigateToDesigns,
+                    onActionClick = onAddDesign
+                )
+
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_translators),
+                    status = stringResource(R.string.design_status_active, activeTranslatorsCount),
+                    icon = Icons.Default.Extension,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    iconColor = MaterialTheme.colorScheme.onSurface,
+                    onCardClick = onNavigateToTranslators,
+                    onActionClick = onCreateTranslator
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BentoCell(
+    modifier: Modifier = Modifier,
+    title: String,
+    status: String,
+    icon: ImageVector,
+    containerColor: Color,
+    iconColor: Color,
+    onCardClick: () -> Unit,
+    onActionClick: () -> Unit
+) {
+    Card(
+        onClick = onCardClick,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        modifier = modifier.height(170.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Surface(
+                    modifier = Modifier.size(38.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
                 ) {
-                    Surface(
-                        modifier = Modifier.size(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.Extension,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = iconColor)
                     }
-
-                    Spacer(Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.design_section_translators),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.design_card_translators_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Surface(
+                    modifier = Modifier.size(32.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                    onClick = onActionClick
                 ) {
-                    // Active badge
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.design_status_active, activeCount),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        )
-                    }
-
-                    // Total badge
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ) {
-                        Text(
-                            text = stringResource(R.string.design_status_total, totalCount),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.weight(1f))
-
-                    // Action button to create translator / new rule
-                    Button(
-                        onClick = onCreateTranslator,
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(R.string.design_card_translators_action),
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp), tint = iconColor)
                     }
                 }
+            }
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -910,6 +543,7 @@ fun TranslatorStatusCard(
 // --- CARDS & COMPONENTS ---
 
 data class HeroItem(val title: String, val subtitle: String, val color: Color, val onClick: () -> Unit)
+
 @Composable
 fun HeroCard(item: HeroItem, modifier: Modifier = Modifier) {
     Card(
@@ -946,8 +580,6 @@ fun HeroCard(item: HeroItem, modifier: Modifier = Modifier) {
     }
 }
 
-
-
 // --- 3. PREVIEWS ---
 
 @SuppressLint("UseKtx")
@@ -983,18 +615,11 @@ private fun DesignScreenPreview() {
         )
     )
 
-    val mockIcons = listOf(
-        android.graphics.Color.RED.toDrawable(),
-        android.graphics.Color.BLUE.toDrawable()
-    )
-
     MaterialTheme {
         DesignScreenContent(
             activeThemeId = "1",
             availableThemes = mockThemes,
-            themeIcons = emptyMap(),
             savedWidgetCount = 2,
-            widgetIcons = mockIcons,
             onNavigateToWidgets = {},
             onNavigateToThemes = {},
             onEditTheme = {},
@@ -1011,14 +636,44 @@ private fun DesignScreenEmptyPreview() {
         DesignScreenContent(
             activeThemeId = null,
             availableThemes = emptyList(),
-            themeIcons = emptyMap(),
             savedWidgetCount = 0,
-            widgetIcons = emptyList(),
             onNavigateToWidgets = {},
             onNavigateToThemes = {},
             onEditTheme = {},
             onFabClick = {},
             onSettingsClick = {}
+        )
+    }
+}
+
+
+
+@Preview(name = "Bento Grid", showBackground = true)
+@Composable
+private fun DesignVariantBentoPreview() {
+    val mockThemes = listOf(
+        HyperTheme(
+            id = "1",
+            meta = ThemeMetadata("Sunset Glow", "Alice", 1),
+            global = GlobalConfig(highlightColor = "#FF5722", backgroundColor = "#202124", textColor = "#FFFFFF", useAppColors = false, iconShapeId = "square", iconPaddingPercent = 15),
+            callConfig = CallModule(null, null, "#FF5722", "#D32F2F")
+        )
+    )
+    MaterialTheme {
+        DesignVariantBento(
+            availableThemes = mockThemes,
+            activeThemeId = "1",
+            savedWidgetCount = 4,
+            designs = emptyList(),
+            translators = emptyList(),
+            onNavigateToThemes = {},
+            onCreateTheme = {},
+            onNavigateToWidgets = {},
+            onAddWidget = {},
+            onNavigateToDesigns = {},
+            onAddDesign = {},
+            onNavigateToTranslators = {},
+            onCreateTranslator = {}
         )
     }
 }

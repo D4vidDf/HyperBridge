@@ -1263,4 +1263,9 @@
 
     <string name="design_card_translators_desc">Intercepta notificaciones y aplica reglas personalizadas</string>
     <string name="design_card_translators_action">Nueva regla</string>
+
+    <!-- Design Screen Layout Variant switcher -->
+    <string name="design_variant_dashboard">Panel</string>
+    <string name="design_variant_grouped">Agrupado</string>
+    <string name="design_variant_bento">Bento</string>
 </resources>

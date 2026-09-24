@@ -193,12 +193,6 @@ fun HomeScreen(
                                                 previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             },
-                                            onEditTranslator = { id ->
-                                                editingTranslatorId = id
-                                                newTranslatorPackageName = null
-                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
-                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
-                                            },
                                             onLaunchPicker = { showWidgetPicker = true },
                                             onSettingsClick = onSettingsClick
                                         )

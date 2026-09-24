@@ -1507,6 +1507,11 @@
 
     <string name="design_card_translators_desc">Intercept notifications and apply custom rules</string>
     <string name="design_card_translators_action">New Rule</string>
+
+    <!-- Design Screen Layout Variant switcher -->
+    <string name="design_variant_dashboard">Dashboard</string>
+    <string name="design_variant_grouped">Grouped</string>
+    <string name="design_variant_bento">Bento</string>
 </resources>
 
 
