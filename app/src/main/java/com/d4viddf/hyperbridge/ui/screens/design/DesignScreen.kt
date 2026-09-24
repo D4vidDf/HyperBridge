@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.design
 
+import android.widget.Toast
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -118,7 +120,14 @@ fun DesignScreen(
     var themeIcons by remember { mutableStateOf<Map<String, ImageBitmap?>>(emptyMap()) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showAddDesign by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+
+    // A design is a translator that renders through a template (or, later, a custom widget island).
+    val designs = allTranslators.filter {
+        it.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.TEMPLATE ||
+            it.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.WIDGET
+    }
 
     LaunchedEffect(Unit) {
         val themes = themeRepo.getAvailableThemes()
@@ -170,6 +179,8 @@ fun DesignScreen(
         savedWidgetCount = savedWidgetIds.size,
         widgetIcons = widgetIcons,
         translators = allTranslators,
+        designs = designs,
+        onAddDesign = { showAddDesign = true },
         onNavigateToWidgets = onNavigateToWidgets,
         onNavigateToThemes = onNavigateToThemes,
         onEditTheme = onEditTheme,
@@ -179,6 +190,17 @@ fun DesignScreen(
         onFabClick = { showBottomSheet = true },
         onSettingsClick = onSettingsClick
     )
+
+    if (showAddDesign) {
+        AddDesignFlow(
+            onDismiss = { showAddDesign = false },
+            onDesignCreated = { design ->
+                showAddDesign = false
+                translatorViewModel.saveTranslator(design)
+                Toast.makeText(context, R.string.design_design_created, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -251,6 +273,8 @@ fun DesignScreenContent(
     savedWidgetCount: Int,
     widgetIcons: List<Drawable>,
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
+    onAddDesign: () -> Unit = {},
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
@@ -302,6 +326,17 @@ fun DesignScreenContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             HeroSection()
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SectionHeader(stringResource(R.string.design_section_designs), onAddDesign)
+                DesignsCarousel(
+                    designs = designs,
+                    onAddDesign = onAddDesign,
+                    onEditDesign = onEditTranslator
+                )
+            }
 
             Column(
                 modifier = Modifier.fillMaxWidth()
@@ -582,6 +617,132 @@ fun TranslatorsCarousel(
                     modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
                 )
             }
+        }
+    }
+}
+
+
+// --- DESIGNS (templates + custom islands, #272) ---
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DesignsCarousel(
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onAddDesign: () -> Unit,
+    onEditDesign: (String) -> Unit
+) {
+    if (designs.isEmpty()) {
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Card(
+                onClick = onAddDesign,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                modifier = Modifier.fillMaxWidth().height(160.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Rounded.Add,
+                        null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        stringResource(R.string.design_designs_empty_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        stringResource(R.string.design_designs_empty_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    } else {
+        val shown = designs.take(5)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            shown.forEach { design ->
+                DesignPreviewCard(design = design, onClick = { onEditDesign(design.id) })
+            }
+            Card(
+                onClick = onAddDesign,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                modifier = Modifier.width(120.dp).height(200.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(Icons.Rounded.Add, null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.design_add_design_title),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DesignPreviewCard(
+    design: com.d4viddf.hyperbridge.models.translator.CustomTranslator,
+    onClick: () -> Unit
+) {
+    val template = com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
+        .find(design.presentation.templateId)
+
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        modifier = Modifier.width(280.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = design.meta.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = template?.let { stringResource(it.nameRes) }
+                            ?: stringResource(R.string.translator_pres_mode_widget),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+                if (!design.isEnabled) {
+                    Text(
+                        text = stringResource(R.string.translators_filter_inactive),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview(
+                translator = design,
+                showChrome = false
+            )
         }
     }
 }

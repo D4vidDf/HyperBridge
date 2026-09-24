@@ -170,6 +170,8 @@ import com.d4viddf.hyperbridge.models.translator.NavigationConditions
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
+import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
+import com.d4viddf.hyperbridge.models.translator.withResolvedTemplate
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.ProgressConditions
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
@@ -182,6 +184,7 @@ import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.translator.TypeSpecificConditions
 import com.d4viddf.hyperbridge.ui.components.EmptyState
+import com.d4viddf.hyperbridge.ui.components.island.IslandTemplateGallery
 import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
 import com.d4viddf.hyperbridge.ui.screens.theme.AppItem
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
@@ -227,7 +230,8 @@ fun TranslatorEditorScreen(
         if (translatorId != null) {
             val loaded = viewModel.getTranslatorById(translatorId)
             if (loaded != null) {
-                translator = loaded
+                // Edit concrete template slots, never a bare templateId (see effectivePresentation).
+                translator = loaded.withResolvedTemplate()
             }
         }
     }
@@ -1943,7 +1947,7 @@ fun TranslatorPresentationContent(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    Icons.Outlined.Construction,
+                                    Icons.Outlined.DashboardCustomize,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onTertiary,
                                     modifier = Modifier.size(14.dp)
@@ -1952,14 +1956,14 @@ fun TranslatorPresentationContent(
                         }
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.translator_pres_wip_title),
+                            text = stringResource(R.string.translator_pres_mode_template),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.tertiary,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
-                        text = stringResource(R.string.translator_pres_template_wip_desc),
+                        text = stringResource(R.string.translator_pres_template_gallery_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1974,11 +1978,13 @@ fun TranslatorPresentationContent(
                     ) {
                         Icon(Icons.Outlined.DashboardCustomize, null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
+                        val pickedTemplate = IslandTemplateCatalog.find(presentation.templateId)
                         Text(
-                            text = if (presentation.templateId.isNullOrBlank()) {
-                                stringResource(R.string.translator_pres_select_template_btn)
-                            } else {
-                                presentation.templateId
+                            text = when {
+                                pickedTemplate != null -> stringResource(pickedTemplate.nameRes)
+                                presentation.templateId.isNullOrBlank() ->
+                                    stringResource(R.string.translator_pres_select_template_btn)
+                                else -> presentation.templateId
                             }
                         )
                     }
@@ -2137,8 +2143,11 @@ fun TranslatorPresentationContent(
             }
         }
 
-        // --- 4. STANDARD MODE: TEXT TEMPLATES & VARIABLE CHIPS ---
-        if (presentation.mode == PresentationMode.STANDARD) {
+        // --- 4. SLOT BINDINGS: STANDARD, and TEMPLATE once a layout is picked ---
+        // A template fixes the layout; each element is still bound to notification data here (#272).
+        if (presentation.mode == PresentationMode.STANDARD ||
+            (presentation.mode == PresentationMode.TEMPLATE && !presentation.templateId.isNullOrBlank())
+        ) {
             // LEFT ICON SLOT SOURCE
             val currentIconSourceKey = presentation.leftSlot.source.uppercase()
             val currentIconSourceName = when (currentIconSourceKey) {
@@ -2336,7 +2345,8 @@ fun TranslatorPresentationContent(
             currentMode = presentation.mode,
             onDismiss = { showModeSheet = false },
             onModeSelected = { newMode ->
-                onPresentationChange(presentation.copy(mode = newMode))
+                // A bare templateId is materialized here, so later edits start from the preset.
+                onPresentationChange(IslandTemplateCatalog.effectivePresentation(presentation.copy(mode = newMode)))
                 showModeSheet = false
             }
         )
@@ -2359,7 +2369,7 @@ fun TranslatorPresentationContent(
             currentTemplateId = presentation.templateId,
             onDismiss = { showTemplateSheet = false },
             onTemplateSelected = { newTemplateId ->
-                onPresentationChange(presentation.copy(templateId = newTemplateId))
+                onPresentationChange(IslandTemplateCatalog.applyTemplate(presentation, newTemplateId))
                 showTemplateSheet = false
             }
         )
@@ -2813,18 +2823,6 @@ fun TemplateSelectionContent(
     currentTemplateId: String?,
     onTemplateSelected: (String) -> Unit
 ) {
-    val templates = listOf(
-        Triple("tpl_weather_nav", R.string.translator_pres_template_default, Icons.Outlined.Navigation),
-        Triple("tpl_payment_wallet", R.string.translator_pres_template_payment, Icons.Outlined.AutoAwesome),
-        Triple("tpl_call_kit", R.string.translator_pres_template_call, Icons.Outlined.Call),
-        Triple("tpl_ride_delivery", R.string.translator_pres_template_delivery, Icons.Default.LocalShipping),
-        Triple("tpl_queue_wait", R.string.translator_pres_template_queue, Icons.Outlined.Speed),
-        Triple("tpl_parking_meter", R.string.translator_pres_template_parking, Icons.Outlined.Timer),
-        Triple("tpl_file_transfer", R.string.translator_pres_template_download, Icons.Default.ArrowDownward),
-        Triple("tpl_promo_coupon", R.string.translator_pres_template_promo, Icons.Outlined.AutoAwesome),
-        Triple("tpl_media_compact", R.string.translator_pres_template_media, Icons.Outlined.MusicNote)
-    )
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -2851,72 +2849,16 @@ fun TemplateSelectionContent(
         }
 
         Text(
-            text = stringResource(R.string.translator_pres_template_wip_desc),
+            text = stringResource(R.string.translator_pres_template_gallery_desc),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(templates) { (tplId, nameRes, icon) ->
-                val isSelected = currentTemplateId == tplId
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    onClick = { onTemplateSelected(tplId) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    icon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(nameRes),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "ID: $tplId",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        if (isSelected) {
-                            Spacer(Modifier.width(12.dp))
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        IslandTemplateGallery(
+            currentTemplateId = currentTemplateId,
+            onTemplateSelected = onTemplateSelected,
+            modifier = Modifier.weight(1f, fill = false)
+        )
     }
 }
 
