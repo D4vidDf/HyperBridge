@@ -44,6 +44,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppListViewModel
+import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerScreen
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
@@ -57,6 +58,7 @@ private enum class DesignRoute {
     WIDGET_LIST,
     THEME_MANAGER,
     THEME_CREATOR,
+    DESIGN_MANAGER,
     TRANSLATOR_MANAGER,
     TRANSLATOR_EDITOR
 }
@@ -80,6 +82,7 @@ fun HomeScreen(
     var editingThemeId by remember { mutableStateOf<String?>(null) }
     var editingTranslatorId by remember { mutableStateOf<String?>(null) }
     var newTranslatorPackageName by remember { mutableStateOf<String?>(null) }
+    var previousTranslatorManagerRoute by remember { mutableStateOf(DesignRoute.TRANSLATOR_MANAGER) }
 
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
@@ -104,7 +107,7 @@ fun HomeScreen(
                 DesignRoute.TRANSLATOR_EDITOR -> {
                     editingTranslatorId = null
                     newTranslatorPackageName = null
-                    DesignRoute.TRANSLATOR_MANAGER
+                    previousTranslatorManagerRoute
                 }
                 else -> DesignRoute.DASHBOARD
             }
@@ -166,7 +169,7 @@ fun HomeScreen(
                                 label = "DesignTabNav"
                             ) { route ->
                                 when (route) {
-                                    DesignRoute.DASHBOARD -> {
+                                     DesignRoute.DASHBOARD -> {
                                         DesignScreen(
                                             onNavigateToWidgets = {
                                                 designRoute = DesignRoute.WIDGET_LIST
@@ -178,17 +181,22 @@ fun HomeScreen(
                                                 editingThemeId = themeId
                                                 designRoute = DesignRoute.THEME_CREATOR
                                             },
+                                            onNavigateToDesigns = {
+                                                designRoute = DesignRoute.DESIGN_MANAGER
+                                            },
                                             onNavigateToTranslators = {
                                                 designRoute = DesignRoute.TRANSLATOR_MANAGER
                                             },
                                             onCreateTranslator = {
                                                 editingTranslatorId = null
                                                 newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             },
                                             onEditTranslator = { id ->
                                                 editingTranslatorId = id
                                                 newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             },
                                             onLaunchPicker = { showWidgetPicker = true },
@@ -250,17 +258,38 @@ fun HomeScreen(
                                         )
                                     }
 
+                                    DesignRoute.DESIGN_MANAGER -> {
+                                        DesignManagerScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onAddDesign = {
+                                                // Create a new design in editor
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.DESIGN_MANAGER
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onEditDesign = { id ->
+                                                editingTranslatorId = id
+                                                newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.DESIGN_MANAGER
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            }
+                                        )
+                                    }
+
                                     DesignRoute.TRANSLATOR_MANAGER -> {
                                         com.d4viddf.hyperbridge.ui.screens.translators.TranslatorManagerScreen(
                                             onBack = { designRoute = DesignRoute.DASHBOARD },
                                             onCreateTranslator = { pkg ->
                                                 editingTranslatorId = null
                                                 newTranslatorPackageName = pkg
+                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             },
                                             onEditTranslator = { id ->
                                                 editingTranslatorId = id
                                                 newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             }
                                         )
@@ -271,7 +300,7 @@ fun HomeScreen(
                                             translatorId = editingTranslatorId,
                                             initialPackageName = newTranslatorPackageName,
                                             onBack = {
-                                                designRoute = DesignRoute.TRANSLATOR_MANAGER
+                                                designRoute = previousTranslatorManagerRoute
                                                 editingTranslatorId = null
                                                 newTranslatorPackageName = null
                                             }

@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.outlined.Widgets
@@ -86,7 +88,7 @@ fun AddDesignFlow(
                         chosenTemplate = IslandTemplateCatalog.find(id)
                         step = AddDesignStep.NOTIFICATION_TYPE
                     },
-                    modifier = Modifier.heightIn(max = 520.dp)
+                    modifier = Modifier.weight(1f, fill = false)
                 )
             }
 
@@ -148,9 +150,11 @@ private fun NotificationTypeContent(
     val suggested = template.suggestedTypes
     val types = NotificationType.configurableEntries.sortedByDescending { suggested.contains(it) }
 
+    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(scrollState)
             .padding(horizontal = 20.dp)
             .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)

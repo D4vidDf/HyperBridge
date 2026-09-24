@@ -30,6 +30,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PhoneAndroid
@@ -99,6 +100,7 @@ fun DesignScreen(
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
+    onNavigateToDesigns: () -> Unit = {},
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
     onEditTranslator: (String) -> Unit = {},
@@ -181,6 +183,7 @@ fun DesignScreen(
         translators = allTranslators,
         designs = designs,
         onAddDesign = { showAddDesign = true },
+        onNavigateToDesigns = onNavigateToDesigns,
         onNavigateToWidgets = onNavigateToWidgets,
         onNavigateToThemes = onNavigateToThemes,
         onEditTheme = onEditTheme,
@@ -275,6 +278,7 @@ fun DesignScreenContent(
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     onAddDesign: () -> Unit = {},
+    onNavigateToDesigns: () -> Unit = {},
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
@@ -327,17 +331,7 @@ fun DesignScreenContent(
         ) {
             HeroSection()
 
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_designs), onAddDesign)
-                DesignsCarousel(
-                    designs = designs,
-                    onAddDesign = onAddDesign,
-                    onEditDesign = onEditTranslator
-                )
-            }
-
+            // 1. Themes Section
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -351,6 +345,7 @@ fun DesignScreenContent(
                 )
             }
 
+            // 2. Widgets Section
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -363,6 +358,19 @@ fun DesignScreenContent(
                 )
             }
 
+            // 3. Designs Section
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SectionHeader(stringResource(R.string.design_section_designs), onNavigateToDesigns)
+                DesignStatusCard(
+                    designs = designs,
+                    onNavigateToDesigns = onNavigateToDesigns,
+                    onAddDesign = onAddDesign
+                )
+            }
+
+            // 4. Translators Section
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -624,125 +632,125 @@ fun TranslatorsCarousel(
 
 // --- DESIGNS (templates + custom islands, #272) ---
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DesignsCarousel(
+fun DesignStatusCard(
     designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
-    onAddDesign: () -> Unit,
-    onEditDesign: (String) -> Unit
+    onNavigateToDesigns: () -> Unit,
+    onAddDesign: () -> Unit
 ) {
-    if (designs.isEmpty()) {
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Card(
-                onClick = onAddDesign,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier = Modifier.fillMaxWidth().height(160.dp)
+    val totalCount = designs.size
+    val activeCount = designs.count { it.isEnabled }
+
+    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Card(
+            onClick = onNavigateToDesigns,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Rounded.Add,
-                        null,
+                    Surface(
                         modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        stringResource(R.string.design_designs_empty_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        stringResource(R.string.design_designs_empty_subtitle),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Outlined.DashboardCustomize,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_section_designs),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.design_status_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-        }
-    } else {
-        val shown = designs.take(5)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            shown.forEach { design ->
-                DesignPreviewCard(design = design, onClick = { onEditDesign(design.id) })
-            }
-            Card(
-                onClick = onAddDesign,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier = Modifier.width(120.dp).height(200.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Rounded.Add, null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.design_add_design_title),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    // Active badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.design_status_active, activeCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+
+                    // Total badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Text(
+                            text = stringResource(R.string.design_status_total, totalCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.weight(1f))
+
+                    // Action button to create/add new design
+                    Button(
+                        onClick = onAddDesign,
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.design_add_design_title),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun DesignPreviewCard(
-    design: com.d4viddf.hyperbridge.models.translator.CustomTranslator,
-    onClick: () -> Unit
-) {
-    val template = com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
-        .find(design.presentation.templateId)
-
-    Card(
-        onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        modifier = Modifier.width(280.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = design.meta.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = template?.let { stringResource(it.nameRes) }
-                            ?: stringResource(R.string.translator_pres_mode_widget),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
-                    )
-                }
-                if (!design.isEnabled) {
-                    Text(
-                        text = stringResource(R.string.translators_filter_inactive),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview(
-                translator = design,
-                showChrome = false
-            )
         }
     }
 }

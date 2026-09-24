@@ -1239,4 +1239,13 @@
     <!-- Preview Mode Strings -->
     <string name="translator_preview_mode_expanded">Isla Expandida</string>
     <string name="translator_preview_mode_pill">Píldora Compacta</string>
+
+    <string name="design_manager_title">Diseños</string>
+    <string name="design_manager_subtitle">Gestiona plantillas y diseños de isla personalizados</string>
+    <string name="design_status_active">%d activos</string>
+    <string name="design_status_total">%d en total</string>
+    <string name="design_status_desc">Plantillas de isla activas y diseños personalizados</string>
+    <string name="design_view_mode_preview">Mostrar vista previa</string>
+    <string name="design_view_mode_icon">Mostrar icono</string>
+    <string name="design_toggle_preview_cd">Alternar vista previa o icono</string>
 </resources>
