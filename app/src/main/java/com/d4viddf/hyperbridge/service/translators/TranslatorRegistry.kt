@@ -38,15 +38,17 @@ class TranslatorRegistry(
      */
     fun hasActiveTranslatorsForPackage(packageName: String, isLibraryAllowed: Boolean = true): Boolean {
         return activeTranslators.any { translator ->
-            translator.isEnabled && when (translator.targetScope) {
-                TargetScope.GLOBAL -> isLibraryAllowed
-                TargetScope.SPECIFIC_APPS -> translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
-                TargetScope.SYSTEM_APPS -> {
-                    if (translator.targetPackages.isEmpty()) true
-                    else translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+            translator.isEnabled &&
+                !translator.excludedPackages.any { it.equals(packageName, ignoreCase = true) } &&
+                when (translator.targetScope) {
+                    TargetScope.GLOBAL -> isLibraryAllowed
+                    TargetScope.SPECIFIC_APPS -> translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+                    TargetScope.SYSTEM_APPS -> {
+                        if (translator.targetPackages.isEmpty()) true
+                        else translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+                    }
+                    TargetScope.NOTIFICATION_TYPE -> isLibraryAllowed || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
                 }
-                TargetScope.NOTIFICATION_TYPE -> isLibraryAllowed || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }
-            }
         }
     }
 
@@ -115,6 +117,9 @@ class TranslatorRegistry(
         notificationType: String?,
         isLibraryAllowed: Boolean
     ): Boolean {
+        if (translator.excludedPackages.any { it.equals(packageName, ignoreCase = true) }) {
+            return false
+        }
         return when (translator.targetScope) {
             TargetScope.GLOBAL -> isLibraryAllowed
             TargetScope.SPECIFIC_APPS -> {

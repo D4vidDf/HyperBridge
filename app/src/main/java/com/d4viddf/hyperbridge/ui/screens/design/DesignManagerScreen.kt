@@ -406,19 +406,20 @@ fun DesignManagerScreen(
 fun DesignPreviewCardItem(
     design: CustomTranslator,
     shape: androidx.compose.ui.graphics.Shape,
+    isChecked: Boolean = design.isEnabled,
     onToggle: (Boolean) -> Unit,
-    onClick: () -> Unit,
-    onDuplicate: () -> Unit,
-    onDelete: () -> Unit,
-    onShare: () -> Unit,
-    onExport: () -> Unit
+    onClick: () -> Unit = {},
+    onDuplicate: () -> Unit = {},
+    onDelete: () -> Unit = {},
+    onShare: () -> Unit = {},
+    onExport: () -> Unit = {}
 ) {
     val template = IslandTemplateCatalog.find(design.presentation.templateId)
 
     Surface(
         onClick = onClick,
         shape = shape,
-        color = if (design.isEnabled) MaterialTheme.colorScheme.surfaceContainer
+        color = if (isChecked) MaterialTheme.colorScheme.surfaceContainer
         else MaterialTheme.colorScheme.surfaceContainerLowest,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -436,7 +437,7 @@ fun DesignPreviewCardItem(
                 Surface(
                     modifier = Modifier.size(44.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = if (design.isEnabled) MaterialTheme.colorScheme.primaryContainer
+                    color = if (isChecked) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -444,7 +445,7 @@ fun DesignPreviewCardItem(
                             imageVector = getTranslatorOutlinedIcon(design.meta.iconName),
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
-                            tint = if (design.isEnabled) MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = if (isChecked) MaterialTheme.colorScheme.onPrimaryContainer
                             else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     }
@@ -457,7 +458,7 @@ fun DesignPreviewCardItem(
                         text = design.meta.name.ifBlank { stringResource(R.string.design_section_designs) },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (design.isEnabled) MaterialTheme.colorScheme.onSurface
+                        color = if (isChecked) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -476,7 +477,7 @@ fun DesignPreviewCardItem(
                 Spacer(Modifier.width(8.dp))
 
                 Switch(
-                    checked = design.isEnabled,
+                    checked = isChecked,
                     onCheckedChange = onToggle
                 )
             }

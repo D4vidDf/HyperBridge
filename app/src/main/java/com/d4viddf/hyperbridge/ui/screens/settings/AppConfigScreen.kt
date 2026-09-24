@@ -54,6 +54,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.DisplaySettings
@@ -128,6 +129,7 @@ import com.d4viddf.hyperbridge.models.WidgetSize
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.IslandSettingsControl
+import com.d4viddf.hyperbridge.ui.screens.design.DesignPreviewCardItem
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
@@ -187,6 +189,7 @@ fun AppConfigScreen(
     val allowedPackages by preferences.allowedPackagesFlow.collectAsState(initial = emptySet())
     val isBridged = allowedPackages.contains(packageName)
     val appTranslators by translatorViewModel.getTranslatorsForApp(packageName).collectAsState(initial = emptyList())
+    val appDesigns by translatorViewModel.getDesignsForApp(packageName).collectAsState(initial = emptyList())
 
     var appInfo by remember { mutableStateOf<AppInfo?>(null) }
     LaunchedEffect(packageName) {
@@ -261,6 +264,7 @@ fun AppConfigScreen(
             savedWidgetIds = appSavedWidgetIds,
             availableProviders = availableProviders,
             translators = appTranslators,
+            designs = appDesigns,
             currentSubscreen = currentSubscreen,
             onNavigateSubscreen = { currentSubscreen = it },
             onBack = onBack,
@@ -288,7 +292,8 @@ fun AppConfigScreen(
             },
             onToggleTranslator = { id, enabled -> translatorViewModel.toggleTranslator(id, enabled) },
             onCreateTranslator = { onCreateTranslator(packageName) },
-            onEditTranslator = onEditTranslator
+            onEditTranslator = onEditTranslator,
+            onToggleDesign = { designId, enabled -> translatorViewModel.toggleDesignForApp(designId, packageName, enabled) }
         )
 
         // --- OVERLAYS ---
@@ -364,6 +369,7 @@ fun AppConfigContent(
     savedWidgetIds: List<Int>,
     availableProviders: List<AppWidgetProviderInfo>,
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     currentSubscreen: AppConfigSubscreen? = null,
     onNavigateSubscreen: (AppConfigSubscreen?) -> Unit = {},
     onBack: () -> Unit,
@@ -381,7 +387,8 @@ fun AppConfigContent(
     onDeleteWidget: (Int) -> Unit,
     onToggleTranslator: (String, Boolean) -> Unit = { _, _ -> },
     onCreateTranslator: () -> Unit = {},
-    onEditTranslator: (String) -> Unit = {}
+    onEditTranslator: (String) -> Unit = {},
+    onToggleDesign: (String, Boolean) -> Unit = { _, _ -> }
 ) {
     val activeDesc = stringResource(R.string.cd_app_state_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
@@ -410,6 +417,14 @@ fun AppConfigContent(
         stringResource(R.string.design_translators_carousel_desc, translators.count { it.isEnabled })
     } else {
         stringResource(R.string.custom_translators_desc)
+    }
+    val activeDesignsCount = designs.count { design ->
+        design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+    }
+    val designsSubtitle = if (designs.isNotEmpty()) {
+        stringResource(R.string.app_designs_subtitle, activeDesignsCount)
+    } else {
+        stringResource(R.string.custom_design_desc)
     }
 
     AnimatedContent(
@@ -581,8 +596,8 @@ fun AppConfigContent(
                                 when (route) {
                                     AppConfigSubscreen.CUSTOM_DESIGN -> AppConfigOptionCard(
                                         title = stringResource(R.string.custom_design_title),
-                                        subtitle = stringResource(R.string.custom_design_desc),
-                                        badge = stringResource(R.string.custom_design_badge),
+                                        subtitle = designsSubtitle,
+                                        badge = null,
                                         icon = Icons.Default.Brush,
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_DESIGN) }
@@ -706,13 +721,26 @@ fun AppConfigContent(
                     SubscreenScaffold(
                         title = stringResource(R.string.custom_design_title),
                         appName = appName,
-                        onBack = { onNavigateSubscreen(null) }
+                        onBack = { onNavigateSubscreen(null) },
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = onCreateTranslator,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = stringResource(R.string.app_designs_add_design)
+                                )
+                            }
+                        }
                     ) {
-                        FutureFeaturePlaceholderCard(
-                            title = stringResource(R.string.custom_design_title),
-                            badge = stringResource(R.string.custom_design_badge),
-                            icon = Icons.Default.Brush,
-                            description = stringResource(R.string.custom_design_desc)
+                        AppDesignsSectionCard(
+                            packageName = packageName,
+                            designs = designs,
+                            onToggleDesign = onToggleDesign,
+                            onEditDesign = onEditTranslator,
+                            onCreateDesign = onCreateTranslator
                         )
                     }
                 }
@@ -1792,7 +1820,97 @@ fun AppConfigWidgetChildItem(
 }
 
 // ------------------------------------------------------------------------------------------------
-// FUTURE FEATURE PLACEHOLDER (Custom Design & Custom Translators)
+// CUSTOM DESIGNS SECTION (App-specific)
+// ------------------------------------------------------------------------------------------------
+
+@Composable
+fun AppDesignsSectionCard(
+    packageName: String,
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onToggleDesign: (String, Boolean) -> Unit,
+    onEditDesign: (String) -> Unit,
+    onCreateDesign: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.app_designs_section_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            if (designs.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Outlined.DashboardCustomize,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.app_designs_empty_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.app_designs_empty_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(0.85f)
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = onCreateDesign,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.app_designs_add_design))
+                        }
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    designs.forEachIndexed { index, design ->
+                        val shape = getExpressiveShape(designs.size, index, ShapeStyle.Large)
+                        val isAppEnabled = design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+
+                        DesignPreviewCardItem(
+                            design = design,
+                            shape = shape,
+                            isChecked = isAppEnabled,
+                            onToggle = { isChecked ->
+                                onToggleDesign(design.id, isChecked)
+                            },
+                            onClick = {
+                                onEditDesign(design.id)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// FUTURE FEATURE PLACEHOLDER (Custom Translators)
 // ------------------------------------------------------------------------------------------------
 
 @Composable

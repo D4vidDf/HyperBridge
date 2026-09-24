@@ -892,7 +892,12 @@
     <string name="app_config_subtitle">Behaviors, widgets &amp; extensions</string>
     <string name="custom_design_title">Custom Design</string>
     <string name="custom_design_badge">COMING SOON</string>
-    <string name="custom_design_desc">Customizable visual layouts and tailored Island designs are in development. Stay tuned for upcoming updates.</string>
+    <string name="custom_design_desc">Active island templates and custom layouts applied to this app</string>
+    <string name="app_designs_subtitle">%1$d active</string>
+    <string name="app_designs_section_desc">Enable or disable island designs for this application. Global designs can also be toggled specifically for this app.</string>
+    <string name="app_designs_empty_title">No designs for this app</string>
+    <string name="app_designs_empty_desc">There are no global or app-specific designs available. Add a new design or browse templates in Design Manager.</string>
+    <string name="app_designs_add_design">Add Design</string>
     <string name="custom_translators_title">Custom Translators</string>
     <string name="custom_translators_badge">COMING SOON</string>
     <string name="custom_translators_desc">Create and install custom community translators to format and control notification data for this application.</string>
