@@ -1535,4 +1535,8 @@
     <string name="design_guide_smart_actions_desc">Discover how button actions and notification callbacks operate</string>
     <string name="design_guide_diagnostics_title">Diagnostics &amp; Troubleshooting</string>
     <string name="design_guide_diagnostics_desc">Troubleshoot island display, permissions, and background services</string>
+
+    <string name="island_template_hint_copy">Copy</string>
+    <string name="island_template_hint_view">View</string>
+    <string name="island_template_hint_track">Track</string>
 </resources>

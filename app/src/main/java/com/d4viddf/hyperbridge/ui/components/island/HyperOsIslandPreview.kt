@@ -109,6 +109,12 @@ fun HyperOsIslandPreview(
     // A TEMPLATE translator may carry nothing but its templateId, so resolve the preset first and
     // render from that: the gallery, the design cards and the editor all see the same island.
     val presentation = IslandTemplateCatalog.effectivePresentation(translator.presentation)
+    val template = if (presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.TEMPLATE) {
+        IslandTemplateCatalog.find(presentation.templateId)
+    } else {
+        null
+    }
+    val templateCard = template?.card
 
     // 1. Resolve Effective Theme Styling
     val linkedTheme = if (translator.themeBinding.themeId.isNotBlank() && translator.themeBinding.themeId != "active") {
@@ -121,6 +127,9 @@ fun HyperOsIslandPreview(
         safeParseColor(translator.themeBinding.overrideHighlightColor)
     } else if (linkedTheme?.global?.highlightColor != null) {
         safeParseColor(linkedTheme.global.highlightColor)
+    } else if (templateCard != null) {
+        // A template keeps Xiaomi's own accent (red alert, green parking...) until the design overrides it.
+        Color(templateCard.accentArgb)
     } else {
         MaterialTheme.colorScheme.primary
     }
@@ -363,7 +372,18 @@ fun HyperOsIslandPreview(
                         enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
                         exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
                     ) {
-                        HyperOsExpandedIsland {
+                        if (templateCard != null) {
+                            TemplateFocusCard(
+                                layout = templateCard,
+                                iconName = translator.meta.iconName.takeIf { it.isNotBlank() && it != "AutoAwesome" }
+                                    ?: template.iconName,
+                                title = titleText,
+                                subtitle = subtitleText,
+                                highlight = highlightText,
+                                accent = parsedHighlightColor,
+                                progressPercent = progressPercent
+                            )
+                        } else HyperOsExpandedIsland {
                             // Row 1: Graphic + Text
                             Row(
                                 modifier = Modifier.fillMaxWidth(),

@@ -2,6 +2,7 @@ package com.d4viddf.hyperbridge.models.translator
 
 import com.d4viddf.hyperbridge.models.NotificationType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -162,5 +163,32 @@ class IslandTemplateCatalogTest {
         assertEquals(design.presentation.templateId, restored!!.presentation.templateId)
         assertEquals(PresentationMode.TEMPLATE, restored.presentation.mode)
         assertNull(restored.presentation.rawParamV2)
+    }
+
+    @Test
+    fun everyGalleryTemplateHasACardLayout() {
+        IslandTemplateCatalog.gallery.forEach { template ->
+            assertTrue("${template.id} has no card layout", template.card != null)
+            if (template.card!!.hint == TemplateCardLayout.Hint.BUTTON) {
+                assertTrue("${template.id} hint has no button label", template.card!!.hintButtonRes != null)
+            }
+        }
+    }
+
+    @Test
+    fun aTemplateWithAProgressSlotPreviewsAProgressBar() {
+        IslandTemplateCatalog.gallery.filter { it.showsProgress && it.presentation.progressSlot.type != ProgressSlotType.TIMER }
+            .forEach { assertTrue(it.id, it.card!!.progress != TemplateCardLayout.Progress.NONE) }
+    }
+
+    @Test
+    fun designsMadeFromATemplateAreLocalAndAnythingElseCountsAsImported() {
+        val design = IslandTemplateCatalog.newDesign(
+            IslandTemplateCatalog.gallery.first(), NotificationType.STANDARD, "Mine"
+        )
+        assertTrue(design.isDesign)
+        assertFalse(design.isImported)
+        assertTrue(design.copy(meta = design.meta.copy(author = "Someone")).isImported)
+        assertFalse(design.copy(presentation = PresentationConfig()).isDesign)
     }
 }
