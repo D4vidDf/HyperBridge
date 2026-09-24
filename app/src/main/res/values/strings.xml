@@ -1484,6 +1484,55 @@
     <string name="design_template_type_desc">Pick the kind of notification this design applies to. You can add match conditions later from the translator editor.</string>
     <string name="design_design_created">Design added</string>
     <string name="translator_pres_template_gallery_desc">Pick a layout, then bind each element to the notification below.</string>
+    <string name="design_manager_title">Designs</string>
+    <string name="design_manager_subtitle">Manage templates and custom island designs</string>
+    <string name="design_status_active">%d active</string>
+    <string name="design_status_total">%d total</string>
+    <string name="design_status_desc">Active island templates and custom layouts</string>
+    <string name="design_view_mode_preview">Show Preview</string>
+    <string name="design_view_mode_icon">Show Icon</string>
+    <string name="design_toggle_preview_cd">Toggle preview or icon view</string>
+    <string name="design_template_type_suggested">Suggested</string>
+
+    <string name="design_card_themes_desc">Customize colors, typography and appearance</string>
+    <string name="design_card_themes_installed">%d installed</string>
+    <string name="design_card_themes_active_default">System Default active</string>
+    <string name="design_card_themes_active_named">%s active</string>
+    <string name="design_card_themes_action">Create</string>
+
+    <string name="design_card_widgets_desc">Place standard app widgets on your island</string>
+    <string name="design_card_widgets_saved">%d configured</string>
+    <string name="design_card_widgets_empty">No widgets</string>
+    <string name="design_card_widgets_action">Add</string>
+
+    <string name="design_card_translators_desc">Intercept notifications and apply custom rules</string>
+    <string name="design_card_translators_action">New Rule</string>
+
+    <!-- Design Screen Layout Variant switcher -->
+    <string name="design_variant_dashboard">Dashboard</string>
+    <string name="design_variant_grouped">Grouped</string>
+    <string name="design_variant_bento">Bento</string>
+
+    <!-- Design Screen Featured & Guides Sections -->
+    <string name="design_section_featured">Featured</string>
+    <string name="design_featured_themes_title">Hyper Themes</string>
+    <string name="design_featured_themes_subtitle">Explore custom color palettes and island styles</string>
+    <string name="design_featured_widgets_title">Island Widgets</string>
+    <string name="design_featured_widgets_subtitle">Control music, timers, and app shortcuts directly</string>
+    <string name="design_featured_designs_title">Interactive Designs</string>
+    <string name="design_featured_designs_subtitle">Craft custom layouts for boarding, tracking, and more</string>
+    <string name="design_featured_translators_title">Smart Translators</string>
+    <string name="design_featured_translators_subtitle">Intercept notifications with custom regex and rules</string>
+
+    <string name="design_section_guides">Guides &amp; Documentation</string>
+    <string name="design_guide_theme_creator_title">Theme Creator Guide</string>
+    <string name="design_guide_theme_creator_desc">Learn how to create, test, and package themes for HyperBridge</string>
+    <string name="design_guide_custom_translators_title">Custom Translators</string>
+    <string name="design_guide_custom_translators_desc">Create interceptor rules for your favorite notification apps</string>
+    <string name="design_guide_translators_spec_title">Translators Specification</string>
+    <string name="design_guide_translators_spec_desc">Deep dive into JSON rules, matchers, regex, and actions</string>
+    <string name="design_guide_smart_actions_title">Smart Actions</string>
+    <string name="design_guide_smart_actions_desc">Discover how button actions and notification callbacks operate</string>
+    <string name="design_guide_diagnostics_title">Diagnostics &amp; Troubleshooting</string>
+    <string name="design_guide_diagnostics_desc">Troubleshoot island display, permissions, and background services</string>
 </resources>
-
-

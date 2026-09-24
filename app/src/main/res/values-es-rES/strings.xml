@@ -1239,4 +1239,56 @@
     <!-- Preview Mode Strings -->
     <string name="translator_preview_mode_expanded">Isla Expandida</string>
     <string name="translator_preview_mode_pill">Píldora Compacta</string>
+
+    <string name="design_manager_title">Diseños</string>
+    <string name="design_manager_subtitle">Gestiona plantillas y diseños de isla personalizados</string>
+    <string name="design_status_active">%d activos</string>
+    <string name="design_status_total">%d en total</string>
+    <string name="design_status_desc">Plantillas de isla activas y diseños personalizados</string>
+    <string name="design_view_mode_preview">Mostrar vista previa</string>
+    <string name="design_view_mode_icon">Mostrar icono</string>
+    <string name="design_toggle_preview_cd">Alternar vista previa o icono</string>
+    <string name="design_template_type_suggested">Sugerido</string>
+
+    <string name="design_card_themes_desc">Personaliza colores, tipografía y apariencia</string>
+    <string name="design_card_themes_installed">%d instalados</string>
+    <string name="design_card_themes_active_default">Predeterminado del sistema activo</string>
+    <string name="design_card_themes_active_named">%s activo</string>
+    <string name="design_card_themes_action">Crear</string>
+
+    <string name="design_card_widgets_desc">Coloca widgets de tus aplicaciones en la isla</string>
+    <string name="design_card_widgets_saved">%d configurados</string>
+    <string name="design_card_widgets_empty">Sin widgets</string>
+    <string name="design_card_widgets_action">Añadir</string>
+
+    <string name="design_card_translators_desc">Intercepta notificaciones y aplica reglas personalizadas</string>
+    <string name="design_card_translators_action">Nueva regla</string>
+
+    <!-- Design Screen Layout Variant switcher -->
+    <string name="design_variant_dashboard">Panel</string>
+    <string name="design_variant_grouped">Agrupado</string>
+    <string name="design_variant_bento">Bento</string>
+
+    <!-- Design Screen Featured & Guides Sections -->
+    <string name="design_section_featured">Destacados</string>
+    <string name="design_featured_themes_title">Temas Hyper</string>
+    <string name="design_featured_themes_subtitle">Explora paletas de color y estilos para la isla</string>
+    <string name="design_featured_widgets_title">Widgets de Isla</string>
+    <string name="design_featured_widgets_subtitle">Controla música, temporizadores y accesos directos</string>
+    <string name="design_featured_designs_title">Diseños Interactivos</string>
+    <string name="design_featured_designs_subtitle">Crea diseños a medida para viajes, pedidos y más</string>
+    <string name="design_featured_translators_title">Traductores Inteligentes</string>
+    <string name="design_featured_translators_subtitle">Intercepta notificaciones con reglas y regex</string>
+
+    <string name="design_section_guides">Guías y Documentación</string>
+    <string name="design_guide_theme_creator_title">Guía del Creador de Temas</string>
+    <string name="design_guide_theme_creator_desc">Aprende a crear, probar y empaquetar temas para HyperBridge</string>
+    <string name="design_guide_custom_translators_title">Traductores Personalizados</string>
+    <string name="design_guide_custom_translators_desc">Crea reglas de intercepción para tus apps de notificaciones</string>
+    <string name="design_guide_translators_spec_title">Especificación de Traductores</string>
+    <string name="design_guide_translators_spec_desc">Guía detallada sobre reglas JSON, patrones regex y acciones</string>
+    <string name="design_guide_smart_actions_title">Acciones Inteligentes</string>
+    <string name="design_guide_smart_actions_desc">Descubre cómo funcionan los botones y acciones en la isla</string>
+    <string name="design_guide_diagnostics_title">Diagnóstico y Solución de Problemas</string>
+    <string name="design_guide_diagnostics_desc">Soluciona problemas de visualización, permisos y servicios en segundo plano</string>
 </resources>
