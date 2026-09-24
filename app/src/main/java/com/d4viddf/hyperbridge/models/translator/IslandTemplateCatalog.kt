@@ -6,6 +6,38 @@ import com.d4viddf.hyperbridge.models.NotificationType
 import java.util.UUID
 
 /**
+ * How Xiaomi lays a template out as a focus notification card, taken from the HyperIsland ToolKit
+ * demo running on HyperOS 3. Previews draw from this so each template looks like it does on a phone.
+ */
+data class TemplateCardLayout(
+    val style: Style,
+    val progress: Progress = Progress.NONE,
+    val hint: Hint = Hint.NONE,
+    /** The template's own accent (ToolKit colours), used unless the design overrides the highlight. */
+    val accentArgb: Long,
+    /** Ticket-style card drawn over a tinted background picture (Template 9). */
+    val tintedBackground: Boolean = false,
+    /** Label of the hint row's button, when [hint] is [Hint.BUTTON]. */
+    @StringRes val hintButtonRes: Int? = null
+) {
+    enum class Style {
+        /** baseInfo type 1: small grey context line above a big accent title, picture on the right. */
+        BASE_TYPE_1,
+        /** baseInfo type 2: bold title line, grey content line, app picture on the right. */
+        BASE_TYPE_2,
+        /** chatInfo: avatar or thumbnail on the left, title and content, status glyph on the right. */
+        CHAT,
+        /** chatInfo with round decline / answer buttons. */
+        CALL
+    }
+
+    enum class Progress { NONE, BAR, VEHICLE }
+
+    /** The row under a divider: a label with a pill button, or a label over a big time. */
+    enum class Hint { NONE, BUTTON, TIMER }
+}
+
+/**
  * One of Xiaomi's official Super Island templates (#272).
  *
  * A template is not a storage format of its own: it is a named [PresentationConfig] preset plus
@@ -24,6 +56,8 @@ data class IslandTemplate(
     @StringRes val sampleHighlightRes: Int? = null,
     /** T12 (compact media) is kept resolvable for existing translators but is not one of the ten. */
     val showInGallery: Boolean = true,
+    /** Null for templates that are not one of the ten; those preview as a plain island. */
+    val card: TemplateCardLayout? = null,
     val presentation: PresentationConfig
 ) {
     val showsProgress: Boolean get() = presentation.progressSlot.type != ProgressSlotType.NONE
@@ -53,6 +87,7 @@ object IslandTemplateCatalog {
             sampleTitleRes = R.string.island_template_sample_weather_nav_title,
             sampleTextRes = R.string.island_template_sample_weather_nav_text,
             sampleHighlightRes = R.string.island_template_sample_weather_nav_highlight,
+            card = TemplateCardLayout(TemplateCardLayout.Style.BASE_TYPE_1, accentArgb = 0xFFFF3B30),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -71,6 +106,7 @@ object IslandTemplateCatalog {
             sampleTitleRes = R.string.island_template_sample_payment_title,
             sampleTextRes = R.string.island_template_sample_payment_text,
             sampleHighlightRes = R.string.island_template_sample_payment_highlight,
+            card = TemplateCardLayout(TemplateCardLayout.Style.BASE_TYPE_2, hint = TemplateCardLayout.Hint.BUTTON, accentArgb = 0xFFFF6900, hintButtonRes = R.string.island_template_hint_copy),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -97,6 +133,7 @@ object IslandTemplateCatalog {
             suggestedTypes = listOf(NotificationType.CALL),
             sampleTitleRes = R.string.island_template_sample_call_title,
             sampleTextRes = R.string.island_template_sample_call_text,
+            card = TemplateCardLayout(TemplateCardLayout.Style.CALL, accentArgb = 0xFF34C759),
             presentation = PresentationConfig(
                 leftSlot = SlotConfig(source = "AVATAR"),
                 textSlot = TextSlotConfig(
@@ -127,6 +164,7 @@ object IslandTemplateCatalog {
             sampleTitleRes = R.string.island_template_sample_delivery_title,
             sampleTextRes = R.string.island_template_sample_delivery_text,
             sampleHighlightRes = R.string.island_template_sample_delivery_highlight,
+            card = TemplateCardLayout(TemplateCardLayout.Style.BASE_TYPE_2, progress = TemplateCardLayout.Progress.VEHICLE, accentArgb = 0xFF007AFF),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -146,6 +184,7 @@ object IslandTemplateCatalog {
             sampleTitleRes = R.string.island_template_sample_queue_title,
             sampleTextRes = R.string.island_template_sample_queue_text,
             sampleHighlightRes = R.string.island_template_sample_queue_highlight,
+            card = TemplateCardLayout(TemplateCardLayout.Style.BASE_TYPE_1, progress = TemplateCardLayout.Progress.BAR, accentArgb = 0xFFFF8514),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -164,6 +203,7 @@ object IslandTemplateCatalog {
             suggestedTypes = listOf(NotificationType.TIMER, NotificationType.PROGRESS),
             sampleTitleRes = R.string.island_template_sample_parking_title,
             sampleTextRes = R.string.island_template_sample_parking_text,
+            card = TemplateCardLayout(TemplateCardLayout.Style.BASE_TYPE_2, progress = TemplateCardLayout.Progress.BAR, accentArgb = 0xFF34C759),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -181,6 +221,7 @@ object IslandTemplateCatalog {
             suggestedTypes = listOf(NotificationType.DOWNLOAD, NotificationType.PROGRESS),
             sampleTitleRes = R.string.island_template_sample_transfer_title,
             sampleTextRes = R.string.island_template_sample_transfer_text,
+            card = TemplateCardLayout(TemplateCardLayout.Style.CHAT, progress = TemplateCardLayout.Progress.BAR, accentArgb = 0xFF34C759),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -199,6 +240,7 @@ object IslandTemplateCatalog {
             sampleTitleRes = R.string.island_template_sample_promo_title,
             sampleTextRes = R.string.island_template_sample_promo_text,
             sampleHighlightRes = R.string.island_template_sample_promo_highlight,
+            card = TemplateCardLayout(TemplateCardLayout.Style.CHAT, hint = TemplateCardLayout.Hint.BUTTON, accentArgb = 0xFFFF8514, hintButtonRes = R.string.island_template_hint_view),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -226,6 +268,7 @@ object IslandTemplateCatalog {
             sampleTitleRes = R.string.island_template_sample_boarding_title,
             sampleTextRes = R.string.island_template_sample_boarding_text,
             sampleHighlightRes = R.string.island_template_sample_boarding_highlight,
+            card = TemplateCardLayout(TemplateCardLayout.Style.BASE_TYPE_2, hint = TemplateCardLayout.Hint.TIMER, accentArgb = 0xFF6B504C, tintedBackground = true),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -251,6 +294,7 @@ object IslandTemplateCatalog {
             sampleTitleRes = R.string.island_template_sample_courier_title,
             sampleTextRes = R.string.island_template_sample_courier_text,
             sampleHighlightRes = R.string.island_template_sample_courier_highlight,
+            card = TemplateCardLayout(TemplateCardLayout.Style.BASE_TYPE_2, progress = TemplateCardLayout.Progress.BAR, hint = TemplateCardLayout.Hint.BUTTON, accentArgb = 0xFF007AFF, hintButtonRes = R.string.island_template_hint_track),
             presentation = PresentationConfig(
                 textSlot = TextSlotConfig(
                     titleTemplate = "{notif.title}",
@@ -350,7 +394,7 @@ object IslandTemplateCatalog {
         name: String
     ): CustomTranslator = CustomTranslator(
         id = UUID.randomUUID().toString(),
-        meta = TranslatorMetadata(name = name, iconName = template.iconName),
+        meta = TranslatorMetadata(name = name, author = LOCAL_DESIGN_AUTHOR, iconName = template.iconName),
         targetScope = TargetScope.NOTIFICATION_TYPE,
         targetNotificationTypes = listOf(notificationType.name),
         presentation = template.presentation.copy(
@@ -365,3 +409,14 @@ fun CustomTranslator.withResolvedTemplate(): CustomTranslator {
     val resolved = IslandTemplateCatalog.effectivePresentation(presentation)
     return if (resolved == presentation) this else copy(presentation = resolved)
 }
+
+/** The author the translator editor stamps on anything created on this device. */
+const val LOCAL_DESIGN_AUTHOR = "User"
+
+/** A design is a translator that renders through a template or a custom widget island. */
+val CustomTranslator.isDesign: Boolean
+    get() = presentation.mode == PresentationMode.TEMPLATE || presentation.mode == PresentationMode.WIDGET
+
+/** Designs made here carry [LOCAL_DESIGN_AUTHOR]; anything else arrived as an imported .htrans. */
+val CustomTranslator.isImported: Boolean
+    get() = meta.author != LOCAL_DESIGN_AUTHOR

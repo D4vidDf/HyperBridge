@@ -1291,4 +1291,8 @@
     <string name="design_guide_smart_actions_desc">Descubre cómo funcionan los botones y acciones en la isla</string>
     <string name="design_guide_diagnostics_title">Diagnóstico y Solución de Problemas</string>
     <string name="design_guide_diagnostics_desc">Soluciona problemas de visualización, permisos y servicios en segundo plano</string>
+
+    <string name="island_template_hint_copy">Copiar</string>
+    <string name="island_template_hint_view">Ver</string>
+    <string name="island_template_hint_track">Seguir</string>
 </resources>
