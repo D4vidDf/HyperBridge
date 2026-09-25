@@ -37,6 +37,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -52,8 +54,10 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
+import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerHelpSheet
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.DisplaySettings
@@ -61,12 +65,23 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Preview
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -74,11 +89,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -127,10 +146,12 @@ import com.d4viddf.hyperbridge.models.WidgetSize
 import com.d4viddf.hyperbridge.ui.AppInfo
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.components.IslandSettingsControl
+import com.d4viddf.hyperbridge.ui.screens.design.DesignPreviewCardItem
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
+import com.d4viddf.hyperbridge.ui.screens.translators.TRANSLATOR_OUTLINED_ICONS
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -157,8 +178,11 @@ enum class AppConfigSubscreen {
 fun AppConfigScreen(
     packageName: String,
     viewModel: AppListViewModel = viewModel(),
+    translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel = viewModel(),
     onBack: () -> Unit,
-    onNavConfigClick: (String) -> Unit
+    onNavConfigClick: (String) -> Unit,
+    onCreateTranslator: (String) -> Unit = {},
+    onEditTranslator: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -182,6 +206,8 @@ fun AppConfigScreen(
 
     val allowedPackages by preferences.allowedPackagesFlow.collectAsState(initial = emptySet())
     val isBridged = allowedPackages.contains(packageName)
+    val appTranslators by translatorViewModel.getTranslatorsForApp(packageName).collectAsState(initial = emptyList())
+    val appDesigns by translatorViewModel.getDesignsForApp(packageName).collectAsState(initial = emptyList())
 
     var appInfo by remember { mutableStateOf<AppInfo?>(null) }
     LaunchedEffect(packageName) {
@@ -217,9 +243,11 @@ fun AppConfigScreen(
     var availableProviders by remember { mutableStateOf<List<AppWidgetProviderInfo>>(emptyList()) }
     var isPickingWidget by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
+    var showAddDesign by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = editingWidgetId != null || isPickingWidget || currentSubscreen != null) {
+    BackHandler(enabled = editingWidgetId != null || isPickingWidget || showAddDesign || currentSubscreen != null) {
         when {
+            showAddDesign -> showAddDesign = false
             editingWidgetId != null -> editingWidgetId = null
             isPickingWidget -> isPickingWidget = false
             currentSubscreen != null -> currentSubscreen = null
@@ -255,6 +283,8 @@ fun AppConfigScreen(
             globalSmartActionsConfig = globalSmartActionsConfig,
             savedWidgetIds = appSavedWidgetIds,
             availableProviders = availableProviders,
+            translators = appTranslators,
+            designs = appDesigns,
             currentSubscreen = currentSubscreen,
             onNavigateSubscreen = { currentSubscreen = it },
             onBack = onBack,
@@ -279,8 +309,27 @@ fun AppConfigScreen(
                     preferences.removeWidgetId(widgetId)
                     refreshWidgetTrigger.intValue++
                 }
-            }
+            },
+            onToggleTranslator = { id, enabled -> translatorViewModel.toggleTranslator(id, enabled) },
+            onCreateTranslator = { onCreateTranslator(packageName) },
+            onEditTranslator = onEditTranslator,
+            onToggleDesign = { designId, enabled -> translatorViewModel.toggleDesignForApp(designId, packageName, enabled) },
+            onCreateDesign = { showAddDesign = true }
         )
+
+        if (showAddDesign) {
+            com.d4viddf.hyperbridge.ui.screens.design.AddDesignFlow(
+                onDismiss = { showAddDesign = false },
+                onDesignCreated = { design ->
+                    showAddDesign = false
+                    val targetedDesign = design.copy(
+                        targetScope = com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS,
+                        targetPackages = listOf(packageName)
+                    )
+                    translatorViewModel.saveTranslator(targetedDesign)
+                }
+            )
+        }
 
         // --- OVERLAYS ---
         AnimatedVisibility(
@@ -354,6 +403,8 @@ fun AppConfigContent(
     globalSmartActionsConfig: SmartActionsConfig,
     savedWidgetIds: List<Int>,
     availableProviders: List<AppWidgetProviderInfo>,
+    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
     currentSubscreen: AppConfigSubscreen? = null,
     onNavigateSubscreen: (AppConfigSubscreen?) -> Unit = {},
     onBack: () -> Unit,
@@ -368,7 +419,12 @@ fun AppConfigContent(
     onNavConfigClick: () -> Unit,
     onAddWidgetClick: () -> Unit,
     onEditWidget: (Int) -> Unit,
-    onDeleteWidget: (Int) -> Unit
+    onDeleteWidget: (Int) -> Unit,
+    onToggleTranslator: (String, Boolean) -> Unit = { _, _ -> },
+    onCreateTranslator: () -> Unit = {},
+    onEditTranslator: (String) -> Unit = {},
+    onToggleDesign: (String, Boolean) -> Unit = { _, _ -> },
+    onCreateDesign: () -> Unit = {}
 ) {
     val activeDesc = stringResource(R.string.cd_app_state_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
@@ -393,6 +449,21 @@ fun AppConfigContent(
     } else {
         stringResource(R.string.no_widgets_for_app)
     }
+    val translatorsSubtitle = if (translators.isNotEmpty()) {
+        stringResource(R.string.design_translators_carousel_desc, translators.count { it.isEnabled })
+    } else {
+        stringResource(R.string.custom_translators_desc)
+    }
+    val activeDesignsCount = designs.count { design ->
+        design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+    }
+    val designsSubtitle = if (designs.isNotEmpty()) {
+        stringResource(R.string.app_designs_subtitle, activeDesignsCount)
+    } else {
+        stringResource(R.string.custom_design_desc)
+    }
+
+    var showDesignHelpSheet by remember { mutableStateOf(false) }
 
     AnimatedContent(
         targetState = currentSubscreen,
@@ -563,16 +634,16 @@ fun AppConfigContent(
                                 when (route) {
                                     AppConfigSubscreen.CUSTOM_DESIGN -> AppConfigOptionCard(
                                         title = stringResource(R.string.custom_design_title),
-                                        subtitle = stringResource(R.string.custom_design_desc),
-                                        badge = stringResource(R.string.custom_design_badge),
+                                        subtitle = designsSubtitle,
+                                        badge = null,
                                         icon = Icons.Default.Brush,
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_DESIGN) }
                                     )
                                     AppConfigSubscreen.CUSTOM_TRANSLATORS -> AppConfigOptionCard(
                                         title = stringResource(R.string.custom_translators_title),
-                                        subtitle = stringResource(R.string.custom_translators_desc),
-                                        badge = stringResource(R.string.custom_translators_badge),
+                                        subtitle = translatorsSubtitle,
+                                        badge = null,
                                         icon = Icons.Default.Extension,
                                         shape = shape,
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.CUSTOM_TRANSLATORS) }
@@ -688,13 +759,45 @@ fun AppConfigContent(
                     SubscreenScaffold(
                         title = stringResource(R.string.custom_design_title),
                         appName = appName,
-                        onBack = { onNavigateSubscreen(null) }
+                        onBack = { onNavigateSubscreen(null) },
+                        actions = {
+                            FilledTonalIconButton(
+                                onClick = { showDesignHelpSheet = true },
+                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Info,
+                                    contentDescription = stringResource(R.string.design_manager_help_title)
+                                )
+                            }
+                        },
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = onCreateDesign,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = stringResource(R.string.app_designs_add_design)
+                                )
+                            }
+                        }
                     ) {
-                        FutureFeaturePlaceholderCard(
-                            title = stringResource(R.string.custom_design_title),
-                            badge = stringResource(R.string.custom_design_badge),
-                            icon = Icons.Default.Brush,
-                            description = stringResource(R.string.custom_design_desc)
+                        AppDesignsSectionCard(
+                            packageName = packageName,
+                            designs = designs,
+                            onToggleDesign = onToggleDesign,
+                            onEditDesign = onEditTranslator,
+                            onCreateDesign = onCreateDesign
+                        )
+                    }
+
+                    if (showDesignHelpSheet) {
+                        DesignManagerHelpSheet(
+                            onDismiss = { showDesignHelpSheet = false }
                         )
                     }
                 }
@@ -703,13 +806,25 @@ fun AppConfigContent(
                     SubscreenScaffold(
                         title = stringResource(R.string.custom_translators_title),
                         appName = appName,
-                        onBack = { onNavigateSubscreen(null) }
+                        onBack = { onNavigateSubscreen(null) },
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = onCreateTranslator,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = stringResource(R.string.app_translators_create_for_app)
+                                )
+                            }
+                        }
                     ) {
-                        FutureFeaturePlaceholderCard(
-                            title = stringResource(R.string.custom_translators_title),
-                            badge = stringResource(R.string.custom_translators_badge),
-                            icon = Icons.Default.Extension,
-                            description = stringResource(R.string.custom_translators_desc)
+                        AppTranslatorsSectionCard(
+                            translators = translators,
+                            onToggleTranslator = onToggleTranslator,
+                            onEditTranslator = onEditTranslator,
+                            onCreateTranslator = onCreateTranslator
                         )
                     }
                 }
@@ -1762,7 +1877,707 @@ fun AppConfigWidgetChildItem(
 }
 
 // ------------------------------------------------------------------------------------------------
-// FUTURE FEATURE PLACEHOLDER (Custom Design & Custom Translators)
+// CUSTOM DESIGNS SECTION (App-specific)
+// ------------------------------------------------------------------------------------------------
+
+private enum class AppDesignFilterScope {
+    ALL,
+    ACTIVE,
+    INACTIVE,
+    GLOBAL,
+    APP_SPECIFIC
+}
+
+private data class AppDesignFilterState(
+    val statusScope: AppDesignFilterScope = AppDesignFilterScope.ALL,
+    val selectedNotificationTypes: Set<String> = emptySet(),
+    val selectedTemplates: Set<String> = emptySet(),
+    val selectedIcons: Set<String> = emptySet()
+) {
+    val isCustomFilterActive: Boolean
+        get() = statusScope != AppDesignFilterScope.ALL ||
+                selectedNotificationTypes.isNotEmpty() ||
+                selectedTemplates.isNotEmpty() ||
+                selectedIcons.isNotEmpty()
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun AppDesignFilterSheet(
+    filterState: AppDesignFilterState,
+    availableDesigns: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    packageName: String,
+    onDismiss: () -> Unit,
+    onApply: (AppDesignFilterState) -> Unit,
+    onReset: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var draftState by remember { mutableStateOf(filterState) }
+
+    // Designs filtered by the currently selected Status & Scope
+    val scopeFilteredDesigns = remember(availableDesigns, draftState.statusScope, packageName) {
+        when (draftState.statusScope) {
+            AppDesignFilterScope.ALL -> availableDesigns
+            AppDesignFilterScope.ACTIVE -> availableDesigns.filter { design ->
+                design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
+            AppDesignFilterScope.INACTIVE -> availableDesigns.filter { design ->
+                !design.isEnabled || design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
+            AppDesignFilterScope.GLOBAL -> availableDesigns.filter { design ->
+                design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL ||
+                        design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE
+            }
+            AppDesignFilterScope.APP_SPECIFIC -> availableDesigns.filter { design ->
+                (design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS ||
+                        design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS) &&
+                        design.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
+        }
+    }
+
+    // Dynamic aggregations from scope-filtered designs
+    val availableNotificationTypes = remember(scopeFilteredDesigns) {
+        scopeFilteredDesigns.flatMap { it.targetNotificationTypes }.distinct().sorted()
+    }
+    val availableTemplates = remember(scopeFilteredDesigns) {
+        scopeFilteredDesigns.mapNotNull { it.presentation.templateId }.filter { it.isNotBlank() }.distinct().sorted()
+    }
+    val availableIcons = remember(scopeFilteredDesigns) {
+        scopeFilteredDesigns.mapNotNull { it.meta.iconName }.filter { it.isNotBlank() }.distinct().sorted()
+    }
+
+    val sanitizedSelectedTypes = draftState.selectedNotificationTypes.filter { it in availableNotificationTypes }.toSet()
+    val sanitizedSelectedTemplates = draftState.selectedTemplates.filter { it in availableTemplates }.toSet()
+    val sanitizedSelectedIcons = draftState.selectedIcons.filter { it in availableIcons }.toSet()
+
+    val currentDraftState = draftState.copy(
+        selectedNotificationTypes = sanitizedSelectedTypes,
+        selectedTemplates = sanitizedSelectedTemplates,
+        selectedIcons = sanitizedSelectedIcons
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Header (fixed)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 8.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.app_designs_filter_sheet_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.app_designs_filter_sheet_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            HorizontalDivider()
+
+            // Scrollable filter options
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // 1. Status & Scope Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.translators_filter_status_section),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val scopeOptions = listOf(
+                            AppDesignFilterScope.ALL to R.string.app_designs_filter_all,
+                            AppDesignFilterScope.ACTIVE to R.string.app_designs_filter_active,
+                            AppDesignFilterScope.INACTIVE to R.string.app_designs_filter_inactive,
+                            AppDesignFilterScope.GLOBAL to R.string.app_designs_filter_global,
+                            AppDesignFilterScope.APP_SPECIFIC to R.string.app_designs_filter_app_specific
+                        )
+                        scopeOptions.forEach { (scope, labelRes) ->
+                            val isSelected = currentDraftState.statusScope == scope
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    draftState = currentDraftState.copy(statusScope = scope)
+                                },
+                                label = { Text(stringResource(labelRes)) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // 2. Notification Types Section
+                if (availableNotificationTypes.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.translators_filter_types_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            availableNotificationTypes.forEach { type ->
+                                val isSelected = type in currentDraftState.selectedNotificationTypes
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        val newTypes = if (isSelected) {
+                                            currentDraftState.selectedNotificationTypes - type
+                                        } else {
+                                            currentDraftState.selectedNotificationTypes + type
+                                        }
+                                        draftState = currentDraftState.copy(selectedNotificationTypes = newTypes)
+                                    },
+                                    label = { Text(type) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 3. Templates Section
+                if (availableTemplates.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.app_designs_filter_templates_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            availableTemplates.forEach { templateId ->
+                                val isSelected = templateId in currentDraftState.selectedTemplates
+                                val templateObj = com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog.find(templateId)
+                                val labelText = if (templateObj != null) stringResource(templateObj.nameRes) else templateId
+
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        val newTemplates = if (isSelected) {
+                                            currentDraftState.selectedTemplates - templateId
+                                        } else {
+                                            currentDraftState.selectedTemplates + templateId
+                                        }
+                                        draftState = currentDraftState.copy(selectedTemplates = newTemplates)
+                                    },
+                                    label = { Text(labelText) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 4. Icons Section
+                if (availableIcons.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.translators_filter_icons_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            availableIcons.forEach { iconName ->
+                                val isSelected = iconName in currentDraftState.selectedIcons
+                                val iconOption = TRANSLATOR_OUTLINED_ICONS.firstOrNull { it.id.equals(iconName, ignoreCase = true) }
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        val newIcons = if (isSelected) {
+                                            currentDraftState.selectedIcons - iconName
+                                        } else {
+                                            currentDraftState.selectedIcons + iconName
+                                        }
+                                        draftState = currentDraftState.copy(selectedIcons = newIcons)
+                                    },
+                                    leadingIcon = iconOption?.let { opt ->
+                                        {
+                                            Icon(
+                                                imageVector = opt.icon,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    },
+                                    label = { Text(iconOption?.label ?: iconName) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Fixed bottom actions bar with divider
+            HorizontalDivider()
+
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            draftState = AppDesignFilterState()
+                            onReset()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.RestartAlt,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.translators_filter_reset))
+                    }
+
+                    Button(
+                        onClick = { onApply(currentDraftState) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.translators_filter_apply))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppDesignsSectionCard(
+    packageName: String,
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onToggleDesign: (String, Boolean) -> Unit,
+    onEditDesign: (String) -> Unit,
+    onCreateDesign: () -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    var filterState by remember { mutableStateOf(AppDesignFilterState()) }
+    var showFilterSheet by remember { mutableStateOf(false) }
+    var showPreviewView by remember { mutableStateOf(true) }
+
+    val filteredDesigns = remember(designs, searchQuery, filterState, packageName) {
+        designs.filter { design ->
+            val isAppEnabled = design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+            val isAppSpecific = (design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS ||
+                    design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS) &&
+                    design.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+            val isGlobal = design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL ||
+                    design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE
+
+            val matchesScope = when (filterState.statusScope) {
+                AppDesignFilterScope.ALL -> true
+                AppDesignFilterScope.ACTIVE -> isAppEnabled
+                AppDesignFilterScope.INACTIVE -> !isAppEnabled
+                AppDesignFilterScope.GLOBAL -> isGlobal
+                AppDesignFilterScope.APP_SPECIFIC -> isAppSpecific
+            }
+
+            val matchesTypes = filterState.selectedNotificationTypes.isEmpty() ||
+                    design.targetNotificationTypes.any { it in filterState.selectedNotificationTypes }
+
+            val matchesTemplates = filterState.selectedTemplates.isEmpty() ||
+                    (design.presentation.templateId != null && design.presentation.templateId in filterState.selectedTemplates)
+
+            val matchesIcons = filterState.selectedIcons.isEmpty() ||
+                    design.meta.iconName in filterState.selectedIcons
+
+            val matchesSearch = searchQuery.isBlank() ||
+                    design.meta.name.contains(searchQuery, ignoreCase = true) ||
+                    design.meta.description.contains(searchQuery, ignoreCase = true) ||
+                    design.presentation.templateId?.contains(searchQuery, ignoreCase = true) == true ||
+                    design.targetNotificationTypes.any { it.contains(searchQuery, ignoreCase = true) }
+
+            matchesScope && matchesTypes && matchesTemplates && matchesIcons && matchesSearch
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // --- 1. HEADER INFO CARD ---
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    text = stringResource(R.string.app_designs_section_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // --- 2. SEARCH & FILTER CONTROLS ---
+        if (designs.isNotEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Search Field & Preview Toggle Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = {
+                                Text(
+                                    text = stringResource(R.string.app_designs_search_hint),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            trailingIcon = {
+                                AnimatedVisibility(visible = searchQuery.isNotBlank()) {
+                                    FilledTonalIconButton(
+                                        onClick = { searchQuery = "" },
+                                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = stringResource(R.string.clear)
+                                        )
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    FilledTonalIconButton(
+                        onClick = { showPreviewView = !showPreviewView },
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = if (showPreviewView) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (showPreviewView) Icons.Outlined.Preview else Icons.Outlined.Widgets,
+                            contentDescription = stringResource(R.string.design_toggle_preview_cd),
+                            tint = if (showPreviewView) MaterialTheme.colorScheme.onPrimaryContainer
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Filter Chips Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val isAllActive = !filterState.isCustomFilterActive
+
+                    FilterChip(
+                        selected = isAllActive,
+                        onClick = { filterState = AppDesignFilterState() },
+                        label = { Text(stringResource(R.string.app_designs_filter_all)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+
+                    val activeCount = (if (filterState.statusScope != AppDesignFilterScope.ALL) 1 else 0) +
+                            filterState.selectedNotificationTypes.size +
+                            filterState.selectedTemplates.size +
+                            filterState.selectedIcons.size
+
+                    FilterChip(
+                        selected = filterState.isCustomFilterActive,
+                        onClick = { showFilterSheet = true },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.FilterList,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        trailingIcon = if (activeCount > 0) {
+                            {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = "$activeCount",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        } else null,
+                        label = { Text(stringResource(R.string.translators_filter_btn)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    FilterChip(
+                        selected = filterState.statusScope == AppDesignFilterScope.ACTIVE,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.ACTIVE) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.ACTIVE)
+                            }
+                        },
+                        label = { Text(stringResource(R.string.app_designs_filter_active)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                    FilterChip(
+                        selected = filterState.statusScope == AppDesignFilterScope.INACTIVE,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.INACTIVE) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.INACTIVE)
+                            }
+                        },
+                        label = { Text(stringResource(R.string.app_designs_filter_inactive)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                    FilterChip(
+                        selected = filterState.statusScope == AppDesignFilterScope.GLOBAL,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.GLOBAL) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.GLOBAL)
+                            }
+                        },
+                        label = { Text(stringResource(R.string.app_designs_filter_global)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                    FilterChip(
+                        selected = filterState.statusScope == AppDesignFilterScope.APP_SPECIFIC,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.APP_SPECIFIC) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.APP_SPECIFIC)
+                            }
+                        },
+                        label = { Text(stringResource(R.string.app_designs_filter_app_specific)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                }
+            }
+        }
+
+        if (showFilterSheet) {
+            AppDesignFilterSheet(
+                filterState = filterState,
+                availableDesigns = designs,
+                packageName = packageName,
+                onDismiss = { showFilterSheet = false },
+                onApply = { newState ->
+                    filterState = newState
+                    showFilterSheet = false
+                },
+                onReset = {
+                    filterState = AppDesignFilterState()
+                    showFilterSheet = false
+                }
+            )
+        }
+
+        // --- 3. SEPARATE DESIGN ITEMS / EMPTY STATES ---
+        if (designs.isEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp, horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Outlined.DashboardCustomize,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.app_designs_empty_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.app_designs_empty_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(0.85f)
+                        )
+
+
+                    }
+                }
+            }
+        } else if (filteredDesigns.isEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp, horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.app_designs_no_results),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                filteredDesigns.forEach { design ->
+                    val isAppEnabled = design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+
+                    DesignPreviewCardItem(
+                        design = design,
+                        shape = RoundedCornerShape(20.dp),
+                        isChecked = isAppEnabled,
+                        showPreview = showPreviewView,
+                        onToggle = { isChecked ->
+                            onToggleDesign(design.id, isChecked)
+                        },
+                        onClick = {
+                            onEditDesign(design.id)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// FUTURE FEATURE PLACEHOLDER (Custom Translators)
 // ------------------------------------------------------------------------------------------------
 
 @Composable
@@ -1850,6 +2665,181 @@ fun FutureFeaturePlaceholderCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// CUSTOM TRANSLATORS SECTION (App-specific)
+// ------------------------------------------------------------------------------------------------
+
+@Composable
+fun AppTranslatorsSectionCard(
+    translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onToggleTranslator: (String, Boolean) -> Unit,
+    onEditTranslator: (String) -> Unit,
+    onCreateTranslator: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.app_translators_section_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            if (translators.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Extension,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.app_translators_empty),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = onCreateTranslator,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.app_translators_create_for_app))
+                        }
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    translators.forEach { translator ->
+                        AppConfigTranslatorChildItem(
+                            translator = translator,
+                            onToggle = { isChecked -> onToggleTranslator(translator.id, isChecked) },
+                            onEdit = { onEditTranslator(translator.id) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppConfigTranslatorChildItem(
+    translator: com.d4viddf.hyperbridge.models.translator.CustomTranslator,
+    onToggle: (Boolean) -> Unit,
+    onEdit: () -> Unit
+) {
+    Surface(
+        onClick = onEdit,
+        shape = RoundedCornerShape(16.dp),
+        color = if (translator.isEnabled) MaterialTheme.colorScheme.surfaceContainerHigh
+        else MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Outlined Icon Badge
+                Surface(
+                    modifier = Modifier.size(40.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (translator.isEnabled) {
+                        when (translator.targetScope) {
+                            com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
+                            com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
+                            com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.errorContainer
+                            com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
+                        }
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon(translator.meta.iconName),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = if (translator.isEnabled) {
+                                when (translator.targetScope) {
+                                    com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
+                                    com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.onErrorContainer
+                                    com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
+                                }
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = translator.meta.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (translator.meta.description.isNotEmpty()) {
+                        Text(
+                            text = translator.meta.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.translators_priority_label, translator.priority),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.translators_action_edit),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Switch(
+                    checked = translator.isEnabled,
+                    onCheckedChange = onToggle
+                )
             }
         }
     }

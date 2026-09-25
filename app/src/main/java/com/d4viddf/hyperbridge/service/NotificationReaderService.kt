@@ -23,44 +23,19 @@ import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.theme.RulesEngine
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
-import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
 import com.d4viddf.hyperbridge.models.ActiveIsland
+import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
+import com.d4viddf.hyperbridge.models.MessageEventFingerprint
 import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
-import com.d4viddf.hyperbridge.service.translators.CallTranslator
-import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
-import com.d4viddf.hyperbridge.service.translators.MediaTranslator
-import com.d4viddf.hyperbridge.service.translators.MessageTranslator
-import com.d4viddf.hyperbridge.service.translators.NavTranslator
-import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
-import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
-import com.d4viddf.hyperbridge.service.translators.StandardTranslator
-import com.d4viddf.hyperbridge.service.translators.TimerTranslator
-import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
-import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
-import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingControlBackend
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSemanticFingerprint
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionInput
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionTracker
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSignals
-import com.d4viddf.hyperbridge.service.recording.ScreenRecordingTimeoutPolicy
-import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBackend
-import com.d4viddf.hyperbridge.util.ShizukuManager
-import com.d4viddf.hyperbridge.models.CallStage
-import com.d4viddf.hyperbridge.models.MessageEventFingerprint
-import com.d4viddf.hyperbridge.models.MessageEventFingerprintSource
+import com.d4viddf.hyperbridge.models.translator.EngineMode
 import com.d4viddf.hyperbridge.service.call.CallActionSignal
-import com.d4viddf.hyperbridge.service.call.CallClassification
 import com.d4viddf.hyperbridge.service.call.CallNotificationClassifier
 import com.d4viddf.hyperbridge.service.call.CallNotificationSignals
 import com.d4viddf.hyperbridge.service.call.CallReplacementPolicy
@@ -76,17 +51,45 @@ import com.d4viddf.hyperbridge.service.message.MessageNotificationResolver
 import com.d4viddf.hyperbridge.service.message.MessageNotificationSignals
 import com.d4viddf.hyperbridge.service.message.MessagePresentationFamilyTracker
 import com.d4viddf.hyperbridge.service.message.MessagePresentationSource
-import com.d4viddf.hyperbridge.service.message.MessageSourceQuality
 import com.d4viddf.hyperbridge.service.message.MessagingEventSignals
 import com.d4viddf.hyperbridge.service.message.isMessagingEvent
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSavedIdentity
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSemanticFingerprint
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionInput
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSessionTracker
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingSignals
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingTimeoutPolicy
+import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBackend
+import com.d4viddf.hyperbridge.service.translators.CallTranslator
+import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
+import com.d4viddf.hyperbridge.service.translators.DynamicTranslator
+import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
+import com.d4viddf.hyperbridge.service.translators.MediaTranslator
+import com.d4viddf.hyperbridge.service.translators.MessageTranslator
+import com.d4viddf.hyperbridge.service.translators.NavTranslator
+import com.d4viddf.hyperbridge.service.translators.ProgressTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingSavedTranslator
+import com.d4viddf.hyperbridge.service.translators.ScreenRecordingTranslator
+import com.d4viddf.hyperbridge.service.translators.StandardTranslator
+import com.d4viddf.hyperbridge.service.translators.SystemUpdateTranslator
+import com.d4viddf.hyperbridge.service.translators.TimerTranslator
+import com.d4viddf.hyperbridge.service.translators.TranslatorRegistry
+import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
+import com.d4viddf.hyperbridge.service.updater.SystemUpdateTimeoutPolicy
+import com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier
+import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
+import com.d4viddf.hyperbridge.util.ShizukuManager
+import com.d4viddf.hyperbridge.util.sendAllowingBackgroundLaunch
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -104,6 +107,10 @@ class NotificationReaderService : NotificationListenerService() {
         @Volatile
         var isConnected: Boolean = false
             internal set
+
+        @Volatile
+        var instance: NotificationReaderService? = null
+            private set
     }
 
     private val TAG = "HyperBridgeDebug"
@@ -136,6 +143,8 @@ class NotificationReaderService : NotificationListenerService() {
     // Other apps' islands. The permanent island yields to a native island only for a short window
     // after it first appears, not for the notification's whole lifetime (see NativeIslandTracker).
     private val nativeIslands = NativeIslandTracker()
+    // Rescheduled from listener callbacks (main) and from the periodic sync (IO): guarded by its lock.
+    private val nativeYieldLock = Any()
     private var nativeYieldJob: Job? = null
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
@@ -182,6 +191,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var timerTranslator: TimerTranslator
     private lateinit var progressTranslator: ProgressTranslator
     private lateinit var downloadTranslator: DownloadTranslator
+    private lateinit var systemUpdateTranslator: SystemUpdateTranslator
     private lateinit var standardTranslator: StandardTranslator
     private lateinit var messageTranslator: MessageTranslator
     private lateinit var mediaTranslator: MediaTranslator
@@ -189,6 +199,8 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var liveUpdateTranslator: LiveUpdateTranslator
     private lateinit var screenRecordingTranslator: ScreenRecordingTranslator
     private lateinit var screenRecordingSavedTranslator: ScreenRecordingSavedTranslator
+    private lateinit var dynamicTranslator: DynamicTranslator
+    private lateinit var translatorRegistry: TranslatorRegistry
 
     @Volatile
     private var isScreenOn = true
@@ -217,7 +229,13 @@ class NotificationReaderService : NotificationListenerService() {
 
                 if (originalIntent != null) {
                     try {
-                        originalIntent.send()
+                        // The island tap reaches us as a broadcast, so *we* (not the system)
+                        // are the sender of the app's content PendingIntent. Since API 34 a
+                        // sender no longer lends its background-activity-launch privilege
+                        // unless it opts in, and since API 35 creators (Google Messages, any
+                        // app targeting 35+) deny it by default. Without the opt-in the launch
+                        // is silently dropped and only the cancel below happens (#359).
+                        originalIntent.sendAllowingBackgroundLaunch()
                     } catch (e: PendingIntent.CanceledException) {
                         Log.e("HyperBridge", "PendingIntent canceled", e)
                     }
@@ -237,6 +255,7 @@ class NotificationReaderService : NotificationListenerService() {
     @RequiresPermission(allOf = [Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.ACCESS_NETWORK_STATE])
     override fun onCreate() {
         super.onCreate()
+        instance = this
         
         val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
         filter.addAction(Intent.ACTION_SCREEN_ON)
@@ -272,6 +291,7 @@ class NotificationReaderService : NotificationListenerService() {
         timerTranslator = TimerTranslator(this, themeRepository)
         progressTranslator = ProgressTranslator(this, themeRepository)
         downloadTranslator = DownloadTranslator(this, themeRepository)
+        systemUpdateTranslator = SystemUpdateTranslator(this, themeRepository)
         standardTranslator = StandardTranslator(this, themeRepository)
         messageTranslator = MessageTranslator(this, themeRepository)
         liveUpdateTranslator = LiveUpdateTranslator(this, themeRepository)
@@ -281,6 +301,11 @@ class NotificationReaderService : NotificationListenerService() {
         screenRecordingTranslator = ScreenRecordingTranslator(this)
         screenRecordingSavedTranslator = ScreenRecordingSavedTranslator(this, themeRepository)
         screenRecordingControlBackend = XiaomiScreenRecordingControlBackend(this)
+
+        // Custom Translators Framework
+        val database = com.d4viddf.hyperbridge.data.db.AppDatabase.getDatabase(this)
+        translatorRegistry = TranslatorRegistry(database.translatorDao(), serviceScope)
+        dynamicTranslator = DynamicTranslator(this, themeRepository)
 
         val userManager = getSystemService(USER_SERVICE) as android.os.UserManager
         if (userManager.isUserUnlocked) {
@@ -333,6 +358,20 @@ class NotificationReaderService : NotificationListenerService() {
                         }
                     }
                 }
+            }
+        }
+
+        // --- SYSTEM UPDATE DESIGN LISTENER ---
+        serviceScope.launch {
+            preferences.systemUpdateDesignFlow.drop(1).collect {
+                val activeUpdateIsland = activeIslands.values.firstOrNull { island ->
+                    SystemUpdaterClassifier.isSystemUpdater(island.packageName)
+                } ?: return@collect
+
+                val sbn = activeNotificationsOrNull()?.firstOrNull { it.key == activeUpdateIsland.sourceKey }
+                    ?: return@collect
+
+                enqueueSourceNotification(sbn, recovery = true)
             }
         }
     }
@@ -390,10 +429,8 @@ class NotificationReaderService : NotificationListenerService() {
                 notificationBuilder.setProgress(100, progress, progress < 0)
                 notificationBuilder.setOngoing(progress in 0..99)
                 notificationBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
-                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
-                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             } else {
                 val builder = HyperIslandNotification.Builder(this@NotificationReaderService, "migration", title)
@@ -412,12 +449,10 @@ class NotificationReaderService : NotificationListenerService() {
                     .setOngoing(progress in 0..99)
                     .setProgress(100, progress, progress < 0)
                     .addExtras(data.resources)
-                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
                 notification.extras.putString("miui.focus.param", data.jsonParam)
 
-                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             }
 
@@ -485,7 +520,7 @@ class NotificationReaderService : NotificationListenerService() {
         }
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationRemoved(it)
-            if (nativeIslands.remove(it.key)) {
+            if (forgetNativeIsland(it.key)) {
                 updatePermanentIsland()
             }
 
@@ -496,9 +531,6 @@ class NotificationReaderService : NotificationListenerService() {
             if (isOurApp) {
                 // The listener-down warning is not an island; dismissing it is not a bridge event.
                 if (BridgeNotificationChannels.isServiceHealth(it.notification.channelId)) return
-                // The group summary is bookkeeping, not an island: never a bridge event (#331).
-                if (notifId == BridgeIslandGroup.SUMMARY_ID) return
-                BridgeIslandGroup.scheduleRelease(this)
                 val replacement = internalBridgeReplacements.consume(notifId, System.currentTimeMillis())
                 if (replacement != null) {
                     Log.d(
@@ -614,9 +646,9 @@ class NotificationReaderService : NotificationListenerService() {
                     if (finalConfig.dismissWithOriginal == true || forceDismiss) {
                         // Debounce updates if the app canceled it programmatically
                         if (islandType == NotificationType.CALL) {
-                            kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                            delay(CallReplacementPolicy.REMOVAL_DELAY_MS.milliseconds)
                         } else if (reason == REASON_APP_CANCEL && islandType != NotificationType.SCREEN_RECORDING) {
-                            kotlinx.coroutines.delay(300)
+                            delay(300.milliseconds)
                         }
                         notificationLifecycleMutex.withLock {
                             val current = activeIslands[logicalKey]
@@ -655,7 +687,7 @@ class NotificationReaderService : NotificationListenerService() {
                 callSessionTracker.markSourceRemoved(notifKey, System.currentTimeMillis())
                 lateinit var job: Job
                 job = serviceScope.launch(Dispatchers.IO) {
-                    kotlinx.coroutines.delay(CallReplacementPolicy.REMOVAL_DELAY_MS)
+                    delay(CallReplacementPolicy.REMOVAL_DELAY_MS.milliseconds)
                     notificationLifecycleMutex.withLock {
                         if (isSourceNotificationActive(notifKey) ||
                             callSessionTracker.logicalIdForSource(notifKey) != trackedCallLogicalId
@@ -883,20 +915,61 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     /**
+     * The yield window another app's notification earns from the permanent island, or null when
+     * it is not a native island: a media player gets the short window, anything else hides the
+     * permanent island for as long as it is posted (see [NativeIslandYieldPolicy]).
+     */
+    private fun nativeIslandYieldMs(sbn: StatusBarNotification): Long? {
+        val extras = sbn.notification.extras ?: return null
+        val hasFocusParam = extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")
+        val focusParam = if (hasFocusParam) {
+            extras.getString("miui.focus.param") ?: extras.getString("miui.system.focus.param")
+        } else null
+        val template = extras.getString(Notification.EXTRA_TEMPLATE)
+        // HyperOS renders every notification with a MediaSession as an island player, MediaStyle
+        // or not, so the session token is the signal; the template covers players that hide it.
+        val isMediaPlayer = extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
+            extras.containsKey("miui.focus.param.media") ||
+            template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
+            template == "android.app.Notification\$MediaStyle"
+        return NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaPlayer)
+    }
+
+    /**
      * Records a native island sighting. The yield window closing is a timer, not a notification
      * event — nothing else re-evaluates the permanent island until the next sync tick (up to 60 s,
-     * screen on only) — so the pill is re-asserted right after the newest window ends.
+     * screen on only) — so the pill is re-asserted right after the last open window ends.
      */
-    private fun noteNativeIsland(key: String): Boolean {
-        val firstSighting = nativeIslands.note(key)
-        if (firstSighting) {
+    private fun noteNativeIsland(key: String, yieldMs: Long): Boolean {
+        val firstSighting = nativeIslands.note(key, yieldMs)
+        if (firstSighting) rescheduleNativeYield()
+        return firstSighting
+    }
+
+    /**
+     * Forgets a native island. The re-assert timer follows the *remaining* windows: with a
+     * long-lived island gone, a shorter one still tracked must not leave the pill dead until
+     * the long window would have closed.
+     */
+    private fun forgetNativeIsland(key: String): Boolean {
+        val removed = nativeIslands.remove(key)
+        if (removed) rescheduleNativeYield()
+        return removed
+    }
+
+    private fun rescheduleNativeYield() {
+        synchronized(nativeYieldLock) {
             nativeYieldJob?.cancel()
+            val remaining = nativeIslands.remainingYieldMs()
+            if (remaining <= 0L || remaining == Long.MAX_VALUE) {
+                nativeYieldJob = null
+                return
+            }
             nativeYieldJob = serviceScope.launch {
-                delay(nativeIslands.remainingYieldMs() + 1_000L)
+                delay((remaining + 1_000L).milliseconds)
                 updatePermanentIsland()
             }
         }
-        return firstSighting
     }
 
     private fun updatePermanentIsland() {
@@ -927,22 +1000,11 @@ class NotificationReaderService : NotificationListenerService() {
         sbn?.let {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
             if (it.packageName != packageName) {
-                val extras = it.notification.extras
-                var isNative = false
-                if (extras != null) {
-                    if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
-                        isNative = true
-                    }
-                    val template = extras.getString(Notification.EXTRA_TEMPLATE)
-                    if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
-                        template == "android.app.Notification\$MediaStyle") {
-                        isNative = true
-                    }
-                }
-                if (isNative) {
-                    if (noteNativeIsland(it.key)) updatePermanentIsland()
+                val yieldMs = nativeIslandYieldMs(it)
+                if (yieldMs != null) {
+                    if (noteNativeIsland(it.key, yieldMs)) updatePermanentIsland()
                 } else {
-                    if (nativeIslands.remove(it.key)) updatePermanentIsland()
+                    if (forgetNativeIsland(it.key)) updatePermanentIsland()
                 }
             }
 
@@ -986,7 +1048,7 @@ class NotificationReaderService : NotificationListenerService() {
             }
         }
         processingJobs[processingGeneration] = job
-        job.invokeOnCompletion { cause ->
+        job.invokeOnCompletion { _ ->
             processingJobs.remove(processingGeneration, job)
             sourceProcessingGeneration.finish(sourceSlot, processingGeneration)
         }
@@ -1129,10 +1191,10 @@ class NotificationReaderService : NotificationListenerService() {
         val extras = notification.extras
         val template = extras.getString(Notification.EXTRA_TEMPLATE).orEmpty()
         val hasMessagePersonMetadata = try {
-            extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, android.app.Person::class.java) != null ||
+            extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, Person::class.java) != null ||
                     extras.getParcelableArrayList(
                         Notification.EXTRA_PEOPLE_LIST,
-                        android.app.Person::class.java
+                        Person::class.java
                     )?.isNotEmpty() == true ||
                     extras.containsKey(Notification.EXTRA_MESSAGES)
         } catch (_: Exception) {
@@ -1287,15 +1349,53 @@ class NotificationReaderService : NotificationListenerService() {
                 typeBeforeRules
             }
 
+            // --- CUSTOM TRANSLATOR MATCHING ---
+            val isMediaNotification = extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
+                    extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true ||
+                    detectedType == NotificationType.MEDIA
+            val mediaArtist = if (isMediaNotification) {
+                extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: effectiveText
+            } else null
+
+            val isLibraryAllowed = preferences.isAppAllowedSync(sbn.packageName) || allowedPackageSet.contains(sbn.packageName)
+            val matchedCustomTranslator = if (::translatorRegistry.isInitialized) {
+                translatorRegistry.findMatchingTranslator(
+                    packageName = sbn.packageName,
+                    notificationCategory = sbn.notification.category,
+                    title = effectiveTitle,
+                    text = effectiveText,
+                    subtext = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString(),
+                    channelId = sbn.notification.channelId,
+                    extrasKeys = extras.keySet() ?: emptySet(),
+                    hasActions = (sbn.notification.actions?.size ?: 0) > 0,
+                    hasProgress = hasProgress,
+                    senderName = (extras.getCharSequence(Notification.EXTRA_TITLE))?.toString(),
+                    conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString(),
+                    mediaArtist = mediaArtist,
+                    notificationType = detectedType.name,
+                    isLibraryAllowed = isLibraryAllowed
+                )
+            } else null
+
+            if (matchedCustomTranslator != null) {
+                Log.i(TAG, " [CustomTranslator MATCH] Matched '${matchedCustomTranslator.meta.name}' (id=${matchedCustomTranslator.id}, scope=${matchedCustomTranslator.targetScope}) for pkg='${sbn.packageName}', detectedType='$detectedType'")
+            } else {
+                Log.d(TAG, " [CustomTranslator NONE] No matching custom translator for pkg='${sbn.packageName}', detectedType='$detectedType', category='${sbn.notification.category}'")
+            }
+
             val effectiveTypes = getEffectiveTypes(sbn.packageName)
             val hasDirectMessagingStyle = NotificationTemplates.isMessagingStyle(
                 extras.getString(Notification.EXTRA_TEMPLATE)
             )
-            val enabledTypeName = NotificationTypeEnablementPolicy.resolveEnabledType(
-                effectiveTypes = effectiveTypes,
-                detectedType = detectedType.name,
-                hasDirectMessagingStyle = hasDirectMessagingStyle
-            )
+            val enabledTypeName = if (matchedCustomTranslator != null) {
+                detectedType.name
+            } else {
+                NotificationTypeEnablementPolicy.resolveEnabledType(
+                    effectiveTypes = effectiveTypes,
+                    detectedType = detectedType.name,
+                    hasDirectMessagingStyle = hasDirectMessagingStyle
+                )
+            }
             if (enabledTypeName == null) {
                 Log.d(TAG, " ABORTING: Type $detectedType disabled by user/theme for ${sbn.packageName}")
                 DiagnosticsStore.record(detectedType.name, "ignored", sbn.packageName, "type-disabled")
@@ -1475,19 +1575,45 @@ class NotificationReaderService : NotificationListenerService() {
             val isSummary = (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
 
             // --- LAYERED ENGINE LOGIC ---
-            val useLiveUpdates = type != NotificationType.SCREEN_RECORDING &&
-                    !isSavedScreenRecording &&
-                    getEffectiveEngine(sbn.packageName)
+            val useLiveUpdates = if (matchedCustomTranslator != null) {
+                val effectiveEngineMode = if (matchedCustomTranslator.engineMode != EngineMode.INHERIT) {
+                    matchedCustomTranslator.engineMode
+                } else {
+                    matchedCustomTranslator.behaviorOverride.engineMode
+                }
+                when (effectiveEngineMode) {
+                    EngineMode.CUSTOM_ISLAND -> false
+                    EngineMode.NATIVE_LIVE_UPDATE -> true
+                    EngineMode.INHERIT -> false
+                }
+            } else {
+                type != NotificationType.SCREEN_RECORDING &&
+                        !isSavedScreenRecording &&
+                        getEffectiveEngine(sbn.packageName)
+            }
+
             val appIslandConfig = preferences.getAppIslandConfigSync(sbn.packageName)
             val globalConfig = preferences.getGlobalConfigSync()
+            val isSystemUpdate = SystemUpdaterClassifier.isSystemUpdater(sbn.packageName)
             val finalConfig = appIslandConfig.mergeWith(globalConfig).let { config ->
+                val baseTimeout = matchedCustomTranslator?.behaviorOverride?.timeoutSeconds ?: ScreenRecordingTimeoutPolicy.resolve(
+                    configuredTimeout = config.timeout,
+                    systemScreenRecordingTimeout = preferences.getScreenRecordingTimeoutSync(),
+                    isActiveRecording = type == NotificationType.SCREEN_RECORDING,
+                    isSavedRecording = isSavedScreenRecording
+                )
+                val updateResolvedTimeout = SystemUpdateTimeoutPolicy.resolve(
+                    configuredTimeout = baseTimeout,
+                    systemUpdateTimeout = preferences.getSystemUpdateTimeoutSync(),
+                    isSystemUpdate = isSystemUpdate,
+                    isFinished = false, // Will be dismissed with timeout when finished
+                    hasProgress = hasProgress
+                )
                 config.copy(
-                    timeout = ScreenRecordingTimeoutPolicy.resolve(
-                        configuredTimeout = config.timeout,
-                        systemScreenRecordingTimeout = preferences.getScreenRecordingTimeoutSync(),
-                        isActiveRecording = type == NotificationType.SCREEN_RECORDING,
-                        isSavedRecording = isSavedScreenRecording
-                    )
+                    isFloat = matchedCustomTranslator?.behaviorOverride?.isFloat ?: config.isFloat,
+                    isShowShade = matchedCustomTranslator?.behaviorOverride?.isShowShade ?: config.isShowShade,
+                    timeout = updateResolvedTimeout,
+                    floatTimeout = matchedCustomTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout
                 )
             }
 
@@ -1533,7 +1659,6 @@ class NotificationReaderService : NotificationListenerService() {
                 }
 
                 builder.setOnlyAlertOnce(decision.onlyAlertOnce)
-                BridgeIslandGroup.asChild(builder)
 
                 val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
                 if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
@@ -1561,7 +1686,6 @@ class NotificationReaderService : NotificationListenerService() {
                     NotificationManagerCompat.from(this).cancel(decision.bridgeId)
                 }
 
-                BridgeIslandGroup.ensureSummaryFor(this, notification)
                 if (!decision.onlyAlertOnce) {
                     ShizukuManager.notify(this, decision.bridgeId, notification)
                 } else {
@@ -1606,7 +1730,39 @@ class NotificationReaderService : NotificationListenerService() {
 
             // --- LAYERED CUSTOM ISLAND LOGIC ---
             val picKey = "pic_${candidateBridgeId}"
-            val data: HyperIslandData = if (isSavedScreenRecording) {
+            val data: HyperIslandData = if (matchedCustomTranslator != null) {
+                Log.i(TAG, " POSTING via Custom Translator '${matchedCustomTranslator.meta.name}' -> ID: $candidateBridgeId")
+                DiagnosticsStore.record(
+                    classification = "CUSTOM_TRANSLATOR",
+                    action = "applied",
+                    packageName = sbn.packageName,
+                    reason = "translator='${matchedCustomTranslator.meta.name}' scope=${matchedCustomTranslator.targetScope}",
+                    customTranslator = matchedCustomTranslator.meta.name
+                )
+                dynamicTranslator.translate(
+                    sbn = sbn,
+                    customTranslator = matchedCustomTranslator,
+                    picKey = picKey,
+                    config = finalConfig,
+                    activeTheme = activeTheme,
+                    isUpdate = isUpdate,
+                    resolvedTitle = effectiveTitle,
+                    resolvedText = effectiveText,
+                    extractedSenderName = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
+                    extractedConversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString(),
+                    extractedMediaArtist = mediaArtist,
+                    callSession = callSession
+                )
+            } else if (isSystemUpdate) {
+                systemUpdateTranslator.translate(
+                    sbn = sbn,
+                    picKey = picKey,
+                    config = finalConfig,
+                    theme = activeTheme,
+                    isUpdate = isUpdate,
+                    design = preferences.getSystemUpdateDesignSync()
+                )
+            } else if (isSavedScreenRecording) {
                 screenRecordingSavedTranslator.translate(sbn, picKey, finalConfig, activeTheme)
             } else when (type) {
                 NotificationType.CALL -> callTranslator.translate(
@@ -1635,6 +1791,10 @@ class NotificationReaderService : NotificationListenerService() {
                     screenRecordingSession,
                     preferences.getScreenRecordingDesignSync()
                 )
+            } else if (isSystemUpdate) {
+                val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
+                val baseHash = normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
+                baseHash xor preferences.getSystemUpdateDesignSync().hashCode()
             } else {
                 val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
                 normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
@@ -1663,7 +1823,7 @@ class NotificationReaderService : NotificationListenerService() {
                 NotificationManagerCompat.from(this).cancel(decision.bridgeId)
             }
 
-            Log.i(TAG, " POSTING Island -> ID: ${decision.bridgeId}, Type: $type, FinalTitle: '$effectiveTitle', FinalText: '$effectiveText'")
+            Log.i(TAG, " POSTING Island -> ID: ${decision.bridgeId}, Type: $type")
             postStandardNotification(
                 sbn = sbn,
                 bridgeId = decision.bridgeId,
@@ -1736,8 +1896,8 @@ class NotificationReaderService : NotificationListenerService() {
             pkg.contains("vending") || pkg.contains("play.store") || pkg.contains("playstore") || 
             pkg.contains("store") || pkg.contains("fdroid") || pkg.contains("samsungapps") || 
             pkg.contains("mipicks") || pkg.contains("venezia") || pkg.contains("packageinstaller") || 
-            pkg.contains("installer") || pkg.contains("gms") || channelId.contains("download") || 
-            channelId.contains("install")) {
+            pkg.contains("installer") || pkg.contains("gms") || pkg == SystemUpdaterClassifier.PACKAGE_NAME ||
+            channelId.contains("download") || channelId.contains("install")) {
             true
         } else {
             val extras = sbn.notification.extras
@@ -1764,7 +1924,7 @@ class NotificationReaderService : NotificationListenerService() {
             }
         }
 
-        Log.d(TAG, "🔍 isDownloadNotification check: pkg=$pkg, channelId='$channelId', title='$title', text='$text', resolved=$isMatch")
+        Log.d(TAG, "🔍 isDownloadNotification check: pkg=$pkg, channelId='$channelId', resolved=$isMatch")
         return isMatch
     }
 
@@ -1992,9 +2152,6 @@ class NotificationReaderService : NotificationListenerService() {
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
-        // One app group with a real summary keeps Android 16+ from force-grouping (and
-        // silencing) our islands (#331).
-        BridgeIslandGroup.asChild(builder)
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
@@ -2041,7 +2198,11 @@ class NotificationReaderService : NotificationListenerService() {
         val notification = builder.build()
         notification.extras.putString("miui.focus.param", data.jsonParam)
 
-        BridgeIslandGroup.ensureSummaryFor(this, notification)
+        val picsKeys = data.resources.getBundle("miui.focus.pics")?.keySet()?.joinToString(", ") ?: "none"
+        Log.i(TAG, " [POSTING ISLAND] id=$bridgeId, pkg=${sbn.packageName}, shouldAlertOnce=$shouldAlertOnce")
+        Log.i(TAG, " [POSTING ISLAND] miui.focus.param:\n${data.jsonParam}")
+        Log.i(TAG, " [POSTING ISLAND] miui.focus.pics: [$picsKeys]")
+
         if (!shouldAlertOnce) {
             ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
@@ -2217,9 +2378,23 @@ class NotificationReaderService : NotificationListenerService() {
         try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (_: Exception) { "" }
     }
 
-    private fun shouldIgnore(packageName: String): Boolean = packageName == this.packageName || packageName == "android" || packageName.contains("miui.notification")
-    private fun isAppAllowed(packageName: String): Boolean =
-        preferences.isAppAllowedSync(packageName) || allowedPackageSet.contains(packageName)
+    private fun shouldIgnore(packageName: String): Boolean {
+        if (packageName == this.packageName || packageName.contains("miui.notification")) return true
+        if (packageName == "android") {
+            val hasCustom = ::translatorRegistry.isInitialized && translatorRegistry.hasActiveTranslatorsForPackage(packageName, isLibraryAllowed = false)
+            return !hasCustom
+        }
+        return false
+    }
+
+    private fun isAppAllowed(packageName: String): Boolean {
+        val isLibraryAllowed = preferences.isAppAllowedSync(packageName) || allowedPackageSet.contains(packageName)
+        if (isLibraryAllowed) return true
+        if (::translatorRegistry.isInitialized && translatorRegistry.hasActiveTranslatorsForPackage(packageName, isLibraryAllowed = false)) {
+            return true
+        }
+        return false
+    }
 
     private var syncJob: Job? = null
 
@@ -2253,7 +2428,7 @@ class NotificationReaderService : NotificationListenerService() {
         syncJob?.cancel()
         syncJob = serviceScope.launch {
             while (true) {
-                delay(60_000) // 1 minute periodic sync
+                delay(60_000.milliseconds) // 1 minute periodic sync
                 // Screen off: nothing to keep in sync visually, and SCREEN_ON runs a full
                 // refresh sync on wake — skip the tick instead of waking up all night.
                 if (isScreenOn) {
@@ -2285,29 +2460,18 @@ class NotificationReaderService : NotificationListenerService() {
                 var nativeChanged = false
                 for (sbn in currentNotifications) {
                     if (sbn.packageName != packageName) {
-                        val extras = sbn.notification.extras
-                        var isNative = false
-                        if (extras != null) {
-                            if (extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")) {
-                                isNative = true
-                            }
-                            val template = extras.getString(Notification.EXTRA_TEMPLATE)
-                            if (template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
-                                template == "android.app.Notification\$MediaStyle") {
-                                isNative = true
-                            }
-                        }
-                        if (isNative) {
-                            if (noteNativeIsland(sbn.key)) nativeChanged = true
+                        val yieldMs = nativeIslandYieldMs(sbn)
+                        if (yieldMs != null) {
+                            if (noteNativeIsland(sbn.key, yieldMs)) nativeChanged = true
                         } else {
-                            if (nativeIslands.remove(sbn.key)) nativeChanged = true
+                            if (forgetNativeIsland(sbn.key)) nativeChanged = true
                         }
                     }
                 }
                 val currentNatives = nativeIslands.keys()
                 for (key in currentNatives) {
                     if (!systemNotificationKeys.contains(key)) {
-                        if (nativeIslands.remove(key)) nativeChanged = true
+                        if (forgetNativeIsland(key)) nativeChanged = true
                     }
                 }
                 if (nativeChanged) updatePermanentIsland()
@@ -2416,6 +2580,9 @@ class NotificationReaderService : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (instance == this) {
+            instance = null
+        }
         isConnected = false
         DiagnosticsStore.setServiceConnected(false)
         if (::vpnIslandController.isInitialized) vpnIslandController.stop()

@@ -18,6 +18,7 @@ data class DiagnosticsState(
     val activeIslands: Int = 0,
     val lastClassification: String? = null,
     val lastCallState: String? = null,
+    val lastCustomTranslator: String? = null,
     val events: List<DiagnosticEvent> = emptyList()
 )
 
@@ -43,6 +44,7 @@ object DiagnosticsStore {
         packageName: String? = null,
         reason: String? = null,
         callState: String? = null,
+        customTranslator: String? = null,
         timestamp: Long? = null
     ) {
         val event = DiagnosticEvent(timestamp ?: System.currentTimeMillis(), packageName, classification, action, reason)
@@ -50,6 +52,7 @@ object DiagnosticsStore {
             current.copy(
                 lastClassification = classification,
                 lastCallState = callState ?: current.lastCallState,
+                lastCustomTranslator = customTranslator ?: if (classification == "CUSTOM_TRANSLATOR") reason else current.lastCustomTranslator,
                 events = (current.events + event).takeLast(MAX_EVENTS)
             )
         }

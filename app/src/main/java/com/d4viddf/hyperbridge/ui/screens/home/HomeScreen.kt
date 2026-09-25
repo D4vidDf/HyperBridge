@@ -44,6 +44,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppListViewModel
+import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerScreen
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
@@ -56,7 +57,10 @@ private enum class DesignRoute {
     DASHBOARD,
     WIDGET_LIST,
     THEME_MANAGER,
-    THEME_CREATOR
+    THEME_CREATOR,
+    DESIGN_MANAGER,
+    TRANSLATOR_MANAGER,
+    TRANSLATOR_EDITOR
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,12 +70,19 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNavConfigClick: (String) -> Unit,
     onScreenRecordingConfigClick: () -> Unit = {},
-    onAppConfigClick: (String) -> Unit = {}
+    onSystemUpdateConfigClick: () -> Unit = {},
+    onAppConfigClick: (String) -> Unit = {},
+    onNavigateToTranslators: () -> Unit = {},
+    onCreateTranslator: (String?) -> Unit = {},
+    onEditTranslator: (String) -> Unit = {}
 ) {
 
     var selectedTab by remember { mutableIntStateOf(1) }
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
+    var editingTranslatorId by remember { mutableStateOf<String?>(null) }
+    var newTranslatorPackageName by remember { mutableStateOf<String?>(null) }
+    var previousTranslatorManagerRoute by remember { mutableStateOf(DesignRoute.TRANSLATOR_MANAGER) }
 
     var showWidgetPicker by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
@@ -92,6 +103,11 @@ fun HomeScreen(
                 DesignRoute.THEME_CREATOR -> {
                     editingThemeId = null
                     DesignRoute.THEME_MANAGER
+                }
+                DesignRoute.TRANSLATOR_EDITOR -> {
+                    editingTranslatorId = null
+                    newTranslatorPackageName = null
+                    previousTranslatorManagerRoute
                 }
                 else -> DesignRoute.DASHBOARD
             }
@@ -153,7 +169,7 @@ fun HomeScreen(
                                 label = "DesignTabNav"
                             ) { route ->
                                 when (route) {
-                                    DesignRoute.DASHBOARD -> {
+                                     DesignRoute.DASHBOARD -> {
                                         DesignScreen(
                                             onNavigateToWidgets = {
                                                 designRoute = DesignRoute.WIDGET_LIST
@@ -164,6 +180,18 @@ fun HomeScreen(
                                             onEditTheme = { themeId ->
                                                 editingThemeId = themeId
                                                 designRoute = DesignRoute.THEME_CREATOR
+                                            },
+                                            onNavigateToDesigns = {
+                                                designRoute = DesignRoute.DESIGN_MANAGER
+                                            },
+                                            onNavigateToTranslators = {
+                                                designRoute = DesignRoute.TRANSLATOR_MANAGER
+                                            },
+                                            onCreateTranslator = {
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             },
                                             onLaunchPicker = { showWidgetPicker = true },
                                             onSettingsClick = onSettingsClick
@@ -223,6 +251,55 @@ fun HomeScreen(
                                             }
                                         )
                                     }
+
+                                    DesignRoute.DESIGN_MANAGER -> {
+                                        DesignManagerScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onAddDesign = {
+                                                // Create a new design in editor
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.DESIGN_MANAGER
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onEditDesign = { id ->
+                                                editingTranslatorId = id
+                                                newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.DESIGN_MANAGER
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.TRANSLATOR_MANAGER -> {
+                                        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorManagerScreen(
+                                            onBack = { designRoute = DesignRoute.DASHBOARD },
+                                            onCreateTranslator = { pkg ->
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = pkg
+                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onEditTranslator = { id ->
+                                                editingTranslatorId = id
+                                                newTranslatorPackageName = null
+                                                previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
+                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            }
+                                        )
+                                    }
+
+                                    DesignRoute.TRANSLATOR_EDITOR -> {
+                                        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorEditorScreen(
+                                            translatorId = editingTranslatorId,
+                                            initialPackageName = newTranslatorPackageName,
+                                            onBack = {
+                                                designRoute = previousTranslatorManagerRoute
+                                                editingTranslatorId = null
+                                                newTranslatorPackageName = null
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -252,6 +329,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
@@ -267,6 +345,7 @@ fun HomeScreen(
                             onSystemConfig = { integration ->
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
