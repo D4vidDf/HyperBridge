@@ -16,6 +16,7 @@ data class CustomTranslator(
     val meta: TranslatorMetadata,
     @SerialName("target_scope") val targetScope: TargetScope = TargetScope.SPECIFIC_APPS,
     @SerialName("target_packages") val targetPackages: List<String> = emptyList(),
+    @SerialName("excluded_packages") val excludedPackages: List<String> = emptyList(),
     @SerialName("target_notification_types") val targetNotificationTypes: List<String> = emptyList(),
     val priority: Int = 100,
     @SerialName("is_enabled") val isEnabled: Boolean = true,

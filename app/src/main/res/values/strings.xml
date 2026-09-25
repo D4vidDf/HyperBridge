@@ -903,7 +903,19 @@
     <string name="app_config_subtitle">Behaviors, widgets &amp; extensions</string>
     <string name="custom_design_title">Custom Design</string>
     <string name="custom_design_badge">COMING SOON</string>
-    <string name="custom_design_desc">Customizable visual layouts and tailored Island designs are in development. Stay tuned for upcoming updates.</string>
+    <string name="custom_design_desc">Active island templates and custom layouts applied to this app</string>
+    <string name="app_designs_subtitle">%1$d active</string>
+    <string name="app_designs_section_desc">Enable or disable island designs for this application. Global designs can also be toggled specifically for this app.</string>
+    <string name="app_designs_empty_title">No designs for this app</string>
+    <string name="app_designs_empty_desc">There are no global or app-specific designs available. Add a new design or browse templates in Design Manager.</string>
+    <string name="app_designs_add_design">Add Design</string>
+    <string name="app_designs_search_hint">Search designs…</string>
+    <string name="app_designs_filter_all">All</string>
+    <string name="app_designs_filter_active">Active</string>
+    <string name="app_designs_filter_inactive">Inactive</string>
+    <string name="app_designs_filter_global">Global</string>
+    <string name="app_designs_filter_app_specific">App-specific</string>
+    <string name="app_designs_no_results">No designs matching your search or filter</string>
     <string name="custom_translators_title">Custom Translators</string>
     <string name="custom_translators_badge">COMING SOON</string>
     <string name="custom_translators_desc">Create and install custom community translators to format and control notification data for this application.</string>
@@ -1495,6 +1507,89 @@
     <string name="design_template_type_desc">Pick the kind of notification this design applies to. You can add match conditions later from the translator editor.</string>
     <string name="design_design_created">Design added</string>
     <string name="translator_pres_template_gallery_desc">Pick a layout, then bind each element to the notification below.</string>
+    <string name="design_manager_title">Designs</string>
+    <string name="design_manager_subtitle">Manage templates and custom island designs</string>
+    <string name="design_status_active">%d active</string>
+    <string name="design_status_total">%d total</string>
+    <string name="design_status_desc">Active island templates and custom layouts</string>
+    <string name="design_view_mode_preview">Show Preview</string>
+    <string name="design_view_mode_icon">Show Icon</string>
+    <string name="design_toggle_preview_cd">Toggle preview or icon view</string>
+    <string name="design_template_type_suggested">Suggested</string>
+
+    <string name="design_card_themes_desc">Customize colors, typography and appearance</string>
+    <string name="design_card_themes_installed">%d installed</string>
+    <string name="design_card_themes_active_default">System Default active</string>
+    <string name="design_card_themes_active_named">%s active</string>
+    <string name="design_card_themes_action">Create</string>
+
+    <string name="design_card_widgets_desc">Place standard app widgets on your island</string>
+    <string name="design_card_widgets_saved">%d configured</string>
+    <string name="design_card_widgets_empty">No widgets</string>
+    <string name="design_card_widgets_action">Add</string>
+
+    <string name="design_card_translators_desc">Intercept notifications and apply custom rules</string>
+    <string name="design_card_translators_action">New Rule</string>
+
+    <!-- Design Screen Layout Variant switcher -->
+    <string name="design_variant_dashboard">Dashboard</string>
+    <string name="design_variant_grouped">Grouped</string>
+    <string name="design_variant_bento">Bento</string>
+
+    <!-- Design Screen Featured & Guides Sections -->
+    <string name="design_section_featured">Featured</string>
+    <string name="design_featured_themes_title">Hyper Themes</string>
+    <string name="design_featured_themes_subtitle">Explore custom color palettes and island styles</string>
+    <string name="design_featured_widgets_title">Island Widgets</string>
+    <string name="design_featured_widgets_subtitle">Control music, timers, and app shortcuts directly</string>
+    <string name="design_featured_designs_title">Interactive Designs</string>
+    <string name="design_featured_designs_subtitle">Craft custom layouts for boarding, tracking, and more</string>
+    <string name="design_featured_translators_title">Smart Translators</string>
+    <string name="design_featured_translators_subtitle">Intercept notifications with custom regex and rules</string>
+
+    <string name="design_section_guides">Guides &amp; Documentation</string>
+    <string name="design_guide_theme_creator_title">Theme Creator Guide</string>
+    <string name="design_guide_theme_creator_desc">Learn how to create, test, and package themes for HyperBridge</string>
+    <string name="design_guide_custom_translators_title">Custom Translators</string>
+    <string name="design_guide_custom_translators_desc">Create interceptor rules for your favorite notification apps</string>
+    <string name="design_guide_translators_spec_title">Translators Specification</string>
+    <string name="design_guide_translators_spec_desc">Deep dive into JSON rules, matchers, regex, and actions</string>
+    <string name="design_guide_smart_actions_title">Smart Actions</string>
+    <string name="design_guide_smart_actions_desc">Discover how button actions and notification callbacks operate</string>
+    <string name="design_guide_diagnostics_title">Diagnostics &amp; Troubleshooting</string>
+    <string name="design_guide_diagnostics_desc">Troubleshoot island display, permissions, and background services</string>
+
+    <string name="island_template_hint_copy">Copy</string>
+    <string name="island_template_hint_view">View</string>
+    <string name="island_template_hint_track">Track</string>
+
+    <!-- App Designs Filter Sheet Strings -->
+    <string name="app_designs_filter_sheet_title">Filter Designs</string>
+    <string name="app_designs_filter_sheet_desc">Filter custom designs by status, scope, notification types, templates, or icons</string>
+    <string name="app_designs_filter_templates_section">Templates</string>
+
+    <!-- Design Screen Add Options Bottom Sheet -->
+    <string name="design_add_sheet_title">Add to Island</string>
+    <string name="design_add_sheet_subtitle">Select what you would like to create or add</string>
+    <string name="design_add_opt_design_title">Custom Design</string>
+    <string name="design_add_opt_design_desc">Build from official Xiaomi island templates or custom layout</string>
+    <string name="design_add_opt_widget_title">System Widget</string>
+    <string name="design_add_opt_widget_desc">Embed native app widgets directly inside the island</string>
+    <string name="design_add_opt_theme_title">Theme &amp; Styles</string>
+    <string name="design_add_opt_theme_desc">Explore, create, and customize colors and shapes</string>
+    <string name="design_add_opt_translator_title">Smart Translator</string>
+    <string name="design_add_opt_translator_desc">Intercept notifications with custom regex rules and actions</string>
+
+    <!-- Design Manager Help Bottom Sheet -->
+    <string name="design_manager_help_title">About Island Designs</string>
+    <string name="design_manager_help_subtitle">Overview and tips for managing island templates</string>
+    <string name="design_manager_help_what_title">What are Designs?</string>
+    <string name="design_manager_help_what_desc">Designs are visual layouts based on Xiaomi\'s official HyperOS island templates or system widgets that bring your notifications to life.</string>
+    <string name="design_manager_help_scope_title">Global vs. App-Specific</string>
+    <string name="design_manager_help_scope_desc">Global designs apply across all matching notifications. You can also configure app-specific designs or fine-tune exclusions inside each app\'s configuration.</string>
+    <string name="design_manager_help_view_modes_title">Preview Modes &amp; Actions</string>
+    <string name="design_manager_help_view_modes_desc">Toggle between live island previews and compact icon views using the top bar button. You can also import and export designs via .htrans files.</string>
+    <string name="design_manager_help_doc_btn">Custom Translators Guide</string>
 
     <!-- Studio Design (Phase 5, #273 / #328) -->
     <string name="studio_title">Studio Design</string>

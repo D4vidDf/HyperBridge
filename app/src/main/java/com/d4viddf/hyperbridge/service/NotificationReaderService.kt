@@ -1,7 +1,6 @@
 package com.d4viddf.hyperbridge.service
 
 import android.Manifest
-import android.app.ActivityOptions
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,7 +10,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -83,6 +81,7 @@ import com.d4viddf.hyperbridge.service.updater.SystemUpdateTimeoutPolicy
 import com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier
 import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.util.ShizukuManager
+import com.d4viddf.hyperbridge.util.sendAllowingBackgroundLaunch
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -144,6 +143,8 @@ class NotificationReaderService : NotificationListenerService() {
     // Other apps' islands. The permanent island yields to a native island only for a short window
     // after it first appears, not for the notification's whole lifetime (see NativeIslandTracker).
     private val nativeIslands = NativeIslandTracker()
+    // Rescheduled from listener callbacks (main) and from the periodic sync (IO): guarded by its lock.
+    private val nativeYieldLock = Any()
     private var nativeYieldJob: Job? = null
     private val activeIslands = ConcurrentHashMap<String, ActiveIsland>()
     private val activeTranslations = ConcurrentHashMap<String, Int>()
@@ -235,15 +236,7 @@ class NotificationReaderService : NotificationListenerService() {
                         // unless it opts in, and since API 35 creators (Google Messages, any
                         // app targeting 35+) deny it by default. Without the opt-in the launch
                         // is silently dropped and only the cancel below happens (#359).
-                        val mode = if (Build.VERSION.SDK_INT >= 36) {
-                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
-                        } else {
-                            @Suppress("DEPRECATION")
-                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                        }
-                        val options = ActivityOptions.makeBasic()
-                            .setPendingIntentBackgroundActivityStartMode(mode)
-                        originalIntent.send(options.toBundle())
+                        originalIntent.sendAllowingBackgroundLaunch()
                     } catch (e: PendingIntent.CanceledException) {
                         Log.e("HyperBridge", "PendingIntent canceled", e)
                     }
@@ -438,10 +431,8 @@ class NotificationReaderService : NotificationListenerService() {
                 notificationBuilder.setProgress(100, progress, progress < 0)
                 notificationBuilder.setOngoing(progress in 0..99)
                 notificationBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
-                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
-                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             } else {
                 val builder = HyperIslandNotification.Builder(this@NotificationReaderService, "migration", title)
@@ -460,12 +451,10 @@ class NotificationReaderService : NotificationListenerService() {
                     .setOngoing(progress in 0..99)
                     .setProgress(100, progress, progress < 0)
                     .addExtras(data.resources)
-                BridgeIslandGroup.asChild(notificationBuilder)
 
                 val notification = notificationBuilder.build()
                 notification.extras.putString("miui.focus.param", data.jsonParam)
 
-                BridgeIslandGroup.ensureSummaryFor(this@NotificationReaderService, notification)
                 ShizukuManager.notify(this@NotificationReaderService, bridgeId, notification)
             }
 
@@ -544,9 +533,6 @@ class NotificationReaderService : NotificationListenerService() {
             if (isOurApp) {
                 // The listener-down warning is not an island; dismissing it is not a bridge event.
                 if (BridgeNotificationChannels.isServiceHealth(it.notification.channelId)) return
-                // The group summary is bookkeeping, not an island: never a bridge event (#331).
-                if (notifId == BridgeIslandGroup.SUMMARY_ID) return
-                BridgeIslandGroup.scheduleRelease(this)
                 val replacement = internalBridgeReplacements.consume(notifId, System.currentTimeMillis())
                 if (replacement != null) {
                     Log.d(
@@ -974,15 +960,17 @@ class NotificationReaderService : NotificationListenerService() {
     }
 
     private fun rescheduleNativeYield() {
-        nativeYieldJob?.cancel()
-        val remaining = nativeIslands.remainingYieldMs()
-        if (remaining <= 0L || remaining == Long.MAX_VALUE) {
-            nativeYieldJob = null
-            return
-        }
-        nativeYieldJob = serviceScope.launch {
-            delay((remaining + 1_000L).milliseconds)
-            updatePermanentIsland()
+        synchronized(nativeYieldLock) {
+            nativeYieldJob?.cancel()
+            val remaining = nativeIslands.remainingYieldMs()
+            if (remaining <= 0L || remaining == Long.MAX_VALUE) {
+                nativeYieldJob = null
+                return
+            }
+            nativeYieldJob = serviceScope.launch {
+                delay((remaining + 1_000L).milliseconds)
+                updatePermanentIsland()
+            }
         }
     }
 
@@ -1673,7 +1661,6 @@ class NotificationReaderService : NotificationListenerService() {
                 }
 
                 builder.setOnlyAlertOnce(decision.onlyAlertOnce)
-                BridgeIslandGroup.asChild(builder)
 
                 val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
                 if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
@@ -1701,7 +1688,6 @@ class NotificationReaderService : NotificationListenerService() {
                     NotificationManagerCompat.from(this).cancel(decision.bridgeId)
                 }
 
-                BridgeIslandGroup.ensureSummaryFor(this, notification)
                 if (!decision.onlyAlertOnce) {
                     ShizukuManager.notify(this, decision.bridgeId, notification)
                 } else {
@@ -2185,9 +2171,6 @@ class NotificationReaderService : NotificationListenerService() {
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
-        // One app group with a real summary keeps Android 16+ from force-grouping (and
-        // silencing) our islands (#331).
-        BridgeIslandGroup.asChild(builder)
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
@@ -2239,7 +2222,6 @@ class NotificationReaderService : NotificationListenerService() {
         Log.i(TAG, " [POSTING ISLAND] miui.focus.param:\n${data.jsonParam}")
         Log.i(TAG, " [POSTING ISLAND] miui.focus.pics: [$picsKeys]")
 
-        BridgeIslandGroup.ensureSummaryFor(this, notification)
         if (!shouldAlertOnce) {
             ShizukuManager.notifyWithCancel(this, bridgeId, notification)
         } else {
@@ -2591,10 +2573,6 @@ class NotificationReaderService : NotificationListenerService() {
                         NotificationManagerCompat.from(this@NotificationReaderService).cancel(id)
                     } catch (_: Exception) {}
                 }
-
-                // Islands can also vanish while the listener is unbound, and then no removal
-                // callback ever arms the group release. Re-derive the summary here (#372).
-                BridgeIslandGroup.reconcile(this@NotificationReaderService)
 
                 val islandPresent = currentNotifications.any {
                     it.packageName == packageName && it.id == PermanentIslandManager.PERMANENT_BRIDGE_ID
