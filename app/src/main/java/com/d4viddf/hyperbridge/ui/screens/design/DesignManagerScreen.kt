@@ -95,6 +95,7 @@ fun DesignManagerScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     var showPreviewView by remember { mutableStateOf(true) }
+    var showAddDesign by remember { mutableStateOf(false) }
     var pendingExportTranslator by remember { mutableStateOf<CustomTranslator?>(null) }
 
     // SAF Import Launcher
@@ -225,7 +226,7 @@ fun DesignManagerScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddDesign,
+                onClick = { showAddDesign = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
@@ -332,7 +333,7 @@ fun DesignManagerScreen(
                         )
 
                         Button(
-                            onClick = onAddDesign,
+                            onClick = { showAddDesign = true },
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
@@ -399,6 +400,21 @@ fun DesignManagerScreen(
                 }
             }
         }
+    }
+
+    if (showAddDesign) {
+        AddDesignFlow(
+            onDismiss = { showAddDesign = false },
+            onDesignCreated = { design ->
+                showAddDesign = false
+                viewModel.saveTranslator(design)
+                Toast.makeText(context, R.string.design_design_created, Toast.LENGTH_SHORT).show()
+            },
+            onCustomDesign = {
+                showAddDesign = false
+                onAddDesign()
+            }
+        )
     }
 }
 
