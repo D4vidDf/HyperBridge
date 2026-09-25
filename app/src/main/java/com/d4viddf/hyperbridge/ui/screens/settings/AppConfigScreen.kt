@@ -54,6 +54,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
+import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerHelpSheet
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.DashboardCustomize
@@ -462,6 +463,8 @@ fun AppConfigContent(
         stringResource(R.string.custom_design_desc)
     }
 
+    var showDesignHelpSheet by remember { mutableStateOf(false) }
+
     AnimatedContent(
         targetState = currentSubscreen,
         transitionSpec = {
@@ -757,6 +760,19 @@ fun AppConfigContent(
                         title = stringResource(R.string.custom_design_title),
                         appName = appName,
                         onBack = { onNavigateSubscreen(null) },
+                        actions = {
+                            FilledTonalIconButton(
+                                onClick = { showDesignHelpSheet = true },
+                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Info,
+                                    contentDescription = stringResource(R.string.design_manager_help_title)
+                                )
+                            }
+                        },
                         floatingActionButton = {
                             FloatingActionButton(
                                 onClick = onCreateDesign,
@@ -776,6 +792,12 @@ fun AppConfigContent(
                             onToggleDesign = onToggleDesign,
                             onEditDesign = onEditTranslator,
                             onCreateDesign = onCreateDesign
+                        )
+                    }
+
+                    if (showDesignHelpSheet) {
+                        DesignManagerHelpSheet(
+                            onDismiss = { showDesignHelpSheet = false }
                         )
                     }
                 }
