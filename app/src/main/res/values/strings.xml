@@ -1556,4 +1556,16 @@
     <string name="app_designs_filter_sheet_title">Filter Designs</string>
     <string name="app_designs_filter_sheet_desc">Filter custom designs by status, scope, notification types, templates, or icons</string>
     <string name="app_designs_filter_templates_section">Templates</string>
+
+    <!-- Design Screen Add Options Bottom Sheet -->
+    <string name="design_add_sheet_title">Add to Island</string>
+    <string name="design_add_sheet_subtitle">Select what you would like to create or add</string>
+    <string name="design_add_opt_design_title">Custom Design</string>
+    <string name="design_add_opt_design_desc">Build from official Xiaomi island templates or custom layout</string>
+    <string name="design_add_opt_widget_title">System Widget</string>
+    <string name="design_add_opt_widget_desc">Embed native app widgets directly inside the island</string>
+    <string name="design_add_opt_theme_title">Theme &amp; Styles</string>
+    <string name="design_add_opt_theme_desc">Explore, create, and customize colors and shapes</string>
+    <string name="design_add_opt_translator_title">Smart Translator</string>
+    <string name="design_add_opt_translator_desc">Intercept notifications with custom regex rules and actions</string>
 </resources>
