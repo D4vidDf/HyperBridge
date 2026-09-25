@@ -67,6 +67,11 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Preview
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -83,11 +88,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -142,6 +150,7 @@ import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetPickerScreen
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
+import com.d4viddf.hyperbridge.ui.screens.translators.TRANSLATOR_OUTLINED_ICONS
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -1849,12 +1858,321 @@ fun AppConfigWidgetChildItem(
 // CUSTOM DESIGNS SECTION (App-specific)
 // ------------------------------------------------------------------------------------------------
 
-private enum class AppDesignFilter {
+private enum class AppDesignFilterScope {
     ALL,
     ACTIVE,
     INACTIVE,
     GLOBAL,
     APP_SPECIFIC
+}
+
+private data class AppDesignFilterState(
+    val statusScope: AppDesignFilterScope = AppDesignFilterScope.ALL,
+    val selectedNotificationTypes: Set<String> = emptySet(),
+    val selectedTemplates: Set<String> = emptySet(),
+    val selectedIcons: Set<String> = emptySet()
+) {
+    val isCustomFilterActive: Boolean
+        get() = statusScope != AppDesignFilterScope.ALL ||
+                selectedNotificationTypes.isNotEmpty() ||
+                selectedTemplates.isNotEmpty() ||
+                selectedIcons.isNotEmpty()
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun AppDesignFilterSheet(
+    filterState: AppDesignFilterState,
+    availableDesigns: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    packageName: String,
+    onDismiss: () -> Unit,
+    onApply: (AppDesignFilterState) -> Unit,
+    onReset: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var draftState by remember { mutableStateOf(filterState) }
+
+    // Designs filtered by the currently selected Status & Scope
+    val scopeFilteredDesigns = remember(availableDesigns, draftState.statusScope, packageName) {
+        when (draftState.statusScope) {
+            AppDesignFilterScope.ALL -> availableDesigns
+            AppDesignFilterScope.ACTIVE -> availableDesigns.filter { design ->
+                design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
+            AppDesignFilterScope.INACTIVE -> availableDesigns.filter { design ->
+                !design.isEnabled || design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
+            AppDesignFilterScope.GLOBAL -> availableDesigns.filter { design ->
+                design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL ||
+                        design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE
+            }
+            AppDesignFilterScope.APP_SPECIFIC -> availableDesigns.filter { design ->
+                (design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS ||
+                        design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS) &&
+                        design.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+            }
+        }
+    }
+
+    // Dynamic aggregations from scope-filtered designs
+    val availableNotificationTypes = remember(scopeFilteredDesigns) {
+        scopeFilteredDesigns.flatMap { it.targetNotificationTypes }.distinct().sorted()
+    }
+    val availableTemplates = remember(scopeFilteredDesigns) {
+        scopeFilteredDesigns.mapNotNull { it.presentation.templateId }.filter { it.isNotBlank() }.distinct().sorted()
+    }
+    val availableIcons = remember(scopeFilteredDesigns) {
+        scopeFilteredDesigns.mapNotNull { it.meta.iconName }.filter { it.isNotBlank() }.distinct().sorted()
+    }
+
+    val sanitizedSelectedTypes = draftState.selectedNotificationTypes.filter { it in availableNotificationTypes }.toSet()
+    val sanitizedSelectedTemplates = draftState.selectedTemplates.filter { it in availableTemplates }.toSet()
+    val sanitizedSelectedIcons = draftState.selectedIcons.filter { it in availableIcons }.toSet()
+
+    val currentDraftState = draftState.copy(
+        selectedNotificationTypes = sanitizedSelectedTypes,
+        selectedTemplates = sanitizedSelectedTemplates,
+        selectedIcons = sanitizedSelectedIcons
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Header (fixed)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 8.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.app_designs_filter_sheet_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.app_designs_filter_sheet_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            HorizontalDivider()
+
+            // Scrollable filter options
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // 1. Status & Scope Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.translators_filter_status_section),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val scopeOptions = listOf(
+                            AppDesignFilterScope.ALL to R.string.app_designs_filter_all,
+                            AppDesignFilterScope.ACTIVE to R.string.app_designs_filter_active,
+                            AppDesignFilterScope.INACTIVE to R.string.app_designs_filter_inactive,
+                            AppDesignFilterScope.GLOBAL to R.string.app_designs_filter_global,
+                            AppDesignFilterScope.APP_SPECIFIC to R.string.app_designs_filter_app_specific
+                        )
+                        scopeOptions.forEach { (scope, labelRes) ->
+                            val isSelected = currentDraftState.statusScope == scope
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    draftState = currentDraftState.copy(statusScope = scope)
+                                },
+                                label = { Text(stringResource(labelRes)) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // 2. Notification Types Section
+                if (availableNotificationTypes.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.translators_filter_types_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            availableNotificationTypes.forEach { type ->
+                                val isSelected = type in currentDraftState.selectedNotificationTypes
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        val newTypes = if (isSelected) {
+                                            currentDraftState.selectedNotificationTypes - type
+                                        } else {
+                                            currentDraftState.selectedNotificationTypes + type
+                                        }
+                                        draftState = currentDraftState.copy(selectedNotificationTypes = newTypes)
+                                    },
+                                    label = { Text(type) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 3. Templates Section
+                if (availableTemplates.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.app_designs_filter_templates_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            availableTemplates.forEach { templateId ->
+                                val isSelected = templateId in currentDraftState.selectedTemplates
+                                val templateObj = com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog.find(templateId)
+                                val labelText = if (templateObj != null) stringResource(templateObj.nameRes) else templateId
+
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        val newTemplates = if (isSelected) {
+                                            currentDraftState.selectedTemplates - templateId
+                                        } else {
+                                            currentDraftState.selectedTemplates + templateId
+                                        }
+                                        draftState = currentDraftState.copy(selectedTemplates = newTemplates)
+                                    },
+                                    label = { Text(labelText) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 4. Icons Section
+                if (availableIcons.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.translators_filter_icons_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            availableIcons.forEach { iconName ->
+                                val isSelected = iconName in currentDraftState.selectedIcons
+                                val iconOption = TRANSLATOR_OUTLINED_ICONS.firstOrNull { it.id.equals(iconName, ignoreCase = true) }
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        val newIcons = if (isSelected) {
+                                            currentDraftState.selectedIcons - iconName
+                                        } else {
+                                            currentDraftState.selectedIcons + iconName
+                                        }
+                                        draftState = currentDraftState.copy(selectedIcons = newIcons)
+                                    },
+                                    leadingIcon = iconOption?.let { opt ->
+                                        {
+                                            Icon(
+                                                imageVector = opt.icon,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    },
+                                    label = { Text(iconOption?.label ?: iconName) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Fixed bottom actions bar with divider
+            HorizontalDivider()
+
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            draftState = AppDesignFilterState()
+                            onReset()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.RestartAlt,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.translators_filter_reset))
+                    }
+
+                    Button(
+                        onClick = { onApply(currentDraftState) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.translators_filter_apply))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -1866,10 +2184,11 @@ fun AppDesignsSectionCard(
     onCreateDesign: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf(AppDesignFilter.ALL) }
+    var filterState by remember { mutableStateOf(AppDesignFilterState()) }
+    var showFilterSheet by remember { mutableStateOf(false) }
     var showPreviewView by remember { mutableStateOf(true) }
 
-    val filteredDesigns = remember(designs, searchQuery, selectedFilter, packageName) {
+    val filteredDesigns = remember(designs, searchQuery, filterState, packageName) {
         designs.filter { design ->
             val isAppEnabled = design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
             val isAppSpecific = (design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS ||
@@ -1878,13 +2197,22 @@ fun AppDesignsSectionCard(
             val isGlobal = design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL ||
                     design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE
 
-            val matchesFilter = when (selectedFilter) {
-                AppDesignFilter.ALL -> true
-                AppDesignFilter.ACTIVE -> isAppEnabled
-                AppDesignFilter.INACTIVE -> !isAppEnabled
-                AppDesignFilter.GLOBAL -> isGlobal
-                AppDesignFilter.APP_SPECIFIC -> isAppSpecific
+            val matchesScope = when (filterState.statusScope) {
+                AppDesignFilterScope.ALL -> true
+                AppDesignFilterScope.ACTIVE -> isAppEnabled
+                AppDesignFilterScope.INACTIVE -> !isAppEnabled
+                AppDesignFilterScope.GLOBAL -> isGlobal
+                AppDesignFilterScope.APP_SPECIFIC -> isAppSpecific
             }
+
+            val matchesTypes = filterState.selectedNotificationTypes.isEmpty() ||
+                    design.targetNotificationTypes.any { it in filterState.selectedNotificationTypes }
+
+            val matchesTemplates = filterState.selectedTemplates.isEmpty() ||
+                    (design.presentation.templateId != null && design.presentation.templateId in filterState.selectedTemplates)
+
+            val matchesIcons = filterState.selectedIcons.isEmpty() ||
+                    design.meta.iconName in filterState.selectedIcons
 
             val matchesSearch = searchQuery.isBlank() ||
                     design.meta.name.contains(searchQuery, ignoreCase = true) ||
@@ -1892,7 +2220,7 @@ fun AppDesignsSectionCard(
                     design.presentation.templateId?.contains(searchQuery, ignoreCase = true) == true ||
                     design.targetNotificationTypes.any { it.contains(searchQuery, ignoreCase = true) }
 
-            matchesFilter && matchesSearch
+            matchesScope && matchesTypes && matchesTemplates && matchesIcons && matchesSearch
         }
     }
 
@@ -1995,20 +2323,70 @@ fun AppDesignsSectionCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val isAllActive = !filterState.isCustomFilterActive
+
                     FilterChip(
-                        selected = selectedFilter == AppDesignFilter.ALL,
-                        onClick = { selectedFilter = AppDesignFilter.ALL },
+                        selected = isAllActive,
+                        onClick = { filterState = AppDesignFilterState() },
                         label = { Text(stringResource(R.string.app_designs_filter_all)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
+
+                    val activeCount = (if (filterState.statusScope != AppDesignFilterScope.ALL) 1 else 0) +
+                            filterState.selectedNotificationTypes.size +
+                            filterState.selectedTemplates.size +
+                            filterState.selectedIcons.size
+
                     FilterChip(
-                        selected = selectedFilter == AppDesignFilter.ACTIVE,
-                        onClick = { selectedFilter = AppDesignFilter.ACTIVE },
+                        selected = filterState.isCustomFilterActive,
+                        onClick = { showFilterSheet = true },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.FilterList,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        trailingIcon = if (activeCount > 0) {
+                            {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = "$activeCount",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        } else null,
+                        label = { Text(stringResource(R.string.translators_filter_btn)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    FilterChip(
+                        selected = filterState.statusScope == AppDesignFilterScope.ACTIVE,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.ACTIVE) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.ACTIVE)
+                            }
+                        },
                         label = { Text(stringResource(R.string.app_designs_filter_active)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -2016,8 +2394,14 @@ fun AppDesignsSectionCard(
                         )
                     )
                     FilterChip(
-                        selected = selectedFilter == AppDesignFilter.INACTIVE,
-                        onClick = { selectedFilter = AppDesignFilter.INACTIVE },
+                        selected = filterState.statusScope == AppDesignFilterScope.INACTIVE,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.INACTIVE) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.INACTIVE)
+                            }
+                        },
                         label = { Text(stringResource(R.string.app_designs_filter_inactive)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -2025,8 +2409,14 @@ fun AppDesignsSectionCard(
                         )
                     )
                     FilterChip(
-                        selected = selectedFilter == AppDesignFilter.GLOBAL,
-                        onClick = { selectedFilter = AppDesignFilter.GLOBAL },
+                        selected = filterState.statusScope == AppDesignFilterScope.GLOBAL,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.GLOBAL) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.GLOBAL)
+                            }
+                        },
                         label = { Text(stringResource(R.string.app_designs_filter_global)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -2034,8 +2424,14 @@ fun AppDesignsSectionCard(
                         )
                     )
                     FilterChip(
-                        selected = selectedFilter == AppDesignFilter.APP_SPECIFIC,
-                        onClick = { selectedFilter = AppDesignFilter.APP_SPECIFIC },
+                        selected = filterState.statusScope == AppDesignFilterScope.APP_SPECIFIC,
+                        onClick = {
+                            filterState = if (filterState.statusScope == AppDesignFilterScope.APP_SPECIFIC) {
+                                filterState.copy(statusScope = AppDesignFilterScope.ALL)
+                            } else {
+                                filterState.copy(statusScope = AppDesignFilterScope.APP_SPECIFIC)
+                            }
+                        },
                         label = { Text(stringResource(R.string.app_designs_filter_app_specific)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -2044,6 +2440,23 @@ fun AppDesignsSectionCard(
                     )
                 }
             }
+        }
+
+        if (showFilterSheet) {
+            AppDesignFilterSheet(
+                filterState = filterState,
+                availableDesigns = designs,
+                packageName = packageName,
+                onDismiss = { showFilterSheet = false },
+                onApply = { newState ->
+                    filterState = newState
+                    showFilterSheet = false
+                },
+                onReset = {
+                    filterState = AppDesignFilterState()
+                    showFilterSheet = false
+                }
+            )
         }
 
         // --- 3. SEPARATE DESIGN ITEMS / EMPTY STATES ---

@@ -1551,4 +1551,9 @@
     <string name="island_template_hint_copy">Copy</string>
     <string name="island_template_hint_view">View</string>
     <string name="island_template_hint_track">Track</string>
+
+    <!-- App Designs Filter Sheet Strings -->
+    <string name="app_designs_filter_sheet_title">Filter Designs</string>
+    <string name="app_designs_filter_sheet_desc">Filter custom designs by status, scope, notification types, templates, or icons</string>
+    <string name="app_designs_filter_templates_section">Templates</string>
 </resources>
