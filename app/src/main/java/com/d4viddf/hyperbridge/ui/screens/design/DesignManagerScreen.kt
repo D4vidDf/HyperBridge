@@ -97,9 +97,16 @@ fun DesignManagerScreen(
     onBack: () -> Unit,
     onAddDesign: () -> Unit,
     onEditDesign: (id: String) -> Unit,
+    onOpenStudio: (widgetId: String) -> Unit = {},
     viewModel: TranslatorViewModel = viewModel()
 ) {
     val allTranslators by viewModel.allTranslators.collectAsState()
+    // Studio designs (#273) are WIDGET presentations: they open in the Studio, not the translator editor.
+    val openDesign: (CustomTranslator) -> Unit = { design ->
+        val widgetId = design.presentation.widgetId
+        if (design.presentation.mode == PresentationMode.WIDGET && !widgetId.isNullOrBlank()) onOpenStudio(widgetId)
+        else onEditDesign(design.id)
+    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -381,7 +388,7 @@ fun DesignManagerScreen(
                                 design = design,
                                 shape = shape,
                                 onToggle = { isEnabled -> viewModel.toggleTranslator(design.id, isEnabled) },
-                                onClick = { onEditDesign(design.id) },
+                                onClick = { openDesign(design) },
                                 onDuplicate = { viewModel.duplicateTranslator(design) },
                                 onDelete = { viewModel.deleteTranslator(design.id) },
                                 onShare = {
@@ -403,7 +410,7 @@ fun DesignManagerScreen(
                                 translator = design,
                                 shape = shape,
                                 onToggle = { isEnabled -> viewModel.toggleTranslator(design.id, isEnabled) },
-                                onClick = { onEditDesign(design.id) },
+                                onClick = { openDesign(design) },
                                 onDuplicate = { viewModel.duplicateTranslator(design) },
                                 onDelete = { viewModel.deleteTranslator(design.id) },
                                 onShare = {

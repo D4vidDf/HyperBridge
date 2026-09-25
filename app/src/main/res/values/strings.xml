@@ -481,9 +481,20 @@
     <string name="design_add_design">Add Design</string>
     <string name="design_add_to_island">Customization</string>
     <string name="design_system_widget_beta">System Widget (Beta)</string>
+    <string name="design_studio_beta">Studio Design (Beta)</string>
     <string name="design_get_themes">Get Themes</string>
     <string name="design_empty_widget_title">Add your first Widget</string>
     <string name="design">Design</string>
+
+    <!-- Micro-Widget Studio (issue #273) -->
+
+    <!-- Island content sources (issue #273 add-on) -->
+    <string name="permanent_island_widget_label">Micro-widget shown here</string>
+    <string name="permanent_island_widget_none">None</string>
+    <string name="permanent_island_manage_sources">Manage island content sources</string>
+    <string name="source_apps_title">Island content sources</string>
+    <string name="source_apps_description">Apps you allow here can drive a micro-widget on the permanent island (for example, a weather app showing current conditions). HyperBridge trusts each app\'s self-reported identity when it first reports in — this is a lighter guarantee than a cryptographically verified sender, so only allow apps you trust.</string>
+    <string name="source_apps_empty">No apps have reported in yet. An app must broadcast to HyperBridge at least once before it appears here.</string>
 
     <string name="creator_nav_actions">Global Actions</string>
     <string name="creator_sub_actions">Style buttons by keyword</string>
@@ -1490,7 +1501,7 @@
     <string name="design_add_from_template">From a template</string>
     <string name="design_add_from_template_desc">Pick one of the ten official island templates</string>
     <string name="design_add_custom">Custom design</string>
-    <string name="design_add_custom_desc">Build an island element by element (coming with the Widget Studio)</string>
+    <string name="design_add_custom_desc">Build an island element by element in Studio Design</string>
     <string name="design_template_gallery_title">Choose a template</string>
     <string name="design_template_type_title">When should it show?</string>
     <string name="design_template_type_desc">Pick the kind of notification this design applies to. You can add match conditions later from the translator editor.</string>
@@ -1579,4 +1590,83 @@
     <string name="design_manager_help_view_modes_title">Preview Modes &amp; Actions</string>
     <string name="design_manager_help_view_modes_desc">Toggle between live island previews and compact icon views using the top bar button. You can also import and export designs via .htrans files.</string>
     <string name="design_manager_help_doc_btn">Custom Translators Guide</string>
+
+    <!-- Studio Design (Phase 5, #273 / #328) -->
+    <string name="studio_title">Studio Design</string>
+    <string name="studio_new_design">New design</string>
+    <string name="studio_empty">No custom designs yet. Build one element by element for the island.</string>
+    <string name="studio_save">Save</string>
+    <string name="studio_saved">Design saved</string>
+    <string name="studio_restore">Restore last saved</string>
+    <string name="studio_export">Export</string>
+    <string name="studio_import">Import</string>
+    <string name="studio_delete_element">Delete element</string>
+    <string name="studio_validation_errors">%1$d issue(s) fixed automatically</string>
+    <string name="studio_node_image">Design image</string>
+
+    <string name="studio_tab_design">Design</string>
+    <string name="studio_add_element_title">Add an element</string>
+    <string name="studio_add_text">Text</string>
+    <string name="studio_add_text_desc">A line bound to notification content or a device value</string>
+    <string name="studio_add_image">Image</string>
+    <string name="studio_add_image_desc">An app icon, an avatar or an asset of your own</string>
+    <string name="studio_add_progress">Progress</string>
+    <string name="studio_add_progress_desc">A bar driven by progress, battery or a source value</string>
+    <string name="studio_add_button">Button</string>
+    <string name="studio_add_button_desc">A tap target that fires an action</string>
+    <string name="studio_add_container">Group</string>
+    <string name="studio_add_container_desc">A row, column or free-positioned group of elements</string>
+
+    <string name="studio_section_content">Content</string>
+    <string name="studio_section_position">Position, size and layer</string>
+    <string name="studio_section_visibility">Show this element when</string>
+    <string name="studio_section_action">On tap</string>
+    <string name="studio_section_design">Design</string>
+
+    <string name="studio_property_name">Design name</string>
+    <string name="studio_property_template">Text / template</string>
+    <string name="studio_property_label">Label</string>
+    <string name="studio_property_font_size">Font size (sp)</string>
+    <string name="studio_property_max_lines">Max lines</string>
+    <string name="studio_property_color">Color (hex)</string>
+    <string name="studio_property_background">Background (hex)</string>
+    <string name="studio_property_tint">Tint (hex)</string>
+    <string name="studio_property_bold">Bold</string>
+    <string name="studio_property_max_value">Max value</string>
+    <string name="studio_property_gap">Gap (dp)</string>
+    <string name="studio_property_padding">Padding (dp)</string>
+    <string name="studio_property_x">X (dp)</string>
+    <string name="studio_property_y">Y (dp)</string>
+    <string name="studio_property_width">Width (dp)</string>
+    <string name="studio_property_height">Height (dp)</string>
+
+    <string name="studio_layer_hint">Drag the element on the canvas, or set it here. Elements later in the stack are drawn on top.</string>
+    <string name="studio_layer_forward">Bring forward</string>
+    <string name="studio_layer_back">Send back</string>
+
+    <string name="studio_condition_always">Always</string>
+    <string name="studio_condition_has_action">Has a button</string>
+    <string name="studio_condition_has_reply">Can reply</string>
+    <string name="studio_condition_has_smart_action">Has a smart action</string>
+    <string name="studio_condition_has_progress">Has progress</string>
+    <string name="studio_condition_not_blank">Value is not empty</string>
+    <string name="studio_condition_matches">Value matches</string>
+    <string name="studio_condition_action_index">Button number (0 is the first)</string>
+    <string name="studio_condition_regex">Regular expression</string>
+
+    <string name="studio_action_none">Nothing</string>
+    <string name="studio_action_dismiss">Dismiss</string>
+    <string name="studio_action_notification">The app\'s button</string>
+    <string name="studio_action_reply">Reply</string>
+    <string name="studio_action_smart">Smart action</string>
+    <string name="studio_action_open_app">Open an app</string>
+    <string name="studio_action_deep_link">Open a link</string>
+    <string name="studio_action_broadcast_kind">Send a broadcast</string>
+    <string name="studio_action_package">Package name</string>
+    <string name="studio_action_uri">Link</string>
+    <string name="studio_action_broadcast">Broadcast action</string>
+    <string name="studio_action_extra_key">Extra key</string>
+    <string name="studio_action_extra_value">Extra value</string>
 </resources>
+
+

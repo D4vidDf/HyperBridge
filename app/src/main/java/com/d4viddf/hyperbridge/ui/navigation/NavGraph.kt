@@ -93,7 +93,13 @@ fun mainNavGraph(
         com.d4viddf.hyperbridge.ui.screens.settings.DndSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.PermanentIslandConfig> {
-        com.d4viddf.hyperbridge.ui.screens.settings.PermanentIslandConfigScreen(onBack = { navigator.goBack() })
+        com.d4viddf.hyperbridge.ui.screens.settings.PermanentIslandConfigScreen(
+            onBack = { navigator.goBack() },
+            onManageSources = { navigator.navigate(Screen.WidgetSourceApps) }
+        )
+    }
+    entry<Screen.WidgetSourceApps> {
+        com.d4viddf.hyperbridge.ui.screens.settings.SourceAppsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.ReplyCustomization> {
         com.d4viddf.hyperbridge.ui.screens.theme.GlobalReplyCustomizationScreen(onBack = { navigator.goBack() })

@@ -201,6 +201,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var screenRecordingSavedTranslator: ScreenRecordingSavedTranslator
     private lateinit var dynamicTranslator: DynamicTranslator
     private lateinit var translatorRegistry: TranslatorRegistry
+    private lateinit var customWidgetTranslator: com.d4viddf.hyperbridge.service.translators.CustomWidgetTranslator
 
     @Volatile
     private var isScreenOn = true
@@ -306,6 +307,7 @@ class NotificationReaderService : NotificationListenerService() {
         val database = com.d4viddf.hyperbridge.data.db.AppDatabase.getDatabase(this)
         translatorRegistry = TranslatorRegistry(database.translatorDao(), serviceScope)
         dynamicTranslator = DynamicTranslator(this, themeRepository)
+        customWidgetTranslator = com.d4viddf.hyperbridge.service.translators.CustomWidgetTranslator(this, themeRepository)
 
         val userManager = getSystemService(USER_SERVICE) as android.os.UserManager
         if (userManager.isUserUnlocked) {
@@ -1739,7 +1741,24 @@ class NotificationReaderService : NotificationListenerService() {
                     reason = "translator='${matchedCustomTranslator.meta.name}' scope=${matchedCustomTranslator.targetScope}",
                     customTranslator = matchedCustomTranslator.meta.name
                 )
-                dynamicTranslator.translate(
+                val studioWidgetId = matchedCustomTranslator.presentation
+                    .takeIf { it.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.WIDGET }
+                    ?.widgetId
+                    ?.takeIf { it.isNotBlank() }
+                if (studioWidgetId != null) {
+                    // A custom design (Phase 5, #273): the island body is a rendered RemoteViews
+                    // tree, not the slot layout DynamicTranslator builds. Matching, priority and
+                    // conditions still came from the translator registry above.
+                    customWidgetTranslator.translate(
+                        sbn = sbn,
+                        picKey = picKey,
+                        effectiveTitle = effectiveTitle,
+                        effectiveText = effectiveText,
+                        config = finalConfig,
+                        theme = activeTheme,
+                        widgetId = studioWidgetId
+                    )
+                } else dynamicTranslator.translate(
                     sbn = sbn,
                     customTranslator = matchedCustomTranslator,
                     picKey = picKey,
