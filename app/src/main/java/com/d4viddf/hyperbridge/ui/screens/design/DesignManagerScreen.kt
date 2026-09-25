@@ -407,6 +407,7 @@ fun DesignPreviewCardItem(
     design: CustomTranslator,
     shape: androidx.compose.ui.graphics.Shape,
     isChecked: Boolean = design.isEnabled,
+    showPreview: Boolean = true,
     onToggle: (Boolean) -> Unit,
     onClick: () -> Unit = {},
     onDuplicate: () -> Unit = {},
@@ -482,11 +483,13 @@ fun DesignPreviewCardItem(
                 )
             }
 
-            // Live Island Preview
-            HyperOsIslandPreview(
-                translator = design,
-                showChrome = false
-            )
+            // Live Island Preview (conditional)
+            if (showPreview) {
+                HyperOsIslandPreview(
+                    translator = design,
+                    showChrome = false
+                )
+            }
 
             // Bottom Actions Row
             Row(
