@@ -37,6 +37,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -62,6 +64,8 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -69,6 +73,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -81,6 +87,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -1841,6 +1848,14 @@ fun AppConfigWidgetChildItem(
 // CUSTOM DESIGNS SECTION (App-specific)
 // ------------------------------------------------------------------------------------------------
 
+private enum class AppDesignFilter {
+    ALL,
+    ACTIVE,
+    INACTIVE,
+    GLOBAL,
+    APP_SPECIFIC
+}
+
 @Composable
 fun AppDesignsSectionCard(
     packageName: String,
@@ -1849,25 +1864,176 @@ fun AppDesignsSectionCard(
     onEditDesign: (String) -> Unit,
     onCreateDesign: () -> Unit
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        shape = RoundedCornerShape(24.dp),
-        modifier = Modifier.fillMaxWidth()
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf(AppDesignFilter.ALL) }
+
+    val filteredDesigns = remember(designs, searchQuery, selectedFilter, packageName) {
+        designs.filter { design ->
+            val isAppEnabled = design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+            val isAppSpecific = (design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS ||
+                    design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS) &&
+                    design.targetPackages.any { it.equals(packageName, ignoreCase = true) }
+            val isGlobal = design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL ||
+                    design.targetScope == com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE
+
+            val matchesFilter = when (selectedFilter) {
+                AppDesignFilter.ALL -> true
+                AppDesignFilter.ACTIVE -> isAppEnabled
+                AppDesignFilter.INACTIVE -> !isAppEnabled
+                AppDesignFilter.GLOBAL -> isGlobal
+                AppDesignFilter.APP_SPECIFIC -> isAppSpecific
+            }
+
+            val matchesSearch = searchQuery.isBlank() ||
+                    design.meta.name.contains(searchQuery, ignoreCase = true) ||
+                    design.meta.description.contains(searchQuery, ignoreCase = true) ||
+                    design.presentation.templateId?.contains(searchQuery, ignoreCase = true) == true ||
+                    design.targetNotificationTypes.any { it.contains(searchQuery, ignoreCase = true) }
+
+            matchesFilter && matchesSearch
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.app_designs_section_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        // --- 1. HEADER INFO CARD ---
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    text = stringResource(R.string.app_designs_section_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
 
-            Spacer(Modifier.height(14.dp))
+        // --- 2. SEARCH & FILTER CONTROLS ---
+        if (designs.isNotEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Search Field
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.app_designs_search_hint),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        trailingIcon = {
+                            AnimatedVisibility(visible = searchQuery.isNotBlank()) {
+                                FilledTonalIconButton(
+                                    onClick = { searchQuery = "" },
+                                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.clear)
+                                    )
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-            if (designs.isEmpty()) {
+                // Filter Chips Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = selectedFilter == AppDesignFilter.ALL,
+                        onClick = { selectedFilter = AppDesignFilter.ALL },
+                        label = { Text(stringResource(R.string.app_designs_filter_all)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                    FilterChip(
+                        selected = selectedFilter == AppDesignFilter.ACTIVE,
+                        onClick = { selectedFilter = AppDesignFilter.ACTIVE },
+                        label = { Text(stringResource(R.string.app_designs_filter_active)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                    FilterChip(
+                        selected = selectedFilter == AppDesignFilter.INACTIVE,
+                        onClick = { selectedFilter = AppDesignFilter.INACTIVE },
+                        label = { Text(stringResource(R.string.app_designs_filter_inactive)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                    FilterChip(
+                        selected = selectedFilter == AppDesignFilter.GLOBAL,
+                        onClick = { selectedFilter = AppDesignFilter.GLOBAL },
+                        label = { Text(stringResource(R.string.app_designs_filter_global)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                    FilterChip(
+                        selected = selectedFilter == AppDesignFilter.APP_SPECIFIC,
+                        onClick = { selectedFilter = AppDesignFilter.APP_SPECIFIC },
+                        label = { Text(stringResource(R.string.app_designs_filter_app_specific)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                }
+            }
+        }
+
+        // --- 3. SEPARATE DESIGN ITEMS / EMPTY STATES ---
+        if (designs.isEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = 32.dp, horizontal = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1875,24 +2041,24 @@ fun AppDesignsSectionCard(
                             imageVector = Icons.Outlined.DashboardCustomize,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(48.dp)
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(12.dp))
                         Text(
                             text = stringResource(R.string.app_designs_empty_title),
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(6.dp))
                         Text(
                             text = stringResource(R.string.app_designs_empty_desc),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.outline,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(0.85f)
                         )
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(16.dp))
                         Button(
                             onClick = onCreateDesign,
                             shape = RoundedCornerShape(12.dp)
@@ -1903,24 +2069,55 @@ fun AppDesignsSectionCard(
                         }
                     }
                 }
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    designs.forEachIndexed { index, design ->
-                        val shape = getExpressiveShape(designs.size, index, ShapeStyle.Large)
-                        val isAppEnabled = design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
-
-                        DesignPreviewCardItem(
-                            design = design,
-                            shape = shape,
-                            isChecked = isAppEnabled,
-                            onToggle = { isChecked ->
-                                onToggleDesign(design.id, isChecked)
-                            },
-                            onClick = {
-                                onEditDesign(design.id)
-                            }
+            }
+        } else if (filteredDesigns.isEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp, horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.app_designs_no_results),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                filteredDesigns.forEach { design ->
+                    val isAppEnabled = design.isEnabled && !design.excludedPackages.any { it.equals(packageName, ignoreCase = true) }
+
+                    DesignPreviewCardItem(
+                        design = design,
+                        shape = RoundedCornerShape(20.dp),
+                        isChecked = isAppEnabled,
+                        onToggle = { isChecked ->
+                            onToggleDesign(design.id, isChecked)
+                        },
+                        onClick = {
+                            onEditDesign(design.id)
+                        }
+                    )
                 }
             }
         }

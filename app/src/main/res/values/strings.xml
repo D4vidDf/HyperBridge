@@ -898,6 +898,13 @@
     <string name="app_designs_empty_title">No designs for this app</string>
     <string name="app_designs_empty_desc">There are no global or app-specific designs available. Add a new design or browse templates in Design Manager.</string>
     <string name="app_designs_add_design">Add Design</string>
+    <string name="app_designs_search_hint">Search designs…</string>
+    <string name="app_designs_filter_all">All</string>
+    <string name="app_designs_filter_active">Active</string>
+    <string name="app_designs_filter_inactive">Inactive</string>
+    <string name="app_designs_filter_global">Global</string>
+    <string name="app_designs_filter_app_specific">App-specific</string>
+    <string name="app_designs_no_results">No designs matching your search or filter</string>
     <string name="custom_translators_title">Custom Translators</string>
     <string name="custom_translators_badge">COMING SOON</string>
     <string name="custom_translators_desc">Create and install custom community translators to format and control notification data for this application.</string>
