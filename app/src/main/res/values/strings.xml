@@ -1568,4 +1568,15 @@
     <string name="design_add_opt_theme_desc">Explore, create, and customize colors and shapes</string>
     <string name="design_add_opt_translator_title">Smart Translator</string>
     <string name="design_add_opt_translator_desc">Intercept notifications with custom regex rules and actions</string>
+
+    <!-- Design Manager Help Bottom Sheet -->
+    <string name="design_manager_help_title">About Island Designs</string>
+    <string name="design_manager_help_subtitle">Overview and tips for managing island templates</string>
+    <string name="design_manager_help_what_title">What are Designs?</string>
+    <string name="design_manager_help_what_desc">Designs are visual layouts based on Xiaomi\'s official HyperOS island templates or system widgets that bring your notifications to life.</string>
+    <string name="design_manager_help_scope_title">Global vs. App-Specific</string>
+    <string name="design_manager_help_scope_desc">Global designs apply across all matching notifications. You can also configure app-specific designs or fine-tune exclusions inside each app\'s configuration.</string>
+    <string name="design_manager_help_view_modes_title">Preview Modes &amp; Actions</string>
+    <string name="design_manager_help_view_modes_desc">Toggle between live island previews and compact icon views using the top bar button. You can also import and export designs via .htrans files.</string>
+    <string name="design_manager_help_doc_btn">Custom Translators Guide</string>
 </resources>
