@@ -161,7 +161,10 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         return allTranslators.map { list ->
             list.filter { translator ->
                 translator.targetScope == TargetScope.GLOBAL ||
-                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) && translator.targetPackages.contains(packageName))
+                (translator.targetScope == TargetScope.NOTIFICATION_TYPE &&
+                    (translator.targetPackages.isEmpty() || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })) ||
+                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) &&
+                    translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     }
@@ -171,7 +174,10 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
             list.filter { translator ->
                 (translator.presentation.mode == PresentationMode.TEMPLATE || translator.presentation.mode == PresentationMode.WIDGET) &&
                 (translator.targetScope == TargetScope.GLOBAL ||
-                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) && translator.targetPackages.contains(packageName)))
+                (translator.targetScope == TargetScope.NOTIFICATION_TYPE &&
+                    (translator.targetPackages.isEmpty() || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })) ||
+                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) &&
+                    translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }))
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     }

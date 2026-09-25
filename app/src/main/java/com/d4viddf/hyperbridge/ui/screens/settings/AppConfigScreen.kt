@@ -225,9 +225,11 @@ fun AppConfigScreen(
     var availableProviders by remember { mutableStateOf<List<AppWidgetProviderInfo>>(emptyList()) }
     var isPickingWidget by remember { mutableStateOf(false) }
     var editingWidgetId by remember { mutableStateOf<Int?>(null) }
+    var showAddDesign by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = editingWidgetId != null || isPickingWidget || currentSubscreen != null) {
+    BackHandler(enabled = editingWidgetId != null || isPickingWidget || showAddDesign || currentSubscreen != null) {
         when {
+            showAddDesign -> showAddDesign = false
             editingWidgetId != null -> editingWidgetId = null
             isPickingWidget -> isPickingWidget = false
             currentSubscreen != null -> currentSubscreen = null
@@ -293,8 +295,23 @@ fun AppConfigScreen(
             onToggleTranslator = { id, enabled -> translatorViewModel.toggleTranslator(id, enabled) },
             onCreateTranslator = { onCreateTranslator(packageName) },
             onEditTranslator = onEditTranslator,
-            onToggleDesign = { designId, enabled -> translatorViewModel.toggleDesignForApp(designId, packageName, enabled) }
+            onToggleDesign = { designId, enabled -> translatorViewModel.toggleDesignForApp(designId, packageName, enabled) },
+            onCreateDesign = { showAddDesign = true }
         )
+
+        if (showAddDesign) {
+            com.d4viddf.hyperbridge.ui.screens.design.AddDesignFlow(
+                onDismiss = { showAddDesign = false },
+                onDesignCreated = { design ->
+                    showAddDesign = false
+                    val targetedDesign = design.copy(
+                        targetScope = com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS,
+                        targetPackages = listOf(packageName)
+                    )
+                    translatorViewModel.saveTranslator(targetedDesign)
+                }
+            )
+        }
 
         // --- OVERLAYS ---
         AnimatedVisibility(
@@ -388,7 +405,8 @@ fun AppConfigContent(
     onToggleTranslator: (String, Boolean) -> Unit = { _, _ -> },
     onCreateTranslator: () -> Unit = {},
     onEditTranslator: (String) -> Unit = {},
-    onToggleDesign: (String, Boolean) -> Unit = { _, _ -> }
+    onToggleDesign: (String, Boolean) -> Unit = { _, _ -> },
+    onCreateDesign: () -> Unit = {}
 ) {
     val activeDesc = stringResource(R.string.cd_app_state_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
@@ -724,7 +742,7 @@ fun AppConfigContent(
                         onBack = { onNavigateSubscreen(null) },
                         floatingActionButton = {
                             FloatingActionButton(
-                                onClick = onCreateTranslator,
+                                onClick = onCreateDesign,
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary
                             ) {
@@ -740,7 +758,7 @@ fun AppConfigContent(
                             designs = designs,
                             onToggleDesign = onToggleDesign,
                             onEditDesign = onEditTranslator,
-                            onCreateDesign = onCreateTranslator
+                            onCreateDesign = onCreateDesign
                         )
                     }
                 }
