@@ -1295,4 +1295,15 @@
     <string name="island_template_hint_copy">Copiar</string>
     <string name="island_template_hint_view">Ver</string>
     <string name="island_template_hint_track">Seguir</string>
+
+    <!-- Design Manager Help Bottom Sheet -->
+    <string name="design_manager_help_title">Acerca de los Diseños de Isla</string>
+    <string name="design_manager_help_subtitle">Información y consejos para gestionar plantillas de isla</string>
+    <string name="design_manager_help_what_title">¿Qué son los Diseños?</string>
+    <string name="design_manager_help_what_desc">Los diseños son estructuras visuales basadas en las plantillas oficiales de HyperOS de Xiaomi o widgets del sistema que dan vida a tus notificaciones.</string>
+    <string name="design_manager_help_scope_title">Globales vs. Específicos por App</string>
+    <string name="design_manager_help_scope_desc">Los diseños globales se aplican a todas las notificaciones coincidentes. También puedes crear diseños específicos por aplicación o configurar exclusiones en los ajustes de cada app.</string>
+    <string name="design_manager_help_view_modes_title">Modos de Vista y Acciones</string>
+    <string name="design_manager_help_view_modes_desc">Alterna entre vistas previas de la isla e iconos compactos usando el botón de la barra superior. Además puedes importar y exportar diseños en archivos .htrans.</string>
+    <string name="design_manager_help_doc_btn">Guía de Traductores Personalizados</string>
 </resources>

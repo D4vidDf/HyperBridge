@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.db.TranslatorEntity
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.service.NotificationReaderService
 import com.d4viddf.hyperbridge.ui.screens.theme.AppItem
@@ -160,9 +161,83 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         return allTranslators.map { list ->
             list.filter { translator ->
                 translator.targetScope == TargetScope.GLOBAL ||
-                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) && translator.targetPackages.contains(packageName))
+                (translator.targetScope == TargetScope.NOTIFICATION_TYPE &&
+                    (translator.targetPackages.isEmpty() || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })) ||
+                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) &&
+                    translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }
+
+    fun getDesignsForApp(packageName: String): StateFlow<List<CustomTranslator>> {
+        return allTranslators.map { list ->
+            list.filter { translator ->
+                (translator.presentation.mode == PresentationMode.TEMPLATE || translator.presentation.mode == PresentationMode.WIDGET) &&
+                (translator.targetScope == TargetScope.GLOBAL ||
+                (translator.targetScope == TargetScope.NOTIFICATION_TYPE &&
+                    (translator.targetPackages.isEmpty() || translator.targetPackages.any { it.equals(packageName, ignoreCase = true) })) ||
+                ((translator.targetScope == TargetScope.SPECIFIC_APPS || translator.targetScope == TargetScope.SYSTEM_APPS) &&
+                    translator.targetPackages.any { it.equals(packageName, ignoreCase = true) }))
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }
+
+    fun toggleDesignForApp(designId: String, packageName: String, isEnabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val existing = translatorDao.getTranslatorById(designId) ?: return@launch
+            val custom = existing.toCustomTranslator().getOrNull() ?: return@launch
+
+            val updatedCustom = when (custom.targetScope) {
+                TargetScope.GLOBAL -> {
+                    val currentExcluded = custom.excludedPackages.toMutableList()
+                    if (isEnabled) {
+                        currentExcluded.removeAll { it.equals(packageName, ignoreCase = true) }
+                    } else {
+                        if (!currentExcluded.any { it.equals(packageName, ignoreCase = true) }) {
+                            currentExcluded.add(packageName)
+                        }
+                    }
+                    custom.copy(excludedPackages = currentExcluded)
+                }
+                TargetScope.SPECIFIC_APPS, TargetScope.SYSTEM_APPS -> {
+                    val currentTargets = custom.targetPackages.toMutableList()
+                    val currentExcluded = custom.excludedPackages.toMutableList()
+                    if (isEnabled) {
+                        currentExcluded.removeAll { it.equals(packageName, ignoreCase = true) }
+                        if (!currentTargets.any { it.equals(packageName, ignoreCase = true) }) {
+                            currentTargets.add(packageName)
+                        }
+                    } else {
+                        if (!currentExcluded.any { it.equals(packageName, ignoreCase = true) }) {
+                            currentExcluded.add(packageName)
+                        }
+                    }
+                    custom.copy(
+                        targetPackages = currentTargets,
+                        excludedPackages = currentExcluded
+                    )
+                }
+                TargetScope.NOTIFICATION_TYPE -> {
+                    val currentExcluded = custom.excludedPackages.toMutableList()
+                    if (isEnabled) {
+                        currentExcluded.removeAll { it.equals(packageName, ignoreCase = true) }
+                    } else {
+                        if (!currentExcluded.any { it.equals(packageName, ignoreCase = true) }) {
+                            currentExcluded.add(packageName)
+                        }
+                    }
+                    custom.copy(excludedPackages = currentExcluded)
+                }
+            }
+
+            val updatedJson = CustomTranslator.toJson(updatedCustom)
+            val updatedEntity = existing.copy(
+                targetPackages = updatedCustom.targetPackages.joinToString(","),
+                jsonContent = updatedJson,
+                updatedAt = System.currentTimeMillis()
+            )
+            translatorDao.updateTranslator(updatedEntity)
+        }
     }
 
     suspend fun getTranslatorById(id: String): CustomTranslator? = withContext(Dispatchers.IO) {

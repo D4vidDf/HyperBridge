@@ -19,13 +19,16 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.BugReport
@@ -39,6 +42,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -198,60 +202,177 @@ fun DesignScreen(
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 48.dp, start = 16.dp, end = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 8.dp, bottom = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.design_add_to_island),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                Button(
-                    onClick = {
-                        showBottomSheet = false
-                        onLaunchPicker()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
+                // Fixed Header with Expressive styling
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Rounded.Widgets, null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.design_system_widget_beta), style = MaterialTheme.typography.titleMedium)
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Outlined.AutoAwesome,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_add_sheet_title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(R.string.design_add_sheet_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                OutlinedButton(
-                    onClick = {
-                        showBottomSheet = false
-                        onNavigateToThemes()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
+                // Expressive Options List
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(Icons.Rounded.Palette, null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.design_get_themes), style = MaterialTheme.typography.titleMedium)
-                }
+                    // 1. Custom Design
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_design_title),
+                        description = stringResource(R.string.design_add_opt_design_desc),
+                        icon = Icons.Outlined.DashboardCustomize,
+                        iconContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        onClick = {
+                            showBottomSheet = false
+                            showAddDesign = true
+                        }
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    // 2. System Widget
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_widget_title),
+                        description = stringResource(R.string.design_add_opt_widget_desc),
+                        icon = Icons.Rounded.Widgets,
+                        iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        onClick = {
+                            showBottomSheet = false
+                            onLaunchPicker()
+                        }
+                    )
 
-                OutlinedButton(
-                    onClick = {
-                        showBottomSheet = false
-                        onCreateTranslator()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.Extension, null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.design_action_create_translator), style = MaterialTheme.typography.titleMedium)
+                    // 3. Theme & Styles
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_theme_title),
+                        description = stringResource(R.string.design_add_opt_theme_desc),
+                        icon = Icons.Rounded.Palette,
+                        iconContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        onClick = {
+                            showBottomSheet = false
+                            onNavigateToThemes()
+                        }
+                    )
+
+                    // 4. Smart Translator
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_translator_title),
+                        description = stringResource(R.string.design_add_opt_translator_desc),
+                        icon = Icons.Default.Extension,
+                        iconContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        iconTint = MaterialTheme.colorScheme.onSurface,
+                        onClick = {
+                            showBottomSheet = false
+                            onCreateTranslator()
+                        }
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AddIslandOptionCard(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    iconContainerColor: Color,
+    iconTint: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = iconContainerColor,
+                modifier = Modifier.size(46.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
 }
