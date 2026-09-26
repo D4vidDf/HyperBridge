@@ -141,7 +141,7 @@ class DynamicTranslator(
         builder.applyFloatingPresentation(isFloat, isUpdate)
         builder.setIslandConfig(
             timeout = customTranslator.behaviorOverride.timeoutSeconds ?: config.timeout,
-            dismissible = true,
+            dismissible = false, // Set to false for HyperOS 4 compatibility (prevents island from failing to show or being discarded)
             highlightColor = highlightColor,
             expandedTimeMs = customTranslator.behaviorOverride.floatTimeoutSeconds ?: config.floatTimeout
         )

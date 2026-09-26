@@ -48,7 +48,8 @@ class StandardTranslator(
 
         // --- CONFIGURATION ---
         builder.setEnableFloat(config.isFloat ?: false)
-        builder.setIslandConfig(timeout = config.timeout , dismissible = true, highlightColor = highlightColor, expandedTimeMs = config.floatTimeout)
+        // dismissible = false for HyperOS 4 compatibility (prevents small/big island from being suppressed)
+        builder.setIslandConfig(timeout = config.timeout, dismissible = false, highlightColor = highlightColor, expandedTimeMs = config.floatTimeout)
         builder.setShowNotification(config.isShowShade ?: false)
         builder.setReopen(true)
         builder.setIslandFirstFloat(config.isFloat ?: false)
