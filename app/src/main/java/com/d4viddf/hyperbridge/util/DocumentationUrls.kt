@@ -9,6 +9,10 @@ object DocumentationUrls {
     const val PRIVACY_POLICY = "https://hyper-bridge.app/privacy/"
     const val CUSTOMIZATION_DOCS = "https://hyper-bridge.app/docs/customization/"
     const val THEME_CREATOR_DOCS = "https://hyper-bridge.app/docs/customization/theme-creator/"
+    const val CUSTOM_TRANSLATORS_DOCS = "https://hyper-bridge.app/docs/customization/custom-translators/"
+    const val TRANSLATORS_SPEC_DOCS = "https://hyper-bridge.app/docs/customization/translators-specification/"
+    const val SMART_ACTIONS_DOCS = "https://hyper-bridge.app/docs/features/smart-actions/"
+    const val DIAGNOSTICS_DOCS = "https://hyper-bridge.app/docs/troubleshooting/diagnostics/"
     const val GITHUB_BUG_REPORT = "https://github.com/D4vidDf/HyperBridge/issues/new?template=bug_report.yml"
 
     /**

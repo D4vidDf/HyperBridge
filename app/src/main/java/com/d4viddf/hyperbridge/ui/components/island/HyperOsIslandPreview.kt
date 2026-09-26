@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
@@ -55,6 +56,38 @@ import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 enum class IslandPreviewMode {
     EXPANDED, COMPACT_PILL
 }
+
+/**
+ * The stand-in notification a preview interpolates its templates against. Defaults keep the
+ * ride-share example the editor has always shown; the template gallery passes its own example so
+ * each of the ten layouts previews with content that makes sense for it.
+ */
+data class IslandPreviewSample(
+    val title: String = "Ride Arriving Soon",
+    val text: String = "Driver is 2 minutes away (Toyota Camry)",
+    val subtext: String = "License: ABC-1234",
+    val sender: String = "Alex",
+    val conversation: String = "Trip Updates",
+    val app: String = "RideApp",
+    val track: String = "Never Gonna Give You Up",
+    val artist: String = "Rick Astley",
+    val progressPercent: Int = 65,
+    val timerText: String = "04:25",
+    val countdownText: String = "00:05"
+)
+
+private fun String.withSample(sample: IslandPreviewSample): String = this
+    .replace("{media.track}", sample.track)
+    .replace("{media.artist}", sample.artist)
+    .replace("{notif.title}", sample.title)
+    .replace("{notif.text}", sample.text)
+    .replace("{notif.subtext}", sample.subtext)
+    .replace("{notif.sender}", sample.sender)
+    .replace("{notif.conversation}", sample.conversation)
+    .replace("{notif.app}", sample.app)
+    .replace("{app.name}", sample.app)
+    .replace("{regex.1}", sample.subtext)
+    .replace("{smart_action.OTP.code}", sample.subtext)
 
 /**
  * Top-Level Realistic HyperOS 3 Island Previewer
@@ -67,9 +100,21 @@ fun HyperOsIslandPreview(
     modifier: Modifier = Modifier,
     translator: CustomTranslator,
     installedThemes: List<HyperTheme> = emptyList(),
-    initialMode: IslandPreviewMode = IslandPreviewMode.EXPANDED
+    initialMode: IslandPreviewMode = IslandPreviewMode.EXPANDED,
+    sample: IslandPreviewSample = IslandPreviewSample(),
+    showChrome: Boolean = true
 ) {
     var previewMode by remember { mutableStateOf(initialMode) }
+
+    // A TEMPLATE translator may carry nothing but its templateId, so resolve the preset first and
+    // render from that: the gallery, the design cards and the editor all see the same island.
+    val presentation = IslandTemplateCatalog.effectivePresentation(translator.presentation)
+    val template = if (presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.TEMPLATE) {
+        IslandTemplateCatalog.find(presentation.templateId)
+    } else {
+        null
+    }
+    val templateCard = template?.card
 
     // 1. Resolve Effective Theme Styling
     val linkedTheme = if (translator.themeBinding.themeId.isNotBlank() && translator.themeBinding.themeId != "active") {
@@ -82,6 +127,9 @@ fun HyperOsIslandPreview(
         safeParseColor(translator.themeBinding.overrideHighlightColor)
     } else if (linkedTheme?.global?.highlightColor != null) {
         safeParseColor(linkedTheme.global.highlightColor)
+    } else if (templateCard != null) {
+        // A template keeps Xiaomi's own accent (red alert, green parking...) until the design overrides it.
+        Color(templateCard.accentArgb)
     } else {
         MaterialTheme.colorScheme.primary
     }
@@ -118,18 +166,17 @@ fun HyperOsIslandPreview(
     }
 
     // 2. Interpolate Dynamic Values (Supporting both Visual Slots and RAW_PARAM_V2)
-    val isRawMode = translator.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.RAW_PARAM_V2
-    val rawJson = translator.presentation.rawParamV2?.jsonTemplate ?: ""
+    val isRawMode = presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.RAW_PARAM_V2
+    val rawJson = presentation.rawParamV2?.jsonTemplate ?: ""
 
-    var titleText = translator.presentation.textSlot.titleTemplate
-    var subtitleText = translator.presentation.textSlot.subtitleTemplate
-    var highlightText = translator.presentation.textSlot.highlightTextTemplate
+    var titleText = presentation.textSlot.titleTemplate
+    var subtitleText = presentation.textSlot.subtitleTemplate
+    var highlightText = presentation.textSlot.highlightTextTemplate
     var parsedHighlightColor = highlightColor
     var pillTitle = titleText
-    var pillRightText = if (translator.presentation.progressSlot.type == ProgressSlotType.TIMER) "04:25" else "00:05"
-    var isTimerMode = translator.presentation.progressSlot.type == ProgressSlotType.TIMER
-    var hasProgress = translator.presentation.progressSlot.type != ProgressSlotType.NONE && translator.presentation.progressSlot.type != ProgressSlotType.TIMER
-    var progressPercent = 65
+    var pillRightText = if (presentation.progressSlot.type == ProgressSlotType.TIMER) sample.timerText else sample.countdownText
+    var hasProgress = presentation.progressSlot.type != ProgressSlotType.NONE && presentation.progressSlot.type != ProgressSlotType.TIMER
+    var progressPercent = sample.progressPercent
 
     if (isRawMode && rawJson.isNotBlank()) {
         try {
@@ -178,43 +225,16 @@ fun HyperOsIslandPreview(
                 val progressInfo = bigIsland?.getAsJsonObject("progressInfo")
                 if (progressInfo != null) {
                     hasProgress = true
-                    progressPercent = progressInfo.get("progress")?.asInt ?: 65
+                    progressPercent = progressInfo.get("progress")?.asInt ?: sample.progressPercent
                 }
             }
         } catch (_: Exception) {}
     }
 
-    titleText = titleText
-        .replace("{media.track}", "Never Gonna Give You Up")
-        .replace("{media.artist}", "Rick Astley")
-        .replace("{notif.title}", "Ride Arriving Soon")
-        .replace("{notif.text}", "Driver is 2 minutes away (Toyota Camry)")
-        .replace("{notif.subtext}", "License: ABC-1234")
-        .replace("{notif.sender}", "Alex")
-        .replace("{notif.conversation}", "Trip Updates")
-        .replace("{notif.app}", "RideApp")
-        .replace("{app.name}", "RideApp")
-
-    subtitleText = subtitleText
-        .replace("{media.track}", "Never Gonna Give You Up")
-        .replace("{media.artist}", "Rick Astley")
-        .replace("{notif.title}", "Ride Arriving Soon")
-        .replace("{notif.text}", "Driver is 2 minutes away (Toyota Camry)")
-        .replace("{notif.subtext}", "License: ABC-1234")
-        .replace("{notif.sender}", "Alex")
-        .replace("{notif.conversation}", "Trip Updates")
-        .replace("{notif.app}", "RideApp")
-        .replace("{app.name}", "RideApp")
-
-    highlightText = highlightText
-        ?.replace("{media.track}", "Never Gonna Give You Up")
-        ?.replace("{media.artist}", "Rick Astley")
-        ?.replace("{notif.title}", "Ride Arriving Soon")
-        ?.replace("{notif.text}", "Driver is 2 minutes away (Toyota Camry)")
-        ?.replace("{notif.subtext}", "License: ABC-1234")
-        ?.replace("{notif.sender}", "Alex")
-        ?.replace("{notif.app}", "RideApp")
-        ?.replace("{app.name}", "RideApp")
+    titleText = titleText.withSample(sample)
+    subtitleText = subtitleText.withSample(sample)
+    highlightText = highlightText?.withSample(sample)
+    pillTitle = pillTitle.withSample(sample)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -227,8 +247,9 @@ fun HyperOsIslandPreview(
                 .padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Mode Selector: Connected Button Group Acting as Tabs
-            Row(
+            // Mode Selector: Connected Button Group Acting as Tabs. Hidden when the preview is
+            // used as a thumbnail (template gallery, design cards), where there is nothing to switch.
+            if (showChrome) Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -287,7 +308,7 @@ fun HyperOsIslandPreview(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 175.dp)
+                    .heightIn(min = if (showChrome) 175.dp else 150.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFF141414))
                     .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -323,8 +344,8 @@ fun HyperOsIslandPreview(
                             modifier = Modifier.align(Alignment.Center)
                         ) {
                             HyperOsCompactPill(
-                                leftDesign = translator.presentation.pill.leftDesign,
-                                rightDesign = translator.presentation.pill.rightDesign,
+                                leftDesign = presentation.pill.leftDesign,
+                                rightDesign = presentation.pill.rightDesign,
                                 title = pillTitle,
                                 rightText = pillRightText,
                                 progressPercent = progressPercent,
@@ -351,7 +372,18 @@ fun HyperOsIslandPreview(
                         enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
                         exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
                     ) {
-                        HyperOsExpandedIsland {
+                        if (templateCard != null) {
+                            TemplateFocusCard(
+                                layout = templateCard,
+                                iconName = translator.meta.iconName.takeIf { it.isNotBlank() && it != "AutoAwesome" }
+                                    ?: template.iconName,
+                                title = titleText,
+                                subtitle = subtitleText,
+                                highlight = highlightText,
+                                accent = parsedHighlightColor,
+                                progressPercent = progressPercent
+                            )
+                        } else HyperOsExpandedIsland {
                             // Row 1: Graphic + Text
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -359,7 +391,7 @@ fun HyperOsIslandPreview(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 HyperOsLeftGraphic(
-                                    source = translator.presentation.leftSlot.source,
+                                    source = presentation.leftSlot.source,
                                     highlightColor = parsedHighlightColor,
                                     iconShape = iconShape
                                 )
@@ -375,20 +407,20 @@ fun HyperOsIslandPreview(
                             }
 
                             // Row 2: Progress (if configured)
-                            if (hasProgress || translator.presentation.progressSlot.type != ProgressSlotType.NONE) {
+                            if (hasProgress || presentation.progressSlot.type != ProgressSlotType.NONE) {
                                 Spacer(Modifier.height(2.dp))
                                 HyperOsProgressBar(
                                     progressPercent = progressPercent,
-                                    progressSlot = translator.presentation.progressSlot,
+                                    progressSlot = presentation.progressSlot,
                                     highlightColor = progressColor
                                 )
                             }
 
                             // Row 3: Action Buttons (if configured)
-                            if (translator.presentation.actionSlots.any { it.isVisible }) {
+                            if (presentation.actionSlots.any { it.isVisible }) {
                                 Spacer(Modifier.height(4.dp))
                                 HyperOsActionButtons(
-                                    actionSlots = translator.presentation.actionSlots,
+                                    actionSlots = presentation.actionSlots,
                                     highlightColor = parsedHighlightColor,
                                     buttonShape = iconShape,
                                     buttonPaddingPercent = buttonPaddingPercent,

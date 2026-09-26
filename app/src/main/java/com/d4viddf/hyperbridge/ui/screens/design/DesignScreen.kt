@@ -3,9 +3,8 @@ package com.d4viddf.hyperbridge.ui.screens.design
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,18 +25,24 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -48,7 +53,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -65,7 +69,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -73,19 +76,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
-import androidx.core.graphics.drawable.toDrawable
-import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.WidgetManager
-import com.d4viddf.hyperbridge.util.DocumentationUrls
 import com.d4viddf.hyperbridge.models.theme.CallModule
 import com.d4viddf.hyperbridge.models.theme.GlobalConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeMetadata
+import com.d4viddf.hyperbridge.util.DocumentationUrls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -97,9 +97,9 @@ fun DesignScreen(
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
+    onNavigateToDesigns: () -> Unit = {},
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
-    onEditTranslator: (String) -> Unit = {},
     onLaunchPicker: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -118,7 +118,14 @@ fun DesignScreen(
     var themeIcons by remember { mutableStateOf<Map<String, ImageBitmap?>>(emptyMap()) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showAddDesign by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+
+    // A design is a translator that renders through a template (or, later, a custom widget island).
+    val designs = allTranslators.filter {
+        it.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.TEMPLATE ||
+            it.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.WIDGET
+    }
 
     LaunchedEffect(Unit) {
         val themes = themeRepo.getAvailableThemes()
@@ -166,77 +173,206 @@ fun DesignScreen(
     DesignScreenContent(
         activeThemeId = activeThemeId,
         availableThemes = availableThemes,
-        themeIcons = themeIcons, // [NEW] Pass icons down
+        // [NEW] Pass icons down
         savedWidgetCount = savedWidgetIds.size,
-        widgetIcons = widgetIcons,
         translators = allTranslators,
+        designs = designs,
+        onAddDesign = { showAddDesign = true },
+        onNavigateToDesigns = onNavigateToDesigns,
         onNavigateToWidgets = onNavigateToWidgets,
         onNavigateToThemes = onNavigateToThemes,
         onEditTheme = onEditTheme,
         onNavigateToTranslators = onNavigateToTranslators,
         onCreateTranslator = onCreateTranslator,
-        onEditTranslator = onEditTranslator,
         onFabClick = { showBottomSheet = true },
         onSettingsClick = onSettingsClick
     )
 
+    if (showAddDesign) {
+        AddDesignFlow(
+            onDismiss = { showAddDesign = false },
+            onDesignCreated = { design ->
+                showAddDesign = false
+                translatorViewModel.saveTranslator(design)
+                Toast.makeText(context, R.string.design_design_created, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 48.dp, start = 16.dp, end = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 8.dp, bottom = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.design_add_to_island),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                Button(
-                    onClick = {
-                        showBottomSheet = false
-                        onLaunchPicker()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
+                // Fixed Header with Expressive styling
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Rounded.Widgets, null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.design_system_widget_beta), style = MaterialTheme.typography.titleMedium)
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Outlined.AutoAwesome,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_add_sheet_title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(R.string.design_add_sheet_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                OutlinedButton(
-                    onClick = {
-                        showBottomSheet = false
-                        onNavigateToThemes()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
+                // Expressive Options List
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(Icons.Rounded.Palette, null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.design_get_themes), style = MaterialTheme.typography.titleMedium)
-                }
+                    // 1. Custom Design
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_design_title),
+                        description = stringResource(R.string.design_add_opt_design_desc),
+                        icon = Icons.Outlined.DashboardCustomize,
+                        iconContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        onClick = {
+                            showBottomSheet = false
+                            showAddDesign = true
+                        }
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    // 2. System Widget
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_widget_title),
+                        description = stringResource(R.string.design_add_opt_widget_desc),
+                        icon = Icons.Rounded.Widgets,
+                        iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        onClick = {
+                            showBottomSheet = false
+                            onLaunchPicker()
+                        }
+                    )
 
-                OutlinedButton(
-                    onClick = {
-                        showBottomSheet = false
-                        onCreateTranslator()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.Extension, null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.design_action_create_translator), style = MaterialTheme.typography.titleMedium)
+                    // 3. Theme & Styles
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_theme_title),
+                        description = stringResource(R.string.design_add_opt_theme_desc),
+                        icon = Icons.Rounded.Palette,
+                        iconContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        onClick = {
+                            showBottomSheet = false
+                            onNavigateToThemes()
+                        }
+                    )
+
+                    // 4. Smart Translator
+                    AddIslandOptionCard(
+                        title = stringResource(R.string.design_add_opt_translator_title),
+                        description = stringResource(R.string.design_add_opt_translator_desc),
+                        icon = Icons.Default.Extension,
+                        iconContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        iconTint = MaterialTheme.colorScheme.onSurface,
+                        onClick = {
+                            showBottomSheet = false
+                            onCreateTranslator()
+                        }
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AddIslandOptionCard(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    iconContainerColor: Color,
+    iconTint: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = iconContainerColor,
+                modifier = Modifier.size(46.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
 }
@@ -247,16 +383,16 @@ fun DesignScreen(
 fun DesignScreenContent(
     activeThemeId: String?,
     availableThemes: List<HyperTheme>,
-    themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
     savedWidgetCount: Int,
-    widgetIcons: List<Drawable>,
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator> = emptyList(),
+    onAddDesign: () -> Unit = {},
+    onNavigateToDesigns: () -> Unit = {},
     onNavigateToWidgets: () -> Unit,
     onNavigateToThemes: () -> Unit,
     onEditTheme: (String) -> Unit,
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
-    onEditTranslator: (String) -> Unit = {},
     onFabClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -272,7 +408,7 @@ fun DesignScreenContent(
                     Surface(
                         modifier = Modifier
                             .size(40.dp)
-                            .padding(end = 8.dp), // Added padding to fix layout
+                            .padding(end = 8.dp),
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         onClick = onSettingsClick
@@ -298,68 +434,35 @@ fun DesignScreenContent(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
+            // Top HeroSection carousel
             HeroSection()
 
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_themes), onNavigateToThemes)
-                ThemesCarousel(
-                    themes = availableThemes,
-                    themeIcons = themeIcons, // [NEW] Pass icons down
-                    activeId = activeThemeId,
-                    onNavigateToThemes = onNavigateToThemes,
-                    onEditTheme = onEditTheme
-                )
-            }
+            Spacer(Modifier.height(16.dp))
 
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_widgets), onNavigateToWidgets)
-                WidgetsCarousel(
-                    savedCount = savedWidgetCount,
-                    icons = widgetIcons,
-                    onNavigateToWidgets = onNavigateToWidgets,
-                    onAddWidget = onFabClick
-                )
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SectionHeader(stringResource(R.string.design_section_translators), onNavigateToTranslators)
-                TranslatorsCarousel(
-                    translators = translators,
-                    onNavigateToTranslators = onNavigateToTranslators,
-                    onCreateTranslator = onCreateTranslator,
-                    onEditTranslator = onEditTranslator
-                )
-            }
-            Spacer(Modifier.height(24.dp))
+            // Bento Grid on common background surface with rounded top corners covering remaining height
+            DesignVariantBento(
+                modifier = Modifier.fillMaxWidth(),
+                availableThemes = availableThemes,
+                activeThemeId = activeThemeId,
+                savedWidgetCount = savedWidgetCount,
+                designs = designs,
+                translators = translators,
+                onNavigateToThemes = onNavigateToThemes,
+                onCreateTheme = { onEditTheme("") },
+                onNavigateToWidgets = onNavigateToWidgets,
+                onAddWidget = onFabClick,
+                onNavigateToDesigns = onNavigateToDesigns,
+                onAddDesign = onAddDesign,
+                onNavigateToTranslators = onNavigateToTranslators,
+                onCreateTranslator = onCreateTranslator
+            )
         }
     }
 }
 
 // --- SECTIONS ---
-
-@Composable
-fun SectionHeader(title: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.width(8.dp))
-        Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -385,293 +488,468 @@ fun HeroSection() {
         contentPadding = PaddingValues(horizontal = 8.dp)
     ) { i ->
         val item = items[i]
-        HeroCard(item,
-            Modifier.maskClip(MaterialTheme.shapes.extraLarge))
+        HeroCard(
+            item,
+            Modifier.maskClip(MaterialTheme.shapes.extraLarge)
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+// --- BENTO GRID LAYOUT ---
+
 @Composable
-fun ThemesCarousel(
-    themes: List<HyperTheme>,
-    themeIcons: Map<String, ImageBitmap?>, // [NEW] Param
-    activeId: String?,
-    onNavigateToThemes: () -> Unit,
-    onEditTheme: (String) -> Unit
-) {
-    val displayThemes = themes.take(5)
-    val totalCount = 1 + displayThemes.size + 1
-
-    val state = rememberCarouselState { totalCount }
-
-    HorizontalMultiBrowseCarousel (
-        modifier = Modifier.fillMaxWidth(),
-        state = state,
-        preferredItemWidth = 160.dp,
-        itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ){ i ->
-        val isSystemDefault = i == 0
-        val isAction = i > displayThemes.size
-
-        if (isAction) {
-            ThemePreviewCard(
-                title = stringResource(R.string.design_browse_more),
-                subtitle = "",
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                isActive = false,
-                icon = Icons.Rounded.Add,
-                isAction = true,
-                onClick = onNavigateToThemes,
-                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-            )
-        } else if (isSystemDefault) {
-            ThemePreviewCard(
-                title = stringResource(R.string.theme_system_default_title),
-                subtitle = stringResource(R.string.theme_system_default_desc),
-                color = MaterialTheme.colorScheme.secondary,
-                isActive = activeId == null,
-                icon = Icons.Rounded.PhoneAndroid,
-                onClick = onNavigateToThemes,
-                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-            )
-        } else {
-            val theme = displayThemes[i - 1]
-            val color = try {
-                Color((theme.global.highlightColor ?: "#000000").toColorInt())
-            } catch (_: Exception) { MaterialTheme.colorScheme.primary }
-
-            // [NEW] Get custom icon if available
-            val customIcon = themeIcons[theme.id]
-
-            ThemePreviewCard(
-                title = theme.meta.name,
-                subtitle = stringResource(R.string.theme_card_author_format, theme.meta.author),
-                color = color,
-                isActive = theme.id == activeId,
-                icon = Icons.Rounded.Palette,
-                customIcon = customIcon, // [NEW] Pass icon
-                onClick = { onEditTheme(theme.id) },
-                modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun WidgetsCarousel(
-    savedCount: Int,
-    icons: List<Drawable>,
-    onNavigateToWidgets: () -> Unit,
-    onAddWidget: () -> Unit
-) {
-    if (savedCount == 0) {
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Card(
-                onClick = onAddWidget,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier = Modifier.fillMaxWidth().height(160.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(Icons.Rounded.Widgets, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.design_empty_widget_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    } else {
-        val displayCount = icons.size
-        val totalCount = displayCount + 1
-        val state = rememberCarouselState { totalCount }
-
-        HorizontalMultiBrowseCarousel (
-            modifier = Modifier.fillMaxWidth(),
-            state = state,
-            preferredItemWidth = 140.dp,
-            itemSpacing = 8.dp,
-            contentPadding = PaddingValues(horizontal = 16.dp)
-        ) { i ->
-            if (i < displayCount) {
-                val icon = icons[i]
-                WidgetPreviewCard(
-                    label = stringResource(R.string.widget_id_fmt, i + 1),
-                    icon = icon,
-                    isAction = false,
-                    onClick = onNavigateToWidgets,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            } else {
-                WidgetPreviewCard(
-                    label = stringResource(R.string.design_add_new),
-                    icon = null,
-                    isAction = true,
-                    onClick = onAddWidget,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
-                )
-            }
-        }
-    }
-}
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TranslatorsCarousel(
+fun DesignVariantBento(
+    modifier: Modifier = Modifier,
+    availableThemes: List<HyperTheme>,
+    activeThemeId: String?,
+    savedWidgetCount: Int,
+    designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    onNavigateToThemes: () -> Unit,
+    onCreateTheme: () -> Unit,
+    onNavigateToWidgets: () -> Unit,
+    onAddWidget: () -> Unit,
+    onNavigateToDesigns: () -> Unit,
+    onAddDesign: () -> Unit,
     onNavigateToTranslators: () -> Unit,
-    onCreateTranslator: () -> Unit,
-    onEditTranslator: (String) -> Unit
+    onCreateTranslator: () -> Unit
 ) {
-    if (translators.isEmpty()) {
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Card(
-                onClick = onCreateTranslator,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier = Modifier.fillMaxWidth().height(160.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(Icons.Default.Extension, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.translators_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    } else {
-        val displayTranslators = translators.take(5)
-        val totalCount = displayTranslators.size + 1
-        val state = rememberCarouselState { totalCount }
+    val activeThemeName = availableThemes.find { it.id == activeThemeId }?.meta?.name
+    val activeDesignsCount = designs.count { it.isEnabled }
+    val activeTranslatorsCount = translators.count { it.isEnabled }
 
-        HorizontalMultiBrowseCarousel(
-            modifier = Modifier.fillMaxWidth(),
-            state = state,
-            preferredItemWidth = 160.dp,
-            itemSpacing = 8.dp,
-            contentPadding = PaddingValues(horizontal = 16.dp)
-        ) { i ->
-            if (i < displayTranslators.size) {
-                val item = displayTranslators[i]
-                TranslatorPreviewCard(
-                    title = item.meta.name,
-                    subtitle = when (item.targetScope) {
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> stringResource(R.string.translators_scope_global)
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, item.targetPackages.size)
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, item.targetPackages.size)
-                        com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, item.targetNotificationTypes.size)
-                    },
-                    iconName = item.meta.iconName,
-                    targetScope = item.targetScope,
-                    isActive = item.isEnabled,
-                    onClick = { onEditTranslator(item.id) },
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 48.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Row 1: Themes & Widgets
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_themes),
+                    status = activeThemeName ?: stringResource(R.string.design_card_themes_active_default),
+                    icon = Icons.Rounded.Palette,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    onCardClick = onNavigateToThemes,
+                    onActionClick = onCreateTheme
                 )
-            } else {
-                TranslatorPreviewCard(
-                    title = stringResource(R.string.design_browse_more),
-                    subtitle = "",
-                    iconName = null,
-                    isActive = false,
-                    isAction = true,
-                    onClick = onNavigateToTranslators,
-                    modifier = Modifier.maskClip(MaterialTheme.shapes.medium)
+
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_widgets),
+                    status = if (savedWidgetCount > 0) stringResource(R.string.design_card_widgets_saved, savedWidgetCount) else stringResource(R.string.design_card_widgets_empty),
+                    icon = Icons.Rounded.Widgets,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+                    iconColor = MaterialTheme.colorScheme.secondary,
+                    onCardClick = onNavigateToWidgets,
+                    onActionClick = onAddWidget
                 )
             }
+
+            // Row 2: Designs & Translators
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_designs),
+                    status = stringResource(R.string.design_status_active, activeDesignsCount),
+                    icon = Icons.Outlined.DashboardCustomize,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f),
+                    iconColor = MaterialTheme.colorScheme.tertiary,
+                    onCardClick = onNavigateToDesigns,
+                    onActionClick = onAddDesign
+                )
+
+                BentoCell(
+                    modifier = Modifier.weight(1f),
+                    title = stringResource(R.string.design_section_translators),
+                    status = stringResource(R.string.design_status_active, activeTranslatorsCount),
+                    icon = Icons.Default.Extension,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    iconColor = MaterialTheme.colorScheme.onSurface,
+                    onCardClick = onNavigateToTranslators,
+                    onActionClick = onCreateTranslator
+                )
+            }
+
+            // --- FEATURED SECTION ---
+            FeaturedSection(
+                onNavigateToThemes = onNavigateToThemes,
+                onNavigateToWidgets = onNavigateToWidgets,
+                onNavigateToDesigns = onNavigateToDesigns,
+                onNavigateToTranslators = onNavigateToTranslators
+            )
+
+            // --- GUIDES & DOCUMENTATION SECTION ---
+            GuidesSection()
         }
     }
 }
 
-@Composable
-fun TranslatorPreviewCard(
-    title: String,
-    subtitle: String,
-    iconName: String? = null,
-    targetScope: com.d4viddf.hyperbridge.models.translator.TargetScope? = null,
-    isActive: Boolean,
-    isAction: Boolean = false,
-    onClick: () -> Unit,
-    modifier: Modifier
-) {
-    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
+data class FeaturedCarouselItem(
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector,
+    val containerColor: Color,
+    val contentColor: Color,
+    val onClick: () -> Unit
+)
 
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .height(180.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeaturedSection(
+    modifier: Modifier = Modifier,
+    onNavigateToThemes: () -> Unit,
+    onNavigateToWidgets: () -> Unit,
+    onNavigateToDesigns: () -> Unit,
+    onNavigateToTranslators: () -> Unit
+) {
+    // TODO: In the future, clicking featured items will redirect to featured packs on the Hyper-Bridge.app website.
+    // The current internal navigation callbacks (onClick) are temporary placeholders.
+    val featuredItems = listOf(
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_themes_title),
+            subtitle = stringResource(R.string.design_featured_themes_subtitle),
+            icon = Icons.Rounded.Palette,
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            // TODO: Replace temporary onNavigateToThemes with redirect to featured themes pack on Hyper-Bridge.app website
+            onClick = onNavigateToThemes
+        ),
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_widgets_title),
+            subtitle = stringResource(R.string.design_featured_widgets_subtitle),
+            icon = Icons.Rounded.Widgets,
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            // TODO: Replace temporary onNavigateToWidgets with redirect to featured widgets pack on Hyper-Bridge.app website
+            onClick = onNavigateToWidgets
+        ),
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_designs_title),
+            subtitle = stringResource(R.string.design_featured_designs_subtitle),
+            icon = Icons.Outlined.DashboardCustomize,
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            // TODO: Replace temporary onNavigateToDesigns with redirect to featured interactive designs pack on Hyper-Bridge.app website
+            onClick = onNavigateToDesigns
+        ),
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_translators_title),
+            subtitle = stringResource(R.string.design_featured_translators_subtitle),
+            icon = Icons.Default.Extension,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            // TODO: Replace temporary onNavigateToTranslators with redirect to featured translators pack on Hyper-Bridge.app website
+            onClick = onNavigateToTranslators
+        )
+    )
+
+    val carouselState = rememberCarouselState { featuredItems.size }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        if (isAction) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(8.dp))
-                    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+        Text(
+            text = stringResource(R.string.design_section_featured),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        HorizontalCenteredHeroCarousel(
+            modifier = Modifier.fillMaxWidth(),
+            state = carouselState,
+            itemSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 0.dp)
+        ) { page ->
+            val item = featuredItems[page]
+            Card(
+                onClick = item.onClick,
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = item.containerColor),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(145.dp)
+                    .maskClip(RoundedCornerShape(24.dp))
             ) {
                 Box(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
                 ) {
-                    Surface(
-                        modifier = Modifier.size(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (isActive && targetScope != null) {
-                            when (targetScope) {
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.primaryContainer
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondaryContainer
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.errorContainer
-                                com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiaryContainer
-                            }
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        }
+                    // Decorative icon watermark in background
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = null,
+                        tint = item.contentColor.copy(alpha = 0.12f),
+                        modifier = Modifier
+                            .size(80.dp)
+                            .align(Alignment.BottomEnd)
+                            .offset(x = 10.dp, y = 10.dp)
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon(iconName),
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = if (isActive && targetScope != null) {
-                                    when (targetScope) {
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.GLOBAL -> MaterialTheme.colorScheme.onPrimaryContainer
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.onSecondaryContainer
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.onErrorContainer
-                                        com.d4viddf.hyperbridge.models.translator.TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.onTertiaryContainer
-                                    }
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                }
+                        Surface(
+                            modifier = Modifier.size(36.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = null,
+                                    tint = item.contentColor,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Column {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = item.contentColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = item.subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = item.contentColor.copy(alpha = 0.85f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+}
 
-                    if (isActive) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                                .padding(4.dp)
-                        ) {
-                            Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.onPrimaryContainer, CircleShape))
-                        }
+data class GuideItem(
+    val title: String,
+    val description: String,
+    val icon: ImageVector,
+    val url: String
+)
+
+@Composable
+private fun GuidesSection(
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = LocalUriHandler.current
+    val guides = listOf(
+        GuideItem(
+            title = stringResource(R.string.design_guide_theme_creator_title),
+            description = stringResource(R.string.design_guide_theme_creator_desc),
+            icon = Icons.Rounded.Palette,
+            url = DocumentationUrls.THEME_CREATOR_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_custom_translators_title),
+            description = stringResource(R.string.design_guide_custom_translators_desc),
+            icon = Icons.Default.Extension,
+            url = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_translators_spec_title),
+            description = stringResource(R.string.design_guide_translators_spec_desc),
+            icon = Icons.Rounded.Code,
+            url = DocumentationUrls.TRANSLATORS_SPEC_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_smart_actions_title),
+            description = stringResource(R.string.design_guide_smart_actions_desc),
+            icon = Icons.Rounded.TouchApp,
+            url = DocumentationUrls.SMART_ACTIONS_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_diagnostics_title),
+            description = stringResource(R.string.design_guide_diagnostics_desc),
+            icon = Icons.Rounded.BugReport,
+            url = DocumentationUrls.DIAGNOSTICS_DOCS
+        )
+    )
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.design_section_guides),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            guides.forEach { guide ->
+                GuideCard(
+                    guide = guide,
+                    onClick = { uriHandler.openUri(guide.url) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GuideCard(
+    guide: GuideItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = guide.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = guide.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = guide.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun BentoCell(
+    modifier: Modifier = Modifier,
+    title: String,
+    status: String,
+    icon: ImageVector,
+    containerColor: Color,
+    iconColor: Color,
+    onCardClick: () -> Unit,
+    onActionClick: () -> Unit
+) {
+    Card(
+        onClick = onCardClick,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        modifier = modifier.height(170.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Surface(
+                    modifier = Modifier.size(38.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = iconColor)
                     }
                 }
 
-                Column {
-                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                Surface(
+                    modifier = Modifier.size(32.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                    onClick = onActionClick
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp), tint = iconColor)
+                    }
                 }
+            }
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -680,6 +958,7 @@ fun TranslatorPreviewCard(
 // --- CARDS & COMPONENTS ---
 
 data class HeroItem(val title: String, val subtitle: String, val color: Color, val onClick: () -> Unit)
+
 @Composable
 fun HeroCard(item: HeroItem, modifier: Modifier = Modifier) {
     Card(
@@ -711,129 +990,6 @@ fun HeroCard(item: HeroItem, modifier: Modifier = Modifier) {
             ) {
                 Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text(item.subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
-
-@Composable
-fun ThemePreviewCard(
-    title: String,
-    subtitle: String,
-    color: Color,
-    isActive: Boolean,
-    icon: ImageVector,
-    customIcon: ImageBitmap? = null,
-    isAction: Boolean = false,
-    onClick: () -> Unit,
-    modifier: Modifier
-) {
-    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
-
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .height(180.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        if (isAction) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(icon, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(8.dp))
-                    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Box(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (customIcon != null) {
-                        Image(
-                            bitmap = customIcon,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(RoundedCornerShape(16.dp)), // [FIX] Rounded corners applied here
-                            contentScale = ContentScale.Crop // Ensure image fills the rounded box
-                        )
-                    } else {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = color
-                        )
-                    }
-
-                    if (isActive) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                                .padding(4.dp)
-                        ) {
-                            Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.onPrimaryContainer, CircleShape))
-                        }
-                    }
-                }
-
-                Column {
-                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun WidgetPreviewCard(
-    label: String,
-    icon: Drawable?,
-    isAction: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier
-) {
-    val containerColor = if (isAction) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
-
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .height(180.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        if (isAction) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.height(8.dp))
-                    Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                if (icon != null) {
-                    Image(
-                        bitmap = icon.toBitmap().asImageBitmap(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(64.dp)
-                    )
-                }
-                Spacer(Modifier.height(16.dp))
-                Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -874,18 +1030,11 @@ private fun DesignScreenPreview() {
         )
     )
 
-    val mockIcons = listOf(
-        android.graphics.Color.RED.toDrawable(),
-        android.graphics.Color.BLUE.toDrawable()
-    )
-
     MaterialTheme {
         DesignScreenContent(
             activeThemeId = "1",
             availableThemes = mockThemes,
-            themeIcons = emptyMap(),
             savedWidgetCount = 2,
-            widgetIcons = mockIcons,
             onNavigateToWidgets = {},
             onNavigateToThemes = {},
             onEditTheme = {},
@@ -902,14 +1051,44 @@ private fun DesignScreenEmptyPreview() {
         DesignScreenContent(
             activeThemeId = null,
             availableThemes = emptyList(),
-            themeIcons = emptyMap(),
             savedWidgetCount = 0,
-            widgetIcons = emptyList(),
             onNavigateToWidgets = {},
             onNavigateToThemes = {},
             onEditTheme = {},
             onFabClick = {},
             onSettingsClick = {}
+        )
+    }
+}
+
+
+
+@Preview(name = "Bento Grid", showBackground = true)
+@Composable
+private fun DesignVariantBentoPreview() {
+    val mockThemes = listOf(
+        HyperTheme(
+            id = "1",
+            meta = ThemeMetadata("Sunset Glow", "Alice", 1),
+            global = GlobalConfig(highlightColor = "#FF5722", backgroundColor = "#202124", textColor = "#FFFFFF", useAppColors = false, iconShapeId = "square", iconPaddingPercent = 15),
+            callConfig = CallModule(null, null, "#FF5722", "#D32F2F")
+        )
+    )
+    MaterialTheme {
+        DesignVariantBento(
+            availableThemes = mockThemes,
+            activeThemeId = "1",
+            savedWidgetCount = 4,
+            designs = emptyList(),
+            translators = emptyList(),
+            onNavigateToThemes = {},
+            onCreateTheme = {},
+            onNavigateToWidgets = {},
+            onAddWidget = {},
+            onNavigateToDesigns = {},
+            onAddDesign = {},
+            onNavigateToTranslators = {},
+            onCreateTranslator = {}
         )
     }
 }

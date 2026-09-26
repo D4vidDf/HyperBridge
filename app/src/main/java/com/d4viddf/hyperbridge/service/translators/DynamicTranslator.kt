@@ -13,6 +13,7 @@ import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.SmartAction
 import com.d4viddf.hyperbridge.models.SmartActionType
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import com.d4viddf.hyperbridge.models.translator.withResolvedTemplate
 import com.d4viddf.hyperbridge.models.translator.ActionMatchBy
 import com.d4viddf.hyperbridge.models.translator.ActionSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ActionSource
@@ -58,6 +59,11 @@ class DynamicTranslator(
         extractedConversationTitle: String? = null,
         callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null
     ): HyperIslandData {
+        // A TEMPLATE translator may only carry its templateId (imported .htrans, or one created
+        // straight from the gallery), so fill the slots from the template preset before building.
+        @Suppress("NAME_SHADOWING")
+        val customTranslator = customTranslator.withResolvedTemplate()
+
         val notif = sbn.notification
         val extras = notif.extras
 
