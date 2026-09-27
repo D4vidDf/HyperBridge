@@ -758,6 +758,7 @@
     <string name="screen_recording_done">Done recording.</string>
     <string name="screen_recording_stop">Stop</string>
     <string name="system_integrations">System</string>
+    <string name="apps_section_header">Apps</string>
     <string name="system_integration_enabled">Enabled</string>
     <string name="system_integration_disabled">Disabled</string>
     <string name="system_integration_unavailable">Not available on this device</string>
@@ -1537,16 +1538,28 @@
     <string name="design_featured_translators_subtitle">Intercept notifications with custom regex and rules</string>
 
     <string name="design_section_guides">Guides &amp; Documentation</string>
+    <string name="design_guide_customization_title">Customization Overview</string>
+    <string name="design_guide_customization_desc">Explore everything you can personalize and create in HyperBridge</string>
+    <string name="design_guide_design_hub_title">Design Hub</string>
+    <string name="design_guide_design_hub_desc">Browse, share, and import community themes, translators, and designs</string>
     <string name="design_guide_theme_creator_title">Theme Creator Guide</string>
     <string name="design_guide_theme_creator_desc">Learn how to create, test, and package themes for HyperBridge</string>
     <string name="design_guide_custom_translators_title">Custom Translators</string>
     <string name="design_guide_custom_translators_desc">Create interceptor rules for your favorite notification apps</string>
-    <string name="design_guide_translators_spec_title">Translators Specification</string>
-    <string name="design_guide_translators_spec_desc">Deep dive into JSON rules, matchers, regex, and actions</string>
+    <string name="design_guide_custom_designs_title">Custom Designs</string>
+    <string name="design_guide_custom_designs_desc">Craft custom island templates, boarding passes, and progress views</string>
+    <string name="design_guide_widgets_guide_title">Widgets Guide</string>
+    <string name="design_guide_widgets_guide_desc">Add interactive home screen and island widgets to your setup</string>
+    <string name="design_guide_system_apps_title">System Apps Integration</string>
+    <string name="design_guide_system_apps_desc">Bridge timer, recorder, screen recording, and system update notifications</string>
     <string name="design_guide_smart_actions_title">Smart Actions</string>
     <string name="design_guide_smart_actions_desc">Discover how button actions and notification callbacks operate</string>
-    <string name="design_guide_diagnostics_title">Diagnostics &amp; Troubleshooting</string>
-    <string name="design_guide_diagnostics_desc">Troubleshoot island display, permissions, and background services</string>
+    <string name="design_guide_permanent_island_title">Permanent Island</string>
+    <string name="design_guide_permanent_island_desc">Keep a persistent status bar island capsule always accessible</string>
+    <string name="design_guide_inline_reply_title">Inline Reply</string>
+    <string name="design_guide_inline_reply_desc">Reply directly to messaging notifications from the island shade</string>
+    <string name="design_guide_advanced_title">Advanced Configuration</string>
+    <string name="design_guide_advanced_desc">Power user settings, Shizuku integration, and troubleshooting</string>
 
     <string name="island_template_hint_copy">Copy</string>
     <string name="island_template_hint_view">View</string>
@@ -1569,14 +1582,7 @@
     <string name="design_add_opt_translator_title">Smart Translator</string>
     <string name="design_add_opt_translator_desc">Intercept notifications with custom regex rules and actions</string>
 
-    <!-- Design Manager Help Bottom Sheet -->
+    <!-- Reusable Feature Help / Guides Redirect -->
     <string name="design_manager_help_title">About Island Designs</string>
-    <string name="design_manager_help_subtitle">Overview and tips for managing island templates</string>
-    <string name="design_manager_help_what_title">What are Designs?</string>
-    <string name="design_manager_help_what_desc">Designs are visual layouts based on Xiaomi\'s official HyperOS island templates or system widgets that bring your notifications to life.</string>
-    <string name="design_manager_help_scope_title">Global vs. App-Specific</string>
-    <string name="design_manager_help_scope_desc">Global designs apply across all matching notifications. You can also configure app-specific designs or fine-tune exclusions inside each app\'s configuration.</string>
-    <string name="design_manager_help_view_modes_title">Preview Modes &amp; Actions</string>
-    <string name="design_manager_help_view_modes_desc">Toggle between live island previews and compact icon views using the top bar button. You can also import and export designs via .htrans files.</string>
-    <string name="design_manager_help_doc_btn">Custom Translators Guide</string>
+    <string name="feature_guides_redirect_desc">Detailed guides, tutorials, and documentation are available on our website to help you learn and customize this feature.</string>
 </resources>

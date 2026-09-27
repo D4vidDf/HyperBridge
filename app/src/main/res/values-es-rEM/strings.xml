@@ -438,6 +438,7 @@
     <string name="screen_recording_done">Grabación finalizada.</string>
     <string name="screen_recording_stop">Detener</string>
     <string name="system_integrations">Sistema</string>
+    <string name="apps_section_header">Aplicaciones</string>
     <string name="system_integration_enabled">Activado</string>
     <string name="system_integration_disabled">Desactivado</string>
     <string name="system_integration_unavailable">No disponible en este dispositivo</string>
@@ -814,4 +815,5 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland activado para todas las apps de la lista</string>
     <string name="auto_add_new_apps_title">Añadir apps nuevas</string>
     <string name="auto_add_new_apps_desc">Vincular automáticamente las aplicaciones recién instaladas</string>
+    <string name="feature_guides_redirect_desc">En nuestro sitio web encontrarás guías detalladas, tutoriales y documentación para ayudarte a aprender y personalizar esta función.</string>
 </resources>

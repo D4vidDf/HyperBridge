@@ -255,6 +255,17 @@ fun LibraryPage(
                                     }
                                 }
                             }
+                            if (hasSystemContent && apps.isNotEmpty()) {
+                                item(key = "apps_header") {
+                                    Text(
+                                        text = stringResource(R.string.apps_section_header),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                                    )
+                                }
+                            }
                             items(apps, key = { it.packageName }) { app ->
                                 Column(modifier = Modifier.animateItem()) {
                                     AppListItem(

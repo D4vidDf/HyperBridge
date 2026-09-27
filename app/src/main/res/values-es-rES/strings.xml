@@ -381,6 +381,9 @@
     <string name="design_hero_community_subtitle">Únete a nuestro GitHub</string>
     <string name="design_section_themes">Temas</string>
     <string name="design_section_widgets">Widgets</string>
+    <string name="design_section_templates">Plantillas de Isla</string>
+    <string name="design_create_template">Crear Plantilla de Isla</string>
+    <string name="design_empty_template_title">Diseña tu primera plantilla de isla</string>
     <string name="design_browse_more">Ver más</string>
     <string name="design_add_new">Añadir nuevo</string>
     <string name="design_add_design">Añadir diseño</string>
@@ -620,6 +623,7 @@
     <string name="screen_recording_done">Grabación finalizada.</string>
     <string name="screen_recording_stop">Detener</string>
     <string name="system_integrations">Sistema</string>
+    <string name="apps_section_header">Aplicaciones</string>
     <string name="system_integration_enabled">Activado</string>
     <string name="system_integration_disabled">Desactivado</string>
     <string name="system_integration_unavailable">No disponible en este dispositivo</string>
@@ -700,6 +704,7 @@
     <string name="finish_notification_setup_desc">Revisa los banners flotantes nativos de tus apps seleccionadas. Esto es opcional y puedes volver a consultarlo.</string>
     <string name="floating_setup_onboarding_title">Evitar banners flotantes duplicados</string>
     <string name="floating_setup_onboarding_desc">Tras seleccionar las apps, HyperBridge puede llevarte directamente a los ajustes de notificaciones de cada app. Este paso opcional no requiere root, Shizuku ni ADB.</string>
+    <string name="floating_setup_settings_subtitle">Evita banners nativos duplicados para las apps seleccionadas</string>
 
     <!-- Diagnostics -->
     <string name="diagnostics_title">Diagnóstico</string>
@@ -752,6 +757,15 @@
     <string name="diagnostic_floating_review_desc">Apps que necesitan desactivar su banner flotante nativo</string>
     <string name="diagnostic_pending_count">%1$d pendientes</string>
     <string name="diagnostic_reason_prefix">Motivo: %1$s</string>
+    <string name="diagnostic_last_custom_translator">Último traductor personalizado</string>
+    <string name="diagnostic_last_custom_translator_desc">Último traductor personalizado aplicado</string>
+    <string name="bug_report_include_custom_translators">Incluir traductores personalizados</string>
+    <string name="bug_report_include_custom_translators_desc">Configuración saneada de los traductores personalizados instalados</string>
+    <string name="diagnostic_restricted_settings">Permisos restringidos</string>
+    <string name="diagnostic_restricted_settings_desc">Acceso a ajustes restringidos de Android 13+ para apps descargadas</string>
+    <string name="diagnostic_restricted_allowed">Permitido</string>
+    <string name="diagnostic_restricted_blocked">Restringido</string>
+    <string name="diagnostic_reconnecting_toast">Reconectando servicio…</string>
     <!-- App Configuration Screen -->
     <string name="app_config_title">Configuración de la app</string>
     <string name="app_config_subtitle">Comportamientos, widgets y extensiones</string>
@@ -761,6 +775,20 @@
     <string name="custom_translators_title">Traductores personalizados</string>
     <string name="custom_translators_badge">PRÓXIMAMENTE</string>
     <string name="custom_translators_desc">Crea e instala traductores personalizados de la comunidad para formatear y controlar los datos de notificaciones de esta app.</string>
+
+    <!-- App Custom Designs Management Section -->
+    <string name="app_designs_subtitle">%1$d activos</string>
+    <string name="app_designs_section_desc">Activa o desactiva los diseños de isla para esta aplicación. Los diseños globales también se pueden alternar específicamente para esta app.</string>
+    <string name="app_designs_empty_title">Sin diseños para esta app</string>
+    <string name="app_designs_empty_desc">No hay diseños globales o específicos disponibles. Añade un nuevo diseño o explora plantillas en el Administrador de diseños.</string>
+    <string name="app_designs_add_design">Añadir diseño</string>
+    <string name="app_designs_search_hint">Buscar diseños…</string>
+    <string name="app_designs_filter_all">Todos</string>
+    <string name="app_designs_filter_active">Activos</string>
+    <string name="app_designs_filter_inactive">Inactivos</string>
+    <string name="app_designs_filter_global">Globales</string>
+    <string name="app_designs_filter_app_specific">Específicos de la app</string>
+    <string name="app_designs_no_results">Ningún diseño coincide con tu búsqueda o filtro</string>
     <string name="app_widgets_section_title">Widgets de la Isla</string>
     <string name="app_widgets_section_desc">Configura widgets de esta app para mostrarlos como Hyper Islands.</string>
     <string name="add_island_widget">Añadir widget</string>
@@ -856,6 +884,26 @@
     <string name="translators_scope_apps">%1$d apps seleccionadas</string>
     <string name="translators_scope_system_apps">%1$d apps del sistema</string>
     <string name="translators_scope_types">%1$d tipos seleccionados</string>
+
+    <string name="translators_filter_btn">Filtros</string>
+    <string name="translators_filter_sheet_title">Filtrar traductores</string>
+    <string name="translators_filter_sheet_desc">Filtra traductores personalizados por estado, alcance, tipos de notificación o iconos</string>
+    <string name="translators_filter_status_section">Estado y Alcance</string>
+    <string name="translators_filter_types_section">Tipos de notificación</string>
+    <string name="translators_filter_apps_section">Apps objetivo</string>
+    <string name="translators_filter_creators_section">Creador</string>
+    <string name="translators_filter_icons_section">Iconos</string>
+    <string name="translators_filter_reset">Restablecer filtros</string>
+    <string name="translators_filter_apply">Aplicar</string>
+
+    <string name="translator_meta_icon_title">Icono del traductor</string>
+    <string name="translator_meta_icon_desc">Selecciona un icono para identificar fácilmente este traductor</string>
+    <string name="translator_meta_priority_title">Prioridad de ejecución</string>
+    <string name="translator_meta_priority_desc">Cuando varios traductores coinciden con una notificación, se evalúa primero el de mayor prioridad.</string>
+    <string name="translator_priority_preset_low">50 (Baja)</string>
+    <string name="translator_priority_preset_default">100 (Predeterminada)</string>
+    <string name="translator_priority_preset_high">200 (Alta)</string>
+    <string name="translator_priority_preset_urgent">500 (Urgente)</string>
 
     <!-- Translator Visual Editor -->
     <string name="translator_editor_title_new">Nuevo traductor</string>
@@ -1281,29 +1329,141 @@
     <string name="design_featured_translators_subtitle">Intercepta notificaciones con reglas y regex</string>
 
     <string name="design_section_guides">Guías y Documentación</string>
+    <string name="design_guide_customization_title">Resumen de Personalización</string>
+    <string name="design_guide_customization_desc">Descubre todo lo que puedes personalizar y crear en HyperBridge</string>
+    <string name="design_guide_design_hub_title">Centro de Diseños</string>
+    <string name="design_guide_design_hub_desc">Explora, comparte e importa temas, traductores y diseños de la comunidad</string>
     <string name="design_guide_theme_creator_title">Guía del Creador de Temas</string>
     <string name="design_guide_theme_creator_desc">Aprende a crear, probar y empaquetar temas para HyperBridge</string>
     <string name="design_guide_custom_translators_title">Traductores Personalizados</string>
     <string name="design_guide_custom_translators_desc">Crea reglas de intercepción para tus apps de notificaciones</string>
-    <string name="design_guide_translators_spec_title">Especificación de Traductores</string>
-    <string name="design_guide_translators_spec_desc">Guía detallada sobre reglas JSON, patrones regex y acciones</string>
+    <string name="design_guide_custom_designs_title">Diseños Personalizados</string>
+    <string name="design_guide_custom_designs_desc">Crea plantillas personalizadas, tarjetas de embarque y vistas de progreso</string>
+    <string name="design_guide_widgets_guide_title">Guía de Widgets</string>
+    <string name="design_guide_widgets_guide_desc">Añade widgets interactivos a la pantalla de inicio y a la isla</string>
+    <string name="design_guide_system_apps_title">Integración con Apps del Sistema</string>
+    <string name="design_guide_system_apps_desc">Conecta temporizador, grabadora, grabación de pantalla y actualizaciones</string>
     <string name="design_guide_smart_actions_title">Acciones Inteligentes</string>
     <string name="design_guide_smart_actions_desc">Descubre cómo funcionan los botones y acciones en la isla</string>
-    <string name="design_guide_diagnostics_title">Diagnóstico y Solución de Problemas</string>
-    <string name="design_guide_diagnostics_desc">Soluciona problemas de visualización, permisos y servicios en segundo plano</string>
+    <string name="design_guide_permanent_island_title">Isla Permanente</string>
+    <string name="design_guide_permanent_island_desc">Mantén una cápsula persistente en la barra de estado siempre accesible</string>
+    <string name="design_guide_inline_reply_title">Respuesta Rápida</string>
+    <string name="design_guide_inline_reply_desc">Responde a notificaciones de mensajería directamente desde la isla</string>
+    <string name="design_guide_advanced_title">Configuración Avanzada</string>
+    <string name="design_guide_advanced_desc">Ajustes avanzados, integración con Shizuku y solución de problemas</string>
 
     <string name="island_template_hint_copy">Copiar</string>
     <string name="island_template_hint_view">Ver</string>
     <string name="island_template_hint_track">Seguir</string>
 
-    <!-- Design Manager Help Bottom Sheet -->
+    <!-- Priority & Icon Sheet Strings -->
+    <string name="translator_icon_sheet_title">Seleccionar icono del traductor</string>
+    <string name="translator_icon_sheet_desc">Elige un icono que represente el estilo de la notificación</string>
+    <string name="translator_priority_sheet_title">Prioridad de ejecución</string>
+    <string name="translator_priority_card_subtitle">Determina el orden de evaluación entre traductores</string>
+    <string name="translator_priority_sheet_desc">Cuando las notificaciones entrantes coinciden con varias reglas de traductor, se elige y ejecuta primero la regla de mayor prioridad.</string>
+    <string name="translator_priority_input_label">Número de prioridad (0 - 9999)</string>
+    <string name="translator_priority_guide_title">Cómo funciona la prioridad</string>
+    <string name="translator_priority_guide_p1">• Las reglas de mayor prioridad (ej. 500) se ejecutan antes que las de menor prioridad (ej. 50).</string>
+    <string name="translator_priority_guide_p2">• Las reglas personalizadas tienen una prioridad predeterminada de 100.</string>
+    <string name="translator_priority_guide_p3">• Usa valores altos (200-500) para notificaciones críticas como llamadas o viajes en curso que deben tener preferencia.</string>
+
+    <!-- Import / Export / Sharing Strings -->
+    <string name="translators_import_button">Importar</string>
+    <string name="translators_export_button">Exportar</string>
+    <string name="translators_share_button">Compartir</string>
+    <string name="translators_import_success">Traductor "%1$s" importado con éxito</string>
+    <string name="translators_import_failed">Error al importar traductor: %1$s</string>
+    <string name="translators_export_success">Traductor exportado con éxito</string>
+    <string name="translators_export_failed">Error al exportar traductor</string>
+    <string name="translators_share_failed">Error al compartir traductor</string>
+
+    <!-- Raw Param V2 Strings -->
+    <string name="translator_raw_param_badge">Param V2 sin procesar para desarrolladores</string>
+    <string name="translator_raw_param_banner_title">Plantilla de isla JSON directa</string>
+    <string name="translator_raw_param_banner_desc">Este traductor utiliza una estructura param_v2 sin procesar definida por el desarrollador con variables y acciones personalizadas. El diseño, la píldora compacta, el progreso y las acciones se gestionan dentro de la plantilla sin procesar.</string>
+
+    <!-- Island Templates (Phase 4, #272) -->
+    <string name="island_template_boarding">Plantilla 9: Tarjeta de embarque</string>
+    <string name="island_template_courier">Plantilla 10: Seguimiento de paquetería</string>
+
+    <string name="island_template_desc_weather_nav">Indicaciones paso a paso o alerta meteorológica, con el siguiente paso resaltado.</string>
+    <string name="island_template_desc_payment">Un pago o código de un solo uso, con el código extraído y botón de copiar.</string>
+    <string name="island_template_desc_call">Avatar del remitente con botones para responder y colgar de la notificación.</string>
+    <string name="island_template_desc_delivery">Un viaje o pedido de comida avanzando por sus puntos de ruta.</string>
+    <string name="island_template_desc_queue">Tu lugar en una cola y el tiempo restante estimado.</string>
+    <string name="island_template_desc_parking">Una sesión de aparcamiento o carga con contador progresivo.</string>
+    <string name="island_template_desc_transfer">Una subida o descarga con barra de porcentaje.</string>
+    <string name="island_template_desc_promo">Un cupón u oferta, con botón para abrirlo.</string>
+    <string name="island_template_desc_boarding">Puerta, asiento y hora de embarque, manteniendo la acción de la aerolínea.</string>
+    <string name="island_template_desc_courier">Un paquete avanzando en su entrega, con botón de seguimiento.</string>
+    <string name="island_template_desc_media">Isla compacta en reproducción para notificaciones multimedia.</string>
+
+    <string name="island_template_sample_weather_nav_title">Gira a la derecha hacia Gran Vía</string>
+    <string name="island_template_sample_weather_nav_text">450 m · 12 min para llegar</string>
+    <string name="island_template_sample_weather_nav_highlight">450 m</string>
+    <string name="island_template_sample_payment_title">Tu código de verificación</string>
+    <string name="island_template_sample_payment_text">Nunca compartas este código con nadie</string>
+    <string name="island_template_sample_payment_highlight">418 302</string>
+    <string name="island_template_sample_call_title">Alex Moreno</string>
+    <string name="island_template_sample_call_text">Llamada entrante</string>
+    <string name="island_template_sample_delivery_title">Tu pedido está en camino</string>
+    <string name="island_template_sample_delivery_text">Recogido · a 2 paradas</string>
+    <string name="island_template_sample_delivery_highlight">8 min</string>
+    <string name="island_template_sample_queue_title">Mesa para dos</string>
+    <string name="island_template_sample_queue_text">3 grupos antes que tú</string>
+    <string name="island_template_sample_queue_highlight">~15 min</string>
+    <string name="island_template_sample_parking_title">Aparcamiento · Planta 2</string>
+    <string name="island_template_sample_parking_text">Plaza 114 · 2,40 € hasta ahora</string>
+    <string name="island_template_sample_transfer_title">vacaciones-2026.zip</string>
+    <string name="island_template_sample_transfer_text">Descargando · 128 MB de 200 MB</string>
+    <string name="island_template_sample_promo_title">Ahorra 15 € en tu próximo pedido</string>
+    <string name="island_template_sample_promo_text">Termina esta noche a medianoche</string>
+    <string name="island_template_sample_promo_highlight">HYPER15</string>
+    <string name="island_template_sample_boarding_title">IB3721 a Barcelona</string>
+    <string name="island_template_sample_boarding_text">Puerta B14 · Asiento 12A</string>
+    <string name="island_template_sample_boarding_highlight">Embarque 18:40</string>
+    <string name="island_template_sample_courier_title">Paquete en reparto</string>
+    <string name="island_template_sample_courier_text">Salió del centro logístico</string>
+    <string name="island_template_sample_courier_highlight">Hoy</string>
+    <string name="island_template_sample_media_title">Never Gonna Give You Up</string>
+    <string name="island_template_sample_media_text">Rick Astley</string>
+
+    <string name="island_template_badge_progress">Progreso</string>
+    <string name="island_template_badge_actions">Botones</string>
+
+    <string name="design_section_designs">Diseños</string>
+    <string name="design_designs_empty_title">Aún no hay diseños</string>
+    <string name="design_designs_empty_subtitle">Empieza con una de las diez plantillas de isla de Xiaomi</string>
+    <string name="design_add_design_title">Añadir un diseño</string>
+    <string name="design_add_from_template">Desde una plantilla</string>
+    <string name="design_add_from_template_desc">Elige una de las diez plantillas de isla oficiales</string>
+    <string name="design_add_custom">Diseño personalizado</string>
+    <string name="design_add_custom_desc">Crea una isla elemento por elemento (próximamente con Widget Studio)</string>
+    <string name="design_template_gallery_title">Elige una plantilla</string>
+    <string name="design_template_type_title">¿Cuándo debería mostrarse?</string>
+    <string name="design_template_type_desc">Elige el tipo de notificación al que se aplica este diseño. Puedes añadir condiciones de coincidencia más adelante desde el editor de traductores.</string>
+    <string name="design_design_created">Diseño añadido</string>
+    <string name="translator_pres_template_gallery_desc">Elige un diseño y vincula cada elemento a la notificación abajo.</string>
+
+    <!-- App Designs Filter Sheet Strings -->
+    <string name="app_designs_filter_sheet_title">Filtrar diseños</string>
+    <string name="app_designs_filter_sheet_desc">Filtra diseños personalizados por estado, alcance, tipos de notificación, plantillas o iconos</string>
+    <string name="app_designs_filter_templates_section">Plantillas</string>
+
+    <!-- Design Screen Add Options Bottom Sheet -->
+    <string name="design_add_sheet_title">Añadir a la Isla</string>
+    <string name="design_add_sheet_subtitle">Selecciona lo que te gustaría crear o añadir</string>
+    <string name="design_add_opt_design_title">Diseño personalizado</string>
+    <string name="design_add_opt_design_desc">Construye a partir de plantillas oficiales de Xiaomi o un diseño personalizado</string>
+    <string name="design_add_opt_widget_title">Widget del sistema</string>
+    <string name="design_add_opt_widget_desc">Inserta widgets nativos de aplicaciones directamente en la isla</string>
+    <string name="design_add_opt_theme_title">Temas y Estilos</string>
+    <string name="design_add_opt_theme_desc">Explora, crea y personaliza colores y formas</string>
+    <string name="design_add_opt_translator_title">Traductor inteligente</string>
+    <string name="design_add_opt_translator_desc">Intercepta notificaciones con reglas regex personalizadas y acciones</string>
+
+    <!-- Reusable Feature Help / Guides Redirect -->
     <string name="design_manager_help_title">Acerca de los Diseños de Isla</string>
-    <string name="design_manager_help_subtitle">Información y consejos para gestionar plantillas de isla</string>
-    <string name="design_manager_help_what_title">¿Qué son los Diseños?</string>
-    <string name="design_manager_help_what_desc">Los diseños son estructuras visuales basadas en las plantillas oficiales de HyperOS de Xiaomi o widgets del sistema que dan vida a tus notificaciones.</string>
-    <string name="design_manager_help_scope_title">Globales vs. Específicos por App</string>
-    <string name="design_manager_help_scope_desc">Los diseños globales se aplican a todas las notificaciones coincidentes. También puedes crear diseños específicos por aplicación o configurar exclusiones en los ajustes de cada app.</string>
-    <string name="design_manager_help_view_modes_title">Modos de Vista y Acciones</string>
-    <string name="design_manager_help_view_modes_desc">Alterna entre vistas previas de la isla e iconos compactos usando el botón de la barra superior. Además puedes importar y exportar diseños en archivos .htrans.</string>
-    <string name="design_manager_help_doc_btn">Guía de Traductores Personalizados</string>
+    <string name="feature_guides_redirect_desc">En nuestro sitio web encontrarás guías detalladas, tutoriales y documentación para ayudarte a aprender y personalizar esta función.</string>
 </resources>

@@ -27,15 +27,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Hub
+import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.ViewQuilt
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -763,6 +770,18 @@ private fun GuidesSection(
     val uriHandler = LocalUriHandler.current
     val guides = listOf(
         GuideItem(
+            title = stringResource(R.string.design_guide_customization_title),
+            description = stringResource(R.string.design_guide_customization_desc),
+            icon = Icons.Rounded.Tune,
+            url = DocumentationUrls.CUSTOMIZATION_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_design_hub_title),
+            description = stringResource(R.string.design_guide_design_hub_desc),
+            icon = Icons.Rounded.Hub,
+            url = DocumentationUrls.DESIGN_HUB_DOCS
+        ),
+        GuideItem(
             title = stringResource(R.string.design_guide_theme_creator_title),
             description = stringResource(R.string.design_guide_theme_creator_desc),
             icon = Icons.Rounded.Palette,
@@ -775,10 +794,22 @@ private fun GuidesSection(
             url = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS
         ),
         GuideItem(
-            title = stringResource(R.string.design_guide_translators_spec_title),
-            description = stringResource(R.string.design_guide_translators_spec_desc),
-            icon = Icons.Rounded.Code,
-            url = DocumentationUrls.TRANSLATORS_SPEC_DOCS
+            title = stringResource(R.string.design_guide_custom_designs_title),
+            description = stringResource(R.string.design_guide_custom_designs_desc),
+            icon = Icons.Rounded.Layers,
+            url = DocumentationUrls.CUSTOM_DESIGNS_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_widgets_guide_title),
+            description = stringResource(R.string.design_guide_widgets_guide_desc),
+            icon = Icons.Rounded.Widgets,
+            url = DocumentationUrls.WIDGETS_GUIDE_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_system_apps_title),
+            description = stringResource(R.string.design_guide_system_apps_desc),
+            icon = Icons.Rounded.Android,
+            url = DocumentationUrls.SYSTEM_APPS_DOCS
         ),
         GuideItem(
             title = stringResource(R.string.design_guide_smart_actions_title),
@@ -787,10 +818,22 @@ private fun GuidesSection(
             url = DocumentationUrls.SMART_ACTIONS_DOCS
         ),
         GuideItem(
-            title = stringResource(R.string.design_guide_diagnostics_title),
-            description = stringResource(R.string.design_guide_diagnostics_desc),
-            icon = Icons.Rounded.BugReport,
-            url = DocumentationUrls.DIAGNOSTICS_DOCS
+            title = stringResource(R.string.design_guide_permanent_island_title),
+            description = stringResource(R.string.design_guide_permanent_island_desc),
+            icon = Icons.Rounded.PushPin,
+            url = DocumentationUrls.PERMANENT_ISLAND_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_inline_reply_title),
+            description = stringResource(R.string.design_guide_inline_reply_desc),
+            icon = Icons.AutoMirrored.Rounded.Reply,
+            url = DocumentationUrls.INLINE_REPLY_DOCS
+        ),
+        GuideItem(
+            title = stringResource(R.string.design_guide_advanced_title),
+            description = stringResource(R.string.design_guide_advanced_desc),
+            icon = Icons.Rounded.Settings,
+            url = DocumentationUrls.ADVANCED_DOCS
         )
     )
 
