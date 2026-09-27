@@ -31,13 +31,11 @@ import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.BugReport
-import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Widgets
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +44,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -257,7 +254,7 @@ fun DesignScreen(
                 ) {
                     // 1. Custom Design
                     AddIslandOptionCard(
-                        title = stringResource(R.string.design_add_opt_design_title),
+                        title = stringResource(R.string.custom_design_title),
                         description = stringResource(R.string.design_add_opt_design_desc),
                         icon = Icons.Outlined.DashboardCustomize,
                         iconContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -631,7 +628,7 @@ private fun FeaturedSection(
             onClick = onNavigateToThemes
         ),
         FeaturedCarouselItem(
-            title = stringResource(R.string.design_featured_widgets_title),
+            title = stringResource(R.string.app_widgets_section_title),
             subtitle = stringResource(R.string.design_featured_widgets_subtitle),
             icon = Icons.Rounded.Widgets,
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
@@ -763,34 +760,22 @@ private fun GuidesSection(
     val uriHandler = LocalUriHandler.current
     val guides = listOf(
         GuideItem(
-            title = stringResource(R.string.design_guide_theme_creator_title),
-            description = stringResource(R.string.design_guide_theme_creator_desc),
-            icon = Icons.Rounded.Palette,
-            url = DocumentationUrls.THEME_CREATOR_DOCS
+            title = stringResource(R.string.design_hero_customization_title),
+            description = stringResource(R.string.design_guide_customization_desc),
+            icon = Icons.Rounded.Tune,
+            url = DocumentationUrls.CUSTOMIZATION_DOCS
         ),
         GuideItem(
-            title = stringResource(R.string.design_guide_custom_translators_title),
-            description = stringResource(R.string.design_guide_custom_translators_desc),
-            icon = Icons.Default.Extension,
-            url = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS
+            title = stringResource(R.string.design_guide_features_title),
+            description = stringResource(R.string.design_guide_features_desc),
+            icon = Icons.Rounded.Android,
+            url = DocumentationUrls.FEATURES_DOCS
         ),
         GuideItem(
-            title = stringResource(R.string.design_guide_translators_spec_title),
-            description = stringResource(R.string.design_guide_translators_spec_desc),
-            icon = Icons.Rounded.Code,
-            url = DocumentationUrls.TRANSLATORS_SPEC_DOCS
-        ),
-        GuideItem(
-            title = stringResource(R.string.design_guide_smart_actions_title),
-            description = stringResource(R.string.design_guide_smart_actions_desc),
-            icon = Icons.Rounded.TouchApp,
-            url = DocumentationUrls.SMART_ACTIONS_DOCS
-        ),
-        GuideItem(
-            title = stringResource(R.string.design_guide_diagnostics_title),
-            description = stringResource(R.string.design_guide_diagnostics_desc),
-            icon = Icons.Rounded.BugReport,
-            url = DocumentationUrls.DIAGNOSTICS_DOCS
+            title = stringResource(R.string.design_guide_advanced_title),
+            description = stringResource(R.string.design_guide_advanced_desc),
+            icon = Icons.Rounded.Settings,
+            url = DocumentationUrls.ADVANCED_DOCS
         )
     )
 
@@ -799,7 +784,7 @@ private fun GuidesSection(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = stringResource(R.string.design_section_guides),
+            text = stringResource(R.string.documentation_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface

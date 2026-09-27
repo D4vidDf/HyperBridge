@@ -210,7 +210,7 @@ private fun IconsAssetsTab(onStageAsset: (String, Uri) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Column {
-            Text(stringResource(R.string.icons_group_nav), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.cat_nav), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(

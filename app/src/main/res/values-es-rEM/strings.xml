@@ -14,19 +14,19 @@
     <string name="welcome_subtitle">Integra HyperIslands perfectamente en tu experiencia HyperOS.</string>
     <string name="get_started">Empezar</string>
     <string name="how_it_works">Cómo funciona</string>
-    <string name="how_it_works_desc">Selecciona tus aplicaciones favoritas (Spotify, Maps, Timer). Hyper Bridge transforma sus notificaciones en una elegante HyperIsland.</string>
-    <string name="beta_warning">Nota: Esta app está en Beta. Puedes encontrar errores o información visual incorrecta.</string>
+    <string name="how_it_works_desc">Transforma las notificaciones de tus apps favoritas en islas interactivas de HyperOS.</string>
+    <string name="beta_warning">Versión beta. Puedes encontrar errores ocasionales o fallos visuales.</string>
     <string name="device_compatible">Dispositivo Compatible</string>
     <string name="unsupported_device">Dispositivo No Soportado</string>
-    <string name="compatible_msg">Tu dispositivo parece ejecutar HyperOS/MIUI. ¡Todo listo!</string>
+    <string name="compatible_msg">HyperOS/MIUI detectado. Dispositivo compatible.</string>
     <string name="show_island">Mostrar Isla</string>
-    <string name="perm_post_desc">Necesitamos permiso para mostrar la notificación \'Isla\' en tu pantalla.</string>
+    <string name="perm_post_desc">Requerido para mostrar notificaciones de Isla en tu pantalla.</string>
     <string name="perm_granted">Permiso Concedido</string>
     <string name="allow_notifications">Permitir Notificaciones</string>
     <string name="read_data">Leer Datos</string>
-    <string name="perm_listener_desc">Para conectar tus aplicaciones, necesitamos leer sus notificaciones (Música, Mapas, Temporizadores).</string>
+    <string name="perm_listener_desc">Requerido para leer eventos de notificación de las apps vinculadas.</string>
     <string name="open_settings">Abrir Ajustes</string>
-    <string name="optimization_desc">HyperOS cierra aplicaciones en segundo plano. Habilita el Inicio Automático y Sin Restricciones para mantener la isla activa.</string>
+    <string name="optimization_desc">Activa Inicio automático y ajusta el Ahorro de batería a Sin restricciones.</string>
     <string name="enable_autostart">1. Activar Inicio Automático</string>
     <string name="set_battery_no_restrictions">2. Batería \'Sin Restricciones\'</string>
     <string name="tab_active">Activos</string>
@@ -48,7 +48,6 @@
     <string name="licenses">Licencias Open Source</string>
     <string name="licenses_subtitle">Software de terceros</string>
     <string name="footer_made_with_love">Hecho con ❤️ en España</string>
-    <string name="app_health_desc">Asegúrate de que todo esté en verde para que la aplicación funcione correctamente en segundo plano.</string>
     <string name="req_permissions">Permisos Requeridos</string>
     <string name="notif_access">Acceso a Notificaciones</string>
     <string name="notif_access_desc">Necesario para leer eventos</string>
@@ -58,7 +57,6 @@
     <string name="battery_desc">Evita que el sistema cierre la aplicación</string>
     <string name="recents_note">Nota: Bloquea también la aplicación en el menú de \'Recientes\'.</string>
     <string name="status_active">Activo</string>
-    <string name="cat_all">Todas</string>
     <string name="cat_music">Música</string>
     <string name="cat_nav">Navegación</string>
     <string name="cat_timer">Productividad</string>
@@ -107,7 +105,7 @@
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
-    <string name="setting_shade_desc">Keep the notification visible in the notification panel. If disabled, it only appears as an Island.</string>
+    <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificaciones junto a la isla.</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar valores globales</string>
     <string-array name="nav_arrival_keywords">
@@ -121,7 +119,7 @@
     <string name="title_0_2_0">La Actualización de Información</string>
     <string name="title_0_1_0">La Actualización Expresiva</string>
     <string name="priority_edu_title">Nuevo: Controla la Isla</string>
-    <string name="priority_edu_desc">Hyper Bridge ahora gestiona cómo se comportan múltiples notificaciones cuando se alcanza el límite de 9.\n\n<b>Por Defecto: Más Reciente</b>\nLas nuevas notificaciones reemplazan a las más antiguas automáticamente.</string>
+    <string name="priority_edu_desc">Define el comportamiento de la isla cuando llegan varias notificaciones al mismo tiempo.</string>
     <string name="badge_new">NUEVO</string>
     <string name="nav_layout_title">Diseño de Navegación</string>
     <string name="nav_layout_desc">Elige dónde aparece la información</string>
@@ -136,15 +134,12 @@
     <string name="cd_enable_type">Activar notificaciones de %s</string>
     <string name="cd_disable_type">Desactivar notificaciones de %s</string>
     <string name="cd_nav_edit">Editar diseño de navegación</string>
-    <string name="cd_app_state_active">Activo</string>
     <string name="cd_app_state_inactive">Inactivo</string>
     <string name="cd_move_up">Mover hacia arriba</string>
     <string name="cd_move_down">Mover hacia abajo</string>
     <string name="cd_drag_handle">Control de arrastre. Toca dos veces y mantén pulsado para reordenar, o usa las acciones para mover.</string>
     <string name="cd_app_icon">Icono de la aplicación %s</string>
     <string name="cd_nav_preview">Vista previa de navegación: %1$s a la izquierda, %2$s a la derecha</string>
-    <string name="cd_expand_changelog">Expandir detalles de la versión</string>
-    <string name="cd_collapse_changelog">Contraer detalles de la versión</string>
     <string name="nav_preview_instruction">Girar a la derecha</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
@@ -167,7 +162,7 @@
     <string name="req_hyperos">Requiere HyperOS 3.0+ (Android 15+)</string>
     <string name="req_xiaomi">Se requiere dispositivo Xiaomi/Redmi/Poco</string>
     <string name="warning_cn_rom_title">ROM China Detectada</string>
-    <string name="warning_cn_rom_desc">Tu dispositivo parece ejecutar un firmware chino. Xiaomi modifica drásticamente las notificaciones en estas ROMs. Las funciones podrían ser inestables o no funcionar.</string>
+    <string name="warning_cn_rom_desc">Firmware chino detectado. El control de notificaciones difiere notablemente y puede ser inestable.</string>
     <string name="system_version">Versión del Sistema</string>
     <string name="call_incoming">Llamada Entrante</string>
     <string name="call_ongoing">Llamada en Curso</string>
@@ -199,7 +194,7 @@
     </string-array>
     <string name="title_0_3_0">La Actualización Global</string>
     <string name="privacy_title">100% Offline y Seguro</string>
-    <string name="privacy_desc">Hyper Bridge procesa todo directamente en el procesador de tu teléfono.\n\nNO requiere acceso a internet, lo que significa que tus notificaciones y datos personales nunca salen de tu dispositivo.</string>
+    <string name="privacy_desc">Procesado localmente en el dispositivo sin acceso a internet. Tus datos nunca salen de tu teléfono.</string>
     <string name="language">Idioma</string>
     <string name="language_desc">Cambiar idioma de la aplicación</string>
     <string name="system_default">Predeterminado del sistema</string>
@@ -219,7 +214,7 @@
     <string name="export_failed">Error al exportar: %s</string>
     <string name="import_success">Datos restaurados correctamente</string>
     <string name="import_failed">Error al importar: %s</string>
-    <string name="autostart_manual_check">El estado no se puede verificar automáticamente.\nPor favor, comprueba manualmente para asegurar que el servicio funciona correctamente.</string>
+    <string name="autostart_manual_check">Comprueba el Inicio automático manualmente en los ajustes del sistema.</string>
     <string name="backup_info_title">Información de la Copia</string>
     <string name="backup_meta_date">Fecha</string>
     <string name="backup_meta_device">Dispositivo</string>
@@ -227,7 +222,6 @@
     <string name="backup_meta_keys">Elementos Totales</string>
     <string name="backup_empty_suffix"> (Vacío)</string>
     <string name="action_restore_selected">Restaurar Datos Seleccionados</string>
-    <string name="optimization_title">Optimización del Dispositivo</string>
     <string name="privacy_card_title">Funcionamiento Offline</string>
     <string name="privacy_card_desc">No requiere conexión a internet.</string>
     <string name="title_0_3_1">Actualización de Copias y Idiomas</string>
@@ -272,7 +266,6 @@
     <string name="size_large">Grande (280dp)</string>
     <string name="size_xlarge">Extra Grande (380dp)</string>
     <string name="app_uninstalled_badge">Desinstalada</string>
-    <string name="settings_action">Ajustes</string>
     <string name="saved_widgets_title">Widgets Guardados</string>
     <string name="no_saved_widgets">No hay widgets guardados.</string>
     <string name="widget_id_fmt">Widget #%d</string>
@@ -286,7 +279,6 @@
     <string name="theme_installer_action_later">Guardar para luego</string>
     <string name="theme_installer_error_title">Error al importar</string>
     <string name="theme_installer_error_generic">No se pudo verificar el archivo del tema.</string>
-    <string name="theme_installer_btn_close">Cerrar</string>
     <string name="theme_manager_title">Mis temas</string>
     <string name="theme_manager_cd_add">Añadir nuevo tema</string>
     <string name="theme_card_author_format">por %s</string>
@@ -296,17 +288,12 @@
     <string name="theme_system_default_desc">Apariencia estándar</string>
     <string name="theme_sheet_title">Añadir nuevo tema</string>
     <string name="theme_sheet_action_create">Crear nuevo tema</string>
-    <string name="theme_sheet_action_find">Search</string>
-    <string name="theme_action_import_short">Importar</string>
-    <string name="theme_card_action_edit">Editar</string>
-    <string name="theme_card_action_export">Exportar</string>
     <string name="creator_title_new">Crear tema</string>
     <string name="creator_title_edit">Editar tema</string>
     <string name="creator_nav_colors">Colores</string>
     <string name="creator_nav_icons">Iconos y formas</string>
     <string name="creator_nav_calls">Estilo de llamada</string>
     <string name="creator_nav_apps">Config. de Apps</string>
-    <string name="creator_action_save">Guardar</string>
     <string name="creator_btn_edit_info">Editar info. del tema</string>
     <string name="creator_sub_colors">Paletas y contraste</string>
     <string name="creator_sub_icons">Forma y relleno</string>
@@ -315,7 +302,6 @@
     <string name="meta_title">Info. del tema</string>
     <string name="meta_label_name">Nombre del tema</string>
     <string name="meta_label_author">Nombre del autor</string>
-    <string name="meta_action_done">Hecho</string>
     <string name="colors_tab_presets">Preajustes</string>
     <string name="colors_tab_custom">Personalizado</string>
     <string name="colors_label_presets">Preajustes</string>
@@ -324,14 +310,12 @@
     <string name="colors_label_custom_title">Color personalizado</string>
     <string name="colors_cd_add_custom">Añadir color personalizado</string>
     <string name="colors_dialog_title">Elegir un color</string>
-    <string name="colors_action_done">Hecho</string>
     <string name="icons_tab_style">Estilo</string>
     <string name="icons_tab_assets">Iconos</string>
     <string name="icons_tab_shape">Forma</string>
     <string name="icons_label_size">Tamaño del icono</string>
     <string name="icons_label_full">Completo</string>
     <string name="icons_label_minimal">Mínimo</string>
-    <string name="icons_group_nav">Navegación</string>
     <string name="icons_btn_start">Inicio</string>
     <string name="icons_btn_end">Fin</string>
     <string name="icons_group_progress">Progreso</string>
@@ -353,13 +337,7 @@
     <string name="design_hero_community_subtitle">Únete a nuestro GitHub</string>
     <string name="design_section_themes">Temas</string>
     <string name="design_section_widgets">Widgets</string>
-    <string name="design_browse_more">Ver más</string>
-    <string name="design_add_new">Añadir nuevo</string>
     <string name="design_add_design">Añadir diseño</string>
-    <string name="design_add_to_island">Añadir a la Isla</string>
-    <string name="design_system_widget_beta">Widget del sistema (Beta)</string>
-    <string name="design_get_themes">Obtener temas</string>
-    <string name="design_empty_widget_title">Añade tu primer widget</string>
     <string name="design">Design</string>
     <string name="creator_nav_actions">Global Actions</string>
     <string name="creator_sub_actions">Style buttons by keyword</string>
@@ -376,7 +354,7 @@
     <string name="action_default_preview_text">Action</string>
     <string name="actions_search_hint">Search actions...</string>
     <string name="actions_search_empty_fmt">No actions found for \"%1$s\"</string>
-    <string name="action_wip_warning">This feature is a Work in Progress. Keyword matching depends on how apps structure their notifications and may not work for every app.</string>
+    <string name="action_wip_warning">Función experimental. La detección de botones depende del formato de cada notificación.</string>
     <string name="creator_dialog_apply_title">Apply Theme?</string>
     <string name="creator_dialog_apply_desc">Do you want to apply this theme now?</string>
     <string name="creator_dialog_action_save_apply">Save &amp; Apply</string>
@@ -393,7 +371,7 @@
     <string name="app_customization_desc">Add an app to customize its look specifically.</string>
     <string name="discard">Discard</string>
     <string name="unsaved_changes">Unsaved Changes</string>
-    <string name="unsaved_changes_desc">You have unsaved changes for this app. Do you want to save them before exiting?</string>
+    <string name="unsaved_changes_desc">¿Guardar los cambios pendientes antes de salir?</string>
     <string name="share_theme">Share Theme</string>
     <string name="my_theme">My Theme</string>
     <plurals name="creator_sub_actions_count">
@@ -403,8 +381,8 @@
 
     <!-- Permanent Island -->
     <string name="permanent_island_title">Isla Permanente</string>
-    <string name="permanent_island_desc">Mantener la Isla Dinámica permanentemente visible en la pantalla cuando no haya notificaciones activas.</string>
-    <string name="permanent_island_screen_desc">Cuando esté activado, se mostrará una Isla Dinámica vacía de forma permanente en la pantalla. Se ocultará automáticamente cuando lleguen notificaciones reales y volverá a aparecer cuando se borren todas las notificaciones. No será visible en el panel de notificaciones.</string>
+    <string name="permanent_island_desc">Muestra una cápsula persistente cuando no hay notificaciones activas.</string>
+    <string name="permanent_island_screen_desc">Muestra una cápsula de Dynamic Island permanente cuando no hay notificaciones activas.</string>
     <string name="permanent_island_width">Ancho de la Isla</string>
 
     <string name="dnd_mode_title">No molestar</string>
@@ -416,9 +394,8 @@
 
     <string name="shizuku_workaround_title">Habilitar parche de Shizuku</string>
     <string name="shizuku_enable_workaround">Habilitar parche</string>
-    <string name="shizuku_workaround_desc">Si estás en una ROM China, debes habilitar el parche de Shizuku para que las notificaciones se activen correctamente.</string>
+    <string name="shizuku_workaround_desc">Requerido en ROMs chinas para conectar notificaciones de forma fiable.</string>
     <string name="shizuku_status_running">Shizuku está en ejecución</string>
-    <string name="shizuku_permission_granted">Permiso concedido</string>
     <string name="shizuku_permission_denied">Permiso denegado</string>
     <string name="shizuku_request_permission">Otorgar permiso de Shizuku</string>
     <string name="shizuku_not_installed">La aplicación Shizuku no está instalada o en ejecución. Por favor, instala e inicia Shizuku primero.</string>
@@ -438,20 +415,18 @@
     <string name="screen_recording_done">Grabación finalizada.</string>
     <string name="screen_recording_stop">Detener</string>
     <string name="system_integrations">Sistema</string>
+    <string name="apps_section_header">Aplicaciones</string>
     <string name="system_integration_enabled">Activado</string>
     <string name="system_integration_disabled">Desactivado</string>
     <string name="system_integration_unavailable">No disponible en este dispositivo</string>
     <string name="screen_recording_customization_title">Isla de Grabación de Pantalla</string>
-    <string name="screen_recording_customization_desc">Personaliza cómo se muestra la isla de grabación</string>
     <string name="screen_recording_left_option_icon_only">Solo icono</string>
     <string name="screen_recording_left_option_icon_and_text">Icono y mensaje</string>
     <string name="screen_recording_left_option_text_only">Solo mensaje</string>
-    <string name="screen_recording_right_option_timer">Temporizador</string>
     <string name="screen_recording_right_option_none">Nada</string>
     <string name="preview">Vista previa</string>
     <string name="vpn_title">VPN</string>
     <string name="vpn_island_enabled">Supervisando conexiones VPN</string>
-    <string name="vpn_island_disabled">La Isla VPN está desactivada</string>
     <string name="vpn_is_connected">VPN conectada</string>
     <string name="vpn_connected_to">Conectado a %1$s</string>
     <string name="vpn_connecting">Conectando VPN</string>
@@ -478,18 +453,12 @@
     <string name="floating_disabled_confirmation">He desactivado las notificaciones emergentes en esta app</string>
     <string name="open_notification_settings">Abrir ajustes de notificaciones</string>
     <string name="settings_not_available">No se encontró una pantalla de ajustes compatible</string>
-    <string name="finish_notification_setup">Completar configuración de notificaciones</string>
-    <string name="finish_notification_setup_desc">Revisa los banners flotantes nativos de tus apps seleccionadas. Esto es opcional y puedes volver a consultarlo.</string>
     <string name="floating_setup_onboarding_title">Evitar banners flotantes duplicados</string>
     <string name="floating_setup_onboarding_desc">Tras seleccionar las apps, HyperBridge puede llevarte directamente a los ajustes de notificaciones de cada app. Este paso opcional no requiere root, Shizuku ni ADB.</string>
 
     <!-- Diagnostics -->
     <string name="diagnostics_title">Diagnóstico</string>
     <string name="diagnostics_subtitle">Permisos, estado del servicio y eventos recientes anonimizados</string>
-    <string name="diagnostic_notification_access">Acceso a notificaciones</string>
-    <string name="diagnostic_post_notifications">Enviar notificaciones</string>
-    <string name="diagnostic_focus_support">Compatibilidad con Isla HyperOS</string>
-    <string name="diagnostic_featured_permission">Notificaciones destacadas</string>
     <string name="diagnostic_selected_apps">Apps seleccionadas</string>
     <string name="diagnostic_floating_review">Apps pendientes de revisión flotante</string>
     <string name="diagnostic_active_islands">Islas activas</string>
@@ -500,7 +469,6 @@
     <string name="diagnostic_privacy_note">El contenido de las notificaciones, remitentes y datos de llamadas nunca se almacenan en este registro.</string>
     <string name="copy">Copiar</string>
     <string name="bug_report">Informe de error</string>
-    <string name="copy_sanitized_diagnostics">Copiar</string>
     <string name="diagnostic_export_header">Diagnóstico anonimizado de HyperBridge</string>
     <string name="connected">Conectado</string>
     <string name="disconnected">Desconectado</string>
@@ -515,8 +483,6 @@
     <string name="diagnostic_no_events">No hay eventos recientes</string>
     <string name="diagnostic_no_events_desc">Las interacciones del sistema y las notificaciones aparecerán aquí en tiempo real.</string>
     <string name="diagnostic_copied_toast">Diagnóstico anonimizado copiado al portapapeles</string>
-    <string name="diagnostic_supported">Compatible</string>
-    <string name="diagnostic_unsupported">No compatible</string>
     <string name="diagnostic_all_clear">Todo en orden</string>
     <string name="diagnostic_metric_review">Revisión</string>
     <string name="diagnostic_service_active_desc">Servicio de interceptor de notificaciones activo</string>
@@ -525,10 +491,6 @@
     <string name="diagnostic_active_count">%1$d activas</string>
     <string name="diagnostic_last_classification_desc">Última categoría de notificación interceptada</string>
     <string name="diagnostic_last_call_state_desc">Último estado de llamada detectado</string>
-    <string name="diagnostic_notification_access_desc">Necesario para interceptar eventos de aplicaciones</string>
-    <string name="diagnostic_post_notifications_desc">Necesario para mostrar notificaciones en la Isla</string>
-    <string name="diagnostic_focus_support_desc">Compatibilidad con la Isla en Xiaomi HyperOS</string>
-    <string name="diagnostic_featured_permission_desc">Permiso para mostrar notificaciones destacadas</string>
     <string name="diagnostic_selected_apps_desc">Aplicaciones activadas para mostrarse en la Isla</string>
     <string name="diagnostic_apps_count">%1$d apps</string>
     <string name="diagnostic_floating_review_desc">Apps que necesitan desactivar su banner flotante nativo</string>
@@ -563,13 +525,12 @@
     <string name="colors_desc_material_you">Extrae los colores de tu fondo de pantalla actual.</string>
     <string name="kill_all_widgets">Detener widgets activos</string>
     <string name="permission_reminder_title">Aviso de actualización</string>
-    <string name="permission_reminder_desc">¡Hyper Bridge se ha actualizado! Por favor, asegúrate de que los permisos de Inicio automático y Batería en segundo plano no hayan sido revocados silenciosamente por el sistema para que tus widgets sigan funcionando sin problemas.</string>
+    <string name="permission_reminder_desc">Hyper Bridge actualizado. Verifica que Inicio automático y Batería sigan concedidos.</string>
     <string name="got_it">Entendido</string>
     <string name="recommended">Recomendados</string>
     <string name="all">Todos</string>
     <string name="favorites">Favoritos</string>
     <string name="channel_live_updates">Actualizaciones nativas en vivo</string>
-    <string name="engine_preview_title">Vista previa</string>
     <string name="engine_design_section">Diseño de notificaciones</string>
     <string name="engine_xiaomi_title">Diseño destacado de Xiaomi</string>
     <string name="engine_xiaomi_desc">Diseño moderno de HyperOS de Xiaomi.</string>
@@ -607,14 +568,13 @@
     <string name="trigger_override">Anular desencadenantes</string>
     <string name="trigger_app_desc">Selecciona qué eventos activan la isla para esta aplicación.</string>
     <string name="enable_triggers">Habilitar eventos específicos</string>
-    <string name="open_source_licenses">Licencias de código abierto</string>
     <string name="remove_original_notification">Eliminar notificación original</string>
     <string name="remove_original_notification_desc">Descartar automáticamente la notificación original cuando una Live Update está activa.</string>
     <string name="dismiss_with_original">Descartar con original</string>
     <string name="dismiss_with_original_desc">La isla desaparecerá cuando elimines la notificación original.</string>
     <string name="enable_inline_reply">Habilitar respuesta rápida</string>
     <string name="enable_inline_reply_desc">Inicia la superposición de respuesta rápida al responder desde la isla.</string>
-    <string name="remove_original_notification_hidden_warning">Nota: Al estar activado, Hyper Bridge no puede responder o marcar mensajes como leídos. Las acciones Responder y Marcar como leído se ocultarán.</string>
+    <string name="remove_original_notification_hidden_warning">Al activarse, la respuesta rápida y marcar como leído no pueden funcionar y se ocultan.</string>
     <string name="color_mode">Modo de Color</string>
     <string name="color_mode_select">Seleccionar Modo de Color</string>
     <string name="color_mode_change_cd">Cambiar modo de color</string>
@@ -648,18 +608,17 @@
     <string name="title_0_5_5">Mensajería y Correcciones</string>
     <string name="title_0_5_1">Correcciones y Mejoras</string>
     <string name="title_0_5_0">La actualización en vivo</string>
-    <string name="notification_went_wrong">¡Si ves esto, algo salió mal! Haz clic aquí para ver cómo solucionarlo.</string>
-    <string name="widget_went_wrong">Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
+    <string name="notification_went_wrong">Error al mostrar la isla. Toca para ver diagnósticos.</string>
+    <string name="widget_went_wrong">No se pudo mostrar el widget. Toca para ver diagnósticos.</string>
     <string name="troubleshoot_featured_notification">Solucionar</string>
     <string name="featured_notifications_check">Test Notificaciones Destacadas</string>
     <string name="featured_notifications_check_desc">Vamos a verificar si tu sistema está configurado correctamente para mostrar las islas de Hyper Bridge.</string>
     <string name="featured_notifications_not_supported">No Soportado</string>
-    <string name="featured_notifications_enabled">Habilitado</string>
     <string name="featured_notifications_open_settings">Abrir Ajustes del Sistema</string>
     <string name="featured_notifications_troubleshoot_title">¿Por qué esto no es una isla?</string>
-    <string name="featured_notifications_troubleshoot_desc">Tu dispositivo Xiaomi interceptó la notificación pero no pudo mostrarla como una isla destacada porque el permiso está deshabilitado en los ajustes del sistema.\n\nPara solucionar esto:\n1. Toca \"Abrir Ajustes del Sistema\"\n2. Desplázate hacia abajo hasta \"Notificaciones Destacadas\" (o similar)\n3. Habilítalo para Hyper Bridge.</string>
+    <string name="featured_notifications_troubleshoot_desc">El permiso de notificaciones destacadas está desactivado. Toca "Abrir ajustes del sistema" y actívalo para Hyper Bridge.</string>
     <string name="featured_notifications_shizuku_alternative">Alternativa: Usar Shizuku</string>
-    <string name="featured_notifications_shizuku_desc">Si tu sistema no muestra el ajuste o está restringido, puedes eludir la lista blanca de Xiaomi completamente configurando Shizuku. Hyper Bridge usará Shizuku para publicar las islas directamente.</string>
+    <string name="featured_notifications_shizuku_desc">Si tu sistema lo restringe, configura Shizuku para publicar islas directamente y omitir restricciones.</string>
     <string name="notification_management">Gestión de Notificaciones</string>
     <string name="inline_reply_title">Respuesta rápida</string>
     <string name="customize_inline_reply">Personalizar el diseño de la respuesta</string>
@@ -674,7 +633,7 @@
     <string name="bug_report_title">Reporte de Errores y Diagnóstico</string>
     <string name="bug_report_subtitle">Genera un diagnóstico del sistema y reporta errores</string>
     <string name="bug_report_privacy_title">Privacidad y Divulgación</string>
-    <string name="bug_report_privacy_desc">Enviar un reporte en GitHub hará que esta información sea PÚBLICA para cualquier persona en internet. Si prefieres que sea privado, puedes enviarlo por correo directamente al desarrollador a %s.</string>
+    <string name="bug_report_privacy_desc">Las incidencias en GitHub son públicas. Para enviarlo en privado, escribe al desarrollador a %s.</string>
     <string name="bug_report_view_privacy">Ver Política de Privacidad</string>
     <string name="bug_report_details_title">Detalles del Problema</string>
     <string name="bug_report_what_happened">¿Qué ocurrió? *</string>
@@ -699,27 +658,20 @@
     <string name="bug_report_app_scope_specific_desc">Compartir ajustes y reglas de una aplicación en particular</string>
     <string name="bug_report_app_scope_all">Todas las Apps</string>
     <string name="bug_report_app_scope_all_desc">Incluir configuraciones y reglas de todas las apps</string>
-    <string name="bug_report_select_app">Seleccionar App</string>
     <string name="bug_report_include_logs">Registros Recientes de la App (Logcat)</string>
     <string name="bug_report_include_logs_desc">Últimas 500 líneas de registros del sistema y Hyper Bridge</string>
     <string name="bug_report_preview_title">Vista Previa del Reporte</string>
     <string name="bug_report_preview_desc">Revisa los datos exactos que se compartirán</string>
     <string name="bug_report_submit_github">Reportar en GitHub</string>
     <string name="bug_report_send_email">Enviar por Correo</string>
-    <string name="bug_report_copy_clipboard">Copiar</string>
-    <string name="bug_report_share">Compartir</string>
     <string name="bug_report_copied_github_toast">¡Diagnóstico copiado al portapapeles! Pégalo en la sección de Logs en GitHub.</string>
     <string name="bug_report_copied_toast">Reporte copiado al portapapeles.</string>
     <string name="bug_report_email_subject">Reporte de Error de Hyper Bridge</string>
-    <string name="bug_report_entry_title">Reporte de Errores y Diagnóstico</string>
     <string name="bug_report_entry_subtitle">Soluciona y reporta errores con registros del sistema</string>
     <string name="bug_report_need_help">¿Tienes problemas con permisos o islas?</string>
-    <string name="bug_report_open_diagnostics">Abrir Diagnóstico</string>
-    <string name="bug_report_bridged">Conectada</string>
-    <string name="bug_report_change_app">Cambiar App</string>
     <string name="privacy_policy_title">Política de Privacidad</string>
     <string name="privacy_policy_subtitle">Conoce cómo se protegen y gestionan tus datos</string>
-    <string name="bug_report_screen_description">Genera diagnósticos y registros detallados del sistema para solucionar y reportar errores de Hyper Bridge.</string>
+    <string name="bug_report_screen_description">Exporta registros de diagnóstico y detalles del sistema para solucionar problemas.</string>
     <string name="cancel">Cancelar</string>
     <string name="continue_action">Continuar</string>
     <string name="screen_recording_saved_auto_hide_desc">Tiempo que se muestra el tic de confirmación tras finalizar la grabación</string>
@@ -747,16 +699,13 @@
     <string name="app_config_title">Configuración de la app</string>
     <string name="app_config_subtitle">Comportamientos, widgets y extensiones</string>
     <string name="custom_design_title">Diseño personalizado</string>
-    <string name="custom_design_badge">PRÓXIMAMENTE</string>
     <string name="custom_design_desc">Los diseños visuales personalizables y temas adaptados de la Isla están en desarrollo. Muy pronto disponibles.</string>
     <string name="custom_translators_title">Traductores personalizados</string>
-    <string name="custom_translators_badge">PRÓXIMAMENTE</string>
-    <string name="custom_translators_desc">Crea e instala traductores personalizados de la comunidad para formatear y controlar los datos de notificaciones de esta app.</string>
+    <string name="custom_translators_desc">Reglas personalizadas para interceptar, formatear y controlar notificaciones.</string>
     <string name="app_widgets_section_title">Widgets de la Isla</string>
     <string name="app_widgets_section_desc">Configura widgets de esta app para mostrarlos como Hyper Islands.</string>
     <string name="add_island_widget">Añadir widget</string>
     <string name="no_widgets_for_app">Aún no hay widgets de la isla configurados para esta app.</string>
-    <string name="no_available_widgets_for_app">Esta aplicación no proporciona ningún widget.</string>
     <string name="select_app_widget">Seleccionar widget</string>
     <string name="theme_managed_banner">Los comportamientos están gestionados por tu tema activo.</string>
     <string name="app_status_bridged">Vinculada</string>
@@ -767,7 +716,7 @@
     <string name="smart_actions_title">Acciones Inteligentes</string>
     <string name="smart_actions_desc">Botones de un toque para códigos, enlaces, teléfonos, paquetes y direcciones</string>
     <string name="setting_smart_actions">Activar Acciones Inteligentes</string>
-    <string name="setting_smart_actions_desc">Escanea el texto de las notificaciones para detectar contenido útil y añade botones a la isla y al panel. No se escanea nada mientras esté desactivado.</string>
+    <string name="setting_smart_actions_desc">Extrae botones accionables (códigos OTP, enlaces, direcciones) de las notificaciones.</string>
     <string name="smart_actions_group_detect">Detectar</string>
     <string name="setting_smart_actions_otp">Códigos de verificación</string>
     <string name="setting_smart_actions_otp_desc">Copia en un toque de códigos OTP y 2FA</string>
@@ -791,22 +740,21 @@
     <string name="smart_action_copy_code_hidden">Copiar código</string>
     <string name="smart_actions_group_privacy">Privacidad</string>
     <string name="setting_smart_actions_hide_otp">Ocultar el código en el botón</string>
-    <string name="setting_smart_actions_hide_otp_desc">Muestra «Copiar código» en vez del código mismo, para que nunca se imprima en la isla ni en el panel</string>
+    <string name="setting_smart_actions_hide_otp_desc">Oculta códigos de verificación confidenciales en la isla y en el panel.</string>
     <string name="smart_actions_excluded_empty">No hay apps excluidas. Todas las apps vinculadas son escaneadas.</string>
     <string name="smart_actions_add_excluded_app">Añadir app</string>
     <string name="smart_actions_pick_app_title">Excluir una app</string>
     <string name="smart_actions_pick_app_search">Buscar apps</string>
     <string name="smart_actions_all_apps_excluded">Todas las apps vinculadas ya están excluidas</string>
     <string name="cd_smart_actions_remove_excluded">Eliminar de apps excluidas</string>
-    <string name="app_smart_actions_title">Acciones Inteligentes</string>
     <string name="app_smart_actions_subtitle_on">Códigos, enlaces, números de teléfono, paquetes y direcciones</string>
     <string name="app_smart_actions_subtitle_off">Desactivado para esta app</string>
     <string name="app_smart_actions_subtitle_global_off">Primero activa Acciones Inteligentes en los ajustes globales</string>
     <string name="app_smart_actions_enable">Acciones Inteligentes para esta app</string>
     <string name="app_smart_actions_enable_desc">Desactiva para no escanear nunca las notificaciones de esta app</string>
     <string name="app_smart_actions_types_title">Acciones para esta app</string>
-    <string name="app_smart_actions_types_desc">Elige qué botones puede mostrar esta app. Cada uno sigue el ajuste global hasta que lo cambies aquí.</string>
-    <string name="app_smart_actions_global_off_banner">Las Acciones Inteligentes están desactivadas globalmente. Actívalas en Ajustes globales > Acciones Inteligentes para usar estas opciones.</string>
+    <string name="app_smart_actions_types_desc">Configura botones de acciones inteligentes para esta app o sigue los ajustes globales.</string>
+    <string name="app_smart_actions_global_off_banner">Acciones inteligentes desactivadas globalmente. Actívalas en Ajustes Globales.</string>
 
     <!-- Enable All Apps -->
     <string name="bridge_all_apps">Activar todas las apps</string>
@@ -814,4 +762,8 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland activado para todas las apps de la lista</string>
     <string name="auto_add_new_apps_title">Añadir apps nuevas</string>
     <string name="auto_add_new_apps_desc">Vincular automáticamente las aplicaciones recién instaladas</string>
+    <string name="design_guide_customization_desc">Centro de diseños, creador de temas, traductores y widgets</string>
+    <string name="design_guide_features_title">Funciones</string>
+    <string name="design_guide_features_desc">Apps del sistema, acciones inteligentes, respuesta rápida e isla permanente</string>
+    <string name="feature_guides_redirect_desc">Consulta guías detalladas, tutoriales y documentación en nuestro sitio web.</string>
 </resources>

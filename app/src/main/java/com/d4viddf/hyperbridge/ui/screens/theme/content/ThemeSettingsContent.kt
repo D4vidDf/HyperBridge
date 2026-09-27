@@ -75,7 +75,7 @@ fun BehaviourMenuContent(onNavigate: (CreatorRoute) -> Unit) {
         )
         Spacer(Modifier.height(2.dp))
         CreatorOptionCard(
-            title = stringResource(R.string.island_behavior),
+            title = stringResource(R.string.island_behavior_title),
             subtitle = stringResource(R.string.island_behavior_desc),
             icon = Icons.Outlined.DisplaySettings,
             shape = getExpressiveShape(3, 1, ShapeStyle.Large),

@@ -181,7 +181,7 @@ fun ThemeCreatorScreen(
                                 CreatorRoute.MAIN_MENU -> if (editThemeId == null) stringResource(R.string.creator_title_new) else stringResource(R.string.creator_title_edit)
                                 CreatorRoute.BEHAVIOR_MENU -> stringResource(R.string.behaviour_triggers)
                                 CreatorRoute.BEHAVIOR_ENGINE -> stringResource(R.string.engine)
-                                CreatorRoute.BEHAVIOR_ISLAND -> stringResource(R.string.island_behavior)
+                                CreatorRoute.BEHAVIOR_ISLAND -> stringResource(R.string.island_behavior_title)
                                 CreatorRoute.BEHAVIOR_TYPES -> stringResource(R.string.active_notifications_title)
                                 CreatorRoute.COLORS -> stringResource(R.string.creator_nav_colors)
                                 CreatorRoute.ICONS -> stringResource(R.string.creator_nav_icons)
@@ -216,7 +216,7 @@ fun ThemeCreatorScreen(
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
                                 modifier = Modifier.padding(end = 8.dp)
-                            ) { Text(stringResource(R.string.creator_action_save), fontWeight = FontWeight.Bold) }
+                            ) { Text(stringResource(R.string.save), fontWeight = FontWeight.Bold) }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -596,7 +596,7 @@ fun ThemeMetadataSheet(viewModel: ThemeViewModel, onDismiss: () -> Unit) {
             Spacer(Modifier.height(32.dp))
             Button(onClick = onDismiss, modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp), shape = ButtonDefaults.shape) { Text(stringResource(R.string.meta_action_done)) }
+                .height(50.dp), shape = ButtonDefaults.shape) { Text(stringResource(R.string.done)) }
             Spacer(Modifier.height(24.dp))
         }
     }
