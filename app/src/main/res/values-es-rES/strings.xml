@@ -1132,22 +1132,9 @@
     <string name="design_featured_translators_title">Traductores Inteligentes</string>
     <string name="design_featured_translators_subtitle">Intercepta notificaciones con reglas y regex</string>
 
-    <string name="design_guide_customization_title">Resumen de Personalización</string>
-    <string name="design_guide_customization_desc">Descubre todo lo que puedes personalizar y crear en HyperBridge</string>
-    <string name="design_guide_design_hub_title">Centro de Diseños</string>
-    <string name="design_guide_design_hub_desc">Explora, comparte e importa temas, traductores y diseños de la comunidad</string>
-    <string name="design_guide_theme_creator_title">Guía del Creador de Temas</string>
-    <string name="design_guide_theme_creator_desc">Aprende a crear, probar y empaquetar temas para HyperBridge</string>
-    <string name="design_guide_custom_translators_desc">Crea reglas de intercepción para tus apps de notificaciones</string>
-    <string name="design_guide_custom_designs_title">Diseños Personalizados</string>
-    <string name="design_guide_custom_designs_desc">Crea plantillas personalizadas, tarjetas de embarque y vistas de progreso</string>
-    <string name="design_guide_widgets_guide_title">Guía de Widgets</string>
-    <string name="design_guide_widgets_guide_desc">Añade widgets interactivos a la pantalla de inicio y a la isla</string>
-    <string name="design_guide_system_apps_title">Integración con Apps del Sistema</string>
-    <string name="design_guide_system_apps_desc">Conecta temporizador, grabadora, grabación de pantalla y actualizaciones</string>
-    <string name="design_guide_smart_actions_desc">Descubre cómo funcionan los botones y acciones en la isla</string>
-    <string name="design_guide_permanent_island_desc">Mantén una cápsula persistente en la barra de estado siempre accesible</string>
-    <string name="design_guide_inline_reply_desc">Responde a notificaciones de mensajería directamente desde la isla</string>
+    <string name="design_guide_customization_desc">Centro de diseños, creador de temas, traductores y widgets</string>
+    <string name="design_guide_features_title">Funciones</string>
+    <string name="design_guide_features_desc">Apps del sistema, acciones inteligentes, respuesta rápida e isla permanente</string>
     <string name="design_guide_advanced_title">Configuración Avanzada</string>
     <string name="design_guide_advanced_desc">Ajustes avanzados, integración con Shizuku y solución de problemas</string>
 

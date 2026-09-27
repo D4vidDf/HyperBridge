@@ -762,5 +762,8 @@
     <string name="bridge_all_apps_enabled_desc">HyperIsland activado para todas las apps de la lista</string>
     <string name="auto_add_new_apps_title">Añadir apps nuevas</string>
     <string name="auto_add_new_apps_desc">Vincular automáticamente las aplicaciones recién instaladas</string>
+    <string name="design_guide_customization_desc">Centro de diseños, creador de temas, traductores y widgets</string>
+    <string name="design_guide_features_title">Funciones</string>
+    <string name="design_guide_features_desc">Apps del sistema, acciones inteligentes, respuesta rápida e isla permanente</string>
     <string name="feature_guides_redirect_desc">Consulta guías detalladas, tutoriales y documentación en nuestro sitio web.</string>
 </resources>

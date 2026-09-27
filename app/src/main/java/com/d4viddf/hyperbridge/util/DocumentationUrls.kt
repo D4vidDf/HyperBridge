@@ -8,6 +8,7 @@ object DocumentationUrls {
     const val DOCS = "https://hyper-bridge.app/docs/"
     const val PRIVACY_POLICY = "https://hyper-bridge.app/privacy/"
     const val CUSTOMIZATION_DOCS = "https://hyper-bridge.app/docs/customization/"
+    const val FEATURES_DOCS = "https://hyper-bridge.app/docs/features/"
     const val DESIGN_HUB_DOCS = "https://hyper-bridge.app/docs/customization/design-hub/"
     const val THEME_CREATOR_DOCS = "https://hyper-bridge.app/docs/customization/theme-creator/"
     const val CUSTOM_TRANSLATORS_DOCS = "https://hyper-bridge.app/docs/customization/custom-translators/"
