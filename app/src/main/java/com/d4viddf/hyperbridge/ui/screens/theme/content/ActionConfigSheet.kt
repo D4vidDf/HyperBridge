@@ -215,7 +215,7 @@ fun ActionConfigSheet(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = keyword.isNotBlank()
             ) {
-                Text(stringResource(R.string.creator_action_save))
+                Text(stringResource(R.string.save))
             }
 
             Spacer(Modifier.height(24.dp))
@@ -227,7 +227,7 @@ fun ActionConfigSheet(
 fun safeParseColor(hex: String): Color {
     return try {
         Color(hex.toColorInt())
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         Color.Magenta // Error color
     }
 }

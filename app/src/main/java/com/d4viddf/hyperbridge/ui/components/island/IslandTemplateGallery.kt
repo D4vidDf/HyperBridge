@@ -135,10 +135,10 @@ fun IslandTemplateCard(
             if (template.showsProgress || template.showsActions) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (template.showsProgress) {
-                        TemplateBadge(stringResource(R.string.island_template_badge_progress))
+                        TemplateBadge(stringResource(R.string.icons_group_progress))
                     }
                     if (template.showsActions) {
-                        TemplateBadge(stringResource(R.string.island_template_badge_actions))
+                        TemplateBadge(stringResource(R.string.translator_actions_title))
                     }
                 }
             }

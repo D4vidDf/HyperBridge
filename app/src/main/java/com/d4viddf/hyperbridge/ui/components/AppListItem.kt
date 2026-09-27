@@ -104,7 +104,7 @@ fun AppListItem(
             IconButton(onClick = onSettingsClick) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.settings_action), // [UPDATED]
+                    contentDescription = stringResource(R.string.settings), // [UPDATED]
                     tint = MaterialTheme.colorScheme.primary
                 )
             }

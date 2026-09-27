@@ -371,7 +371,7 @@ fun BugReportScreen(
             putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.bug_report_email_subject))
             putExtra(Intent.EXTRA_TEXT, markdownReport)
         }
-        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.bug_report_share)))
+        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.translators_share_button)))
     }
 
     BugReportContent(
@@ -855,7 +855,7 @@ fun BugReportContent(
                                                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                                     ) {
                                                         Text(
-                                                            text = stringResource(R.string.bug_report_bridged),
+                                                            text = stringResource(R.string.app_status_bridged),
                                                             style = MaterialTheme.typography.labelSmall,
                                                             color = MaterialTheme.colorScheme.primary,
                                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -880,7 +880,7 @@ fun BugReportContent(
                                             )
                                         } else {
                                             Text(
-                                                text = stringResource(R.string.bug_report_select_app),
+                                                text = stringResource(R.string.apps_sheet_select_title),
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 fontWeight = FontWeight.SemiBold,
                                                 color = MaterialTheme.colorScheme.primary
@@ -1086,7 +1086,7 @@ fun BugReportContent(
                 ) {
                     Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.bug_report_copy_clipboard))
+                    Text(stringResource(R.string.island_template_hint_copy))
                 }
 
                 FilledTonalButton(
@@ -1103,7 +1103,7 @@ fun BugReportContent(
                 ) {
                     Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.bug_report_share))
+                    Text(stringResource(R.string.translators_share_button))
                 }
             }
 
@@ -1295,7 +1295,7 @@ fun BugReportContent(
                     .padding(bottom = 32.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.bug_report_select_app),
+                    text = stringResource(R.string.apps_sheet_select_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -1403,7 +1403,7 @@ fun BugReportContent(
                                             if (app.isBridged) {
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 Text(
-                                                    text = stringResource(R.string.bug_report_bridged),
+                                                    text = stringResource(R.string.app_status_bridged),
                                                     style = MaterialTheme.typography.labelSmall,
                                                     color = MaterialTheme.colorScheme.primary
                                                 )

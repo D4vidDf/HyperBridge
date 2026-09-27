@@ -60,7 +60,6 @@
     <string name="licenses_subtitle">Third-party software</string>
     <string name="footer_made_with_love">Made with ❤️ in Spain</string>
 
-    <string name="app_health_desc">Ensure all checks are green for the app to work correctly in the background.</string>
     <string name="req_permissions">Required Permissions</string>
     <string name="notif_access">Notification Access</string>
     <string name="notif_access_desc">Required to read app events</string>
@@ -71,7 +70,6 @@
     <string name="recents_note">Note: Also lock the app in the \'Recents\' overview menu.</string>
     <string name="status_active">Active</string>
 
-    <string name="cat_all">All</string>
     <string name="cat_music">Music</string>
     <string name="cat_nav">Navigation</string>
     <string name="cat_timer">Productivity</string>
@@ -167,7 +165,6 @@
     <string name="cd_enable_type">Enable %s notifications</string>
     <string name="cd_disable_type">Disable %s notifications</string>
     <string name="cd_nav_edit">Edit navigation layout</string>
-    <string name="cd_app_state_active">Active</string>
     <string name="cd_app_state_inactive">Inactive</string>
 
     <string name="cd_move_up">Move item up</string>
@@ -175,8 +172,6 @@
     <string name="cd_drag_handle">Drag handle. Double tap and hold to reorder, or use actions to move.</string>
     <string name="cd_app_icon">App Icon for %s</string>
     <string name="cd_nav_preview">Navigation Preview: %1$s on left, %2$s on right</string>
-    <string name="cd_expand_changelog">Expand version details</string>
-    <string name="cd_collapse_changelog">Collapse version details</string>
 
     <string name="nav_preview_instruction">Turn Right</string>
     <string name="nav_preview_distance">200m</string>
@@ -268,7 +263,6 @@
     <string name="backup_empty_suffix"> (Empty)</string>
     <string name="action_restore_selected">Restore Selected Data</string>
 
-    <string name="optimization_title">Device Optimization</string>
 
     <string name="privacy_card_title">Offline First</string>
     <string name="privacy_card_desc">No internet connection required.</string>
@@ -329,7 +323,6 @@
     <string name="size_xlarge">Extra Large (380dp)</string>
 
     <string name="app_uninstalled_badge">Uninstalled</string>
-    <string name="settings_action">Settings</string>
 
     <string name="saved_widgets_title">Saved Widgets</string>
     <string name="no_saved_widgets">No saved widgets found.</string>
@@ -345,7 +338,6 @@
     <string name="theme_installer_action_later">Save for Later</string>
     <string name="theme_installer_error_title">Import Failed</string>
     <string name="theme_installer_error_generic">Could not verify the theme file.</string>
-    <string name="theme_installer_btn_close">Close</string>
     <string name="theme_manager_title">My Themes</string>
     <string name="theme_manager_cd_add">Add New Theme</string>
 
@@ -359,10 +351,6 @@
     <string name="theme_sheet_title">Add New Theme</string>
 
     <string name="theme_sheet_action_create">Create New Theme</string>
-    <string name="theme_sheet_action_find">Search</string>
-    <string name="theme_action_import_short">Import</string>
-    <string name="theme_card_action_edit">Edit</string>
-    <string name="theme_card_action_export">Export</string>
 
     <string name="creator_title_new">Create Theme</string>
     <string name="creator_title_edit">Edit Theme</string>
@@ -370,7 +358,6 @@
     <string name="creator_nav_icons">Icons &amp; Shapes</string>
     <string name="creator_nav_calls">Call Style</string>
     <string name="creator_nav_apps">App Config</string>
-    <string name="creator_action_save">Save</string>
     <string name="creator_btn_edit_info">Edit Theme Info</string>
     <string name="creator_sub_colors">Palettes &amp; contrast</string>
     <string name="creator_sub_icons">Shape &amp; padding</string>
@@ -380,7 +367,6 @@
     <string name="meta_title">Theme Info</string>
     <string name="meta_label_name">Theme Name</string>
     <string name="meta_label_author">Author Name</string>
-    <string name="meta_action_done">Done</string>
 
     <string name="colors_tab_presets">Presets</string>
     <string name="colors_tab_custom">Custom</string>
@@ -390,7 +376,6 @@
     <string name="colors_label_custom_title">Custom Color</string>
     <string name="colors_cd_add_custom">Add Custom Color</string>
     <string name="colors_dialog_title">Pick a Color</string>
-    <string name="colors_action_done">Done</string>
 
     <string name="icons_tab_style">Style</string>
     <string name="icons_tab_assets">Icons</string>
@@ -398,7 +383,6 @@
     <string name="icons_label_size">Icon Size</string>
     <string name="icons_label_full">Full</string>
     <string name="icons_label_minimal">Minimal</string>
-    <string name="icons_group_nav">Navigation</string>
     <string name="icons_btn_start">Start</string>
     <string name="icons_btn_end">End</string>
     <string name="icons_group_progress">Progress</string>
@@ -426,13 +410,7 @@
     <string name="design_section_themes">Themes</string>
     <string name="design_section_widgets">Widgets</string>
 
-    <string name="design_browse_more">Browse More</string>
-    <string name="design_add_new">Add New</string>
     <string name="design_add_design">Add Design</string>
-    <string name="design_add_to_island">Customization</string>
-    <string name="design_system_widget_beta">System Widget (Beta)</string>
-    <string name="design_get_themes">Get Themes</string>
-    <string name="design_empty_widget_title">Add your first Widget</string>
     <string name="design">Design</string>
 
     <string name="creator_nav_actions">Global Actions</string>
@@ -502,7 +480,6 @@
 
     <string name="channel_live_updates">Native Live Updates</string>
 
-    <string name="engine_preview_title">Preview</string>
     <string name="engine_design_section">Notification Design</string>
     <string name="engine_xiaomi_title">Xiaomi Featured Design</string>
     <string name="engine_xiaomi_desc">Modern HyperOS layout with Xiaomi intended design.</string>
@@ -539,7 +516,6 @@
     <string name="trigger_override">Trigger Override</string>
     <string name="trigger_app_desc">Select which events trigger the island for this app.</string>
     <string name="enable_triggers">Enable specific triggers</string>
-    <string name="open_source_licenses">Open Source Licenses</string>
     <string name="remove_original_notification">Remove original notification</string>
     <string name="remove_original_notification_desc">Automatically dismiss the source notification when a Live Update is active.</string>
     <string name="onboarding_can_be_changed">You can change these options later in Settings and Theme Configurator.</string>

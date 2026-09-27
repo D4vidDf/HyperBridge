@@ -107,7 +107,7 @@ fun SystemIntegrationListItem(
         }
         if (settingsAction != null) {
             IconButton(onClick = settingsAction) {
-                Icon(Icons.Default.Settings, stringResource(R.string.settings_action), tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.Settings, stringResource(R.string.settings), tint = MaterialTheme.colorScheme.primary)
             }
         }
         Switch(

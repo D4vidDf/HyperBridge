@@ -14,19 +14,19 @@
     <string name="welcome_subtitle">Integra Hyper Islands perfectamente en tu experiencia HyperOS.</string>
     <string name="get_started">Empezar</string>
     <string name="how_it_works">Cómo funciona</string>
-    <string name="how_it_works_desc">Selecciona tus aplicaciones favoritas (Spotify, Navegación, Relojes). Hyper Bridge transforma sus notificaciones en una elegante Hyper Island.</string>
-    <string name="beta_warning">Nota: Esta app está en Beta. Puedes encontrar errores o información visual incorrecta.</string>
+    <string name="how_it_works_desc">Transforma las notificaciones de tus apps favoritas en islas interactivas de HyperOS.</string>
+    <string name="beta_warning">Versión beta. Puedes encontrar errores ocasionales o fallos visuales.</string>
     <string name="device_compatible">Dispositivo Compatible</string>
     <string name="unsupported_device">Dispositivo No Soportado</string>
-    <string name="compatible_msg">Tu dispositivo parece ejecutar HyperOS/MIUI. ¡Todo listo!</string>
+    <string name="compatible_msg">HyperOS/MIUI detectado. Dispositivo compatible.</string>
     <string name="show_island">Mostrar Isla</string>
-    <string name="perm_post_desc">Necesitamos permiso para mostrar la notificación \'Isla\' en tu pantalla.</string>
+    <string name="perm_post_desc">Requerido para mostrar notificaciones de Isla en tu pantalla.</string>
     <string name="perm_granted">Permiso Concedido</string>
     <string name="allow_notifications">Permitir Notificaciones</string>
     <string name="read_data">Leer Notificaciones</string>
-    <string name="perm_listener_desc">Para conectar tus aplicaciones, necesitamos leer sus notificaciones (Música, Mapas, Temporizadores).</string>
+    <string name="perm_listener_desc">Requerido para leer eventos de notificación de las apps vinculadas.</string>
     <string name="open_settings">Abrir Ajustes</string>
-    <string name="optimization_desc">HyperOS cierra aplicaciones en segundo plano. Habilita el Inicio Automático y Sin Restricciones para mantener la isla activa.</string>
+    <string name="optimization_desc">Activa Inicio automático y ajusta el Ahorro de batería a Sin restricciones.</string>
     <string name="enable_autostart">1. Activar Inicio Automático</string>
     <string name="set_battery_no_restrictions">2. Batería \'Sin Restricciones\'</string>
     <string name="tab_active">Activos</string>
@@ -42,8 +42,8 @@
     <string name="system_setup_subtitle">Arreglar permisos y batería</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Isla Permanente</string>
-    <string name="permanent_island_desc">Mantener la Isla Dinámica permanentemente visible en la pantalla cuando no haya notificaciones activas.</string>
-    <string name="permanent_island_screen_desc">Cuando esté activado, se mostrará una Isla Dinámica vacía de forma permanente en la pantalla. Se ocultará automáticamente cuando lleguen notificaciones reales y volverá a aparecer cuando se borren todas las notificaciones. No será visible en el panel de notificaciones.</string>
+    <string name="permanent_island_desc">Muestra una cápsula persistente cuando no hay notificaciones activas.</string>
+    <string name="permanent_island_screen_desc">Muestra una cápsula de Dynamic Island permanente cuando no hay notificaciones activas.</string>
     <string name="permanent_island_width">Ancho de la Isla</string>
     <string name="permanent_island_hide_landscape">Ocultar en Horizontal</string>
     <string name="group_about">Sobre la aplicación</string>
@@ -59,7 +59,6 @@
     <string name="licenses">Licencias Open Source</string>
     <string name="licenses_subtitle">Software de terceros</string>
     <string name="footer_made_with_love">Hecho con ❤️ en España</string>
-    <string name="app_health_desc">Asegúrate de que todo esté en verde para que la aplicación funcione correctamente en segundo plano.</string>
     <string name="req_permissions">Permisos Requeridos</string>
     <string name="notif_access">Acceso a Notificaciones</string>
     <string name="notif_access_desc">Necesario para leer eventos</string>
@@ -69,7 +68,6 @@
     <string name="battery_desc">Evita que el sistema cierre la aplicación</string>
     <string name="recents_note">Nota: Bloquea también la aplicación en el menú de \'Recientes\'.</string>
     <string name="status_active">Activo</string>
-    <string name="cat_all">Todas</string>
     <string name="cat_music">Música</string>
     <string name="cat_nav">Navegación</string>
     <string name="cat_timer">Productividad</string>
@@ -117,7 +115,7 @@
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
     <string name="setting_float_timeout_desc">Cuánto tiempo la ventana emergente se mantiene visible.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
-    <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificación. Si está desactivada, solo aparece como una isla.</string>
+    <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificaciones junto a la isla.</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Usar valores globales</string>
     <string-array name="nav_arrival_keywords">
@@ -131,7 +129,7 @@
     <string name="title_0_2_0">La Actualización de Información</string>
     <string name="title_0_1_0">La Actualización Expresiva</string>
     <string name="priority_edu_title">Controla la Isla</string>
-    <string name="priority_edu_desc">Elige cómo debe comportarse la isla cuando hay varias notificaciones activas al mismo tiempo.</string>
+    <string name="priority_edu_desc">Define el comportamiento de la isla cuando llegan varias notificaciones al mismo tiempo.</string>
     <string name="badge_new">NUEVO</string>
     <string name="nav_layout_title">Diseño de Navegación</string>
     <string name="nav_layout_desc">Elige dónde aparece la información</string>
@@ -146,15 +144,12 @@
     <string name="cd_enable_type">Activar notificaciones de %s</string>
     <string name="cd_disable_type">Desactivar notificaciones de %s</string>
     <string name="cd_nav_edit">Editar diseño de navegación</string>
-    <string name="cd_app_state_active">Activo</string>
     <string name="cd_app_state_inactive">Inactivo</string>
     <string name="cd_move_up">Mover hacia arriba</string>
     <string name="cd_move_down">Mover hacia abajo</string>
     <string name="cd_drag_handle">Control de arrastre. Toca dos veces y mantén pulsado para reordenar, o usa las acciones para mover.</string>
     <string name="cd_app_icon">Icono de la aplicación %s</string>
     <string name="cd_nav_preview">Vista previa de navegación: %1$s a la izquierda, %2$s a la derecha</string>
-    <string name="cd_expand_changelog">Expandir detalles de la versión</string>
-    <string name="cd_collapse_changelog">Contraer detalles de la versión</string>
     <string name="nav_preview_instruction">Girar a la derecha</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
@@ -177,12 +172,11 @@
     <string name="req_hyperos">Requiere HyperOS 3.0+ (Android 15+)</string>
     <string name="req_xiaomi">Se requiere dispositivo Xiaomi/Redmi/Poco</string>
     <string name="warning_cn_rom_title">ROM China Detectada</string>
-    <string name="warning_cn_rom_desc">Tu dispositivo parece ejecutar un firmware chino. Xiaomi modifica drásticamente las notificaciones en estas ROMs. Las funciones podrían ser inestables o no funcionar.</string>
+    <string name="warning_cn_rom_desc">Firmware chino detectado. El control de notificaciones difiere notablemente y puede ser inestable.</string>
     <string name="shizuku_workaround_title">Habilitar parche de Shizuku</string>
     <string name="shizuku_enable_workaround">Habilitar parche</string>
-    <string name="shizuku_workaround_desc">Si estás en una ROM China, debes habilitar el parche de Shizuku para que las notificaciones se activen correctamente.</string>
+    <string name="shizuku_workaround_desc">Requerido en ROMs chinas para conectar notificaciones de forma fiable.</string>
     <string name="shizuku_status_running">Shizuku está en ejecución</string>
-    <string name="shizuku_permission_granted">Permiso concedido</string>
     <string name="shizuku_permission_denied">Permiso denegado</string>
     <string name="shizuku_request_permission">Otorgar permiso de Shizuku</string>
     <string name="shizuku_not_installed">La aplicación Shizuku no está instalada o en ejecución. Por favor, instala e inicia Shizuku primero.</string>
@@ -227,7 +221,7 @@
     </string-array>
     <string name="title_0_3_0">La Actualización Global</string>
     <string name="privacy_title">100% Offline y Seguro</string>
-    <string name="privacy_desc">Hyper Bridge procesa todo directamente en el procesador de tu teléfono.\n\nNO requiere acceso a internet, lo que significa que tus notificaciones y datos personales nunca salen de tu dispositivo.</string>
+    <string name="privacy_desc">Procesado localmente en el dispositivo sin acceso a internet. Tus datos nunca salen de tu teléfono.</string>
     <string name="language">Idioma</string>
     <string name="language_desc">Cambiar idioma de la aplicación</string>
     <string name="system_default">Predeterminado del sistema</string>
@@ -247,7 +241,7 @@
     <string name="export_failed">Error al exportar: %s</string>
     <string name="import_success">Datos restaurados correctamente</string>
     <string name="import_failed">Error al importar: %s</string>
-    <string name="autostart_manual_check">El estado no se puede verificar automáticamente.\nPor favor, comprueba manualmente para asegurar que el servicio funciona correctamente.</string>
+    <string name="autostart_manual_check">Comprueba el Inicio automático manualmente en los ajustes del sistema.</string>
     <string name="backup_info_title">Información de la Copia</string>
     <string name="backup_meta_date">Fecha</string>
     <string name="backup_meta_device">Dispositivo</string>
@@ -255,7 +249,6 @@
     <string name="backup_meta_keys">Elementos Totales</string>
     <string name="backup_empty_suffix"> (Vacío)</string>
     <string name="action_restore_selected">Restaurar Datos Seleccionados</string>
-    <string name="optimization_title">Optimización del Dispositivo</string>
     <string name="privacy_card_title">Funcionamiento Offline</string>
     <string name="privacy_card_desc">No requiere conexión a internet.</string>
     <string name="title_0_3_1">Actualización de Copias y Idiomas</string>
@@ -300,7 +293,6 @@
     <string name="size_large">Grande (280dp)</string>
     <string name="size_xlarge">Extra Grande (380dp)</string>
     <string name="app_uninstalled_badge">Desinstalada</string>
-    <string name="settings_action">Ajustes</string>
     <string name="saved_widgets_title">Widgets Guardados</string>
     <string name="no_saved_widgets">No hay widgets guardados.</string>
     <string name="widget_id_fmt">Widget #%d</string>
@@ -314,7 +306,6 @@
     <string name="theme_installer_action_later">Guardar para luego</string>
     <string name="theme_installer_error_title">Error al importar</string>
     <string name="theme_installer_error_generic">No se pudo verificar el archivo del tema.</string>
-    <string name="theme_installer_btn_close">Cerrar</string>
     <string name="theme_manager_title">Mis temas</string>
     <string name="theme_manager_cd_add">Añadir nuevo tema</string>
     <string name="theme_card_author_format">por %s</string>
@@ -324,17 +315,12 @@
     <string name="theme_system_default_desc">Apariencia estándar</string>
     <string name="theme_sheet_title">Añadir nuevo tema</string>
     <string name="theme_sheet_action_create">Crear nuevo tema</string>
-    <string name="theme_sheet_action_find">Buscar</string>
-    <string name="theme_action_import_short">Importar</string>
-    <string name="theme_card_action_edit">Editar</string>
-    <string name="theme_card_action_export">Exportar</string>
     <string name="creator_title_new">Crear tema</string>
     <string name="creator_title_edit">Editar tema</string>
     <string name="creator_nav_colors">Colores</string>
     <string name="creator_nav_icons">Iconos y formas</string>
     <string name="creator_nav_calls">Estilo de llamada</string>
     <string name="creator_nav_apps">Config. de Apps</string>
-    <string name="creator_action_save">Guardar</string>
     <string name="creator_btn_edit_info">Editar info. del tema</string>
     <string name="creator_sub_colors">Paletas y contraste</string>
     <string name="creator_sub_icons">Forma y relleno</string>
@@ -343,7 +329,6 @@
     <string name="meta_title">Info. del tema</string>
     <string name="meta_label_name">Nombre del tema</string>
     <string name="meta_label_author">Nombre del autor</string>
-    <string name="meta_action_done">Hecho</string>
     <string name="colors_tab_presets">Preajustes</string>
     <string name="colors_tab_custom">Personalizado</string>
     <string name="colors_label_presets">Preajustes</string>
@@ -352,14 +337,12 @@
     <string name="colors_label_custom_title">Color personalizado</string>
     <string name="colors_cd_add_custom">Añadir color personalizado</string>
     <string name="colors_dialog_title">Elegir un color</string>
-    <string name="colors_action_done">Hecho</string>
     <string name="icons_tab_style">Estilo</string>
     <string name="icons_tab_assets">Iconos</string>
     <string name="icons_tab_shape">Forma</string>
     <string name="icons_label_size">Tamaño del icono</string>
     <string name="icons_label_full">Completo</string>
     <string name="icons_label_minimal">Mínimo</string>
-    <string name="icons_group_nav">Navegación</string>
     <string name="icons_btn_start">Inicio</string>
     <string name="icons_btn_end">Fin</string>
     <string name="icons_group_progress">Progreso</string>
@@ -381,16 +364,7 @@
     <string name="design_hero_community_subtitle">Únete a nuestro GitHub</string>
     <string name="design_section_themes">Temas</string>
     <string name="design_section_widgets">Widgets</string>
-    <string name="design_section_templates">Plantillas de Isla</string>
-    <string name="design_create_template">Crear Plantilla de Isla</string>
-    <string name="design_empty_template_title">Diseña tu primera plantilla de isla</string>
-    <string name="design_browse_more">Ver más</string>
-    <string name="design_add_new">Añadir nuevo</string>
     <string name="design_add_design">Añadir diseño</string>
-    <string name="design_add_to_island">Añadir a la Isla</string>
-    <string name="design_system_widget_beta">Widget del sistema (Beta)</string>
-    <string name="design_get_themes">Obtener temas</string>
-    <string name="design_empty_widget_title">Añade tu primer widget</string>
     <string name="design">Diseño</string>
     <string name="creator_nav_actions">Acciones globales</string>
     <string name="creator_sub_actions">Personalizar botones con palabras clave</string>
@@ -407,7 +381,7 @@
     <string name="action_default_preview_text">Acción</string>
     <string name="actions_search_hint">Buscar acciones...</string>
     <string name="actions_search_empty_fmt">No se encontraron acciones que coincida con \"%1$s\"</string>
-    <string name="action_wip_warning">Esta función es un trabajo en progreso. La coincidencia de palabras clave depende de cómo las aplicaciones estructuran sus notificaciones y puede no funcionar para cada aplicación.</string>
+    <string name="action_wip_warning">Función experimental. La detección de botones depende del formato de cada notificación.</string>
     <string name="creator_dialog_apply_title">¿Aplicar tema?</string>
     <string name="creator_dialog_apply_desc">¿Quieres aplicar este tema ahora?</string>
     <string name="creator_dialog_action_save_apply">Guardar &amp; Aplicar</string>
@@ -424,7 +398,7 @@
     <string name="app_customization_desc">Añade una aplicación para personalizar su aspecto.</string>
     <string name="discard">Descartar</string>
     <string name="unsaved_changes">Cambios sin guardar</string>
-    <string name="unsaved_changes_desc">Tiene cambios no guardados para esta aplicación. ¿Desea guardarlos antes de salir?</string>
+    <string name="unsaved_changes_desc">¿Guardar los cambios pendientes antes de salir?</string>
     <string name="share_theme">Compartir tema</string>
     <string name="my_theme">Mi tema</string>
     <plurals name="creator_sub_actions_count">
@@ -441,13 +415,12 @@
     <string name="colors_desc_material_you">Extrae los colores de tu fondo de pantalla actual.</string>
     <string name="kill_all_widgets">Detener widgets activos</string>
     <string name="permission_reminder_title">Aviso de actualización</string>
-    <string name="permission_reminder_desc">¡Hyper Bridge se ha actualizado! Por favor, asegúrate de que los permisos de Inicio automático y Batería en segundo plano no hayan sido revocados silenciosamente por el sistema para que tus widgets sigan funcionando sin problemas.</string>
+    <string name="permission_reminder_desc">Hyper Bridge actualizado. Verifica que Inicio automático y Batería sigan concedidos.</string>
     <string name="got_it">Entendido</string>
     <string name="recommended">Recomendados</string>
     <string name="all">Todos</string>
     <string name="favorites">Favoritos</string>
     <string name="channel_live_updates">Actualizaciones nativas en vivo</string>
-    <string name="engine_preview_title">Vista previa</string>
     <string name="engine_design_section">Diseño de notificaciones</string>
     <string name="engine_xiaomi_title">Diseño destacado de Xiaomi</string>
     <string name="engine_xiaomi_desc">Diseño moderno de HyperOS de Xiaomi.</string>
@@ -491,14 +464,13 @@
     <string name="trigger_override">Anular desencadenantes</string>
     <string name="trigger_app_desc">Selecciona qué eventos activan la isla para esta aplicación.</string>
     <string name="enable_triggers">Habilitar eventos específicos</string>
-    <string name="open_source_licenses">Licencias de código abierto</string>
     <string name="remove_original_notification">Eliminar notificación original</string>
     <string name="remove_original_notification_desc">Descartar automáticamente la notificación original cuando una Live Update está activa.</string>
     <string name="dismiss_with_original">Descartar con original</string>
     <string name="dismiss_with_original_desc">La isla desaparecerá cuando elimines la notificación original.</string>
     <string name="enable_inline_reply">Habilitar respuesta rápida</string>
     <string name="enable_inline_reply_desc">Inicia la superposición de respuesta rápida al responder desde la isla.</string>
-    <string name="remove_original_notification_hidden_warning">Nota: Al estar activado, Hyper Bridge no puede responder o marcar mensajes como leídos. Las acciones Responder y Marcar como leído se ocultarán.</string>
+    <string name="remove_original_notification_hidden_warning">Al activarse, la respuesta rápida y marcar como leído no pueden funcionar y se ocultan.</string>
     <string name="color_mode">Modo de Color</string>
     <string name="color_mode_select">Seleccionar Modo de Color</string>
     <string name="color_mode_change_cd">Cambiar modo de color</string>
@@ -533,18 +505,17 @@
     <string name="title_0_5_2">Respuesta Rápida, Rendimiento y Estabilidad</string>
     <string name="title_0_5_1">Correcciones y Mejoras</string>
     <string name="title_0_5_0">La actualización en vivo</string>
-    <string name="notification_went_wrong">¡Si ves esto, algo salió mal! Haz clic aquí para ver cómo solucionarlo.</string>
-    <string name="widget_went_wrong">Si estás viendo esto, algo salió mal! El sistema no puede mostrar el widget</string>
+    <string name="notification_went_wrong">Error al mostrar la isla. Toca para ver diagnósticos.</string>
+    <string name="widget_went_wrong">No se pudo mostrar el widget. Toca para ver diagnósticos.</string>
     <string name="troubleshoot_featured_notification">Solucionar</string>
     <string name="featured_notifications_check">Test Notificaciones Destacadas</string>
     <string name="featured_notifications_check_desc">Vamos a verificar si tu sistema está configurado correctamente para mostrar las islas de Hyper Bridge.</string>
     <string name="featured_notifications_not_supported">No Soportado</string>
-    <string name="featured_notifications_enabled">Habilitado</string>
     <string name="featured_notifications_open_settings">Abrir Ajustes del Sistema</string>
     <string name="featured_notifications_troubleshoot_title">¿Por qué esto no es una isla?</string>
-    <string name="featured_notifications_troubleshoot_desc">Tu dispositivo Xiaomi interceptó la notificación pero no pudo mostrarla como una isla destacada porque el permiso está deshabilitado en los ajustes del sistema.\n\nPara solucionar esto:\n1. Toca \"Abrir Ajustes del Sistema\"\n2. Desplázate hacia abajo hasta \"Notificaciones Destacadas\" (o similar)\n3. Habilítalo para Hyper Bridge.</string>
+    <string name="featured_notifications_troubleshoot_desc">El permiso de notificaciones destacadas está desactivado. Toca "Abrir ajustes del sistema" y actívalo para Hyper Bridge.</string>
     <string name="featured_notifications_shizuku_alternative">Alternativa: Usar Shizuku</string>
-    <string name="featured_notifications_shizuku_desc">Si tu sistema no muestra el ajuste o está restringido, puedes eludir la lista blanca de Xiaomi completamente configurando Shizuku. Hyper Bridge usará Shizuku para publicar las islas directamente.</string>
+    <string name="featured_notifications_shizuku_desc">Si tu sistema lo restringe, configura Shizuku para publicar islas directamente y omitir restricciones.</string>
     <string name="migration_title">Actualización de Hyper Bridge</string>
     <string name="migration_message">Migrando la base de datos al almacenamiento protegido por el dispositivo…</string>
     <string name="migration_complete">Actualización completada</string>
@@ -567,7 +538,7 @@
     <string name="bug_report_title">Reporte de Errores y Diagnóstico</string>
     <string name="bug_report_subtitle">Genera un diagnóstico del sistema y reporta errores</string>
     <string name="bug_report_privacy_title">Privacidad y Divulgación</string>
-    <string name="bug_report_privacy_desc">Enviar un reporte en GitHub hará que esta información sea PÚBLICA para cualquier persona en internet. Si prefieres que sea privado, puedes enviarlo por correo directamente al desarrollador a %s.</string>
+    <string name="bug_report_privacy_desc">Las incidencias en GitHub son públicas. Para enviarlo en privado, escribe al desarrollador a %s.</string>
     <string name="bug_report_view_privacy">Ver Política de Privacidad</string>
     <string name="bug_report_details_title">Detalles del Problema</string>
     <string name="bug_report_what_happened">¿Qué ocurrió? *</string>
@@ -592,27 +563,20 @@
     <string name="bug_report_app_scope_specific_desc">Compartir ajustes y reglas de una aplicación en particular</string>
     <string name="bug_report_app_scope_all">Todas las Apps</string>
     <string name="bug_report_app_scope_all_desc">Incluir configuraciones y reglas de todas las apps</string>
-    <string name="bug_report_select_app">Seleccionar App</string>
     <string name="bug_report_include_logs">Registros Recientes de la App (Logcat)</string>
     <string name="bug_report_include_logs_desc">Últimas 500 líneas de registros del sistema y Hyper Bridge</string>
     <string name="bug_report_preview_title">Vista Previa del Reporte</string>
     <string name="bug_report_preview_desc">Revisa los datos exactos que se compartirán</string>
     <string name="bug_report_submit_github">Reportar en GitHub</string>
     <string name="bug_report_send_email">Enviar por Correo</string>
-    <string name="bug_report_copy_clipboard">Copiar</string>
-    <string name="bug_report_share">Compartir</string>
     <string name="bug_report_copied_github_toast">¡Diagnóstico copiado al portapapeles! Pégalo en la sección de Logs en GitHub.</string>
     <string name="bug_report_copied_toast">Reporte copiado al portapapeles.</string>
     <string name="bug_report_email_subject">Reporte de Error de Hyper Bridge</string>
-    <string name="bug_report_entry_title">Reporte de Errores y Diagnóstico</string>
     <string name="bug_report_entry_subtitle">Soluciona y reporta errores con registros del sistema</string>
     <string name="bug_report_need_help">¿Tienes problemas con permisos o islas?</string>
-    <string name="bug_report_open_diagnostics">Abrir Diagnóstico</string>
-    <string name="bug_report_bridged">Conectada</string>
-    <string name="bug_report_change_app">Cambiar App</string>
     <string name="privacy_policy_title">Política de Privacidad</string>
     <string name="privacy_policy_subtitle">Conoce cómo se protegen y gestionan tus datos</string>
-    <string name="bug_report_screen_description">Genera diagnósticos y registros detallados del sistema para solucionar y reportar errores de Hyper Bridge.</string>
+    <string name="bug_report_screen_description">Exporta registros de diagnóstico y detalles del sistema para solucionar problemas.</string>
     <string name="cancel">Cancelar</string>
     <string name="continue_action">Continuar</string>
     <string name="type_screen_recording">Grabación de pantalla</string>
@@ -628,23 +592,18 @@
     <string name="system_integration_disabled">Desactivado</string>
     <string name="system_integration_unavailable">No disponible en este dispositivo</string>
     <string name="screen_recording_customization_title">Isla de Grabación de Pantalla</string>
-    <string name="screen_recording_customization_desc">Personaliza cómo se muestra la isla de grabación</string>
     <string name="screen_recording_left_option_icon_only">Solo icono</string>
     <string name="screen_recording_left_option_icon_and_text">Icono y mensaje</string>
     <string name="screen_recording_left_option_text_only">Solo mensaje</string>
-    <string name="screen_recording_right_option_timer">Temporizador</string>
     <string name="screen_recording_right_option_none">Nada</string>
     <string name="screen_recording_saved_auto_hide_desc">Tiempo que se muestra el tic de confirmación tras finalizar la grabación</string>
     <string name="preview">Vista previa</string>
     <string name="system_updater_title">Actualización del sistema</string>
     <string name="system_updater_customization_title">Isla de Actualización del Sistema</string>
-    <string name="system_updater_customization_desc">Personaliza cómo se muestra la isla de actualización</string>
     <string name="system_updater_left_option_icon_and_text">Icono y versión</string>
-    <string name="system_updater_left_option_icon_only">Solo icono</string>
     <string name="system_updater_left_option_text_only">Solo versión</string>
     <string name="system_updater_right_option_percentage">Porcentaje</string>
     <string name="system_updater_right_option_progress_circle">Círculo de progreso</string>
-    <string name="system_updater_right_option_none">Nada</string>
     <string name="system_updater_icon_title">Icono</string>
     <string name="system_updater_icon_option_notification">Icono de la notificación predeterminado</string>
     <string name="system_updater_icon_option_package">Icono de la app</string>
@@ -653,7 +612,6 @@
     <string name="system_updater_saved_auto_hide_desc">Tiempo que se muestra el tic de confirmación tras finalizar la descarga</string>
     <string name="vpn_title">VPN</string>
     <string name="vpn_island_enabled">Supervisando conexiones VPN</string>
-    <string name="vpn_island_disabled">La Isla VPN está desactivada</string>
     <string name="vpn_is_connected">VPN conectada</string>
     <string name="vpn_connected_to">Conectado a %1$s</string>
     <string name="vpn_connecting">Conectando VPN</string>
@@ -700,8 +658,6 @@
     <string name="floating_disabled_confirmation">He desactivado las notificaciones emergentes en esta app</string>
     <string name="open_notification_settings">Abrir ajustes de notificaciones</string>
     <string name="settings_not_available">No se encontró una pantalla de ajustes compatible</string>
-    <string name="finish_notification_setup">Completar configuración de notificaciones</string>
-    <string name="finish_notification_setup_desc">Revisa los banners flotantes nativos de tus apps seleccionadas. Esto es opcional y puedes volver a consultarlo.</string>
     <string name="floating_setup_onboarding_title">Evitar banners flotantes duplicados</string>
     <string name="floating_setup_onboarding_desc">Tras seleccionar las apps, HyperBridge puede llevarte directamente a los ajustes de notificaciones de cada app. Este paso opcional no requiere root, Shizuku ni ADB.</string>
     <string name="floating_setup_settings_subtitle">Evita banners nativos duplicados para las apps seleccionadas</string>
@@ -709,10 +665,6 @@
     <!-- Diagnostics -->
     <string name="diagnostics_title">Diagnóstico</string>
     <string name="diagnostics_subtitle">Permisos, estado del servicio y eventos recientes anonimizados</string>
-    <string name="diagnostic_notification_access">Acceso a notificaciones</string>
-    <string name="diagnostic_post_notifications">Enviar notificaciones</string>
-    <string name="diagnostic_focus_support">Compatibilidad con Isla HyperOS</string>
-    <string name="diagnostic_featured_permission">Notificaciones destacadas</string>
     <string name="diagnostic_selected_apps">Apps seleccionadas</string>
     <string name="diagnostic_floating_review">Apps pendientes de revisión flotante</string>
     <string name="diagnostic_active_islands">Islas activas</string>
@@ -723,7 +675,6 @@
     <string name="diagnostic_privacy_note">El contenido de las notificaciones, remitentes y datos de llamadas nunca se almacenan en este registro.</string>
     <string name="copy">Copiar</string>
     <string name="bug_report">Informe de error</string>
-    <string name="copy_sanitized_diagnostics">Copiar</string>
     <string name="diagnostic_export_header">Diagnóstico anonimizado de HyperBridge</string>
     <string name="connected">Conectado</string>
     <string name="disconnected">Desconectado</string>
@@ -738,8 +689,6 @@
     <string name="diagnostic_no_events">No hay eventos recientes</string>
     <string name="diagnostic_no_events_desc">Las interacciones del sistema y las notificaciones aparecerán aquí en tiempo real.</string>
     <string name="diagnostic_copied_toast">Diagnóstico anonimizado copiado al portapapeles</string>
-    <string name="diagnostic_supported">Compatible</string>
-    <string name="diagnostic_unsupported">No compatible</string>
     <string name="diagnostic_all_clear">Todo en orden</string>
     <string name="diagnostic_metric_review">Revisión</string>
     <string name="diagnostic_service_active_desc">Servicio de interceptor de notificaciones activo</string>
@@ -748,10 +697,6 @@
     <string name="diagnostic_active_count">%1$d activas</string>
     <string name="diagnostic_last_classification_desc">Última categoría de notificación interceptada</string>
     <string name="diagnostic_last_call_state_desc">Último estado de llamada detectado</string>
-    <string name="diagnostic_notification_access_desc">Necesario para interceptar eventos de aplicaciones</string>
-    <string name="diagnostic_post_notifications_desc">Necesario para mostrar notificaciones en la Isla</string>
-    <string name="diagnostic_focus_support_desc">Compatibilidad con la Isla en Xiaomi HyperOS</string>
-    <string name="diagnostic_featured_permission_desc">Permiso para mostrar notificaciones destacadas</string>
     <string name="diagnostic_selected_apps_desc">Aplicaciones activadas para mostrarse en la Isla</string>
     <string name="diagnostic_apps_count">%1$d apps</string>
     <string name="diagnostic_floating_review_desc">Apps que necesitan desactivar su banner flotante nativo</string>
@@ -761,39 +706,27 @@
     <string name="diagnostic_last_custom_translator_desc">Último traductor personalizado aplicado</string>
     <string name="bug_report_include_custom_translators">Incluir traductores personalizados</string>
     <string name="bug_report_include_custom_translators_desc">Configuración saneada de los traductores personalizados instalados</string>
-    <string name="diagnostic_restricted_settings">Permisos restringidos</string>
-    <string name="diagnostic_restricted_settings_desc">Acceso a ajustes restringidos de Android 13+ para apps descargadas</string>
-    <string name="diagnostic_restricted_allowed">Permitido</string>
-    <string name="diagnostic_restricted_blocked">Restringido</string>
     <string name="diagnostic_reconnecting_toast">Reconectando servicio…</string>
     <!-- App Configuration Screen -->
     <string name="app_config_title">Configuración de la app</string>
     <string name="app_config_subtitle">Comportamientos, widgets y extensiones</string>
     <string name="custom_design_title">Diseño personalizado</string>
-    <string name="custom_design_badge">PRÓXIMAMENTE</string>
     <string name="custom_design_desc">Los diseños visuales personalizables y temas adaptados de la Isla están en desarrollo. Muy pronto disponibles.</string>
     <string name="custom_translators_title">Traductores personalizados</string>
-    <string name="custom_translators_badge">PRÓXIMAMENTE</string>
-    <string name="custom_translators_desc">Crea e instala traductores personalizados de la comunidad para formatear y controlar los datos de notificaciones de esta app.</string>
+    <string name="custom_translators_desc">Reglas personalizadas para interceptar, formatear y controlar notificaciones.</string>
 
     <!-- App Custom Designs Management Section -->
     <string name="app_designs_subtitle">%1$d activos</string>
-    <string name="app_designs_section_desc">Activa o desactiva los diseños de isla para esta aplicación. Los diseños globales también se pueden alternar específicamente para esta app.</string>
+    <string name="app_designs_section_desc">Gestiona diseños de isla y plantillas para esta aplicación.</string>
     <string name="app_designs_empty_title">Sin diseños para esta app</string>
-    <string name="app_designs_empty_desc">No hay diseños globales o específicos disponibles. Añade un nuevo diseño o explora plantillas en el Administrador de diseños.</string>
-    <string name="app_designs_add_design">Añadir diseño</string>
+    <string name="app_designs_empty_desc">No hay diseños para esta app. Añade un diseño o explora plantillas.</string>
     <string name="app_designs_search_hint">Buscar diseños…</string>
-    <string name="app_designs_filter_all">Todos</string>
-    <string name="app_designs_filter_active">Activos</string>
-    <string name="app_designs_filter_inactive">Inactivos</string>
-    <string name="app_designs_filter_global">Globales</string>
     <string name="app_designs_filter_app_specific">Específicos de la app</string>
     <string name="app_designs_no_results">Ningún diseño coincide con tu búsqueda o filtro</string>
     <string name="app_widgets_section_title">Widgets de la Isla</string>
     <string name="app_widgets_section_desc">Configura widgets de esta app para mostrarlos como Hyper Islands.</string>
     <string name="add_island_widget">Añadir widget</string>
     <string name="no_widgets_for_app">Aún no hay widgets de la isla configurados para esta app.</string>
-    <string name="no_available_widgets_for_app">Esta aplicación no proporciona ningún widget.</string>
     <string name="select_app_widget">Seleccionar widget</string>
     <string name="theme_managed_banner">Los comportamientos están gestionados por tu tema activo.</string>
     <string name="app_status_bridged">Vinculada</string>
@@ -805,7 +738,7 @@
     <string name="smart_actions_title">Acciones Inteligentes</string>
     <string name="smart_actions_desc">Botones de un toque para códigos, enlaces, teléfonos, paquetes y direcciones</string>
     <string name="setting_smart_actions">Activar Acciones Inteligentes</string>
-    <string name="setting_smart_actions_desc">Escanea el texto de las notificaciones para detectar contenido útil y añade botones a la isla y al panel. No se escanea nada mientras esté desactivado.</string>
+    <string name="setting_smart_actions_desc">Extrae botones accionables (códigos OTP, enlaces, direcciones) de las notificaciones.</string>
     <string name="smart_actions_group_detect">Detectar</string>
     <string name="setting_smart_actions_otp">Códigos de verificación</string>
     <string name="setting_smart_actions_otp_desc">Copia en un toque de códigos OTP y 2FA</string>
@@ -829,22 +762,21 @@
     <string name="smart_action_copy_code_hidden">Copiar código</string>
     <string name="smart_actions_group_privacy">Privacidad</string>
     <string name="setting_smart_actions_hide_otp">Ocultar el código en el botón</string>
-    <string name="setting_smart_actions_hide_otp_desc">Muestra «Copiar código» en vez del código mismo, para que nunca se imprima en la isla ni en el panel</string>
+    <string name="setting_smart_actions_hide_otp_desc">Oculta códigos de verificación confidenciales en la isla y en el panel.</string>
     <string name="smart_actions_excluded_empty">No hay apps excluidas. Todas las apps vinculadas son escaneadas.</string>
     <string name="smart_actions_add_excluded_app">Añadir app</string>
     <string name="smart_actions_pick_app_title">Excluir una app</string>
     <string name="smart_actions_pick_app_search">Buscar apps</string>
     <string name="smart_actions_all_apps_excluded">Todas las apps vinculadas ya están excluidas</string>
     <string name="cd_smart_actions_remove_excluded">Eliminar de apps excluidas</string>
-    <string name="app_smart_actions_title">Acciones Inteligentes</string>
     <string name="app_smart_actions_subtitle_on">Códigos, enlaces, números de teléfono, paquetes y direcciones</string>
     <string name="app_smart_actions_subtitle_off">Desactivado para esta app</string>
     <string name="app_smart_actions_subtitle_global_off">Primero activa Acciones Inteligentes en los ajustes globales</string>
     <string name="app_smart_actions_enable">Acciones Inteligentes para esta app</string>
     <string name="app_smart_actions_enable_desc">Desactiva para no escanear nunca las notificaciones de esta app</string>
     <string name="app_smart_actions_types_title">Acciones para esta app</string>
-    <string name="app_smart_actions_types_desc">Elige qué botones puede mostrar esta app. Cada uno sigue el ajuste global hasta que lo cambies aquí.</string>
-    <string name="app_smart_actions_global_off_banner">Las Acciones Inteligentes están desactivadas globalmente. Actívalas en Ajustes globales > Acciones Inteligentes para usar estas opciones.</string>
+    <string name="app_smart_actions_types_desc">Configura botones de acciones inteligentes para esta app o sigue los ajustes globales.</string>
+    <string name="app_smart_actions_global_off_banner">Acciones inteligentes desactivadas globalmente. Actívalas en Ajustes Globales.</string>
 
     <!-- Enable All Apps -->
     <string name="bridge_all_apps">Activar todas las apps</string>
@@ -855,21 +787,14 @@
     <!-- Listener watchdog (#330) -->
     <string name="channel_service_health">Estado del servicio</string>
     <string name="listener_down_title">HyperBridge ha dejado de recibir notificaciones</string>
-    <string name="listener_down_text">El servicio de notificaciones se ha desconectado y no se ha podido reconectar automáticamente. Toca para abrir el diagnóstico.</string>
+    <string name="listener_down_text">Servicio de notificaciones desconectado. Toca para inspeccionar diagnósticos.</string>
     <string name="listener_down_action_reconnect">Reconectar</string>
     <string name="diagnostic_reconnect_service">Reconectar servicio</string>
     <!-- Translators & Translator Editor (#342 / #271) -->
     <string name="design_section_translators">Traductores</string>
     <string name="design_translators_carousel_desc">%1$d reglas activas</string>
-    <string name="design_action_create_translator">Nuevo traductor</string>
-    <string name="design_translators_browse_all">Gestionar traductores</string>
-    <string name="translators_manager_title">Traductores</string>
     <string name="translators_manager_subtitle">Interceptación de reglas y formato</string>
     <string name="translators_search_hint">Buscar traductores, paquetes o reglas…</string>
-    <string name="translators_filter_all">Todos</string>
-    <string name="translators_filter_active">Activos</string>
-    <string name="translators_filter_inactive">Inactivos</string>
-    <string name="translators_filter_global">Global</string>
     <string name="translators_filter_apps">Apps</string>
     <string name="translators_filter_system_apps">Apps del sistema</string>
     <string name="translators_filter_types">Tipos</string>
@@ -889,7 +814,6 @@
     <string name="translators_filter_sheet_title">Filtrar traductores</string>
     <string name="translators_filter_sheet_desc">Filtra traductores personalizados por estado, alcance, tipos de notificación o iconos</string>
     <string name="translators_filter_status_section">Estado y Alcance</string>
-    <string name="translators_filter_types_section">Tipos de notificación</string>
     <string name="translators_filter_apps_section">Apps objetivo</string>
     <string name="translators_filter_creators_section">Creador</string>
     <string name="translators_filter_icons_section">Iconos</string>
@@ -898,38 +822,17 @@
 
     <string name="translator_meta_icon_title">Icono del traductor</string>
     <string name="translator_meta_icon_desc">Selecciona un icono para identificar fácilmente este traductor</string>
-    <string name="translator_meta_priority_title">Prioridad de ejecución</string>
-    <string name="translator_meta_priority_desc">Cuando varios traductores coinciden con una notificación, se evalúa primero el de mayor prioridad.</string>
     <string name="translator_priority_preset_low">50 (Baja)</string>
     <string name="translator_priority_preset_default">100 (Predeterminada)</string>
     <string name="translator_priority_preset_high">200 (Alta)</string>
     <string name="translator_priority_preset_urgent">500 (Urgente)</string>
 
     <!-- Translator Visual Editor -->
-    <string name="translator_editor_title_new">Nuevo traductor</string>
     <string name="translator_editor_title_edit">Editar traductor</string>
-    <string name="translator_editor_save">Guardar</string>
-    <string name="translator_editor_preview_title">Vista previa de la isla</string>
-    <string name="translator_editor_preview_hint">Simulando la isla en vivo con las reglas actuales</string>
     
-    <string name="translator_tab_general">General</string>
-    <string name="translator_tab_conditions">Condiciones de coincidencia</string>
-    <string name="translator_tab_presentation">Presentación</string>
-    <string name="translator_tab_progress">Progreso</string>
-    <string name="translator_tab_actions">Acciones</string>
-    <string name="translator_tab_behavior">Comportamiento</string>
 
-    <string name="translator_field_name">Nombre del traductor</string>
-    <string name="translator_field_name_hint">Ej. Notificaciones limpias de WhatsApp</string>
-    <string name="translator_field_author">Autor</string>
     <string name="translator_field_description">Descripción</string>
-    <string name="translator_field_priority">Prioridad (Mayor se ejecuta antes)</string>
-    <string name="translator_field_scope">Alcance objetivo</string>
-    <string name="translator_scope_desc_global">Se aplica a todas las notificaciones entrantes</string>
-    <string name="translator_scope_desc_apps">Se aplica solo a aplicaciones seleccionadas</string>
-    <string name="translator_scope_desc_types">Se aplica solo a tipos específicos de notificación</string>
     <string name="translator_select_apps">Aplicaciones objetivo</string>
-    <string name="translator_select_types">Tipos de notificación objetivo</string>
 
     <string name="translator_cond_title_regex">Patrón de título (Regex)</string>
     <string name="translator_cond_title_regex_hint">Ej. ^(?&lt;sender&gt;.*?): (?&lt;msg&gt;.*)</string>
@@ -950,13 +853,7 @@
     <string name="translator_cond_has_progress">Debe tener progreso</string>
     <string name="translator_cond_has_actions">Debe tener acciones</string>
 
-    <string name="translator_pres_title_template">Plantilla de título</string>
-    <string name="translator_pres_subtitle_template">Plantilla de subtítulo</string>
-    <string name="translator_pres_variables_hint">Etiquetas disponibles:</string>
     <string name="translator_pres_icon_source">Origen del icono izquierdo</string>
-    <string name="translator_icon_app">Icono de la app</string>
-    <string name="translator_icon_avatar">Remitente / Avatar</string>
-    <string name="translator_icon_none">Oculto</string>
 
     <string name="translator_prog_type">Tipo de ranura de progreso</string>
     <string name="translator_prog_type_none">Desactivado / Ninguno</string>
@@ -967,13 +864,8 @@
     <string name="translator_prog_type_waypoint_desc">Progreso por etapas para envíos, rutas o entregas</string>
     <string name="translator_prog_type_timer">Cuenta Atrás / Temporizador</string>
     <string name="translator_prog_type_timer_desc">Indicador de tiempo transcurrido o cuenta regresiva</string>
-    <string name="translator_prog_extract_from_text">Extraer progreso del texto</string>
     <string name="translator_prog_regex">Regex de progreso (ej. (\\d+)%)</string>
 
-    <string name="translator_actions_slot_title">Botón %1$d</string>
-    <string name="translator_actions_match_mode">Coincidir acción por</string>
-    <string name="translator_actions_match_index">Índice en la notificación</string>
-    <string name="translator_actions_match_title">Regex del título</string>
     <string name="translator_actions_source">Origen de la acción</string>
     <string name="translator_actions_source_notif">Acción de la notificación original</string>
     <string name="translator_actions_source_smart">Acción inteligente</string>
@@ -982,15 +874,6 @@
     <string name="translator_actions_remove_slot">Eliminar botón</string>
 
     <string name="translator_behavior_engine">Modo de motor</string>
-    <string name="translator_engine_inherit">Heredar predeterminado de la app</string>
-    <string name="translator_engine_custom">Isla personalizada de HyperOS</string>
-    <string name="translator_engine_native">Actualización en vivo nativa</string>
-    <string name="translator_behavior_float">Ventana emergente (Heads-up)</string>
-    <string name="translator_behavior_float_timeout">Duración emergente (segundos)</string>
-    <string name="translator_behavior_timeout">Tiempo de espera de la isla (segundos)</string>
-    <string name="translator_behavior_shade">Mostrar en el panel de notificaciones</string>
-    <string name="translator_behavior_remove_orig">Descartar notificación original</string>
-    <string name="translator_behavior_dismiss_with_orig">Descartar con la notificación original</string>
 
     <string name="translator_meta_title">Información del traductor</string>
     <string name="translator_menu_conditions">Condiciones de coincidencia</string>
@@ -1003,11 +886,7 @@
     <string name="translator_menu_actions_sub">Acciones inteligentes, activadores, botones</string>
     <string name="translator_menu_behavior">Comportamiento y motor</string>
     <string name="translator_menu_behavior_sub">Tiempos de espera, emergentes, modo de motor</string>
-    <string name="translator_menu_apps">Aplicaciones objetivo</string>
-    <string name="translator_menu_apps_sub">Seleccionar apps asignadas a este traductor</string>
 
-    <string name="translator_apps_empty">Todas las aplicaciones asignadas (Global)</string>
-    <string name="translator_apps_empty_desc">Toca + para restringir este traductor a apps específicas.</string>
     <string name="translator_btn_edit_meta">Editar información y prioridad</string>
 
     <string name="translator_scope_global">Global</string>
@@ -1015,26 +894,20 @@
     <string name="translator_scope_apps_fmt">%1$d apps asignadas</string>
     <string name="translator_conditions_title">Condiciones de coincidencia</string>
     <string name="translator_conditions_desc">Define expresiones regulares y filtros para hacer coincidir notificaciones.</string>
-    <string name="translator_cond_channel_id">ID de canal de notificación</string>
     <string name="translator_cond_has_progress_desc">La notificación debe contener una barra/indicador de progreso</string>
     <string name="translator_cond_has_actions_desc">La notificación debe tener botones de acción</string>
-    <string name="translator_presentation_title">Presentación y diseño</string>
     <string name="translator_pres_mode">Modo de presentación</string>
     <string name="translator_pres_title_tpl">Plantilla de título ({notif.title})</string>
     <string name="translator_pres_sub_tpl">Plantilla de subtítulo ({notif.text})</string>
     <string name="translator_pres_highlight_tpl">Plantilla de texto resaltado</string>
-    <string name="translator_progress_title">Progreso y tiempos</string>
     <string name="translator_prog_show_pct">Mostrar porcentaje</string>
-    <string name="translator_prog_extract_text">Extraer progreso del texto</string>
     <string name="translator_prog_regex_tpl">Regex de progreso (ej. (\\d+)%)</string>
     <string name="translator_actions_title">Botones</string>
     <string name="translator_actions_empty_title">Sin botones configurados</string>
     <string name="translator_actions_empty_desc">Añade botones para asignar acciones de la notificación, inteligentes o respuestas rápidas.</string>
     <string name="translator_action_custom_label">Etiqueta de botón personalizada</string>
     <string name="translator_behavior_title">Comportamiento y duración de la isla</string>
-    <string name="translator_no_apps_selected">Ninguna app seleccionada</string>
     <string name="translator_target_scope_card_title">Alcance objetivo</string>
-    <string name="translator_target_scope_global_title">Global</string>
     <string name="translator_target_scope_global_desc">Se aplica a todas las aplicaciones permitidas en la Biblioteca</string>
     <string name="translator_target_scope_apps_title">Apps específicas</string>
     <string name="translator_target_scope_apps_desc">Se aplica solo a las aplicaciones seleccionadas (%1$d seleccionadas)</string>
@@ -1044,16 +917,13 @@
     <string name="translator_select_system_apps_action">Seleccionar apps del sistema</string>
     <string name="translator_notif_types_filter_title">Filtrar por tipo de notificación</string>
     <string name="translator_notif_types_filter_desc">Restringir la regla a categorías específicas de notificación de Android</string>
-    <string name="translator_notif_types_select_action">Seleccionar tipos de notificación</string>
     <string name="translator_notif_types_count_fmt">%1$d tipos seleccionados</string>
     <string name="translator_notif_types_sheet_title">Seleccionar tipos de notificación</string>
     <string name="translator_scope_sheet_title">Seleccionar alcance objetivo</string>
 
-    <string name="app_translators_section_title">Traductores personalizados</string>
     <string name="app_translators_section_desc">Reglas de traductor activas aplicadas a esta aplicación.</string>
     <string name="app_translators_create_for_app">Crear para esta app</string>
     <string name="app_translators_empty">No hay traductores personalizados configurados para esta app todavía.</string>
-    <string name="translator_cond_add_btn">Añadir patrón de condición</string>
     <string name="translator_cond_sheet_title">Añadir patrón de condición</string>
     <string name="translator_cond_empty_title">Sin patrones de condición</string>
     <string name="translator_cond_empty_desc">Añade patrones o filtros para especificar cuándo se activa este traductor.</string>
@@ -1061,7 +931,6 @@
     <string name="translator_cond_group_messaging">Mensajería y personas</string>
     <string name="translator_cond_group_media">Multimedia y reproducción</string>
     <string name="translator_cond_group_call">Llamadas telefónicas</string>
-    <string name="translator_cond_group_navigation">Navegación</string>
     <string name="translator_cond_group_progress">Progreso y descargas</string>
     
     <string name="translator_cond_sender_name">Nombre de persona / remitente (Regex)</string>
@@ -1105,7 +974,6 @@
     <string name="translator_cond_channel_search_hint">Buscar canales de notificación...</string>
     <string name="translator_cond_channel_empty">No se encontraron canales para las apps objetivo</string>
     <string name="translator_cond_channel_custom_desc">O introduce manualmente el ID del canal:</string>
-    <string name="translator_cond_channel_select_desc">Elige un canal de notificación existente detectado en tu dispositivo:</string>
 
     <!-- Presentation & Layout Strings -->
     <string name="translator_pres_mode_title">Modo de Presentación</string>
@@ -1120,19 +988,15 @@
     <string name="translator_pres_mode_select_btn">Cambiar Modo</string>
     
     <string name="translator_pres_theme_title">Tema Vinculado</string>
-    <string name="translator_pres_theme_desc">Vincula un tema específico o usa el activo por defecto</string>
     <string name="translator_pres_theme_active">Tema Activo (Predeterminado)</string>
     <string name="translator_pres_theme_active_desc">Sigue el tema que esté activo actualmente en HyperBridge</string>
     <string name="translator_pres_theme_sheet_title">Seleccionar Tema</string>
     <string name="translator_pres_theme_select_btn">Cambiar Tema</string>
 
     <string name="translator_pres_wip_title">En Desarrollo</string>
-    <string name="translator_pres_template_wip_desc">Las plantillas personalizadas se completarán en una próxima versión. Puedes previsualizar los ajustes disponibles abajo.</string>
-    <string name="translator_pres_widget_wip_desc">La integración de widgets interactivos estará disponible próximamente. Puedes seleccionar tu widget objetivo abajo.</string>
+    <string name="translator_pres_widget_wip_desc">Selecciona un widget de app para mostrar en la isla.</string>
     <string name="translator_pres_select_template_btn">Seleccionar Plantilla</string>
-    <string name="translator_pres_select_widget_btn">Seleccionar Widget</string>
     <string name="translator_pres_template_sheet_title">Seleccionar Plantilla</string>
-    <string name="translator_pres_widget_sheet_title">Seleccionar Widget</string>
     <string name="translator_pres_template_default">Plantilla 1: Clima y Navegación</string>
     <string name="translator_pres_template_payment">Plantilla 2: Pagos y Cartera</string>
     <string name="translator_pres_template_call">Plantilla 3: Llamadas y CallKit</string>
@@ -1159,15 +1023,6 @@
 
     <!-- Progress & Timing Strings -->
     <string name="translator_prog_info_title">Cómo Funciona el Progreso</string>
-    <string name="translator_prog_info_desc">Los indicadores de progreso solo se mostrarán si la notificación entrante contiene progreso nativo de Android o si se extrae mediante una expresión regular a continuación.\n\nEn la notificación de la isla se muestra como una barra lineal. En la píldora compacta puede verse como un círculo (el diseño de la píldora se personalizará en una actualización posterior).</string>
-    <string name="translator_prog_learn_btn">Cómo funciona el progreso</string>
-    <string name="translator_prog_learn_sheet_title">Guía de Progreso y Temporización</string>
-    <string name="translator_prog_learn_native_title">1. Progreso Nativo de Android</string>
-    <string name="translator_prog_learn_native_desc">Las notificaciones de Android pueden incluir barras de progreso nativas (como descargas de archivos o renderizado). HyperBridge las detecta automáticamente y las asigna a la isla.</string>
-    <string name="translator_prog_learn_regex_title">2. Extracción de Texto (Regex)</string>
-    <string name="translator_prog_learn_regex_desc">Si una app incluye el progreso en el texto (ej. \"Subiendo 45%\" o \"3/10 listo\"), puedes configurar una expresión regular abajo para analizarlo y mostrarlo como barra de progreso.</string>
-    <string name="translator_prog_learn_display_title">3. Barra vs. Píldora</string>
-    <string name="translator_prog_learn_display_desc">En la isla de notificación expandida, el progreso se muestra como una barra horizontal lineal. En la píldora compacta, puede representarse como un anillo circular.</string>
     <string name="translator_prog_type_card_title">Tipo de Progreso</string>
     <string name="translator_prog_type_card_desc">Elige si se muestra el progreso y cómo se renderiza</string>
     <string name="translator_prog_type_select_btn">Cambiar Tipo</string>
@@ -1183,21 +1038,9 @@
 
     <!-- Botones Strings -->
     <string name="translator_actions_info_title">Cómo Funcionan los Botones</string>
-    <string name="translator_actions_learn_btn">Aprende Cómo Funcionan los Botones</string>
-    <string name="translator_actions_learn_sheet_title">Guía de Botones</string>
-    <string name="translator_actions_learn_order_title">1. Orden de Visualización</string>
-    <string name="translator_actions_learn_order_desc">Los botones se sitúan en la Dynamic Island de izquierda a derecha en el orden exacto configurado abajo. Usa las flechas arriba y abajo de cada botón para ajustar su prioridad.</string>
-    <string name="translator_actions_learn_sources_title">2. Tipos de Botón y Orígenes</string>
-    <string name="translator_actions_learn_sources_desc">Puedes vincular botones nativos de la notificación, Acciones Inteligentes sintéticas (como copiar OTP, marcar números o abrir enlaces), respuestas directas o broadcasts personalizados.</string>
-    <string name="translator_actions_learn_visibility_title">3. Visibilidad y Estilo</string>
-    <string name="translator_actions_learn_visibility_desc">Puedes ocultar temporalmente cualquier botón con el selector de visibilidad sin borrar su configuración. Cada botón puede verse solo con icono, solo texto o ambos.</string>
-    <string name="translator_actions_banner_title">Orden y Diseño de Botones</string>
-    <string name="translator_actions_banner_desc">Los botones se muestran de izquierda a derecha en el orden configurado abajo. Puedes reordenar botones, personalizar iconos/texto u ocultar botones individuales sin eliminarlos.</string>
     <string name="translator_actions_slot_badge">Botón %1$d</string>
-    <string name="translator_actions_visibility_visible">Visible en la Isla</string>
     <string name="translator_actions_visibility_hidden">Oculto</string>
     <string name="translator_actions_source_title">Origen del Botón</string>
-    <string name="translator_actions_source_desc">Elige el activador o comportamiento asignado a este botón</string>
     <string name="translator_actions_source_notif_title">Botón de la Notificación</string>
     <string name="translator_actions_source_notif_desc">Ejecuta el botón original de la notificación (ej. Marcar leído, Pausa)</string>
     <string name="translator_actions_source_smart_title">Acción Inteligente</string>
@@ -1213,8 +1056,6 @@
     <string name="translator_actions_display_mode_icon">Solo Icono</string>
     <string name="translator_actions_display_mode_text">Solo Texto</string>
     <string name="translator_actions_display_mode_both">Icono y Texto</string>
-    <string name="translator_actions_display_theme_style">Usar Estilo del Tema</string>
-    <string name="translator_actions_display_theme_style_desc">Aplica la forma de icono, padding y tono de acento del tema</string>
 
     <string name="translator_actions_smart_type_sheet_title">Seleccionar Acción Inteligente</string>
     <string name="translator_actions_smart_otp">Copiar Código 2FA / OTP</string>
@@ -1233,16 +1074,6 @@
     <string name="translator_actions_matcher_regex_label">Regex del Título (ej. Responder|Reply)</string>
 
     <!-- Behavior & Engine Strings -->
-    <string name="translator_behavior_learn_btn">Cómo funciona el comportamiento y motor</string>
-    <string name="translator_behavior_learn_sheet_title">Guía de Comportamiento y Motor</string>
-    <string name="translator_behavior_learn_engine_title">1. Motor de Renderizado</string>
-    <string name="translator_behavior_learn_engine_desc">Elige entre Isla personalizada de HyperOS (estilo y animaciones completas), Live Updates nativas de Android (píldora y barra de estado del sistema), o heredar la configuración global de la app.</string>
-    <string name="translator_behavior_learn_timeout_title">2. Duración y Auto-ocultado</string>
-    <string name="translator_behavior_learn_timeout_desc">Controla cuántos segundos permanece la Dynamic Island en pantalla antes de ocultarse automáticamente, o déjala visible hasta descartarla manualmente.</string>
-    <string name="translator_behavior_learn_float_title">3. Ventana Emergente y Panel</string>
-    <string name="translator_behavior_learn_float_desc">Configura las ventanas emergentes flotantes de Xiaomi y si la notificación debe permanecer en el panel de notificaciones de Android.</string>
-    <string name="translator_behavior_learn_mgmt_title">4. Gestión de la Notificación Original</string>
-    <string name="translator_behavior_learn_mgmt_desc">Descarta automáticamente la notificación original cuando la isla esté activa, sincroniza el cierre al limpiar la original, o activa la superposición de respuesta rápida.</string>
     <string name="translator_behavior_engine_mode_sheet_title">Seleccionar Modo de Motor</string>
     <string name="translator_behavior_engine_mode_inherit">Heredar Ajustes Globales</string>
     <string name="translator_behavior_engine_mode_inherit_desc">Sigue el motor global configurado en los ajustes de HyperBridge</string>
@@ -1251,16 +1082,6 @@
     <!-- Pill Customization Strings -->
     <string name="translator_menu_pill">Personalización de Píldora</string>
     <string name="translator_menu_pill_sub">Diseño de los lados izquierdo y derecho de la píldora</string>
-    <string name="translator_pill_title">Personalización de Píldora</string>
-    <string name="translator_pill_desc">Personaliza la presentación de la píldora compacta alrededor del orificio de la cámara</string>
-    <string name="translator_pill_learn_btn">Cómo funciona la píldora compacta</string>
-    <string name="translator_pill_learn_sheet_title">Guía de Píldora Compacta</string>
-    <string name="translator_pill_learn_symmetry_title">1. Diseño Simétrico</string>
-    <string name="translator_pill_learn_symmetry_desc">La Dynamic Island se divide en ranuras izquierda y derecha centradas simétricamente alrededor del orificio de la cámara de tu dispositivo.</string>
-    <string name="translator_pill_learn_left_title">2. Opciones del Lado Izquierdo</string>
-    <string name="translator_pill_learn_left_desc">Elige entre icono de la app con texto de título, solo icono, solo texto breve, avatar del remitente u oculto.</string>
-    <string name="translator_pill_learn_right_title">3. Lado Derecho y Detección Automática</string>
-    <string name="translator_pill_learn_right_desc">El modo automático detecta e ilustra temporizadores activos o círculos de progreso si están presentes. También puedes fijarlo a temporizadores, porcentaje circular, texto destacado o dejarlo vacío.</string>
     <string name="translator_pill_left_sheet_title">Seleccionar Diseño Izquierdo</string>
     <string name="translator_pill_right_sheet_title">Seleccionar Diseño Derecho</string>
     <string name="translator_pill_left_icon_and_text">Icono y mensaje</string>
@@ -1288,54 +1109,35 @@
     <string name="translator_preview_mode_expanded">Isla Expandida</string>
     <string name="translator_preview_mode_pill">Píldora Compacta</string>
 
-    <string name="design_manager_title">Diseños</string>
     <string name="design_manager_subtitle">Gestiona plantillas y diseños de isla personalizados</string>
     <string name="design_status_active">%d activos</string>
-    <string name="design_status_total">%d en total</string>
-    <string name="design_status_desc">Plantillas de isla activas y diseños personalizados</string>
-    <string name="design_view_mode_preview">Mostrar vista previa</string>
-    <string name="design_view_mode_icon">Mostrar icono</string>
     <string name="design_toggle_preview_cd">Alternar vista previa o icono</string>
     <string name="design_template_type_suggested">Sugerido</string>
 
-    <string name="design_card_themes_desc">Personaliza colores, tipografía y apariencia</string>
-    <string name="design_card_themes_installed">%d instalados</string>
     <string name="design_card_themes_active_default">Predeterminado del sistema activo</string>
-    <string name="design_card_themes_active_named">%s activo</string>
-    <string name="design_card_themes_action">Crear</string>
 
-    <string name="design_card_widgets_desc">Coloca widgets de tus aplicaciones en la isla</string>
     <string name="design_card_widgets_saved">%d configurados</string>
     <string name="design_card_widgets_empty">Sin widgets</string>
-    <string name="design_card_widgets_action">Añadir</string>
 
-    <string name="design_card_translators_desc">Intercepta notificaciones y aplica reglas personalizadas</string>
-    <string name="design_card_translators_action">Nueva regla</string>
 
     <!-- Design Screen Layout Variant switcher -->
-    <string name="design_variant_dashboard">Panel</string>
-    <string name="design_variant_grouped">Agrupado</string>
-    <string name="design_variant_bento">Bento</string>
 
     <!-- Design Screen Featured & Guides Sections -->
     <string name="design_section_featured">Destacados</string>
     <string name="design_featured_themes_title">Temas Hyper</string>
     <string name="design_featured_themes_subtitle">Explora paletas de color y estilos para la isla</string>
-    <string name="design_featured_widgets_title">Widgets de Isla</string>
     <string name="design_featured_widgets_subtitle">Controla música, temporizadores y accesos directos</string>
     <string name="design_featured_designs_title">Diseños Interactivos</string>
     <string name="design_featured_designs_subtitle">Crea diseños a medida para viajes, pedidos y más</string>
     <string name="design_featured_translators_title">Traductores Inteligentes</string>
     <string name="design_featured_translators_subtitle">Intercepta notificaciones con reglas y regex</string>
 
-    <string name="design_section_guides">Guías y Documentación</string>
     <string name="design_guide_customization_title">Resumen de Personalización</string>
     <string name="design_guide_customization_desc">Descubre todo lo que puedes personalizar y crear en HyperBridge</string>
     <string name="design_guide_design_hub_title">Centro de Diseños</string>
     <string name="design_guide_design_hub_desc">Explora, comparte e importa temas, traductores y diseños de la comunidad</string>
     <string name="design_guide_theme_creator_title">Guía del Creador de Temas</string>
     <string name="design_guide_theme_creator_desc">Aprende a crear, probar y empaquetar temas para HyperBridge</string>
-    <string name="design_guide_custom_translators_title">Traductores Personalizados</string>
     <string name="design_guide_custom_translators_desc">Crea reglas de intercepción para tus apps de notificaciones</string>
     <string name="design_guide_custom_designs_title">Diseños Personalizados</string>
     <string name="design_guide_custom_designs_desc">Crea plantillas personalizadas, tarjetas de embarque y vistas de progreso</string>
@@ -1343,11 +1145,8 @@
     <string name="design_guide_widgets_guide_desc">Añade widgets interactivos a la pantalla de inicio y a la isla</string>
     <string name="design_guide_system_apps_title">Integración con Apps del Sistema</string>
     <string name="design_guide_system_apps_desc">Conecta temporizador, grabadora, grabación de pantalla y actualizaciones</string>
-    <string name="design_guide_smart_actions_title">Acciones Inteligentes</string>
     <string name="design_guide_smart_actions_desc">Descubre cómo funcionan los botones y acciones en la isla</string>
-    <string name="design_guide_permanent_island_title">Isla Permanente</string>
     <string name="design_guide_permanent_island_desc">Mantén una cápsula persistente en la barra de estado siempre accesible</string>
-    <string name="design_guide_inline_reply_title">Respuesta Rápida</string>
     <string name="design_guide_inline_reply_desc">Responde a notificaciones de mensajería directamente desde la isla</string>
     <string name="design_guide_advanced_title">Configuración Avanzada</string>
     <string name="design_guide_advanced_desc">Ajustes avanzados, integración con Shizuku y solución de problemas</string>
@@ -1361,12 +1160,8 @@
     <string name="translator_icon_sheet_desc">Elige un icono que represente el estilo de la notificación</string>
     <string name="translator_priority_sheet_title">Prioridad de ejecución</string>
     <string name="translator_priority_card_subtitle">Determina el orden de evaluación entre traductores</string>
-    <string name="translator_priority_sheet_desc">Cuando las notificaciones entrantes coinciden con varias reglas de traductor, se elige y ejecuta primero la regla de mayor prioridad.</string>
+    <string name="translator_priority_sheet_desc">Si varias reglas coinciden con una notificación, se ejecuta primero la de mayor prioridad.</string>
     <string name="translator_priority_input_label">Número de prioridad (0 - 9999)</string>
-    <string name="translator_priority_guide_title">Cómo funciona la prioridad</string>
-    <string name="translator_priority_guide_p1">• Las reglas de mayor prioridad (ej. 500) se ejecutan antes que las de menor prioridad (ej. 50).</string>
-    <string name="translator_priority_guide_p2">• Las reglas personalizadas tienen una prioridad predeterminada de 100.</string>
-    <string name="translator_priority_guide_p3">• Usa valores altos (200-500) para notificaciones críticas como llamadas o viajes en curso que deben tener preferencia.</string>
 
     <!-- Import / Export / Sharing Strings -->
     <string name="translators_import_button">Importar</string>
@@ -1429,8 +1224,6 @@
     <string name="island_template_sample_media_title">Never Gonna Give You Up</string>
     <string name="island_template_sample_media_text">Rick Astley</string>
 
-    <string name="island_template_badge_progress">Progreso</string>
-    <string name="island_template_badge_actions">Botones</string>
 
     <string name="design_section_designs">Diseños</string>
     <string name="design_designs_empty_title">Aún no hay diseños</string>
@@ -1442,7 +1235,7 @@
     <string name="design_add_custom_desc">Crea una isla elemento por elemento (próximamente con Widget Studio)</string>
     <string name="design_template_gallery_title">Elige una plantilla</string>
     <string name="design_template_type_title">¿Cuándo debería mostrarse?</string>
-    <string name="design_template_type_desc">Elige el tipo de notificación al que se aplica este diseño. Puedes añadir condiciones de coincidencia más adelante desde el editor de traductores.</string>
+    <string name="design_template_type_desc">Selecciona el tipo de notificación a personalizar con este diseño.</string>
     <string name="design_design_created">Diseño añadido</string>
     <string name="translator_pres_template_gallery_desc">Elige un diseño y vincula cada elemento a la notificación abajo.</string>
 
@@ -1454,7 +1247,6 @@
     <!-- Design Screen Add Options Bottom Sheet -->
     <string name="design_add_sheet_title">Añadir a la Isla</string>
     <string name="design_add_sheet_subtitle">Selecciona lo que te gustaría crear o añadir</string>
-    <string name="design_add_opt_design_title">Diseño personalizado</string>
     <string name="design_add_opt_design_desc">Construye a partir de plantillas oficiales de Xiaomi o un diseño personalizado</string>
     <string name="design_add_opt_widget_title">Widget del sistema</string>
     <string name="design_add_opt_widget_desc">Inserta widgets nativos de aplicaciones directamente en la isla</string>
@@ -1465,5 +1257,5 @@
 
     <!-- Reusable Feature Help / Guides Redirect -->
     <string name="design_manager_help_title">Acerca de los Diseños de Isla</string>
-    <string name="feature_guides_redirect_desc">En nuestro sitio web encontrarás guías detalladas, tutoriales y documentación para ayudarte a aprender y personalizar esta función.</string>
+    <string name="feature_guides_redirect_desc">Consulta guías detalladas, tutoriales y documentación en nuestro sitio web.</string>
 </resources>

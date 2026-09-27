@@ -426,7 +426,7 @@ fun AppConfigContent(
     onToggleDesign: (String, Boolean) -> Unit = { _, _ -> },
     onCreateDesign: () -> Unit = {}
 ) {
-    val activeDesc = stringResource(R.string.cd_app_state_active)
+    val activeDesc = stringResource(R.string.status_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
     val navEditDesc = stringResource(R.string.cd_nav_edit)
     val activeTypesSubtitle = stringResource(R.string.active_notifications_subtitle, activeTypes.size)
@@ -574,7 +574,7 @@ fun AppConfigContent(
                                         onClick = { onNavigateSubscreen(AppConfigSubscreen.ISLAND_BEHAVIOR) }
                                     )
                                     AppConfigSubscreen.SMART_ACTIONS -> AppConfigOptionCard(
-                                        title = stringResource(R.string.app_smart_actions_title),
+                                        title = stringResource(R.string.smart_actions_title),
                                         subtitle = smartActionsSubtitle,
                                         icon = Icons.Outlined.AutoAwesome,
                                         shape = shape,
@@ -699,7 +699,7 @@ fun AppConfigContent(
 
                 AppConfigSubscreen.SMART_ACTIONS -> {
                     SubscreenScaffold(
-                        title = stringResource(R.string.app_smart_actions_title),
+                        title = stringResource(R.string.smart_actions_title),
                         appName = appName,
                         onBack = { onNavigateSubscreen(null) }
                     ) {
@@ -781,7 +781,7 @@ fun AppConfigContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = stringResource(R.string.app_designs_add_design)
+                                    contentDescription = stringResource(R.string.design_add_design)
                                 )
                             }
                         }
@@ -1446,7 +1446,7 @@ fun AppSmartActionsContent(
                 )
                 SettingsSwitchItem(
                     icon = Icons.Outlined.Directions,
-                    title = stringResource(R.string.setting_smart_actions_navigation),
+                    title = stringResource(R.string.smart_action_directions),
                     subtitle = stringResource(R.string.setting_smart_actions_navigation_desc),
                     checked = override.navigation ?: global.navigation,
                     onCheckedChange = if (controlsEnabled) {
@@ -1944,7 +1944,7 @@ private fun AppDesignFilterSheet(
         scopeFilteredDesigns.mapNotNull { it.presentation.templateId }.filter { it.isNotBlank() }.distinct().sorted()
     }
     val availableIcons = remember(scopeFilteredDesigns) {
-        scopeFilteredDesigns.mapNotNull { it.meta.iconName }.filter { it.isNotBlank() }.distinct().sorted()
+        scopeFilteredDesigns.map { it.meta.iconName }.filter { it.isNotBlank() }.distinct().sorted()
     }
 
     val sanitizedSelectedTypes = draftState.selectedNotificationTypes.filter { it in availableNotificationTypes }.toSet()
@@ -2010,10 +2010,10 @@ private fun AppDesignFilterSheet(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         val scopeOptions = listOf(
-                            AppDesignFilterScope.ALL to R.string.app_designs_filter_all,
-                            AppDesignFilterScope.ACTIVE to R.string.app_designs_filter_active,
-                            AppDesignFilterScope.INACTIVE to R.string.app_designs_filter_inactive,
-                            AppDesignFilterScope.GLOBAL to R.string.app_designs_filter_global,
+                            AppDesignFilterScope.ALL to R.string.all,
+                            AppDesignFilterScope.ACTIVE to R.string.status_active,
+                            AppDesignFilterScope.INACTIVE to R.string.cd_app_state_inactive,
+                            AppDesignFilterScope.GLOBAL to R.string.translator_scope_global,
                             AppDesignFilterScope.APP_SPECIFIC to R.string.app_designs_filter_app_specific
                         )
                         scopeOptions.forEach { (scope, labelRes) ->
@@ -2037,7 +2037,7 @@ private fun AppDesignFilterSheet(
                 if (availableNotificationTypes.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = stringResource(R.string.translators_filter_types_section),
+                            text = stringResource(R.string.active_notifications_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -2353,7 +2353,7 @@ fun AppDesignsSectionCard(
                     FilterChip(
                         selected = isAllActive,
                         onClick = { filterState = AppDesignFilterState() },
-                        label = { Text(stringResource(R.string.app_designs_filter_all)) },
+                        label = { Text(stringResource(R.string.all)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -2409,7 +2409,7 @@ fun AppDesignsSectionCard(
                                 filterState.copy(statusScope = AppDesignFilterScope.ACTIVE)
                             }
                         },
-                        label = { Text(stringResource(R.string.app_designs_filter_active)) },
+                        label = { Text(stringResource(R.string.status_active)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -2424,7 +2424,7 @@ fun AppDesignsSectionCard(
                                 filterState.copy(statusScope = AppDesignFilterScope.INACTIVE)
                             }
                         },
-                        label = { Text(stringResource(R.string.app_designs_filter_inactive)) },
+                        label = { Text(stringResource(R.string.cd_app_state_inactive)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -2439,7 +2439,7 @@ fun AppDesignsSectionCard(
                                 filterState.copy(statusScope = AppDesignFilterScope.GLOBAL)
                             }
                         },
-                        label = { Text(stringResource(R.string.app_designs_filter_global)) },
+                        label = { Text(stringResource(R.string.translator_scope_global)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer

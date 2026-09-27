@@ -261,7 +261,7 @@ fun ThemeManagerScreen(
                         Icon(Icons.Rounded.Search, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            stringResource(R.string.theme_sheet_action_find),
+                            stringResource(R.string.search),
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -278,7 +278,7 @@ fun ThemeManagerScreen(
                         Icon(Icons.Rounded.FolderOpen, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            stringResource(R.string.theme_action_import_short),
+                            stringResource(R.string.translators_import_button),
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -367,7 +367,7 @@ fun ThemeCard(
                     IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                         Icon(
                             Icons.Rounded.Edit,
-                            contentDescription = stringResource(R.string.theme_card_action_edit),
+                            contentDescription = stringResource(R.string.translators_action_edit),
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -391,7 +391,7 @@ fun ThemeCard(
                 ) {
                     Icon(
                         imageVector = if (hasCustomLink) Icons.Rounded.Link else Icons.Rounded.Share,
-                        contentDescription = stringResource(R.string.theme_card_action_export),
+                        contentDescription = stringResource(R.string.translators_export_button),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
@@ -451,5 +451,5 @@ fun SystemDefaultCard(
 fun parseColor(hex: String?): Color {
     return try {
         if (hex.isNullOrEmpty()) Color.Black else Color(hex.toColorInt())
-    } catch (e: Exception) { Color.Black }
+    } catch (_: Exception) { Color.Black }
 }

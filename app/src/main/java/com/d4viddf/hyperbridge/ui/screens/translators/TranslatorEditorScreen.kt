@@ -193,6 +193,9 @@ import com.d4viddf.hyperbridge.ui.screens.theme.content.AppSelectionSheet
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
+import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerHelpSheet
+import com.d4viddf.hyperbridge.util.DocumentationUrls
+import androidx.compose.ui.platform.LocalUriHandler
 import java.util.UUID
 
 enum class TranslatorRoute {
@@ -286,13 +289,13 @@ fun TranslatorEditorContent(
                     Text(
                         text = when (currentRoute) {
                             TranslatorRoute.MAIN_MENU -> if (translator.meta.name.isBlank()) stringResource(R.string.translator_editor_title_edit) else translator.meta.name
-                            TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_menu_conditions)
+                            TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_conditions_title)
                             TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation)
                             TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill)
                             TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress)
-                            TranslatorRoute.ACTIONS -> stringResource(R.string.translator_menu_actions)
+                            TranslatorRoute.ACTIONS -> stringResource(R.string.translator_actions_title)
                             TranslatorRoute.BEHAVIOR -> stringResource(R.string.translator_menu_behavior)
-                            TranslatorRoute.APPS -> stringResource(R.string.translator_menu_apps)
+                            TranslatorRoute.APPS -> stringResource(R.string.translator_select_apps)
                         },
                         fontWeight = FontWeight.Bold
                     )
@@ -317,7 +320,7 @@ fun TranslatorEditorContent(
                             ),
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
-                            Text(stringResource(R.string.creator_action_save), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.save), fontWeight = FontWeight.Bold)
                         }
                     }
                 },
@@ -580,12 +583,12 @@ fun TranslatorMainList(
                     }
 
                     val title = when (route) {
-                        TranslatorRoute.APPS -> stringResource(R.string.translator_menu_apps)
-                        TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_menu_conditions)
+                        TranslatorRoute.APPS -> stringResource(R.string.translator_select_apps)
+                        TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_conditions_title)
                         TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation)
                         TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill)
                         TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress)
-                        TranslatorRoute.ACTIONS -> stringResource(R.string.translator_menu_actions)
+                        TranslatorRoute.ACTIONS -> stringResource(R.string.translator_actions_title)
                         TranslatorRoute.BEHAVIOR -> stringResource(R.string.translator_menu_behavior)
                         else -> ""
                     }
@@ -895,7 +898,7 @@ fun TranslatorConditionsContent(
         ) {
             Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.translator_cond_add_btn), fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.translator_cond_sheet_title), fontWeight = FontWeight.SemiBold)
         }
 
         if (!hasAnyConditions) {
@@ -1627,8 +1630,8 @@ fun AddConditionFieldContent(
         ConditionFieldOption(ConditionFieldKey.CALL_TYPE, R.string.translator_cond_call_type, Icons.Outlined.PhoneInTalk, R.string.translator_cond_group_call),
 
         // Navigation
-        ConditionFieldOption(ConditionFieldKey.NAV_INSTRUCTION_REGEX, R.string.translator_cond_nav_instruction, Icons.Outlined.Navigation, R.string.translator_cond_group_navigation),
-        ConditionFieldOption(ConditionFieldKey.NAV_DISTANCE_REGEX, R.string.translator_cond_nav_distance, Icons.Outlined.NearMe, R.string.translator_cond_group_navigation),
+        ConditionFieldOption(ConditionFieldKey.NAV_INSTRUCTION_REGEX, R.string.translator_cond_nav_instruction, Icons.Outlined.Navigation, R.string.cat_nav),
+        ConditionFieldOption(ConditionFieldKey.NAV_DISTANCE_REGEX, R.string.translator_cond_nav_distance, Icons.Outlined.NearMe, R.string.cat_nav),
 
         // Progress
         ConditionFieldOption(ConditionFieldKey.MIN_PROGRESS_PERCENT, R.string.translator_cond_min_progress, Icons.Outlined.Speed, R.string.translator_cond_group_progress),
@@ -1644,7 +1647,7 @@ fun AddConditionFieldContent(
             R.string.translator_cond_group_messaging -> targetNotificationTypes.contains(NotificationType.MESSAGE.name)
             R.string.translator_cond_group_media -> targetNotificationTypes.contains(NotificationType.MEDIA.name)
             R.string.translator_cond_group_call -> targetNotificationTypes.contains(NotificationType.CALL.name)
-            R.string.translator_cond_group_navigation -> targetNotificationTypes.contains(NotificationType.NAVIGATION.name)
+            R.string.cat_nav -> targetNotificationTypes.contains(NotificationType.NAVIGATION.name)
             R.string.translator_cond_group_progress -> targetNotificationTypes.contains(NotificationType.PROGRESS.name) || targetNotificationTypes.contains(NotificationType.DOWNLOAD.name)
             else -> true
         }
@@ -2045,7 +2048,7 @@ fun TranslatorPresentationContent(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = if (presentation.widgetId.isNullOrBlank()) {
-                                stringResource(R.string.translator_pres_select_widget_btn)
+                                stringResource(R.string.select_app_widget)
                             } else {
                                 presentation.widgetId
                             }
@@ -2912,7 +2915,7 @@ fun WidgetSelectionContent(
             )
             Spacer(Modifier.width(12.dp))
             Text(
-                text = stringResource(R.string.translator_pres_widget_sheet_title),
+                text = stringResource(R.string.select_app_widget),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -3169,7 +3172,7 @@ fun TranslatorProgressContent(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(R.string.translator_prog_learn_btn),
+                            text = stringResource(R.string.documentation_title),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -3467,137 +3470,19 @@ fun TranslatorProgressContent(
 }
 
 // --- PROGRESS GUIDE BOTTOM SHEET ---
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgressGuideSheet(
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
-    ) {
-        ProgressGuideContent()
-    }
+    DesignManagerHelpSheet(
+        onDismiss = onDismiss,
+        title = stringResource(R.string.icons_group_progress),
+        description = stringResource(R.string.feature_guides_redirect_desc),
+        docsUrl = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS,
+        icon = Icons.Outlined.Speed
+    )
 }
 
-@Composable
-fun ProgressGuideContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.Speed,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_prog_learn_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_prog_learn_native_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_prog_learn_native_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_prog_learn_regex_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_prog_learn_regex_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_prog_learn_display_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_prog_learn_display_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 // --- PROGRESS SLOT TYPE SELECTION SHEET ---
 @OptIn(ExperimentalMaterial3Api::class)
@@ -3804,7 +3689,7 @@ fun TranslatorActionsContent(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(R.string.translator_actions_learn_btn),
+                            text = stringResource(R.string.documentation_title),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -4351,137 +4236,19 @@ fun TranslatorActionsContent(
 }
 
 // --- ACTION GUIDE BOTTOM SHEET ---
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionGuideSheet(
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
-    ) {
-        ActionGuideContent()
-    }
+    DesignManagerHelpSheet(
+        onDismiss = onDismiss,
+        title = stringResource(R.string.translator_actions_title),
+        description = stringResource(R.string.feature_guides_redirect_desc),
+        docsUrl = DocumentationUrls.SMART_ACTIONS_DOCS,
+        icon = Icons.Outlined.TouchApp
+    )
 }
 
-@Composable
-fun ActionGuideContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.TouchApp,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_actions_learn_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_actions_learn_order_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_actions_learn_order_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_actions_learn_sources_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_actions_learn_sources_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_actions_learn_visibility_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_actions_learn_visibility_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 // --- ACTION SOURCE SELECTION SHEET ---
 @OptIn(ExperimentalMaterial3Api::class)
@@ -4977,7 +4744,7 @@ fun TranslatorBehaviorContent(
                     Icon(Icons.Outlined.TouchApp, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.translator_behavior_learn_btn),
+                        text = stringResource(R.string.documentation_title),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -5556,164 +5323,19 @@ fun TranslatorEngineSelectionContent(
 }
 
 // --- BEHAVIOR GUIDE BOTTOM SHEET ---
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorBehaviorGuideSheet(
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
-    ) {
-        TranslatorBehaviorGuideContent()
-    }
+    DesignManagerHelpSheet(
+        onDismiss = onDismiss,
+        title = stringResource(R.string.island_behavior_title),
+        description = stringResource(R.string.feature_guides_redirect_desc),
+        docsUrl = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS,
+        icon = Icons.Outlined.TouchApp
+    )
 }
 
-@Composable
-fun TranslatorBehaviorGuideContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.TouchApp,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_behavior_learn_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_engine_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_engine_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_timeout_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_timeout_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_float_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_float_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_mgmt_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_behavior_learn_mgmt_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -5794,7 +5416,7 @@ fun TranslatorAppsContent(
                     ) {
                         Text(
                             text = when (translator.targetScope) {
-                                TargetScope.GLOBAL -> stringResource(R.string.translator_target_scope_global_title)
+                                TargetScope.GLOBAL -> stringResource(R.string.translator_scope_global)
                                 TargetScope.SYSTEM_APPS -> stringResource(R.string.translator_target_scope_system_title)
                                 TargetScope.SPECIFIC_APPS -> stringResource(R.string.translator_target_scope_apps_title)
                                 TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_filter_types)
@@ -5937,7 +5559,7 @@ fun TranslatorAppsContent(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = if (translator.targetNotificationTypes.isEmpty()) {
-                                stringResource(R.string.translator_notif_types_select_action)
+                                stringResource(R.string.translator_notif_types_sheet_title)
                             } else {
                                 stringResource(R.string.translator_notif_types_count_fmt, translator.targetNotificationTypes.size)
                             }
@@ -6097,7 +5719,7 @@ fun TranslatorScopeSelectionContent(
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.translator_target_scope_global_title),
+                        text = stringResource(R.string.translator_scope_global),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -6602,7 +6224,7 @@ fun TranslatorMetadataSheet(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = stringResource(R.string.translator_meta_priority_title),
+                                text = stringResource(R.string.translator_priority_sheet_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -6657,7 +6279,7 @@ fun TranslatorMetadataSheet(
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                Text(stringResource(R.string.meta_action_done))
+                Text(stringResource(R.string.done))
             }
         }
     }
@@ -6765,7 +6387,7 @@ fun TranslatorIconSelectionSheet(
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                Text(stringResource(R.string.meta_action_done))
+                Text(stringResource(R.string.done))
             }
         }
     }
@@ -6897,50 +6519,53 @@ fun TranslatorPrioritySheet(
                 }
             }
 
-            // Explanation / Guide Card
+            // Online Documentation Card
+            val uriHandler = LocalUriHandler.current
             Card(
+                onClick = { uriHandler.openUri(DocumentationUrls.CUSTOM_TRANSLATORS_DOCS) },
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(
-                            Icons.Outlined.Lightbulb,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Outlined.Lightbulb,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.translator_priority_guide_title),
+                            text = stringResource(R.string.documentation_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.feature_guides_redirect_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-
-                    Text(
-                        text = stringResource(R.string.translator_priority_guide_p1),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = stringResource(R.string.translator_priority_guide_p2),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = stringResource(R.string.translator_priority_guide_p3),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
@@ -6953,7 +6578,7 @@ fun TranslatorPrioritySheet(
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                Text(stringResource(R.string.meta_action_done))
+                Text(stringResource(R.string.done))
             }
         }
     }
@@ -7348,25 +6973,7 @@ fun ProgressSlotTypeSelectionSheetPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ProgressGuideSheetPreview() {
-    MaterialTheme {
-        Surface {
-            ProgressGuideContent()
-        }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun ActionGuideSheetPreview() {
-    MaterialTheme {
-        Surface {
-            ActionGuideContent()
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -7477,7 +7084,7 @@ fun TranslatorPillContent(
             Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(
-                stringResource(R.string.translator_pill_learn_btn),
+                stringResource(R.string.documentation_title),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold
             )
@@ -7536,9 +7143,9 @@ fun TranslatorPillContent(
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = when (leftDesign) {
-                                PillLeftDesign.ICON_AND_TEXT -> stringResource(R.string.translator_pill_left_icon_and_text)
-                                PillLeftDesign.ICON_ONLY -> stringResource(R.string.translator_pill_left_icon_only)
-                                PillLeftDesign.TEXT_ONLY -> stringResource(R.string.translator_pill_left_text_only)
+                                PillLeftDesign.ICON_AND_TEXT -> stringResource(R.string.screen_recording_left_option_icon_and_text)
+                                PillLeftDesign.ICON_ONLY -> stringResource(R.string.screen_recording_left_option_icon_only)
+                                PillLeftDesign.TEXT_ONLY -> stringResource(R.string.screen_recording_left_option_text_only)
                                 PillLeftDesign.AVATAR -> stringResource(R.string.translator_pill_left_avatar)
                                 PillLeftDesign.HIDDEN -> stringResource(R.string.translator_pill_left_hidden)
                             },
@@ -7599,9 +7206,9 @@ fun TranslatorPillContent(
                             text = when (rightDesign) {
                                 PillRightDesign.AUTO -> stringResource(R.string.translator_pill_right_auto)
                                 PillRightDesign.PROGRESS_PERCENT -> stringResource(R.string.translator_pill_right_progress)
-                                PillRightDesign.TIMER -> stringResource(R.string.translator_pill_right_timer)
+                                PillRightDesign.TIMER -> stringResource(R.string.fallback_timer)
                                 PillRightDesign.HIGHLIGHT_TEXT -> stringResource(R.string.translator_pill_right_highlight)
-                                PillRightDesign.NONE -> stringResource(R.string.translator_pill_right_none)
+                                PillRightDesign.NONE -> stringResource(R.string.nav_content_none)
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
@@ -7710,9 +7317,9 @@ fun TranslatorPillLeftSelectionContent(
     onSelect: (PillLeftDesign) -> Unit
 ) {
     val options = listOf(
-        Triple(PillLeftDesign.ICON_AND_TEXT, Pair(R.string.translator_pill_left_icon_and_text, R.string.translator_pill_left_icon_and_text_desc), Icons.Outlined.AutoAwesome),
-        Triple(PillLeftDesign.ICON_ONLY, Pair(R.string.translator_pill_left_icon_only, R.string.translator_pill_left_icon_only_desc), Icons.Outlined.AutoAwesome),
-        Triple(PillLeftDesign.TEXT_ONLY, Pair(R.string.translator_pill_left_text_only, R.string.translator_pill_left_text_only_desc), Icons.Outlined.TextFields),
+        Triple(PillLeftDesign.ICON_AND_TEXT, Pair(R.string.screen_recording_left_option_icon_and_text, R.string.translator_pill_left_icon_and_text_desc), Icons.Outlined.AutoAwesome),
+        Triple(PillLeftDesign.ICON_ONLY, Pair(R.string.screen_recording_left_option_icon_only, R.string.translator_pill_left_icon_only_desc), Icons.Outlined.AutoAwesome),
+        Triple(PillLeftDesign.TEXT_ONLY, Pair(R.string.screen_recording_left_option_text_only, R.string.translator_pill_left_text_only_desc), Icons.Outlined.TextFields),
         Triple(PillLeftDesign.AVATAR, Pair(R.string.translator_pill_left_avatar, R.string.translator_pill_left_avatar_desc), Icons.Outlined.Person),
         Triple(PillLeftDesign.HIDDEN, Pair(R.string.translator_pill_left_hidden, R.string.translator_pill_left_hidden_desc), Icons.Outlined.VisibilityOff)
     )
@@ -7836,9 +7443,9 @@ fun TranslatorPillRightSelectionContent(
     val options = listOf(
         Triple(PillRightDesign.AUTO, Pair(R.string.translator_pill_right_auto, R.string.translator_pill_right_auto_desc), Icons.Outlined.Tune),
         Triple(PillRightDesign.PROGRESS_PERCENT, Pair(R.string.translator_pill_right_progress, R.string.translator_pill_right_progress_desc), Icons.Outlined.Speed),
-        Triple(PillRightDesign.TIMER, Pair(R.string.translator_pill_right_timer, R.string.translator_pill_right_timer_desc), Icons.Outlined.Timer),
+        Triple(PillRightDesign.TIMER, Pair(R.string.fallback_timer, R.string.translator_pill_right_timer_desc), Icons.Outlined.Timer),
         Triple(PillRightDesign.HIGHLIGHT_TEXT, Pair(R.string.translator_pill_right_highlight, R.string.translator_pill_right_highlight_desc), Icons.Outlined.Subtitles),
-        Triple(PillRightDesign.NONE, Pair(R.string.translator_pill_right_none, R.string.translator_pill_right_none_desc), Icons.Outlined.VisibilityOff)
+        Triple(PillRightDesign.NONE, Pair(R.string.nav_content_none, R.string.translator_pill_right_none_desc), Icons.Outlined.VisibilityOff)
     )
 
     Column(
@@ -7932,189 +7539,20 @@ fun TranslatorPillRightSelectionContent(
 }
 
 // --- PILL GUIDE BOTTOM SHEET ---
-@OptIn(ExperimentalMaterial3Api::class)
+// --- PILL GUIDE BOTTOM SHEET ---
 @Composable
 fun TranslatorPillGuideSheet(
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
-    ) {
-        TranslatorPillGuideContent()
-    }
+    DesignManagerHelpSheet(
+        onDismiss = onDismiss,
+        title = stringResource(R.string.translator_menu_pill),
+        description = stringResource(R.string.feature_guides_redirect_desc),
+        docsUrl = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS,
+        icon = Icons.Outlined.AutoAwesome
+    )
 }
 
-@Composable
-fun TranslatorPillGuideContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.AutoAwesome,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_pill_learn_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_pill_learn_symmetry_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_pill_learn_symmetry_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_pill_learn_left_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_pill_learn_left_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.translator_pill_learn_right_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.translator_pill_learn_right_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TranslatorPillContentPreview() {
-    MaterialTheme {
-        Surface {
-            TranslatorPillContent(
-                pillConfig = com.d4viddf.hyperbridge.models.translator.CompactPillConfig(
-                    leftDesign = PillLeftDesign.ICON_AND_TEXT,
-                    rightDesign = PillRightDesign.TIMER
-                ),
-                onPillConfigChange = {}
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TranslatorPillLeftSelectionSheetPreview() {
-    MaterialTheme {
-        Surface {
-            TranslatorPillLeftSelectionContent(
-                selected = PillLeftDesign.ICON_AND_TEXT,
-                onSelect = {}
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TranslatorPillRightSelectionSheetPreview() {
-    MaterialTheme {
-        Surface {
-            TranslatorPillRightSelectionContent(
-                selected = PillRightDesign.AUTO,
-                onSelect = {}
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TranslatorPillGuideSheetPreview() {
-    MaterialTheme {
-        Surface {
-            TranslatorPillGuideContent()
-        }
-    }
-}
 
 
 

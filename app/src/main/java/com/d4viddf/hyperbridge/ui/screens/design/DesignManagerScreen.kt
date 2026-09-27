@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.DashboardCustomize
-import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Preview
 import androidx.compose.material.icons.outlined.Widgets
@@ -50,7 +49,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -177,7 +175,7 @@ fun DesignManagerScreen(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(R.string.design_manager_title),
+                            text = stringResource(R.string.design_section_designs),
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -455,7 +453,8 @@ fun DesignManagerHelpSheet(
     onDismiss: () -> Unit,
     title: String = stringResource(R.string.design_manager_help_title),
     description: String = stringResource(R.string.feature_guides_redirect_desc),
-    docsUrl: String = DocumentationUrls.CUSTOM_DESIGNS_DOCS
+    docsUrl: String = DocumentationUrls.CUSTOM_DESIGNS_DOCS,
+    icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Outlined.DashboardCustomize
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val uriHandler = LocalUriHandler.current
@@ -486,7 +485,7 @@ fun DesignManagerHelpSheet(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.Outlined.Info,
+                            imageVector = icon,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(24.dp)
@@ -529,7 +528,7 @@ fun DesignManagerHelpSheet(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = Icons.Outlined.DashboardCustomize,
+                                imageVector = icon,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.size(20.dp)
