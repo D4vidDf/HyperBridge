@@ -24,8 +24,10 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.scale
 import androidx.core.graphics.toColorInt
 import androidx.graphics.shapes.toPath
@@ -37,8 +39,11 @@ import com.d4viddf.hyperbridge.models.theme.ActionConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.ResourceType
 import com.d4viddf.hyperbridge.models.theme.ThemeResource
+import com.d4viddf.hyperbridge.service.NotificationTemplates
 import com.d4viddf.hyperbridge.service.visual.IconGeometry
+import com.d4viddf.hyperbridge.service.visual.NotificationVisualSource
 import com.d4viddf.hyperbridge.service.visual.PixelBounds
+import com.d4viddf.hyperbridge.service.visual.ResolvedNotificationVisual
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperPicture
@@ -201,11 +206,18 @@ abstract class BaseTranslator(
         picKey: String,
         preferNativeAppBadge: Boolean = false
     ): HyperPicture {
-        var originalBitmap = getNotificationBitmap(sbn) ?: createFallbackBitmap()
-        if (isBitmapDarkAndMonochrome(originalBitmap)) {
-            originalBitmap = tintBitmap(originalBitmap, Color.WHITE)
+        val visual = resolveNotificationVisual(sbn)
+        var bitmap = visual.bitmap
+        // Only monochrome/system icons should be tinted if dark. Never tint photographic sources like PERSON or PICTURE.
+        if (visual.source != NotificationVisualSource.PERSON &&
+            visual.source != NotificationVisualSource.PICTURE &&
+            visual.source != NotificationVisualSource.LARGE_ICON
+        ) {
+            if (isBitmapDarkAndMonochrome(bitmap)) {
+                bitmap = tintBitmap(bitmap, Color.WHITE)
+            }
         }
-        return HyperPicture(picKey, originalBitmap)
+        return HyperPicture(picKey, bitmap)
     }
 
     protected fun isBitmapDarkAndMonochrome(bitmap: Bitmap): Boolean {
@@ -582,25 +594,68 @@ abstract class BaseTranslator(
     }
 
 
-    protected fun getNotificationBitmap(sbn: StatusBarNotification): Bitmap? {
+    open fun resolveNotificationVisual(sbn: StatusBarNotification): ResolvedNotificationVisual {
         val pkg = sbn.packageName
         val extras = sbn.notification.extras
 
         try {
             val picture = extras.getParcelableCompat<Bitmap>(Notification.EXTRA_PICTURE)
-            if (picture != null) return picture
+            if (picture != null) {
+                return ResolvedNotificationVisual(picture, NotificationVisualSource.PICTURE)
+            }
 
             val template = extras.getString(Notification.EXTRA_TEMPLATE)
-            if (template == "android.app.Notification\$MessagingStyle") {
+            if (NotificationTemplates.isMessagingStyle(template) || extras.containsKey(Notification.EXTRA_MESSAGES)) {
+                // 1. Try NotificationCompat.MessagingStyle extraction
+                try {
+                    val compatStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(sbn.notification)
+                    if (compatStyle != null) {
+                        val lastMessage = compatStyle.messages.lastOrNull { it.person?.icon != null }
+                        val senderIconCompat = lastMessage?.person?.icon ?: compatStyle.user.icon
+                        if (senderIconCompat != null) {
+                            val bitmap = loadIconCompatBitmap(senderIconCompat, pkg)
+                            if (bitmap != null) {
+                                return ResolvedNotificationVisual(bitmap, NotificationVisualSource.PERSON)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.d("BaseTranslator", "Error extracting compat MessagingStyle", e)
+                }
+
+                // 2. Try raw EXTRA_MESSAGES bundles for sender_person
                 val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
                 if (messages != null && messages.isNotEmpty()) {
-                    val lastMessage = messages.last() as? Bundle
-                    if (lastMessage != null) {
-                        val senderPerson = lastMessage.getParcelableCompat<Person>("sender_person")
+                    for (i in messages.indices.reversed()) {
+                        val msgBundle = messages[i] as? Bundle ?: continue
+                        val senderPerson = msgBundle.getParcelableCompat<Person>("sender_person")
                         if (senderPerson?.icon != null) {
                             val bitmap = loadIconBitmap(senderPerson.icon!!, pkg)
-                            if (bitmap != null) return bitmap
+                            if (bitmap != null) {
+                                return ResolvedNotificationVisual(bitmap, NotificationVisualSource.PERSON)
+                            }
                         }
+                        // AndroidX may store Person bundle under sender_person as Bundle
+                        val senderPersonBundle = msgBundle.getBundle("sender_person")
+                        if (senderPersonBundle != null) {
+                            val personCompat = androidx.core.app.Person.fromBundle(senderPersonBundle)
+                            val iconCompat = personCompat.icon
+                            if (iconCompat != null) {
+                                val bitmap = loadIconCompatBitmap(iconCompat, pkg)
+                                if (bitmap != null) {
+                                    return ResolvedNotificationVisual(bitmap, NotificationVisualSource.PERSON)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3. Try Notification.EXTRA_MESSAGING_PERSON (1:1 chats often set this directly)
+                val messagingPerson = extras.getParcelableCompat<Person>(Notification.EXTRA_MESSAGING_PERSON)
+                if (messagingPerson?.icon != null) {
+                    val bitmap = loadIconBitmap(messagingPerson.icon!!, pkg)
+                    if (bitmap != null) {
+                        return ResolvedNotificationVisual(bitmap, NotificationVisualSource.PERSON)
                     }
                 }
             }
@@ -611,31 +666,53 @@ abstract class BaseTranslator(
 
                 if (person != null && person.icon != null) {
                     val bitmap = loadIconBitmap(person.icon!!, pkg)
-                    if (bitmap != null) return bitmap
+                    if (bitmap != null) {
+                        return ResolvedNotificationVisual(bitmap, NotificationVisualSource.PERSON)
+                    }
                 }
             }
 
             val largeIcon = sbn.notification.getLargeIcon()
             if (largeIcon != null) {
                 val bitmap = loadIconBitmap(largeIcon, pkg)
-                if (bitmap != null) return bitmap
+                if (bitmap != null) {
+                    return ResolvedNotificationVisual(bitmap, NotificationVisualSource.LARGE_ICON)
+                }
             }
 
             @Suppress("DEPRECATION")
             val largeIconBitmap = extras.getParcelableCompat<Bitmap>(Notification.EXTRA_LARGE_ICON)
-            if (largeIconBitmap != null) return largeIconBitmap
+            if (largeIconBitmap != null) {
+                return ResolvedNotificationVisual(largeIconBitmap, NotificationVisualSource.LARGE_ICON)
+            }
 
             if (sbn.notification.smallIcon != null) {
                 val bitmap = loadIconBitmap(sbn.notification.smallIcon, pkg)
-                if (bitmap != null) return bitmap
+                if (bitmap != null) {
+                    return ResolvedNotificationVisual(bitmap, NotificationVisualSource.SMALL_ICON)
+                }
             }
 
-            return getAppIconBitmap(pkg)
+            val appIcon = getAppIconBitmap(pkg)
+            if (appIcon != null) {
+                return ResolvedNotificationVisual(appIcon, NotificationVisualSource.APP_ICON)
+            }
+
+            return ResolvedNotificationVisual(createFallbackBitmap(), NotificationVisualSource.FALLBACK)
 
         } catch (e: Exception) {
-            Log.e("BaseTranslator", "Error extracting bitmap", e)
-            return getAppIconBitmap(pkg)
+            Log.e("BaseTranslator", "Error extracting visual", e)
+            val fallbackAppIcon = getAppIconBitmap(pkg)
+            return if (fallbackAppIcon != null) {
+                ResolvedNotificationVisual(fallbackAppIcon, NotificationVisualSource.APP_ICON)
+            } else {
+                ResolvedNotificationVisual(createFallbackBitmap(), NotificationVisualSource.FALLBACK)
+            }
         }
+    }
+
+    protected fun getNotificationBitmap(sbn: StatusBarNotification): Bitmap? {
+        return resolveNotificationVisual(sbn).bitmap
     }
 
     protected fun createRoundedIconWithBackground(source: Bitmap, backgroundColor: Int, paddingDp: Int = 8): Bitmap {
@@ -733,6 +810,29 @@ abstract class BaseTranslator(
                 }
             } else {
                 icon.loadDrawable(context)
+            }
+            drawable?.toBitmap(width = width, height = height)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    protected fun loadIconCompatBitmap(
+        iconCompat: IconCompat,
+        packageName: String,
+        width: Int? = null,
+        height: Int? = null
+    ): Bitmap? {
+        return try {
+            val drawable = if (iconCompat.type == IconCompat.TYPE_RESOURCE) {
+                try {
+                    val targetContext = context.createPackageContext(packageName, 0)
+                    iconCompat.loadDrawable(targetContext)
+                } catch (e: Exception) {
+                    iconCompat.loadDrawable(context)
+                }
+            } else {
+                iconCompat.loadDrawable(context)
             }
             drawable?.toBitmap(width = width, height = height)
         } catch (e: Exception) {
