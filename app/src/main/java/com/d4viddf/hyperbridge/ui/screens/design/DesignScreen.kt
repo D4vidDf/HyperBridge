@@ -101,6 +101,8 @@ fun DesignScreen(
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
     onLaunchPicker: () -> Unit,
+    onLaunchStudio: (String?) -> Unit = {},
+    onBrowseStudio: () -> Unit = {},
     onSettingsClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -195,6 +197,10 @@ fun DesignScreen(
                 showAddDesign = false
                 translatorViewModel.saveTranslator(design)
                 Toast.makeText(context, R.string.design_design_created, Toast.LENGTH_SHORT).show()
+            },
+            onCustomDesign = {
+                showAddDesign = false
+                onLaunchStudio(null)
             }
         )
     }

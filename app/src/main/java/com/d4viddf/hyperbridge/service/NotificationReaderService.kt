@@ -81,7 +81,6 @@ import com.d4viddf.hyperbridge.service.updater.SystemUpdateTimeoutPolicy
 import com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier
 import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.util.ShizukuManager
-import com.d4viddf.hyperbridge.util.sendAllowingBackgroundLaunch
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -201,6 +200,7 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var screenRecordingSavedTranslator: ScreenRecordingSavedTranslator
     private lateinit var dynamicTranslator: DynamicTranslator
     private lateinit var translatorRegistry: TranslatorRegistry
+    private lateinit var customWidgetTranslator: com.d4viddf.hyperbridge.service.translators.CustomWidgetTranslator
 
     @Volatile
     private var isScreenOn = true
@@ -224,23 +224,7 @@ class NotificationReaderService : NotificationListenerService() {
             if (intent.action == "com.d4viddf.hyperbridge.ISLAND_CLICKED") {
                 val sbnKey = intent.getStringExtra("sbn_key")
                 val bridgeId = intent.getIntExtra("bridge_id", -1)
-                @Suppress("DEPRECATION")
-                val originalIntent = intent.getParcelableExtra<PendingIntent>("original_intent")
-
-                if (originalIntent != null) {
-                    try {
-                        // The island tap reaches us as a broadcast, so *we* (not the system)
-                        // are the sender of the app's content PendingIntent. Since API 34 a
-                        // sender no longer lends its background-activity-launch privilege
-                        // unless it opts in, and since API 35 creators (Google Messages, any
-                        // app targeting 35+) deny it by default. Without the opt-in the launch
-                        // is silently dropped and only the cancel below happens (#359).
-                        originalIntent.sendAllowingBackgroundLaunch()
-                    } catch (e: PendingIntent.CanceledException) {
-                        Log.e("HyperBridge", "PendingIntent canceled", e)
-                    }
-                }
-
+                // The app itself was already launched by IslandTapActivity; we only clean up.
                 if (sbnKey != null) {
                     cancelNotification(sbnKey)
                 }
@@ -306,6 +290,7 @@ class NotificationReaderService : NotificationListenerService() {
         val database = com.d4viddf.hyperbridge.data.db.AppDatabase.getDatabase(this)
         translatorRegistry = TranslatorRegistry(database.translatorDao(), serviceScope)
         dynamicTranslator = DynamicTranslator(this, themeRepository)
+        customWidgetTranslator = com.d4viddf.hyperbridge.service.translators.CustomWidgetTranslator(this, themeRepository)
 
         val userManager = getSystemService(USER_SERVICE) as android.os.UserManager
         if (userManager.isUserUnlocked) {
@@ -1739,7 +1724,24 @@ class NotificationReaderService : NotificationListenerService() {
                     reason = "translator='${matchedCustomTranslator.meta.name}' scope=${matchedCustomTranslator.targetScope}",
                     customTranslator = matchedCustomTranslator.meta.name
                 )
-                dynamicTranslator.translate(
+                val studioWidgetId = matchedCustomTranslator.presentation
+                    .takeIf { it.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.WIDGET }
+                    ?.widgetId
+                    ?.takeIf { it.isNotBlank() }
+                if (studioWidgetId != null) {
+                    // A custom design (Phase 5, #273): the island body is a rendered RemoteViews
+                    // tree, not the slot layout DynamicTranslator builds. Matching, priority and
+                    // conditions still came from the translator registry above.
+                    customWidgetTranslator.translate(
+                        sbn = sbn,
+                        picKey = picKey,
+                        effectiveTitle = effectiveTitle,
+                        effectiveText = effectiveText,
+                        config = finalConfig,
+                        theme = activeTheme,
+                        widgetId = studioWidgetId
+                    )
+                } else dynamicTranslator.translate(
                     sbn = sbn,
                     customTranslator = matchedCustomTranslator,
                     picKey = picKey,
@@ -2176,13 +2178,15 @@ class NotificationReaderService : NotificationListenerService() {
         } else if (!suppressContentIntent) {
             sbn.notification.contentIntent?.let { originalIntent ->
                 if (detectNotificationType(sbn) == NotificationType.MESSAGE) {
-                    val clickIntent = Intent("com.d4viddf.hyperbridge.ISLAND_CLICKED").apply {
-                        setPackage(packageName)
-                        putExtra("sbn_key", sbn.key)
-                        putExtra("bridge_id", bridgeId)
-                        putExtra("original_intent", originalIntent)
+                    // An activity, not a broadcast: a broadcast here is a notification
+                    // trampoline and the app launch can get dropped (#371, #382).
+                    val clickIntent = Intent(this, IslandTapActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION
+                        putExtra(IslandTapActivity.EXTRA_SBN_KEY, sbn.key)
+                        putExtra(IslandTapActivity.EXTRA_BRIDGE_ID, bridgeId)
+                        putExtra(IslandTapActivity.EXTRA_ORIGINAL_INTENT, originalIntent)
                     }
-                    val clickPendingIntent = PendingIntent.getBroadcast(
+                    val clickPendingIntent = PendingIntent.getActivity(
                         this,
                         bridgeId,
                         clickIntent,

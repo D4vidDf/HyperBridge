@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.settings
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Slider
 import androidx.compose.foundation.layout.Row
@@ -40,20 +46,30 @@ import com.d4viddf.hyperbridge.ui.components.PermanentIslandPreview
 
 @Composable
 fun PermanentIslandConfigScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onManageSources: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val prefs = AppPreferences(context)
+    val widgetRepository = androidx.compose.runtime.remember { CustomWidgetRepository(context) }
     val scope = rememberCoroutineScope()
-    
+
     val isEnabled by prefs.isPermanentIslandEnabledFlow.collectAsState(initial = false)
     val islandWidth by prefs.permanentIslandWidthFlow.collectAsState(initial = 0)
     val hideInLandscape by prefs.hidePermanentIslandLandscapeFlow.collectAsState(initial = false)
+    val boundWidgetId by prefs.permanentIslandWidgetIdFlow.collectAsState(initial = null)
+    var availableWidgets by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<List<CustomWidgetDocument>>(emptyList()) }
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        availableWidgets = widgetRepository.getAvailableWidgets()
+    }
 
     PermanentIslandConfigContent(
         isEnabled = isEnabled,
         islandWidth = islandWidth,
         hideInLandscape = hideInLandscape,
+        availableWidgets = availableWidgets,
+        boundWidgetId = boundWidgetId,
         onEnabledChange = { checked ->
             scope.launch {
                 prefs.setPermanentIslandEnabled(checked)
@@ -69,6 +85,12 @@ fun PermanentIslandConfigScreen(
                 prefs.setHidePermanentIslandLandscape(hide)
             }
         },
+        onWidgetSelected = { id ->
+            scope.launch {
+                prefs.setPermanentIslandWidgetId(id)
+            }
+        },
+        onManageSources = onManageSources,
         onBack = onBack
     )
 }
@@ -79,9 +101,13 @@ fun PermanentIslandConfigContent(
     isEnabled: Boolean,
     islandWidth: Int,
     hideInLandscape: Boolean,
+    availableWidgets: List<CustomWidgetDocument> = emptyList(),
+    boundWidgetId: String? = null,
     onEnabledChange: (Boolean) -> Unit,
     onWidthChange: (Int) -> Unit,
     onHideInLandscapeChange: (Boolean) -> Unit,
+    onWidgetSelected: (String?) -> Unit = {},
+    onManageSources: () -> Unit = {},
     onBack: () -> Unit
 ) {
     var sliderValue by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
@@ -175,6 +201,37 @@ fun PermanentIslandConfigContent(
                                 checked = hideInLandscape,
                                 onCheckedChange = onHideInLandscapeChange
                             )
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.permanent_island_widget_label),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                        )
+                        var menuExpanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+                        val boundWidget = availableWidgets.firstOrNull { it.id == boundWidgetId }
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(onClick = { menuExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                                Text(boundWidget?.meta?.name ?: stringResource(R.string.permanent_island_widget_none))
+                            }
+                            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.permanent_island_widget_none)) },
+                                    onClick = { menuExpanded = false; onWidgetSelected(null) }
+                                )
+                                availableWidgets.forEach { widget ->
+                                    DropdownMenuItem(
+                                        text = { Text(widget.meta.name) },
+                                        onClick = { menuExpanded = false; onWidgetSelected(widget.id) }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+                        OutlinedButton(onClick = onManageSources, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.permanent_island_manage_sources))
                         }
                     }
                 }
