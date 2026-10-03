@@ -4,6 +4,12 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.PresentationConfig
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
+import com.d4viddf.hyperbridge.models.translator.TargetScope
+import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.widget.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -299,5 +305,68 @@ class StudioViewModelTest {
 
         val vm2 = StudioViewModel(app, savedStateHandle, repository = repository, initialDocument = doc)
         assertEquals("MusicNote", vm2.document.value.meta.icon)
+    }
+
+    @Test
+    fun targetScopeAndPackagesCanBeUpdated() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        assertEquals(TargetScope.NOTIFICATION_TYPE, vm.targetScope.value)
+        assertTrue(vm.targetPackages.value.isEmpty())
+
+        vm.setTargetScope(TargetScope.SPECIFIC_APPS)
+        assertEquals(TargetScope.SPECIFIC_APPS, vm.targetScope.value)
+
+        vm.addTargetPackage("com.spotify.music")
+        vm.addTargetPackage("org.telegram.messenger")
+        // Duplicate should be ignored
+        vm.addTargetPackage("com.spotify.music")
+        // Blank should be ignored
+        vm.addTargetPackage("   ")
+
+        assertEquals(listOf("com.spotify.music", "org.telegram.messenger"), vm.targetPackages.value)
+
+        vm.removeTargetPackage("com.spotify.music")
+        assertEquals(listOf("org.telegram.messenger"), vm.targetPackages.value)
+    }
+
+    @Test
+    fun createOrUpdateTranslatorBuildsExpectedTranslator() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        val translator = vm.createOrUpdateTranslator(
+            doc = doc,
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.whatsapp"),
+            notificationType = NotificationType.STANDARD,
+            existing = null
+        )
+
+        assertEquals(TargetScope.SPECIFIC_APPS, translator.targetScope)
+        assertEquals(listOf("com.whatsapp"), translator.targetPackages)
+        assertTrue(translator.targetNotificationTypes.isEmpty())
+        assertEquals(doc.id, translator.presentation.widgetId)
+        assertEquals(doc.meta.name, translator.meta.name)
+        assertEquals(doc.meta.icon, translator.meta.iconName)
+    }
+
+    @Test
+    fun createOrUpdateTranslatorNotificationTypeBuildsExpectedTranslator() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        val translator = vm.createOrUpdateTranslator(
+            doc = doc,
+            targetScope = TargetScope.NOTIFICATION_TYPE,
+            targetPackages = listOf("com.whatsapp"),
+            notificationType = NotificationType.MEDIA,
+            existing = null
+        )
+
+        assertEquals(TargetScope.NOTIFICATION_TYPE, translator.targetScope)
+        assertTrue(translator.targetPackages.isEmpty())
+        assertEquals(listOf(NotificationType.MEDIA.name), translator.targetNotificationTypes)
     }
 }

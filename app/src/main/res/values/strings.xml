@@ -1754,6 +1754,16 @@
     <string name="studio_app_chooser_empty">No matching applications found.</string>
     <string name="studio_action_choose_app">Choose app…</string>
     <string name="studio_design_icon">Design icon</string>
+
+    <!-- Stage 7: Where It Applies / TargetScope & Package Selector -->
+    <string name="studio_scope_title">Where It Applies</string>
+    <string name="studio_scope_desc">Choose when this design is displayed on the island</string>
+    <string name="studio_scope_notif_type">Notification Type</string>
+    <string name="studio_scope_specific_apps">Specific Apps</string>
+    <string name="studio_scope_global">Global</string>
+    <string name="studio_scope_system_apps">System Apps</string>
+    <string name="studio_scope_add_app">Add app</string>
+    <string name="studio_scope_no_apps">No apps selected. Tap \'+\' to add an app.</string>
 </resources>
 
 

@@ -86,6 +86,12 @@ class StudioViewModel(
     private val _notificationType = MutableStateFlow(NotificationType.STANDARD)
     val notificationType: StateFlow<NotificationType> = _notificationType.asStateFlow()
 
+    private val _targetScope = MutableStateFlow(TargetScope.NOTIFICATION_TYPE)
+    val targetScope: StateFlow<TargetScope> = _targetScope.asStateFlow()
+
+    private val _targetPackages = MutableStateFlow<List<String>>(emptyList())
+    val targetPackages: StateFlow<List<String>> = _targetPackages.asStateFlow()
+
     private val _validationMessage = MutableStateFlow<String?>(null)
     val validationMessage: StateFlow<String?> = _validationMessage.asStateFlow()
 
@@ -133,9 +139,13 @@ class StudioViewModel(
             }
 
             existingTranslator = allTranslators.firstOrNull { it.presentation.widgetId == widgetId }
-            existingTranslator?.targetNotificationTypes?.firstOrNull()?.let { typeName ->
-                NotificationType.entries.firstOrNull { it.name == typeName }?.let {
-                    _notificationType.value = it
+            existingTranslator?.let { trans ->
+                _targetScope.value = trans.targetScope
+                _targetPackages.value = trans.targetPackages
+                trans.targetNotificationTypes.firstOrNull()?.let { typeName ->
+                    NotificationType.entries.firstOrNull { it.name == typeName }?.let {
+                        _notificationType.value = it
+                    }
                 }
             }
         }
@@ -266,6 +276,21 @@ class StudioViewModel(
         _notificationType.value = type
     }
 
+    fun setTargetScope(scope: TargetScope) {
+        _targetScope.value = scope
+    }
+
+    fun addTargetPackage(pkg: String) {
+        val trimmed = pkg.trim()
+        if (trimmed.isNotEmpty() && !_targetPackages.value.contains(trimmed)) {
+            _targetPackages.update { it + trimmed }
+        }
+    }
+
+    fun removeTargetPackage(pkg: String) {
+        _targetPackages.update { it - pkg }
+    }
+
     fun undo() {
         if (undoStack.isNotEmpty()) {
             val current = _document.value
@@ -319,7 +344,13 @@ class StudioViewModel(
             } else null
 
             repository.saveWidget(clamped)
-            val translator = createOrUpdateTranslator(clamped, _notificationType.value, existingTranslator)
+            val translator = createOrUpdateTranslator(
+                clamped,
+                _targetScope.value,
+                _targetPackages.value,
+                _notificationType.value,
+                existingTranslator
+            )
             existingTranslator = translator
             onSaveTranslator(translator)
 
@@ -365,22 +396,28 @@ class StudioViewModel(
         )
     }
 
-    private fun createOrUpdateTranslator(
+    internal fun createOrUpdateTranslator(
         doc: CustomWidgetDocument,
+        targetScope: TargetScope,
+        targetPackages: List<String>,
         notificationType: NotificationType,
         existing: CustomTranslator?
     ): CustomTranslator {
         val presentation = PresentationConfig(mode = PresentationMode.WIDGET, widgetId = doc.id)
+        val notifTypes = if (targetScope == TargetScope.NOTIFICATION_TYPE) listOf(notificationType.name) else emptyList()
+        val pkgs = if (targetScope == TargetScope.SPECIFIC_APPS || targetScope == TargetScope.SYSTEM_APPS) targetPackages else emptyList()
         return existing?.copy(
             meta = existing.meta.copy(name = doc.meta.name, iconName = doc.meta.icon),
-            targetScope = TargetScope.NOTIFICATION_TYPE,
-            targetNotificationTypes = listOf(notificationType.name),
+            targetScope = targetScope,
+            targetPackages = pkgs,
+            targetNotificationTypes = notifTypes,
             presentation = presentation
         ) ?: CustomTranslator(
             id = UUID.randomUUID().toString(),
             meta = TranslatorMetadata(name = doc.meta.name, iconName = doc.meta.icon),
-            targetScope = TargetScope.NOTIFICATION_TYPE,
-            targetNotificationTypes = listOf(notificationType.name),
+            targetScope = targetScope,
+            targetPackages = pkgs,
+            targetNotificationTypes = notifTypes,
             presentation = presentation
         )
     }

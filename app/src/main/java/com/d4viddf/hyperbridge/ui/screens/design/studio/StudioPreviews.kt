@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.widget.ButtonAction
 import com.d4viddf.hyperbridge.models.widget.ButtonNode
 import com.d4viddf.hyperbridge.models.widget.CanvasSize
@@ -545,4 +546,34 @@ fun PreviewStudioInspectorConditions() {
         }
     }
 }
+
+@Preview(name = "16. Inspector Root Where It Applies Tab", showBackground = true)
+@Composable
+fun PreviewStudioInspectorRootContainerTab() {
+    val sampleDoc = previewSampleWidgetDocument()
+    StudioExpressiveTheme(darkTheme = true) {
+        Surface(modifier = Modifier.padding(16.dp)) {
+            StudioInspector(
+                node = sampleDoc.root,
+                isRoot = true,
+                selectedTab = StudioTab.CONTAINER,
+                canMoveUp = false,
+                canMoveDown = false,
+                onChange = {},
+                onMoveLayer = {},
+                onDelete = {},
+                document = sampleDoc,
+                notificationType = NotificationType.MEDIA,
+                targetScope = TargetScope.SPECIFIC_APPS,
+                targetPackages = listOf("com.spotify.music", "org.telegram.messenger"),
+                onNameChange = {},
+                onIconChange = {},
+                onCanvasChange = {},
+                onNotificationTypeChange = {},
+                selectedNodeId = sampleDoc.root.id
+            )
+        }
+    }
+}
+
 

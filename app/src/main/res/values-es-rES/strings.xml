@@ -1464,4 +1464,14 @@
     <string name="studio_app_chooser_empty">No se han encontrado aplicaciones coincidentes.</string>
     <string name="studio_action_choose_app">Elegir app…</string>
     <string name="studio_design_icon">Icono del diseño</string>
+
+    <!-- Stage 7: Where It Applies / TargetScope & Package Selector -->
+    <string name="studio_scope_title">Dónde se aplica</string>
+    <string name="studio_scope_desc">Elige cuándo se muestra este diseño en la isla</string>
+    <string name="studio_scope_notif_type">Tipo de notificación</string>
+    <string name="studio_scope_specific_apps">Apps específicas</string>
+    <string name="studio_scope_global">Global</string>
+    <string name="studio_scope_system_apps">Apps del sistema</string>
+    <string name="studio_scope_add_app">Añadir app</string>
+    <string name="studio_scope_no_apps">Ninguna app seleccionada. Pulsa \'+\' para añadir una app.</string>
 </resources>

@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
@@ -30,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
@@ -37,11 +40,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -132,7 +138,8 @@ fun StudioCanvas(
                     onResize = onResize,
                     isWireframeMode = isWireframeMode,
                     hiddenNodeIds = hiddenNodeIds,
-                    context = context
+                    context = context,
+                    zoom = zoom
                 )
             }
         }
@@ -149,13 +156,16 @@ private fun CanvasNode(
     draggable: Boolean = false,
     isWireframeMode: Boolean = false,
     hiddenNodeIds: Set<String> = emptySet(),
-    context: VariableContext = VariableContext()
+    context: VariableContext = VariableContext(),
+    zoom: Float = 1f
 ) {
     if (hiddenNodeIds.contains(node.id)) return
 
     val density = LocalDensity.current
+    val currentNode by rememberUpdatedState(node)
     val isSelected = node.id == selectedId
-    val canDrag = draggable && !node.locked
+    val canMove = draggable && !node.locked
+    val canResize = !node.locked && node.id != "root"
 
     // Evaluate conditional visibility
     val isConditionMet = isWireframeMode || NodeConditionEvaluator.isVisible(node.showIf, context, previewEngine)
@@ -167,16 +177,22 @@ private fun CanvasNode(
     var accumulatedDx by remember(node.id) { mutableFloatStateOf(0f) }
     var accumulatedDy by remember(node.id) { mutableFloatStateOf(0f) }
 
-    var modifier: Modifier = Modifier
-    if (node.bounds.widthDp != null) modifier = modifier.width(node.bounds.widthDp!!.dp)
-    if (node.bounds.heightDp != null) modifier = modifier.height(node.bounds.heightDp!!.dp)
+    val isRootNode = node.id == "root"
+    val nodeWidth = node.bounds.widthDp ?: defaultWidthOf(node)
+    val nodeHeight = node.bounds.heightDp ?: defaultHeightOf(node)
 
-    modifier = modifier
-        .pointerInput(node.id, canDrag) {
+    val containerModifier = (if (isRootNode) {
+        Modifier.fillMaxSize()
+    } else {
+        Modifier
+            .width(nodeWidth.dp)
+            .height(nodeHeight.dp)
+    })
+        .pointerInput(node.id, canMove) {
             detectTapGestures { onSelect(node.id) }
         }
         .then(
-            if (canDrag) {
+            if (canMove) {
                 Modifier.pointerInput(node.id) {
                     detectDragGestures(
                         onDragStart = {
@@ -187,15 +203,16 @@ private fun CanvasNode(
                     ) { change, dragAmount ->
                         change.consume()
                         with(density) {
-                            accumulatedDx += dragAmount.x.toDp().value
-                            accumulatedDy += dragAmount.y.toDp().value
+                            val effectiveZoom = zoom.coerceAtLeast(0.1f)
+                            accumulatedDx += (dragAmount.x / effectiveZoom).toDp().value
+                            accumulatedDy += (dragAmount.y / effectiveZoom).toDp().value
                         }
                         val dx = accumulatedDx.toInt()
                         val dy = accumulatedDy.toInt()
                         if (dx != 0 || dy != 0) {
                             accumulatedDx -= dx
                             accumulatedDy -= dy
-                            onMove(node.id, dx, dy)
+                            onMove(currentNode.id, dx, dy)
                         }
                     }
                 }
@@ -204,7 +221,7 @@ private fun CanvasNode(
         .then(
             if (isSelected) {
                 Modifier.border(
-                    width = 1.dp,
+                    width = 1.5.dp,
                     color = if (!isConditionMet) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(4.dp)
                 )
@@ -217,18 +234,21 @@ private fun CanvasNode(
             } else Modifier
         )
 
-    Box {
+    Box(modifier = containerModifier) {
+        val contentModifier = Modifier.fillMaxSize()
+
         when (node) {
             is LayoutContainer -> CanvasContainer(
                 node = node,
-                modifier = modifier,
+                modifier = contentModifier,
                 selectedId = selectedId,
                 onSelect = onSelect,
                 onMove = onMove,
                 onResize = onResize,
                 isWireframeMode = isWireframeMode,
                 hiddenNodeIds = hiddenNodeIds,
-                context = context
+                context = context,
+                zoom = zoom
             )
             is TextNode -> {
                 val colorFormula = node.bindings[BindableProperty.TEXT_COLOR.key]
@@ -243,7 +263,7 @@ private fun CanvasNode(
                     fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
                     maxLines = node.maxLines,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = modifier
+                    modifier = contentModifier
                 )
             }
 
@@ -258,8 +278,7 @@ private fun CanvasNode(
                 val tintColor = resolvedTint?.let { safeParseColor(it) } ?: Color.White
 
                 Box(
-                    modifier = modifier
-                        .size((node.bounds.widthDp ?: 24).dp)
+                    modifier = contentModifier
                         .background(tintColor.copy(alpha = 0.25f), shape)
                         .border(1.dp, tintColor.copy(alpha = 0.5f), shape)
                         .clip(shape),
@@ -270,7 +289,7 @@ private fun CanvasNode(
                         is ImageSource.AppIconOf -> Icons.Rounded.Android
                         else -> Icons.Rounded.Image
                     }
-                    val iconSize = ((node.bounds.widthDp ?: 24) * 0.65).coerceAtLeast(12.0).dp
+                    val iconSize = (minOf(nodeWidth, nodeHeight) * 0.65).coerceAtLeast(12.0).dp
                     Icon(
                         imageVector = iconVector,
                         contentDescription = null,
@@ -297,7 +316,7 @@ private fun CanvasNode(
                     progress = { (value.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f) },
                     color = safeParseColor(resolvedProgressColor),
                     trackColor = safeParseColor(resolvedTrackColor),
-                    modifier = modifier.width((node.bounds.widthDp ?: 64).dp)
+                    modifier = contentModifier
                 )
             }
 
@@ -314,52 +333,63 @@ private fun CanvasNode(
                 } else node.textColorHex
 
                 Box(
-                    modifier = modifier
+                    modifier = contentModifier
                         .background(
                             resolvedBg?.let { safeParseColor(it) } ?: MaterialTheme.colorScheme.primary,
                             RoundedCornerShape(12.dp)
                         )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = node.label, color = safeParseColor(resolvedText))
+                    Text(text = node.label, color = safeParseColor(resolvedText), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
 
-        // Float-accumulated resize grip for the selected element
-        if (isSelected && canDrag) {
-            var accumulatedDw by remember(node.id) { mutableFloatStateOf(0f) }
-            var accumulatedDh by remember(node.id) { mutableFloatStateOf(0f) }
+        // Easy-to-grab, high-contrast resize grip for the selected element
+        if (isSelected && canResize) {
+            var currentWidthDp by remember(node.id) { mutableFloatStateOf(0f) }
+            var currentHeightDp by remember(node.id) { mutableFloatStateOf(0f) }
 
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .size(16.dp)
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        layout(0, 0) {
+                            placeable.place(0, 0)
+                        }
+                    }
+                    .offset(x = (-22).dp, y = (-22).dp)
+                    .size(44.dp)
                     .pointerInput(node.id) {
                         detectDragGestures(
                             onDragStart = {
-                                accumulatedDw = 0f
-                                accumulatedDh = 0f
+                                currentWidthDp = (currentNode.bounds.widthDp ?: defaultWidthOf(currentNode)).toFloat()
+                                currentHeightDp = (currentNode.bounds.heightDp ?: defaultHeightOf(currentNode)).toFloat()
                             }
                         ) { change, dragAmount ->
                             change.consume()
                             with(density) {
-                                accumulatedDw += dragAmount.x.toDp().value
-                                accumulatedDh += dragAmount.y.toDp().value
+                                val effectiveZoom = zoom.coerceAtLeast(0.1f)
+                                currentWidthDp = (currentWidthDp + (dragAmount.x / effectiveZoom).toDp().value)
+                                    .coerceIn(MIN_SIZE_DP.toFloat(), CANVAS_WIDTH_DP.toFloat())
+                                currentHeightDp = (currentHeightDp + (dragAmount.y / effectiveZoom).toDp().value)
+                                    .coerceAtLeast(MIN_SIZE_DP.toFloat())
                             }
-                            val dw = accumulatedDw.toInt()
-                            val dh = accumulatedDh.toInt()
-                            if (dw != 0 || dh != 0) {
-                                accumulatedDw -= dw
-                                accumulatedDh -= dh
-                                val width = ((node.bounds.widthDp ?: defaultWidthOf(node)) + dw).coerceAtLeast(MIN_SIZE_DP)
-                                val height = ((node.bounds.heightDp ?: defaultHeightOf(node)) + dh).coerceAtLeast(MIN_SIZE_DP)
-                                onResize(node.id, width, height)
-                            }
+                            onResize(currentNode.id, currentWidthDp.roundToInt(), currentHeightDp.roundToInt())
                         }
-                    }
-            )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    shadowElevation = 4.dp,
+                    border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.surface),
+                    modifier = Modifier.size(16.dp)
+                ) {}
+            }
         }
     }
 }
@@ -374,13 +404,15 @@ private fun CanvasContainer(
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
     isWireframeMode: Boolean = false,
     hiddenNodeIds: Set<String> = emptySet(),
-    context: VariableContext
+    context: VariableContext,
+    zoom: Float = 1f
 ) {
     val freePositioning = node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX
+    val containerModifier = if (node.bounds.widthDp == null) modifier.fillMaxSize() else modifier
 
     when (node.layout) {
         ContainerLayout.ROW -> Row(
-            modifier = modifier.fillMaxSize(),
+            modifier = containerModifier,
             horizontalArrangement = Arrangement.spacedBy(node.gapDp.dp)
         ) {
             node.children.forEach {
@@ -393,13 +425,14 @@ private fun CanvasContainer(
                     draggable = false,
                     isWireframeMode = isWireframeMode,
                     hiddenNodeIds = hiddenNodeIds,
-                    context = context
+                    context = context,
+                    zoom = zoom
                 )
             }
         }
 
         ContainerLayout.COLUMN -> Column(
-            modifier = modifier.fillMaxSize(),
+            modifier = containerModifier,
             verticalArrangement = Arrangement.spacedBy(node.gapDp.dp)
         ) {
             node.children.forEach {
@@ -412,12 +445,13 @@ private fun CanvasContainer(
                     draggable = false,
                     isWireframeMode = isWireframeMode,
                     hiddenNodeIds = hiddenNodeIds,
-                    context = context
+                    context = context,
+                    zoom = zoom
                 )
             }
         }
 
-        ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = modifier.fillMaxSize()) {
+        ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = containerModifier) {
             node.children.forEach { child ->
                 val childModifier = if (node.layout == ContainerLayout.ABSOLUTE) {
                     Modifier.absoluteOffset(child.bounds.x.dp, child.bounds.y.dp)
@@ -433,7 +467,8 @@ private fun CanvasContainer(
                         draggable = freePositioning,
                         isWireframeMode = isWireframeMode,
                         hiddenNodeIds = hiddenNodeIds,
-                        context = context
+                        context = context,
+                        zoom = zoom
                     )
                 }
             }
@@ -441,18 +476,23 @@ private fun CanvasContainer(
     }
 }
 
-private const val MIN_SIZE_DP = 8
+private const val MIN_SIZE_DP = 12
+private const val CANVAS_WIDTH_DP = 350
 
 private fun defaultWidthOf(node: CustomWidgetNode): Int = when (node) {
     is ImageNode -> 24
     is ProgressNode -> 64
-    else -> 80
+    is ButtonNode -> 80
+    is LayoutContainer -> 120
+    is TextNode -> 80
 }
 
 private fun defaultHeightOf(node: CustomWidgetNode): Int = when (node) {
     is ImageNode -> 24
-    is ProgressNode -> 8
-    else -> 24
+    is ProgressNode -> 12
+    is ButtonNode -> 36
+    is LayoutContainer -> 60
+    is TextNode -> 24
 }
 
 /** Applies a drag to a node's bounds, keeping it inside the canvas. */

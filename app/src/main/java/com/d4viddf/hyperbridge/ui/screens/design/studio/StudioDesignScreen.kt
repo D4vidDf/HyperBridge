@@ -52,6 +52,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.widget.*
 import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
 import kotlinx.coroutines.launch
@@ -87,6 +88,8 @@ fun StudioDesignScreen(
         val savedDoc by studioViewModel.savedDocument.collectAsState()
         val selectedNodeId by studioViewModel.selectedNodeId.collectAsState()
         val notificationType by studioViewModel.notificationType.collectAsState()
+        val targetScope by studioViewModel.targetScope.collectAsState()
+        val targetPackages by studioViewModel.targetPackages.collectAsState()
         val validationMessage by studioViewModel.validationMessage.collectAsState()
         val canUndo by studioViewModel.canUndo.collectAsState()
         val canRedo by studioViewModel.canRedo.collectAsState()
@@ -239,7 +242,9 @@ fun StudioDesignScreen(
             onResizeNode = { id, width, height ->
                 studioViewModel.updateDocument { current ->
                     current.replaceNode(id) { node ->
-                        node.withBounds(node.bounds.copy(widthDp = width, heightDp = height))
+                        val clampedW = width.coerceIn(12, CANVAS_WIDTH_DP)
+                        val clampedH = height.coerceIn(12, current.canvas.heightDp)
+                        node.withBounds(node.bounds.copy(widthDp = clampedW, heightDp = clampedH))
                     }
                 }
             },
@@ -274,6 +279,11 @@ fun StudioDesignScreen(
                 }
             },
             onNotificationTypeChange = { studioViewModel.setNotificationType(it) },
+            targetScope = targetScope,
+            targetPackages = targetPackages,
+            onTargetScopeChange = { studioViewModel.setTargetScope(it) },
+            onAddTargetPackage = { studioViewModel.addTargetPackage(it) },
+            onRemoveTargetPackage = { studioViewModel.removeTargetPackage(it) },
             onToggleVisibility = { studioViewModel.toggleEditorVisibility(it) },
             onMoveToFront = { studioViewModel.moveNodeToFront(it) },
             onMoveToBack = { studioViewModel.moveNodeToBack(it) },
@@ -303,6 +313,8 @@ fun StudioDesignContent(
     isDirty: Boolean,
     isSaving: Boolean,
     notificationType: NotificationType,
+    targetScope: TargetScope = TargetScope.NOTIFICATION_TYPE,
+    targetPackages: List<String> = emptyList(),
     validationMessage: String?,
     onBack: () -> Unit,
     onUndo: () -> Unit,
@@ -330,6 +342,9 @@ fun StudioDesignContent(
     onIconChange: (String) -> Unit = {},
     onCanvasChange: (CanvasSize) -> Unit,
     onNotificationTypeChange: (NotificationType) -> Unit,
+    onTargetScopeChange: (TargetScope) -> Unit = {},
+    onAddTargetPackage: (String) -> Unit = {},
+    onRemoveTargetPackage: (String) -> Unit = {},
     onToggleVisibility: (String) -> Unit,
     onMoveToFront: (String) -> Unit,
     onMoveToBack: (String) -> Unit,
@@ -499,10 +514,15 @@ fun StudioDesignContent(
                     onAddChild = onAddChild,
                     document = doc,
                     notificationType = notificationType,
+                    targetScope = targetScope,
+                    targetPackages = targetPackages,
                     onNameChange = onNameChange,
                     onIconChange = onIconChange,
                     onCanvasChange = onCanvasChange,
                     onNotificationTypeChange = onNotificationTypeChange,
+                    onTargetScopeChange = onTargetScopeChange,
+                    onAddTargetPackage = onAddTargetPackage,
+                    onRemoveTargetPackage = onRemoveTargetPackage,
                     selectedNodeId = selectedNodeId,
                     hiddenNodeIds = hiddenNodeIds,
                     onToggleVisibility = onToggleVisibility,
