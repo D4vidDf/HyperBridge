@@ -60,6 +60,14 @@ sealed interface NodeCondition {
     @Serializable
     @SerialName("not")
     data class Not(val condition: NodeCondition) : NodeCondition
+
+    @Serializable
+    @SerialName("all")
+    data class All(val conditions: List<NodeCondition> = emptyList()) : NodeCondition
+
+    @Serializable
+    @SerialName("any")
+    data class Any(val conditions: List<NodeCondition> = emptyList()) : NodeCondition
 }
 
 @Serializable

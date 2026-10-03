@@ -1659,6 +1659,21 @@
     <string name="studio_condition_matches">Value matches</string>
     <string name="studio_condition_action_index">Button number (0 is the first)</string>
     <string name="studio_condition_regex">Regular expression</string>
+    <string name="studio_condition_mode_simple">Single rule</string>
+    <string name="studio_condition_mode_compound">Compound</string>
+    <string name="studio_condition_match_all">Match ALL rules (AND)</string>
+    <string name="studio_condition_match_any">Match ANY rule (OR)</string>
+    <string name="studio_condition_add_rule">Add rule</string>
+    <string name="studio_condition_delete_rule">Delete rule</string>
+    <string name="studio_condition_rule_title">Rule %1$d</string>
+    <string name="studio_condition_invert">Invert rule (NOT)</string>
+    <string name="studio_condition_status_met">Visible in current scenario</string>
+    <string name="studio_condition_status_unmet">Hidden in current scenario</string>
+    <string name="studio_condition_presets">Presets</string>
+    <string name="studio_condition_preset_otp">OTP code</string>
+    <string name="studio_condition_preset_progress">Active progress</string>
+    <string name="studio_condition_preset_reply">Quick reply</string>
+    <string name="studio_condition_preset_low_battery">Low battery</string>
 
     <string name="studio_action_none">Nothing</string>
     <string name="studio_action_dismiss">Dismiss</string>

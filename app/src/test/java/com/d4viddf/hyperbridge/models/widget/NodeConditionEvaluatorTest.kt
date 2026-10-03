@@ -121,4 +121,80 @@ class NodeConditionEvaluatorTest {
         val hidden = TextNode(id = "t", template = "x", showIf = NodeCondition.HasInlineReply)
         assertNull(NodeConditionEvaluator.prune(hidden, bareNotification))
     }
+
+    @Test
+    fun allRequiresEverySubConditionToBeTrue() {
+        val compound = NodeCondition.All(
+            listOf(
+                NodeCondition.HasInlineReply,
+                NodeCondition.HasSmartAction("OTP")
+            )
+        )
+        assertTrue(visible(compound, richNotification))
+
+        val partialMatch = NodeCondition.All(
+            listOf(
+                NodeCondition.HasInlineReply,
+                NodeCondition.HasSmartAction("NONEXISTENT")
+            )
+        )
+        assertFalse(visible(partialMatch, richNotification))
+
+        // Empty list in All is vacuously true
+        assertTrue(visible(NodeCondition.All(emptyList()), bareNotification))
+    }
+
+    @Test
+    fun anyRequiresAtLeastOneSubConditionToBeTrue() {
+        val compound = NodeCondition.Any(
+            listOf(
+                NodeCondition.HasSmartAction("NONEXISTENT"),
+                NodeCondition.HasInlineReply
+            )
+        )
+        assertTrue(visible(compound, richNotification))
+
+        val noneMatch = NodeCondition.Any(
+            listOf(
+                NodeCondition.HasSmartAction("NONEXISTENT"),
+                NodeCondition.HasInlineReply
+            )
+        )
+        assertFalse(visible(noneMatch, bareNotification))
+
+        // Empty list in Any is true by default
+        assertTrue(visible(NodeCondition.Any(emptyList()), bareNotification))
+    }
+
+    @Test
+    fun nestedCompoundWithNotEvaluatesCorrectly() {
+        // inline reply AND NOT smart_action("URL")
+        val condition = NodeCondition.All(
+            listOf(
+                NodeCondition.HasInlineReply,
+                NodeCondition.Not(NodeCondition.HasSmartAction("URL"))
+            )
+        )
+        assertTrue(visible(condition, richNotification))
+    }
+
+    @Test
+    fun conditionJsonSerializationRoundTrip() {
+        val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+        val condition: NodeCondition = NodeCondition.All(
+            listOf(
+                NodeCondition.HasInlineReply,
+                NodeCondition.Not(NodeCondition.HasSmartAction("OTP")),
+                NodeCondition.Any(
+                    listOf(
+                        NodeCondition.NotBlank("{notif.title}"),
+                        NodeCondition.HasProgress
+                    )
+                )
+            )
+        )
+        val serialized = json.encodeToString(NodeCondition.serializer(), condition)
+        val deserialized = json.decodeFromString(NodeCondition.serializer(), serialized)
+        assertEquals(condition, deserialized)
+    }
 }

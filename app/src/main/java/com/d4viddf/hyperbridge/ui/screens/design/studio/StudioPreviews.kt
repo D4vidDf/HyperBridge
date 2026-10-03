@@ -515,3 +515,34 @@ fun PreviewStudioInspectorBindingsTab() {
     }
 }
 
+@Preview(name = "15. Inspector Compound Conditions Builder", showBackground = true)
+@Composable
+fun PreviewStudioInspectorConditions() {
+    val sampleDoc = previewSampleWidgetDocument()
+    val conditionalNode = (sampleDoc.root.children[1] as TextNode).copy(
+        showIf = NodeCondition.All(
+            listOf(
+                NodeCondition.HasInlineReply,
+                NodeCondition.Not(NodeCondition.HasSmartAction("OTP")),
+                NodeCondition.NotBlank("{notif.title}")
+            )
+        )
+    )
+    StudioExpressiveTheme(darkTheme = true) {
+        Surface(modifier = Modifier.padding(16.dp)) {
+            StudioInspector(
+                node = conditionalNode,
+                isRoot = false,
+                selectedTab = StudioTab.LAYER,
+                canMoveUp = true,
+                canMoveDown = true,
+                scenario = StudioPreviewScenario.MESSAGE,
+                onChange = {},
+                onMoveLayer = {},
+                onDelete = {},
+                selectedNodeId = conditionalNode.id
+            )
+        }
+    }
+}
+

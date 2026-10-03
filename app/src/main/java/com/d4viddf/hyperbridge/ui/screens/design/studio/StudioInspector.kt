@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.VerticalAlignBottom
 import androidx.compose.material.icons.rounded.VerticalAlignTop
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,6 +47,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -158,6 +161,7 @@ fun StudioInspector(
                     isRoot = isRoot,
                     canMoveUp = canMoveUp,
                     canMoveDown = canMoveDown,
+                    scenario = scenario,
                     onChange = onChange,
                     onMoveLayer = onMoveLayer,
                     onMoveToFront = { onMoveToFront(node.id) },
@@ -727,6 +731,7 @@ private fun LayerTabContent(
     isRoot: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
+    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
     onChange: (CustomWidgetNode) -> Unit,
     onMoveLayer: (Int) -> Unit,
     onMoveToFront: () -> Unit = {},
@@ -841,6 +846,7 @@ private fun LayerTabContent(
             StudioSection(stringResource(R.string.studio_section_visibility)) {
                 ConditionEditor(
                     condition = node.showIf,
+                    scenario = scenario,
                     onChange = { onChange(node.withShowIf(it)) }
                 )
             }
@@ -1127,7 +1133,235 @@ fun StudioDesignSettings(
 }
 
 @Composable
-private fun ConditionEditor(condition: NodeCondition, onChange: (NodeCondition) -> Unit) {
+private fun ConditionEditor(
+    condition: NodeCondition,
+    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
+    onChange: (NodeCondition) -> Unit
+) {
+    val isConditionMet = NodeConditionEvaluator.isVisible(condition, scenario.toVariableContext())
+    val isCompound = condition is NodeCondition.All || condition is NodeCondition.Any
+
+    // Live Scenario Evaluation Status Badge
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (isConditionMet) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = if (isConditionMet) Icons.Rounded.CheckCircle else Icons.Rounded.VisibilityOff,
+                contentDescription = null,
+                tint = if (isConditionMet) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = if (isConditionMet) stringResource(R.string.studio_condition_status_met)
+                       else stringResource(R.string.studio_condition_status_unmet),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = if (isConditionMet) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+
+    // Mode Selector (Single Rule vs Compound)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(
+            selected = !isCompound,
+            onClick = {
+                if (isCompound) {
+                    val first = when (condition) {
+                        is NodeCondition.All -> condition.conditions.firstOrNull() ?: NodeCondition.Always
+                        is NodeCondition.Any -> condition.conditions.firstOrNull() ?: NodeCondition.Always
+                        else -> condition
+                    }
+                    onChange(first)
+                }
+            },
+            label = { Text(stringResource(R.string.studio_condition_mode_simple)) }
+        )
+        FilterChip(
+            selected = isCompound,
+            onClick = {
+                if (!isCompound) {
+                    val existing = if (condition is NodeCondition.Always) NodeCondition.NotBlank("{notif.text}") else condition
+                    onChange(NodeCondition.All(listOf(existing, NodeCondition.NotBlank("{notif.title}"))))
+                }
+            },
+            label = { Text(stringResource(R.string.studio_condition_mode_compound)) }
+        )
+    }
+
+    if (!isCompound) {
+        // Quick Presets
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = stringResource(R.string.studio_condition_presets),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                AssistChip(
+                    onClick = { onChange(NodeCondition.HasSmartAction("OTP")) },
+                    label = { Text(stringResource(R.string.studio_condition_preset_otp)) }
+                )
+                AssistChip(
+                    onClick = { onChange(NodeCondition.HasProgress) },
+                    label = { Text(stringResource(R.string.studio_condition_preset_progress)) }
+                )
+                AssistChip(
+                    onClick = { onChange(NodeCondition.HasInlineReply) },
+                    label = { Text(stringResource(R.string.studio_condition_preset_reply)) }
+                )
+                AssistChip(
+                    onClick = { onChange(NodeCondition.Matches("{device.battery}", "^(1[0-9]|[0-9])$")) },
+                    label = { Text(stringResource(R.string.studio_condition_preset_low_battery)) }
+                )
+            }
+        }
+
+        // Invert (NOT) toggle
+        val isInverted = condition is NodeCondition.Not
+        val baseCondition = if (condition is NodeCondition.Not) condition.condition else condition
+        LabelledSwitch(
+            label = stringResource(R.string.studio_condition_invert),
+            checked = isInverted,
+            onCheckedChange = { checked ->
+                if (checked) {
+                    onChange(NodeCondition.Not(baseCondition))
+                } else {
+                    onChange(baseCondition)
+                }
+            }
+        )
+
+        SingleConditionFieldEditor(
+            condition = baseCondition,
+            onChange = { updated ->
+                if (isInverted) onChange(NodeCondition.Not(updated)) else onChange(updated)
+            }
+        )
+    } else {
+        // Compound Mode (AND / OR)
+        val isAll = condition is NodeCondition.All
+        val subConditions = when (condition) {
+            is NodeCondition.All -> condition.conditions
+            is NodeCondition.Any -> condition.conditions
+            else -> emptyList()
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = isAll,
+                onClick = { onChange(NodeCondition.All(subConditions)) },
+                label = { Text(stringResource(R.string.studio_condition_match_all)) }
+            )
+            FilterChip(
+                selected = !isAll,
+                onClick = { onChange(NodeCondition.Any(subConditions)) },
+                label = { Text(stringResource(R.string.studio_condition_match_any)) }
+            )
+        }
+
+        // List of Sub-Rules
+        subConditions.forEachIndexed { index, subRule ->
+            val subInverted = subRule is NodeCondition.Not
+            val baseSub = if (subRule is NodeCondition.Not) subRule.condition else subRule
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.studio_condition_rule_title, index + 1),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        if (subConditions.size > 1) {
+                            IconButton(
+                                onClick = {
+                                    val updated = subConditions.toMutableList().also { it.removeAt(index) }
+                                    onChange(if (isAll) NodeCondition.All(updated) else NodeCondition.Any(updated))
+                                },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = stringResource(R.string.studio_condition_delete_rule),
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    LabelledSwitch(
+                        label = stringResource(R.string.studio_condition_invert),
+                        checked = subInverted,
+                        onCheckedChange = { checked ->
+                            val updatedRule = if (checked) NodeCondition.Not(baseSub) else baseSub
+                            val updatedList = subConditions.toMutableList().also { it[index] = updatedRule }
+                            onChange(if (isAll) NodeCondition.All(updatedList) else NodeCondition.Any(updatedList))
+                        }
+                    )
+
+                    SingleConditionFieldEditor(
+                        condition = baseSub,
+                        onChange = { updatedBase ->
+                            val updatedRule = if (subInverted) NodeCondition.Not(updatedBase) else updatedBase
+                            val updatedList = subConditions.toMutableList().also { it[index] = updatedRule }
+                            onChange(if (isAll) NodeCondition.All(updatedList) else NodeCondition.Any(updatedList))
+                        }
+                    )
+                }
+            }
+        }
+
+        OutlinedButton(
+            onClick = {
+                val updated = subConditions + NodeCondition.NotBlank("{notif.text}")
+                onChange(if (isAll) NodeCondition.All(updated) else NodeCondition.Any(updated))
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.studio_condition_add_rule))
+        }
+    }
+}
+
+@Composable
+private fun SingleConditionFieldEditor(
+    condition: NodeCondition,
+    onChange: (NodeCondition) -> Unit
+) {
     val kinds = listOf(
         ConditionKind.ALWAYS,
         ConditionKind.NOTIFICATION_ACTION,
@@ -1140,7 +1374,9 @@ private fun ConditionEditor(condition: NodeCondition, onChange: (NodeCondition) 
     val current = ConditionKind.of(condition)
 
     Row(
-        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         kinds.forEach { kind ->
@@ -1161,7 +1397,9 @@ private fun ConditionEditor(condition: NodeCondition, onChange: (NodeCondition) 
         )
 
         is NodeCondition.HasSmartAction -> Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SMART_ACTION_TYPES.forEach { type ->
@@ -1196,6 +1434,7 @@ private fun ConditionEditor(condition: NodeCondition, onChange: (NodeCondition) 
                 label = { Text(stringResource(R.string.studio_condition_regex)) },
                 modifier = Modifier.fillMaxWidth()
             )
+            VariableTokenRow { token -> onChange(NodeCondition.Matches(condition.template + token, condition.regex)) }
         }
 
         else -> Unit
@@ -1451,7 +1690,9 @@ private enum class ConditionKind(val labelRes: Int) {
             is NodeCondition.HasProgress -> PROGRESS
             is NodeCondition.NotBlank -> NOT_BLANK
             is NodeCondition.Matches -> MATCHES
-            is NodeCondition.Not -> ALWAYS
+            is NodeCondition.Not -> of(condition.condition)
+            is NodeCondition.All -> condition.conditions.firstOrNull()?.let { of(it) } ?: ALWAYS
+            is NodeCondition.Any -> condition.conditions.firstOrNull()?.let { of(it) } ?: ALWAYS
         }
     }
 }

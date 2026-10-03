@@ -37,6 +37,10 @@ object NodeConditionEvaluator {
         }.getOrDefault(false)
 
         is NodeCondition.Not -> !isVisible(condition.condition, ctx, engine)
+
+        is NodeCondition.All -> condition.conditions.all { isVisible(it, ctx, engine) }
+
+        is NodeCondition.Any -> if (condition.conditions.isEmpty()) true else condition.conditions.any { isVisible(it, ctx, engine) }
     }
 
     /** The node itself, with any child that fails its own condition already dropped. */
