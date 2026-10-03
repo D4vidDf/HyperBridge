@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +20,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,21 +34,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
-import com.d4viddf.hyperbridge.models.widget.ButtonNode
-import com.d4viddf.hyperbridge.models.widget.ContainerLayout
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
-import com.d4viddf.hyperbridge.models.widget.ImageNode
-import com.d4viddf.hyperbridge.models.widget.LayoutContainer
-import com.d4viddf.hyperbridge.models.widget.NodeBounds
-import com.d4viddf.hyperbridge.models.widget.ProgressNode
-import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.*
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 
 /**
@@ -58,17 +58,6 @@ val StudioCanvasBackground = Color(0xFF141414)
 
 private val previewEngine = WidgetVariableEngine()
 
-private val PREVIEW_SAMPLE_CONTEXT = VariableContext(
-    notifTitle = "Sample title",
-    notifText = "Sample text",
-    notifProgress = 42,
-    deviceBatteryPercent = 77,
-    timeNowFormatted = "10:30",
-    notificationActionTitles = listOf("Open", "Mute"),
-    hasInlineReply = true,
-    smartActionTypes = setOf("OTP", "URL")
-)
-
 @Composable
 fun StudioCanvas(
     root: LayoutContainer,
@@ -81,7 +70,9 @@ fun StudioCanvas(
     zoom: Float = 1f,
     isGridVisible: Boolean = false,
     isWireframeMode: Boolean = false,
-    hiddenNodeIds: Set<String> = emptySet()
+    hiddenNodeIds: Set<String> = emptySet(),
+    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
+    context: VariableContext = scenario.toVariableContext()
 ) {
     Box(
         modifier = modifier
@@ -110,23 +101,27 @@ fun StudioCanvas(
             }
             .padding(8.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    scaleX = zoom
-                    scaleY = zoom
-                }
-        ) {
-            CanvasNode(
-                node = root,
-                selectedId = selectedId,
-                onSelect = onSelect,
-                onMove = onMove,
-                onResize = onResize,
-                isWireframeMode = isWireframeMode,
-                hiddenNodeIds = hiddenNodeIds
-            )
+        // Enforce LTR Cartesian layout coordinate space so RTL system locales never mirror element coordinates
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = zoom
+                        scaleY = zoom
+                    }
+            ) {
+                CanvasNode(
+                    node = root,
+                    selectedId = selectedId,
+                    onSelect = onSelect,
+                    onMove = onMove,
+                    onResize = onResize,
+                    isWireframeMode = isWireframeMode,
+                    hiddenNodeIds = hiddenNodeIds,
+                    context = context
+                )
+            }
         }
     }
 }
@@ -140,13 +135,24 @@ private fun CanvasNode(
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
     draggable: Boolean = false,
     isWireframeMode: Boolean = false,
-    hiddenNodeIds: Set<String> = emptySet()
+    hiddenNodeIds: Set<String> = emptySet(),
+    context: VariableContext = VariableContext()
 ) {
     if (hiddenNodeIds.contains(node.id)) return
 
     val density = LocalDensity.current
     val isSelected = node.id == selectedId
     val canDrag = draggable && !node.locked
+
+    // Evaluate conditional visibility
+    val isConditionMet = isWireframeMode || NodeConditionEvaluator.isVisible(node.showIf, context, previewEngine)
+    if (!isConditionMet && !isSelected) {
+        // Condition not met and element is not currently selected -> do not render on live canvas
+        return
+    }
+
+    var accumulatedDx by remember(node.id) { mutableFloatStateOf(0f) }
+    var accumulatedDy by remember(node.id) { mutableFloatStateOf(0f) }
 
     var modifier: Modifier = Modifier
     if (node.bounds.widthDp != null) modifier = modifier.width(node.bounds.widthDp!!.dp)
@@ -160,87 +166,167 @@ private fun CanvasNode(
             if (canDrag) {
                 Modifier.pointerInput(node.id) {
                     detectDragGestures(
-                        onDragStart = { onSelect(node.id) }
+                        onDragStart = {
+                            accumulatedDx = 0f
+                            accumulatedDy = 0f
+                            onSelect(node.id)
+                        }
                     ) { change, dragAmount ->
                         change.consume()
-                        val dx = with(density) { dragAmount.x.toDp().value.toInt() }
-                        val dy = with(density) { dragAmount.y.toDp().value.toInt() }
-                        if (dx != 0 || dy != 0) onMove(node.id, dx, dy)
+                        with(density) {
+                            accumulatedDx += dragAmount.x.toDp().value
+                            accumulatedDy += dragAmount.y.toDp().value
+                        }
+                        val dx = accumulatedDx.toInt()
+                        val dy = accumulatedDy.toInt()
+                        if (dx != 0 || dy != 0) {
+                            accumulatedDx -= dx
+                            accumulatedDy -= dy
+                            onMove(node.id, dx, dy)
+                        }
                     }
                 }
             } else Modifier
         )
         .then(
             if (isSelected) {
-                Modifier.border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                Modifier.border(
+                    width = 1.dp,
+                    color = if (!isConditionMet) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(4.dp)
+                )
+            } else Modifier
+        )
+        .then(
+            if (!isConditionMet) {
+                // If condition not met but selected, render semi-transparent
+                Modifier.graphicsLayer { alpha = 0.5f }
             } else Modifier
         )
 
     Box {
         when (node) {
             is LayoutContainer -> CanvasContainer(
-                node,
-                modifier,
-                selectedId,
-                onSelect,
-                onMove,
-                onResize,
-                isWireframeMode,
-                hiddenNodeIds
+                node = node,
+                modifier = modifier,
+                selectedId = selectedId,
+                onSelect = onSelect,
+                onMove = onMove,
+                onResize = onResize,
+                isWireframeMode = isWireframeMode,
+                hiddenNodeIds = hiddenNodeIds,
+                context = context
             )
-            is TextNode -> Text(
-                text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, PREVIEW_SAMPLE_CONTEXT).ifBlank { node.template },
-                color = safeParseColor(node.colorHex),
-                fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
-                fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
-                maxLines = node.maxLines,
-                overflow = TextOverflow.Ellipsis,
-                modifier = modifier
-            )
+            is TextNode -> {
+                val colorFormula = node.bindings[BindableProperty.TEXT_COLOR.key]
+                val resolvedColor = if (!isWireframeMode && !colorFormula.isNullOrBlank()) {
+                    previewEngine.resolve(colorFormula, context).ifBlank { node.colorHex }
+                } else node.colorHex
 
-            is ImageNode -> Box(
-                modifier = modifier
-                    .size((node.bounds.widthDp ?: 24).dp)
-                    .background(Color.White.copy(alpha = 0.25f), RoundedCornerShape(50))
-            )
+                Text(
+                    text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, context).ifBlank { node.template },
+                    color = safeParseColor(resolvedColor),
+                    fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
+                    fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
+                    maxLines = node.maxLines,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = modifier
+                )
+            }
+
+            is ImageNode -> {
+                val tintFormula = node.bindings[BindableProperty.IMAGE_TINT.key]
+                val resolvedTint = if (!isWireframeMode && !tintFormula.isNullOrBlank()) {
+                    previewEngine.resolve(tintFormula, context).ifBlank { node.tintHex }
+                } else node.tintHex
+
+                Box(
+                    modifier = modifier
+                        .size((node.bounds.widthDp ?: 24).dp)
+                        .background(
+                            resolvedTint?.let { safeParseColor(it).copy(alpha = 0.8f) } ?: Color.White.copy(alpha = 0.25f),
+                            RoundedCornerShape(50)
+                        )
+                )
+            }
 
             is ProgressNode -> {
-                val value = if (isWireframeMode) 50 else previewEngine.resolve(node.valueTemplate, PREVIEW_SAMPLE_CONTEXT).toIntOrNull() ?: 0
+                val value = if (isWireframeMode) 50 else previewEngine.resolve(node.valueTemplate, context).toIntOrNull() ?: 0
+                val progressColorFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key]
+                val trackColorFormula = node.bindings[BindableProperty.PROGRESS_TRACK_COLOR.key]
+
+                val resolvedProgressColor = if (!isWireframeMode && !progressColorFormula.isNullOrBlank()) {
+                    previewEngine.resolve(progressColorFormula, context).ifBlank { node.progressColorHex }
+                } else node.progressColorHex
+
+                val resolvedTrackColor = if (!isWireframeMode && !trackColorFormula.isNullOrBlank()) {
+                    previewEngine.resolve(trackColorFormula, context).ifBlank { node.trackColorHex }
+                } else node.trackColorHex
+
                 LinearProgressIndicator(
                     progress = { (value.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f) },
-                    color = safeParseColor(node.progressColorHex),
-                    trackColor = safeParseColor(node.trackColorHex),
+                    color = safeParseColor(resolvedProgressColor),
+                    trackColor = safeParseColor(resolvedTrackColor),
                     modifier = modifier.width((node.bounds.widthDp ?: 64).dp)
                 )
             }
 
-            is ButtonNode -> Box(
-                modifier = modifier
-                    .background(
-                        node.backgroundHex?.let { safeParseColor(it) } ?: MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Text(text = node.label, color = safeParseColor(node.textColorHex))
+            is ButtonNode -> {
+                val bgFormula = node.bindings[BindableProperty.BUTTON_BACKGROUND.key]
+                val textFormula = node.bindings[BindableProperty.BUTTON_TEXT_COLOR.key]
+
+                val resolvedBg = if (!isWireframeMode && !bgFormula.isNullOrBlank()) {
+                    previewEngine.resolve(bgFormula, context).ifBlank { node.backgroundHex }
+                } else node.backgroundHex
+
+                val resolvedText = if (!isWireframeMode && !textFormula.isNullOrBlank()) {
+                    previewEngine.resolve(textFormula, context).ifBlank { node.textColorHex }
+                } else node.textColorHex
+
+                Box(
+                    modifier = modifier
+                        .background(
+                            resolvedBg?.let { safeParseColor(it) } ?: MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(text = node.label, color = safeParseColor(resolvedText))
+                }
             }
         }
 
-        // Resize grip for the selected element, bottom-right like every canvas editor.
+        // Float-accumulated resize grip for the selected element
         if (isSelected && canDrag) {
+            var accumulatedDw by remember(node.id) { mutableFloatStateOf(0f) }
+            var accumulatedDh by remember(node.id) { mutableFloatStateOf(0f) }
+
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .size(16.dp)
                     .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
                     .pointerInput(node.id) {
-                        detectDragGestures { change, dragAmount ->
+                        detectDragGestures(
+                            onDragStart = {
+                                accumulatedDw = 0f
+                                accumulatedDh = 0f
+                            }
+                        ) { change, dragAmount ->
                             change.consume()
-                            val dw = with(density) { dragAmount.x.toDp().value.toInt() }
-                            val dh = with(density) { dragAmount.y.toDp().value.toInt() }
-                            val width = ((node.bounds.widthDp ?: defaultWidthOf(node)) + dw).coerceAtLeast(MIN_SIZE_DP)
-                            val height = ((node.bounds.heightDp ?: defaultHeightOf(node)) + dh).coerceAtLeast(MIN_SIZE_DP)
-                            onResize(node.id, width, height)
+                            with(density) {
+                                accumulatedDw += dragAmount.x.toDp().value
+                                accumulatedDh += dragAmount.y.toDp().value
+                            }
+                            val dw = accumulatedDw.toInt()
+                            val dh = accumulatedDh.toInt()
+                            if (dw != 0 || dh != 0) {
+                                accumulatedDw -= dw
+                                accumulatedDh -= dh
+                                val width = ((node.bounds.widthDp ?: defaultWidthOf(node)) + dw).coerceAtLeast(MIN_SIZE_DP)
+                                val height = ((node.bounds.heightDp ?: defaultHeightOf(node)) + dh).coerceAtLeast(MIN_SIZE_DP)
+                                onResize(node.id, width, height)
+                            }
                         }
                     }
             )
@@ -257,10 +343,9 @@ private fun CanvasContainer(
     onMove: (id: String, dxDp: Int, dyDp: Int) -> Unit,
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
     isWireframeMode: Boolean = false,
-    hiddenNodeIds: Set<String> = emptySet()
+    hiddenNodeIds: Set<String> = emptySet(),
+    context: VariableContext
 ) {
-    // Children of a free-positioned container can be dragged; in a row or column the layout owns
-    // their position, so dragging them would be a lie.
     val freePositioning = node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX
 
     when (node.layout) {
@@ -270,14 +355,15 @@ private fun CanvasContainer(
         ) {
             node.children.forEach {
                 CanvasNode(
-                    it,
-                    selectedId,
-                    onSelect,
-                    onMove,
-                    onResize,
+                    node = it,
+                    selectedId = selectedId,
+                    onSelect = onSelect,
+                    onMove = onMove,
+                    onResize = onResize,
                     draggable = false,
                     isWireframeMode = isWireframeMode,
-                    hiddenNodeIds = hiddenNodeIds
+                    hiddenNodeIds = hiddenNodeIds,
+                    context = context
                 )
             }
         }
@@ -288,14 +374,15 @@ private fun CanvasContainer(
         ) {
             node.children.forEach {
                 CanvasNode(
-                    it,
-                    selectedId,
-                    onSelect,
-                    onMove,
-                    onResize,
+                    node = it,
+                    selectedId = selectedId,
+                    onSelect = onSelect,
+                    onMove = onMove,
+                    onResize = onResize,
                     draggable = false,
                     isWireframeMode = isWireframeMode,
-                    hiddenNodeIds = hiddenNodeIds
+                    hiddenNodeIds = hiddenNodeIds,
+                    context = context
                 )
             }
         }
@@ -303,7 +390,7 @@ private fun CanvasContainer(
         ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = modifier.fillMaxSize()) {
             node.children.forEach { child ->
                 val childModifier = if (node.layout == ContainerLayout.ABSOLUTE) {
-                    Modifier.offset(child.bounds.x.dp, child.bounds.y.dp)
+                    Modifier.absoluteOffset(child.bounds.x.dp, child.bounds.y.dp)
                 } else Modifier
 
                 Box(modifier = childModifier) {
@@ -315,7 +402,8 @@ private fun CanvasContainer(
                         onResize = onResize,
                         draggable = freePositioning,
                         isWireframeMode = isWireframeMode,
-                        hiddenNodeIds = hiddenNodeIds
+                        hiddenNodeIds = hiddenNodeIds,
+                        context = context
                     )
                 }
             }

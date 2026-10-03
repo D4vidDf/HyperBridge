@@ -97,6 +97,7 @@ fun StudioDesignScreen(
         var zoom by remember { mutableFloatStateOf(1f) }
         var isGridVisible by remember { mutableStateOf(false) }
         var isWireframeMode by remember { mutableStateOf(false) }
+        var selectedScenario by remember { mutableStateOf(StudioPreviewScenario.STANDARD) }
 
         // Category Tab State
         var selectedTab by remember { mutableStateOf(StudioTab.ITEMS) }
@@ -291,7 +292,8 @@ fun StudioDesignScreen(
                         zoom = zoom,
                         isGridVisible = isGridVisible,
                         isWireframeMode = isWireframeMode,
-                        hiddenNodeIds = hiddenNodeIds
+                        hiddenNodeIds = hiddenNodeIds,
+                        scenario = selectedScenario
                     )
 
                     StudioFloatingToolbar(
@@ -308,6 +310,13 @@ fun StudioDesignScreen(
                             .padding(8.dp)
                     )
                 }
+
+                // Scenario Switcher for dynamic previewing
+                StudioScenarioSwitcher(
+                    selectedScenario = selectedScenario,
+                    onScenarioSelected = { selectedScenario = it },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+                )
 
                 validationMessage?.let { message ->
                     Text(

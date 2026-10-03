@@ -1418,4 +1418,10 @@
     <string name="studio_layer_badge_action">Acción</string>
     <string name="studio_layer_badge_condition">Condición</string>
     <string name="studio_layer_badge_formula">Fórmula</string>
+    <string name="studio_scenario_title">Escenario</string>
+    <string name="studio_scenario_standard">Estándar</string>
+    <string name="studio_scenario_message">Mensaje</string>
+    <string name="studio_scenario_progress">Progreso</string>
+    <string name="studio_scenario_otp">OTP / Código</string>
+    <string name="studio_scenario_media">Multimedia</string>
 </resources>

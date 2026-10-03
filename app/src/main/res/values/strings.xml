@@ -1708,6 +1708,12 @@
     <string name="studio_layer_badge_action">Action</string>
     <string name="studio_layer_badge_condition">Condition</string>
     <string name="studio_layer_badge_formula">Formula</string>
+    <string name="studio_scenario_title">Scenario</string>
+    <string name="studio_scenario_standard">Standard</string>
+    <string name="studio_scenario_message">Message</string>
+    <string name="studio_scenario_progress">Progress</string>
+    <string name="studio_scenario_otp">OTP / Code</string>
+    <string name="studio_scenario_media">Media</string>
 </resources>
 
 
