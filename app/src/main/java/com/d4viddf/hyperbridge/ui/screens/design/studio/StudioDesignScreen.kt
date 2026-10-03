@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.widget.*
 import kotlinx.coroutines.launch
 
@@ -173,234 +174,336 @@ fun StudioDesignScreen(
             return@StudioExpressiveTheme
         }
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = doc.meta.name,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+        StudioDesignContent(
+            doc = doc,
+            selectedNodeId = selectedNodeId,
+            selectedTab = selectedTab,
+            availableTabs = availableTabs,
+            selectedScenario = selectedScenario,
+            hiddenNodeIds = hiddenNodeIds,
+            zoom = zoom,
+            isGridVisible = isGridVisible,
+            isWireframeMode = isWireframeMode,
+            canUndo = canUndo,
+            canRedo = canRedo,
+            isDirty = isDirty,
+            isSaving = isSaving,
+            notificationType = notificationType,
+            validationMessage = validationMessage,
+            onBack = handleBack,
+            onUndo = { studioViewModel.undo() },
+            onRedo = { studioViewModel.redo() },
+            onExport = {
+                scope.launch {
+                    val file = studioViewModel.exportWidget()
+                    if (file != null) {
+                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "application/zip"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        val chooser = Intent.createChooser(intent, context.getString(R.string.studio_export))
+                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(chooser)
+                    }
+                }
+            },
+            onRestore = { studioViewModel.restoreLastSaved() },
+            onSave = {
+                studioViewModel.save(
+                    onSaveTranslator = { translator ->
+                        translatorViewModel.saveTranslator(translator)
                     },
-                    navigationIcon = {
-                        FilledTonalIconButton(onClick = handleBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = { studioViewModel.undo() },
-                            enabled = canUndo
-                        ) {
-                            Icon(Icons.AutoMirrored.Rounded.Undo, stringResource(R.string.studio_undo))
-                        }
-
-                        IconButton(
-                            onClick = { studioViewModel.redo() },
-                            enabled = canRedo
-                        ) {
-                            Icon(Icons.AutoMirrored.Rounded.Redo, stringResource(R.string.studio_redo))
-                        }
-
-                        IconButton(
-                            onClick = {
-                                scope.launch {
-                                    val file = studioViewModel.exportWidget()
-                                    if (file != null) {
-                                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-                                        val intent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "application/zip"
-                                            putExtra(Intent.EXTRA_STREAM, uri)
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                        }
-                                        val chooser = Intent.createChooser(intent, context.getString(R.string.studio_export))
-                                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        context.startActivity(chooser)
-                                    }
-                                }
-                            }
-                        ) {
-                            Icon(Icons.Rounded.IosShare, stringResource(R.string.studio_export))
-                        }
-
-                        IconButton(
-                            onClick = { studioViewModel.restoreLastSaved() },
-                            enabled = isDirty
-                        ) {
-                            Icon(Icons.Rounded.Restore, stringResource(R.string.studio_restore))
-                        }
-
-                        TextButton(
-                            onClick = {
-                                studioViewModel.save(
-                                    onSaveTranslator = { translator ->
-                                        translatorViewModel.saveTranslator(translator)
-                                    },
-                                    onSuccess = {
-                                        Toast.makeText(context, R.string.studio_saved, Toast.LENGTH_SHORT).show()
-                                    }
-                                )
-                            },
-                            enabled = !isSaving
-                        ) {
-                            Text(stringResource(R.string.studio_save))
-                        }
+                    onSuccess = {
+                        Toast.makeText(context, R.string.studio_saved, Toast.LENGTH_SHORT).show()
                     }
                 )
             },
-            floatingActionButton = {
-                FloatingActionButton(onClick = {
-                    targetParentForAdd = (selectedNode as? LayoutContainer)?.id
-                        ?: (selectedNodeId?.let { doc.parentOf(it)?.id } ?: doc.root.id)
-                    showAddElement = true
-                }) {
-                    Icon(Icons.Rounded.Add, stringResource(R.string.studio_add_element_title))
+            onOpenAddElement = {
+                targetParentForAdd = (selectedNode as? LayoutContainer)?.id
+                    ?: (selectedNodeId?.let { doc.parentOf(it)?.id } ?: doc.root.id)
+                showAddElement = true
+            },
+            onSelectNode = { studioViewModel.selectNode(it) },
+            onMoveNode = { id, dx, dy ->
+                studioViewModel.updateDocument { current ->
+                    current.replaceNode(id) { node ->
+                        node.withBounds(node.bounds.movedBy(dx, dy, CANVAS_WIDTH_DP, current.canvas.heightDp))
+                    }
                 }
+            },
+            onResizeNode = { id, width, height ->
+                studioViewModel.updateDocument { current ->
+                    current.replaceNode(id) { node ->
+                        node.withBounds(node.bounds.copy(widthDp = width, heightDp = height))
+                    }
+                }
+            },
+            onZoomIn = { zoom = (zoom + 0.15f).coerceAtMost(2.5f) },
+            onZoomOut = { zoom = (zoom - 0.15f).coerceAtLeast(0.5f) },
+            onResetZoom = { zoom = 1f },
+            onToggleGrid = { isGridVisible = !isGridVisible },
+            onToggleWireframe = { isWireframeMode = !isWireframeMode },
+            onScenarioSelected = { selectedScenario = it },
+            onTabSelected = { selectedTab = it },
+            onUpdateNode = { studioViewModel.updateNode(it) },
+            onMoveLayer = { id, delta -> studioViewModel.moveLayer(id, delta) },
+            onDeleteNode = { studioViewModel.removeNode(it) },
+            onSelectChild = { studioViewModel.selectNode(it) },
+            onAddChild = { parentId ->
+                targetParentForAdd = parentId
+                showAddElement = true
+            },
+            onNameChange = { newName ->
+                studioViewModel.updateDocument { current ->
+                    current.copy(meta = current.meta.copy(name = newName))
+                }
+            },
+            onCanvasChange = { newCanvas ->
+                studioViewModel.updateDocument { current ->
+                    current.copy(canvas = newCanvas)
+                }
+            },
+            onNotificationTypeChange = { studioViewModel.setNotificationType(it) },
+            onToggleVisibility = { studioViewModel.toggleEditorVisibility(it) },
+            onMoveToFront = { studioViewModel.moveNodeToFront(it) },
+            onMoveToBack = { studioViewModel.moveNodeToBack(it) },
+            onDuplicate = { studioViewModel.duplicateNode(it) },
+            onGroup = { studioViewModel.groupNode(it) },
+            onUngroup = { studioViewModel.ungroupNode(it) },
+            onRename = { id, newName -> studioViewModel.renameNode(id, newName) },
+            onToggleLock = { studioViewModel.toggleLock(it) }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StudioDesignContent(
+    doc: CustomWidgetDocument,
+    selectedNodeId: String?,
+    selectedTab: StudioTab,
+    availableTabs: List<StudioTab>,
+    selectedScenario: StudioPreviewScenario,
+    hiddenNodeIds: Set<String>,
+    zoom: Float,
+    isGridVisible: Boolean,
+    isWireframeMode: Boolean,
+    canUndo: Boolean,
+    canRedo: Boolean,
+    isDirty: Boolean,
+    isSaving: Boolean,
+    notificationType: NotificationType,
+    validationMessage: String?,
+    onBack: () -> Unit,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    onExport: () -> Unit,
+    onRestore: () -> Unit,
+    onSave: () -> Unit,
+    onOpenAddElement: () -> Unit,
+    onSelectNode: (String?) -> Unit,
+    onMoveNode: (String, Int, Int) -> Unit,
+    onResizeNode: (String, Int, Int) -> Unit,
+    onZoomIn: () -> Unit,
+    onZoomOut: () -> Unit,
+    onResetZoom: () -> Unit,
+    onToggleGrid: () -> Unit,
+    onToggleWireframe: () -> Unit,
+    onScenarioSelected: (StudioPreviewScenario) -> Unit,
+    onTabSelected: (StudioTab) -> Unit,
+    onUpdateNode: (CustomWidgetNode) -> Unit,
+    onMoveLayer: (String, Int) -> Unit,
+    onDeleteNode: (String) -> Unit,
+    onSelectChild: (String) -> Unit,
+    onAddChild: (String) -> Unit,
+    onNameChange: (String) -> Unit,
+    onCanvasChange: (CanvasSize) -> Unit,
+    onNotificationTypeChange: (NotificationType) -> Unit,
+    onToggleVisibility: (String) -> Unit,
+    onMoveToFront: (String) -> Unit,
+    onMoveToBack: (String) -> Unit,
+    onDuplicate: (String) -> Unit,
+    onGroup: (String) -> Unit,
+    onUngroup: (String) -> Unit,
+    onRename: (String, String) -> Unit,
+    onToggleLock: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = doc.meta.name,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    FilledTonalIconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = onUndo,
+                        enabled = canUndo
+                    ) {
+                        Icon(Icons.AutoMirrored.Rounded.Undo, stringResource(R.string.studio_undo))
+                    }
+
+                    IconButton(
+                        onClick = onRedo,
+                        enabled = canRedo
+                    ) {
+                        Icon(Icons.AutoMirrored.Rounded.Redo, stringResource(R.string.studio_redo))
+                    }
+
+                    IconButton(onClick = onExport) {
+                        Icon(Icons.Rounded.IosShare, stringResource(R.string.studio_export))
+                    }
+
+                    IconButton(
+                        onClick = onRestore,
+                        enabled = isDirty
+                    ) {
+                        Icon(Icons.Rounded.Restore, stringResource(R.string.studio_restore))
+                    }
+
+                    TextButton(
+                        onClick = onSave,
+                        enabled = !isSaving
+                    ) {
+                        Text(stringResource(R.string.studio_save))
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onOpenAddElement) {
+                Icon(Icons.Rounded.Add, stringResource(R.string.studio_add_element_title))
             }
-        ) { padding ->
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            // Canvas preview with floating toolbar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                StudioCanvas(
+                    root = doc.root,
+                    canvasHeightDp = doc.canvas.heightDp,
+                    selectedId = selectedNodeId,
+                    onSelect = { onSelectNode(it) },
+                    onMove = onMoveNode,
+                    onResize = onResizeNode,
+                    zoom = zoom,
+                    isGridVisible = isGridVisible,
+                    isWireframeMode = isWireframeMode,
+                    hiddenNodeIds = hiddenNodeIds,
+                    scenario = selectedScenario
+                )
+
+                StudioFloatingToolbar(
+                    zoom = zoom,
+                    isGridVisible = isGridVisible,
+                    isWireframeMode = isWireframeMode,
+                    onZoomIn = onZoomIn,
+                    onZoomOut = onZoomOut,
+                    onResetZoom = onResetZoom,
+                    onToggleGrid = onToggleGrid,
+                    onToggleWireframe = onToggleWireframe,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                )
+            }
+
+            // Scenario Switcher for dynamic previewing
+            StudioScenarioSwitcher(
+                selectedScenario = selectedScenario,
+                onScenarioSelected = onScenarioSelected,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+            )
+
+            validationMessage?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
+            // KWGT Breadcrumb Navigation
+            StudioBreadcrumb(
+                document = doc,
+                selectedNodeId = selectedNodeId,
+                onSelectNode = onSelectNode,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+
+            // Category Tabs (Items, Layer, Item, Container, Actions, Formulas)
+            StudioTabsRow(
+                tabs = availableTabs,
+                selectedTab = selectedTab,
+                onTabSelected = onTabSelected,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+
+            // Inspector Content
             Column(
                 modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Canvas preview with floating toolbar
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    StudioCanvas(
-                        root = doc.root,
-                        canvasHeightDp = doc.canvas.heightDp,
-                        selectedId = selectedNodeId,
-                        onSelect = { studioViewModel.selectNode(it) },
-                        onMove = { id, dx, dy ->
-                            studioViewModel.updateDocument { current ->
-                                current.replaceNode(id) { node ->
-                                    node.withBounds(node.bounds.movedBy(dx, dy, CANVAS_WIDTH_DP, current.canvas.heightDp))
-                                }
-                            }
-                        },
-                        onResize = { id, width, height ->
-                            studioViewModel.updateDocument { current ->
-                                current.replaceNode(id) { node ->
-                                    node.withBounds(node.bounds.copy(widthDp = width, heightDp = height))
-                                }
-                            }
-                        },
-                        zoom = zoom,
-                        isGridVisible = isGridVisible,
-                        isWireframeMode = isWireframeMode,
-                        hiddenNodeIds = hiddenNodeIds,
-                        scenario = selectedScenario
-                    )
+                Spacer(Modifier.height(4.dp))
 
-                    StudioFloatingToolbar(
-                        zoom = zoom,
-                        isGridVisible = isGridVisible,
-                        isWireframeMode = isWireframeMode,
-                        onZoomIn = { zoom = (zoom + 0.15f).coerceAtMost(2.5f) },
-                        onZoomOut = { zoom = (zoom - 0.15f).coerceAtLeast(0.5f) },
-                        onResetZoom = { zoom = 1f },
-                        onToggleGrid = { isGridVisible = !isGridVisible },
-                        onToggleWireframe = { isWireframeMode = !isWireframeMode },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                    )
-                }
+                val targetNode = selectedNodeId?.let { doc.findNode(it) } ?: doc.root
+                val siblings = doc.parentOf(targetNode.id)?.children.orEmpty()
+                val siblingIndex = siblings.indexOfFirst { it.id == targetNode.id }
 
-                // Scenario Switcher for dynamic previewing
-                StudioScenarioSwitcher(
-                    selectedScenario = selectedScenario,
-                    onScenarioSelected = { selectedScenario = it },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
-                )
-
-                validationMessage?.let { message ->
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-
-                // KWGT Breadcrumb Navigation
-                StudioBreadcrumb(
-                    document = doc,
-                    selectedNodeId = selectedNodeId,
-                    onSelectNode = { studioViewModel.selectNode(it) },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-
-                // Category Tabs (Items, Layer, Item, Container, Actions, Formulas)
-                StudioTabsRow(
-                    tabs = availableTabs,
+                StudioInspector(
+                    node = targetNode,
+                    isRoot = targetNode.id == doc.root.id,
                     selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    canMoveUp = siblingIndex in 0 until siblings.lastIndex,
+                    canMoveDown = siblingIndex > 0,
+                    onChange = onUpdateNode,
+                    onMoveLayer = { delta -> onMoveLayer(targetNode.id, delta) },
+                    onDelete = { onDeleteNode(targetNode.id) },
+                    onSelectChild = onSelectChild,
+                    onAddChild = onAddChild,
+                    document = doc,
+                    notificationType = notificationType,
+                    onNameChange = onNameChange,
+                    onCanvasChange = onCanvasChange,
+                    onNotificationTypeChange = onNotificationTypeChange,
+                    selectedNodeId = selectedNodeId,
+                    hiddenNodeIds = hiddenNodeIds,
+                    onToggleVisibility = onToggleVisibility,
+                    onMoveNodeLayer = onMoveLayer,
+                    onMoveToFront = onMoveToFront,
+                    onMoveToBack = onMoveToBack,
+                    onDuplicate = onDuplicate,
+                    onGroup = onGroup,
+                    onUngroup = onUngroup,
+                    onRename = onRename,
+                    onDeleteNode = onDeleteNode,
+                    onToggleNodeLock = onToggleLock
                 )
 
-                // Inspector Content
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Spacer(Modifier.height(4.dp))
-
-                    val targetNode = selectedNode ?: doc.root
-                    val siblings = doc.parentOf(targetNode.id)?.children.orEmpty()
-                    val siblingIndex = siblings.indexOfFirst { it.id == targetNode.id }
-
-                    StudioInspector(
-                        node = targetNode,
-                        isRoot = targetNode.id == doc.root.id,
-                        selectedTab = selectedTab,
-                        canMoveUp = siblingIndex in 0 until siblings.lastIndex,
-                        canMoveDown = siblingIndex > 0,
-                        onChange = { updated ->
-                            studioViewModel.updateNode(updated)
-                        },
-                        onMoveLayer = { delta -> studioViewModel.moveLayer(targetNode.id, delta) },
-                        onDelete = { studioViewModel.removeNode(targetNode.id) },
-                        onSelectChild = { childId -> studioViewModel.selectNode(childId) },
-                        onAddChild = { parentId ->
-                            targetParentForAdd = parentId
-                            showAddElement = true
-                        },
-                        document = doc,
-                        notificationType = notificationType,
-                        onNameChange = { newName ->
-                            studioViewModel.updateDocument { current ->
-                                current.copy(meta = current.meta.copy(name = newName))
-                            }
-                        },
-                        onCanvasChange = { newCanvas ->
-                            studioViewModel.updateDocument { current ->
-                                current.copy(canvas = newCanvas)
-                            }
-                        },
-                        onNotificationTypeChange = { studioViewModel.setNotificationType(it) },
-                        selectedNodeId = selectedNodeId,
-                        hiddenNodeIds = hiddenNodeIds,
-                        onToggleVisibility = { studioViewModel.toggleEditorVisibility(it) },
-                        onMoveNodeLayer = { id, delta -> studioViewModel.moveLayer(id, delta) },
-                        onMoveToFront = { studioViewModel.moveNodeToFront(it) },
-                        onMoveToBack = { studioViewModel.moveNodeToBack(it) },
-                        onDuplicate = { studioViewModel.duplicateNode(it) },
-                        onGroup = { studioViewModel.groupNode(it) },
-                        onUngroup = { studioViewModel.ungroupNode(it) },
-                        onRename = { id, newName -> studioViewModel.renameNode(id, newName) },
-                        onDeleteNode = { studioViewModel.removeNode(it) },
-                        onToggleNodeLock = { studioViewModel.toggleLock(it) }
-                    )
-
-                    Spacer(Modifier.height(96.dp))
-                }
+                Spacer(Modifier.height(96.dp))
             }
         }
     }
