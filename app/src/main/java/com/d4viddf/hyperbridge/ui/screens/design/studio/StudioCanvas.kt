@@ -16,9 +16,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SmartButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -240,14 +253,31 @@ private fun CanvasNode(
                     previewEngine.resolve(tintFormula, context).ifBlank { node.tintHex }
                 } else node.tintHex
 
+                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                val shape = com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId(node.shapeId).toShape()
+                val tintColor = resolvedTint?.let { safeParseColor(it) } ?: Color.White
+
                 Box(
                     modifier = modifier
                         .size((node.bounds.widthDp ?: 24).dp)
-                        .background(
-                            resolvedTint?.let { safeParseColor(it).copy(alpha = 0.8f) } ?: Color.White.copy(alpha = 0.25f),
-                            RoundedCornerShape(50)
-                        )
-                )
+                        .background(tintColor.copy(alpha = 0.25f), shape)
+                        .border(1.dp, tintColor.copy(alpha = 0.5f), shape)
+                        .clip(shape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val iconVector = when (val src = node.source) {
+                        is ImageSource.SystemGlyph -> studioGlyphIcon(src.glyphName)
+                        is ImageSource.AppIconOf -> Icons.Rounded.Android
+                        else -> Icons.Rounded.Image
+                    }
+                    val iconSize = ((node.bounds.widthDp ?: 24) * 0.65).coerceAtLeast(12.0).dp
+                    Icon(
+                        imageVector = iconVector,
+                        contentDescription = null,
+                        tint = tintColor,
+                        modifier = Modifier.size(iconSize)
+                    )
+                }
             }
 
             is ProgressNode -> {
@@ -430,3 +460,15 @@ fun NodeBounds.movedBy(dxDp: Int, dyDp: Int, canvasWidthDp: Int, canvasHeightDp:
     x = (x + dxDp).coerceIn(0, (canvasWidthDp - (widthDp ?: 0)).coerceAtLeast(0)),
     y = (y + dyDp).coerceIn(0, (canvasHeightDp - (heightDp ?: 0)).coerceAtLeast(0))
 )
+
+private fun studioGlyphIcon(glyphName: String): androidx.compose.ui.graphics.vector.ImageVector = when (glyphName.lowercase()) {
+    "notification", "notif" -> Icons.Rounded.Notifications
+    "play" -> Icons.Rounded.PlayArrow
+    "pause" -> Icons.Rounded.SmartButton
+    "message", "mail" -> Icons.Rounded.Email
+    "call", "phone" -> Icons.Rounded.Call
+    "check" -> Icons.Rounded.Check
+    "close" -> Icons.Rounded.Clear
+    else -> Icons.Rounded.Image
+}
+

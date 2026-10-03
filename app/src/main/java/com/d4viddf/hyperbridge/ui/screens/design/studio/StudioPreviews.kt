@@ -445,3 +445,73 @@ fun PreviewStudioToolbarAndBreadcrumb() {
         }
     }
 }
+
+@Preview(name = "11. Formula Editor Dialog (\$fx\$)", showBackground = true)
+@Composable
+fun PreviewStudioFormulaDialog() {
+    StudioExpressiveTheme(darkTheme = true) {
+        StudioFormulaDialog(
+            propertyName = "textColorHex",
+            initialFormula = "{theme.accent}",
+            scenario = StudioPreviewScenario.STANDARD,
+            onDismiss = {},
+            onApply = {}
+        )
+    }
+}
+
+@Preview(name = "12. Installed App Chooser Dialog", showBackground = true)
+@Composable
+fun PreviewStudioAppChooserDialog() {
+    StudioExpressiveTheme(darkTheme = true) {
+        StudioAppChooserDialog(
+            onDismiss = {},
+            onAppSelected = {}
+        )
+    }
+}
+
+@Preview(name = "13. Inspector Image Item Tab (Sources & Shapes)", showBackground = true)
+@Composable
+fun PreviewStudioInspectorImageItemTab() {
+    val sampleDoc = previewSampleWidgetDocument()
+    val imageNode = sampleDoc.root.children[0]
+    StudioExpressiveTheme(darkTheme = true) {
+        Surface(modifier = Modifier.padding(16.dp)) {
+            StudioInspector(
+                node = imageNode,
+                isRoot = false,
+                selectedTab = StudioTab.ITEM,
+                canMoveUp = false,
+                canMoveDown = true,
+                onChange = {},
+                onMoveLayer = {},
+                onDelete = {},
+                selectedNodeId = imageNode.id
+            )
+        }
+    }
+}
+
+@Preview(name = "14. Inspector Formulas & Bindings Tab", showBackground = true)
+@Composable
+fun PreviewStudioInspectorBindingsTab() {
+    val sampleDoc = previewSampleWidgetDocument()
+    val textNode = sampleDoc.root.children[1]
+    StudioExpressiveTheme(darkTheme = true) {
+        Surface(modifier = Modifier.padding(16.dp)) {
+            StudioInspector(
+                node = textNode,
+                isRoot = false,
+                selectedTab = StudioTab.BINDINGS,
+                canMoveUp = true,
+                canMoveDown = true,
+                onChange = {},
+                onMoveLayer = {},
+                onDelete = {},
+                selectedNodeId = textNode.id
+            )
+        }
+    }
+}
+

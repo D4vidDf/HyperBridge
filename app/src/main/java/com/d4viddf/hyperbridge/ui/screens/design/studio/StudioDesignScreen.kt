@@ -500,7 +500,8 @@ fun StudioDesignContent(
                     onUngroup = onUngroup,
                     onRename = onRename,
                     onDeleteNode = onDeleteNode,
-                    onToggleNodeLock = onToggleLock
+                    onToggleNodeLock = onToggleLock,
+                    scenario = selectedScenario
                 )
 
                 Spacer(Modifier.height(96.dp))

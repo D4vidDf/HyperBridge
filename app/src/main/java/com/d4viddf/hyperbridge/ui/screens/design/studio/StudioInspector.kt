@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
@@ -36,6 +38,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,7 +48,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.widget.*
+import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 
 /**
  * Tab-oriented KWGT-style Inspector for CustomWidgetNode elements.
@@ -94,8 +103,14 @@ fun StudioInspector(
     onUngroup: (String) -> Unit = {},
     onRename: (String, String) -> Unit = { _, _ -> },
     onDeleteNode: (String) -> Unit = {},
-    onToggleNodeLock: (String) -> Unit = {}
+    onToggleNodeLock: (String) -> Unit = {},
+    // Stage 4 additions
+    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD
 ) {
+    var editingFormulaPropKey by remember { mutableStateOf<String?>(null) }
+    var isAppChooserOpen by remember { mutableStateOf(false) }
+    var appChooserCallback by remember { mutableStateOf<((String) -> Unit)?>(null) }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -128,7 +143,12 @@ fun StudioInspector(
             StudioTab.ITEM -> {
                 ItemTabContent(
                     node = node,
-                    onChange = onChange
+                    onChange = onChange,
+                    onRequestFormulaEditor = { editingFormulaPropKey = it },
+                    onRequestAppChooser = { cb ->
+                        appChooserCallback = cb
+                        isAppChooserOpen = true
+                    }
                 )
             }
 
@@ -144,7 +164,8 @@ fun StudioInspector(
                     onMoveToBack = { onMoveToBack(node.id) },
                     onDuplicate = { onDuplicate(node.id) },
                     onGroup = { onGroup(node.id) },
-                    onDelete = onDelete
+                    onDelete = onDelete,
+                    onRequestFormulaEditor = { editingFormulaPropKey = it }
                 )
             }
 
@@ -158,7 +179,8 @@ fun StudioInspector(
                         notificationType = notificationType,
                         onNameChange = onNameChange,
                         onCanvasChange = onCanvasChange,
-                        onNotificationTypeChange = onNotificationTypeChange
+                        onNotificationTypeChange = onNotificationTypeChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
                     )
                 }
             }
@@ -166,17 +188,49 @@ fun StudioInspector(
             StudioTab.ACTIONS -> {
                 ActionsTabContent(
                     node = node,
-                    onChange = onChange
+                    onChange = onChange,
+                    onRequestAppChooser = { cb ->
+                        appChooserCallback = cb
+                        isAppChooserOpen = true
+                    }
                 )
             }
 
             StudioTab.BINDINGS -> {
                 BindingsTabContent(
                     node = node,
-                    onChange = onChange
+                    onChange = onChange,
+                    onRequestFormulaEditor = { editingFormulaPropKey = it }
                 )
             }
         }
+    }
+
+    editingFormulaPropKey?.let { propKey ->
+        StudioFormulaDialog(
+            propertyName = propKey,
+            initialFormula = node.bindings[propKey].orEmpty(),
+            scenario = scenario,
+            onDismiss = { editingFormulaPropKey = null },
+            onApply = { newFormula ->
+                onChange(node.withBinding(propKey, newFormula))
+                editingFormulaPropKey = null
+            }
+        )
+    }
+
+    if (isAppChooserOpen) {
+        StudioAppChooserDialog(
+            onDismiss = {
+                isAppChooserOpen = false
+                appChooserCallback = null
+            },
+            onAppSelected = { pkg ->
+                appChooserCallback?.invoke(pkg)
+                isAppChooserOpen = false
+                appChooserCallback = null
+            }
+        )
     }
 }
 
@@ -339,7 +393,9 @@ private fun ChildLayerCard(
 @Composable
 private fun ItemTabContent(
     node: CustomWidgetNode,
-    onChange: (CustomWidgetNode) -> Unit
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit = {},
+    onRequestAppChooser: ((String) -> Unit) -> Unit = {}
 ) {
     StudioSection(stringResource(R.string.studio_tab_item)) {
         when (node) {
@@ -360,7 +416,8 @@ private fun ItemTabContent(
                     min = 6,
                     max = 96,
                     boundFormula = node.bindings[BindableProperty.TEXT_FONT_SIZE.key],
-                    onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_FONT_SIZE.key, it)) }
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_FONT_SIZE.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_FONT_SIZE.key) }
                 )
 
                 StudioStepper(
@@ -376,7 +433,8 @@ private fun ItemTabContent(
                     colorHex = node.colorHex,
                     onColorHexChange = { onChange(node.copy(colorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.TEXT_COLOR.key],
-                    onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_COLOR.key, it)) }
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_COLOR.key) }
                 )
 
                 LabelledSwitch(
@@ -408,7 +466,8 @@ private fun ItemTabContent(
                     colorHex = node.progressColorHex,
                     onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
-                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) }
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
                 )
 
                 StudioColorField(
@@ -416,7 +475,8 @@ private fun ItemTabContent(
                     colorHex = node.trackColorHex,
                     onColorHexChange = { onChange(node.copy(trackColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.PROGRESS_TRACK_COLOR.key],
-                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_TRACK_COLOR.key, it)) }
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_TRACK_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_TRACK_COLOR.key) }
                 )
             }
 
@@ -434,7 +494,8 @@ private fun ItemTabContent(
                     colorHex = node.textColorHex,
                     onColorHexChange = { onChange(node.copy(textColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.BUTTON_TEXT_COLOR.key],
-                    onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_TEXT_COLOR.key, it)) }
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_TEXT_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BUTTON_TEXT_COLOR.key) }
                 )
 
                 StudioColorField(
@@ -442,27 +503,221 @@ private fun ItemTabContent(
                     colorHex = node.backgroundHex.orEmpty().ifBlank { "#333333" },
                     onColorHexChange = { onChange(node.copy(backgroundHex = it.ifBlank { null })) },
                     boundFormula = node.bindings[BindableProperty.BUTTON_BACKGROUND.key],
-                    onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_BACKGROUND.key, it)) }
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_BACKGROUND.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BUTTON_BACKGROUND.key) }
                 )
             }
 
             is ImageNode -> {
-                Text(
-                    text = node.source.toString(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                StudioColorField(
-                    label = stringResource(R.string.studio_property_tint),
-                    colorHex = node.tintHex.orEmpty().ifBlank { "#FFFFFF" },
-                    onColorHexChange = { onChange(node.copy(tintHex = it.ifBlank { null })) },
-                    boundFormula = node.bindings[BindableProperty.IMAGE_TINT.key],
-                    onFormulaChange = { onChange(node.withBinding(BindableProperty.IMAGE_TINT.key, it)) }
+                ImageNodeEditor(
+                    node = node,
+                    onChange = onChange,
+                    onRequestFormulaEditor = onRequestFormulaEditor,
+                    onRequestAppChooser = onRequestAppChooser
                 )
             }
 
             else -> Unit
         }
+    }
+}
+
+@Composable
+private fun ImageNodeEditor(
+    node: ImageNode,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit,
+    onRequestAppChooser: ((String) -> Unit) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // 1. Source selector
+        Text(
+            text = stringResource(R.string.studio_image_source),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        val currentSource = node.source
+        val sourceKinds = listOf(
+            ImageSourceKind.SYSTEM_GLYPH,
+            ImageSourceKind.APP_ICON,
+            ImageSourceKind.CONTACT_AVATAR,
+            ImageSourceKind.CUSTOM_ASSET,
+            ImageSourceKind.SOURCE_ICON
+        )
+        val selectedKind = ImageSourceKind.of(currentSource)
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            sourceKinds.forEach { kind ->
+                FilterChip(
+                    selected = selectedKind == kind,
+                    onClick = { onChange(node.copy(source = kind.defaultSource())) },
+                    label = { Text(stringResource(kind.labelRes)) }
+                )
+            }
+        }
+
+        when (currentSource) {
+            is ImageSource.SystemGlyph -> {
+                OutlinedTextField(
+                    value = currentSource.glyphName,
+                    onValueChange = { onChange(node.copy(source = ImageSource.SystemGlyph(it))) },
+                    label = { Text(stringResource(R.string.studio_image_source_glyph)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    QUICK_GLYPHS.forEach { glyph ->
+                        AssistChip(
+                            onClick = { onChange(node.copy(source = ImageSource.SystemGlyph(glyph))) },
+                            label = { Text(glyph) }
+                        )
+                    }
+                }
+            }
+
+            is ImageSource.AppIconOf -> {
+                OutlinedTextField(
+                    value = currentSource.packageTemplate,
+                    onValueChange = { onChange(node.copy(source = ImageSource.AppIconOf(it))) },
+                    label = { Text(stringResource(R.string.studio_action_package)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AssistChip(
+                        onClick = { onChange(node.copy(source = ImageSource.AppIconOf("{notif.package}"))) },
+                        label = { Text("{notif.package}", fontFamily = FontFamily.Monospace) }
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            onRequestAppChooser { selectedPkg ->
+                                onChange(node.copy(source = ImageSource.AppIconOf(selectedPkg)))
+                            }
+                        }
+                    ) {
+                        Text(stringResource(R.string.studio_image_choose_app))
+                    }
+                }
+            }
+
+            is ImageSource.ContactAvatarOf -> {
+                OutlinedTextField(
+                    value = currentSource.numberOrNameTemplate,
+                    onValueChange = { onChange(node.copy(source = ImageSource.ContactAvatarOf(it))) },
+                    label = { Text(stringResource(R.string.studio_image_source_contact)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                VariableTokenRow { token ->
+                    onChange(node.copy(source = ImageSource.ContactAvatarOf(currentSource.numberOrNameTemplate + token)))
+                }
+            }
+
+            is ImageSource.CustomAsset -> {
+                OutlinedTextField(
+                    value = currentSource.fileName,
+                    onValueChange = { onChange(node.copy(source = ImageSource.CustomAsset(it))) },
+                    label = { Text(stringResource(R.string.studio_image_source_asset)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            is ImageSource.SourceIcon -> {
+                OutlinedTextField(
+                    value = currentSource.sourceId,
+                    onValueChange = { onChange(node.copy(source = ImageSource.SourceIcon(it))) },
+                    label = { Text(stringResource(R.string.studio_image_source_source)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf("weather", "music", "system").forEach { src ->
+                        AssistChip(
+                            onClick = { onChange(node.copy(source = ImageSource.SourceIcon(src))) },
+                            label = { Text(src) }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // 2. Shape picker
+        Text(
+            text = stringResource(R.string.studio_image_shape),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        val shapes = listOf("circle", "square", "cookie", "arch", "clover8")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            shapes.forEach { shapeId ->
+                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true)
+                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                val shape = getShapeFromId(shapeId).toShape()
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(shape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant,
+                            shape = shape
+                        )
+                        .clickable { onChange(node.copy(shapeId = shapeId)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = shapeId.take(2).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // 3. Tint Color
+        StudioColorField(
+            label = stringResource(R.string.studio_property_tint),
+            colorHex = node.tintHex.orEmpty().ifBlank { "#FFFFFF" },
+            onColorHexChange = { onChange(node.copy(tintHex = it.ifBlank { null })) },
+            boundFormula = node.bindings[BindableProperty.IMAGE_TINT.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.IMAGE_TINT.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.IMAGE_TINT.key) }
+        )
     }
 }
 
@@ -478,7 +733,8 @@ private fun LayerTabContent(
     onMoveToBack: () -> Unit = {},
     onDuplicate: () -> Unit = {},
     onGroup: () -> Unit = {},
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onRequestFormulaEditor: (String) -> Unit = {}
 ) {
     StudioSection(stringResource(R.string.studio_tab_layer)) {
         OutlinedTextField(
@@ -521,7 +777,8 @@ private fun LayerTabContent(
                 min = 0,
                 max = 1000,
                 boundFormula = node.bindings[BindableProperty.BOUNDS_WIDTH.key],
-                onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_WIDTH.key, it)) }
+                onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_WIDTH.key, it)) },
+                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BOUNDS_WIDTH.key) }
             )
 
             StudioStepper(
@@ -532,7 +789,8 @@ private fun LayerTabContent(
                 min = 0,
                 max = 1000,
                 boundFormula = node.bindings[BindableProperty.BOUNDS_HEIGHT.key],
-                onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_HEIGHT.key, it)) }
+                onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_HEIGHT.key, it)) },
+                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BOUNDS_HEIGHT.key) }
             )
 
             Text(
@@ -608,7 +866,8 @@ private fun ContainerTabContent(
     notificationType: NotificationType?,
     onNameChange: ((String) -> Unit)?,
     onCanvasChange: ((CanvasSize) -> Unit)?,
-    onNotificationTypeChange: ((NotificationType) -> Unit)?
+    onNotificationTypeChange: ((NotificationType) -> Unit)?,
+    onRequestFormulaEditor: (String) -> Unit = {}
 ) {
     if (isRoot && document != null && notificationType != null && onNameChange != null && onCanvasChange != null && onNotificationTypeChange != null) {
         StudioSection(stringResource(R.string.studio_section_design)) {
@@ -674,8 +933,9 @@ private fun ContainerTabContent(
             unitSuffix = "dp",
             min = 0,
             max = 64,
-            boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
-            onFormulaChange = { onChange(container.withBinding("gapDp", it)) }
+            boundFormula = container.bindings["gapDp"],
+            onFormulaChange = { onChange(container.withBinding("gapDp", it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor("gapDp") }
         )
 
         StudioStepper(
@@ -686,7 +946,8 @@ private fun ContainerTabContent(
             min = 0,
             max = 64,
             boundFormula = container.bindings["paddingDp"],
-            onFormulaChange = { onChange(container.withBinding("paddingDp", it)) }
+            onFormulaChange = { onChange(container.withBinding("paddingDp", it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor("paddingDp") }
         )
 
         StudioColorField(
@@ -694,7 +955,8 @@ private fun ContainerTabContent(
             colorHex = container.backgroundHex.orEmpty().ifBlank { "#00000000" },
             onColorHexChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
             boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
-            onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) }
+            onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
         )
     }
 }
@@ -702,7 +964,8 @@ private fun ContainerTabContent(
 @Composable
 private fun ActionsTabContent(
     node: CustomWidgetNode,
-    onChange: (CustomWidgetNode) -> Unit
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestAppChooser: ((String) -> Unit) -> Unit = {}
 ) {
     StudioSection(stringResource(R.string.studio_tab_actions)) {
         ActionEditor(
@@ -713,7 +976,8 @@ private fun ActionsTabContent(
                     if (node is ButtonNode) node.copy(action = action ?: ButtonAction.Dismiss)
                     else node.withOnClick(action)
                 )
-            }
+            },
+            onRequestAppChooser = onRequestAppChooser
         )
     }
 }
@@ -721,7 +985,8 @@ private fun ActionsTabContent(
 @Composable
 private fun BindingsTabContent(
     node: CustomWidgetNode,
-    onChange: (CustomWidgetNode) -> Unit
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit = {}
 ) {
     val bindableProps = when (node) {
         is TextNode -> listOf(BindableProperty.TEXT_TEMPLATE, BindableProperty.TEXT_COLOR, BindableProperty.TEXT_FONT_SIZE)
@@ -757,12 +1022,29 @@ private fun BindingsTabContent(
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    if (currentFormula.isNotBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         IconButton(
-                            onClick = { onChange(node.withBinding(prop.key, null)) },
-                            modifier = Modifier.size(24.dp)
+                            onClick = { onRequestFormulaEditor(prop.key) },
+                            modifier = Modifier.size(28.dp)
                         ) {
-                            Icon(Icons.Rounded.Clear, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(
+                                imageVector = Icons.Rounded.Calculate,
+                                contentDescription = stringResource(R.string.studio_bind_formula),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        if (currentFormula.isNotBlank()) {
+                            IconButton(
+                                onClick = { onChange(node.withBinding(prop.key, null)) },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(Icons.Rounded.Clear, contentDescription = "Clear", modifier = Modifier.size(16.dp))
+                            }
                         }
                     }
                 }
@@ -921,7 +1203,12 @@ private fun ConditionEditor(condition: NodeCondition, onChange: (NodeCondition) 
 }
 
 @Composable
-private fun ActionEditor(action: ButtonAction?, allowNone: Boolean, onChange: (ButtonAction?) -> Unit) {
+private fun ActionEditor(
+    action: ButtonAction?,
+    allowNone: Boolean,
+    onChange: (ButtonAction?) -> Unit,
+    onRequestAppChooser: ((String) -> Unit) -> Unit = {}
+) {
     Row(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -943,25 +1230,62 @@ private fun ActionEditor(action: ButtonAction?, allowNone: Boolean, onChange: (B
     }
 
     when (action) {
-        is ButtonAction.OpenApp -> OutlinedTextField(
-            value = action.packageName,
-            onValueChange = { onChange(ButtonAction.OpenApp(it)) },
-            label = { Text(stringResource(R.string.studio_action_package)) },
-            modifier = Modifier.fillMaxWidth()
-        )
+        is ButtonAction.OpenApp -> {
+            OutlinedTextField(
+                value = action.packageName,
+                onValueChange = { onChange(ButtonAction.OpenApp(it)) },
+                label = { Text(stringResource(R.string.studio_action_package)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AssistChip(
+                    onClick = { onChange(ButtonAction.OpenApp("{notif.package}")) },
+                    label = { Text("{notif.package}", fontFamily = FontFamily.Monospace) }
+                )
+                OutlinedButton(
+                    onClick = {
+                        onRequestAppChooser { selectedPkg ->
+                            onChange(ButtonAction.OpenApp(selectedPkg))
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.studio_action_choose_app))
+                }
+            }
+        }
 
-        is ButtonAction.DeepLink -> OutlinedTextField(
-            value = action.uri,
-            onValueChange = { onChange(ButtonAction.DeepLink(it)) },
-            label = { Text(stringResource(R.string.studio_action_uri)) },
-            modifier = Modifier.fillMaxWidth()
-        )
+        is ButtonAction.DeepLink -> {
+            OutlinedTextField(
+                value = action.uri,
+                onValueChange = { onChange(ButtonAction.DeepLink(it)) },
+                label = { Text(stringResource(R.string.studio_action_uri)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf("{notif.url}", "{source.weather.url}").forEach { token ->
+                    AssistChip(
+                        onClick = { onChange(ButtonAction.DeepLink(token)) },
+                        label = { Text(token, fontFamily = FontFamily.Monospace) }
+                    )
+                }
+            }
+        }
 
-        is ButtonAction.NotificationAction -> NumberField(
-            value = action.index,
+        is ButtonAction.NotificationAction -> StudioStepper(
             label = stringResource(R.string.studio_condition_action_index),
+            value = action.index,
             onValueChange = { onChange(ButtonAction.NotificationAction(it.coerceIn(0, 3))) },
-            modifier = Modifier.fillMaxWidth()
+            min = 0,
+            max = 3
         )
 
         is ButtonAction.SmartAction -> Row(
@@ -1003,6 +1327,9 @@ private fun ActionEditor(action: ButtonAction?, allowNone: Boolean, onChange: (B
                     label = { Text(stringResource(R.string.studio_action_extra_value)) },
                     modifier = Modifier.weight(1f)
                 )
+            }
+            VariableTokenRow { token ->
+                onChange(action.copy(extraValue = (action.extraValue.orEmpty()) + token))
             }
         }
 
@@ -1160,3 +1487,34 @@ private enum class ActionKind(val labelRes: Int) {
         }
     }
 }
+
+private enum class ImageSourceKind(val labelRes: Int) {
+    SYSTEM_GLYPH(R.string.studio_image_source_glyph),
+    APP_ICON(R.string.studio_image_source_app),
+    CONTACT_AVATAR(R.string.studio_image_source_contact),
+    CUSTOM_ASSET(R.string.studio_image_source_asset),
+    SOURCE_ICON(R.string.studio_image_source_source);
+
+    fun defaultSource(): ImageSource = when (this) {
+        SYSTEM_GLYPH -> ImageSource.SystemGlyph("notification")
+        APP_ICON -> ImageSource.AppIconOf("{notif.package}")
+        CONTACT_AVATAR -> ImageSource.ContactAvatarOf("{notif.title}")
+        CUSTOM_ASSET -> ImageSource.CustomAsset("icon.png")
+        SOURCE_ICON -> ImageSource.SourceIcon("weather")
+    }
+
+    companion object {
+        fun of(source: ImageSource): ImageSourceKind = when (source) {
+            is ImageSource.SystemGlyph -> SYSTEM_GLYPH
+            is ImageSource.AppIconOf -> APP_ICON
+            is ImageSource.ContactAvatarOf -> CONTACT_AVATAR
+            is ImageSource.CustomAsset -> CUSTOM_ASSET
+            is ImageSource.SourceIcon -> SOURCE_ICON
+        }
+    }
+}
+
+private val QUICK_GLYPHS = listOf(
+    "notification", "play", "pause", "message", "call", "info", "settings", "check", "close"
+)
+

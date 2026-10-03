@@ -21,7 +21,10 @@ data class VariableContext(
     val hasInlineReply: Boolean = false,
     /** Smart Action types (#270) detected on this notification: OTP, URL, PHONE, TRACKING. */
     val smartActionTypes: Set<String> = emptySet(),
-    val sourceLookup: (sourceId: String, field: String) -> String? = { _, _ -> null }
+    val sourceLookup: (sourceId: String, field: String) -> String? = { _, _ -> null },
+    val themePrimary: String? = "#3DDA82",
+    val themeAccent: String? = "#00E5FF",
+    val themeSurface: String? = "#1E1E1E"
 )
 
 /**
@@ -45,6 +48,9 @@ class WidgetVariableEngine {
             token == "notif.package" -> ctx.notifPackage
             token == "device.battery" -> ctx.deviceBatteryPercent?.toString()
             token == "time.now" -> ctx.timeNowFormatted
+            token == "theme.primary" -> ctx.themePrimary
+            token == "theme.accent" -> ctx.themeAccent
+            token == "theme.surface" -> ctx.themeSurface
             else -> {
                 val parts = token.split(".")
                 if (parts.size == 3 && parts[0] == "source") {

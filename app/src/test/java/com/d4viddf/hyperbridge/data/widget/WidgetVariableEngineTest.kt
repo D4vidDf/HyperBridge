@@ -47,4 +47,11 @@ class WidgetVariableEngineTest {
         val ctx = VariableContext(notifPackage = null)
         assertEquals("pkg=", engine.resolve("pkg={notif.package}", ctx))
     }
+
+    @Test
+    fun resolvesThemeTokens() {
+        val ctx = VariableContext(themePrimary = "#3DDA82", themeAccent = "#FF00FF")
+        assertEquals("#3DDA82", engine.resolve("{theme.primary}", ctx))
+        assertEquals("#FF00FF", engine.resolve("{theme.accent}", ctx))
+    }
 }

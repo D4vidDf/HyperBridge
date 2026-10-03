@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -46,7 +47,8 @@ fun StudioColorField(
     onColorHexChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     boundFormula: String? = null,
-    onFormulaChange: ((String?) -> Unit)? = null
+    onFormulaChange: ((String?) -> Unit)? = null,
+    onRequestFormulaEditor: (() -> Unit)? = null
 ) {
     val parsedColor = runCatching {
         val clean = colorHex.removePrefix("#")
@@ -70,16 +72,18 @@ fun StudioColorField(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            if (onFormulaChange != null) {
+            if (onFormulaChange != null || onRequestFormulaEditor != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .clickable {
-                            if (boundFormula == null) {
-                                onFormulaChange("")
+                            if (onRequestFormulaEditor != null) {
+                                onRequestFormulaEditor()
+                            } else if (boundFormula == null) {
+                                onFormulaChange?.invoke("")
                             } else {
-                                onFormulaChange(null)
+                                onFormulaChange?.invoke(null)
                             }
                         }
                         .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -111,6 +115,18 @@ fun StudioColorField(
                 placeholder = { Text("{theme.accent}") },
                 textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                 singleLine = true,
+                trailingIcon = if (onRequestFormulaEditor != null) {
+                    {
+                        IconButton(onClick = onRequestFormulaEditor) {
+                            Icon(
+                                imageVector = Icons.Rounded.Calculate,
+                                contentDescription = "Edit formula",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                } else null,
                 modifier = Modifier.fillMaxWidth()
             )
         } else {

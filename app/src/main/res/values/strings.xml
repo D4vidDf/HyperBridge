@@ -1714,6 +1714,30 @@
     <string name="studio_scenario_progress">Progress</string>
     <string name="studio_scenario_otp">OTP / Code</string>
     <string name="studio_scenario_media">Media</string>
+
+    <!-- Stage 4: Formula Editor & Rich Properties -->
+    <string name="studio_formula_dialog_title">Formula / Binding ($fx$)</string>
+    <string name="studio_formula_dialog_desc">Bind this property to a dynamic variable token or expression.</string>
+    <string name="studio_formula_cat_notif">Notification</string>
+    <string name="studio_formula_cat_device">Device</string>
+    <string name="studio_formula_cat_theme">Theme</string>
+    <string name="studio_formula_cat_sources">Sources</string>
+    <string name="studio_formula_preview_label">Preview (%1$s):</string>
+    <string name="studio_formula_preview_empty">(empty / fallback)</string>
+    <string name="studio_formula_clear">Clear Formula</string>
+    <string name="studio_formula_apply">Apply</string>
+    <string name="studio_image_source">Image Source</string>
+    <string name="studio_image_source_glyph">System Glyph</string>
+    <string name="studio_image_source_app">App Icon</string>
+    <string name="studio_image_source_contact">Contact</string>
+    <string name="studio_image_source_asset">Custom Asset</string>
+    <string name="studio_image_source_source">Source Icon</string>
+    <string name="studio_image_choose_app">Choose installed app…</string>
+    <string name="studio_image_shape">Shape</string>
+    <string name="studio_app_chooser_title">Choose Application</string>
+    <string name="studio_app_chooser_search">Search apps…</string>
+    <string name="studio_app_chooser_empty">No matching applications found.</string>
+    <string name="studio_action_choose_app">Choose app…</string>
 </resources>
 
 

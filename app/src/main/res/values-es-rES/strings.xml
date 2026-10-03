@@ -1424,4 +1424,28 @@
     <string name="studio_scenario_progress">Progreso</string>
     <string name="studio_scenario_otp">OTP / Código</string>
     <string name="studio_scenario_media">Multimedia</string>
+
+    <!-- Stage 4: Formula Editor & Rich Properties -->
+    <string name="studio_formula_dialog_title">Fórmula / Vinculación ($fx$)</string>
+    <string name="studio_formula_dialog_desc">Vincula esta propiedad a un token de variable dinámico o expresión.</string>
+    <string name="studio_formula_cat_notif">Notificación</string>
+    <string name="studio_formula_cat_device">Dispositivo</string>
+    <string name="studio_formula_cat_theme">Tema</string>
+    <string name="studio_formula_cat_sources">Fuentes</string>
+    <string name="studio_formula_preview_label">Vista previa (%1$s):</string>
+    <string name="studio_formula_preview_empty">(vacío / valor estático)</string>
+    <string name="studio_formula_clear">Borrar fórmula</string>
+    <string name="studio_formula_apply">Aplicar</string>
+    <string name="studio_image_source">Origen de imagen</string>
+    <string name="studio_image_source_glyph">Glifo del sistema</string>
+    <string name="studio_image_source_app">Icono de app</string>
+    <string name="studio_image_source_contact">Contacto</string>
+    <string name="studio_image_source_asset">Archivo propio</string>
+    <string name="studio_image_source_source">Icono de fuente</string>
+    <string name="studio_image_choose_app">Elegir app instalada…</string>
+    <string name="studio_image_shape">Forma</string>
+    <string name="studio_app_chooser_title">Elegir aplicación</string>
+    <string name="studio_app_chooser_search">Buscar aplicaciones…</string>
+    <string name="studio_app_chooser_empty">No se han encontrado aplicaciones coincidentes.</string>
+    <string name="studio_action_choose_app">Elegir app…</string>
 </resources>

@@ -61,7 +61,8 @@ fun StudioStepper(
     step: Int = 1,
     fastStep: Int = 10,
     boundFormula: String? = null,
-    onFormulaChange: ((String?) -> Unit)? = null
+    onFormulaChange: ((String?) -> Unit)? = null,
+    onRequestFormulaEditor: (() -> Unit)? = null
 ) {
     var isEditingValue by remember { mutableStateOf(false) }
     var textInput by remember(value) { mutableStateOf(value.toString()) }
@@ -79,16 +80,18 @@ fun StudioStepper(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            if (onFormulaChange != null) {
+            if (onFormulaChange != null || onRequestFormulaEditor != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .clickable {
-                            if (boundFormula == null) {
-                                onFormulaChange("")
+                            if (onRequestFormulaEditor != null) {
+                                onRequestFormulaEditor()
+                            } else if (boundFormula == null) {
+                                onFormulaChange?.invoke("")
                             } else {
-                                onFormulaChange(null)
+                                onFormulaChange?.invoke(null)
                             }
                         }
                         .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -121,6 +124,18 @@ fun StudioStepper(
                 placeholder = { Text("{token}") },
                 textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                 singleLine = true,
+                trailingIcon = if (onRequestFormulaEditor != null) {
+                    {
+                        IconButton(onClick = onRequestFormulaEditor) {
+                            Icon(
+                                imageVector = Icons.Rounded.Calculate,
+                                contentDescription = "Edit formula",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                } else null,
                 modifier = Modifier.fillMaxWidth()
             )
         } else {
