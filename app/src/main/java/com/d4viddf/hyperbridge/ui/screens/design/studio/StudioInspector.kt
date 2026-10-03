@@ -20,6 +20,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Image
@@ -28,6 +29,8 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Title
+import androidx.compose.material.icons.rounded.VerticalAlignBottom
+import androidx.compose.material.icons.rounded.VerticalAlignTop
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -54,19 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
-import com.d4viddf.hyperbridge.models.widget.BindableProperty
-import com.d4viddf.hyperbridge.models.widget.ButtonAction
-import com.d4viddf.hyperbridge.models.widget.ButtonNode
-import com.d4viddf.hyperbridge.models.widget.CanvasSize
-import com.d4viddf.hyperbridge.models.widget.ContainerLayout
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
-import com.d4viddf.hyperbridge.models.widget.ImageNode
-import com.d4viddf.hyperbridge.models.widget.LayoutContainer
-import com.d4viddf.hyperbridge.models.widget.NodeBounds
-import com.d4viddf.hyperbridge.models.widget.NodeCondition
-import com.d4viddf.hyperbridge.models.widget.ProgressNode
-import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.*
 
 /**
  * Tab-oriented KWGT-style Inspector for CustomWidgetNode elements.
@@ -90,7 +81,20 @@ fun StudioInspector(
     notificationType: NotificationType? = null,
     onNameChange: ((String) -> Unit)? = null,
     onCanvasChange: ((CanvasSize) -> Unit)? = null,
-    onNotificationTypeChange: ((NotificationType) -> Unit)? = null
+    onNotificationTypeChange: ((NotificationType) -> Unit)? = null,
+    // Stage 2 additions
+    selectedNodeId: String? = null,
+    hiddenNodeIds: Set<String> = emptySet(),
+    onToggleVisibility: (String) -> Unit = {},
+    onMoveNodeLayer: (String, Int) -> Unit = { _, _ -> },
+    onMoveToFront: (String) -> Unit = {},
+    onMoveToBack: (String) -> Unit = {},
+    onDuplicate: (String) -> Unit = {},
+    onGroup: (String) -> Unit = {},
+    onUngroup: (String) -> Unit = {},
+    onRename: (String, String) -> Unit = { _, _ -> },
+    onDeleteNode: (String) -> Unit = {},
+    onToggleNodeLock: (String) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -101,11 +105,22 @@ fun StudioInspector(
         when (selectedTab) {
             StudioTab.ITEMS -> {
                 if (node is LayoutContainer) {
-                    ItemsTabContent(
-                        container = node,
-                        onSelectChild = onSelectChild,
-                        onAddChild = { onAddChild(node.id) },
-                        onChange = onChange
+                    StudioLayersPanel(
+                        rootContainer = node,
+                        selectedNodeId = selectedNodeId ?: node.id,
+                        hiddenNodeIds = hiddenNodeIds,
+                        onSelectNode = onSelectChild,
+                        onToggleLock = onToggleNodeLock,
+                        onToggleVisibility = onToggleVisibility,
+                        onMoveLayer = onMoveNodeLayer,
+                        onMoveToFront = onMoveToFront,
+                        onMoveToBack = onMoveToBack,
+                        onDuplicate = onDuplicate,
+                        onGroup = onGroup,
+                        onUngroup = onUngroup,
+                        onRename = onRename,
+                        onDelete = onDeleteNode,
+                        onAddElement = { onAddChild(it) }
                     )
                 }
             }
@@ -125,6 +140,10 @@ fun StudioInspector(
                     canMoveDown = canMoveDown,
                     onChange = onChange,
                     onMoveLayer = onMoveLayer,
+                    onMoveToFront = { onMoveToFront(node.id) },
+                    onMoveToBack = { onMoveToBack(node.id) },
+                    onDuplicate = { onDuplicate(node.id) },
+                    onGroup = { onGroup(node.id) },
                     onDelete = onDelete
                 )
             }
@@ -455,6 +474,10 @@ private fun LayerTabContent(
     canMoveDown: Boolean,
     onChange: (CustomWidgetNode) -> Unit,
     onMoveLayer: (Int) -> Unit,
+    onMoveToFront: () -> Unit = {},
+    onMoveToBack: () -> Unit = {},
+    onDuplicate: () -> Unit = {},
+    onGroup: () -> Unit = {},
     onDelete: () -> Unit
 ) {
     StudioSection(stringResource(R.string.studio_tab_layer)) {
@@ -528,6 +551,32 @@ private fun LayerTabContent(
                     Icon(Icons.Rounded.ArrowDownward, null)
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.studio_layer_back))
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onMoveToFront) {
+                    Icon(Icons.Rounded.VerticalAlignTop, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_layer_front))
+                }
+                TextButton(onClick = onMoveToBack) {
+                    Icon(Icons.Rounded.VerticalAlignBottom, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_layer_back_stack))
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onDuplicate) {
+                    Icon(Icons.Rounded.ContentCopy, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_layer_duplicate))
+                }
+                TextButton(onClick = onGroup) {
+                    Icon(Icons.Rounded.Folder, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_layer_group))
                 }
             }
 
@@ -1110,61 +1159,4 @@ private enum class ActionKind(val labelRes: Int) {
             is ButtonAction.Broadcast -> BROADCAST
         }
     }
-}
-
-fun CustomWidgetNode.withBounds(bounds: NodeBounds): CustomWidgetNode = when (this) {
-    is TextNode -> copy(bounds = bounds)
-    is ImageNode -> copy(bounds = bounds)
-    is ProgressNode -> copy(bounds = bounds)
-    is ButtonNode -> copy(bounds = bounds)
-    is LayoutContainer -> copy(bounds = bounds)
-}
-
-fun CustomWidgetNode.withShowIf(condition: NodeCondition): CustomWidgetNode = when (this) {
-    is TextNode -> copy(showIf = condition)
-    is ImageNode -> copy(showIf = condition)
-    is ProgressNode -> copy(showIf = condition)
-    is ButtonNode -> copy(showIf = condition)
-    is LayoutContainer -> copy(showIf = condition)
-}
-
-fun CustomWidgetNode.withOnClick(action: ButtonAction?): CustomWidgetNode = when (this) {
-    is TextNode -> copy(onClick = action)
-    is ImageNode -> copy(onClick = action)
-    is ProgressNode -> copy(onClick = action)
-    is ButtonNode -> copy(action = action ?: ButtonAction.Dismiss)
-    is LayoutContainer -> copy(onClick = action)
-}
-
-fun CustomWidgetNode.withName(name: String?): CustomWidgetNode = when (this) {
-    is TextNode -> copy(name = name)
-    is ImageNode -> copy(name = name)
-    is ProgressNode -> copy(name = name)
-    is ButtonNode -> copy(name = name)
-    is LayoutContainer -> copy(name = name)
-}
-
-fun CustomWidgetNode.withLocked(locked: Boolean): CustomWidgetNode = when (this) {
-    is TextNode -> copy(locked = locked)
-    is ImageNode -> copy(locked = locked)
-    is ProgressNode -> copy(locked = locked)
-    is ButtonNode -> copy(locked = locked)
-    is LayoutContainer -> copy(locked = locked)
-}
-
-fun CustomWidgetNode.withBindings(bindings: Map<String, String>): CustomWidgetNode = when (this) {
-    is TextNode -> copy(bindings = bindings)
-    is ImageNode -> copy(bindings = bindings)
-    is ProgressNode -> copy(bindings = bindings)
-    is ButtonNode -> copy(bindings = bindings)
-    is LayoutContainer -> copy(bindings = bindings)
-}
-
-fun CustomWidgetNode.withBinding(key: String, formula: String?): CustomWidgetNode {
-    val updated = if (formula.isNullOrBlank()) {
-        bindings - key
-    } else {
-        bindings + (key to formula)
-    }
-    return withBindings(updated)
 }

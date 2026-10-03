@@ -287,3 +287,61 @@ enum class BindableProperty(val key: String) {
     BOUNDS_WIDTH("widthDp"),
     BOUNDS_HEIGHT("heightDp")
 }
+
+fun CustomWidgetNode.withBounds(bounds: NodeBounds): CustomWidgetNode = when (this) {
+    is TextNode -> copy(bounds = bounds)
+    is ImageNode -> copy(bounds = bounds)
+    is ProgressNode -> copy(bounds = bounds)
+    is ButtonNode -> copy(bounds = bounds)
+    is LayoutContainer -> copy(bounds = bounds)
+}
+
+fun CustomWidgetNode.withShowIf(condition: NodeCondition): CustomWidgetNode = when (this) {
+    is TextNode -> copy(showIf = condition)
+    is ImageNode -> copy(showIf = condition)
+    is ProgressNode -> copy(showIf = condition)
+    is ButtonNode -> copy(showIf = condition)
+    is LayoutContainer -> copy(showIf = condition)
+}
+
+fun CustomWidgetNode.withOnClick(action: ButtonAction?): CustomWidgetNode = when (this) {
+    is TextNode -> copy(onClick = action)
+    is ImageNode -> copy(onClick = action)
+    is ProgressNode -> copy(onClick = action)
+    is ButtonNode -> copy(action = action ?: ButtonAction.Dismiss)
+    is LayoutContainer -> copy(onClick = action)
+}
+
+fun CustomWidgetNode.withName(name: String?): CustomWidgetNode = when (this) {
+    is TextNode -> copy(name = name)
+    is ImageNode -> copy(name = name)
+    is ProgressNode -> copy(name = name)
+    is ButtonNode -> copy(name = name)
+    is LayoutContainer -> copy(name = name)
+}
+
+fun CustomWidgetNode.withLocked(locked: Boolean): CustomWidgetNode = when (this) {
+    is TextNode -> copy(locked = locked)
+    is ImageNode -> copy(locked = locked)
+    is ProgressNode -> copy(locked = locked)
+    is ButtonNode -> copy(locked = locked)
+    is LayoutContainer -> copy(locked = locked)
+}
+
+fun CustomWidgetNode.withBindings(bindings: Map<String, String>): CustomWidgetNode = when (this) {
+    is TextNode -> copy(bindings = bindings)
+    is ImageNode -> copy(bindings = bindings)
+    is ProgressNode -> copy(bindings = bindings)
+    is ButtonNode -> copy(bindings = bindings)
+    is LayoutContainer -> copy(bindings = bindings)
+}
+
+fun CustomWidgetNode.withBinding(key: String, formula: String?): CustomWidgetNode {
+    val updated = if (formula.isNullOrBlank()) {
+        bindings - key
+    } else {
+        bindings + (key to formula)
+    }
+    return withBindings(updated)
+}
+

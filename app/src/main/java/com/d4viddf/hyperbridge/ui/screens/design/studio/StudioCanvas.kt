@@ -80,7 +80,8 @@ fun StudioCanvas(
     modifier: Modifier = Modifier,
     zoom: Float = 1f,
     isGridVisible: Boolean = false,
-    isWireframeMode: Boolean = false
+    isWireframeMode: Boolean = false,
+    hiddenNodeIds: Set<String> = emptySet()
 ) {
     Box(
         modifier = modifier
@@ -123,7 +124,8 @@ fun StudioCanvas(
                 onSelect = onSelect,
                 onMove = onMove,
                 onResize = onResize,
-                isWireframeMode = isWireframeMode
+                isWireframeMode = isWireframeMode,
+                hiddenNodeIds = hiddenNodeIds
             )
         }
     }
@@ -137,8 +139,11 @@ private fun CanvasNode(
     onMove: (id: String, dxDp: Int, dyDp: Int) -> Unit,
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
     draggable: Boolean = false,
-    isWireframeMode: Boolean = false
+    isWireframeMode: Boolean = false,
+    hiddenNodeIds: Set<String> = emptySet()
 ) {
+    if (hiddenNodeIds.contains(node.id)) return
+
     val density = LocalDensity.current
     val isSelected = node.id == selectedId
     val canDrag = draggable && !node.locked
@@ -173,7 +178,16 @@ private fun CanvasNode(
 
     Box {
         when (node) {
-            is LayoutContainer -> CanvasContainer(node, modifier, selectedId, onSelect, onMove, onResize, isWireframeMode)
+            is LayoutContainer -> CanvasContainer(
+                node,
+                modifier,
+                selectedId,
+                onSelect,
+                onMove,
+                onResize,
+                isWireframeMode,
+                hiddenNodeIds
+            )
             is TextNode -> Text(
                 text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, PREVIEW_SAMPLE_CONTEXT).ifBlank { node.template },
                 color = safeParseColor(node.colorHex),
@@ -242,7 +256,8 @@ private fun CanvasContainer(
     onSelect: (String) -> Unit,
     onMove: (id: String, dxDp: Int, dyDp: Int) -> Unit,
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
-    isWireframeMode: Boolean = false
+    isWireframeMode: Boolean = false,
+    hiddenNodeIds: Set<String> = emptySet()
 ) {
     // Children of a free-positioned container can be dragged; in a row or column the layout owns
     // their position, so dragging them would be a lie.
@@ -253,14 +268,36 @@ private fun CanvasContainer(
             modifier = modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(node.gapDp.dp)
         ) {
-            node.children.forEach { CanvasNode(it, selectedId, onSelect, onMove, onResize, draggable = false, isWireframeMode = isWireframeMode) }
+            node.children.forEach {
+                CanvasNode(
+                    it,
+                    selectedId,
+                    onSelect,
+                    onMove,
+                    onResize,
+                    draggable = false,
+                    isWireframeMode = isWireframeMode,
+                    hiddenNodeIds = hiddenNodeIds
+                )
+            }
         }
 
         ContainerLayout.COLUMN -> Column(
             modifier = modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(node.gapDp.dp)
         ) {
-            node.children.forEach { CanvasNode(it, selectedId, onSelect, onMove, onResize, draggable = false, isWireframeMode = isWireframeMode) }
+            node.children.forEach {
+                CanvasNode(
+                    it,
+                    selectedId,
+                    onSelect,
+                    onMove,
+                    onResize,
+                    draggable = false,
+                    isWireframeMode = isWireframeMode,
+                    hiddenNodeIds = hiddenNodeIds
+                )
+            }
         }
 
         ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = modifier.fillMaxSize()) {
@@ -277,7 +314,8 @@ private fun CanvasContainer(
                         onMove = onMove,
                         onResize = onResize,
                         draggable = freePositioning,
-                        isWireframeMode = isWireframeMode
+                        isWireframeMode = isWireframeMode,
+                        hiddenNodeIds = hiddenNodeIds
                     )
                 }
             }

@@ -49,12 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
-import com.d4viddf.hyperbridge.models.widget.LayoutContainer
-import com.d4viddf.hyperbridge.models.widget.NodeBounds
-import com.d4viddf.hyperbridge.models.widget.findNode
-import com.d4viddf.hyperbridge.models.widget.parentOf
-import com.d4viddf.hyperbridge.models.widget.replaceNode
+import com.d4viddf.hyperbridge.models.widget.*
 import kotlinx.coroutines.launch
 
 private const val CANVAS_WIDTH_DP = 350
@@ -92,6 +87,7 @@ fun StudioDesignScreen(
         val canUndo by studioViewModel.canUndo.collectAsState()
         val canRedo by studioViewModel.canRedo.collectAsState()
         val isSaving by studioViewModel.isSaving.collectAsState()
+        val hiddenNodeIds by studioViewModel.hiddenNodeIds.collectAsState()
 
         var showAddElement by remember { mutableStateOf(false) }
         var targetParentForAdd by remember { mutableStateOf<String?>(null) }
@@ -294,7 +290,8 @@ fun StudioDesignScreen(
                         },
                         zoom = zoom,
                         isGridVisible = isGridVisible,
-                        isWireframeMode = isWireframeMode
+                        isWireframeMode = isWireframeMode,
+                        hiddenNodeIds = hiddenNodeIds
                     )
 
                     StudioFloatingToolbar(
@@ -378,7 +375,19 @@ fun StudioDesignScreen(
                                 current.copy(canvas = newCanvas)
                             }
                         },
-                        onNotificationTypeChange = { studioViewModel.setNotificationType(it) }
+                        onNotificationTypeChange = { studioViewModel.setNotificationType(it) },
+                        selectedNodeId = selectedNodeId,
+                        hiddenNodeIds = hiddenNodeIds,
+                        onToggleVisibility = { studioViewModel.toggleEditorVisibility(it) },
+                        onMoveNodeLayer = { id, delta -> studioViewModel.moveLayer(id, delta) },
+                        onMoveToFront = { studioViewModel.moveNodeToFront(it) },
+                        onMoveToBack = { studioViewModel.moveNodeToBack(it) },
+                        onDuplicate = { studioViewModel.duplicateNode(it) },
+                        onGroup = { studioViewModel.groupNode(it) },
+                        onUngroup = { studioViewModel.ungroupNode(it) },
+                        onRename = { id, newName -> studioViewModel.renameNode(id, newName) },
+                        onDeleteNode = { studioViewModel.removeNode(it) },
+                        onToggleNodeLock = { studioViewModel.toggleLock(it) }
                     )
 
                     Spacer(Modifier.height(96.dp))

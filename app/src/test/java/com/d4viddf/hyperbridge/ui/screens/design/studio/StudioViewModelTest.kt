@@ -4,14 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
-import com.d4viddf.hyperbridge.models.widget.ButtonAction
-import com.d4viddf.hyperbridge.models.widget.ButtonNode
-import com.d4viddf.hyperbridge.models.widget.CanvasSize
-import com.d4viddf.hyperbridge.models.widget.ContainerLayout
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
-import com.d4viddf.hyperbridge.models.widget.LayoutContainer
-import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -193,5 +186,94 @@ class StudioViewModelTest {
             undoCount++
         }
         assertEquals(30, undoCount)
+    }
+
+    @Test
+    fun duplicateNodeCreatesDuplicateAndPushesUndo() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        vm.duplicateNode("text-1")
+        assertTrue(vm.isDirty)
+        assertTrue(vm.canUndo.value)
+        val newSelectedId = vm.selectedNodeId.value
+        org.junit.Assert.assertNotNull(newSelectedId)
+        org.junit.Assert.assertNotEquals("text-1", newSelectedId)
+
+        val root = vm.document.value.root as LayoutContainer
+        assertEquals(3, root.children.size)
+
+        vm.undo()
+        assertEquals(2, (vm.document.value.root as LayoutContainer).children.size)
+    }
+
+    @Test
+    fun groupAndUngroupNodeManipulatesTreeHierarchy() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        vm.groupNode("text-1", ContainerLayout.BOX)
+        val groupId = vm.selectedNodeId.value
+        org.junit.Assert.assertNotNull(groupId)
+
+        val group = vm.document.value.findNode(groupId!!) as LayoutContainer
+        assertEquals(1, group.children.size)
+        assertEquals("text-1", group.children.first().id)
+
+        vm.ungroupNode(groupId)
+        assertNull(vm.document.value.findNode(groupId))
+        assertEquals(2, (vm.document.value.root as LayoutContainer).children.size)
+    }
+
+    @Test
+    fun toggleLockUpdatesNodeLockedState() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        assertFalse(doc.findNode("text-1")!!.locked)
+        vm.toggleLock("text-1")
+        assertTrue(vm.document.value.findNode("text-1")!!.locked)
+        vm.toggleLock("text-1")
+        assertFalse(vm.document.value.findNode("text-1")!!.locked)
+    }
+
+    @Test
+    fun toggleEditorVisibilityUpdatesHiddenNodeIds() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        assertTrue(vm.hiddenNodeIds.value.isEmpty())
+        vm.toggleEditorVisibility("text-1")
+        assertTrue(vm.hiddenNodeIds.value.contains("text-1"))
+        vm.toggleEditorVisibility("text-1")
+        assertFalse(vm.hiddenNodeIds.value.contains("text-1"))
+    }
+
+    @Test
+    fun renameNodeSetsCustomName() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        vm.renameNode("text-1", "Header Title")
+        assertEquals("Header Title", vm.document.value.findNode("text-1")!!.name)
+
+        vm.renameNode("text-1", "")
+        assertNull(vm.document.value.findNode("text-1")!!.name)
+    }
+
+    @Test
+    fun moveNodeToFrontAndBackAdjustsStackingInViewModel() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        vm.moveNodeToFront("text-1")
+        val root = vm.document.value.root as LayoutContainer
+        assertEquals("text-2", root.children[0].id)
+        assertEquals("text-1", root.children[1].id)
+
+        vm.moveNodeToBack("text-1")
+        val reRoot = vm.document.value.root as LayoutContainer
+        assertEquals("text-1", reRoot.children[0].id)
+        assertEquals("text-2", reRoot.children[1].id)
     }
 }

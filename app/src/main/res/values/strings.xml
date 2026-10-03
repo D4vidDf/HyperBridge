@@ -1697,6 +1697,17 @@
     <string name="studio_binding_formula_hint">Enter variable token or formula (e.g. {theme.accent})</string>
     <string name="studio_items_empty">This group contains no elements. Tap Add to create one.</string>
     <string name="studio_items_add">Add Element</string>
+    <string name="studio_layer_duplicate">Duplicate</string>
+    <string name="studio_layer_group">Group</string>
+    <string name="studio_layer_ungroup">Ungroup</string>
+    <string name="studio_layer_front">Bring to front</string>
+    <string name="studio_layer_back_stack">Send to back</string>
+    <string name="studio_layer_rename">Rename layer</string>
+    <string name="studio_layer_hide_editor">Hide in editor</string>
+    <string name="studio_layer_show_editor">Show in editor</string>
+    <string name="studio_layer_badge_action">Action</string>
+    <string name="studio_layer_badge_condition">Condition</string>
+    <string name="studio_layer_badge_formula">Formula</string>
 </resources>
 
 

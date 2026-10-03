@@ -73,4 +73,92 @@ class CustomWidgetTreeTest {
     fun findNodeReturnsNullWhenAbsent() {
         assertTrue(sampleDoc().findNode("missing") == null)
     }
+
+    @Test
+    fun duplicateNodeCreatesCopyWithFreshIdsAndInsertsBesideOriginal() {
+        val doc = CustomWidgetDocument(
+            id = "w1",
+            meta = CustomWidgetMetadata(name = "Test"),
+            root = LayoutContainer(
+                id = "root",
+                layout = ContainerLayout.ABSOLUTE,
+                children = listOf(
+                    TextNode(id = "t1", template = "hello", bounds = NodeBounds(10, 20, 50, 20)),
+                    TextNode(id = "t2", template = "world")
+                )
+            )
+        )
+
+        val (updated, newId) = doc.duplicateNode("t1")
+        org.junit.Assert.assertNotNull(newId)
+        org.junit.Assert.assertNotEquals("t1", newId)
+        assertEquals(3, updated.root.children.size)
+
+        // New node should be right after t1 (index 1)
+        val duplicate = updated.findNode(newId!!) as TextNode
+        assertEquals("hello", duplicate.template)
+        // In ABSOLUTE layout, bounds are offset by 8dp
+        assertEquals(18, duplicate.bounds.x)
+        assertEquals(28, duplicate.bounds.y)
+    }
+
+    @Test
+    fun groupNodeWrapsTargetInContainer() {
+        val doc = sampleDoc()
+        val (updated, newGroupId) = doc.groupNode("nested", ContainerLayout.ROW)
+
+        org.junit.Assert.assertNotNull(newGroupId)
+        val group = updated.findNode("group") as LayoutContainer
+        val newGroup = updated.findNode(newGroupId!!) as LayoutContainer
+
+        assertEquals(ContainerLayout.ROW, newGroup.layout)
+        assertEquals(1, newGroup.children.size)
+        assertEquals("nested", newGroup.children.first().id)
+        assertEquals(listOf(newGroupId), group.children.map { it.id })
+    }
+
+    @Test
+    fun ungroupNodeInlinesChildrenIntoParent() {
+        val doc = sampleDoc()
+        val updated = doc.ungroupNode("group")
+
+        // "group" should be removed, and "nested" inlined into root
+        assertNull(updated.findNode("group"))
+        assertEquals(listOf("t1", "nested"), updated.root.children.map { it.id })
+    }
+
+    @Test
+    fun moveNodeToFrontAndBackReordersStacking() {
+        val doc = CustomWidgetDocument(
+            id = "w1",
+            meta = CustomWidgetMetadata(name = "Test"),
+            root = LayoutContainer(
+                id = "root",
+                children = listOf(
+                    TextNode(id = "a", template = "a"),
+                    TextNode(id = "b", template = "b"),
+                    TextNode(id = "c", template = "c")
+                )
+            )
+        )
+
+        val toFront = doc.moveNodeToFront("a")
+        assertEquals(listOf("b", "c", "a"), toFront.root.children.map { it.id })
+
+        val toBack = doc.moveNodeToBack("c")
+        assertEquals(listOf("c", "a", "b"), toBack.root.children.map { it.id })
+    }
+
+    @Test
+    fun moveIntoRelocatesNodeAcrossContainers() {
+        val doc = sampleDoc()
+        // Move t1 into group
+        val updated = doc.moveInto("t1", "group")
+
+        assertEquals(1, updated.root.children.size)
+        assertEquals("group", updated.root.children.first().id)
+
+        val group = updated.findNode("group") as LayoutContainer
+        assertEquals(listOf("nested", "t1"), group.children.map { it.id })
+    }
 }

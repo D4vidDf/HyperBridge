@@ -1407,4 +1407,15 @@
     <string name="studio_binding_formula_hint">Introduce el token o fórmula (ej. {theme.accent})</string>
     <string name="studio_items_empty">Este grupo no contiene elementos. Pulsa Añadir para crear uno.</string>
     <string name="studio_items_add">Añadir elemento</string>
+    <string name="studio_layer_duplicate">Duplicar</string>
+    <string name="studio_layer_group">Agrupar</string>
+    <string name="studio_layer_ungroup">Desagrupar</string>
+    <string name="studio_layer_front">Traer al frente</string>
+    <string name="studio_layer_back_stack">Enviar al fondo</string>
+    <string name="studio_layer_rename">Renombrar capa</string>
+    <string name="studio_layer_hide_editor">Ocultar en editor</string>
+    <string name="studio_layer_show_editor">Mostrar en editor</string>
+    <string name="studio_layer_badge_action">Acción</string>
+    <string name="studio_layer_badge_condition">Condición</string>
+    <string name="studio_layer_badge_formula">Fórmula</string>
 </resources>

@@ -19,9 +19,19 @@ import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
 import com.d4viddf.hyperbridge.models.widget.addChild
+import com.d4viddf.hyperbridge.models.widget.duplicateNode
+import com.d4viddf.hyperbridge.models.widget.findNode
+import com.d4viddf.hyperbridge.models.widget.groupNode
+import com.d4viddf.hyperbridge.models.widget.moveInto
 import com.d4viddf.hyperbridge.models.widget.moveNode
+import com.d4viddf.hyperbridge.models.widget.moveNodeToBack
+import com.d4viddf.hyperbridge.models.widget.moveNodeToFront
+import com.d4viddf.hyperbridge.models.widget.parentOf
 import com.d4viddf.hyperbridge.models.widget.removeNode
 import com.d4viddf.hyperbridge.models.widget.replaceNode
+import com.d4viddf.hyperbridge.models.widget.ungroupNode
+import com.d4viddf.hyperbridge.models.widget.withLocked
+import com.d4viddf.hyperbridge.models.widget.withName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +65,9 @@ class StudioViewModel(
 
     private val _selectedNodeId = MutableStateFlow<String?>(null)
     val selectedNodeId: StateFlow<String?> = _selectedNodeId.asStateFlow()
+
+    private val _hiddenNodeIds = MutableStateFlow<Set<String>>(emptySet())
+    val hiddenNodeIds: StateFlow<Set<String>> = _hiddenNodeIds.asStateFlow()
 
     private val _notificationType = MutableStateFlow(NotificationType.STANDARD)
     val notificationType: StateFlow<NotificationType> = _notificationType.asStateFlow()
@@ -169,6 +182,70 @@ class StudioViewModel(
 
     fun moveLayer(nodeId: String, delta: Int) {
         updateDocument { it.moveNode(nodeId, delta) }
+    }
+
+    fun moveNodeToFront(nodeId: String) {
+        updateDocument { it.moveNodeToFront(nodeId) }
+    }
+
+    fun moveNodeToBack(nodeId: String) {
+        updateDocument { it.moveNodeToBack(nodeId) }
+    }
+
+    fun moveInto(nodeId: String, targetContainerId: String) {
+        updateDocument { it.moveInto(nodeId, targetContainerId) }
+    }
+
+    fun duplicateNode(nodeId: String) {
+        val current = _document.value
+        val (updated, newId) = current.duplicateNode(nodeId)
+        if (updated != current) {
+            pushHistory(current)
+            _document.value = updated
+            persistDraft(updated)
+            if (newId != null) {
+                _selectedNodeId.value = newId
+            }
+        }
+    }
+
+    fun groupNode(nodeId: String, layout: ContainerLayout = ContainerLayout.BOX) {
+        val current = _document.value
+        val (updated, newGroupId) = current.groupNode(nodeId, layout)
+        if (updated != current) {
+            pushHistory(current)
+            _document.value = updated
+            persistDraft(updated)
+            if (newGroupId != null) {
+                _selectedNodeId.value = newGroupId
+            }
+        }
+    }
+
+    fun ungroupNode(containerId: String) {
+        val current = _document.value
+        val parent = current.parentOf(containerId)
+        val updated = current.ungroupNode(containerId)
+        if (updated != current) {
+            pushHistory(current)
+            _document.value = updated
+            persistDraft(updated)
+            _selectedNodeId.value = parent?.id
+        }
+    }
+
+    fun toggleLock(nodeId: String) {
+        val node = _document.value.findNode(nodeId) ?: return
+        updateNode(node.withLocked(!node.locked))
+    }
+
+    fun toggleEditorVisibility(nodeId: String) {
+        _hiddenNodeIds.update { if (it.contains(nodeId)) it - nodeId else it + nodeId }
+    }
+
+    fun renameNode(nodeId: String, newName: String?) {
+        val node = _document.value.findNode(nodeId) ?: return
+        updateNode(node.withName(newName?.ifBlank { null }))
     }
 
     fun setNotificationType(type: NotificationType) {
