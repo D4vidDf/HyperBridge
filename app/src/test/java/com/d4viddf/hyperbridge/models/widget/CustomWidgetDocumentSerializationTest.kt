@@ -71,4 +71,78 @@ class CustomWidgetDocumentSerializationTest {
 
         assertEquals(doc, decoded)
     }
+
+    @Test
+    fun roundTripsNodesWithCustomNameLockedAndBindings() {
+        val doc = CustomWidgetDocument(
+            id = "widget-bindings",
+            meta = CustomWidgetMetadata(name = "Bindings Test"),
+            canvas = CanvasSize.SMALL,
+            root = LayoutContainer(
+                id = "root",
+                name = "Main Root Container",
+                locked = true,
+                bindings = mapOf("backgroundHex" to "{theme.cardBackground}"),
+                children = listOf(
+                    TextNode(
+                        id = "text-1",
+                        name = "Custom Header Text",
+                        locked = false,
+                        bindings = mapOf(
+                            "colorHex" to "{theme.accentColor}",
+                            "fontSizeSp" to "{settings.headerSize}"
+                        ),
+                        template = "Hello World"
+                    )
+                )
+            )
+        )
+
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+
+        assertEquals(doc, decoded)
+        val rootNode = decoded.root as LayoutContainer
+        assertEquals("Main Root Container", rootNode.name)
+        assertEquals(true, rootNode.locked)
+        assertEquals("{theme.cardBackground}", rootNode.bindings["backgroundHex"])
+
+        val textNode = rootNode.children.first() as TextNode
+        assertEquals("Custom Header Text", textNode.name)
+        assertEquals(false, textNode.locked)
+        assertEquals("{theme.accentColor}", textNode.bindings["colorHex"])
+    }
+
+    @Test
+    fun deserializesLegacyJsonWithoutNameLockedOrBindings() {
+        val legacyJson = """
+            {
+              "id": "legacy-widget",
+              "meta": { "name": "Legacy", "author": "User", "version": 1 },
+              "canvas": "MEDIUM",
+              "root": {
+                "type": "container",
+                "id": "root",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "txt",
+                    "template": "Legacy text"
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), legacyJson)
+        val rootNode = decoded.root as LayoutContainer
+        assertEquals(null, rootNode.name)
+        assertEquals(false, rootNode.locked)
+        assertEquals(emptyMap<String, String>(), rootNode.bindings)
+
+        val textNode = rootNode.children.first() as TextNode
+        assertEquals(null, textNode.name)
+        assertEquals(false, textNode.locked)
+        assertEquals(emptyMap<String, String>(), textNode.bindings)
+    }
 }

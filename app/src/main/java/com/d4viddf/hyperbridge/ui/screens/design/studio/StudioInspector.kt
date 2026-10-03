@@ -651,3 +651,28 @@ fun CustomWidgetNode.withOnClick(action: ButtonAction?): CustomWidgetNode = when
     is ButtonNode -> copy(action = action ?: ButtonAction.Dismiss)
     is LayoutContainer -> copy(onClick = action)
 }
+
+fun CustomWidgetNode.withName(name: String?): CustomWidgetNode = when (this) {
+    is TextNode -> copy(name = name)
+    is ImageNode -> copy(name = name)
+    is ProgressNode -> copy(name = name)
+    is ButtonNode -> copy(name = name)
+    is LayoutContainer -> copy(name = name)
+}
+
+fun CustomWidgetNode.withLocked(locked: Boolean): CustomWidgetNode = when (this) {
+    is TextNode -> copy(locked = locked)
+    is ImageNode -> copy(locked = locked)
+    is ProgressNode -> copy(locked = locked)
+    is ButtonNode -> copy(locked = locked)
+    is LayoutContainer -> copy(locked = locked)
+}
+
+fun CustomWidgetNode.withBindings(bindings: Map<String, String>): CustomWidgetNode = when (this) {
+    is TextNode -> copy(bindings = bindings)
+    is ImageNode -> copy(bindings = bindings)
+    is ProgressNode -> copy(bindings = bindings)
+    is ButtonNode -> copy(bindings = bindings)
+    is LayoutContainer -> copy(bindings = bindings)
+}
+

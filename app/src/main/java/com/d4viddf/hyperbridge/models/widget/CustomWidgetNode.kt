@@ -67,6 +67,18 @@ sealed interface CustomWidgetNode {
     val id: String
     val bounds: NodeBounds
 
+    /** Optional custom layer name set by the user in the studio/inspector. */
+    val name: String? get() = null
+
+    /** When true, node is locked against canvas drag and resize. */
+    val locked: Boolean get() = false
+
+    /**
+     * Dynamic variable bindings (property key -> "{token}" template).
+     * Takes precedence over static properties at render time if non-blank.
+     */
+    val bindings: Map<String, String> get() = emptyMap()
+
     /** Whether this node is rendered at all for a given notification. */
     val showIf: NodeCondition
 
@@ -81,6 +93,9 @@ enum class TextGravity { START, CENTER, END }
 data class TextNode(
     override val id: String,
     override val bounds: NodeBounds = NodeBounds(),
+    override val name: String? = null,
+    override val locked: Boolean = false,
+    override val bindings: Map<String, String> = emptyMap(),
     val template: String = "",
     val fontSizeSp: Int = 14,
     val colorHex: String = "#FFFFFF",
@@ -120,6 +135,9 @@ sealed interface ImageSource {
 data class ImageNode(
     override val id: String,
     override val bounds: NodeBounds = NodeBounds(widthDp = 24, heightDp = 24),
+    override val name: String? = null,
+    override val locked: Boolean = false,
+    override val bindings: Map<String, String> = emptyMap(),
     val source: ImageSource = ImageSource.SystemGlyph("notification"),
     val shapeId: String = "circle",
     val tintHex: String? = null,
@@ -134,6 +152,9 @@ enum class ProgressStyle { LINEAR, RING }
 data class ProgressNode(
     override val id: String,
     override val bounds: NodeBounds = NodeBounds(widthDp = 64, heightDp = 8),
+    override val name: String? = null,
+    override val locked: Boolean = false,
+    override val bindings: Map<String, String> = emptyMap(),
     val style: ProgressStyle = ProgressStyle.LINEAR,
     val valueTemplate: String = "{device.battery}",
     val maxValue: Int = 100,
@@ -187,6 +208,9 @@ sealed interface ButtonAction {
 data class ButtonNode(
     override val id: String,
     override val bounds: NodeBounds = NodeBounds(),
+    override val name: String? = null,
+    override val locked: Boolean = false,
+    override val bindings: Map<String, String> = emptyMap(),
     val label: String = "",
     val action: ButtonAction = ButtonAction.Dismiss,
     val backgroundHex: String? = null,
@@ -203,6 +227,9 @@ enum class ContainerLayout { ROW, COLUMN, BOX, ABSOLUTE }
 data class LayoutContainer(
     override val id: String,
     override val bounds: NodeBounds = NodeBounds(),
+    override val name: String? = null,
+    override val locked: Boolean = false,
+    override val bindings: Map<String, String> = emptyMap(),
     val layout: ContainerLayout = ContainerLayout.COLUMN,
     val children: List<CustomWidgetNode> = emptyList(),
     val gapDp: Int = 4,
@@ -241,3 +268,22 @@ data class CustomWidgetDocument(
     val boundPackage: String? = null,
     val permanentIslandEligible: Boolean = false
 )
+
+/**
+ * Standard property keys supported for variable bindings on CustomWidgetNode.
+ */
+enum class BindableProperty(val key: String) {
+    TEXT_TEMPLATE("template"),
+    TEXT_COLOR("colorHex"),
+    TEXT_FONT_SIZE("fontSizeSp"),
+    PROGRESS_VALUE("valueTemplate"),
+    PROGRESS_COLOR("progressColorHex"),
+    PROGRESS_TRACK_COLOR("trackColorHex"),
+    BUTTON_LABEL("label"),
+    BUTTON_TEXT_COLOR("textColorHex"),
+    BUTTON_BACKGROUND("backgroundHex"),
+    IMAGE_TINT("tintHex"),
+    CONTAINER_BACKGROUND("backgroundHex"),
+    BOUNDS_WIDTH("widthDp"),
+    BOUNDS_HEIGHT("heightDp")
+}

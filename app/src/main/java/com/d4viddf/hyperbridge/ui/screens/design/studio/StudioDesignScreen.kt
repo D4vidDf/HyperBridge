@@ -69,6 +69,12 @@ import com.d4viddf.hyperbridge.models.widget.replaceNode
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.material.icons.automirrored.rounded.Redo
+import androidx.compose.material.icons.automirrored.rounded.Undo
+import androidx.compose.material3.AlertDialog
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 private const val CANVAS_WIDTH_DP = 350
 
 /**
@@ -76,62 +82,81 @@ private const val CANVAS_WIDTH_DP = 350
  * is not mistaken for Android's app widgets.
  *
  * Laid out the way KWGT does it: the canvas and the controls are on screen at the same time, the
- * tab row switches between the elements of the design, the top bar saves or restores the last
- * saved state, and the Add button opens a screen of element types.
+ * tab row switches between the elements of the design, the top bar saves, undoes/redoes, or restores
+ * the last saved state, and the Add button opens a screen of element types.
  *
- * Saving writes two things: the `.hwidget` document, and the translator that makes it a design
- * (`presentation.mode = WIDGET`), so the island pipeline picks it up like any other translator.
+ * Back navigation is guarded with an unsaved changes confirmation dialog.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudioDesignScreen(
     widgetId: String?,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    studioViewModel: StudioViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val repository = remember { CustomWidgetRepository(context) }
     val scope = rememberCoroutineScope()
     val translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
     val allTranslators by translatorViewModel.allTranslators.collectAsState()
 
-    val blankDocument = remember(widgetId) {
-        CustomWidgetDocument(
-            id = widgetId ?: UUID.randomUUID().toString(),
-            meta = CustomWidgetMetadata(name = context.getString(R.string.studio_new_design)),
-            // Free positioning by default: the canvas is drag-and-drop, and a stack of overlapping
-            // elements is what the layer controls act on.
-            root = LayoutContainer(id = "root", layout = ContainerLayout.ABSOLUTE, paddingDp = 8)
-        )
-    }
+    val doc by studioViewModel.document.collectAsState()
+    val savedDoc by studioViewModel.savedDocument.collectAsState()
+    val selectedNodeId by studioViewModel.selectedNodeId.collectAsState()
+    val notificationType by studioViewModel.notificationType.collectAsState()
+    val validationMessage by studioViewModel.validationMessage.collectAsState()
+    val canUndo by studioViewModel.canUndo.collectAsState()
+    val canRedo by studioViewModel.canRedo.collectAsState()
+    val isSaving by studioViewModel.isSaving.collectAsState()
 
-    var doc by remember { mutableStateOf(blankDocument) }
-    var savedDoc by remember { mutableStateOf(blankDocument) }
-    var selectedNodeId by remember { mutableStateOf<String?>(null) }
-    var notificationType by remember { mutableStateOf(NotificationType.STANDARD) }
     var showAddElement by remember { mutableStateOf(false) }
-    var validationMessage by remember { mutableStateOf<String?>(null) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(widgetId) {
-        if (widgetId != null) {
-            repository.getWidget(widgetId)?.let {
-                doc = it
-                savedDoc = it
-            }
-        }
-    }
-
-    // The design this document already belongs to, if any: that is where "shown for" lives.
-    val existingDesign = allTranslators.firstOrNull { it.presentation.widgetId == doc.id }
-    LaunchedEffect(existingDesign?.id) {
-        existingDesign?.targetNotificationTypes?.firstOrNull()?.let { name ->
-            NotificationType.entries.firstOrNull { it.name == name }?.let { notificationType = it }
-        }
+    LaunchedEffect(widgetId, allTranslators) {
+        studioViewModel.loadWidget(widgetId, allTranslators)
     }
 
     val isDirty = doc != savedDoc
     val elements = remember(doc) { doc.root.children }
     val selectedNode: CustomWidgetNode? = selectedNodeId?.let { doc.findNode(it) }
+
+    val handleBack = {
+        if (isDirty) {
+            showDiscardDialog = true
+        } else {
+            onBack()
+        }
+    }
+
+    BackHandler(enabled = true) {
+        handleBack()
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.studio_discard_dialog_title)) },
+            text = { Text(stringResource(R.string.studio_discard_dialog_desc)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDiscardDialog = false
+                        onBack()
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.studio_discard_dialog_confirm),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.studio_discard_dialog_keep_editing))
+                }
+            }
+        )
+    }
 
     if (showAddElement) {
         AddElementScreen(
@@ -139,8 +164,7 @@ fun StudioDesignScreen(
             onPick = { element ->
                 val node = element.create()
                 val parentId = (selectedNode as? LayoutContainer)?.id ?: doc.root.id
-                doc = doc.addChild(parentId, node)
-                selectedNodeId = node.id
+                studioViewModel.addNode(parentId, node)
                 showAddElement = false
             }
         )
@@ -158,59 +182,67 @@ fun StudioDesignScreen(
                     )
                 },
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onBack) {
+                    FilledTonalIconButton(onClick = handleBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        scope.launch {
-                            val file = repository.exportWidget(doc.id)
-                            if (file != null) {
-                                val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-                                val intent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "application/zip"
-                                    putExtra(Intent.EXTRA_STREAM, uri)
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    IconButton(
+                        onClick = { studioViewModel.undo() },
+                        enabled = canUndo
+                    ) {
+                        Icon(Icons.AutoMirrored.Rounded.Undo, stringResource(R.string.studio_undo))
+                    }
+
+                    IconButton(
+                        onClick = { studioViewModel.redo() },
+                        enabled = canRedo
+                    ) {
+                        Icon(Icons.AutoMirrored.Rounded.Redo, stringResource(R.string.studio_redo))
+                    }
+
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                val file = studioViewModel.exportWidget()
+                                if (file != null) {
+                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+                                    val intent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/zip"
+                                        putExtra(Intent.EXTRA_STREAM, uri)
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    val chooser = Intent.createChooser(intent, context.getString(R.string.studio_export))
+                                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(chooser)
                                 }
-                                val chooser = Intent.createChooser(intent, context.getString(R.string.studio_export))
-                                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(chooser)
                             }
                         }
-                    }) {
+                    ) {
                         Icon(Icons.Rounded.IosShare, stringResource(R.string.studio_export))
                     }
 
                     // Restore: back to the last saved state, the KWGT way out of a bad edit.
                     IconButton(
-                        onClick = {
-                            doc = savedDoc
-                            selectedNodeId = null
-                            validationMessage = null
-                        },
+                        onClick = { studioViewModel.restoreLastSaved() },
                         enabled = isDirty
                     ) {
                         Icon(Icons.Rounded.Restore, stringResource(R.string.studio_restore))
                     }
 
-                    TextButton(onClick = {
-                        val validation = WidgetDimensionValidator.validate(doc)
-                        val clamped = validation.clamped
-                        doc = clamped
-                        savedDoc = clamped
-                        validationMessage = if (validation.errors.isNotEmpty()) {
-                            context.getString(R.string.studio_validation_errors, validation.errors.size)
-                        } else null
-
-                        scope.launch {
-                            repository.saveWidget(clamped)
-                            translatorViewModel.saveTranslator(
-                                designFor(clamped, notificationType, existingDesign)
+                    TextButton(
+                        onClick = {
+                            studioViewModel.save(
+                                onSaveTranslator = { translator ->
+                                    translatorViewModel.saveTranslator(translator)
+                                },
+                                onSuccess = {
+                                    Toast.makeText(context, R.string.studio_saved, Toast.LENGTH_SHORT).show()
+                                }
                             )
-                            Toast.makeText(context, R.string.studio_saved, Toast.LENGTH_SHORT).show()
-                        }
-                    }) {
+                        },
+                        enabled = !isSaving
+                    ) {
                         Text(stringResource(R.string.studio_save))
                     }
                 }
@@ -231,15 +263,19 @@ fun StudioDesignScreen(
                 root = doc.root,
                 canvasHeightDp = doc.canvas.heightDp,
                 selectedId = selectedNodeId,
-                onSelect = { selectedNodeId = it },
+                onSelect = { studioViewModel.selectNode(it) },
                 onMove = { id, dx, dy ->
-                    doc = doc.replaceNode(id) { node ->
-                        node.withBounds(node.bounds.movedBy(dx, dy, CANVAS_WIDTH_DP, doc.canvas.heightDp))
+                    studioViewModel.updateDocument { current ->
+                        current.replaceNode(id) { node ->
+                            node.withBounds(node.bounds.movedBy(dx, dy, CANVAS_WIDTH_DP, current.canvas.heightDp))
+                        }
                     }
                 },
                 onResize = { id, width, height ->
-                    doc = doc.replaceNode(id) { node ->
-                        node.withBounds(node.bounds.copy(widthDp = width, heightDp = height))
+                    studioViewModel.updateDocument { current ->
+                        current.replaceNode(id) { node ->
+                            node.withBounds(node.bounds.copy(widthDp = width, heightDp = height))
+                        }
                     }
                 },
                 modifier = Modifier.padding(16.dp)
@@ -259,13 +295,13 @@ fun StudioDesignScreen(
             ScrollableTabRow(selectedTabIndex = tabIndex, edgePadding = 16.dp) {
                 Tab(
                     selected = tabIndex == 0,
-                    onClick = { selectedNodeId = null },
+                    onClick = { studioViewModel.selectNode(null) },
                     text = { Text(stringResource(R.string.studio_tab_design)) }
                 )
                 elements.forEach { node ->
                     Tab(
                         selected = selectedNodeId == node.id,
-                        onClick = { selectedNodeId = node.id },
+                        onClick = { studioViewModel.selectNode(node.id) },
                         text = {
                             Text(
                                 text = elementLabel(node),
@@ -289,9 +325,17 @@ fun StudioDesignScreen(
                         name = doc.meta.name,
                         canvas = doc.canvas,
                         notificationType = notificationType,
-                        onNameChange = { doc = doc.copy(meta = doc.meta.copy(name = it)) },
-                        onCanvasChange = { doc = doc.copy(canvas = it) },
-                        onNotificationTypeChange = { notificationType = it }
+                        onNameChange = { newName ->
+                            studioViewModel.updateDocument { current ->
+                                current.copy(meta = current.meta.copy(name = newName))
+                            }
+                        },
+                        onCanvasChange = { newCanvas ->
+                            studioViewModel.updateDocument { current ->
+                                current.copy(canvas = newCanvas)
+                            }
+                        },
+                        onNotificationTypeChange = { studioViewModel.setNotificationType(it) }
                     )
                 } else {
                     val siblings = doc.parentOf(selectedNode.id)?.children.orEmpty()
@@ -301,12 +345,13 @@ fun StudioDesignScreen(
                         isRoot = selectedNode.id == doc.root.id,
                         canMoveUp = index >= 0 && index < siblings.lastIndex,
                         canMoveDown = index > 0,
-                        onChange = { updated -> doc = doc.replaceNode(updated.id) { updated } },
-                        onMoveLayer = { delta -> doc = doc.moveNode(selectedNode.id, delta) },
-                        onDelete = {
-                            doc = doc.removeNode(selectedNode.id)
-                            selectedNodeId = null
-                        }
+                        onChange = { updated ->
+                            studioViewModel.updateDocument { current ->
+                                current.replaceNode(updated.id) { updated }
+                            }
+                        },
+                        onMoveLayer = { delta -> studioViewModel.moveLayer(selectedNode.id, delta) },
+                        onDelete = { studioViewModel.removeNode(selectedNode.id) }
                     )
                 }
                 Spacer(Modifier.height(96.dp))
@@ -315,31 +360,10 @@ fun StudioDesignScreen(
     }
 }
 
-/** The translator that turns a saved document into a design the island pipeline can match. */
-private fun designFor(
-    doc: CustomWidgetDocument,
-    notificationType: NotificationType,
-    existing: CustomTranslator?
-): CustomTranslator {
-    val presentation = PresentationConfig(mode = PresentationMode.WIDGET, widgetId = doc.id)
-    return existing?.copy(
-        meta = existing.meta.copy(name = doc.meta.name),
-        targetScope = TargetScope.NOTIFICATION_TYPE,
-        targetNotificationTypes = listOf(notificationType.name),
-        presentation = presentation
-    ) ?: CustomTranslator(
-        id = UUID.randomUUID().toString(),
-        meta = TranslatorMetadata(name = doc.meta.name, iconName = "Widgets"),
-        targetScope = TargetScope.NOTIFICATION_TYPE,
-        targetNotificationTypes = listOf(notificationType.name),
-        presentation = presentation
-    )
-}
-
 private fun elementLabel(node: CustomWidgetNode): String = when (node) {
-    is TextNode -> node.template.ifBlank { "Text" }
-    is ImageNode -> "Image"
-    is ProgressNode -> "Progress"
-    is ButtonNode -> node.label.ifBlank { "Button" }
-    is LayoutContainer -> "Group (${node.layout})"
+    is TextNode -> node.name?.ifBlank { null } ?: node.template.ifBlank { "Text" }
+    is ImageNode -> node.name?.ifBlank { null } ?: "Image"
+    is ProgressNode -> node.name?.ifBlank { null } ?: "Progress"
+    is ButtonNode -> node.name?.ifBlank { null } ?: node.label.ifBlank { "Button" }
+    is LayoutContainer -> node.name?.ifBlank { null } ?: "Group (${node.layout})"
 }

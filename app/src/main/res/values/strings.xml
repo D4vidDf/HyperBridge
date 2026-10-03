@@ -1598,6 +1598,12 @@
     <string name="studio_save">Save</string>
     <string name="studio_saved">Design saved</string>
     <string name="studio_restore">Restore last saved</string>
+    <string name="studio_undo">Undo</string>
+    <string name="studio_redo">Redo</string>
+    <string name="studio_discard_dialog_title">Discard unsaved changes?</string>
+    <string name="studio_discard_dialog_desc">You have unsaved changes in this design. If you leave now, your edits will be lost.</string>
+    <string name="studio_discard_dialog_confirm">Discard</string>
+    <string name="studio_discard_dialog_keep_editing">Keep editing</string>
     <string name="studio_export">Export</string>
     <string name="studio_import">Import</string>
     <string name="studio_delete_element">Delete element</string>
