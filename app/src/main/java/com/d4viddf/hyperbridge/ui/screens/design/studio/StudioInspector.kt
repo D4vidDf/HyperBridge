@@ -1,25 +1,43 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.LinearScale
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.SmartButton
+import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -27,15 +45,21 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.widget.BindableProperty
 import com.d4viddf.hyperbridge.models.widget.ButtonAction
 import com.d4viddf.hyperbridge.models.widget.ButtonNode
 import com.d4viddf.hyperbridge.models.widget.CanvasSize
 import com.d4viddf.hyperbridge.models.widget.ContainerLayout
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
 import com.d4viddf.hyperbridge.models.widget.ImageNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
@@ -45,19 +69,28 @@ import com.d4viddf.hyperbridge.models.widget.ProgressNode
 import com.d4viddf.hyperbridge.models.widget.TextNode
 
 /**
- * The always-visible control panel for whatever element the tab row has selected. KWGT keeps its
- * controls on screen rather than behind a sheet, which is what David asked for in #328.
+ * Tab-oriented KWGT-style Inspector for CustomWidgetNode elements.
  */
 @Composable
 fun StudioInspector(
     node: CustomWidgetNode,
     isRoot: Boolean,
+    selectedTab: StudioTab,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
     onChange: (CustomWidgetNode) -> Unit,
     onMoveLayer: (Int) -> Unit,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    onSelectChild: (String) -> Unit = {},
+    onAddChild: (String) -> Unit = {},
+    onToggleLock: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    // Root document settings (used when isRoot == true)
+    document: CustomWidgetDocument? = null,
+    notificationType: NotificationType? = null,
+    onNameChange: ((String) -> Unit)? = null,
+    onCanvasChange: ((CanvasSize) -> Unit)? = null,
+    onNotificationTypeChange: ((NotificationType) -> Unit)? = null
 ) {
     Column(
         modifier = modifier
@@ -65,174 +98,436 @@ fun StudioInspector(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        StudioSection(stringResource(R.string.studio_section_content)) {
-            when (node) {
-                is TextNode -> {
-                    OutlinedTextField(
-                        value = node.template,
-                        onValueChange = { onChange(node.copy(template = it)) },
-                        label = { Text(stringResource(R.string.studio_property_template)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    VariableTokenRow { token -> onChange(node.copy(template = node.template + token)) }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        NumberField(
-                            value = node.fontSizeSp,
-                            label = stringResource(R.string.studio_property_font_size),
-                            onValueChange = { onChange(node.copy(fontSizeSp = it.coerceIn(6, 96))) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        NumberField(
-                            value = node.maxLines,
-                            label = stringResource(R.string.studio_property_max_lines),
-                            onValueChange = { onChange(node.copy(maxLines = it.coerceIn(1, 4))) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    OutlinedTextField(
-                        value = node.colorHex,
-                        onValueChange = { onChange(node.copy(colorHex = it)) },
-                        label = { Text(stringResource(R.string.studio_property_color)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    LabelledSwitch(
-                        label = stringResource(R.string.studio_property_bold),
-                        checked = node.bold,
-                        onCheckedChange = { onChange(node.copy(bold = it)) }
+        when (selectedTab) {
+            StudioTab.ITEMS -> {
+                if (node is LayoutContainer) {
+                    ItemsTabContent(
+                        container = node,
+                        onSelectChild = onSelectChild,
+                        onAddChild = { onAddChild(node.id) },
+                        onChange = onChange
                     )
                 }
+            }
 
-                is ProgressNode -> {
-                    OutlinedTextField(
-                        value = node.valueTemplate,
-                        onValueChange = { onChange(node.copy(valueTemplate = it)) },
-                        label = { Text(stringResource(R.string.studio_property_template)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    VariableTokenRow { token -> onChange(node.copy(valueTemplate = node.valueTemplate + token)) }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = node.progressColorHex,
-                            onValueChange = { onChange(node.copy(progressColorHex = it)) },
-                            label = { Text(stringResource(R.string.studio_property_color)) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        NumberField(
-                            value = node.maxValue,
-                            label = stringResource(R.string.studio_property_max_value),
-                            onValueChange = { onChange(node.copy(maxValue = it.coerceAtLeast(1))) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
+            StudioTab.ITEM -> {
+                ItemTabContent(
+                    node = node,
+                    onChange = onChange
+                )
+            }
 
-                is ButtonNode -> {
-                    OutlinedTextField(
-                        value = node.label,
-                        onValueChange = { onChange(node.copy(label = it)) },
-                        label = { Text(stringResource(R.string.studio_property_label)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = node.backgroundHex.orEmpty(),
-                        onValueChange = { onChange(node.copy(backgroundHex = it.ifBlank { null })) },
-                        label = { Text(stringResource(R.string.studio_property_background)) },
-                        modifier = Modifier.fillMaxWidth()
+            StudioTab.LAYER -> {
+                LayerTabContent(
+                    node = node,
+                    isRoot = isRoot,
+                    canMoveUp = canMoveUp,
+                    canMoveDown = canMoveDown,
+                    onChange = onChange,
+                    onMoveLayer = onMoveLayer,
+                    onDelete = onDelete
+                )
+            }
+
+            StudioTab.CONTAINER -> {
+                if (node is LayoutContainer) {
+                    ContainerTabContent(
+                        container = node,
+                        isRoot = isRoot,
+                        onChange = onChange,
+                        document = document,
+                        notificationType = notificationType,
+                        onNameChange = onNameChange,
+                        onCanvasChange = onCanvasChange,
+                        onNotificationTypeChange = onNotificationTypeChange
                     )
                 }
+            }
 
-                is ImageNode -> {
-                    Text(
-                        text = node.source.toString(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    OutlinedTextField(
-                        value = node.tintHex.orEmpty(),
-                        onValueChange = { onChange(node.copy(tintHex = it.ifBlank { null })) },
-                        label = { Text(stringResource(R.string.studio_property_tint)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+            StudioTab.ACTIONS -> {
+                ActionsTabContent(
+                    node = node,
+                    onChange = onChange
+                )
+            }
 
-                is LayoutContainer -> {
-                    Row(
-                        modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        ContainerLayout.entries.forEach { layout ->
-                            FilterChip(
-                                selected = node.layout == layout,
-                                onClick = { onChange(node.copy(layout = layout)) },
-                                label = { Text(layout.name) }
-                            )
+            StudioTab.BINDINGS -> {
+                BindingsTabContent(
+                    node = node,
+                    onChange = onChange
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ItemsTabContent(
+    container: LayoutContainer,
+    onSelectChild: (String) -> Unit,
+    onAddChild: () -> Unit,
+    onChange: (CustomWidgetNode) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_items)) {
+        if (container.children.isEmpty()) {
+            Text(
+                text = stringResource(R.string.studio_items_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                container.children.forEachIndexed { index, child ->
+                    val canUp = index < container.children.lastIndex
+                    val canDown = index > 0
+
+                    ChildLayerCard(
+                        child = child,
+                        index = index,
+                        canMoveUp = canUp,
+                        canMoveDown = canDown,
+                        onClick = { onSelectChild(child.id) },
+                        onToggleLock = {
+                            val updatedChild = child.withLocked(!child.locked)
+                            val updatedList = container.children.toMutableList()
+                            updatedList[index] = updatedChild
+                            onChange(container.copy(children = updatedList))
+                        },
+                        onMove = { delta ->
+                            val targetIndex = (index + delta).coerceIn(0, container.children.lastIndex)
+                            if (targetIndex != index) {
+                                val updatedList = container.children.toMutableList()
+                                updatedList.add(targetIndex, updatedList.removeAt(index))
+                                onChange(container.copy(children = updatedList))
+                            }
+                        },
+                        onDelete = {
+                            val updatedList = container.children.filter { it.id != child.id }
+                            onChange(container.copy(children = updatedList))
                         }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        NumberField(
-                            value = node.gapDp,
-                            label = stringResource(R.string.studio_property_gap),
-                            onValueChange = { onChange(node.copy(gapDp = it.coerceIn(0, 64))) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        NumberField(
-                            value = node.paddingDp,
-                            label = stringResource(R.string.studio_property_padding),
-                            onValueChange = { onChange(node.copy(paddingDp = it.coerceIn(0, 64))) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                    )
                 }
             }
         }
 
-        if (!isRoot) {
-            StudioSection(stringResource(R.string.studio_section_position)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    NumberField(
-                        value = node.bounds.x,
-                        label = stringResource(R.string.studio_property_x),
-                        onValueChange = { onChange(node.withBounds(node.bounds.copy(x = it))) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    NumberField(
-                        value = node.bounds.y,
-                        label = stringResource(R.string.studio_property_y),
-                        onValueChange = { onChange(node.withBounds(node.bounds.copy(y = it))) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    NumberField(
-                        value = node.bounds.widthDp ?: 0,
-                        label = stringResource(R.string.studio_property_width),
-                        onValueChange = { onChange(node.withBounds(node.bounds.copy(widthDp = it.takeIf { v -> v > 0 }))) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    NumberField(
-                        value = node.bounds.heightDp ?: 0,
-                        label = stringResource(R.string.studio_property_height),
-                        onValueChange = { onChange(node.withBounds(node.bounds.copy(heightDp = it.takeIf { v -> v > 0 }))) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+        Spacer(Modifier.height(4.dp))
+        Button(
+            onClick = onAddChild,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.studio_items_add))
+        }
+    }
+}
 
+@Composable
+private fun ChildLayerCard(
+    child: CustomWidgetNode,
+    index: Int,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onClick: () -> Unit,
+    onToggleLock: () -> Unit,
+    onMove: (Int) -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = nodeIcon(child),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(Modifier.width(10.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.studio_layer_hint),
+                    text = child.name ?: defaultNodeTitle(child),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "#$index · ${child::class.simpleName?.removeSuffix("Node") ?: ""}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(onClick = onToggleLock, modifier = Modifier.size(32.dp)) {
+                Icon(
+                    imageVector = if (child.locked) Icons.Rounded.Lock else Icons.Rounded.LockOpen,
+                    contentDescription = stringResource(R.string.studio_layer_locked),
+                    modifier = Modifier.size(18.dp),
+                    tint = if (child.locked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(
+                onClick = { onMove(1) },
+                enabled = canMoveUp,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ArrowUpward,
+                    contentDescription = stringResource(R.string.studio_layer_forward),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            IconButton(
+                onClick = { onMove(-1) },
+                enabled = canMoveDown,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ArrowDownward,
+                    contentDescription = stringResource(R.string.studio_layer_back),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                Icon(
+                    imageVector = Icons.Rounded.Delete,
+                    contentDescription = stringResource(R.string.studio_delete_element),
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ItemTabContent(
+    node: CustomWidgetNode,
+    onChange: (CustomWidgetNode) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_item)) {
+        when (node) {
+            is TextNode -> {
+                OutlinedTextField(
+                    value = node.template,
+                    onValueChange = { onChange(node.copy(template = it)) },
+                    label = { Text(stringResource(R.string.studio_property_template)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                VariableTokenRow { token -> onChange(node.copy(template = node.template + token)) }
+
+                StudioStepper(
+                    label = stringResource(R.string.studio_property_font_size),
+                    value = node.fontSizeSp,
+                    onValueChange = { onChange(node.copy(fontSizeSp = it.coerceIn(6, 96))) },
+                    unitSuffix = "sp",
+                    min = 6,
+                    max = 96,
+                    boundFormula = node.bindings[BindableProperty.TEXT_FONT_SIZE.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_FONT_SIZE.key, it)) }
+                )
+
+                StudioStepper(
+                    label = stringResource(R.string.studio_property_max_lines),
+                    value = node.maxLines,
+                    onValueChange = { onChange(node.copy(maxLines = it.coerceIn(1, 10))) },
+                    min = 1,
+                    max = 10
+                )
+
+                StudioColorField(
+                    label = stringResource(R.string.studio_property_color),
+                    colorHex = node.colorHex,
+                    onColorHexChange = { onChange(node.copy(colorHex = it)) },
+                    boundFormula = node.bindings[BindableProperty.TEXT_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_COLOR.key, it)) }
+                )
+
+                LabelledSwitch(
+                    label = stringResource(R.string.studio_property_bold),
+                    checked = node.bold,
+                    onCheckedChange = { onChange(node.copy(bold = it)) }
+                )
+            }
+
+            is ProgressNode -> {
+                OutlinedTextField(
+                    value = node.valueTemplate,
+                    onValueChange = { onChange(node.copy(valueTemplate = it)) },
+                    label = { Text(stringResource(R.string.studio_property_template)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                VariableTokenRow { token -> onChange(node.copy(valueTemplate = node.valueTemplate + token)) }
+
+                StudioStepper(
+                    label = stringResource(R.string.studio_property_max_value),
+                    value = node.maxValue,
+                    onValueChange = { onChange(node.copy(maxValue = it.coerceAtLeast(1))) },
+                    min = 1,
+                    max = 1000
+                )
+
+                StudioColorField(
+                    label = stringResource(R.string.studio_property_color),
+                    colorHex = node.progressColorHex,
+                    onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
+                    boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) }
+                )
+
+                StudioColorField(
+                    label = stringResource(R.string.studio_property_background),
+                    colorHex = node.trackColorHex,
+                    onColorHexChange = { onChange(node.copy(trackColorHex = it)) },
+                    boundFormula = node.bindings[BindableProperty.PROGRESS_TRACK_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_TRACK_COLOR.key, it)) }
+                )
+            }
+
+            is ButtonNode -> {
+                OutlinedTextField(
+                    value = node.label,
+                    onValueChange = { onChange(node.copy(label = it)) },
+                    label = { Text(stringResource(R.string.studio_property_label)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                VariableTokenRow { token -> onChange(node.copy(label = node.label + token)) }
+
+                StudioColorField(
+                    label = stringResource(R.string.studio_property_color),
+                    colorHex = node.textColorHex,
+                    onColorHexChange = { onChange(node.copy(textColorHex = it)) },
+                    boundFormula = node.bindings[BindableProperty.BUTTON_TEXT_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_TEXT_COLOR.key, it)) }
+                )
+
+                StudioColorField(
+                    label = stringResource(R.string.studio_property_background),
+                    colorHex = node.backgroundHex.orEmpty().ifBlank { "#333333" },
+                    onColorHexChange = { onChange(node.copy(backgroundHex = it.ifBlank { null })) },
+                    boundFormula = node.bindings[BindableProperty.BUTTON_BACKGROUND.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_BACKGROUND.key, it)) }
+                )
+            }
+
+            is ImageNode -> {
+                Text(
+                    text = node.source.toString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = { onMoveLayer(1) }, enabled = canMoveUp) {
-                        Icon(Icons.Rounded.ArrowUpward, null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.studio_layer_forward))
-                    }
-                    TextButton(onClick = { onMoveLayer(-1) }, enabled = canMoveDown) {
-                        Icon(Icons.Rounded.ArrowDownward, null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.studio_layer_back))
-                    }
+                StudioColorField(
+                    label = stringResource(R.string.studio_property_tint),
+                    colorHex = node.tintHex.orEmpty().ifBlank { "#FFFFFF" },
+                    onColorHexChange = { onChange(node.copy(tintHex = it.ifBlank { null })) },
+                    boundFormula = node.bindings[BindableProperty.IMAGE_TINT.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.IMAGE_TINT.key, it)) }
+                )
+            }
+
+            else -> Unit
+        }
+    }
+}
+
+@Composable
+private fun LayerTabContent(
+    node: CustomWidgetNode,
+    isRoot: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onChange: (CustomWidgetNode) -> Unit,
+    onMoveLayer: (Int) -> Unit,
+    onDelete: () -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_layer)) {
+        OutlinedTextField(
+            value = node.name.orEmpty(),
+            onValueChange = { onChange(node.withName(it.ifBlank { null })) },
+            label = { Text(stringResource(R.string.studio_layer_name)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        LabelledSwitch(
+            label = stringResource(R.string.studio_layer_locked),
+            checked = node.locked,
+            onCheckedChange = { onChange(node.withLocked(it)) }
+        )
+
+        if (!isRoot) {
+            StudioStepper(
+                label = stringResource(R.string.studio_property_x),
+                value = node.bounds.x,
+                onValueChange = { onChange(node.withBounds(node.bounds.copy(x = it))) },
+                unitSuffix = "dp",
+                min = -1000,
+                max = 1000
+            )
+
+            StudioStepper(
+                label = stringResource(R.string.studio_property_y),
+                value = node.bounds.y,
+                onValueChange = { onChange(node.withBounds(node.bounds.copy(y = it))) },
+                unitSuffix = "dp",
+                min = -1000,
+                max = 1000
+            )
+
+            StudioStepper(
+                label = stringResource(R.string.studio_property_width),
+                value = node.bounds.widthDp ?: 0,
+                onValueChange = { onChange(node.withBounds(node.bounds.copy(widthDp = it.takeIf { v -> v > 0 }))) },
+                unitSuffix = "dp",
+                min = 0,
+                max = 1000,
+                boundFormula = node.bindings[BindableProperty.BOUNDS_WIDTH.key],
+                onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_WIDTH.key, it)) }
+            )
+
+            StudioStepper(
+                label = stringResource(R.string.studio_property_height),
+                value = node.bounds.heightDp ?: 0,
+                onValueChange = { onChange(node.withBounds(node.bounds.copy(heightDp = it.takeIf { v -> v > 0 }))) },
+                unitSuffix = "dp",
+                min = 0,
+                max = 1000,
+                boundFormula = node.bindings[BindableProperty.BOUNDS_HEIGHT.key],
+                onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_HEIGHT.key, it)) }
+            )
+
+            Text(
+                text = stringResource(R.string.studio_layer_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onMoveLayer(1) }, enabled = canMoveUp) {
+                    Icon(Icons.Rounded.ArrowUpward, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_layer_forward))
+                }
+                TextButton(onClick = { onMoveLayer(-1) }, enabled = canMoveDown) {
+                    Icon(Icons.Rounded.ArrowDownward, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_layer_back))
                 }
             }
 
@@ -243,23 +538,198 @@ fun StudioInspector(
                 )
             }
 
-            StudioSection(stringResource(R.string.studio_section_action)) {
-                ActionEditor(
-                    action = if (node is ButtonNode) node.action else node.onClick,
-                    allowNone = node !is ButtonNode,
-                    onChange = { action ->
-                        onChange(
-                            if (node is ButtonNode) node.copy(action = action ?: ButtonAction.Dismiss)
-                            else node.withOnClick(action)
-                        )
-                    }
-                )
-            }
-
-            TextButton(onClick = onDelete) {
+            TextButton(
+                onClick = onDelete,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
                 Icon(Icons.Rounded.Delete, null)
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.studio_delete_element))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContainerTabContent(
+    container: LayoutContainer,
+    isRoot: Boolean,
+    onChange: (CustomWidgetNode) -> Unit,
+    document: CustomWidgetDocument?,
+    notificationType: NotificationType?,
+    onNameChange: ((String) -> Unit)?,
+    onCanvasChange: ((CanvasSize) -> Unit)?,
+    onNotificationTypeChange: ((NotificationType) -> Unit)?
+) {
+    if (isRoot && document != null && notificationType != null && onNameChange != null && onCanvasChange != null && onNotificationTypeChange != null) {
+        StudioSection(stringResource(R.string.studio_section_design)) {
+            OutlinedTextField(
+                value = document.meta.name,
+                onValueChange = onNameChange,
+                label = { Text(stringResource(R.string.studio_property_name)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CanvasSize.entries.forEach { size ->
+                    FilterChip(
+                        selected = document.canvas == size,
+                        onClick = { onCanvasChange(size) },
+                        label = { Text("${size.name} · ${size.heightDp}dp") }
+                    )
+                }
+            }
+        }
+
+        StudioSection(stringResource(R.string.design_template_type_title)) {
+            Text(
+                text = stringResource(R.string.design_template_type_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                NotificationType.configurableEntries.forEach { type ->
+                    FilterChip(
+                        selected = notificationType == type,
+                        onClick = { onNotificationTypeChange(type) },
+                        label = { Text(stringResource(type.labelRes)) }
+                    )
+                }
+            }
+        }
+    }
+
+    StudioSection(stringResource(R.string.studio_tab_container)) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ContainerLayout.entries.forEach { layout ->
+                FilterChip(
+                    selected = container.layout == layout,
+                    onClick = { onChange(container.copy(layout = layout)) },
+                    label = { Text(layout.name) }
+                )
+            }
+        }
+
+        StudioStepper(
+            label = stringResource(R.string.studio_property_gap),
+            value = container.gapDp,
+            onValueChange = { onChange(container.copy(gapDp = it.coerceIn(0, 64))) },
+            unitSuffix = "dp",
+            min = 0,
+            max = 64,
+            boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
+            onFormulaChange = { onChange(container.withBinding("gapDp", it)) }
+        )
+
+        StudioStepper(
+            label = stringResource(R.string.studio_property_padding),
+            value = container.paddingDp,
+            onValueChange = { onChange(container.copy(paddingDp = it.coerceIn(0, 64))) },
+            unitSuffix = "dp",
+            min = 0,
+            max = 64,
+            boundFormula = container.bindings["paddingDp"],
+            onFormulaChange = { onChange(container.withBinding("paddingDp", it)) }
+        )
+
+        StudioColorField(
+            label = stringResource(R.string.studio_property_background),
+            colorHex = container.backgroundHex.orEmpty().ifBlank { "#00000000" },
+            onColorHexChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
+            boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
+            onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) }
+        )
+    }
+}
+
+@Composable
+private fun ActionsTabContent(
+    node: CustomWidgetNode,
+    onChange: (CustomWidgetNode) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_actions)) {
+        ActionEditor(
+            action = if (node is ButtonNode) node.action else node.onClick,
+            allowNone = node !is ButtonNode,
+            onChange = { action ->
+                onChange(
+                    if (node is ButtonNode) node.copy(action = action ?: ButtonAction.Dismiss)
+                    else node.withOnClick(action)
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun BindingsTabContent(
+    node: CustomWidgetNode,
+    onChange: (CustomWidgetNode) -> Unit
+) {
+    val bindableProps = when (node) {
+        is TextNode -> listOf(BindableProperty.TEXT_TEMPLATE, BindableProperty.TEXT_COLOR, BindableProperty.TEXT_FONT_SIZE)
+        is ProgressNode -> listOf(BindableProperty.PROGRESS_VALUE, BindableProperty.PROGRESS_COLOR, BindableProperty.PROGRESS_TRACK_COLOR)
+        is ButtonNode -> listOf(BindableProperty.BUTTON_LABEL, BindableProperty.BUTTON_TEXT_COLOR, BindableProperty.BUTTON_BACKGROUND)
+        is ImageNode -> listOf(BindableProperty.IMAGE_TINT, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT)
+        is LayoutContainer -> listOf(BindableProperty.CONTAINER_BACKGROUND, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT)
+    }
+
+    StudioSection(stringResource(R.string.studio_tab_bindings)) {
+        Text(
+            text = stringResource(R.string.studio_binding_formula_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        bindableProps.forEach { prop ->
+            val currentFormula = node.bindings[prop.key].orEmpty()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = prop.key,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (currentFormula.isNotBlank()) {
+                        IconButton(
+                            onClick = { onChange(node.withBinding(prop.key, null)) },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(Icons.Rounded.Clear, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = currentFormula,
+                    onValueChange = { onChange(node.withBinding(prop.key, it)) },
+                    placeholder = { Text("{var}") },
+                    textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                VariableTokenRow { token ->
+                    onChange(node.withBinding(prop.key, currentFormula + token))
+                }
             }
         }
     }
@@ -555,6 +1025,22 @@ private fun VariableTokenRow(onTokenSelected: (String) -> Unit) {
     }
 }
 
+private fun defaultNodeTitle(node: CustomWidgetNode): String = when (node) {
+    is TextNode -> if (node.template.isNotBlank()) node.template else "Text"
+    is ImageNode -> "Image"
+    is ProgressNode -> "Progress"
+    is ButtonNode -> if (node.label.isNotBlank()) node.label else "Button"
+    is LayoutContainer -> "Group"
+}
+
+private fun nodeIcon(node: CustomWidgetNode): ImageVector = when (node) {
+    is TextNode -> Icons.Rounded.Title
+    is ImageNode -> Icons.Rounded.Image
+    is ProgressNode -> Icons.Rounded.LinearScale
+    is ButtonNode -> Icons.Rounded.SmartButton
+    is LayoutContainer -> Icons.Rounded.Folder
+}
+
 private val VARIABLE_TOKENS = listOf(
     "{notif.title}", "{notif.text}", "{notif.progress}", "{notif.package}", "{device.battery}", "{time.now}"
 )
@@ -589,7 +1075,6 @@ private enum class ConditionKind(val labelRes: Int) {
             is NodeCondition.HasProgress -> PROGRESS
             is NodeCondition.NotBlank -> NOT_BLANK
             is NodeCondition.Matches -> MATCHES
-            // `Not` can only be built by hand in a .hwidget file; the chips leave it alone.
             is NodeCondition.Not -> ALWAYS
         }
     }
@@ -627,7 +1112,6 @@ private enum class ActionKind(val labelRes: Int) {
     }
 }
 
-/** Typed copies, so the inspector can edit shared node properties without a `when` at every call. */
 fun CustomWidgetNode.withBounds(bounds: NodeBounds): CustomWidgetNode = when (this) {
     is TextNode -> copy(bounds = bounds)
     is ImageNode -> copy(bounds = bounds)
@@ -676,3 +1160,11 @@ fun CustomWidgetNode.withBindings(bindings: Map<String, String>): CustomWidgetNo
     is LayoutContainer -> copy(bindings = bindings)
 }
 
+fun CustomWidgetNode.withBinding(key: String, formula: String?): CustomWidgetNode {
+    val updated = if (formula.isNullOrBlank()) {
+        bindings - key
+    } else {
+        bindings + (key to formula)
+    }
+    return withBindings(updated)
+}

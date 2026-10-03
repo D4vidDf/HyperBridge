@@ -23,7 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -74,7 +77,10 @@ fun StudioCanvas(
     onSelect: (String) -> Unit,
     onMove: (id: String, dxDp: Int, dyDp: Int) -> Unit,
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    zoom: Float = 1f,
+    isGridVisible: Boolean = false,
+    isWireframeMode: Boolean = false
 ) {
     Box(
         modifier = modifier
@@ -82,18 +88,44 @@ fun StudioCanvas(
             .height(canvasHeightDp.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(StudioCanvasBackground)
+            .drawBehind {
+                if (isGridVisible) {
+                    val stepPx = 16.dp.toPx()
+                    val gridColor = Color.White.copy(alpha = 0.08f)
+                    var x = 0f
+                    while (x < size.width) {
+                        drawLine(gridColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+                        x += stepPx
+                    }
+                    var y = 0f
+                    while (y < size.height) {
+                        drawLine(gridColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+                        y += stepPx
+                    }
+                }
+            }
             .pointerInput(root.id) {
                 detectTapGestures { onSelect(root.id) }
             }
             .padding(8.dp)
     ) {
-        CanvasNode(
-            node = root,
-            selectedId = selectedId,
-            onSelect = onSelect,
-            onMove = onMove,
-            onResize = onResize
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    scaleX = zoom
+                    scaleY = zoom
+                }
+        ) {
+            CanvasNode(
+                node = root,
+                selectedId = selectedId,
+                onSelect = onSelect,
+                onMove = onMove,
+                onResize = onResize,
+                isWireframeMode = isWireframeMode
+            )
+        }
     }
 }
 
@@ -104,21 +136,23 @@ private fun CanvasNode(
     onSelect: (String) -> Unit,
     onMove: (id: String, dxDp: Int, dyDp: Int) -> Unit,
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
-    draggable: Boolean = false
+    draggable: Boolean = false,
+    isWireframeMode: Boolean = false
 ) {
     val density = LocalDensity.current
     val isSelected = node.id == selectedId
+    val canDrag = draggable && !node.locked
 
     var modifier: Modifier = Modifier
     if (node.bounds.widthDp != null) modifier = modifier.width(node.bounds.widthDp!!.dp)
     if (node.bounds.heightDp != null) modifier = modifier.height(node.bounds.heightDp!!.dp)
 
     modifier = modifier
-        .pointerInput(node.id, draggable) {
+        .pointerInput(node.id, canDrag) {
             detectTapGestures { onSelect(node.id) }
         }
         .then(
-            if (draggable) {
+            if (canDrag) {
                 Modifier.pointerInput(node.id) {
                     detectDragGestures(
                         onDragStart = { onSelect(node.id) }
@@ -139,9 +173,9 @@ private fun CanvasNode(
 
     Box {
         when (node) {
-            is LayoutContainer -> CanvasContainer(node, modifier, selectedId, onSelect, onMove, onResize)
+            is LayoutContainer -> CanvasContainer(node, modifier, selectedId, onSelect, onMove, onResize, isWireframeMode)
             is TextNode -> Text(
-                text = previewEngine.resolve(node.template, PREVIEW_SAMPLE_CONTEXT).ifBlank { node.template },
+                text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, PREVIEW_SAMPLE_CONTEXT).ifBlank { node.template },
                 color = safeParseColor(node.colorHex),
                 fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
                 fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
@@ -157,7 +191,7 @@ private fun CanvasNode(
             )
 
             is ProgressNode -> {
-                val value = previewEngine.resolve(node.valueTemplate, PREVIEW_SAMPLE_CONTEXT).toIntOrNull() ?: 0
+                val value = if (isWireframeMode) 50 else previewEngine.resolve(node.valueTemplate, PREVIEW_SAMPLE_CONTEXT).toIntOrNull() ?: 0
                 LinearProgressIndicator(
                     progress = { (value.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f) },
                     color = safeParseColor(node.progressColorHex),
@@ -179,7 +213,7 @@ private fun CanvasNode(
         }
 
         // Resize grip for the selected element, bottom-right like every canvas editor.
-        if (isSelected && draggable) {
+        if (isSelected && canDrag) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -207,7 +241,8 @@ private fun CanvasContainer(
     selectedId: String?,
     onSelect: (String) -> Unit,
     onMove: (id: String, dxDp: Int, dyDp: Int) -> Unit,
-    onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit
+    onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
+    isWireframeMode: Boolean = false
 ) {
     // Children of a free-positioned container can be dragged; in a row or column the layout owns
     // their position, so dragging them would be a lie.
@@ -218,21 +253,32 @@ private fun CanvasContainer(
             modifier = modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(node.gapDp.dp)
         ) {
-            node.children.forEach { CanvasNode(it, selectedId, onSelect, onMove, onResize, draggable = false) }
+            node.children.forEach { CanvasNode(it, selectedId, onSelect, onMove, onResize, draggable = false, isWireframeMode = isWireframeMode) }
         }
 
         ContainerLayout.COLUMN -> Column(
             modifier = modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(node.gapDp.dp)
         ) {
-            node.children.forEach { CanvasNode(it, selectedId, onSelect, onMove, onResize, draggable = false) }
+            node.children.forEach { CanvasNode(it, selectedId, onSelect, onMove, onResize, draggable = false, isWireframeMode = isWireframeMode) }
         }
 
         ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = modifier.fillMaxSize()) {
-            // Later children paint on top: the child order is the layer order (#328).
             node.children.forEach { child ->
-                Box(modifier = Modifier.offset(x = child.bounds.x.dp, y = child.bounds.y.dp)) {
-                    CanvasNode(child, selectedId, onSelect, onMove, onResize, draggable = freePositioning)
+                val childModifier = if (node.layout == ContainerLayout.ABSOLUTE) {
+                    Modifier.offset(child.bounds.x.dp, child.bounds.y.dp)
+                } else Modifier
+
+                Box(modifier = childModifier) {
+                    CanvasNode(
+                        node = child,
+                        selectedId = selectedId,
+                        onSelect = onSelect,
+                        onMove = onMove,
+                        onResize = onResize,
+                        draggable = freePositioning,
+                        isWireframeMode = isWireframeMode
+                    )
                 }
             }
         }

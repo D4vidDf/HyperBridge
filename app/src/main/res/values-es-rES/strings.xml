@@ -1383,4 +1383,28 @@
     <string name="studio_action_broadcast">Acción del broadcast</string>
     <string name="studio_action_extra_key">Clave extra</string>
     <string name="studio_action_extra_value">Valor extra</string>
+
+    <string name="studio_breadcrumb_root">Raíz</string>
+    <string name="studio_tab_items">Elementos</string>
+    <string name="studio_tab_layer">Capa</string>
+    <string name="studio_tab_item">Elemento</string>
+    <string name="studio_tab_position">Posición</string>
+    <string name="studio_tab_actions">Acciones</string>
+    <string name="studio_tab_bindings">Fórmulas</string>
+    <string name="studio_tab_container">Contenedor</string>
+    <string name="studio_layer_name">Nombre de capa</string>
+    <string name="studio_layer_locked">Bloqueado</string>
+    <string name="studio_layer_lock_desc">Evitar arrastrar y redimensionar en el lienzo</string>
+    <string name="studio_bind_formula">Fórmula / Enlace</string>
+    <string name="studio_bind_static">Valor estático</string>
+    <string name="studio_toolbar_zoom_in">Acercar</string>
+    <string name="studio_toolbar_zoom_out">Alejar</string>
+    <string name="studio_toolbar_zoom_reset">Restablecer zoom</string>
+    <string name="studio_toolbar_grid">Alternar cuadrícula</string>
+    <string name="studio_toolbar_wireframe">Alternar modo de previsualización</string>
+    <string name="studio_bindings_empty">No hay fórmulas configuradas para esta capa.</string>
+    <string name="studio_binding_property">Propiedad</string>
+    <string name="studio_binding_formula_hint">Introduce el token o fórmula (ej. {theme.accent})</string>
+    <string name="studio_items_empty">Este grupo no contiene elementos. Pulsa Añadir para crear uno.</string>
+    <string name="studio_items_add">Añadir elemento</string>
 </resources>
