@@ -70,6 +70,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.widget.*
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
+import com.d4viddf.hyperbridge.ui.screens.translators.TRANSLATOR_OUTLINED_ICONS
 
 /**
  * Tab-oriented KWGT-style Inspector for CustomWidgetNode elements.
@@ -92,6 +93,7 @@ fun StudioInspector(
     document: CustomWidgetDocument? = null,
     notificationType: NotificationType? = null,
     onNameChange: ((String) -> Unit)? = null,
+    onIconChange: ((String) -> Unit)? = null,
     onCanvasChange: ((CanvasSize) -> Unit)? = null,
     onNotificationTypeChange: ((NotificationType) -> Unit)? = null,
     // Stage 2 additions
@@ -182,6 +184,7 @@ fun StudioInspector(
                         document = document,
                         notificationType = notificationType,
                         onNameChange = onNameChange,
+                        onIconChange = onIconChange,
                         onCanvasChange = onCanvasChange,
                         onNotificationTypeChange = onNotificationTypeChange,
                         onRequestFormulaEditor = { editingFormulaPropKey = it }
@@ -871,6 +874,7 @@ private fun ContainerTabContent(
     document: CustomWidgetDocument?,
     notificationType: NotificationType?,
     onNameChange: ((String) -> Unit)?,
+    onIconChange: ((String) -> Unit)? = null,
     onCanvasChange: ((CanvasSize) -> Unit)?,
     onNotificationTypeChange: ((NotificationType) -> Unit)?,
     onRequestFormulaEditor: (String) -> Unit = {}
@@ -883,6 +887,35 @@ private fun ContainerTabContent(
                 label = { Text(stringResource(R.string.studio_property_name)) },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Text(
+                text = stringResource(R.string.studio_design_icon),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TRANSLATOR_OUTLINED_ICONS.forEach { option ->
+                    FilterChip(
+                        selected = document.meta.icon.equals(option.id, ignoreCase = true),
+                        onClick = { onIconChange?.invoke(option.id) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = option.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        label = { Text(option.label) }
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

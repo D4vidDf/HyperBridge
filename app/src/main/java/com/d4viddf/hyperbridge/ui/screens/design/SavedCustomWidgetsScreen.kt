@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -47,6 +51,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.ui.components.EmptyState
+import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
 import kotlinx.coroutines.launch
 
 /** List screen for Phase 5 (#273) custom micro-widgets; thin sibling of [SavedAppWidgetsScreen] (Android AppWidgets, unrelated). */
@@ -123,18 +128,37 @@ fun SavedCustomWidgetsScreen(
                             modifier = Modifier.fillMaxWidth().clickable { onEditWidget(widget.id) }
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                androidx.compose.foundation.layout.Row(
+                                Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column {
-                                        Text(widget.meta.name, style = MaterialTheme.typography.titleMedium)
-                                        Text(
-                                            widget.boundPackage ?: stringResource(R.string.permanent_island_widget_none),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                    Row(
+                                        modifier = Modifier.weight(1f),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            modifier = Modifier.size(44.dp)
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(
+                                                    imageVector = getTranslatorOutlinedIcon(widget.meta.icon),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                            }
+                                        }
+                                        Column {
+                                            Text(widget.meta.name, style = MaterialTheme.typography.titleMedium)
+                                            Text(
+                                                widget.boundPackage ?: stringResource(R.string.permanent_island_widget_none),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
                                     IconButton(onClick = {
                                         scope.launch {

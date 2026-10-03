@@ -135,6 +135,7 @@ class CustomWidgetDocumentSerializationTest {
         """.trimIndent()
 
         val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), legacyJson)
+        assertEquals("Widgets", decoded.meta.icon)
         val rootNode = decoded.root as LayoutContainer
         assertEquals(null, rootNode.name)
         assertEquals(false, rootNode.locked)
@@ -144,5 +145,18 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals(null, textNode.name)
         assertEquals(false, textNode.locked)
         assertEquals(emptyMap<String, String>(), textNode.bindings)
+    }
+
+    @Test
+    fun serializesAndDeserializesCustomIcon() {
+        val doc = CustomWidgetDocument(
+            id = "custom-icon-widget",
+            meta = CustomWidgetMetadata(name = "Nav Design", icon = "Navigation"),
+            root = LayoutContainer(id = "root", layout = ContainerLayout.ABSOLUTE)
+        )
+
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+        assertEquals("Navigation", decoded.meta.icon)
     }
 }

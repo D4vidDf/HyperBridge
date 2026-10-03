@@ -6,11 +6,13 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -51,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.widget.*
+import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
 import kotlinx.coroutines.launch
 
 private const val CANVAS_WIDTH_DP = 350
@@ -260,6 +263,11 @@ fun StudioDesignScreen(
                     current.copy(meta = current.meta.copy(name = newName))
                 }
             },
+            onIconChange = { newIcon ->
+                studioViewModel.updateDocument { current ->
+                    current.copy(meta = current.meta.copy(icon = newIcon))
+                }
+            },
             onCanvasChange = { newCanvas ->
                 studioViewModel.updateDocument { current ->
                     current.copy(canvas = newCanvas)
@@ -319,6 +327,7 @@ fun StudioDesignContent(
     onSelectChild: (String) -> Unit,
     onAddChild: (String) -> Unit,
     onNameChange: (String) -> Unit,
+    onIconChange: (String) -> Unit = {},
     onCanvasChange: (CanvasSize) -> Unit,
     onNotificationTypeChange: (NotificationType) -> Unit,
     onToggleVisibility: (String) -> Unit,
@@ -336,11 +345,22 @@ fun StudioDesignContent(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = doc.meta.name,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = getTranslatorOutlinedIcon(doc.meta.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = doc.meta.name,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 },
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBack) {
@@ -428,13 +448,6 @@ fun StudioDesignContent(
                 )
             }
 
-            // Scenario Switcher for dynamic previewing
-            StudioScenarioSwitcher(
-                selectedScenario = selectedScenario,
-                onScenarioSelected = onScenarioSelected,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
-            )
-
             validationMessage?.let { message ->
                 Text(
                     text = message,
@@ -487,6 +500,7 @@ fun StudioDesignContent(
                     document = doc,
                     notificationType = notificationType,
                     onNameChange = onNameChange,
+                    onIconChange = onIconChange,
                     onCanvasChange = onCanvasChange,
                     onNotificationTypeChange = onNotificationTypeChange,
                     selectedNodeId = selectedNodeId,

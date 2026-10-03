@@ -52,6 +52,20 @@ class StudioViewModel(
     initialDocument: CustomWidgetDocument? = null
 ) : AndroidViewModel(application) {
 
+    constructor(application: Application) : this(
+        application = application,
+        savedStateHandle = SavedStateHandle(),
+        repository = CustomWidgetRepository(application),
+        initialDocument = null
+    )
+
+    constructor(application: Application, savedStateHandle: SavedStateHandle) : this(
+        application = application,
+        savedStateHandle = savedStateHandle,
+        repository = CustomWidgetRepository(application),
+        initialDocument = null
+    )
+
     private val json = Json { ignoreUnknownKeys = true; prettyPrint = true }
 
     private val _document = MutableStateFlow(initialDocument ?: createInitialDocument())
@@ -358,13 +372,13 @@ class StudioViewModel(
     ): CustomTranslator {
         val presentation = PresentationConfig(mode = PresentationMode.WIDGET, widgetId = doc.id)
         return existing?.copy(
-            meta = existing.meta.copy(name = doc.meta.name),
+            meta = existing.meta.copy(name = doc.meta.name, iconName = doc.meta.icon),
             targetScope = TargetScope.NOTIFICATION_TYPE,
             targetNotificationTypes = listOf(notificationType.name),
             presentation = presentation
         ) ?: CustomTranslator(
             id = UUID.randomUUID().toString(),
-            meta = TranslatorMetadata(name = doc.meta.name, iconName = "Widgets"),
+            meta = TranslatorMetadata(name = doc.meta.name, iconName = doc.meta.icon),
             targetScope = TargetScope.NOTIFICATION_TYPE,
             targetNotificationTypes = listOf(notificationType.name),
             presentation = presentation

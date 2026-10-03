@@ -1753,6 +1753,7 @@
     <string name="studio_app_chooser_search">Search apps…</string>
     <string name="studio_app_chooser_empty">No matching applications found.</string>
     <string name="studio_action_choose_app">Choose app…</string>
+    <string name="studio_design_icon">Design icon</string>
 </resources>
 
 

@@ -276,4 +276,28 @@ class StudioViewModelTest {
         assertEquals("text-1", reRoot.children[0].id)
         assertEquals("text-2", reRoot.children[1].id)
     }
+
+    @Test
+    fun secondaryConstructorsInstantiateCleanly() {
+        val vmFromApp = StudioViewModel(app)
+        assertEquals("New Design", vmFromApp.document.value.meta.name)
+        assertEquals("Widgets", vmFromApp.document.value.meta.icon)
+
+        val vmFromHandle = StudioViewModel(app, SavedStateHandle())
+        assertEquals("New Design", vmFromHandle.document.value.meta.name)
+        assertEquals("Widgets", vmFromHandle.document.value.meta.icon)
+    }
+
+    @Test
+    fun metaIconCanBeUpdatedAndPersistsInDraft() {
+        val savedStateHandle = SavedStateHandle()
+        val doc = createSampleDocument()
+        val vm1 = StudioViewModel(app, savedStateHandle, repository = repository, initialDocument = doc)
+
+        vm1.updateDocument { it.copy(meta = it.meta.copy(icon = "MusicNote")) }
+        assertEquals("MusicNote", vm1.document.value.meta.icon)
+
+        val vm2 = StudioViewModel(app, savedStateHandle, repository = repository, initialDocument = doc)
+        assertEquals("MusicNote", vm2.document.value.meta.icon)
+    }
 }

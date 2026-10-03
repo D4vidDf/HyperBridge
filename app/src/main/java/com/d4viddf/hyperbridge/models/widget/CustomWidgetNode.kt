@@ -251,7 +251,8 @@ data class LayoutContainer(
 data class CustomWidgetMetadata(
     val name: String,
     val author: String = "",
-    val version: Int = 1
+    val version: Int = 1,
+    val icon: String = "Widgets"
 )
 
 /** Mirrors [com.d4viddf.hyperbridge.models.WidgetSize]'s dp heights; canvas width is fixed at 350dp. */
