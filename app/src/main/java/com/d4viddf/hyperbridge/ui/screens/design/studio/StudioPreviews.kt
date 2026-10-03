@@ -26,6 +26,7 @@ import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 import com.d4viddf.hyperbridge.models.widget.NodeBounds
 import com.d4viddf.hyperbridge.models.widget.NodeCondition
 import com.d4viddf.hyperbridge.models.widget.ProgressNode
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
 import com.d4viddf.hyperbridge.models.widget.TextNode
 
 /**
@@ -96,6 +97,15 @@ fun previewSampleWidgetDocument(): CustomWidgetDocument {
                     backgroundHex = "#00E676",
                     textColorHex = "#000000",
                     showIf = NodeCondition.HasSmartAction("OTP")
+                ),
+                ShapeNode(
+                    id = "status_badge",
+                    name = "Status Pill",
+                    bounds = NodeBounds(x = 12, y = 40, widthDp = 28, heightDp = 6),
+                    shapeId = "rounded_rect",
+                    cornerRadiusDp = 3,
+                    fillColorHex = "#FF4081",
+                    opacity = 0.85f
                 )
             )
         )

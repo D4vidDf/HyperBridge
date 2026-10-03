@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DriveFileRenameOutline
@@ -72,6 +73,7 @@ import com.d4viddf.hyperbridge.models.widget.ImageNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 import com.d4viddf.hyperbridge.models.widget.NodeCondition
 import com.d4viddf.hyperbridge.models.widget.ProgressNode
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
 import com.d4viddf.hyperbridge.models.widget.TextNode
 
 @Composable
@@ -497,6 +499,7 @@ private fun BadgePill(text: String, backgroundColor: androidx.compose.ui.graphic
 private fun defaultNodeTitle(node: CustomWidgetNode): String = when (node) {
     is TextNode -> if (node.template.isNotBlank()) node.template else "Text"
     is ImageNode -> "Image"
+    is ShapeNode -> "Shape"
     is ProgressNode -> "Progress"
     is ButtonNode -> if (node.label.isNotBlank()) node.label else "Button"
     is LayoutContainer -> "Group (${node.layout})"
@@ -505,6 +508,7 @@ private fun defaultNodeTitle(node: CustomWidgetNode): String = when (node) {
 private fun nodeIcon(node: CustomWidgetNode, isExpanded: Boolean = false): ImageVector = when (node) {
     is TextNode -> Icons.Rounded.Title
     is ImageNode -> Icons.Rounded.Image
+    is ShapeNode -> Icons.Rounded.Category
     is ProgressNode -> Icons.Rounded.LinearScale
     is ButtonNode -> Icons.Rounded.SmartButton
     is LayoutContainer -> if (isExpanded) Icons.Rounded.FolderOpen else Icons.Rounded.Folder

@@ -228,10 +228,10 @@ private fun CanvasNode(
             } else Modifier
         )
         .then(
-            if (!isConditionMet) {
-                // If condition not met but selected, render semi-transparent
-                Modifier.graphicsLayer { alpha = 0.5f }
-            } else Modifier
+            Modifier.graphicsLayer {
+                val conditionAlpha = if (!isConditionMet) 0.5f else 1f
+                alpha = (node.opacity * conditionAlpha).coerceIn(0f, 1f)
+            }
         )
 
     Box(modifier = containerModifier) {
@@ -256,14 +256,55 @@ private fun CanvasNode(
                     previewEngine.resolve(colorFormula, context).ifBlank { node.colorHex }
                 } else node.colorHex
 
+                val textAlign = when (node.gravity) {
+                    TextGravity.START -> androidx.compose.ui.text.style.TextAlign.Start
+                    TextGravity.CENTER -> androidx.compose.ui.text.style.TextAlign.Center
+                    TextGravity.END -> androidx.compose.ui.text.style.TextAlign.End
+                }
+
                 Text(
                     text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, context).ifBlank { node.template },
                     color = safeParseColor(resolvedColor),
                     fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
                     fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
+                    fontStyle = if (node.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
+                    textAlign = textAlign,
                     maxLines = node.maxLines,
                     overflow = TextOverflow.Ellipsis,
                     modifier = contentModifier
+                )
+            }
+
+            is ShapeNode -> {
+                val fillFormula = node.bindings[BindableProperty.SHAPE_FILL.key]
+                val strokeFormula = node.bindings[BindableProperty.SHAPE_STROKE.key]
+                val resolvedFill = if (!isWireframeMode && !fillFormula.isNullOrBlank()) {
+                    previewEngine.resolve(fillFormula, context).ifBlank { node.fillColorHex }
+                } else node.fillColorHex
+                val resolvedStroke = if (!isWireframeMode && !strokeFormula.isNullOrBlank()) {
+                    previewEngine.resolve(strokeFormula, context).ifBlank { node.strokeColorHex }
+                } else node.strokeColorHex
+
+                val fillColor = resolvedFill?.let { safeParseColor(it) } ?: Color.Transparent
+                val strokeColor = resolvedStroke?.let { safeParseColor(it) } ?: Color.Transparent
+
+                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                val shape: androidx.compose.ui.graphics.Shape = when (node.shapeId) {
+                    "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
+                    "rounded", "rounded_rect" -> RoundedCornerShape(node.cornerRadiusDp.dp)
+                    "circle", "ellipse" -> CircleShape
+                    else -> com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId(node.shapeId).toShape()
+                }
+
+                val borderModifier = if (node.strokeWidthDp > 0 && resolvedStroke != null) {
+                    Modifier.border(node.strokeWidthDp.dp, strokeColor, shape)
+                } else Modifier
+
+                Box(
+                    modifier = contentModifier
+                        .then(borderModifier)
+                        .background(fillColor, shape)
+                        .clip(shape)
                 )
             }
 
@@ -485,6 +526,7 @@ private fun defaultWidthOf(node: CustomWidgetNode): Int = when (node) {
     is ButtonNode -> 80
     is LayoutContainer -> 120
     is TextNode -> 80
+    is ShapeNode -> 48
 }
 
 private fun defaultHeightOf(node: CustomWidgetNode): Int = when (node) {
@@ -493,6 +535,7 @@ private fun defaultHeightOf(node: CustomWidgetNode): Int = when (node) {
     is ButtonNode -> 36
     is LayoutContainer -> 60
     is TextNode -> 24
+    is ShapeNode -> 48
 }
 
 /** Applies a drag to a node's bounds, keeping it inside the canvas. */

@@ -65,6 +65,7 @@ object WidgetDimensionValidator {
                     buttonCount++
                     node.copy(bounds = clampedBounds)
                 }
+                is ShapeNode -> node.copy(bounds = clampedBounds)
                 is LayoutContainer -> {
                     val clampedChildren = when {
                         node.children.isEmpty() -> node.children

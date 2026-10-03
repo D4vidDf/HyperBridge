@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.SmartButton
@@ -46,6 +47,7 @@ import com.d4viddf.hyperbridge.models.widget.ImageNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 import com.d4viddf.hyperbridge.models.widget.NodeBounds
 import com.d4viddf.hyperbridge.models.widget.ProgressNode
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
 import com.d4viddf.hyperbridge.models.widget.TextNode
 import java.util.UUID
 
@@ -57,6 +59,7 @@ enum class StudioElement(
 ) {
     TEXT(R.string.studio_add_text, R.string.studio_add_text_desc, Icons.Rounded.TextFields),
     IMAGE(R.string.studio_add_image, R.string.studio_add_image_desc, Icons.Rounded.Image),
+    SHAPE(R.string.studio_add_shape, R.string.studio_add_shape_desc, Icons.Rounded.Category),
     PROGRESS(R.string.studio_add_progress, R.string.studio_add_progress_desc, Icons.Rounded.Timeline),
     BUTTON(R.string.studio_add_button, R.string.studio_add_button_desc, Icons.Rounded.SmartButton),
     CONTAINER(R.string.studio_add_container, R.string.studio_add_container_desc, Icons.Rounded.Dashboard);
@@ -66,6 +69,7 @@ enum class StudioElement(
         return when (this) {
             TEXT -> TextNode(id = id, template = "{notif.title}", bounds = NodeBounds(x = 8, y = 8))
             IMAGE -> ImageNode(id = id, bounds = NodeBounds(x = 8, y = 8, widthDp = 24, heightDp = 24))
+            SHAPE -> ShapeNode(id = id, bounds = NodeBounds(x = 8, y = 8, widthDp = 48, heightDp = 48))
             PROGRESS -> ProgressNode(id = id, bounds = NodeBounds(x = 8, y = 8, widthDp = 120, heightDp = 8))
             BUTTON -> ButtonNode(id = id, label = "Button", bounds = NodeBounds(x = 8, y = 8))
             CONTAINER -> LayoutContainer(id = id, layout = ContainerLayout.ROW, bounds = NodeBounds(x = 8, y = 8))

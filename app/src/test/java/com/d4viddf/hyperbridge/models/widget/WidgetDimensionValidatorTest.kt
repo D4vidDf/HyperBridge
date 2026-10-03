@@ -30,6 +30,22 @@ class WidgetDimensionValidatorTest {
     }
 
     @Test
+    fun clampsOutOfBoundsShapeNodePosition() {
+        val root = LayoutContainer(
+            id = "root",
+            children = listOf(ShapeNode(id = "s1", bounds = NodeBounds(x = -5, y = 1000, widthDp = 600, heightDp = 600)))
+        )
+        val result = WidgetDimensionValidator.validate(doc(root))
+
+        assertTrue(result.errors.isNotEmpty())
+        val clampedShape = result.clamped.root.children.first() as ShapeNode
+        assertEquals(0, clampedShape.bounds.x)
+        assertEquals(CanvasSize.MEDIUM.heightDp, clampedShape.bounds.y)
+        assertEquals(WidgetDimensionValidator.CANVAS_WIDTH_DP, clampedShape.bounds.widthDp)
+        assertEquals(CanvasSize.MEDIUM.heightDp, clampedShape.bounds.heightDp)
+    }
+
+    @Test
     fun clampsFontSizeOutsideSaneBounds() {
         val root = LayoutContainer(id = "root", children = listOf(TextNode(id = "t1", fontSizeSp = 200)))
         val result = WidgetDimensionValidator.validate(doc(root))

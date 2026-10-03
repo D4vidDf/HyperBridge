@@ -81,6 +81,9 @@ sealed interface CustomWidgetNode {
     /** When true, node is locked against canvas drag and resize. */
     val locked: Boolean get() = false
 
+    /** Opacity of this layer (0.0 to 1.0). Defaults to 1.0 (fully opaque). */
+    val opacity: Float get() = 1f
+
     /**
      * Dynamic variable bindings (property key -> "{token}" template).
      * Takes precedence over static properties at render time if non-blank.
@@ -103,11 +106,13 @@ data class TextNode(
     override val bounds: NodeBounds = NodeBounds(),
     override val name: String? = null,
     override val locked: Boolean = false,
+    override val opacity: Float = 1f,
     override val bindings: Map<String, String> = emptyMap(),
     val template: String = "",
     val fontSizeSp: Int = 14,
     val colorHex: String = "#FFFFFF",
     val bold: Boolean = false,
+    val italic: Boolean = false,
     val maxLines: Int = 1,
     val marquee: Boolean = false,
     val gravity: TextGravity = TextGravity.START,
@@ -145,6 +150,7 @@ data class ImageNode(
     override val bounds: NodeBounds = NodeBounds(widthDp = 24, heightDp = 24),
     override val name: String? = null,
     override val locked: Boolean = false,
+    override val opacity: Float = 1f,
     override val bindings: Map<String, String> = emptyMap(),
     val source: ImageSource = ImageSource.SystemGlyph("notification"),
     val shapeId: String = "circle",
@@ -162,6 +168,7 @@ data class ProgressNode(
     override val bounds: NodeBounds = NodeBounds(widthDp = 64, heightDp = 8),
     override val name: String? = null,
     override val locked: Boolean = false,
+    override val opacity: Float = 1f,
     override val bindings: Map<String, String> = emptyMap(),
     val style: ProgressStyle = ProgressStyle.LINEAR,
     val valueTemplate: String = "{device.battery}",
@@ -218,6 +225,7 @@ data class ButtonNode(
     override val bounds: NodeBounds = NodeBounds(),
     override val name: String? = null,
     override val locked: Boolean = false,
+    override val opacity: Float = 1f,
     override val bindings: Map<String, String> = emptyMap(),
     val label: String = "",
     val action: ButtonAction = ButtonAction.Dismiss,
@@ -228,6 +236,24 @@ data class ButtonNode(
     override val onClick: ButtonAction? get() = action
 }
 
+@Serializable
+@SerialName("shape")
+data class ShapeNode(
+    override val id: String,
+    override val bounds: NodeBounds = NodeBounds(widthDp = 48, heightDp = 48),
+    override val name: String? = null,
+    override val locked: Boolean = false,
+    override val opacity: Float = 1f,
+    override val bindings: Map<String, String> = emptyMap(),
+    val shapeId: String = "circle",
+    val fillColorHex: String? = "#33FFFFFF",
+    val strokeColorHex: String? = null,
+    val strokeWidthDp: Int = 0,
+    val cornerRadiusDp: Int = 8,
+    override val showIf: NodeCondition = NodeCondition.Always,
+    override val onClick: ButtonAction? = null
+) : CustomWidgetNode
+
 enum class ContainerLayout { ROW, COLUMN, BOX, ABSOLUTE }
 
 @Serializable
@@ -237,6 +263,7 @@ data class LayoutContainer(
     override val bounds: NodeBounds = NodeBounds(),
     override val name: String? = null,
     override val locked: Boolean = false,
+    override val opacity: Float = 1f,
     override val bindings: Map<String, String> = emptyMap(),
     val layout: ContainerLayout = ContainerLayout.COLUMN,
     val children: List<CustomWidgetNode> = emptyList(),
@@ -294,7 +321,11 @@ enum class BindableProperty(val key: String) {
     IMAGE_TINT("tintHex"),
     CONTAINER_BACKGROUND("backgroundHex"),
     BOUNDS_WIDTH("widthDp"),
-    BOUNDS_HEIGHT("heightDp")
+    BOUNDS_HEIGHT("heightDp"),
+    SHAPE_FILL("fillColorHex"),
+    SHAPE_STROKE("strokeColorHex"),
+    SHAPE_STROKE_WIDTH("strokeWidthDp"),
+    OPACITY("opacity")
 }
 
 fun CustomWidgetNode.withBounds(bounds: NodeBounds): CustomWidgetNode = when (this) {
@@ -303,6 +334,7 @@ fun CustomWidgetNode.withBounds(bounds: NodeBounds): CustomWidgetNode = when (th
     is ProgressNode -> copy(bounds = bounds)
     is ButtonNode -> copy(bounds = bounds)
     is LayoutContainer -> copy(bounds = bounds)
+    is ShapeNode -> copy(bounds = bounds)
 }
 
 fun CustomWidgetNode.withShowIf(condition: NodeCondition): CustomWidgetNode = when (this) {
@@ -311,6 +343,7 @@ fun CustomWidgetNode.withShowIf(condition: NodeCondition): CustomWidgetNode = wh
     is ProgressNode -> copy(showIf = condition)
     is ButtonNode -> copy(showIf = condition)
     is LayoutContainer -> copy(showIf = condition)
+    is ShapeNode -> copy(showIf = condition)
 }
 
 fun CustomWidgetNode.withOnClick(action: ButtonAction?): CustomWidgetNode = when (this) {
@@ -319,6 +352,7 @@ fun CustomWidgetNode.withOnClick(action: ButtonAction?): CustomWidgetNode = when
     is ProgressNode -> copy(onClick = action)
     is ButtonNode -> copy(action = action ?: ButtonAction.Dismiss)
     is LayoutContainer -> copy(onClick = action)
+    is ShapeNode -> copy(onClick = action)
 }
 
 fun CustomWidgetNode.withName(name: String?): CustomWidgetNode = when (this) {
@@ -327,6 +361,7 @@ fun CustomWidgetNode.withName(name: String?): CustomWidgetNode = when (this) {
     is ProgressNode -> copy(name = name)
     is ButtonNode -> copy(name = name)
     is LayoutContainer -> copy(name = name)
+    is ShapeNode -> copy(name = name)
 }
 
 fun CustomWidgetNode.withLocked(locked: Boolean): CustomWidgetNode = when (this) {
@@ -335,6 +370,16 @@ fun CustomWidgetNode.withLocked(locked: Boolean): CustomWidgetNode = when (this)
     is ProgressNode -> copy(locked = locked)
     is ButtonNode -> copy(locked = locked)
     is LayoutContainer -> copy(locked = locked)
+    is ShapeNode -> copy(locked = locked)
+}
+
+fun CustomWidgetNode.withOpacity(opacity: Float): CustomWidgetNode = when (this) {
+    is TextNode -> copy(opacity = opacity)
+    is ImageNode -> copy(opacity = opacity)
+    is ProgressNode -> copy(opacity = opacity)
+    is ButtonNode -> copy(opacity = opacity)
+    is LayoutContainer -> copy(opacity = opacity)
+    is ShapeNode -> copy(opacity = opacity)
 }
 
 fun CustomWidgetNode.withBindings(bindings: Map<String, String>): CustomWidgetNode = when (this) {
@@ -343,6 +388,7 @@ fun CustomWidgetNode.withBindings(bindings: Map<String, String>): CustomWidgetNo
     is ProgressNode -> copy(bindings = bindings)
     is ButtonNode -> copy(bindings = bindings)
     is LayoutContainer -> copy(bindings = bindings)
+    is ShapeNode -> copy(bindings = bindings)
 }
 
 fun CustomWidgetNode.withBinding(key: String, formula: String?): CustomWidgetNode {

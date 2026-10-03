@@ -103,6 +103,39 @@ class CustomWidgetTreeTest {
     }
 
     @Test
+    fun duplicateNodeWorksForShapeNode() {
+        val doc = CustomWidgetDocument(
+            id = "w1",
+            meta = CustomWidgetMetadata(name = "Test"),
+            root = LayoutContainer(
+                id = "root",
+                layout = ContainerLayout.ABSOLUTE,
+                children = listOf(
+                    ShapeNode(
+                        id = "s1",
+                        bounds = NodeBounds(10, 20, 50, 20),
+                        shapeId = "rounded_rect",
+                        cornerRadiusDp = 4,
+                        opacity = 0.8f
+                    )
+                )
+            )
+        )
+
+        val (updated, newId) = doc.duplicateNode("s1")
+        org.junit.Assert.assertNotNull(newId)
+        org.junit.Assert.assertNotEquals("s1", newId)
+        assertEquals(2, updated.root.children.size)
+
+        val duplicate = updated.findNode(newId!!) as ShapeNode
+        assertEquals("rounded_rect", duplicate.shapeId)
+        assertEquals(4, duplicate.cornerRadiusDp)
+        assertEquals(0.8f, duplicate.opacity)
+        assertEquals(18, duplicate.bounds.x)
+        assertEquals(28, duplicate.bounds.y)
+    }
+
+    @Test
     fun groupNodeWrapsTargetInContainer() {
         val doc = sampleDoc()
         val (updated, newGroupId) = doc.groupNode("nested", ContainerLayout.ROW)

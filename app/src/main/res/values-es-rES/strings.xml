@@ -1477,4 +1477,26 @@
     <string name="studio_scope_system_apps">Apps del sistema</string>
     <string name="studio_scope_add_app">Añadir app</string>
     <string name="studio_scope_no_apps">Ninguna app seleccionada. Pulsa \'+\' para añadir una app.</string>
+
+    <!-- Stage 8: Renderer Parity & Shapes -->
+    <string name="studio_node_shape">Forma de diseño</string>
+    <string name="studio_add_shape">Forma</string>
+    <string name="studio_add_shape_desc">Una forma geométrica, tarjeta o placa de fondo</string>
+    <string name="studio_property_gravity">Alineación del texto</string>
+    <string name="studio_gravity_start">Inicio</string>
+    <string name="studio_gravity_center">Centro</string>
+    <string name="studio_gravity_end">Fin</string>
+    <string name="studio_property_italic">Cursiva</string>
+    <string name="studio_property_opacity">Opacidad</string>
+    <string name="studio_property_shape_fill">Color de relleno (hex)</string>
+    <string name="studio_property_shape_stroke">Color de trazo (hex)</string>
+    <string name="studio_property_shape_stroke_width">Grosor del trazo (dp)</string>
+    <string name="studio_property_shape_corner_radius">Radio de esquinas (dp)</string>
+    <string name="studio_property_shape_geometry">Geometría de la forma</string>
+    <string name="studio_shape_circle">Círculo</string>
+    <string name="studio_shape_rounded">Rectángulo redondeado</string>
+    <string name="studio_shape_rectangle">Rectángulo</string>
+    <string name="studio_shape_cookie">Galleta</string>
+    <string name="studio_shape_arch">Arco</string>
+    <string name="studio_shape_clover">Trébol</string>
 </resources>

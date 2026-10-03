@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.ContentCopy
@@ -459,10 +460,44 @@ private fun ItemTabContent(
                     onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_COLOR.key) }
                 )
 
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Text(
+                        text = stringResource(R.string.studio_property_gravity),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = node.gravity == TextGravity.START,
+                            onClick = { onChange(node.copy(gravity = TextGravity.START)) },
+                            label = { Text(stringResource(R.string.studio_gravity_start)) }
+                        )
+                        FilterChip(
+                            selected = node.gravity == TextGravity.CENTER,
+                            onClick = { onChange(node.copy(gravity = TextGravity.CENTER)) },
+                            label = { Text(stringResource(R.string.studio_gravity_center)) }
+                        )
+                        FilterChip(
+                            selected = node.gravity == TextGravity.END,
+                            onClick = { onChange(node.copy(gravity = TextGravity.END)) },
+                            label = { Text(stringResource(R.string.studio_gravity_end)) }
+                        )
+                    }
+                }
+
                 LabelledSwitch(
                     label = stringResource(R.string.studio_property_bold),
                     checked = node.bold,
                     onCheckedChange = { onChange(node.copy(bold = it)) }
+                )
+
+                LabelledSwitch(
+                    label = stringResource(R.string.studio_property_italic),
+                    checked = node.italic,
+                    onCheckedChange = { onChange(node.copy(italic = it)) }
                 )
             }
 
@@ -536,6 +571,14 @@ private fun ItemTabContent(
                     onChange = onChange,
                     onRequestFormulaEditor = onRequestFormulaEditor,
                     onRequestAppChooser = onRequestAppChooser
+                )
+            }
+
+            is ShapeNode -> {
+                ShapeNodeEditor(
+                    node = node,
+                    onChange = onChange,
+                    onRequestFormulaEditor = onRequestFormulaEditor
                 )
             }
 
@@ -744,6 +787,92 @@ private fun ImageNodeEditor(
 }
 
 @Composable
+private fun ShapeNodeEditor(
+    node: ShapeNode,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = stringResource(R.string.studio_property_shape_geometry),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        val shapes = listOf("circle", "rounded", "rectangle", "cookie", "arch", "clover8")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            shapes.forEach { shapeId ->
+                val isSelected = node.shapeId == shapeId
+                val label = when (shapeId) {
+                    "circle" -> stringResource(R.string.studio_shape_circle)
+                    "rounded" -> stringResource(R.string.studio_shape_rounded)
+                    "rectangle" -> stringResource(R.string.studio_shape_rectangle)
+                    "cookie" -> stringResource(R.string.studio_shape_cookie)
+                    "arch" -> stringResource(R.string.studio_shape_arch)
+                    "clover8" -> stringResource(R.string.studio_shape_clover)
+                    else -> shapeId
+                }
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onChange(node.copy(shapeId = shapeId)) },
+                    label = { Text(label) }
+                )
+            }
+        }
+
+        if (node.shapeId == "rounded" || node.shapeId == "rounded_rect") {
+            StudioStepper(
+                label = stringResource(R.string.studio_property_shape_corner_radius),
+                value = node.cornerRadiusDp,
+                onValueChange = { onChange(node.copy(cornerRadiusDp = it.coerceIn(0, 100))) },
+                unitSuffix = "dp",
+                min = 0,
+                max = 100
+            )
+        }
+
+        // Fill color
+        StudioColorField(
+            label = stringResource(R.string.studio_property_shape_fill),
+            colorHex = node.fillColorHex.orEmpty().ifBlank { "#33FFFFFF" },
+            onColorHexChange = { onChange(node.copy(fillColorHex = it.ifBlank { null })) },
+            boundFormula = node.bindings[BindableProperty.SHAPE_FILL.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.SHAPE_FILL.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.SHAPE_FILL.key) }
+        )
+
+        // Stroke color
+        StudioColorField(
+            label = stringResource(R.string.studio_property_shape_stroke),
+            colorHex = node.strokeColorHex.orEmpty().ifBlank { "#FFFFFF" },
+            onColorHexChange = { onChange(node.copy(strokeColorHex = it.ifBlank { null })) },
+            boundFormula = node.bindings[BindableProperty.SHAPE_STROKE.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.SHAPE_STROKE.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.SHAPE_STROKE.key) }
+        )
+
+        // Stroke width
+        StudioStepper(
+            label = stringResource(R.string.studio_property_shape_stroke_width),
+            value = node.strokeWidthDp,
+            onValueChange = { onChange(node.copy(strokeWidthDp = it.coerceIn(0, 32))) },
+            unitSuffix = "dp",
+            min = 0,
+            max = 32,
+            boundFormula = node.bindings[BindableProperty.SHAPE_STROKE_WIDTH.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.SHAPE_STROKE_WIDTH.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.SHAPE_STROKE_WIDTH.key) }
+        )
+    }
+}
+
+@Composable
 private fun LayerTabContent(
     node: CustomWidgetNode,
     isRoot: Boolean,
@@ -771,6 +900,18 @@ private fun LayerTabContent(
             label = stringResource(R.string.studio_layer_locked),
             checked = node.locked,
             onCheckedChange = { onChange(node.withLocked(it)) }
+        )
+
+        StudioStepper(
+            label = stringResource(R.string.studio_property_opacity),
+            value = (node.opacity * 100).toInt(),
+            onValueChange = { onChange(node.withOpacity(it.coerceIn(0, 100) / 100f)) },
+            unitSuffix = "%",
+            min = 0,
+            max = 100,
+            boundFormula = node.bindings[BindableProperty.OPACITY.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.OPACITY.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.OPACITY.key) }
         )
 
         if (!isRoot) {
@@ -1134,11 +1275,12 @@ private fun BindingsTabContent(
     onRequestFormulaEditor: (String) -> Unit = {}
 ) {
     val bindableProps = when (node) {
-        is TextNode -> listOf(BindableProperty.TEXT_TEMPLATE, BindableProperty.TEXT_COLOR, BindableProperty.TEXT_FONT_SIZE)
-        is ProgressNode -> listOf(BindableProperty.PROGRESS_VALUE, BindableProperty.PROGRESS_COLOR, BindableProperty.PROGRESS_TRACK_COLOR)
-        is ButtonNode -> listOf(BindableProperty.BUTTON_LABEL, BindableProperty.BUTTON_TEXT_COLOR, BindableProperty.BUTTON_BACKGROUND)
-        is ImageNode -> listOf(BindableProperty.IMAGE_TINT, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT)
-        is LayoutContainer -> listOf(BindableProperty.CONTAINER_BACKGROUND, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT)
+        is TextNode -> listOf(BindableProperty.TEXT_TEMPLATE, BindableProperty.TEXT_COLOR, BindableProperty.TEXT_FONT_SIZE, BindableProperty.OPACITY)
+        is ProgressNode -> listOf(BindableProperty.PROGRESS_VALUE, BindableProperty.PROGRESS_COLOR, BindableProperty.PROGRESS_TRACK_COLOR, BindableProperty.OPACITY)
+        is ButtonNode -> listOf(BindableProperty.BUTTON_LABEL, BindableProperty.BUTTON_TEXT_COLOR, BindableProperty.BUTTON_BACKGROUND, BindableProperty.OPACITY)
+        is ImageNode -> listOf(BindableProperty.IMAGE_TINT, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
+        is ShapeNode -> listOf(BindableProperty.SHAPE_FILL, BindableProperty.SHAPE_STROKE, BindableProperty.SHAPE_STROKE_WIDTH, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
+        is LayoutContainer -> listOf(BindableProperty.CONTAINER_BACKGROUND, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
     }
 
     StudioSection(stringResource(R.string.studio_tab_bindings)) {
@@ -1784,6 +1926,7 @@ private fun defaultNodeTitle(node: CustomWidgetNode): String = when (node) {
     is ImageNode -> "Image"
     is ProgressNode -> "Progress"
     is ButtonNode -> if (node.label.isNotBlank()) node.label else "Button"
+    is ShapeNode -> "Shape"
     is LayoutContainer -> "Group"
 }
 
@@ -1792,6 +1935,7 @@ private fun nodeIcon(node: CustomWidgetNode): ImageVector = when (node) {
     is ImageNode -> Icons.Rounded.Image
     is ProgressNode -> Icons.Rounded.LinearScale
     is ButtonNode -> Icons.Rounded.SmartButton
+    is ShapeNode -> Icons.Rounded.Category
     is LayoutContainer -> Icons.Rounded.Folder
 }
 

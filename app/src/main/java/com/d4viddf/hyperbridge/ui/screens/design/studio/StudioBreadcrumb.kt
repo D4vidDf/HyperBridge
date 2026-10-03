@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Image
@@ -40,6 +41,7 @@ import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
 import com.d4viddf.hyperbridge.models.widget.ImageNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 import com.d4viddf.hyperbridge.models.widget.ProgressNode
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
 import com.d4viddf.hyperbridge.models.widget.TextNode
 import com.d4viddf.hyperbridge.models.widget.findNode
 import com.d4viddf.hyperbridge.models.widget.parentOf
@@ -61,6 +63,7 @@ fun StudioBreadcrumb(
     val rootLabel = stringResource(R.string.studio_breadcrumb_root)
     val textLabel = stringResource(R.string.studio_add_text)
     val imageLabel = stringResource(R.string.studio_add_image)
+    val shapeLabel = stringResource(R.string.studio_add_shape)
     val progressLabel = stringResource(R.string.studio_add_progress)
     val buttonLabel = stringResource(R.string.studio_add_button)
     val groupLabel = stringResource(R.string.studio_add_container)
@@ -72,6 +75,7 @@ fun StudioBreadcrumb(
             rootLabel = rootLabel,
             textLabel = textLabel,
             imageLabel = imageLabel,
+            shapeLabel = shapeLabel,
             progressLabel = progressLabel,
             buttonLabel = buttonLabel,
             groupLabel = groupLabel
@@ -169,6 +173,7 @@ private fun buildCrumbs(
     rootLabel: String,
     textLabel: String,
     imageLabel: String,
+    shapeLabel: String,
     progressLabel: String,
     buttonLabel: String,
     groupLabel: String
@@ -198,7 +203,7 @@ private fun buildCrumbs(
         crumbs.add(
             BreadcrumbItem(
                 id = node.id,
-                label = node.name ?: fallbackNodeLabel(node, textLabel, imageLabel, progressLabel, buttonLabel, groupLabel),
+                label = node.name ?: fallbackNodeLabel(node, textLabel, imageLabel, shapeLabel, progressLabel, buttonLabel, groupLabel),
                 icon = nodeIcon(node),
                 isCurrent = isSelected
             )
@@ -212,12 +217,14 @@ private fun fallbackNodeLabel(
     node: CustomWidgetNode,
     textLabel: String,
     imageLabel: String,
+    shapeLabel: String,
     progressLabel: String,
     buttonLabel: String,
     groupLabel: String
 ): String = when (node) {
     is TextNode -> if (node.template.isNotBlank()) node.template.take(16) else textLabel
     is ImageNode -> imageLabel
+    is ShapeNode -> shapeLabel
     is ProgressNode -> progressLabel
     is ButtonNode -> if (node.label.isNotBlank()) node.label.take(16) else buttonLabel
     is LayoutContainer -> groupLabel
@@ -226,6 +233,7 @@ private fun fallbackNodeLabel(
 private fun nodeIcon(node: CustomWidgetNode): ImageVector = when (node) {
     is TextNode -> Icons.Rounded.Title
     is ImageNode -> Icons.Rounded.Image
+    is ShapeNode -> Icons.Rounded.Category
     is ProgressNode -> Icons.Rounded.LinearScale
     is ButtonNode -> Icons.Rounded.SmartButton
     is LayoutContainer -> Icons.Rounded.Folder

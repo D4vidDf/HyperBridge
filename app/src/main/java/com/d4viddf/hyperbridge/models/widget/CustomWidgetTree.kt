@@ -107,6 +107,7 @@ fun CustomWidgetNode.withFreshIds(): CustomWidgetNode {
         is ImageNode -> copy(id = newId)
         is ProgressNode -> copy(id = newId)
         is ButtonNode -> copy(id = newId)
+        is ShapeNode -> copy(id = newId)
         is LayoutContainer -> copy(
             id = newId,
             children = children.map { it.withFreshIds() }

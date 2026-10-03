@@ -29,9 +29,20 @@ class CustomWidgetDocumentSerializationTest {
                         fontSizeSp = 16,
                         colorHex = "#FFFFFF",
                         bold = true,
+                        italic = true,
                         maxLines = 2,
                         marquee = true,
-                        gravity = TextGravity.CENTER
+                        gravity = TextGravity.CENTER,
+                        opacity = 0.9f
+                    ),
+                    ShapeNode(
+                        id = "shape-bg",
+                        shapeId = "rounded_rect",
+                        fillColorHex = "#333333",
+                        strokeColorHex = "#555555",
+                        strokeWidthDp = 2,
+                        cornerRadiusDp = 8,
+                        opacity = 0.75f
                     ),
                     ImageNode(
                         id = "icon",
@@ -145,6 +156,8 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals(null, textNode.name)
         assertEquals(false, textNode.locked)
         assertEquals(emptyMap<String, String>(), textNode.bindings)
+        assertEquals(1f, textNode.opacity)
+        assertEquals(false, textNode.italic)
     }
 
     @Test

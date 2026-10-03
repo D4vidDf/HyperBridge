@@ -22,8 +22,8 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
+import com.d4viddf.hyperbridge.models.widget.BindableProperty
 import com.d4viddf.hyperbridge.models.widget.ButtonAction
-import com.d4viddf.hyperbridge.models.widget.NodeConditionEvaluator
 import com.d4viddf.hyperbridge.models.widget.ButtonNode
 import com.d4viddf.hyperbridge.models.widget.ContainerLayout
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
@@ -31,8 +31,11 @@ import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
 import com.d4viddf.hyperbridge.models.widget.ImageNode
 import com.d4viddf.hyperbridge.models.widget.ImageSource
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.NodeConditionEvaluator
 import com.d4viddf.hyperbridge.models.widget.ProgressNode
 import com.d4viddf.hyperbridge.models.widget.ProgressStyle
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
+import com.d4viddf.hyperbridge.models.widget.TextGravity
 import com.d4viddf.hyperbridge.models.widget.TextNode
 import com.d4viddf.hyperbridge.receiver.WidgetActionReceiver
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
@@ -85,9 +88,16 @@ class CustomWidgetRenderer(
             is TextNode -> renderText(node, ctx)
             is ImageNode -> renderImage(doc, node, ctx)
             is ProgressNode -> renderProgress(node, ctx)
-            is ButtonNode -> renderButton(doc, node, bridgeId, intents)
+            is ButtonNode -> renderButton(doc, node, bridgeId, intents, ctx)
+            is ShapeNode -> renderShape(node, ctx)
         }
-        applySize(rv, rootViewId(node), node.bounds.widthDp, node.bounds.heightDp)
+        val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx)
+        val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
+        applySize(rv, rootViewId(node), widthDp, heightDp)
+
+        val resolvedOpacity = resolveFloat(node, BindableProperty.OPACITY, node.opacity, ctx) ?: 1f
+        rv.setFloat(rootViewId(node), "setAlpha", resolvedOpacity.coerceIn(0f, 1f))
+
         // Any element can carry a tap action, not just buttons (#328); ButtonNode wired its own.
         if (node !is ButtonNode) {
             node.onClick?.let { action ->
@@ -105,11 +115,56 @@ class CustomWidgetRenderer(
         is ImageNode -> R.id.node_image
         is ProgressNode -> R.id.node_progress
         is ButtonNode -> R.id.node_button
+        is ShapeNode -> R.id.node_shape
     }
 
     private fun applySize(rv: RemoteViews, viewId: Int, widthDp: Int?, heightDp: Int?) {
         if (widthDp != null) rv.setViewLayoutWidth(viewId, widthDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
         if (heightDp != null) rv.setViewLayoutHeight(viewId, heightDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+    }
+
+    private fun resolveString(node: CustomWidgetNode, prop: BindableProperty, staticValue: String?, ctx: VariableContext): String? {
+        val formula = node.bindings[prop.key]
+        if (!formula.isNullOrBlank()) {
+            val resolved = engine.resolve(formula, ctx).trim()
+            if (resolved.isNotEmpty()) return resolved
+        }
+        return staticValue
+    }
+
+    private fun resolveColor(node: CustomWidgetNode, prop: BindableProperty, staticHex: String?, ctx: VariableContext): Int? {
+        val formula = node.bindings[prop.key]
+        if (!formula.isNullOrBlank()) {
+            val resolved = engine.resolve(formula, ctx).trim()
+            if (resolved.isNotEmpty()) {
+                try {
+                    return resolved.toColorInt()
+                } catch (_: Exception) {}
+            }
+        }
+        return staticHex?.let {
+            try { it.toColorInt() } catch (_: Exception) { null }
+        }
+    }
+
+    private fun resolveInt(node: CustomWidgetNode, prop: BindableProperty, staticValue: Int?, ctx: VariableContext): Int? {
+        val formula = node.bindings[prop.key]
+        if (!formula.isNullOrBlank()) {
+            val resolved = engine.resolve(formula, ctx).trim()
+            val parsed = resolved.toIntOrNull()
+            if (parsed != null) return parsed
+        }
+        return staticValue
+    }
+
+    private fun resolveFloat(node: CustomWidgetNode, prop: BindableProperty, staticValue: Float?, ctx: VariableContext): Float? {
+        val formula = node.bindings[prop.key]
+        if (!formula.isNullOrBlank()) {
+            val resolved = engine.resolve(formula, ctx).trim()
+            val parsed = resolved.toFloatOrNull()
+            if (parsed != null) return parsed
+        }
+        return staticValue
     }
 
     private fun renderContainer(
@@ -125,9 +180,10 @@ class CustomWidgetRenderer(
             ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> R.layout.layout_widget_container_box
         }
         val rv = RemoteViews(context.packageName, layoutRes)
-        if (node.backgroundHex != null) {
+        val bgColor = resolveColor(node, BindableProperty.CONTAINER_BACKGROUND, node.backgroundHex, ctx)
+        if (bgColor != null) {
             try {
-                rv.setInt(R.id.widget_container_root, "setBackgroundColor", node.backgroundHex.toColorInt())
+                rv.setInt(R.id.widget_container_root, "setBackgroundColor", bgColor)
             } catch (_: Exception) { /* ignore invalid color */ }
         }
         rv.setViewPadding(
@@ -151,19 +207,46 @@ class CustomWidgetRenderer(
 
     private fun renderText(node: TextNode, ctx: VariableContext): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_text)
-        val resolved = engine.resolve(node.template, ctx)
-        rv.setTextViewText(R.id.node_text, resolved)
-        rv.setTextViewTextSize(R.id.node_text, TypedValue.COMPLEX_UNIT_SP, node.fontSizeSp.toFloat())
-        try {
-            rv.setTextColor(R.id.node_text, node.colorHex.toColorInt())
-        } catch (_: Exception) { /* keep default */ }
+        val template = resolveString(node, BindableProperty.TEXT_TEMPLATE, node.template, ctx).orEmpty()
+        val resolved = engine.resolve(template, ctx)
+
+        val textToSet: CharSequence = if (node.bold || node.italic) {
+            android.text.SpannableString(resolved).apply {
+                val style = when {
+                    node.bold && node.italic -> android.graphics.Typeface.BOLD_ITALIC
+                    node.bold -> android.graphics.Typeface.BOLD
+                    node.italic -> android.graphics.Typeface.ITALIC
+                    else -> android.graphics.Typeface.NORMAL
+                }
+                setSpan(
+                    android.text.style.StyleSpan(style),
+                    0,
+                    length,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+        } else {
+            resolved
+        }
+        rv.setTextViewText(R.id.node_text, textToSet)
+
+        val fontSize = resolveInt(node, BindableProperty.TEXT_FONT_SIZE, node.fontSizeSp, ctx) ?: node.fontSizeSp
+        rv.setTextViewTextSize(R.id.node_text, TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat())
+
+        val textColor = resolveColor(node, BindableProperty.TEXT_COLOR, node.colorHex, ctx)
+        if (textColor != null) {
+            rv.setTextColor(R.id.node_text, textColor)
+        }
+
+        val gravityFlag = when (node.gravity) {
+            TextGravity.START -> android.view.Gravity.START
+            TextGravity.CENTER -> android.view.Gravity.CENTER
+            TextGravity.END -> android.view.Gravity.END
+        }
+        rv.setInt(R.id.node_text, "setGravity", gravityFlag)
+
         rv.setInt(R.id.node_text, "setMaxLines", node.maxLines)
         rv.setBoolean(R.id.node_text, "setSingleLine", node.maxLines == 1)
-        // Marquee support inside a RemoteViews tree hosted by another process (the island shell)
-        // is unreliable - it generally needs `isSelected`/focus that a hosted view never gets - so
-        // rather than risk a reflective RemoteViews call that throws on some OEMs, [node.marquee]
-        // always falls back to the layout's static `android:ellipsize="end"` truncation (see #273
-        // scope notes: "marquee is a best-effort flag that may no-op").
         return rv
     }
 
@@ -174,6 +257,79 @@ class CustomWidgetRenderer(
             val shaped = applyShape(bitmap, node.shapeId)
             rv.setImageViewBitmap(R.id.node_image, shaped)
         }
+        val tintColor = resolveColor(node, BindableProperty.IMAGE_TINT, node.tintHex, ctx)
+        if (tintColor != null) {
+            rv.setInt(R.id.node_image, "setColorFilter", tintColor)
+        }
+        return rv
+    }
+
+    private fun renderShape(node: ShapeNode, ctx: VariableContext): RemoteViews {
+        val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_shape)
+        val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx) ?: 48
+        val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx) ?: 48
+        val widthPx = dpToPx(widthDp).coerceAtLeast(1)
+        val heightPx = dpToPx(heightDp).coerceAtLeast(1)
+
+        val fillColor = resolveColor(node, BindableProperty.SHAPE_FILL, node.fillColorHex, ctx)
+        val strokeColor = resolveColor(node, BindableProperty.SHAPE_STROKE, node.strokeColorHex, ctx)
+        val strokeWidthPx = dpToPx(resolveInt(node, BindableProperty.SHAPE_STROKE_WIDTH, node.strokeWidthDp, ctx) ?: 0)
+
+        val bitmap = createBitmap(widthPx, heightPx)
+        val canvas = Canvas(bitmap)
+
+        val fillPaint = fillColor?.let {
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = it
+                style = Paint.Style.FILL
+            }
+        }
+
+        val strokePaint = if (strokeColor != null && strokeWidthPx > 0) {
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = strokeColor
+                style = Paint.Style.STROKE
+                strokeWidth = strokeWidthPx.toFloat()
+            }
+        } else null
+
+        val strokeInset = (strokeWidthPx / 2f)
+        val rect = RectF(
+            strokeInset,
+            strokeInset,
+            widthPx.toFloat() - strokeInset,
+            heightPx.toFloat() - strokeInset
+        )
+
+        when (node.shapeId) {
+            "rectangle", "square" -> {
+                fillPaint?.let { canvas.drawRect(rect, it) }
+                strokePaint?.let { canvas.drawRect(rect, it) }
+            }
+            "rounded", "rounded_rect" -> {
+                val radiusPx = dpToPx(node.cornerRadiusDp).toFloat()
+                fillPaint?.let { canvas.drawRoundRect(rect, radiusPx, radiusPx, it) }
+                strokePaint?.let { canvas.drawRoundRect(rect, radiusPx, radiusPx, it) }
+            }
+            "circle", "ellipse" -> {
+                fillPaint?.let { canvas.drawOval(rect, it) }
+                strokePaint?.let { canvas.drawOval(rect, it) }
+            }
+            else -> {
+                val polygon = getShapeFromId(node.shapeId)
+                val path = polygon.toPath()
+                val bounds = RectF()
+                path.computeBounds(bounds, true)
+                val matrix = Matrix()
+                matrix.setRectToRect(bounds, rect, Matrix.ScaleToFit.FILL)
+                path.transform(matrix)
+
+                fillPaint?.let { canvas.drawPath(path, it) }
+                strokePaint?.let { canvas.drawPath(path, it) }
+            }
+        }
+
+        rv.setImageViewBitmap(R.id.node_shape, bitmap)
         return rv
     }
 
@@ -244,35 +400,41 @@ class CustomWidgetRenderer(
     }
 
     private fun renderProgress(node: ProgressNode, ctx: VariableContext): RemoteViews {
-        return if (node.style == ProgressStyle.LINEAR) {
-            val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_progress_linear)
-            val resolved = engine.resolve(node.valueTemplate, ctx).toIntOrNull() ?: 0
-            rv.setProgressBar(R.id.node_progress, node.maxValue, resolved.coerceIn(0, node.maxValue), false)
+        val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_progress_linear)
+        val valueTemplate = resolveString(node, BindableProperty.PROGRESS_VALUE, node.valueTemplate, ctx).orEmpty()
+        val resolved = engine.resolve(valueTemplate, ctx).toIntOrNull() ?: 0
+        rv.setProgressBar(R.id.node_progress, node.maxValue, resolved.coerceIn(0, node.maxValue), false)
+
+        val progressColor = resolveColor(node, BindableProperty.PROGRESS_COLOR, node.progressColorHex, ctx)
+        if (progressColor != null) {
             try {
-                rv.setColorStateList(R.id.node_progress, "setProgressTintList", android.content.res.ColorStateList.valueOf(node.progressColorHex.toColorInt()))
+                rv.setColorStateList(R.id.node_progress, "setProgressTintList", android.content.res.ColorStateList.valueOf(progressColor))
             } catch (_: Exception) { /* best-effort tint only */ }
-            rv
-        } else {
-            // RING style with no other siblings is meant to be routed through the structured
-            // setBigIslandInfo(progressInfo = CircularProgressInfo(...)) path by the translator
-            // instead of reaching this renderer (see #273 scope notes); as a node inside a larger
-            // canvas there is no native RemoteViews ring view, so we fall back to a plain bar.
-            val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_progress_linear)
-            val resolved = engine.resolve(node.valueTemplate, ctx).toIntOrNull() ?: 0
-            rv.setProgressBar(R.id.node_progress, node.maxValue, resolved.coerceIn(0, node.maxValue), false)
-            rv
         }
+        val trackColor = resolveColor(node, BindableProperty.PROGRESS_TRACK_COLOR, node.trackColorHex, ctx)
+        if (trackColor != null) {
+            try {
+                rv.setColorStateList(R.id.node_progress, "setProgressBackgroundTintList", android.content.res.ColorStateList.valueOf(trackColor))
+            } catch (_: Exception) { /* best-effort tint only */ }
+        }
+        return rv
     }
 
-    private fun renderButton(doc: CustomWidgetDocument, node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents): RemoteViews {
+    private fun renderButton(doc: CustomWidgetDocument, node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents, ctx: VariableContext): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_button)
-        rv.setTextViewText(R.id.node_button, node.label)
-        try {
-            rv.setTextColor(R.id.node_button, node.textColorHex.toColorInt())
-        } catch (_: Exception) { /* keep default */ }
-        node.backgroundHex?.let {
+        val rawLabel = resolveString(node, BindableProperty.BUTTON_LABEL, node.label, ctx).orEmpty()
+        val resolvedLabel = engine.resolve(rawLabel, ctx)
+        rv.setTextViewText(R.id.node_button, resolvedLabel)
+
+        val textColor = resolveColor(node, BindableProperty.BUTTON_TEXT_COLOR, node.textColorHex, ctx)
+        if (textColor != null) {
+            rv.setTextColor(R.id.node_button, textColor)
+        }
+
+        val bgColor = resolveColor(node, BindableProperty.BUTTON_BACKGROUND, node.backgroundHex, ctx)
+        if (bgColor != null) {
             try {
-                rv.setInt(R.id.node_button, "setBackgroundColor", it.toColorInt())
+                rv.setInt(R.id.node_button, "setBackgroundColor", bgColor)
             } catch (_: Exception) { /* ignore */ }
         }
 
