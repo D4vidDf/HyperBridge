@@ -439,7 +439,8 @@ fun PreviewStudioToolbarAndBreadcrumb() {
                         onZoomOut = {},
                         onResetZoom = {},
                         onToggleGrid = {},
-                        onToggleWireframe = {}
+                        onToggleWireframe = {},
+                        initialExpanded = true
                     )
                 }
             }

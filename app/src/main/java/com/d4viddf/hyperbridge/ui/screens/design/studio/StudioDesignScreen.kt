@@ -457,9 +457,11 @@ fun StudioDesignContent(
                     onResetZoom = onResetZoom,
                     onToggleGrid = onToggleGrid,
                     onToggleWireframe = onToggleWireframe,
+                    maxCanvasHeightDp = doc.canvas.heightDp,
+                    initialExpanded = false,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
+                        .padding(top = 8.dp)
                 )
             }
 

@@ -1707,6 +1707,9 @@
     <string name="studio_toolbar_zoom_reset">Reset Zoom</string>
     <string name="studio_toolbar_grid">Toggle Grid</string>
     <string name="studio_toolbar_wireframe">Toggle Preview Mode</string>
+    <string name="studio_toolbar_collapse">Collapse toolbar</string>
+    <string name="studio_toolbar_expand">Expand toolbar</string>
+    <string name="studio_toolbar_drag_handle">Drag toolbar</string>
     <string name="studio_bindings_empty">No formula bindings configured for this layer.</string>
     <string name="studio_binding_property">Property</string>
     <string name="studio_binding_formula_hint">Enter variable token or formula (e.g. {theme.accent})</string>

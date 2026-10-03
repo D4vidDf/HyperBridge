@@ -1417,6 +1417,9 @@
     <string name="studio_toolbar_zoom_reset">Restablecer zoom</string>
     <string name="studio_toolbar_grid">Alternar cuadrícula</string>
     <string name="studio_toolbar_wireframe">Alternar modo de previsualización</string>
+    <string name="studio_toolbar_collapse">Plegar barra de herramientas</string>
+    <string name="studio_toolbar_expand">Desplegar barra de herramientas</string>
+    <string name="studio_toolbar_drag_handle">Arrastrar barra de herramientas</string>
     <string name="studio_bindings_empty">No hay fórmulas configuradas para esta capa.</string>
     <string name="studio_binding_property">Propiedad</string>
     <string name="studio_binding_formula_hint">Introduce el token o fórmula (ej. {theme.accent})</string>
