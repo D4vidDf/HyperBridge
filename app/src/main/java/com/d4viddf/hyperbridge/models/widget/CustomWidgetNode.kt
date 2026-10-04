@@ -123,6 +123,10 @@ data class TextNode(
 @Serializable
 sealed interface ImageSource {
     @Serializable
+    @SerialName("notif_media")
+    data class NotifMedia(val mediaType: String = "avatar") : ImageSource
+
+    @Serializable
     @SerialName("app_icon")
     data class AppIconOf(val packageTemplate: String) : ImageSource
 

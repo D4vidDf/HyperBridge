@@ -51,6 +51,7 @@ class CustomWidgetDocumentSerializationTest {
                         tintHex = "#FF0000"
                     ),
                     ImageNode(id = "avatar", source = ImageSource.ContactAvatarOf("{notif.title}")),
+                    ImageNode(id = "notif-media", source = ImageSource.NotifMedia("avatar")),
                     ImageNode(id = "asset", source = ImageSource.CustomAsset("logo.png")),
                     ImageNode(id = "glyph", source = ImageSource.SystemGlyph("battery")),
                     ImageNode(id = "src-icon", source = ImageSource.SourceIcon("weather")),

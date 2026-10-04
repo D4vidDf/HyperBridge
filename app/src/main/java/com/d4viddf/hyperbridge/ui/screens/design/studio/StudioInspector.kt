@@ -19,10 +19,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
@@ -41,23 +43,29 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.VerticalAlignBottom
 import androidx.compose.material.icons.rounded.VerticalAlignTop
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -951,6 +959,7 @@ private fun ButtonValueEditor(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ImageNodeEditor(
     node: ImageNode,
@@ -958,8 +967,14 @@ private fun ImageNodeEditor(
     onRequestFormulaEditor: (String) -> Unit,
     onRequestAppChooser: ((String) -> Unit) -> Unit
 ) {
+    var showSourceSheet by remember { mutableStateOf(false) }
+    var showSubtypeSheet by remember { mutableStateOf(false) }
+
+    val currentSource = node.source
+    val selectedKind = ImageSourceKind.of(currentSource)
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        // 1. Source selector
+        // 1. Source selector header & card
         Text(
             text = stringResource(R.string.studio_image_source),
             style = MaterialTheme.typography.labelMedium,
@@ -967,33 +982,179 @@ private fun ImageNodeEditor(
             color = MaterialTheme.colorScheme.primary
         )
 
-        val currentSource = node.source
-        val sourceKinds = listOf(
-            ImageSourceKind.SYSTEM_GLYPH,
-            ImageSourceKind.APP_ICON,
-            ImageSourceKind.CONTACT_AVATAR,
-            ImageSourceKind.CUSTOM_ASSET,
-            ImageSourceKind.SOURCE_ICON
-        )
-        val selectedKind = ImageSourceKind.of(currentSource)
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Card(
+            onClick = { showSourceSheet = true },
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            sourceKinds.forEach { kind ->
-                FilterChip(
-                    selected = selectedKind == kind,
-                    onClick = { onChange(node.copy(source = kind.defaultSource())) },
-                    label = { Text(stringResource(kind.labelRes)) }
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = selectedKind.icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(selectedKind.labelRes),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = stringResource(selectedKind.descRes),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                FilledTonalButton(
+                    onClick = { showSourceSheet = true },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(stringResource(R.string.studio_image_change_source))
+                }
             }
         }
 
+        // 2. Subtype Card (if current source kind supports subtypes)
         when (currentSource) {
+            is ImageSource.NotifMedia -> {
+                val currentSubtype = NOTIF_MEDIA_SUBTYPES.find { it.key == currentSource.mediaType }
+                    ?: NOTIF_MEDIA_SUBTYPES.first()
+
+                Text(
+                    text = stringResource(R.string.studio_image_subtype_title),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Card(
+                    onClick = { showSubtypeSheet = true },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = currentSubtype.icon,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(currentSubtype.titleRes),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(currentSubtype.descRes),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showSubtypeSheet = true },
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(stringResource(R.string.studio_image_change_subtype))
+                        }
+                    }
+                }
+            }
+
             is ImageSource.SystemGlyph -> {
+                Text(
+                    text = stringResource(R.string.studio_image_subtype_title),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Card(
+                    onClick = { showSubtypeSheet = true },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = studioGlyphIcon(currentSource.glyphName),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = currentSource.glyphName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Text(
+                                text = stringResource(R.string.studio_image_source_glyph_desc),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showSubtypeSheet = true },
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(stringResource(R.string.studio_image_change_subtype))
+                        }
+                    }
+                }
+
                 OutlinedTextField(
                     value = currentSource.glyphName,
                     onValueChange = { onChange(node.copy(source = ImageSource.SystemGlyph(it))) },
@@ -1017,6 +1178,75 @@ private fun ImageNodeEditor(
             }
 
             is ImageSource.AppIconOf -> {
+                val isDynamic = currentSource.packageTemplate == "{notif.package}"
+
+                Text(
+                    text = stringResource(R.string.studio_image_subtype_title),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Card(
+                    onClick = { showSubtypeSheet = true },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Android,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (isDynamic) {
+                                    stringResource(R.string.studio_image_app_dynamic)
+                                } else {
+                                    currentSource.packageTemplate
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = if (isDynamic) {
+                                    stringResource(R.string.studio_image_app_dynamic_desc)
+                                } else {
+                                    stringResource(R.string.studio_image_app_specific_desc)
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showSubtypeSheet = true },
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(stringResource(R.string.studio_image_change_subtype))
+                        }
+                    }
+                }
+
                 OutlinedTextField(
                     value = currentSource.packageTemplate,
                     onValueChange = { onChange(node.copy(source = ImageSource.AppIconOf(it))) },
@@ -1044,6 +1274,83 @@ private fun ImageNodeEditor(
                 }
             }
 
+            is ImageSource.SourceIcon -> {
+                Text(
+                    text = stringResource(R.string.studio_image_subtype_title),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Card(
+                    onClick = { showSubtypeSheet = true },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Widgets,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = currentSource.sourceId,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.studio_image_source_source_desc),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showSubtypeSheet = true },
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(stringResource(R.string.studio_image_change_subtype))
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = currentSource.sourceId,
+                    onValueChange = { onChange(node.copy(source = ImageSource.SourceIcon(it))) },
+                    label = { Text(stringResource(R.string.studio_image_source_source)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf("weather", "music", "system").forEach { src ->
+                        AssistChip(
+                            onClick = { onChange(node.copy(source = ImageSource.SourceIcon(src))) },
+                            label = { Text(src) }
+                        )
+                    }
+                }
+            }
+
             is ImageSource.ContactAvatarOf -> {
                 OutlinedTextField(
                     value = currentSource.numberOrNameTemplate,
@@ -1063,26 +1370,6 @@ private fun ImageNodeEditor(
                     label = { Text(stringResource(R.string.studio_image_source_asset)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-
-            is ImageSource.SourceIcon -> {
-                OutlinedTextField(
-                    value = currentSource.sourceId,
-                    onValueChange = { onChange(node.copy(source = ImageSource.SourceIcon(it))) },
-                    label = { Text(stringResource(R.string.studio_image_source_source)) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    listOf("weather", "music", "system").forEach { src ->
-                        AssistChip(
-                            onClick = { onChange(node.copy(source = ImageSource.SourceIcon(src))) },
-                            label = { Text(src) }
-                        )
-                    }
-                }
             }
         }
 
@@ -1147,6 +1434,359 @@ private fun ImageNodeEditor(
             onFormulaChange = { onChange(node.withBinding(BindableProperty.IMAGE_TINT.key, it)) },
             onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.IMAGE_TINT.key) }
         )
+    }
+
+    if (showSourceSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSourceSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_image_select_source),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                ImageSourceKind.entries.forEach { kind ->
+                    val isSelected = selectedKind == kind
+                    Card(
+                        onClick = {
+                            if (!isSelected) {
+                                onChange(node.copy(source = kind.defaultSource()))
+                            }
+                            showSourceSheet = false
+                        },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Surface(
+                                color = if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = kind.icon,
+                                        contentDescription = null,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(kind.labelRes),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(kind.descRes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = {
+                                    if (!isSelected) {
+                                        onChange(node.copy(source = kind.defaultSource()))
+                                    }
+                                    showSourceSheet = false
+                                }
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+
+    if (showSubtypeSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSubtypeSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_image_select_subtype),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                when (currentSource) {
+                    is ImageSource.NotifMedia -> {
+                        NOTIF_MEDIA_SUBTYPES.forEach { subtype ->
+                            val isSelected = currentSource.mediaType == subtype.key
+                            Card(
+                                onClick = {
+                                    onChange(node.copy(source = ImageSource.NotifMedia(subtype.key)))
+                                    showSubtypeSheet = false
+                                },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Surface(
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.size(40.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = subtype.icon,
+                                                contentDescription = null,
+                                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(subtype.titleRes),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                            else MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = stringResource(subtype.descRes),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                            else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = {
+                                            onChange(node.copy(source = ImageSource.NotifMedia(subtype.key)))
+                                            showSubtypeSheet = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    is ImageSource.SystemGlyph -> {
+                        QUICK_GLYPHS.chunked(3).forEach { rowGlyphs ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                rowGlyphs.forEach { glyph ->
+                                    val isSelected = currentSource.glyphName == glyph
+                                    Card(
+                                        onClick = {
+                                            onChange(node.copy(source = ImageSource.SystemGlyph(glyph)))
+                                            showSubtypeSheet = false
+                                        },
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                            else MaterialTheme.colorScheme.surfaceContainer
+                                        ),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = studioGlyphIcon(glyph),
+                                                contentDescription = null,
+                                                tint = if (isSelected) MaterialTheme.colorScheme.primary
+                                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Text(
+                                                text = glyph,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    is ImageSource.AppIconOf -> {
+                        val isDynamic = currentSource.packageTemplate == "{notif.package}"
+                        Card(
+                            onClick = {
+                                onChange(node.copy(source = ImageSource.AppIconOf("{notif.package}")))
+                                showSubtypeSheet = false
+                            },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isDynamic) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(Icons.Rounded.Notifications, null)
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.studio_image_app_dynamic),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.studio_image_app_dynamic_desc),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                RadioButton(selected = isDynamic, onClick = {
+                                    onChange(node.copy(source = ImageSource.AppIconOf("{notif.package}")))
+                                    showSubtypeSheet = false
+                                })
+                            }
+                        }
+
+                        Card(
+                            onClick = {
+                                showSubtypeSheet = false
+                                onRequestAppChooser { selectedPkg ->
+                                    onChange(node.copy(source = ImageSource.AppIconOf(selectedPkg)))
+                                }
+                            },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (!isDynamic) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(Icons.Rounded.Android, null)
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.studio_image_app_specific),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.studio_image_app_specific_desc),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                RadioButton(selected = !isDynamic, onClick = {
+                                    showSubtypeSheet = false
+                                    onRequestAppChooser { selectedPkg ->
+                                        onChange(node.copy(source = ImageSource.AppIconOf(selectedPkg)))
+                                    }
+                                })
+                            }
+                        }
+                    }
+
+                    is ImageSource.SourceIcon -> {
+                        val presets = listOf(
+                            "weather" to R.string.studio_image_source_weather,
+                            "music" to R.string.studio_image_source_music,
+                            "system" to R.string.studio_image_source_system
+                        )
+                        presets.forEach { (src, label) ->
+                            val isSelected = currentSource.sourceId == src
+                            Card(
+                                onClick = {
+                                    onChange(node.copy(source = ImageSource.SourceIcon(src)))
+                                    showSubtypeSheet = false
+                                },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Icon(Icons.Rounded.Widgets, null)
+                                    Text(
+                                        text = stringResource(label),
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    RadioButton(selected = isSelected, onClick = {
+                                        onChange(node.copy(source = ImageSource.SourceIcon(src)))
+                                        showSubtypeSheet = false
+                                    })
+                                }
+                            }
+                        }
+                    }
+
+                    else -> {}
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+        }
     }
 }
 
@@ -2464,31 +3104,103 @@ private enum class ActionKind(val labelRes: Int) {
     }
 }
 
-private enum class ImageSourceKind(val labelRes: Int) {
-    SYSTEM_GLYPH(R.string.studio_image_source_glyph),
-    APP_ICON(R.string.studio_image_source_app),
-    CONTACT_AVATAR(R.string.studio_image_source_contact),
-    CUSTOM_ASSET(R.string.studio_image_source_asset),
-    SOURCE_ICON(R.string.studio_image_source_source);
+private enum class ImageSourceKind(
+    val labelRes: Int,
+    val descRes: Int,
+    val icon: ImageVector,
+    val hasSubtypes: Boolean = false
+) {
+    NOTIF_MEDIA(
+        R.string.studio_image_source_notif_media,
+        R.string.studio_image_source_notif_media_desc,
+        Icons.Rounded.Notifications,
+        hasSubtypes = true
+    ),
+    APP_ICON(
+        R.string.studio_image_source_app,
+        R.string.studio_image_source_app_desc,
+        Icons.Rounded.Android,
+        hasSubtypes = true
+    ),
+    SYSTEM_GLYPH(
+        R.string.studio_image_source_glyph,
+        R.string.studio_image_source_glyph_desc,
+        Icons.Rounded.Category,
+        hasSubtypes = true
+    ),
+    SOURCE_ICON(
+        R.string.studio_image_source_source,
+        R.string.studio_image_source_source_desc,
+        Icons.Rounded.Widgets,
+        hasSubtypes = true
+    ),
+    CUSTOM_ASSET(
+        R.string.studio_image_source_asset,
+        R.string.studio_image_source_asset_desc,
+        Icons.Rounded.Image,
+        hasSubtypes = false
+    ),
+    CONTACT_AVATAR(
+        R.string.studio_image_source_contact,
+        R.string.studio_image_source_contact_desc,
+        Icons.Rounded.Call,
+        hasSubtypes = false
+    );
 
     fun defaultSource(): ImageSource = when (this) {
-        SYSTEM_GLYPH -> ImageSource.SystemGlyph("notification")
+        NOTIF_MEDIA -> ImageSource.NotifMedia("avatar")
         APP_ICON -> ImageSource.AppIconOf("{notif.package}")
-        CONTACT_AVATAR -> ImageSource.ContactAvatarOf("{notif.title}")
-        CUSTOM_ASSET -> ImageSource.CustomAsset("icon.png")
+        SYSTEM_GLYPH -> ImageSource.SystemGlyph("notification")
         SOURCE_ICON -> ImageSource.SourceIcon("weather")
+        CUSTOM_ASSET -> ImageSource.CustomAsset("icon.png")
+        CONTACT_AVATAR -> ImageSource.ContactAvatarOf("{notif.title}")
     }
 
     companion object {
         fun of(source: ImageSource): ImageSourceKind = when (source) {
-            is ImageSource.SystemGlyph -> SYSTEM_GLYPH
+            is ImageSource.NotifMedia -> NOTIF_MEDIA
             is ImageSource.AppIconOf -> APP_ICON
-            is ImageSource.ContactAvatarOf -> CONTACT_AVATAR
-            is ImageSource.CustomAsset -> CUSTOM_ASSET
+            is ImageSource.SystemGlyph -> SYSTEM_GLYPH
             is ImageSource.SourceIcon -> SOURCE_ICON
+            is ImageSource.CustomAsset -> CUSTOM_ASSET
+            is ImageSource.ContactAvatarOf -> CONTACT_AVATAR
         }
     }
 }
+
+private data class NotifMediaSubtype(
+    val key: String,
+    val titleRes: Int,
+    val descRes: Int,
+    val icon: ImageVector
+)
+
+private val NOTIF_MEDIA_SUBTYPES = listOf(
+    NotifMediaSubtype(
+        key = "avatar",
+        titleRes = R.string.studio_image_notif_media_avatar,
+        descRes = R.string.studio_image_notif_media_avatar_desc,
+        icon = Icons.Rounded.Notifications
+    ),
+    NotifMediaSubtype(
+        key = "picture",
+        titleRes = R.string.studio_image_notif_media_picture,
+        descRes = R.string.studio_image_notif_media_picture_desc,
+        icon = Icons.Rounded.Image
+    ),
+    NotifMediaSubtype(
+        key = "album_art",
+        titleRes = R.string.studio_image_notif_media_album_art,
+        descRes = R.string.studio_image_notif_media_album_art_desc,
+        icon = Icons.Rounded.MusicNote
+    ),
+    NotifMediaSubtype(
+        key = "small_icon",
+        titleRes = R.string.studio_image_notif_media_small_icon,
+        descRes = R.string.studio_image_notif_media_small_icon_desc,
+        icon = Icons.Rounded.Notifications
+    )
+)
 
 private val QUICK_GLYPHS = listOf(
     "notification", "play", "pause", "message", "call", "info", "settings", "check", "close"

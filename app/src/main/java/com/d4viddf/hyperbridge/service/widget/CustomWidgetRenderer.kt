@@ -347,11 +347,20 @@ class CustomWidgetRenderer(
     private fun resolveImageBitmap(doc: CustomWidgetDocument, node: ImageNode, ctx: VariableContext): Bitmap? {
         return try {
             when (val source = node.source) {
+                is ImageSource.NotifMedia -> {
+                    when (source.mediaType) {
+                        "avatar" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap ?: ctx.notifSmallIconBitmap
+                        "picture" -> ctx.notifPictureBitmap ?: ctx.notifAvatarBitmap
+                        "album_art" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap
+                        "small_icon" -> ctx.notifSmallIconBitmap ?: ctx.notifAvatarBitmap
+                        else -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap ?: ctx.notifSmallIconBitmap
+                    }
+                }
                 is ImageSource.AppIconOf -> {
                     val pkg = engine.resolve(source.packageTemplate, ctx)
                     if (pkg.isBlank()) null else drawableToBitmap(context.packageManager.getApplicationIcon(pkg))
                 }
-                is ImageSource.ContactAvatarOf -> null // Descoped: requires READ_CONTACTS (see #273 scope notes).
+                is ImageSource.ContactAvatarOf -> ctx.notifAvatarBitmap
                 is ImageSource.CustomAsset -> {
                     val file = widgetRepository.assetFile(doc.id, source.fileName)
                     if (file.exists()) android.graphics.BitmapFactory.decodeFile(file.absolutePath) else null

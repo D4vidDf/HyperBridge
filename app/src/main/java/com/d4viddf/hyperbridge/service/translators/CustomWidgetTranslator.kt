@@ -1,6 +1,8 @@
 package com.d4viddf.hyperbridge.service.translators
 
+import android.app.Notification
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 import androidx.core.graphics.drawable.toBitmap
@@ -67,6 +69,32 @@ class CustomWidgetTranslator(
         val themeAccent = highlightColor
         val themeSurface = theme?.global?.backgroundColor ?: "#1E1E1E"
 
+        val notif = sbn.notification
+        val extras = notif.extras
+
+        val notifAvatarBitmap: Bitmap? = try {
+            notif.getLargeIcon()?.loadDrawable(context)?.toBitmap()
+                ?: (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    extras.getParcelable(Notification.EXTRA_LARGE_ICON, Bitmap::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    extras.getParcelable(Notification.EXTRA_LARGE_ICON) as? Bitmap
+                })
+        } catch (_: Exception) { null }
+
+        val notifPictureBitmap: Bitmap? = try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                extras.getParcelable(Notification.EXTRA_PICTURE, Bitmap::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                extras.getParcelable(Notification.EXTRA_PICTURE) as? Bitmap
+            }
+        } catch (_: Exception) { null }
+
+        val notifSmallIconBitmap: Bitmap? = try {
+            notif.smallIcon?.loadDrawable(context)?.toBitmap()
+        } catch (_: Exception) { null }
+
         val ctx = VariableContext(
             notifTitle = effectiveTitle,
             notifText = effectiveText,
@@ -80,7 +108,10 @@ class CustomWidgetTranslator(
             sourceLookup = { id, field -> runBlocking { sourceRepo.lookup(id, field) } },
             themePrimary = themePrimary,
             themeAccent = themeAccent,
-            themeSurface = themeSurface
+            themeSurface = themeSurface,
+            notifAvatarBitmap = notifAvatarBitmap,
+            notifPictureBitmap = notifPictureBitmap,
+            notifSmallIconBitmap = notifSmallIconBitmap
         )
 
         val intents = WidgetActionIntents(

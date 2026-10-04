@@ -25,9 +25,11 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SmartButton
+import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -337,7 +339,15 @@ private fun CanvasNode(
                     val iconVector = when (val src = node.source) {
                         is ImageSource.SystemGlyph -> studioGlyphIcon(src.glyphName)
                         is ImageSource.AppIconOf -> Icons.Rounded.Android
-                        else -> Icons.Rounded.Image
+                        is ImageSource.NotifMedia -> when (src.mediaType) {
+                            "album_art" -> Icons.Rounded.MusicNote
+                            "small_icon" -> Icons.Rounded.Notifications
+                            "picture" -> Icons.Rounded.Image
+                            else -> Icons.Rounded.Notifications
+                        }
+                        is ImageSource.ContactAvatarOf -> Icons.Rounded.Call
+                        is ImageSource.SourceIcon -> Icons.Rounded.Widgets
+                        is ImageSource.CustomAsset -> Icons.Rounded.Image
                     }
                     val iconSize = (minOf(nodeWidth, nodeHeight) * 0.65).coerceAtLeast(12.0).dp
                     Icon(
@@ -553,7 +563,7 @@ fun NodeBounds.movedBy(dxDp: Int, dyDp: Int, canvasWidthDp: Int, canvasHeightDp:
     y = (y + dyDp).coerceIn(0, (canvasHeightDp - (heightDp ?: 0)).coerceAtLeast(0))
 )
 
-private fun studioGlyphIcon(glyphName: String): androidx.compose.ui.graphics.vector.ImageVector = when (glyphName.lowercase()) {
+internal fun studioGlyphIcon(glyphName: String): androidx.compose.ui.graphics.vector.ImageVector = when (glyphName.lowercase()) {
     "notification", "notif" -> Icons.Rounded.Notifications
     "play" -> Icons.Rounded.PlayArrow
     "pause" -> Icons.Rounded.SmartButton

@@ -24,7 +24,10 @@ data class VariableContext(
     val sourceLookup: (sourceId: String, field: String) -> String? = { _, _ -> null },
     val themePrimary: String? = "#3DDA82",
     val themeAccent: String? = "#00E5FF",
-    val themeSurface: String? = "#1E1E1E"
+    val themeSurface: String? = "#1E1E1E",
+    val notifAvatarBitmap: android.graphics.Bitmap? = null,
+    val notifPictureBitmap: android.graphics.Bitmap? = null,
+    val notifSmallIconBitmap: android.graphics.Bitmap? = null
 )
 
 /**
