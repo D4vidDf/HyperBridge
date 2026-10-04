@@ -561,7 +561,7 @@ fun PreviewStudioInspectorConditions() {
     }
 }
 
-@Preview(name = "16. Inspector Root Where It Applies Tab", showBackground = true)
+@Preview(name = "16. Inspector Root Container Tab", showBackground = true)
 @Composable
 fun PreviewStudioInspectorRootContainerTab() {
     val sampleDoc = previewSampleWidgetDocument()
@@ -577,13 +577,58 @@ fun PreviewStudioInspectorRootContainerTab() {
                 onMoveLayer = {},
                 onDelete = {},
                 document = sampleDoc,
-                notificationType = NotificationType.MEDIA,
-                targetScope = TargetScope.SPECIFIC_APPS,
-                targetPackages = listOf("com.spotify.music", "org.telegram.messenger"),
+                selectedNodeId = sampleDoc.root.id
+            )
+        }
+    }
+}
+
+@Preview(name = "17. Inspector Root Design Tab", showBackground = true)
+@Composable
+fun PreviewStudioInspectorRootDesignTab() {
+    val sampleDoc = previewSampleWidgetDocument()
+    StudioExpressiveTheme(darkTheme = true) {
+        Surface(modifier = Modifier.padding(16.dp)) {
+            StudioInspector(
+                node = sampleDoc.root,
+                isRoot = true,
+                selectedTab = StudioTab.DESIGN,
+                canMoveUp = false,
+                canMoveDown = false,
+                onChange = {},
+                onMoveLayer = {},
+                onDelete = {},
+                document = sampleDoc,
                 onNameChange = {},
                 onIconChange = {},
                 onCanvasChange = {},
+                selectedNodeId = sampleDoc.root.id
+            )
+        }
+    }
+}
+
+@Preview(name = "18. Inspector Root Where It Applies Tab", showBackground = true)
+@Composable
+fun PreviewStudioInspectorRootScopeTab() {
+    val sampleDoc = previewSampleWidgetDocument()
+    StudioExpressiveTheme(darkTheme = true) {
+        Surface(modifier = Modifier.padding(16.dp)) {
+            StudioInspector(
+                node = sampleDoc.root,
+                isRoot = true,
+                selectedTab = StudioTab.SCOPE,
+                canMoveUp = false,
+                canMoveDown = false,
+                onChange = {},
+                onMoveLayer = {},
+                onDelete = {},
+                document = sampleDoc,
+                notificationType = NotificationType.MEDIA,
+                targetScope = TargetScope.SPECIFIC_APPS,
+                targetPackages = listOf("com.spotify.music", "org.telegram.messenger"),
                 onNotificationTypeChange = {},
+                onTargetScopeChange = {},
                 selectedNodeId = sampleDoc.root.id
             )
         }

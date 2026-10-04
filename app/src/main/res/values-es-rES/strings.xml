@@ -1474,7 +1474,13 @@
 
     <!-- Stage 7: Where It Applies / TargetScope & Package Selector -->
     <string name="studio_scope_title">Dónde se aplica</string>
+    <string name="studio_tab_scope">Dónde se aplica</string>
     <string name="studio_scope_desc">Elige cuándo se muestra este diseño en la isla</string>
+    <string name="studio_scope_translator_status">Estado en traductores</string>
+    <string name="studio_scope_translator_active">Activo en traductor</string>
+    <string name="studio_scope_translator_active_desc">Este diseño está vinculado a la regla del traductor \"%1$s\".</string>
+    <string name="studio_scope_translator_inactive">No usado en ningún traductor</string>
+    <string name="studio_scope_translator_inactive_desc">Este diseño es independiente. Al guardar, se registrará como una regla de diseño de isla activa.</string>
     <string name="studio_scope_notif_type">Tipo de notificación</string>
     <string name="studio_scope_specific_apps">Apps específicas</string>
     <string name="studio_scope_global">Global</string>

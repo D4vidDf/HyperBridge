@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -69,6 +70,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.widget.*
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
@@ -96,6 +98,7 @@ fun StudioInspector(
     notificationType: NotificationType? = null,
     targetScope: TargetScope = TargetScope.NOTIFICATION_TYPE,
     targetPackages: List<String> = emptyList(),
+    boundTranslator: CustomTranslator? = null,
     onNameChange: ((String) -> Unit)? = null,
     onIconChange: ((String) -> Unit)? = null,
     onCanvasChange: ((CanvasSize) -> Unit)? = null,
@@ -186,26 +189,38 @@ fun StudioInspector(
                 if (node is LayoutContainer) {
                     ContainerTabContent(
                         container = node,
-                        isRoot = isRoot,
                         onChange = onChange,
-                        document = document,
-                        notificationType = notificationType,
-                        targetScope = targetScope,
-                        targetPackages = targetPackages,
-                        onNameChange = onNameChange,
-                        onIconChange = onIconChange,
-                        onCanvasChange = onCanvasChange,
-                        onNotificationTypeChange = onNotificationTypeChange,
-                        onTargetScopeChange = onTargetScopeChange,
-                        onAddTargetPackage = onAddTargetPackage,
-                        onRemoveTargetPackage = onRemoveTargetPackage,
-                        onRequestFormulaEditor = { editingFormulaPropKey = it },
-                        onRequestAppChooser = { cb ->
-                            appChooserCallback = cb
-                            isAppChooserOpen = true
-                        }
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
                     )
                 }
+            }
+
+            StudioTab.DESIGN -> {
+                if (document != null && onNameChange != null && onCanvasChange != null) {
+                    DesignTabContent(
+                        document = document,
+                        onNameChange = onNameChange,
+                        onIconChange = onIconChange,
+                        onCanvasChange = onCanvasChange
+                    )
+                }
+            }
+
+            StudioTab.SCOPE -> {
+                ScopeTabContent(
+                    boundTranslator = boundTranslator,
+                    notificationType = notificationType,
+                    targetScope = targetScope,
+                    targetPackages = targetPackages,
+                    onNotificationTypeChange = onNotificationTypeChange,
+                    onTargetScopeChange = onTargetScopeChange,
+                    onAddTargetPackage = onAddTargetPackage,
+                    onRemoveTargetPackage = onRemoveTargetPackage,
+                    onRequestAppChooser = { cb ->
+                        appChooserCallback = cb
+                        isAppChooserOpen = true
+                    }
+                )
             }
 
             StudioTab.ACTIONS -> {
@@ -1025,179 +1040,9 @@ private fun LayerTabContent(
 @Composable
 private fun ContainerTabContent(
     container: LayoutContainer,
-    isRoot: Boolean,
     onChange: (CustomWidgetNode) -> Unit,
-    document: CustomWidgetDocument?,
-    notificationType: NotificationType?,
-    targetScope: TargetScope = TargetScope.NOTIFICATION_TYPE,
-    targetPackages: List<String> = emptyList(),
-    onNameChange: ((String) -> Unit)?,
-    onIconChange: ((String) -> Unit)? = null,
-    onCanvasChange: ((CanvasSize) -> Unit)?,
-    onNotificationTypeChange: ((NotificationType) -> Unit)?,
-    onTargetScopeChange: ((TargetScope) -> Unit)? = null,
-    onAddTargetPackage: ((String) -> Unit)? = null,
-    onRemoveTargetPackage: ((String) -> Unit)? = null,
-    onRequestFormulaEditor: (String) -> Unit = {},
-    onRequestAppChooser: ((String) -> Unit) -> Unit = {}
+    onRequestFormulaEditor: (String) -> Unit = {}
 ) {
-    if (isRoot && document != null && notificationType != null && onNameChange != null && onCanvasChange != null && onNotificationTypeChange != null) {
-        StudioSection(stringResource(R.string.studio_section_design)) {
-            OutlinedTextField(
-                value = document.meta.name,
-                onValueChange = onNameChange,
-                label = { Text(stringResource(R.string.studio_property_name)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Text(
-                text = stringResource(R.string.studio_design_icon),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TRANSLATOR_OUTLINED_ICONS.forEach { option ->
-                    FilterChip(
-                        selected = document.meta.icon.equals(option.id, ignoreCase = true),
-                        onClick = { onIconChange?.invoke(option.id) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = option.icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        label = { Text(option.label) }
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                CanvasSize.entries.forEach { size ->
-                    FilterChip(
-                        selected = document.canvas == size,
-                        onClick = { onCanvasChange(size) },
-                        label = { Text("${size.name} · ${size.heightDp}dp") }
-                    )
-                }
-            }
-        }
-
-        StudioSection(stringResource(R.string.studio_scope_title)) {
-            Text(
-                text = stringResource(R.string.studio_scope_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TargetScope.entries.forEach { scope ->
-                    val label = when (scope) {
-                        TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.studio_scope_notif_type)
-                        TargetScope.SPECIFIC_APPS -> stringResource(R.string.studio_scope_specific_apps)
-                        TargetScope.GLOBAL -> stringResource(R.string.studio_scope_global)
-                        TargetScope.SYSTEM_APPS -> stringResource(R.string.studio_scope_system_apps)
-                    }
-                    FilterChip(
-                        selected = targetScope == scope,
-                        onClick = { onTargetScopeChange?.invoke(scope) },
-                        label = { Text(label) }
-                    )
-                }
-            }
-
-            when (targetScope) {
-                TargetScope.NOTIFICATION_TYPE -> {
-                    Text(
-                        text = stringResource(R.string.design_template_type_desc),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        NotificationType.configurableEntries.forEach { type ->
-                            FilterChip(
-                                selected = notificationType == type,
-                                onClick = { onNotificationTypeChange(type) },
-                                label = { Text(stringResource(type.labelRes)) }
-                            )
-                        }
-                    }
-                }
-
-                TargetScope.SPECIFIC_APPS, TargetScope.SYSTEM_APPS -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        FilterChip(
-                            selected = false,
-                            onClick = {
-                                onRequestAppChooser { selectedPkg ->
-                                    onAddTargetPackage?.invoke(selectedPkg)
-                                }
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                            },
-                            label = { Text(stringResource(R.string.studio_scope_add_app)) }
-                        )
-
-                        targetPackages.forEach { pkg ->
-                            FilterChip(
-                                selected = true,
-                                onClick = { onRemoveTargetPackage?.invoke(pkg) },
-                                trailingIcon = {
-                                    Icon(Icons.Rounded.Clear, contentDescription = null, modifier = Modifier.size(16.dp))
-                                },
-                                label = { Text(pkg.substringAfterLast('.')) }
-                            )
-                        }
-                    }
-
-                    if (targetPackages.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.studio_scope_no_apps),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                TargetScope.GLOBAL -> {
-                    Text(
-                        text = stringResource(R.string.translator_target_scope_global_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-
     StudioSection(stringResource(R.string.studio_tab_container)) {
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -1244,6 +1089,246 @@ private fun ContainerTabContent(
             onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
             onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
         )
+    }
+}
+
+@Composable
+private fun DesignTabContent(
+    document: CustomWidgetDocument,
+    onNameChange: (String) -> Unit,
+    onIconChange: ((String) -> Unit)? = null,
+    onCanvasChange: (CanvasSize) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_section_design)) {
+        OutlinedTextField(
+            value = document.meta.name,
+            onValueChange = onNameChange,
+            label = { Text(stringResource(R.string.studio_property_name)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = stringResource(R.string.studio_design_icon),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TRANSLATOR_OUTLINED_ICONS.forEach { option ->
+                FilterChip(
+                    selected = document.meta.icon.equals(option.id, ignoreCase = true),
+                    onClick = { onIconChange?.invoke(option.id) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = option.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    label = { Text(option.label) }
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CanvasSize.entries.forEach { size ->
+                FilterChip(
+                    selected = document.canvas == size,
+                    onClick = { onCanvasChange(size) },
+                    label = { Text("${size.name} · ${size.heightDp}dp") }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScopeTabContent(
+    boundTranslator: CustomTranslator?,
+    notificationType: NotificationType?,
+    targetScope: TargetScope,
+    targetPackages: List<String>,
+    onNotificationTypeChange: ((NotificationType) -> Unit)?,
+    onTargetScopeChange: ((TargetScope) -> Unit)?,
+    onAddTargetPackage: ((String) -> Unit)?,
+    onRemoveTargetPackage: ((String) -> Unit)?,
+    onRequestAppChooser: ((String) -> Unit) -> Unit
+) {
+    // 1. Translator Usage Status Card
+    StudioSection(stringResource(R.string.studio_scope_translator_status)) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = if (boundTranslator != null) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = if (boundTranslator != null) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = if (boundTranslator != null) Icons.Rounded.CheckCircle else Icons.Rounded.VisibilityOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = if (boundTranslator != null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (boundTranslator != null) {
+                            stringResource(R.string.studio_scope_translator_active)
+                        } else {
+                            stringResource(R.string.studio_scope_translator_inactive)
+                        },
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = if (boundTranslator != null) {
+                            stringResource(R.string.studio_scope_translator_active_desc, boundTranslator.meta.name)
+                        } else {
+                            stringResource(R.string.studio_scope_translator_inactive_desc)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+
+    // 2. Where It Applies
+    StudioSection(stringResource(R.string.studio_scope_title)) {
+        Text(
+            text = stringResource(R.string.studio_scope_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TargetScope.entries.forEach { scope ->
+                val label = when (scope) {
+                    TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.studio_scope_notif_type)
+                    TargetScope.SPECIFIC_APPS -> stringResource(R.string.studio_scope_specific_apps)
+                    TargetScope.GLOBAL -> stringResource(R.string.studio_scope_global)
+                    TargetScope.SYSTEM_APPS -> stringResource(R.string.studio_scope_system_apps)
+                }
+                FilterChip(
+                    selected = targetScope == scope,
+                    onClick = { onTargetScopeChange?.invoke(scope) },
+                    label = { Text(label) }
+                )
+            }
+        }
+
+        when (targetScope) {
+            TargetScope.NOTIFICATION_TYPE -> {
+                Text(
+                    text = stringResource(R.string.design_template_type_desc),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NotificationType.configurableEntries.forEach { type ->
+                        FilterChip(
+                            selected = notificationType == type,
+                            onClick = { onNotificationTypeChange?.invoke(type) },
+                            label = { Text(stringResource(type.labelRes)) }
+                        )
+                    }
+                }
+            }
+
+            TargetScope.SPECIFIC_APPS, TargetScope.SYSTEM_APPS -> {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            onRequestAppChooser { selectedPkg ->
+                                onAddTargetPackage?.invoke(selectedPkg)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                        },
+                        label = { Text(stringResource(R.string.studio_scope_add_app)) }
+                    )
+
+                    targetPackages.forEach { pkg ->
+                        FilterChip(
+                            selected = true,
+                            onClick = { onRemoveTargetPackage?.invoke(pkg) },
+                            trailingIcon = {
+                                Icon(Icons.Rounded.Clear, contentDescription = null, modifier = Modifier.size(16.dp))
+                            },
+                            label = { Text(pkg.substringAfterLast('.')) }
+                        )
+                    }
+                }
+
+                if (targetPackages.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.studio_scope_no_apps),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            TargetScope.GLOBAL -> {
+                Text(
+                    text = stringResource(R.string.translator_target_scope_global_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 

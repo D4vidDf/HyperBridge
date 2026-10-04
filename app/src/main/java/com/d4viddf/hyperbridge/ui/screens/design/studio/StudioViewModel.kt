@@ -111,6 +111,9 @@ class StudioViewModel(
 
     private var existingTranslator: CustomTranslator? = null
 
+    private val _boundTranslator = MutableStateFlow<CustomTranslator?>(null)
+    val boundTranslator: StateFlow<CustomTranslator?> = _boundTranslator.asStateFlow()
+
     init {
         val draftJson = savedStateHandle.get<String>(KEY_DRAFT_DOC)
         if (draftJson != null) {
@@ -124,6 +127,7 @@ class StudioViewModel(
     fun loadWidget(widgetId: String?, allTranslators: List<CustomTranslator>) {
         if (widgetId == null) {
             // New widget draft or existing draft from savedStateHandle
+            _boundTranslator.value = null
             return
         }
 
@@ -139,6 +143,7 @@ class StudioViewModel(
             }
 
             existingTranslator = allTranslators.firstOrNull { it.presentation.widgetId == widgetId }
+            _boundTranslator.value = existingTranslator
             existingTranslator?.let { trans ->
                 _targetScope.value = trans.targetScope
                 _targetPackages.value = trans.targetPackages
@@ -352,6 +357,7 @@ class StudioViewModel(
                 existingTranslator
             )
             existingTranslator = translator
+            _boundTranslator.value = translator
             onSaveTranslator(translator)
 
             _isSaving.value = false

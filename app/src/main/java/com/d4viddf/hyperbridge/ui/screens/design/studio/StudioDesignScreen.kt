@@ -52,6 +52,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.widget.*
 import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
@@ -87,6 +88,7 @@ fun StudioDesignScreen(
         val doc by studioViewModel.document.collectAsState()
         val savedDoc by studioViewModel.savedDocument.collectAsState()
         val selectedNodeId by studioViewModel.selectedNodeId.collectAsState()
+        val boundTranslator by studioViewModel.boundTranslator.collectAsState()
         val notificationType by studioViewModel.notificationType.collectAsState()
         val targetScope by studioViewModel.targetScope.collectAsState()
         val targetPackages by studioViewModel.targetPackages.collectAsState()
@@ -195,6 +197,9 @@ fun StudioDesignScreen(
             isDirty = isDirty,
             isSaving = isSaving,
             notificationType = notificationType,
+            targetScope = targetScope,
+            targetPackages = targetPackages,
+            boundTranslator = boundTranslator,
             validationMessage = validationMessage,
             onBack = handleBack,
             onUndo = { studioViewModel.undo() },
@@ -279,8 +284,6 @@ fun StudioDesignScreen(
                 }
             },
             onNotificationTypeChange = { studioViewModel.setNotificationType(it) },
-            targetScope = targetScope,
-            targetPackages = targetPackages,
             onTargetScopeChange = { studioViewModel.setTargetScope(it) },
             onAddTargetPackage = { studioViewModel.addTargetPackage(it) },
             onRemoveTargetPackage = { studioViewModel.removeTargetPackage(it) },
@@ -315,6 +318,7 @@ fun StudioDesignContent(
     notificationType: NotificationType,
     targetScope: TargetScope = TargetScope.NOTIFICATION_TYPE,
     targetPackages: List<String> = emptyList(),
+    boundTranslator: CustomTranslator? = null,
     validationMessage: String?,
     onBack: () -> Unit,
     onUndo: () -> Unit,
@@ -500,6 +504,7 @@ fun StudioDesignContent(
                     notificationType = notificationType,
                     targetScope = targetScope,
                     targetPackages = targetPackages,
+                    boundTranslator = boundTranslator,
                     onNameChange = onNameChange,
                     onIconChange = onIconChange,
                     onCanvasChange = onCanvasChange,
