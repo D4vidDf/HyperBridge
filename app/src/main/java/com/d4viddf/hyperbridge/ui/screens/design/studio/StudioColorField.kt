@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,21 +20,30 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.ColorUtils
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.ui.components.CustomColorBottomSheet
 
 private val QUICK_COLORS = listOf(
     "#FFFFFF", "#000000", "#FF453A", "#FF9F0A", "#FFD60A",
@@ -50,6 +60,8 @@ fun StudioColorField(
     onFormulaChange: ((String?) -> Unit)? = null,
     onRequestFormulaEditor: (() -> Unit)? = null
 ) {
+    var showColorPicker by remember { mutableStateOf(false) }
+
     val parsedColor = runCatching {
         val clean = colorHex.removePrefix("#")
         when (clean.length) {
@@ -135,38 +147,79 @@ fun StudioColorField(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Swatch preview circle
+                // Clickable swatch preview circle that opens Theme Creator CustomColorBottomSheet
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(44.dp)
                         .clip(CircleShape)
                         .background(parsedColor)
                         .border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                )
+                        .clickable { showColorPicker = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    val luminance = runCatching {
+                        ColorUtils.calculateLuminance(parsedColor.toArgb())
+                    }.getOrDefault(0.5)
+                    Icon(
+                        imageVector = Icons.Rounded.Palette,
+                        contentDescription = stringResource(R.string.colors_dialog_title),
+                        tint = if (luminance > 0.5) Color.Black.copy(alpha = 0.65f) else Color.White.copy(alpha = 0.85f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
 
                 OutlinedTextField(
                     value = colorHex,
                     onValueChange = onColorHexChange,
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                    trailingIcon = {
+                        IconButton(onClick = { showColorPicker = true }) {
+                            Icon(
+                                imageVector = Icons.Rounded.Palette,
+                                contentDescription = stringResource(R.string.colors_dialog_title),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }
 
             Spacer(Modifier.height(8.dp))
 
-            // Palette swatch chips
+            // Palette swatch chips with leading bottomsheet color picker button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable { showColorPicker = true }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Rounded.Palette,
+                            contentDescription = stringResource(R.string.colors_dialog_title),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
                 QUICK_COLORS.forEach { hex ->
                     val color = Color(android.graphics.Color.parseColor(hex))
                     Box(
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(26.dp)
                             .clip(CircleShape)
                             .background(color)
                             .border(
@@ -179,5 +232,24 @@ fun StudioColorField(
                 }
             }
         }
+    }
+
+    if (showColorPicker) {
+        CustomColorBottomSheet(
+            initialColor = parsedColor,
+            onDismiss = { showColorPicker = false },
+            onColorAdded = { newColor ->
+                val clean = colorHex.removePrefix("#")
+                val hex = if (clean.length == 8) {
+                    val alpha = clean.take(2)
+                    val rgb = String.format("%06X", 0xFFFFFF and newColor.toArgb())
+                    "#$alpha$rgb"
+                } else {
+                    String.format("#%06X", 0xFFFFFF and newColor.toArgb())
+                }
+                onColorHexChange(hex)
+                showColorPicker = false
+            }
+        )
     }
 }
