@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -437,6 +438,7 @@ fun PreviewStudioToolbarAndBreadcrumb() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(280.dp)
                         .padding(vertical = 12.dp)
                         .background(StudioCanvasBackground)
                         .padding(12.dp)
@@ -450,6 +452,7 @@ fun PreviewStudioToolbarAndBreadcrumb() {
                         onResetZoom = {},
                         onToggleGrid = {},
                         onToggleWireframe = {},
+                        onOpenAddElement = {},
                         initialExpanded = true
                     )
                 }

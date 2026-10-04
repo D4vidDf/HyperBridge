@@ -417,53 +417,35 @@ fun StudioDesignContent(
                 }
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onOpenAddElement) {
-                Icon(Icons.Rounded.Add, stringResource(R.string.studio_add_element_title))
-            }
-        }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Canvas preview with floating toolbar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                StudioCanvas(
-                    root = doc.root,
-                    canvasHeightDp = doc.canvas.heightDp,
-                    selectedId = selectedNodeId,
-                    onSelect = { onSelectNode(it) },
-                    onMove = onMoveNode,
-                    onResize = onResizeNode,
-                    zoom = zoom,
-                    isGridVisible = isGridVisible,
-                    isWireframeMode = isWireframeMode,
-                    hiddenNodeIds = hiddenNodeIds,
-                    scenario = selectedScenario
-                )
-
-                StudioFloatingToolbar(
-                    zoom = zoom,
-                    isGridVisible = isGridVisible,
-                    isWireframeMode = isWireframeMode,
-                    onZoomIn = onZoomIn,
-                    onZoomOut = onZoomOut,
-                    onResetZoom = onResetZoom,
-                    onToggleGrid = onToggleGrid,
-                    onToggleWireframe = onToggleWireframe,
-                    maxCanvasHeightDp = doc.canvas.heightDp,
-                    initialExpanded = false,
+                // Canvas preview
+                Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 8.dp)
-                )
-            }
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    StudioCanvas(
+                        root = doc.root,
+                        canvasHeightDp = doc.canvas.heightDp,
+                        selectedId = selectedNodeId,
+                        onSelect = { onSelectNode(it) },
+                        onMove = onMoveNode,
+                        onResize = onResizeNode,
+                        zoom = zoom,
+                        isGridVisible = isGridVisible,
+                        isWireframeMode = isWireframeMode,
+                        hiddenNodeIds = hiddenNodeIds,
+                        scenario = selectedScenario
+                    )
+                }
 
             validationMessage?.let { message ->
                 Text(
@@ -543,5 +525,21 @@ fun StudioDesignContent(
                 Spacer(Modifier.height(96.dp))
             }
         }
+
+        // Movable floating toolbar & FAB on top of all elements of the screen
+        StudioFloatingToolbar(
+            zoom = zoom,
+            isGridVisible = isGridVisible,
+            isWireframeMode = isWireframeMode,
+            onZoomIn = onZoomIn,
+            onZoomOut = onZoomOut,
+            onResetZoom = onResetZoom,
+            onToggleGrid = onToggleGrid,
+            onToggleWireframe = onToggleWireframe,
+            onOpenAddElement = onOpenAddElement,
+            initialExpanded = false,
+            modifier = Modifier.fillMaxSize()
+        )
     }
+}
 }

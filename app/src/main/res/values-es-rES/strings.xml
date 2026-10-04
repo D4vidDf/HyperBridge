@@ -1420,6 +1420,10 @@
     <string name="studio_toolbar_collapse">Plegar barra de herramientas</string>
     <string name="studio_toolbar_expand">Desplegar barra de herramientas</string>
     <string name="studio_toolbar_drag_handle">Arrastrar barra de herramientas</string>
+    <string name="studio_toolbar_dock_cycle">Cambiar posición de acoplamiento de la barra</string>
+    <string name="studio_toolbar_dock_left">Acoplar barra de herramientas a la izquierda</string>
+    <string name="studio_toolbar_dock_right">Acoplar barra de herramientas a la derecha</string>
+    <string name="studio_toolbar_dock_bottom">Acoplar barra de herramientas abajo</string>
     <string name="studio_bindings_empty">No hay fórmulas configuradas para esta capa.</string>
     <string name="studio_binding_property">Propiedad</string>
     <string name="studio_binding_formula_hint">Introduce el token o fórmula (ej. {theme.accent})</string>
