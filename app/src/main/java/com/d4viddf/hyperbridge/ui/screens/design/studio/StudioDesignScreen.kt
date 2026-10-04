@@ -407,6 +407,23 @@ fun StudioDesignContent(
                 }
             )
         },
+        floatingActionButton = {
+            StudioFloatingToolbar(
+                zoom = zoom,
+                isGridVisible = isGridVisible,
+                isWireframeMode = isWireframeMode,
+                canUndo = canUndo,
+                canRedo = canRedo,
+                onUndo = onUndo,
+                onRedo = onRedo,
+                onZoomIn = onZoomIn,
+                onZoomOut = onZoomOut,
+                onResetZoom = onResetZoom,
+                onToggleGrid = onToggleGrid,
+                onToggleWireframe = onToggleWireframe,
+                onOpenAddElement = onOpenAddElement
+            )
+        }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -516,25 +533,6 @@ fun StudioDesignContent(
                 Spacer(Modifier.height(112.dp))
             }
         }
-
-        // Horizontal bottom floating toolbar & FAB on top of all elements of the screen
-        StudioFloatingToolbar(
-            zoom = zoom,
-            isGridVisible = isGridVisible,
-            isWireframeMode = isWireframeMode,
-            canUndo = canUndo,
-            canRedo = canRedo,
-            onUndo = onUndo,
-            onRedo = onRedo,
-            onZoomIn = onZoomIn,
-            onZoomOut = onZoomOut,
-            onResetZoom = onResetZoom,
-            onToggleGrid = onToggleGrid,
-            onToggleWireframe = onToggleWireframe,
-            onOpenAddElement = onOpenAddElement,
-            initialExpanded = true,
-            modifier = Modifier.fillMaxSize()
-        )
     }
 }
 }
