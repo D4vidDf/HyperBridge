@@ -1,6 +1,13 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -93,13 +100,28 @@ fun StudioCanvas(
     isWireframeMode: Boolean = false,
     hiddenNodeIds: Set<String> = emptySet(),
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
-    context: VariableContext = scenario.toVariableContext()
+    context: VariableContext = scenario.toVariableContext(),
+    globals: CustomWidgetGlobals = CustomWidgetGlobals()
 ) {
     val rootBgFormula = root.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
     val resolvedRootBg = if (!isWireframeMode && !rootBgFormula.isNullOrBlank()) {
         previewEngine.resolve(rootBgFormula, context).ifBlank { root.backgroundHex }
     } else root.backgroundHex
     val canvasBg = resolvedRootBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it) } ?: StudioCanvasBackground
+
+    val contextLocal = LocalContext.current
+    val rootPictureBitmap: ImageBitmap? = remember(root.backgroundImageUri, root.backgroundType) {
+        if (!isWireframeMode && root.backgroundType == ContainerBackgroundType.PICTURE && !root.backgroundImageUri.isNullOrBlank()) {
+            try {
+                val uri = Uri.parse(root.backgroundImageUri)
+                contextLocal.contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                }
+            } catch (_: Exception) {
+                null
+            }
+        } else null
+    }
 
     Box(
         modifier = modifier
@@ -128,6 +150,40 @@ fun StudioCanvas(
             }
             .padding(8.dp)
     ) {
+        if (!isWireframeMode && root.backgroundType == ContainerBackgroundType.PICTURE) {
+            if (rootPictureBitmap != null) {
+                Image(
+                    bitmap = rootPictureBitmap,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(24.dp))
+                )
+            } else if (root.backgroundImageSource != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color(0xFF1E293B)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val notifMedia = root.backgroundImageSource as? ImageSource.NotifMedia
+                    val icon = when (notifMedia?.mediaType) {
+                        "album_art" -> Icons.Rounded.MusicNote
+                        "picture" -> Icons.Rounded.Image
+                        else -> Icons.Rounded.Notifications
+                    }
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.25f),
+                        modifier = Modifier.size(56.dp)
+                    )
+                }
+            }
+        }
+
         // Enforce LTR Cartesian layout coordinate space so RTL system locales never mirror element coordinates
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Box(
@@ -147,7 +203,8 @@ fun StudioCanvas(
                     isWireframeMode = isWireframeMode,
                     hiddenNodeIds = hiddenNodeIds,
                     context = context,
-                    zoom = zoom
+                    zoom = zoom,
+                    globals = globals
                 )
             }
         }
@@ -165,7 +222,8 @@ private fun CanvasNode(
     isWireframeMode: Boolean = false,
     hiddenNodeIds: Set<String> = emptySet(),
     context: VariableContext = VariableContext(),
-    zoom: Float = 1f
+    zoom: Float = 1f,
+    globals: CustomWidgetGlobals = CustomWidgetGlobals()
 ) {
     if (hiddenNodeIds.contains(node.id)) return
 
@@ -268,7 +326,8 @@ private fun CanvasNode(
                 isWireframeMode = isWireframeMode,
                 hiddenNodeIds = hiddenNodeIds,
                 context = context,
-                zoom = zoom
+                zoom = zoom,
+                globals = globals
             )
             is TextNode -> {
                 val colorFormula = node.bindings[BindableProperty.TEXT_COLOR.key]
@@ -293,7 +352,8 @@ private fun CanvasNode(
                     )
                 } else null
 
-                val composeFontFamily = when (node.fontFamily) {
+                val effectiveFontFamily = if (node.fontFamily == TextFontFamily.DEFAULT) globals.fontFamily else node.fontFamily
+                val composeFontFamily = when (effectiveFontFamily) {
                     TextFontFamily.DEFAULT -> androidx.compose.ui.text.font.FontFamily.Default
                     TextFontFamily.SANS_SERIF -> androidx.compose.ui.text.font.FontFamily.SansSerif
                     TextFontFamily.SERIF -> androidx.compose.ui.text.font.FontFamily.Serif
@@ -565,7 +625,8 @@ private fun CanvasContainer(
     isWireframeMode: Boolean = false,
     hiddenNodeIds: Set<String> = emptySet(),
     context: VariableContext,
-    zoom: Float = 1f
+    zoom: Float = 1f,
+    globals: CustomWidgetGlobals = CustomWidgetGlobals()
 ) {
     val bgFormula = node.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
     val resolvedBg = if (!isWireframeMode && !bgFormula.isNullOrBlank()) {
@@ -602,7 +663,8 @@ private fun CanvasContainer(
                     isWireframeMode = isWireframeMode,
                     hiddenNodeIds = hiddenNodeIds,
                     context = context,
-                    zoom = zoom
+                    zoom = zoom,
+                    globals = globals
                 )
             }
         }
@@ -622,7 +684,8 @@ private fun CanvasContainer(
                     isWireframeMode = isWireframeMode,
                     hiddenNodeIds = hiddenNodeIds,
                     context = context,
-                    zoom = zoom
+                    zoom = zoom,
+                    globals = globals
                 )
             }
         }
@@ -644,7 +707,8 @@ private fun CanvasContainer(
                         isWireframeMode = isWireframeMode,
                         hiddenNodeIds = hiddenNodeIds,
                         context = context,
-                        zoom = zoom
+                        zoom = zoom,
+                        globals = globals
                     )
                 }
             }

@@ -297,7 +297,11 @@ fun StudioDesignScreen(
             onGroup = { studioViewModel.groupNode(it) },
             onUngroup = { studioViewModel.ungroupNode(it) },
             onRename = { id, newName -> studioViewModel.renameNode(id, newName) },
-            onToggleLock = { studioViewModel.toggleLock(it) }
+            onToggleLock = { studioViewModel.toggleLock(it) },
+            onMoveInto = { fromId, targetId -> studioViewModel.moveInto(fromId, targetId) },
+            onCreateTranslator = { studioViewModel.createTranslatorForDesign() },
+            onUpdateGlobals = { studioViewModel.updateGlobals(it) },
+            onApplyFontToAll = { studioViewModel.applyFontToAllTextNodes(it) }
         )
     }
 }
@@ -360,6 +364,10 @@ fun StudioDesignContent(
     onUngroup: (String) -> Unit,
     onRename: (String, String) -> Unit,
     onToggleLock: (String) -> Unit,
+    onMoveInto: (String, String) -> Unit = { _, _ -> },
+    onCreateTranslator: (() -> Unit)? = null,
+    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null,
+    onApplyFontToAll: ((TextFontFamily) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -462,7 +470,8 @@ fun StudioDesignContent(
                         isGridVisible = isGridVisible,
                         isWireframeMode = isWireframeMode,
                         hiddenNodeIds = hiddenNodeIds,
-                        scenario = selectedScenario
+                        scenario = selectedScenario,
+                        globals = doc.globals
                     )
                 }
 
@@ -539,7 +548,11 @@ fun StudioDesignContent(
                     onRename = onRename,
                     onDeleteNode = onDeleteNode,
                     onToggleNodeLock = onToggleLock,
-                    scenario = selectedScenario
+                    scenario = selectedScenario,
+                    onMoveInto = onMoveInto,
+                    onCreateTranslator = onCreateTranslator,
+                    onUpdateGlobals = onUpdateGlobals,
+                    onApplyFontToAll = onApplyFontToAll
                 )
 
                 Spacer(Modifier.height(112.dp))

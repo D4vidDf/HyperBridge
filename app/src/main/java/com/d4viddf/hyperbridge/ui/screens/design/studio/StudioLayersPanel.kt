@@ -69,14 +69,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.models.widget.ButtonNode
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
-import com.d4viddf.hyperbridge.models.widget.ImageNode
-import com.d4viddf.hyperbridge.models.widget.LayoutContainer
-import com.d4viddf.hyperbridge.models.widget.NodeCondition
-import com.d4viddf.hyperbridge.models.widget.ProgressNode
-import com.d4viddf.hyperbridge.models.widget.ShapeNode
-import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.*
 
 @Composable
 fun StudioLayersPanel(
@@ -94,11 +87,13 @@ fun StudioLayersPanel(
     onUngroup: (String) -> Unit,
     onRename: (String, String) -> Unit,
     onDelete: (String) -> Unit,
-    onAddElement: (String) -> Unit,
+    onAddElement: (String) -> Unit = {},
+    onMoveInto: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     var renamingNode by remember { mutableStateOf<Pair<String, String>?>(null) }
     var expandedContainers by remember { mutableStateOf<Set<String>>(setOf(rootContainer.id)) }
+    val allGroups = remember(rootContainer) { findAllContainers(rootContainer) }
 
     Card(
         shape = RoundedCornerShape(18.dp),
@@ -151,41 +146,33 @@ fun StudioLayersPanel(
                             isHiddenInEditor = hiddenNodeIds.contains(child.id),
                             canMoveUp = canMoveUp,
                             canMoveDown = canMoveDown,
-                            onSelect = { onSelectNode(child.id) },
-                            onToggleExpand = {
-                                expandedContainers = if (expandedContainers.contains(child.id)) {
-                                    expandedContainers - child.id
+                            rootContainerId = rootContainer.id,
+                            allGroups = allGroups,
+                            onSelectNode = onSelectNode,
+                            onToggleExpand = { containerId ->
+                                expandedContainers = if (expandedContainers.contains(containerId)) {
+                                    expandedContainers - containerId
                                 } else {
-                                    expandedContainers + child.id
+                                    expandedContainers + containerId
                                 }
                             },
-                            onToggleLock = { onToggleLock(child.id) },
-                            onToggleVisibility = { onToggleVisibility(child.id) },
-                            onMove = { delta -> onMoveLayer(child.id, delta) },
-                            onMoveToFront = { onMoveToFront(child.id) },
-                            onMoveToBack = { onMoveToBack(child.id) },
-                            onDuplicate = { onDuplicate(child.id) },
-                            onGroup = { onGroup(child.id) },
-                            onUngroup = { onUngroup(child.id) },
+                            onToggleLock = onToggleLock,
+                            onToggleVisibility = onToggleVisibility,
+                            onMoveLayer = onMoveLayer,
+                            onMoveToFront = onMoveToFront,
+                            onMoveToBack = onMoveToBack,
+                            onDuplicate = onDuplicate,
+                            onGroup = onGroup,
+                            onUngroup = onUngroup,
                             onStartRename = { renamingNode = Pair(child.id, child.name ?: "") },
-                            onDelete = { onDelete(child.id) },
-                            onSelectDescendant = onSelectNode,
+                            onDelete = onDelete,
+                            onMoveInto = onMoveInto,
                             hiddenNodeIds = hiddenNodeIds,
                             selectedNodeId = selectedNodeId,
                             expandedContainers = expandedContainers
                         )
                     }
                 }
-            }
-
-            Spacer(Modifier.height(4.dp))
-            Button(
-                onClick = { onAddElement(rootContainer.id) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Rounded.Add, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.studio_items_add))
             }
         }
     }
@@ -232,24 +219,30 @@ private fun LayerTreeItem(
     isHiddenInEditor: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
-    onSelect: () -> Unit,
-    onToggleExpand: () -> Unit,
-    onToggleLock: () -> Unit,
-    onToggleVisibility: () -> Unit,
-    onMove: (Int) -> Unit,
-    onMoveToFront: () -> Unit,
-    onMoveToBack: () -> Unit,
-    onDuplicate: () -> Unit,
-    onGroup: () -> Unit,
-    onUngroup: () -> Unit,
+    rootContainerId: String,
+    allGroups: List<LayoutContainer>,
+    onSelectNode: (String) -> Unit,
+    onToggleExpand: (String) -> Unit,
+    onToggleLock: (String) -> Unit,
+    onToggleVisibility: (String) -> Unit,
+    onMoveLayer: (String, Int) -> Unit,
+    onMoveToFront: (String) -> Unit,
+    onMoveToBack: (String) -> Unit,
+    onDuplicate: (String) -> Unit,
+    onGroup: (String) -> Unit,
+    onUngroup: (String) -> Unit,
     onStartRename: () -> Unit,
-    onDelete: () -> Unit,
-    onSelectDescendant: (String) -> Unit,
+    onDelete: (String) -> Unit,
+    onMoveInto: (String, String) -> Unit,
     hiddenNodeIds: Set<String>,
     selectedNodeId: String?,
     expandedContainers: Set<String>
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    var showTargetGroupDialog by remember { mutableStateOf(false) }
+    val candidateGroups = remember(allGroups, node.id) {
+        allGroups.filter { it.id != node.id && (node !is LayoutContainer || it.findNode(node.id) == null) }
+    }
 
     Column(
         modifier = Modifier
@@ -269,7 +262,7 @@ private fun LayerTreeItem(
 
         Surface(
             selected = isSelected,
-            onClick = onSelect,
+            onClick = { onSelectNode(node.id) },
             shape = RoundedCornerShape(12.dp),
             color = containerColor,
             contentColor = contentColor,
@@ -288,7 +281,7 @@ private fun LayerTreeItem(
                 // Expand/collapse chevron for groups
                 if (node is LayoutContainer && node.children.isNotEmpty()) {
                     IconButton(
-                        onClick = onToggleExpand,
+                        onClick = { onToggleExpand(node.id) },
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
@@ -347,9 +340,38 @@ private fun LayerTreeItem(
                     }
                 }
 
+                // Quick move buttons when selected
+                if (isSelected && canMoveUp) {
+                    IconButton(
+                        onClick = { onMoveLayer(node.id, 1) },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowUpward,
+                            contentDescription = stringResource(R.string.studio_layer_move_up),
+                            modifier = Modifier.size(15.dp),
+                            tint = contentColor.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+
+                if (isSelected && canMoveDown) {
+                    IconButton(
+                        onClick = { onMoveLayer(node.id, -1) },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowDownward,
+                            contentDescription = stringResource(R.string.studio_layer_move_down),
+                            modifier = Modifier.size(15.dp),
+                            tint = contentColor.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+
                 // Lock toggle button
                 IconButton(
-                    onClick = onToggleLock,
+                    onClick = { onToggleLock(node.id) },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
@@ -362,7 +384,7 @@ private fun LayerTreeItem(
 
                 // Visibility toggle button
                 IconButton(
-                    onClick = onToggleVisibility,
+                    onClick = { onToggleVisibility(node.id) },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
@@ -391,12 +413,56 @@ private fun LayerTreeItem(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
+                        if (canMoveUp) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.studio_layer_move_up)) },
+                                leadingIcon = { Icon(Icons.Rounded.ArrowUpward, null) },
+                                onClick = {
+                                    showMenu = false
+                                    onMoveLayer(node.id, 1)
+                                }
+                            )
+                        }
+                        if (canMoveDown) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.studio_layer_move_down)) },
+                                leadingIcon = { Icon(Icons.Rounded.ArrowDownward, null) },
+                                onClick = {
+                                    showMenu = false
+                                    onMoveLayer(node.id, -1)
+                                }
+                            )
+                        }
+                        if (depth > 0) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.studio_layer_move_out_of_group)) },
+                                leadingIcon = { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null) },
+                                onClick = {
+                                    showMenu = false
+                                    onMoveInto(node.id, rootContainerId)
+                                }
+                            )
+                        }
+                        if (candidateGroups.isNotEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.studio_layer_move_into_group)) },
+                                leadingIcon = { Icon(Icons.Rounded.FolderOpen, null) },
+                                onClick = {
+                                    showMenu = false
+                                    if (candidateGroups.size == 1) {
+                                        onMoveInto(node.id, candidateGroups.first().id)
+                                    } else {
+                                        showTargetGroupDialog = true
+                                    }
+                                }
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.studio_layer_duplicate)) },
                             leadingIcon = { Icon(Icons.Rounded.ContentCopy, null) },
                             onClick = {
                                 showMenu = false
-                                onDuplicate()
+                                onDuplicate(node.id)
                             }
                         )
                         DropdownMenuItem(
@@ -404,7 +470,7 @@ private fun LayerTreeItem(
                             leadingIcon = { Icon(Icons.Rounded.Folder, null) },
                             onClick = {
                                 showMenu = false
-                                onGroup()
+                                onGroup(node.id)
                             }
                         )
                         if (node is LayoutContainer) {
@@ -413,7 +479,7 @@ private fun LayerTreeItem(
                                 leadingIcon = { Icon(Icons.Rounded.Unarchive, null) },
                                 onClick = {
                                     showMenu = false
-                                    onUngroup()
+                                    onUngroup(node.id)
                                 }
                             )
                         }
@@ -422,7 +488,7 @@ private fun LayerTreeItem(
                             leadingIcon = { Icon(Icons.Rounded.VerticalAlignTop, null) },
                             onClick = {
                                 showMenu = false
-                                onMoveToFront()
+                                onMoveToFront(node.id)
                             }
                         )
                         DropdownMenuItem(
@@ -430,7 +496,7 @@ private fun LayerTreeItem(
                             leadingIcon = { Icon(Icons.Rounded.VerticalAlignBottom, null) },
                             onClick = {
                                 showMenu = false
-                                onMoveToBack()
+                                onMoveToBack(node.id)
                             }
                         )
                         DropdownMenuItem(
@@ -446,7 +512,7 @@ private fun LayerTreeItem(
                             leadingIcon = { Icon(Icons.Rounded.Delete, null, tint = MaterialTheme.colorScheme.error) },
                             onClick = {
                                 showMenu = false
-                                onDelete()
+                                onDelete(node.id)
                             }
                         )
                     }
@@ -473,13 +539,13 @@ private fun LayerTreeItem(
                         isHiddenInEditor = hiddenNodeIds.contains(childNode.id),
                         canMoveUp = childCanUp,
                         canMoveDown = childCanDown,
-                        onSelect = { onSelectDescendant(childNode.id) },
-                        onToggleExpand = {
-                            // Handled recursively
-                        },
-                        onToggleLock = { onToggleLock() },
-                        onToggleVisibility = { onToggleVisibility() },
-                        onMove = onMove,
+                        rootContainerId = rootContainerId,
+                        allGroups = allGroups,
+                        onSelectNode = onSelectNode,
+                        onToggleExpand = onToggleExpand,
+                        onToggleLock = onToggleLock,
+                        onToggleVisibility = onToggleVisibility,
+                        onMoveLayer = onMoveLayer,
                         onMoveToFront = onMoveToFront,
                         onMoveToBack = onMoveToBack,
                         onDuplicate = onDuplicate,
@@ -487,7 +553,7 @@ private fun LayerTreeItem(
                         onUngroup = onUngroup,
                         onStartRename = onStartRename,
                         onDelete = onDelete,
-                        onSelectDescendant = onSelectDescendant,
+                        onMoveInto = onMoveInto,
                         hiddenNodeIds = hiddenNodeIds,
                         selectedNodeId = selectedNodeId,
                         expandedContainers = expandedContainers
@@ -496,6 +562,57 @@ private fun LayerTreeItem(
             }
         }
     }
+
+    if (showTargetGroupDialog) {
+        AlertDialog(
+            onDismissRequest = { showTargetGroupDialog = false },
+            title = { Text(stringResource(R.string.studio_layer_move_into_group)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    candidateGroups.forEach { group ->
+                        Surface(
+                            onClick = {
+                                onMoveInto(node.id, group.id)
+                                showTargetGroupDialog = false
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Rounded.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = group.name ?: "Group (${group.id.take(6)})",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showTargetGroupDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+private fun findAllContainers(container: LayoutContainer, excludeId: String = ""): List<LayoutContainer> {
+    val list = mutableListOf<LayoutContainer>()
+    container.children.filterIsInstance<LayoutContainer>().forEach {
+        if (it.id != excludeId) {
+            list.add(it)
+            list.addAll(findAllContainers(it, excludeId))
+        }
+    }
+    return list
 }
 
 @Composable

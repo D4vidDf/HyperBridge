@@ -25,6 +25,8 @@ enum class StudioTab(val labelRes: Int) {
     VALUE(R.string.studio_tab_value),
     ACTIONS(R.string.studio_tab_actions),
     CONTAINER(R.string.studio_tab_container),
+    BACKGROUND(R.string.studio_tab_background),
+    GLOBAL(R.string.studio_tab_global),
     DESIGN(R.string.studio_tab_design),
     SCOPE(R.string.studio_tab_scope),
     LAYER(R.string.studio_tab_layer),
@@ -33,7 +35,7 @@ enum class StudioTab(val labelRes: Int) {
     companion object {
         fun tabsFor(node: CustomWidgetNode?, isRoot: Boolean): List<StudioTab> {
             return when {
-                node == null || isRoot -> listOf(ITEMS, CONTAINER, COLORS, DESIGN, SCOPE)
+                node == null || isRoot -> listOf(ITEMS, BACKGROUND, GLOBAL, DESIGN, SCOPE)
                 node is TextNode -> listOf(ITEM, COLORS, EFX, POSITION)
                 node is LayoutContainer -> listOf(ITEMS, ITEM, POSITION, CONTAINER, COLORS)
                 else -> listOf(ITEM, POSITION, COLORS, VALUE, ACTIONS)

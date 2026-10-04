@@ -13,6 +13,7 @@ import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.widget.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -368,5 +369,75 @@ class StudioViewModelTest {
         assertEquals(TargetScope.NOTIFICATION_TYPE, translator.targetScope)
         assertTrue(translator.targetPackages.isEmpty())
         assertEquals(listOf(NotificationType.MEDIA.name), translator.targetNotificationTypes)
+    }
+
+    @Test
+    fun updateGlobalsModifiesDocumentGlobals() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        val newGlobals = CustomWidgetGlobals(
+            primaryColorHex = "#FFEEAA",
+            accentColorHex = "#AABB00",
+            fontFamily = TextFontFamily.CURSIVE
+        )
+        vm.updateGlobals(newGlobals)
+
+        assertEquals("#FFEEAA", vm.document.value.globals.primaryColorHex)
+        assertEquals("#AABB00", vm.document.value.globals.accentColorHex)
+        assertEquals(TextFontFamily.CURSIVE, vm.document.value.globals.fontFamily)
+    }
+
+    @Test
+    fun applyFontToAllTextNodesUpdatesAllTextElementsInHierarchy() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        vm.applyFontToAllTextNodes(TextFontFamily.MONOSPACE)
+
+        val root = vm.document.value.root
+        val text1 = root.children.find { it.id == "text-1" } as TextNode
+        val text2 = root.children.find { it.id == "text-2" } as TextNode
+        assertEquals(TextFontFamily.MONOSPACE, text1.fontFamily)
+        assertEquals(TextFontFamily.MONOSPACE, text2.fontFamily)
+        assertEquals(TextFontFamily.MONOSPACE, vm.document.value.globals.fontFamily)
+    }
+
+    @Test
+    fun createTranslatorForDesignInstantiatesAndBindsTranslator() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        assertNull(vm.boundTranslator.value)
+        vm.createTranslatorForDesign()
+        val bound = vm.boundTranslator.value
+        assertNotNull(bound)
+        assertEquals(doc.id, bound!!.presentation.widgetId)
+        assertEquals(doc.meta.name, bound.meta.name)
+    }
+
+    @Test
+    fun moveIntoRelocatesNodeBetweenContainers() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        // Group text-2 into a new container
+        vm.groupNode("text-2")
+        val rootWithGroup = vm.document.value.root
+        val group = rootWithGroup.children.find { it is LayoutContainer } as LayoutContainer
+
+        // Move text-1 into the group
+        vm.moveInto("text-1", group.id)
+        val updatedDoc = vm.document.value
+        val updatedGroup = updatedDoc.findNode(group.id) as LayoutContainer
+        assertTrue(updatedGroup.children.any { it.id == "text-1" })
+        assertTrue(updatedDoc.root.children.none { it.id == "text-1" })
+
+        // Move text-1 back out of the group to root
+        vm.moveInto("text-1", "root")
+        val finalDoc = vm.document.value
+        val finalGroup = finalDoc.findNode(group.id) as LayoutContainer
+        assertTrue(finalDoc.root.children.any { it.id == "text-1" })
+        assertTrue(finalGroup.children.none { it.id == "text-1" })
     }
 }

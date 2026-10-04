@@ -12,26 +12,7 @@ import com.d4viddf.hyperbridge.models.translator.PresentationConfig
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
-import com.d4viddf.hyperbridge.models.widget.ContainerLayout
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
-import com.d4viddf.hyperbridge.models.widget.LayoutContainer
-import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
-import com.d4viddf.hyperbridge.models.widget.addChild
-import com.d4viddf.hyperbridge.models.widget.duplicateNode
-import com.d4viddf.hyperbridge.models.widget.findNode
-import com.d4viddf.hyperbridge.models.widget.groupNode
-import com.d4viddf.hyperbridge.models.widget.moveInto
-import com.d4viddf.hyperbridge.models.widget.moveNode
-import com.d4viddf.hyperbridge.models.widget.moveNodeToBack
-import com.d4viddf.hyperbridge.models.widget.moveNodeToFront
-import com.d4viddf.hyperbridge.models.widget.parentOf
-import com.d4viddf.hyperbridge.models.widget.removeNode
-import com.d4viddf.hyperbridge.models.widget.replaceNode
-import com.d4viddf.hyperbridge.models.widget.ungroupNode
-import com.d4viddf.hyperbridge.models.widget.withLocked
-import com.d4viddf.hyperbridge.models.widget.withName
+import com.d4viddf.hyperbridge.models.widget.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -223,6 +204,43 @@ class StudioViewModel(
 
     fun moveInto(nodeId: String, targetContainerId: String) {
         updateDocument { it.moveInto(nodeId, targetContainerId) }
+    }
+
+    fun updateGlobals(globals: CustomWidgetGlobals) {
+        val current = _document.value
+        val updated = current.copy(globals = globals)
+        pushHistory(current)
+        _document.value = updated
+        persistDraft(updated)
+    }
+
+    fun applyFontToAllTextNodes(fontFamily: TextFontFamily) {
+        val current = _document.value
+        fun updateTree(node: CustomWidgetNode): CustomWidgetNode = when (node) {
+            is TextNode -> node.copy(fontFamily = fontFamily)
+            is LayoutContainer -> node.copy(children = node.children.map { updateTree(it) })
+            else -> node
+        }
+        val updated = current.copy(
+            root = updateTree(current.root) as LayoutContainer,
+            globals = current.globals.copy(fontFamily = fontFamily)
+        )
+        pushHistory(current)
+        _document.value = updated
+        persistDraft(updated)
+    }
+
+    fun createTranslatorForDesign() {
+        val doc = _document.value
+        val translator = createOrUpdateTranslator(
+            doc,
+            _targetScope.value,
+            _targetPackages.value,
+            _notificationType.value,
+            existingTranslator
+        )
+        existingTranslator = translator
+        _boundTranslator.value = translator
     }
 
     fun duplicateNode(nodeId: String) {

@@ -1,5 +1,8 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -135,7 +138,12 @@ fun StudioInspector(
     onDeleteNode: (String) -> Unit = {},
     onToggleNodeLock: (String) -> Unit = {},
     // Stage 4 additions
-    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD
+    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
+    // Stage 5 additions
+    onMoveInto: (String, String) -> Unit = { _, _ -> },
+    onCreateTranslator: (() -> Unit)? = null,
+    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null,
+    onApplyFontToAll: ((TextFontFamily) -> Unit)? = null
 ) {
     var editingFormulaPropKey by remember { mutableStateOf<String?>(null) }
     var isAppChooserOpen by remember { mutableStateOf(false) }
@@ -165,7 +173,28 @@ fun StudioInspector(
                         onUngroup = onUngroup,
                         onRename = onRename,
                         onDelete = onDeleteNode,
-                        onAddElement = { onAddChild(it) }
+                        onAddElement = { onAddChild(it) },
+                        onMoveInto = onMoveInto
+                    )
+                }
+            }
+
+            StudioTab.BACKGROUND -> {
+                if (node is LayoutContainer) {
+                    BackgroundTabContent(
+                        container = node,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                }
+            }
+
+            StudioTab.GLOBAL -> {
+                if (document != null && onUpdateGlobals != null && onApplyFontToAll != null) {
+                    GlobalTabContent(
+                        document = document,
+                        onUpdateGlobals = onUpdateGlobals,
+                        onApplyFontToAll = onApplyFontToAll
                     )
                 }
             }
@@ -257,6 +286,7 @@ fun StudioInspector(
                     onTargetScopeChange = onTargetScopeChange,
                     onAddTargetPackage = onAddTargetPackage,
                     onRemoveTargetPackage = onRemoveTargetPackage,
+                    onCreateTranslator = onCreateTranslator,
                     onRequestAppChooser = { cb ->
                         appChooserCallback = cb
                         isAppChooserOpen = true
@@ -2603,6 +2633,299 @@ private fun ContainerTabContent(
 }
 
 @Composable
+private fun BackgroundTabContent(
+    container: LayoutContainer,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit = {}
+) {
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            onChange(
+                container.copy(
+                    backgroundType = ContainerBackgroundType.PICTURE,
+                    backgroundImageUri = uri.toString(),
+                    backgroundImageSource = null
+                )
+            )
+        }
+    }
+
+    StudioSection(stringResource(R.string.studio_tab_background)) {
+        Text(
+            text = stringResource(R.string.studio_background_type),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = container.backgroundType == ContainerBackgroundType.SOLID,
+                onClick = {
+                    onChange(container.copy(backgroundType = ContainerBackgroundType.SOLID))
+                },
+                leadingIcon = {
+                    if (container.backgroundType == ContainerBackgroundType.SOLID) {
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
+                    }
+                },
+                label = { Text(stringResource(R.string.studio_background_type_solid)) }
+            )
+            FilterChip(
+                selected = container.backgroundType == ContainerBackgroundType.PICTURE,
+                onClick = {
+                    onChange(
+                        container.copy(
+                            backgroundType = ContainerBackgroundType.PICTURE,
+                            backgroundImageSource = container.backgroundImageSource ?: ImageSource.NotifMedia("picture")
+                        )
+                    )
+                },
+                leadingIcon = {
+                    if (container.backgroundType == ContainerBackgroundType.PICTURE) {
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
+                    }
+                },
+                label = { Text(stringResource(R.string.studio_background_type_picture)) }
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        if (container.backgroundType == ContainerBackgroundType.SOLID) {
+            StudioColorField(
+                label = stringResource(R.string.studio_property_background),
+                colorHex = container.backgroundHex.orEmpty().ifBlank { if (container.id == "root") "#141414" else "#00000000" },
+                onColorHexChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
+                boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
+                onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
+                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.studio_background_picture_source),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            val isCustomPicture = !container.backgroundImageUri.isNullOrBlank()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = !isCustomPicture,
+                    onClick = {
+                        onChange(
+                            container.copy(
+                                backgroundImageUri = null,
+                                backgroundImageSource = container.backgroundImageSource ?: ImageSource.NotifMedia("picture")
+                            )
+                        )
+                    },
+                    label = { Text(stringResource(R.string.studio_background_notif_media)) }
+                )
+                FilterChip(
+                    selected = isCustomPicture,
+                    onClick = {
+                        if (container.backgroundImageUri.isNullOrBlank()) {
+                            photoPickerLauncher.launch("image/*")
+                        }
+                    },
+                    label = { Text(stringResource(R.string.studio_background_custom_picture)) }
+                )
+            }
+
+            if (!isCustomPicture) {
+                val currentMediaKey = (container.backgroundImageSource as? ImageSource.NotifMedia)?.mediaType ?: "picture"
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NOTIF_MEDIA_SUBTYPES.forEach { subtype ->
+                        val isSelected = currentMediaKey == subtype.key
+                        Card(
+                            onClick = {
+                                onChange(
+                                    container.copy(
+                                        backgroundImageSource = ImageSource.NotifMedia(subtype.key),
+                                        backgroundImageUri = null
+                                    )
+                                )
+                            },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainerHigh
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Surface(
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceContainer,
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = subtype.icon,
+                                            contentDescription = null,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(subtype.titleRes),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = stringResource(subtype.descRes),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = {
+                                        onChange(
+                                            container.copy(
+                                                backgroundImageSource = ImageSource.NotifMedia(subtype.key),
+                                                backgroundImageUri = null
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.studio_background_custom_picture),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = container.backgroundImageUri.orEmpty(),
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilledTonalButton(
+                                onClick = { photoPickerLauncher.launch("image/*") }
+                            ) {
+                                Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(stringResource(R.string.studio_background_select_picture))
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    onChange(
+                                        container.copy(
+                                            backgroundImageUri = null,
+                                            backgroundImageSource = ImageSource.NotifMedia("picture")
+                                        )
+                                    )
+                                }
+                            ) {
+                                Text(stringResource(R.string.studio_background_remove_picture))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GlobalTabContent(
+    document: CustomWidgetDocument,
+    onUpdateGlobals: (CustomWidgetGlobals) -> Unit,
+    onApplyFontToAll: (TextFontFamily) -> Unit
+) {
+    val globals = document.globals
+
+    StudioSection(stringResource(R.string.studio_tab_global)) {
+        StudioColorField(
+            label = stringResource(R.string.studio_global_primary_color),
+            colorHex = globals.primaryColorHex,
+            onColorHexChange = { onUpdateGlobals(globals.copy(primaryColorHex = it)) }
+        )
+
+        StudioColorField(
+            label = stringResource(R.string.studio_global_accent_color),
+            colorHex = globals.accentColorHex,
+            onColorHexChange = { onUpdateGlobals(globals.copy(accentColorHex = it)) }
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(R.string.studio_global_font_family),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextFontFamily.entries.forEach { family ->
+                FilterChip(
+                    selected = globals.fontFamily == family,
+                    onClick = { onUpdateGlobals(globals.copy(fontFamily = family)) },
+                    label = {
+                        Text(
+                            text = stringResource(fontFamilyLabel(family)),
+                            fontFamily = previewComposeFontFamily(family)
+                        )
+                    }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Button(
+            onClick = { onApplyFontToAll(globals.fontFamily) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Rounded.Title, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.studio_global_apply_to_all))
+        }
+    }
+}
+
+@Composable
 private fun DesignTabContent(
     document: CustomWidgetDocument,
     onNameChange: (String) -> Unit,
@@ -2670,6 +2993,7 @@ private fun ScopeTabContent(
     onTargetScopeChange: ((TargetScope) -> Unit)?,
     onAddTargetPackage: ((String) -> Unit)?,
     onRemoveTargetPackage: ((String) -> Unit)?,
+    onCreateTranslator: (() -> Unit)? = null,
     onRequestAppChooser: ((String) -> Unit) -> Unit
 ) {
     // 1. Translator Usage Status Card
@@ -2731,6 +3055,18 @@ private fun ScopeTabContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+        }
+
+        if (boundTranslator == null && onCreateTranslator != null) {
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onCreateTranslator,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.studio_scope_create_translator))
             }
         }
     }

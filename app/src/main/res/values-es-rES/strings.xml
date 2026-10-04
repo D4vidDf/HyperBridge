@@ -1605,4 +1605,25 @@
     <string name="studio_font_family_cursive">Cursiva</string>
     <string name="studio_font_family_casual">Casual</string>
     <string name="studio_font_family_condensed">Condensada</string>
+
+    <!-- Studio Root Tabs & Background / Global Settings -->
+    <string name="studio_tab_background">Fondo</string>
+    <string name="studio_tab_global">Global</string>
+    <string name="studio_background_type">Tipo de fondo</string>
+    <string name="studio_background_type_solid">Sólido</string>
+    <string name="studio_background_type_picture">Imagen</string>
+    <string name="studio_background_picture_source">Origen de imagen</string>
+    <string name="studio_background_select_picture">Elegir imagen del almacenamiento</string>
+    <string name="studio_background_remove_picture">Quitar imagen</string>
+    <string name="studio_background_notif_media">Recurso de notificación</string>
+    <string name="studio_background_custom_picture">Imagen personalizada</string>
+    <string name="studio_global_primary_color">Color global</string>
+    <string name="studio_global_accent_color">Color de acento global</string>
+    <string name="studio_global_font_family">Familia de fuente global</string>
+    <string name="studio_global_apply_to_all">Aplicar fuente a todos los textos</string>
+    <string name="studio_scope_create_translator">Crear traductor para este diseño</string>
+    <string name="studio_layer_move_into_group">Mover dentro del grupo</string>
+    <string name="studio_layer_move_out_of_group">Mover fuera del grupo</string>
+    <string name="studio_layer_move_up">Subir</string>
+    <string name="studio_layer_move_down">Bajar</string>
 </resources>

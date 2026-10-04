@@ -7,11 +7,11 @@ import org.junit.Test
 class StudioTabsTest {
 
     @Test
-    fun `tabsFor root container returns items, container, colors, design, scope`() {
+    fun `tabsFor root container returns items, background, global, design, scope`() {
         val root = LayoutContainer(id = "root_container")
         val tabs = StudioTab.tabsFor(root, isRoot = true)
         assertEquals(
-            listOf(StudioTab.ITEMS, StudioTab.CONTAINER, StudioTab.COLORS, StudioTab.DESIGN, StudioTab.SCOPE),
+            listOf(StudioTab.ITEMS, StudioTab.BACKGROUND, StudioTab.GLOBAL, StudioTab.DESIGN, StudioTab.SCOPE),
             tabs
         )
     }
@@ -20,7 +20,7 @@ class StudioTabsTest {
     fun `tabsFor null node returns root tabs`() {
         val tabs = StudioTab.tabsFor(null, isRoot = true)
         assertEquals(
-            listOf(StudioTab.ITEMS, StudioTab.CONTAINER, StudioTab.COLORS, StudioTab.DESIGN, StudioTab.SCOPE),
+            listOf(StudioTab.ITEMS, StudioTab.BACKGROUND, StudioTab.GLOBAL, StudioTab.DESIGN, StudioTab.SCOPE),
             tabs
         )
     }

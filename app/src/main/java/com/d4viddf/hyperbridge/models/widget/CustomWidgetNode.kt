@@ -369,6 +369,14 @@ data class ShapeNode(
 enum class ContainerLayout { ROW, COLUMN, BOX, ABSOLUTE }
 
 @Serializable
+enum class ContainerBackgroundType {
+    @SerialName("solid")
+    SOLID,
+    @SerialName("picture")
+    PICTURE
+}
+
+@Serializable
 @SerialName("container")
 data class LayoutContainer(
     override val id: String,
@@ -382,9 +390,19 @@ data class LayoutContainer(
     val gapDp: Int = 4,
     val paddingDp: Int = 0,
     val backgroundHex: String? = null,
+    val backgroundType: ContainerBackgroundType = ContainerBackgroundType.SOLID,
+    val backgroundImageSource: ImageSource? = null,
+    val backgroundImageUri: String? = null,
     override val showIf: NodeCondition = NodeCondition.Always,
     override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
+
+@Serializable
+data class CustomWidgetGlobals(
+    val primaryColorHex: String = "#FFFFFF",
+    val accentColorHex: String = "#0A84FF",
+    val fontFamily: TextFontFamily = TextFontFamily.DEFAULT
+)
 
 @Serializable
 data class CustomWidgetMetadata(
@@ -414,7 +432,8 @@ data class CustomWidgetDocument(
      * `.hwidget` came from; it no longer selects anything.
      */
     val boundPackage: String? = null,
-    val permanentIslandEligible: Boolean = false
+    val permanentIslandEligible: Boolean = false,
+    val globals: CustomWidgetGlobals = CustomWidgetGlobals()
 )
 
 /**

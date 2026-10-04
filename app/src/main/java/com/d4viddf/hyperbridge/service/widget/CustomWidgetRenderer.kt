@@ -23,23 +23,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
-import com.d4viddf.hyperbridge.models.widget.BindableProperty
-import com.d4viddf.hyperbridge.models.widget.ButtonAction
-import com.d4viddf.hyperbridge.models.widget.ButtonNode
-import com.d4viddf.hyperbridge.models.widget.ContainerLayout
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
-import com.d4viddf.hyperbridge.models.widget.ImageNode
-import com.d4viddf.hyperbridge.models.widget.ImageSource
-import com.d4viddf.hyperbridge.models.widget.LayoutContainer
-import com.d4viddf.hyperbridge.models.widget.NodeConditionEvaluator
-import com.d4viddf.hyperbridge.models.widget.ProgressNode
-import com.d4viddf.hyperbridge.models.widget.ProgressStyle
-import com.d4viddf.hyperbridge.models.widget.ShapeNode
-import com.d4viddf.hyperbridge.models.widget.TextGravity
-import com.d4viddf.hyperbridge.models.widget.TextNode
-import com.d4viddf.hyperbridge.models.widget.TextFontFamily
-import com.d4viddf.hyperbridge.models.widget.TextSizingType
+import com.d4viddf.hyperbridge.models.widget.*
 import com.d4viddf.hyperbridge.receiver.WidgetActionReceiver
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 
@@ -89,7 +73,7 @@ class CustomWidgetRenderer(
     ): RemoteViews {
         val rv = when (node) {
             is LayoutContainer -> renderContainer(doc, node, ctx, bridgeId, intents)
-            is TextNode -> renderText(node, ctx)
+            is TextNode -> renderText(doc, node, ctx)
             is ImageNode -> renderImage(doc, node, ctx)
             is ProgressNode -> renderProgress(node, ctx)
             is ButtonNode -> renderButton(doc, node, bridgeId, intents, ctx)
@@ -193,7 +177,7 @@ class CustomWidgetRenderer(
         }
         val rv = RemoteViews(context.packageName, layoutRes)
         val bgColor = resolveColor(node, BindableProperty.CONTAINER_BACKGROUND, node.backgroundHex, ctx)
-        if (bgColor != null) {
+        if (bgColor != null && node.backgroundType != ContainerBackgroundType.PICTURE) {
             try {
                 rv.setInt(R.id.widget_container_root, "setBackgroundColor", bgColor)
             } catch (_: Exception) { /* ignore invalid color */ }
@@ -217,13 +201,14 @@ class CustomWidgetRenderer(
         return rv
     }
 
-    private fun renderText(node: TextNode, ctx: VariableContext): RemoteViews {
+    private fun renderText(doc: CustomWidgetDocument, node: TextNode, ctx: VariableContext): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_text)
         val template = resolveString(node, BindableProperty.TEXT_TEMPLATE, node.template, ctx).orEmpty()
         val resolved = engine.resolve(template, ctx)
 
         val hasStyle = node.bold || node.italic
-        val familyName = when (node.fontFamily) {
+        val effectiveFontFamily = if (node.fontFamily == TextFontFamily.DEFAULT) doc.globals.fontFamily else node.fontFamily
+        val familyName = when (effectiveFontFamily) {
             TextFontFamily.DEFAULT -> null
             TextFontFamily.SANS_SERIF -> "sans-serif"
             TextFontFamily.SERIF -> "serif"

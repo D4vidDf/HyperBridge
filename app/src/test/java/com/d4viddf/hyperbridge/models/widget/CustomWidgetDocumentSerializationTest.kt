@@ -226,4 +226,34 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals(true, textNode.efx.shadow.enabled)
         assertEquals(90, textNode.efx.shadow.direction)
     }
+
+    @Test
+    fun roundTripsDocumentGlobalsAndBackgroundType() {
+        val doc = CustomWidgetDocument(
+            id = "widget-globals",
+            meta = CustomWidgetMetadata(name = "Globals Test"),
+            globals = CustomWidgetGlobals(
+                primaryColorHex = "#AABBCC",
+                accentColorHex = "#112233",
+                fontFamily = TextFontFamily.MONOSPACE
+            ),
+            root = LayoutContainer(
+                id = "root",
+                backgroundType = ContainerBackgroundType.PICTURE,
+                backgroundImageUri = "content://media/external/images/123",
+                backgroundImageSource = ImageSource.NotifMedia("picture")
+            )
+        )
+
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+
+        assertEquals(doc, decoded)
+        assertEquals("#AABBCC", decoded.globals.primaryColorHex)
+        assertEquals("#112233", decoded.globals.accentColorHex)
+        assertEquals(TextFontFamily.MONOSPACE, decoded.globals.fontFamily)
+        assertEquals(ContainerBackgroundType.PICTURE, decoded.root.backgroundType)
+        assertEquals("content://media/external/images/123", decoded.root.backgroundImageUri)
+        assertEquals(ImageSource.NotifMedia("picture"), decoded.root.backgroundImageSource)
+    }
 }
