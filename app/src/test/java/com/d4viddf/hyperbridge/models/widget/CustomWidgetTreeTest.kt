@@ -372,4 +372,102 @@ class CustomWidgetTreeTest {
         assertEquals(12, child.bounds.y)
         assertEquals(Pair(100, 50), updated.absolutePositionOf("t1"))
     }
+
+    @Test
+    fun groupAdaptsDimensionsToRowLayoutChildren() {
+        val rowGroup = LayoutContainer(
+            id = "row1",
+            layout = ContainerLayout.ROW,
+            gapDp = 8,
+            paddingDp = 4,
+            children = listOf(
+                TextNode(id = "c1", bounds = NodeBounds(widthDp = 50, heightDp = 30)),
+                TextNode(id = "c2", bounds = NodeBounds(widthDp = 60, heightDp = 40))
+            )
+        )
+
+        // Row width: 50 + 60 + 8 + 2*4 = 126
+        // Row height: max(30, 40) + 2*4 = 48
+        assertEquals(126, rowGroup.adaptedContentWidth())
+        assertEquals(48, rowGroup.adaptedContentHeight())
+    }
+
+    @Test
+    fun groupAdaptsDimensionsToColumnLayoutChildren() {
+        val colGroup = LayoutContainer(
+            id = "col1",
+            layout = ContainerLayout.COLUMN,
+            gapDp = 8,
+            paddingDp = 4,
+            children = listOf(
+                TextNode(id = "c1", bounds = NodeBounds(widthDp = 50, heightDp = 30)),
+                TextNode(id = "c2", bounds = NodeBounds(widthDp = 60, heightDp = 40))
+            )
+        )
+
+        // Column width: max(50, 60) + 2*4 = 68
+        // Column height: 30 + 40 + 8 + 2*4 = 86
+        assertEquals(68, colGroup.adaptedContentWidth())
+        assertEquals(86, colGroup.adaptedContentHeight())
+    }
+
+    @Test
+    fun groupAdaptsDimensionsToBoxLayoutChildren() {
+        val boxGroup = LayoutContainer(
+            id = "box1",
+            layout = ContainerLayout.BOX,
+            paddingDp = 0,
+            children = listOf(
+                TextNode(id = "c1", bounds = NodeBounds(x = 0, y = 0, widthDp = 50, heightDp = 30)),
+                TextNode(id = "c2", bounds = NodeBounds(x = 40, y = 20, widthDp = 60, heightDp = 35))
+            )
+        )
+
+        // Box width: max(0+50, 40+60) = 100
+        // Box height: max(0+30, 20+35) = 55
+        assertEquals(100, boxGroup.adaptedContentWidth())
+        assertEquals(55, boxGroup.adaptedContentHeight())
+    }
+
+    @Test
+    fun moveIntoAdaptsGroupDimensionsWhenAddingAndRemovingChildren() {
+        val doc = CustomWidgetDocument(
+            id = "w1",
+            meta = CustomWidgetMetadata(name = "Test"),
+            root = LayoutContainer(
+                id = "root",
+                children = listOf(
+                    LayoutContainer(
+                        id = "group1",
+                        layout = ContainerLayout.ROW,
+                        gapDp = 6,
+                        paddingDp = 0,
+                        bounds = NodeBounds(x = 10, y = 10),
+                        children = listOf(
+                            TextNode(id = "item1", bounds = NodeBounds(widthDp = 40, heightDp = 20))
+                        )
+                    ),
+                    TextNode(id = "item2", bounds = NodeBounds(x = 100, y = 10, widthDp = 50, heightDp = 30))
+                )
+            )
+        )
+
+        // Initially group1 has item1 (40x20)
+        val initialGroup = doc.findNode("group1") as LayoutContainer
+        assertEquals(40, initialGroup.adaptedContentWidth())
+        assertEquals(20, initialGroup.adaptedContentHeight())
+
+        // Move item2 into group1
+        val docWithMoved = doc.moveInto("item2", "group1")
+        val expandedGroup = docWithMoved.findNode("group1") as LayoutContainer
+        // In ROW layout: 40 + 50 + 6 (gap) = 96 width, max(20, 30) = 30 height
+        assertEquals(96, expandedGroup.bounds.widthDp)
+        assertEquals(30, expandedGroup.bounds.heightDp)
+
+        // Move item2 back to root
+        val docRestored = docWithMoved.moveInto("item2", "root")
+        val shrunkGroup = docRestored.findNode("group1") as LayoutContainer
+        assertEquals(40, shrunkGroup.bounds.widthDp)
+        assertEquals(20, shrunkGroup.bounds.heightDp)
+    }
 }

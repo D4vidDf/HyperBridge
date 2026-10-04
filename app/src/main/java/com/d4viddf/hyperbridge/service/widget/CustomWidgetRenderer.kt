@@ -79,12 +79,18 @@ class CustomWidgetRenderer(
             is ButtonNode -> renderButton(doc, node, bridgeId, intents, ctx)
             is ShapeNode -> renderShape(node, ctx)
         }
-        val widthDp = if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
+        val widthDp = if (node is LayoutContainer && node.bounds.widthDp == null && node.id != doc.root.id) {
+            node.adaptedContentWidth()
+        } else if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
             node.boxWidthDp
         } else {
             resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx)
         }
-        val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
+        val heightDp = if (node is LayoutContainer && node.bounds.heightDp == null && node.id != doc.root.id) {
+            node.adaptedContentHeight()
+        } else {
+            resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
+        }
         val effectiveHeightDp = if (node is TextNode && node.maxLines > 1 && heightDp != null) {
             val minNeeded = (node.fontSizeSp * 1.35f * node.maxLines).toInt()
             maxOf(heightDp, minNeeded)

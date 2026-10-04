@@ -2591,7 +2591,17 @@ private fun ContainerTabContent(
             ContainerLayout.entries.forEach { layout ->
                 FilterChip(
                     selected = container.layout == layout,
-                    onClick = { onChange(container.copy(layout = layout)) },
+                    onClick = {
+                        val withNewLayout = container.copy(layout = layout)
+                        onChange(
+                            withNewLayout.copy(
+                                bounds = withNewLayout.bounds.copy(
+                                    widthDp = withNewLayout.adaptedContentWidth() ?: withNewLayout.bounds.widthDp,
+                                    heightDp = withNewLayout.adaptedContentHeight() ?: withNewLayout.bounds.heightDp
+                                )
+                            )
+                        )
+                    },
                     label = { Text(layout.name) }
                 )
             }
@@ -2600,7 +2610,17 @@ private fun ContainerTabContent(
         StudioStepper(
             label = stringResource(R.string.studio_property_gap),
             value = container.gapDp,
-            onValueChange = { onChange(container.copy(gapDp = it.coerceIn(0, 64))) },
+            onValueChange = {
+                val withGap = container.copy(gapDp = it.coerceIn(0, 64))
+                onChange(
+                    withGap.copy(
+                        bounds = withGap.bounds.copy(
+                            widthDp = withGap.adaptedContentWidth() ?: withGap.bounds.widthDp,
+                            heightDp = withGap.adaptedContentHeight() ?: withGap.bounds.heightDp
+                        )
+                    )
+                )
+            },
             unitSuffix = "dp",
             min = 0,
             max = 64,
@@ -2612,7 +2632,17 @@ private fun ContainerTabContent(
         StudioStepper(
             label = stringResource(R.string.studio_property_padding),
             value = container.paddingDp,
-            onValueChange = { onChange(container.copy(paddingDp = it.coerceIn(0, 64))) },
+            onValueChange = {
+                val withPad = container.copy(paddingDp = it.coerceIn(0, 64))
+                onChange(
+                    withPad.copy(
+                        bounds = withPad.bounds.copy(
+                            widthDp = withPad.adaptedContentWidth() ?: withPad.bounds.widthDp,
+                            heightDp = withPad.adaptedContentHeight() ?: withPad.bounds.heightDp
+                        )
+                    )
+                )
+            },
             unitSuffix = "dp",
             min = 0,
             max = 64,

@@ -26,7 +26,18 @@ fun CustomWidgetDocument.addChild(parentId: String, child: CustomWidgetNode): Cu
 fun CustomWidgetNode.addChild(parentId: String, child: CustomWidgetNode): CustomWidgetNode {
     return when (this) {
         is LayoutContainer -> if (this.id == parentId) {
-            copy(children = children + child)
+            val newChildren = children + child
+            val withChildren = copy(children = newChildren)
+            if (this.id == "root") {
+                withChildren
+            } else {
+                withChildren.copy(
+                    bounds = bounds.copy(
+                        widthDp = withChildren.adaptedContentWidth() ?: bounds.widthDp,
+                        heightDp = withChildren.adaptedContentHeight() ?: bounds.heightDp
+                    )
+                )
+            }
         } else {
             copy(children = children.map { it.addChild(parentId, child) })
         }
@@ -41,7 +52,20 @@ fun CustomWidgetDocument.removeNode(id: String): CustomWidgetDocument {
 
 fun CustomWidgetNode.removeNode(id: String): CustomWidgetNode {
     return when (this) {
-        is LayoutContainer -> copy(children = children.filter { it.id != id }.map { it.removeNode(id) })
+        is LayoutContainer -> {
+            val remaining = children.filter { it.id != id }.map { it.removeNode(id) }
+            val withRemaining = copy(children = remaining)
+            if (this.id == "root") {
+                withRemaining
+            } else {
+                withRemaining.copy(
+                    bounds = bounds.copy(
+                        widthDp = withRemaining.adaptedContentWidth() ?: bounds.widthDp,
+                        heightDp = withRemaining.adaptedContentHeight() ?: bounds.heightDp
+                    )
+                )
+            }
+        }
         else -> this
     }
 }
@@ -185,12 +209,18 @@ fun CustomWidgetDocument.groupNode(id: String, layout: ContainerLayout = Contain
 
     val targetNode = parent.children[index]
     val groupId = java.util.UUID.randomUUID().toString()
-    val groupContainer = LayoutContainer(
+    val childInside = targetNode.withBounds(targetNode.bounds.copy(x = 0, y = 0))
+    val tempContainer = LayoutContainer(
         id = groupId,
         name = "Group",
         layout = layout,
         bounds = targetNode.bounds,
-        children = listOf(targetNode.withBounds(targetNode.bounds.copy(x = 0, y = 0)))
+        children = listOf(childInside)
+    )
+    val adaptedW = tempContainer.adaptedContentWidth() ?: targetNode.effectiveWidth()
+    val adaptedH = tempContainer.adaptedContentHeight() ?: targetNode.effectiveHeight()
+    val groupContainer = tempContainer.copy(
+        bounds = targetNode.bounds.copy(widthDp = adaptedW, heightDp = adaptedH)
     )
 
     val updatedChildren = parent.children.toMutableList().apply {

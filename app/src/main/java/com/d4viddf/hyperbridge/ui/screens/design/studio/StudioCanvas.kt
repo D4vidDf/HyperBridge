@@ -723,7 +723,7 @@ private fun defaultWidthOf(node: CustomWidgetNode): Int = when (node) {
     is ImageNode -> 24
     is ProgressNode -> 64
     is ButtonNode -> 80
-    is LayoutContainer -> 120
+    is LayoutContainer -> node.adaptedContentWidth() ?: 120
     is TextNode -> 80
     is ShapeNode -> 48
 }
@@ -732,7 +732,7 @@ private fun defaultHeightOf(node: CustomWidgetNode): Int = when (node) {
     is ImageNode -> 24
     is ProgressNode -> 12
     is ButtonNode -> 36
-    is LayoutContainer -> 60
+    is LayoutContainer -> node.adaptedContentHeight() ?: 60
     is TextNode -> 24
     is ShapeNode -> 48
 }

@@ -242,18 +242,44 @@ fun StudioDesignScreen(
             onSelectNode = { studioViewModel.selectNode(it) },
             onMoveNode = { id, dx, dy ->
                 studioViewModel.updateDocument { current ->
-                    current.replaceNode(id) { node ->
+                    val movedDoc = current.replaceNode(id) { node ->
                         node.withBounds(node.bounds.movedBy(dx, dy, CANVAS_WIDTH_DP, current.canvas.heightDp))
                     }
+                    val parent = current.parentOf(id)
+                    if (parent != null && parent.id != current.root.id) {
+                        movedDoc.replaceNode(parent.id) { p ->
+                            if (p is LayoutContainer) {
+                                p.copy(
+                                    bounds = p.bounds.copy(
+                                        widthDp = p.adaptedContentWidth() ?: p.bounds.widthDp,
+                                        heightDp = p.adaptedContentHeight() ?: p.bounds.heightDp
+                                    )
+                                )
+                            } else p
+                        }
+                    } else movedDoc
                 }
             },
             onResizeNode = { id, width, height ->
                 studioViewModel.updateDocument { current ->
-                    current.replaceNode(id) { node ->
-                        val clampedW = width.coerceIn(12, CANVAS_WIDTH_DP)
-                        val clampedH = height.coerceIn(12, current.canvas.heightDp)
+                    val clampedW = width.coerceIn(12, CANVAS_WIDTH_DP)
+                    val clampedH = height.coerceIn(12, current.canvas.heightDp)
+                    val resizedDoc = current.replaceNode(id) { node ->
                         node.withBounds(node.bounds.copy(widthDp = clampedW, heightDp = clampedH))
                     }
+                    val parent = current.parentOf(id)
+                    if (parent != null && parent.id != current.root.id) {
+                        resizedDoc.replaceNode(parent.id) { p ->
+                            if (p is LayoutContainer) {
+                                p.copy(
+                                    bounds = p.bounds.copy(
+                                        widthDp = p.adaptedContentWidth() ?: p.bounds.widthDp,
+                                        heightDp = p.adaptedContentHeight() ?: p.bounds.heightDp
+                                    )
+                                )
+                            } else p
+                        }
+                    } else resizedDoc
                 }
             },
             onZoomIn = { zoom = (zoom + 0.15f).coerceAtMost(2.5f) },

@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.models.widget
 
+import kotlin.math.roundToInt
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -530,4 +531,91 @@ fun CustomWidgetNode.withBinding(key: String, formula: String?): CustomWidgetNod
     }
     return withBindings(updated)
 }
+
+/**
+ * Returns the effective width of this node in dp.
+ */
+fun CustomWidgetNode.effectiveWidth(): Int = when (this) {
+    is TextNode -> {
+        if ((sizingType == TextSizingType.FIXED_WIDTH || sizingType == TextSizingType.FIT_BOX) && boxWidthDp != null) {
+            boxWidthDp
+        } else {
+            bounds.widthDp ?: 80
+        }
+    }
+    is ImageNode -> bounds.widthDp ?: 24
+    is ProgressNode -> bounds.widthDp ?: 64
+    is ButtonNode -> bounds.widthDp ?: 80
+    is ShapeNode -> bounds.widthDp ?: 48
+    is LayoutContainer -> bounds.widthDp ?: adaptedContentWidth() ?: 120
+}
+
+/**
+ * Returns the effective height of this node in dp.
+ */
+fun CustomWidgetNode.effectiveHeight(): Int = when (this) {
+    is TextNode -> {
+        if (maxLines > 1 && bounds.heightDp != null) {
+            maxOf(bounds.heightDp, (fontSizeSp * 1.35f * maxLines).roundToInt())
+        } else if (maxLines > 1) {
+            (fontSizeSp * 1.4f * maxLines).roundToInt().coerceAtLeast(24)
+        } else {
+            bounds.heightDp ?: 24
+        }
+    }
+    is ImageNode -> bounds.heightDp ?: 24
+    is ProgressNode -> bounds.heightDp ?: 16
+    is ButtonNode -> bounds.heightDp ?: 32
+    is ShapeNode -> bounds.heightDp ?: 48
+    is LayoutContainer -> bounds.heightDp ?: adaptedContentHeight() ?: 60
+}
+
+/**
+ * Calculates the content width (in dp) of a container by adapting to the dimensions and
+ * layout positions of its inside children. Returns null if the container has no children.
+ */
+fun LayoutContainer.adaptedContentWidth(): Int? {
+    if (children.isEmpty()) return null
+    val calculated = when (layout) {
+        ContainerLayout.ROW -> {
+            val childrenWidth = children.sumOf { it.effectiveWidth() }
+            val gaps = (children.size - 1).coerceAtLeast(0) * gapDp
+            childrenWidth + gaps + 2 * paddingDp
+        }
+        ContainerLayout.COLUMN -> {
+            val maxChildWidth = children.maxOf { it.effectiveWidth() }
+            maxChildWidth + 2 * paddingDp
+        }
+        ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> {
+            val maxSpan = children.maxOf { it.bounds.x + it.effectiveWidth() }
+            maxSpan + paddingDp
+        }
+    }
+    return calculated.coerceAtLeast(12)
+}
+
+/**
+ * Calculates the content height (in dp) of a container by adapting to the dimensions and
+ * layout positions of its inside children. Returns null if the container has no children.
+ */
+fun LayoutContainer.adaptedContentHeight(): Int? {
+    if (children.isEmpty()) return null
+    val calculated = when (layout) {
+        ContainerLayout.ROW -> {
+            val maxChildHeight = children.maxOf { it.effectiveHeight() }
+            maxChildHeight + 2 * paddingDp
+        }
+        ContainerLayout.COLUMN -> {
+            val childrenHeight = children.sumOf { it.effectiveHeight() }
+            val gaps = (children.size - 1).coerceAtLeast(0) * gapDp
+            childrenHeight + gaps + 2 * paddingDp
+        }
+        ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> {
+            val maxSpan = children.maxOf { it.bounds.y + it.effectiveHeight() }
+            maxSpan + paddingDp
+        }
+    }
+    return calculated.coerceAtLeast(12)
+}
+
 
