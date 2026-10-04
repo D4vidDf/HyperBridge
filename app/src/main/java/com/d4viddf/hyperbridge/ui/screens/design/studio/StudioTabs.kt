@@ -18,20 +18,22 @@ import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 enum class StudioTab(val labelRes: Int) {
     ITEMS(R.string.studio_tab_items),
     ITEM(R.string.studio_tab_item),
-    LAYER(R.string.studio_tab_layer),
+    POSITION(R.string.studio_tab_position),
+    COLORS(R.string.studio_tab_colors),
+    VALUE(R.string.studio_tab_value),
+    ACTIONS(R.string.studio_tab_actions),
     CONTAINER(R.string.studio_tab_container),
     DESIGN(R.string.studio_tab_design),
     SCOPE(R.string.studio_tab_scope),
-    ACTIONS(R.string.studio_tab_actions),
+    LAYER(R.string.studio_tab_layer),
     BINDINGS(R.string.studio_tab_bindings);
 
     companion object {
         fun tabsFor(node: CustomWidgetNode?, isRoot: Boolean): List<StudioTab> {
             return when {
                 node == null || isRoot -> listOf(ITEMS, CONTAINER, DESIGN, SCOPE)
-                node is LayoutContainer -> listOf(ITEMS, LAYER, CONTAINER, BINDINGS)
-                node is ButtonNode -> listOf(ITEM, LAYER, ACTIONS, BINDINGS)
-                else -> listOf(ITEM, LAYER, ACTIONS, BINDINGS)
+                node is LayoutContainer -> listOf(ITEMS, ITEM, POSITION, CONTAINER, COLORS)
+                else -> listOf(ITEM, POSITION, COLORS, VALUE, ACTIONS)
             }
         }
     }
