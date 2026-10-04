@@ -297,15 +297,82 @@ private fun CanvasNode(
                     TextFontFamily.CONDENSED -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL))
                 }
 
+                val startColor = safeParseColor(resolvedColor)
+                val endColor = safeParseColor(node.efx.textureColorHex ?: "#FF5722")
+                val gradientColors = if (node.efx.textureParallel) {
+                    listOf(endColor, startColor)
+                } else {
+                    listOf(startColor, endColor)
+                }
+
+                val density = LocalDensity.current
+                val textureW = with(density) { (node.efx.textureWidthDp ?: nodeWidth).dp.toPx() }.coerceAtLeast(10f)
+                val textureH = with(density) { (node.efx.textureHeightDp ?: nodeHeight).dp.toPx() }.coerceAtLeast(10f)
+
+                val textureBrush: androidx.compose.ui.graphics.Brush? = when (node.efx.texture) {
+                    TextTextureType.NONE -> null
+                    TextTextureType.HORIZONTAL_GRADIENT -> {
+                        androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            colors = gradientColors,
+                            startX = 0f,
+                            endX = textureW
+                        )
+                    }
+                    TextTextureType.VERTICAL_GRADIENT -> {
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = gradientColors,
+                            startY = 0f,
+                            endY = textureH
+                        )
+                    }
+                    TextTextureType.RADIAL_GRADIENT -> {
+                        androidx.compose.ui.graphics.Brush.radialGradient(
+                            colors = gradientColors,
+                            center = androidx.compose.ui.geometry.Offset(textureW / 2f, textureH / 2f),
+                            radius = maxOf(textureW, textureH) / 2f
+                        )
+                    }
+                    TextTextureType.SWEEP_GRADIENT -> {
+                        androidx.compose.ui.graphics.Brush.sweepGradient(
+                            colors = listOf(gradientColors[0], gradientColors[1], gradientColors[0]),
+                            center = androidx.compose.ui.geometry.Offset(textureW / 2f, textureH / 2f)
+                        )
+                    }
+                    TextTextureType.BITMAP -> {
+                        var bmpBrush: androidx.compose.ui.graphics.Brush? = null
+                        val uriStr = node.efx.textureBitmapUri
+                        if (!uriStr.isNullOrBlank()) {
+                            try {
+                                val file = java.io.File(uriStr)
+                                if (file.exists()) {
+                                    val bitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath)
+                                    if (bitmap != null) {
+                                        val shader = android.graphics.BitmapShader(
+                                            bitmap,
+                                            android.graphics.Shader.TileMode.REPEAT,
+                                            android.graphics.Shader.TileMode.REPEAT
+                                        )
+                                        bmpBrush = androidx.compose.ui.graphics.ShaderBrush(shader)
+                                    }
+                                }
+                            } catch (_: Exception) {}
+                        }
+                        bmpBrush ?: androidx.compose.ui.graphics.Brush.linearGradient(gradientColors)
+                    }
+                }
+
                 Text(
                     text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, context).ifBlank { node.template },
-                    color = safeParseColor(resolvedColor),
+                    color = if (textureBrush != null) androidx.compose.ui.graphics.Color.Unspecified else safeParseColor(resolvedColor),
                     fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
                     fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
                     fontStyle = if (node.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
                     fontFamily = composeFontFamily,
                     textAlign = textAlign,
-                    style = if (textShadow != null) androidx.compose.ui.text.TextStyle(shadow = textShadow) else androidx.compose.ui.text.TextStyle.Default,
+                    style = androidx.compose.ui.text.TextStyle(
+                        brush = textureBrush,
+                        shadow = textShadow
+                    ),
                     maxLines = node.maxLines,
                     overflow = TextOverflow.Ellipsis,
                     softWrap = node.maxLines > 1,

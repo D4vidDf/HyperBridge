@@ -2308,6 +2308,14 @@ private fun EfxTabContent(
                     color = MaterialTheme.colorScheme.primary
                 )
 
+                val imageLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                    androidx.activity.result.contract.ActivityResultContracts.GetContent()
+                ) { uri: android.net.Uri? ->
+                    if (uri != null) {
+                        onChange(node.copy(efx = node.efx.copy(textureBitmapUri = uri.toString())))
+                    }
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2317,13 +2325,52 @@ private fun EfxTabContent(
                     TextTextureType.entries.forEach { type ->
                         FilterChip(
                             selected = node.efx.texture == type,
-                            onClick = { onChange(node.copy(efx = node.efx.copy(texture = type))) },
+                            onClick = {
+                                val updatedColor = if (type != TextTextureType.NONE && node.efx.textureColorHex == null) {
+                                    "#FF5722"
+                                } else {
+                                    node.efx.textureColorHex
+                                }
+                                onChange(node.copy(efx = node.efx.copy(texture = type, textureColorHex = updatedColor)))
+                            },
                             label = { Text(stringResource(textureTypeLabel(type))) }
                         )
                     }
                 }
 
                 if (node.efx.texture != TextTextureType.NONE) {
+                    val previewStart = safeParseColor(node.colorHex)
+                    val previewEnd = safeParseColor(node.efx.textureColorHex ?: "#FF5722")
+                    val previewColors = if (node.efx.textureParallel) {
+                        listOf(previewEnd, previewStart)
+                    } else {
+                        listOf(previewStart, previewEnd)
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(38.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                when (node.efx.texture) {
+                                    TextTextureType.HORIZONTAL_GRADIENT -> androidx.compose.ui.graphics.Brush.horizontalGradient(previewColors)
+                                    TextTextureType.VERTICAL_GRADIENT -> androidx.compose.ui.graphics.Brush.verticalGradient(previewColors)
+                                    TextTextureType.RADIAL_GRADIENT -> androidx.compose.ui.graphics.Brush.radialGradient(previewColors)
+                                    TextTextureType.SWEEP_GRADIENT -> androidx.compose.ui.graphics.Brush.sweepGradient(listOf(previewColors[0], previewColors[1], previewColors[0]))
+                                    else -> androidx.compose.ui.graphics.Brush.linearGradient(previewColors)
+                                }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (node.template.isNotBlank()) node.template else stringResource(textureTypeLabel(node.efx.texture)),
+                            color = androidx.compose.ui.graphics.Color.White,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+
                     StudioColorField(
                         label = stringResource(R.string.studio_efx_texture_color),
                         colorHex = node.efx.textureColorHex ?: "#FF5722",
@@ -2355,13 +2402,24 @@ private fun EfxTabContent(
                     )
 
                     if (node.efx.texture == TextTextureType.BITMAP) {
-                        OutlinedTextField(
-                            value = node.efx.textureBitmapUri.orEmpty(),
-                            onValueChange = { onChange(node.copy(efx = node.efx.copy(textureBitmapUri = it.ifBlank { null }))) },
-                            label = { Text(stringResource(R.string.studio_efx_texture_bitmap_uri)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = node.efx.textureBitmapUri.orEmpty(),
+                                onValueChange = { onChange(node.copy(efx = node.efx.copy(textureBitmapUri = it.ifBlank { null }))) },
+                                label = { Text(stringResource(R.string.studio_efx_texture_bitmap_uri)) },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            FilledTonalButton(
+                                onClick = { imageLauncher.launch("image/*") }
+                            ) {
+                                Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                            }
+                        }
                     }
                 }
             }
