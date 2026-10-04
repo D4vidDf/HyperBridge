@@ -38,6 +38,7 @@ import com.d4viddf.hyperbridge.models.widget.ProgressStyle
 import com.d4viddf.hyperbridge.models.widget.ShapeNode
 import com.d4viddf.hyperbridge.models.widget.TextGravity
 import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.TextSizingType
 import com.d4viddf.hyperbridge.receiver.WidgetActionReceiver
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 
@@ -93,7 +94,11 @@ class CustomWidgetRenderer(
             is ButtonNode -> renderButton(doc, node, bridgeId, intents, ctx)
             is ShapeNode -> renderShape(node, ctx)
         }
-        val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx)
+        val widthDp = if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
+            node.boxWidthDp
+        } else {
+            resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx)
+        }
         val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
         val effectiveHeightDp = if (node is TextNode && node.maxLines > 1 && heightDp != null) {
             val minNeeded = (node.fontSizeSp * 1.35f * node.maxLines).toInt()

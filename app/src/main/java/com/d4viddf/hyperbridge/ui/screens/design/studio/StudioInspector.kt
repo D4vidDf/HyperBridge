@@ -173,8 +173,18 @@ fun StudioInspector(
             StudioTab.ITEM -> {
                 ItemTabContent(
                     node = node,
-                    onChange = onChange
+                    onChange = onChange,
+                    onRequestFormulaEditor = { editingFormulaPropKey = it }
                 )
+            }
+
+            StudioTab.EFX -> {
+                if (node is TextNode) {
+                    EfxTabContent(
+                        node = node,
+                        onChange = onChange
+                    )
+                }
             }
 
             StudioTab.POSITION, StudioTab.LAYER -> {
@@ -462,7 +472,8 @@ private fun ChildLayerCard(
 @Composable
 private fun ItemTabContent(
     node: CustomWidgetNode,
-    onChange: (CustomWidgetNode) -> Unit
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit = {}
 ) {
     StudioSection(stringResource(R.string.studio_tab_item)) {
         OutlinedTextField(
@@ -522,6 +533,123 @@ private fun ItemTabContent(
             checked = node.locked,
             onCheckedChange = { onChange(node.withLocked(it)) }
         )
+
+        if (node is TextNode) {
+            TextItemDetailsEditor(
+                node = node,
+                onChange = onChange,
+                onRequestFormulaEditor = onRequestFormulaEditor
+            )
+        }
+    }
+}
+
+@Composable
+private fun TextItemDetailsEditor(
+    node: TextNode,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        OutlinedTextField(
+            value = node.template,
+            onValueChange = { onChange(node.copy(template = it)) },
+            label = { Text(stringResource(R.string.studio_property_template)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+        VariableTokenRow { token -> onChange(node.copy(template = node.template + token)) }
+
+        StudioStepper(
+            label = stringResource(R.string.studio_property_font_size),
+            value = node.fontSizeSp,
+            onValueChange = { onChange(node.copy(fontSizeSp = it.coerceIn(6, 96))) },
+            unitSuffix = "sp",
+            min = 6,
+            max = 96,
+            boundFormula = node.bindings[BindableProperty.TEXT_FONT_SIZE.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_FONT_SIZE.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_FONT_SIZE.key) }
+        )
+
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Text(
+                text = stringResource(R.string.studio_text_sizing_type),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextSizingType.entries.forEach { type ->
+                    FilterChip(
+                        selected = node.sizingType == type,
+                        onClick = { onChange(node.copy(sizingType = type)) },
+                        label = { Text(stringResource(sizingTypeLabel(type))) }
+                    )
+                }
+            }
+        }
+
+        StudioStepper(
+            label = stringResource(R.string.studio_text_box_width),
+            value = node.boxWidthDp ?: node.bounds.widthDp ?: 100,
+            onValueChange = { onChange(node.copy(boxWidthDp = it.coerceIn(20, 500))) },
+            unitSuffix = "dp",
+            min = 20,
+            max = 500
+        )
+
+        StudioStepper(
+            label = stringResource(R.string.studio_property_max_lines),
+            value = node.maxLines,
+            onValueChange = { onChange(node.copy(maxLines = it.coerceIn(1, 10))) },
+            min = 1,
+            max = 10
+        )
+
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Text(
+                text = stringResource(R.string.studio_property_gravity),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = node.gravity == TextGravity.START,
+                    onClick = { onChange(node.copy(gravity = TextGravity.START)) },
+                    label = { Text(stringResource(R.string.studio_gravity_start)) }
+                )
+                FilterChip(
+                    selected = node.gravity == TextGravity.CENTER,
+                    onClick = { onChange(node.copy(gravity = TextGravity.CENTER)) },
+                    label = { Text(stringResource(R.string.studio_gravity_center)) }
+                )
+                FilterChip(
+                    selected = node.gravity == TextGravity.END,
+                    onClick = { onChange(node.copy(gravity = TextGravity.END)) },
+                    label = { Text(stringResource(R.string.studio_gravity_end)) }
+                )
+            }
+        }
+
+        LabelledSwitch(
+            label = stringResource(R.string.studio_property_bold),
+            checked = node.bold,
+            onCheckedChange = { onChange(node.copy(bold = it)) }
+        )
+
+        LabelledSwitch(
+            label = stringResource(R.string.studio_property_italic),
+            checked = node.italic,
+            onCheckedChange = { onChange(node.copy(italic = it)) }
+        )
     }
 }
 
@@ -564,6 +692,31 @@ private fun ColorsTabContent(
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_COLOR.key, it)) },
                     onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_COLOR.key) }
                 )
+
+                Spacer(Modifier.height(8.dp))
+
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Text(
+                        text = stringResource(R.string.studio_text_filter_mode),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp)
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TextFilterMode.entries.forEach { mode ->
+                            FilterChip(
+                                selected = node.filterMode == mode,
+                                onClick = { onChange(node.copy(filterMode = mode)) },
+                                label = { Text(stringResource(filterModeLabel(mode))) }
+                            )
+                        }
+                    }
+                }
             }
 
             is ButtonNode -> {
@@ -2043,6 +2196,247 @@ private fun LayerTabContent(
     onDelete = onDelete,
     onRequestFormulaEditor = onRequestFormulaEditor
 )
+
+@Composable
+private fun EfxTabContent(
+    node: TextNode,
+    onChange: (CustomWidgetNode) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_efx)) {
+        // --- 1. MASK ---
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_efx_mask),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = node.efx.mask == TextMaskType.NONE,
+                        onClick = { onChange(node.copy(efx = node.efx.copy(mask = TextMaskType.NONE))) },
+                        label = { Text(stringResource(R.string.studio_efx_mask_none)) }
+                    )
+                    FilterChip(
+                        selected = node.efx.mask == TextMaskType.BLUR_BACKGROUND,
+                        onClick = { onChange(node.copy(efx = node.efx.copy(mask = TextMaskType.BLUR_BACKGROUND))) },
+                        label = { Text(stringResource(R.string.studio_efx_mask_blur_bg)) }
+                    )
+                }
+
+                if (node.efx.mask == TextMaskType.BLUR_BACKGROUND) {
+                    StudioStepper(
+                        label = stringResource(R.string.studio_efx_mask_blur),
+                        value = node.efx.maskBlurRadius,
+                        onValueChange = { onChange(node.copy(efx = node.efx.copy(maskBlurRadius = it.coerceIn(1, 100)))) },
+                        min = 1,
+                        max = 100
+                    )
+                    StudioStepper(
+                        label = stringResource(R.string.studio_efx_mask_attenuation),
+                        value = node.efx.maskAttenuation,
+                        onValueChange = { onChange(node.copy(efx = node.efx.copy(maskAttenuation = it.coerceIn(0, 100)))) },
+                        unitSuffix = "%",
+                        min = 0,
+                        max = 100
+                    )
+                }
+            }
+        }
+
+        // --- 2. TEXTURE ---
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_efx_texture),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextTextureType.entries.forEach { type ->
+                        FilterChip(
+                            selected = node.efx.texture == type,
+                            onClick = { onChange(node.copy(efx = node.efx.copy(texture = type))) },
+                            label = { Text(stringResource(textureTypeLabel(type))) }
+                        )
+                    }
+                }
+
+                if (node.efx.texture != TextTextureType.NONE) {
+                    StudioColorField(
+                        label = stringResource(R.string.studio_efx_texture_color),
+                        colorHex = node.efx.textureColorHex ?: "#FF5722",
+                        onColorHexChange = { onChange(node.copy(efx = node.efx.copy(textureColorHex = it))) }
+                    )
+
+                    StudioStepper(
+                        label = stringResource(R.string.studio_efx_texture_width),
+                        value = node.efx.textureWidthDp ?: 100,
+                        onValueChange = { onChange(node.copy(efx = node.efx.copy(textureWidthDp = it.coerceIn(10, 500)))) },
+                        unitSuffix = "dp",
+                        min = 10,
+                        max = 500
+                    )
+
+                    StudioStepper(
+                        label = stringResource(R.string.studio_efx_texture_height),
+                        value = node.efx.textureHeightDp ?: 100,
+                        onValueChange = { onChange(node.copy(efx = node.efx.copy(textureHeightDp = it.coerceIn(10, 500)))) },
+                        unitSuffix = "dp",
+                        min = 10,
+                        max = 500
+                    )
+
+                    LabelledSwitch(
+                        label = stringResource(R.string.studio_efx_texture_parallel),
+                        checked = node.efx.textureParallel,
+                        onCheckedChange = { onChange(node.copy(efx = node.efx.copy(textureParallel = it))) }
+                    )
+
+                    if (node.efx.texture == TextTextureType.BITMAP) {
+                        OutlinedTextField(
+                            value = node.efx.textureBitmapUri.orEmpty(),
+                            onValueChange = { onChange(node.copy(efx = node.efx.copy(textureBitmapUri = it.ifBlank { null }))) },
+                            label = { Text(stringResource(R.string.studio_efx_texture_bitmap_uri)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
+
+        // --- 3. SHADOW ---
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_efx_shadow),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                LabelledSwitch(
+                    label = stringResource(R.string.studio_efx_shadow_enable),
+                    checked = node.efx.shadow.enabled,
+                    onCheckedChange = { isEnabled ->
+                        onChange(node.copy(efx = node.efx.copy(shadow = node.efx.shadow.copy(enabled = isEnabled))))
+                    }
+                )
+
+                if (node.efx.shadow.enabled) {
+                    StudioStepper(
+                        label = stringResource(R.string.studio_efx_shadow_blur),
+                        value = node.efx.shadow.blurRadius,
+                        onValueChange = { onChange(node.copy(efx = node.efx.copy(shadow = node.efx.shadow.copy(blurRadius = it.coerceIn(0, 50))))) },
+                        min = 0,
+                        max = 50
+                    )
+
+                    StudioStepper(
+                        label = stringResource(R.string.studio_efx_shadow_direction),
+                        value = node.efx.shadow.direction,
+                        onValueChange = { onChange(node.copy(efx = node.efx.copy(shadow = node.efx.shadow.copy(direction = it.coerceIn(0, 360))))) },
+                        unitSuffix = "°",
+                        min = 0,
+                        max = 360,
+                        step = 15,
+                        fastStep = 45
+                    )
+
+                    StudioStepper(
+                        label = stringResource(R.string.studio_efx_shadow_distance),
+                        value = node.efx.shadow.distance,
+                        onValueChange = { onChange(node.copy(efx = node.efx.copy(shadow = node.efx.shadow.copy(distance = it.coerceIn(0, 50))))) },
+                        unitSuffix = "dp",
+                        min = 0,
+                        max = 50
+                    )
+
+                    StudioColorField(
+                        label = stringResource(R.string.studio_efx_shadow_color),
+                        colorHex = node.efx.shadow.colorHex,
+                        onColorHexChange = { onChange(node.copy(efx = node.efx.copy(shadow = node.efx.shadow.copy(colorHex = it)))) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun sizingTypeLabel(type: TextSizingType): Int = when (type) {
+    TextSizingType.FIXED_FONT_HEIGHT -> R.string.studio_text_sizing_fixed_font_height
+    TextSizingType.FIT_WIDTH -> R.string.studio_text_sizing_fit_width
+    TextSizingType.FIXED_WIDTH -> R.string.studio_text_sizing_fixed_width
+    TextSizingType.FIT_BOX -> R.string.studio_text_sizing_fit_box
+}
+
+private fun filterModeLabel(mode: TextFilterMode): Int = when (mode) {
+    TextFilterMode.NORMAL -> R.string.studio_filter_normal
+    TextFilterMode.CLEAR -> R.string.studio_filter_clear
+    TextFilterMode.SRC -> R.string.studio_filter_src
+    TextFilterMode.DST -> R.string.studio_filter_dst
+    TextFilterMode.XOR -> R.string.studio_filter_xor
+    TextFilterMode.DARKEN -> R.string.studio_filter_darken
+    TextFilterMode.LIGHTEN -> R.string.studio_filter_lighten
+    TextFilterMode.SCREEN -> R.string.studio_filter_screen
+    TextFilterMode.ADD -> R.string.studio_filter_add
+    TextFilterMode.OVERLAY -> R.string.studio_filter_overlay
+    TextFilterMode.MULTIPLY -> R.string.studio_filter_multiply
+}
+
+private fun textureTypeLabel(type: TextTextureType): Int = when (type) {
+    TextTextureType.NONE -> R.string.studio_efx_texture_none
+    TextTextureType.HORIZONTAL_GRADIENT -> R.string.studio_efx_texture_horizontal_gradient
+    TextTextureType.VERTICAL_GRADIENT -> R.string.studio_efx_texture_vertical_gradient
+    TextTextureType.RADIAL_GRADIENT -> R.string.studio_efx_texture_radial_gradient
+    TextTextureType.SWEEP_GRADIENT -> R.string.studio_efx_texture_sweep_gradient
+    TextTextureType.BITMAP -> R.string.studio_efx_texture_bitmap
+}
 
 @Composable
 private fun ContainerTabContent(

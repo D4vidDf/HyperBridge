@@ -1841,6 +1841,50 @@
     <string name="studio_shape_cookie">Cookie</string>
     <string name="studio_shape_arch">Arch</string>
     <string name="studio_shape_clover">Clover</string>
+
+    <!-- Text Node Tabs & EFX Improvements -->
+    <string name="studio_tab_efx">EFX</string>
+    <string name="studio_text_sizing_type">Sizing Type</string>
+    <string name="studio_text_sizing_fixed_font_height">Fixed Font Height</string>
+    <string name="studio_text_sizing_fit_width">Fit Width</string>
+    <string name="studio_text_sizing_fixed_width">Fixed Width</string>
+    <string name="studio_text_sizing_fit_box">Fit to Box</string>
+    <string name="studio_text_box_width">Box Width</string>
+    <string name="studio_text_filter_mode">Filter / Blend Mode</string>
+    <string name="studio_filter_normal">Normal</string>
+    <string name="studio_filter_clear">Clear</string>
+    <string name="studio_filter_src">Src</string>
+    <string name="studio_filter_dst">Dst</string>
+    <string name="studio_filter_xor">Xor</string>
+    <string name="studio_filter_darken">Darken</string>
+    <string name="studio_filter_lighten">Lighten</string>
+    <string name="studio_filter_screen">Screen</string>
+    <string name="studio_filter_add">Add</string>
+    <string name="studio_filter_overlay">Overlay</string>
+    <string name="studio_filter_multiply">Multiply</string>
+    <string name="studio_efx_mask">Mask</string>
+    <string name="studio_efx_mask_none">None</string>
+    <string name="studio_efx_mask_blur_bg">Blur Background</string>
+    <string name="studio_efx_mask_blur">Blur</string>
+    <string name="studio_efx_mask_attenuation">Attenuation</string>
+    <string name="studio_efx_texture">Texture</string>
+    <string name="studio_efx_texture_none">None</string>
+    <string name="studio_efx_texture_horizontal_gradient">Horizontal Gradient</string>
+    <string name="studio_efx_texture_vertical_gradient">Vertical Gradient</string>
+    <string name="studio_efx_texture_radial_gradient">Radial Gradient</string>
+    <string name="studio_efx_texture_sweep_gradient">Sweep Gradient</string>
+    <string name="studio_efx_texture_bitmap">Bitmap</string>
+    <string name="studio_efx_texture_color">Texture Color</string>
+    <string name="studio_efx_texture_width">Texture Width</string>
+    <string name="studio_efx_texture_height">Texture Height</string>
+    <string name="studio_efx_texture_parallel">Parallel</string>
+    <string name="studio_efx_texture_bitmap_uri">Bitmap Asset / URI</string>
+    <string name="studio_efx_shadow">Shadow</string>
+    <string name="studio_efx_shadow_enable">Exterior Shadow</string>
+    <string name="studio_efx_shadow_blur">Blur</string>
+    <string name="studio_efx_shadow_direction">Direction</string>
+    <string name="studio_efx_shadow_distance">Distance</string>
+    <string name="studio_efx_shadow_color">Shadow Color</string>
 </resources>
 
 

@@ -100,6 +100,91 @@ sealed interface CustomWidgetNode {
 enum class TextGravity { START, CENTER, END }
 
 @Serializable
+enum class TextSizingType {
+    @SerialName("fixed_font_height")
+    FIXED_FONT_HEIGHT,
+    @SerialName("fit_width")
+    FIT_WIDTH,
+    @SerialName("fixed_width")
+    FIXED_WIDTH,
+    @SerialName("fit_box")
+    FIT_BOX
+}
+
+@Serializable
+enum class TextFilterMode {
+    @SerialName("normal")
+    NORMAL,
+    @SerialName("clear")
+    CLEAR,
+    @SerialName("src")
+    SRC,
+    @SerialName("dst")
+    DST,
+    @SerialName("xor")
+    XOR,
+    @SerialName("darken")
+    DARKEN,
+    @SerialName("lighten")
+    LIGHTEN,
+    @SerialName("screen")
+    SCREEN,
+    @SerialName("add")
+    ADD,
+    @SerialName("overlay")
+    OVERLAY,
+    @SerialName("multiply")
+    MULTIPLY
+}
+
+@Serializable
+enum class TextMaskType {
+    @SerialName("none")
+    NONE,
+    @SerialName("blur_background")
+    BLUR_BACKGROUND
+}
+
+@Serializable
+enum class TextTextureType {
+    @SerialName("none")
+    NONE,
+    @SerialName("horizontal_gradient")
+    HORIZONTAL_GRADIENT,
+    @SerialName("vertical_gradient")
+    VERTICAL_GRADIENT,
+    @SerialName("radial_gradient")
+    RADIAL_GRADIENT,
+    @SerialName("sweep_gradient")
+    SWEEP_GRADIENT,
+    @SerialName("bitmap")
+    BITMAP
+}
+
+@Serializable
+data class TextShadowConfig(
+    val enabled: Boolean = false,
+    val blurRadius: Int = 4,
+    val direction: Int = 45,
+    val distance: Int = 4,
+    val colorHex: String = "#80000000"
+)
+
+@Serializable
+data class TextEfxConfig(
+    val mask: TextMaskType = TextMaskType.NONE,
+    val maskBlurRadius: Int = 10,
+    val maskAttenuation: Int = 50,
+    val texture: TextTextureType = TextTextureType.NONE,
+    val textureColorHex: String? = null,
+    val textureWidthDp: Int? = null,
+    val textureHeightDp: Int? = null,
+    val textureParallel: Boolean = false,
+    val textureBitmapUri: String? = null,
+    val shadow: TextShadowConfig = TextShadowConfig()
+)
+
+@Serializable
 @SerialName("text")
 data class TextNode(
     override val id: String,
@@ -116,6 +201,10 @@ data class TextNode(
     val maxLines: Int = 1,
     val marquee: Boolean = false,
     val gravity: TextGravity = TextGravity.START,
+    val sizingType: TextSizingType = TextSizingType.FIXED_FONT_HEIGHT,
+    val boxWidthDp: Int? = null,
+    val filterMode: TextFilterMode = TextFilterMode.NORMAL,
+    val efx: TextEfxConfig = TextEfxConfig(),
     override val showIf: NodeCondition = NodeCondition.Always,
     override val onClick: ButtonAction? = null
 ) : CustomWidgetNode

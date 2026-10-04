@@ -46,11 +46,11 @@ class StudioTabsTest {
     }
 
     @Test
-    fun `tabsFor text node returns item, position, colors, value, actions`() {
+    fun `tabsFor text node returns item, colors, efx, position`() {
         val text = TextNode(id = "title_text")
         val tabs = StudioTab.tabsFor(text, isRoot = false)
         assertEquals(
-            listOf(StudioTab.ITEM, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS),
+            listOf(StudioTab.ITEM, StudioTab.COLORS, StudioTab.EFX, StudioTab.POSITION),
             tabs
         )
     }

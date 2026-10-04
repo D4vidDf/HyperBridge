@@ -173,4 +173,55 @@ class CustomWidgetDocumentSerializationTest {
         val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
         assertEquals("Navigation", decoded.meta.icon)
     }
+
+    @Test
+    fun roundTripsTextNodeWithSizingFilterAndEfx() {
+        val doc = CustomWidgetDocument(
+            id = "text-efx-widget",
+            meta = CustomWidgetMetadata(name = "Text EFX Test"),
+            root = LayoutContainer(
+                id = "root",
+                children = listOf(
+                    TextNode(
+                        id = "text-styled",
+                        template = "Hello EFX",
+                        sizingType = TextSizingType.FIXED_WIDTH,
+                        boxWidthDp = 180,
+                        filterMode = TextFilterMode.MULTIPLY,
+                        efx = TextEfxConfig(
+                            mask = TextMaskType.BLUR_BACKGROUND,
+                            maskBlurRadius = 15,
+                            maskAttenuation = 75,
+                            texture = TextTextureType.HORIZONTAL_GRADIENT,
+                            textureColorHex = "#FF5722",
+                            textureWidthDp = 120,
+                            textureHeightDp = 40,
+                            textureParallel = true,
+                            textureBitmapUri = "file:///android_asset/sample.png",
+                            shadow = TextShadowConfig(
+                                enabled = true,
+                                blurRadius = 8,
+                                direction = 90,
+                                distance = 6,
+                                colorHex = "#AA000000"
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+
+        assertEquals(doc, decoded)
+        val textNode = (decoded.root as LayoutContainer).children.first() as TextNode
+        assertEquals(TextSizingType.FIXED_WIDTH, textNode.sizingType)
+        assertEquals(180, textNode.boxWidthDp)
+        assertEquals(TextFilterMode.MULTIPLY, textNode.filterMode)
+        assertEquals(TextMaskType.BLUR_BACKGROUND, textNode.efx.mask)
+        assertEquals(15, textNode.efx.maskBlurRadius)
+        assertEquals(true, textNode.efx.shadow.enabled)
+        assertEquals(90, textNode.efx.shadow.direction)
+    }
 }

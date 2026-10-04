@@ -185,7 +185,11 @@ private fun CanvasNode(
         (node.fontSizeSp * 1.4f * node.maxLines).roundToInt().coerceAtLeast(24)
     } else defaultHeightOf(node)
 
-    val nodeWidth = node.bounds.widthDp ?: defaultW
+    val nodeWidth = if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
+        node.boxWidthDp
+    } else {
+        node.bounds.widthDp ?: defaultW
+    }
     val baseNodeHeight = node.bounds.heightDp ?: defaultH
     val nodeHeight = if (node is TextNode && node.maxLines > 1 && node.bounds.heightDp != null) {
         maxOf(baseNodeHeight, (node.fontSizeSp * 1.35f * node.maxLines).roundToInt())
@@ -272,6 +276,17 @@ private fun CanvasNode(
                     TextGravity.END -> androidx.compose.ui.text.style.TextAlign.End
                 }
 
+                val textShadow = if (node.efx.shadow.enabled) {
+                    val rad = Math.toRadians(node.efx.shadow.direction.toDouble())
+                    val dx = (node.efx.shadow.distance * kotlin.math.cos(rad)).toFloat()
+                    val dy = (node.efx.shadow.distance * kotlin.math.sin(rad)).toFloat()
+                    androidx.compose.ui.graphics.Shadow(
+                        color = safeParseColor(node.efx.shadow.colorHex),
+                        offset = androidx.compose.ui.geometry.Offset(dx, dy),
+                        blurRadius = node.efx.shadow.blurRadius.toFloat()
+                    )
+                } else null
+
                 Text(
                     text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, context).ifBlank { node.template },
                     color = safeParseColor(resolvedColor),
@@ -279,6 +294,7 @@ private fun CanvasNode(
                     fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
                     fontStyle = if (node.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
                     textAlign = textAlign,
+                    style = if (textShadow != null) androidx.compose.ui.text.TextStyle(shadow = textShadow) else androidx.compose.ui.text.TextStyle.Default,
                     maxLines = node.maxLines,
                     overflow = TextOverflow.Ellipsis,
                     softWrap = node.maxLines > 1,
