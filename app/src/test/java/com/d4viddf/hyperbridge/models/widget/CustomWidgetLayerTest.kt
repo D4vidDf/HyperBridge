@@ -115,4 +115,14 @@ class CustomWidgetLayerTest {
         assertEquals(button.action, button.onClick)
         assertNotNull(restored.findNode("root"))
     }
+
+    @Test
+    fun buttonNodeDefaultsToNotificationActionInsteadOfDismiss() {
+        val button = ButtonNode(id = "btn", label = "Action")
+        assertEquals(ButtonAction.NotificationAction(0), button.action)
+        assertEquals(ButtonAction.NotificationAction(0), button.onClick)
+
+        val reset = button.withOnClick(null) as ButtonNode
+        assertEquals(ButtonAction.NotificationAction(0), reset.action)
+    }
 }

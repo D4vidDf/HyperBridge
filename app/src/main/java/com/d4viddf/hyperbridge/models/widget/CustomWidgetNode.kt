@@ -232,7 +232,7 @@ data class ButtonNode(
     override val opacity: Float = 1f,
     override val bindings: Map<String, String> = emptyMap(),
     val label: String = "",
-    val action: ButtonAction = ButtonAction.Dismiss,
+    val action: ButtonAction = ButtonAction.NotificationAction(0),
     val backgroundHex: String? = null,
     val textColorHex: String = "#FFFFFF",
     override val showIf: NodeCondition = NodeCondition.Always
@@ -354,7 +354,7 @@ fun CustomWidgetNode.withOnClick(action: ButtonAction?): CustomWidgetNode = when
     is TextNode -> copy(onClick = action)
     is ImageNode -> copy(onClick = action)
     is ProgressNode -> copy(onClick = action)
-    is ButtonNode -> copy(action = action ?: ButtonAction.Dismiss)
+    is ButtonNode -> copy(action = action ?: ButtonAction.NotificationAction(0))
     is LayoutContainer -> copy(onClick = action)
     is ShapeNode -> copy(onClick = action)
 }

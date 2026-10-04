@@ -147,7 +147,7 @@ class CustomWidgetTranslator(
         builder.setCustomIslandExpandRemoteView(rv)
         builder.setIslandConfig(
             timeout = config.timeout,
-            dismissible = true,
+            dismissible = false,
             highlightColor = highlightColor,
             expandedTimeMs = config.floatTimeout
         )

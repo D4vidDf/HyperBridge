@@ -460,10 +460,8 @@ class CustomWidgetRenderer(
         rv.setTextViewTextSize(R.id.node_button, TypedValue.COMPLEX_UNIT_SP, 13f)
 
         val pendingIntent: PendingIntent? = resolveAction(requestCode(doc, node, bridgeId), node.action, bridgeId, intents, ctx)
-
-        if (pendingIntent != null) {
-            rv.setOnClickPendingIntent(R.id.node_button, pendingIntent)
-        }
+        val finalPendingIntent = pendingIntent ?: noopPendingIntent(requestCode(doc, node, bridgeId))
+        rv.setOnClickPendingIntent(R.id.node_button, finalPendingIntent)
         return rv
     }
 
@@ -522,6 +520,18 @@ class CustomWidgetRenderer(
         // Inline reply fires the notification's own reply action when it has one; a hand-drawn
         // button still cannot open the keyboard by itself.
         is ButtonAction.InlineReply -> intents.inlineReply
+    }
+
+    private fun noopPendingIntent(requestCode: Int): PendingIntent {
+        val intent = Intent(context, WidgetActionReceiver::class.java).apply {
+            action = WidgetActionReceiver.ACTION_NOOP
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
     }
 
     private fun dpToPx(dp: Int): Int {

@@ -2351,7 +2351,7 @@ private fun ActionsTabContent(
             allowNone = node !is ButtonNode,
             onChange = { action ->
                 onChange(
-                    if (node is ButtonNode) node.copy(action = action ?: ButtonAction.Dismiss)
+                    if (node is ButtonNode) node.copy(action = action ?: ButtonAction.NotificationAction(0))
                     else node.withOnClick(action)
                 )
             },
@@ -3073,22 +3073,22 @@ private enum class ConditionKind(val labelRes: Int) {
 }
 
 private enum class ActionKind(val labelRes: Int) {
-    DISMISS(R.string.studio_action_dismiss),
     NOTIFICATION_ACTION(R.string.studio_action_notification),
+    OPEN_APP(R.string.studio_action_open_app),
     INLINE_REPLY(R.string.studio_action_reply),
     SMART_ACTION(R.string.studio_action_smart),
-    OPEN_APP(R.string.studio_action_open_app),
     DEEP_LINK(R.string.studio_action_deep_link),
-    BROADCAST(R.string.studio_action_broadcast_kind);
+    BROADCAST(R.string.studio_action_broadcast_kind),
+    DISMISS(R.string.studio_action_dismiss);
 
     fun default(): ButtonAction = when (this) {
-        DISMISS -> ButtonAction.Dismiss
         NOTIFICATION_ACTION -> ButtonAction.NotificationAction(0)
+        OPEN_APP -> ButtonAction.OpenApp("")
         INLINE_REPLY -> ButtonAction.InlineReply
         SMART_ACTION -> ButtonAction.SmartAction("OTP")
-        OPEN_APP -> ButtonAction.OpenApp("")
         DEEP_LINK -> ButtonAction.DeepLink("")
         BROADCAST -> ButtonAction.Broadcast("")
+        DISMISS -> ButtonAction.Dismiss
     }
 
     companion object {
