@@ -22,7 +22,9 @@ import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -398,11 +400,19 @@ fun StudioDesignContent(
                         Icon(Icons.Rounded.Restore, stringResource(R.string.studio_restore))
                     }
 
-                    TextButton(
+                    IconButton(
                         onClick = onSave,
                         enabled = !isSaving
                     ) {
-                        Text(stringResource(R.string.studio_save))
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            Icon(Icons.Rounded.Save, stringResource(R.string.studio_save))
+                        }
                     }
                 }
             )
