@@ -178,8 +178,16 @@ private fun CanvasNode(
     var accumulatedDy by remember(node.id) { mutableFloatStateOf(0f) }
 
     val isRootNode = node.id == "root"
-    val nodeWidth = node.bounds.widthDp ?: defaultWidthOf(node)
-    val nodeHeight = node.bounds.heightDp ?: defaultHeightOf(node)
+    val defaultW = defaultWidthOf(node)
+    val defaultH = if (node is TextNode && node.maxLines > 1) {
+        (node.fontSizeSp * 1.4f * node.maxLines).roundToInt().coerceAtLeast(24)
+    } else defaultHeightOf(node)
+
+    val nodeWidth = node.bounds.widthDp ?: defaultW
+    val baseNodeHeight = node.bounds.heightDp ?: defaultH
+    val nodeHeight = if (node is TextNode && node.maxLines > 1 && node.bounds.heightDp != null) {
+        maxOf(baseNodeHeight, (node.fontSizeSp * 1.35f * node.maxLines).roundToInt())
+    } else baseNodeHeight
 
     val containerModifier = (if (isRootNode) {
         Modifier.fillMaxSize()
@@ -271,6 +279,7 @@ private fun CanvasNode(
                     textAlign = textAlign,
                     maxLines = node.maxLines,
                     overflow = TextOverflow.Ellipsis,
+                    softWrap = node.maxLines > 1,
                     modifier = contentModifier
                 )
             }
@@ -494,7 +503,7 @@ private fun CanvasContainer(
 
         ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = containerModifier) {
             node.children.forEach { child ->
-                val childModifier = if (node.layout == ContainerLayout.ABSOLUTE) {
+                val childModifier = if (node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX) {
                     Modifier.absoluteOffset(child.bounds.x.dp, child.bounds.y.dp)
                 } else Modifier
 

@@ -50,6 +50,7 @@ class WidgetVariableEngine {
             token == "time.now" -> ctx.timeNowFormatted
             token == "theme.primary" -> ctx.themePrimary
             token == "theme.accent" -> ctx.themeAccent
+            token == "theme.highlight" -> ctx.themePrimary ?: ctx.themeAccent
             token == "theme.surface" -> ctx.themeSurface
             else -> {
                 val parts = token.split(".")

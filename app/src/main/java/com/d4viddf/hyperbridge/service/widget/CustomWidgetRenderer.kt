@@ -3,6 +3,7 @@ package com.d4viddf.hyperbridge.service.widget
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -72,6 +73,7 @@ class CustomWidgetRenderer(
             ?: LayoutContainer(id = doc.root.id, layout = doc.root.layout)
         val built = renderNode(doc, visibleRoot, ctx, bridgeId, intents)
         root.removeAllViews(R.id.widget_canvas_insertion_point)
+        root.setViewLayoutHeight(R.id.widget_canvas_insertion_point, doc.canvas.heightDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
         root.addView(R.id.widget_canvas_insertion_point, built)
         return root
     }
@@ -93,7 +95,11 @@ class CustomWidgetRenderer(
         }
         val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx)
         val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
-        applySize(rv, rootViewId(node), widthDp, heightDp)
+        val effectiveHeightDp = if (node is TextNode && node.maxLines > 1 && heightDp != null) {
+            val minNeeded = (node.fontSizeSp * 1.35f * node.maxLines).toInt()
+            maxOf(heightDp, minNeeded)
+        } else heightDp
+        applySize(rv, rootViewId(node), widthDp, effectiveHeightDp)
 
         val resolvedOpacity = resolveFloat(node, BindableProperty.OPACITY, node.opacity, ctx) ?: 1f
         rv.setFloat(rootViewId(node), "setAlpha", resolvedOpacity.coerceIn(0f, 1f))
@@ -101,7 +107,7 @@ class CustomWidgetRenderer(
         // Any element can carry a tap action, not just buttons (#328); ButtonNode wired its own.
         if (node !is ButtonNode) {
             node.onClick?.let { action ->
-                resolveAction(requestCode(doc, node, bridgeId), action, bridgeId, intents)?.let { pending ->
+                resolveAction(requestCode(doc, node, bridgeId), action, bridgeId, intents, ctx)?.let { pending ->
                     rv.setOnClickPendingIntent(rootViewId(node), pending)
                 }
             }
@@ -193,12 +199,12 @@ class CustomWidgetRenderer(
 
         node.children.forEachIndexed { index, child ->
             val childRv = renderNode(doc, child, ctx, bridgeId, intents)
-            if (node.layout == ContainerLayout.ABSOLUTE) {
-                rv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_LEFT, child.bounds.x.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
-                rv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_TOP, child.bounds.y.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+            if (node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX) {
+                childRv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_LEFT, child.bounds.x.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+                childRv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_TOP, child.bounds.y.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
             } else if (index > 0 && node.gapDp > 0) {
                 val marginSide = if (node.layout == ContainerLayout.ROW) RemoteViews.MARGIN_LEFT else RemoteViews.MARGIN_TOP
-                rv.setViewLayoutMargin(rootViewId(child), marginSide, node.gapDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+                childRv.setViewLayoutMargin(rootViewId(child), marginSide, node.gapDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
             }
             rv.addView(R.id.widget_container_root, childRv)
         }
@@ -245,8 +251,13 @@ class CustomWidgetRenderer(
         }
         rv.setInt(R.id.node_text, "setGravity", gravityFlag)
 
-        rv.setInt(R.id.node_text, "setMaxLines", node.maxLines)
-        rv.setBoolean(R.id.node_text, "setSingleLine", node.maxLines == 1)
+        if (node.maxLines > 1) {
+            rv.setBoolean(R.id.node_text, "setSingleLine", false)
+            rv.setInt(R.id.node_text, "setMaxLines", node.maxLines)
+        } else {
+            rv.setBoolean(R.id.node_text, "setSingleLine", true)
+            rv.setInt(R.id.node_text, "setMaxLines", 1)
+        }
         return rv
     }
 
@@ -426,19 +437,20 @@ class CustomWidgetRenderer(
         val resolvedLabel = engine.resolve(rawLabel, ctx)
         rv.setTextViewText(R.id.node_button, resolvedLabel)
 
-        val textColor = resolveColor(node, BindableProperty.BUTTON_TEXT_COLOR, node.textColorHex, ctx)
-        if (textColor != null) {
-            rv.setTextColor(R.id.node_button, textColor)
+        val defaultBgColor = ctx.themePrimary?.let { try { it.toColorInt() } catch (_: Exception) { null } }
+            ?: 0xFF3DDA82.toInt()
+        val bgColor = resolveColor(node, BindableProperty.BUTTON_BACKGROUND, node.backgroundHex, ctx) ?: defaultBgColor
+        try {
+            rv.setColorStateList(R.id.node_button, "setBackgroundTintList", ColorStateList.valueOf(bgColor))
+        } catch (_: Exception) {
+            rv.setInt(R.id.node_button, "setBackgroundColor", bgColor)
         }
 
-        val bgColor = resolveColor(node, BindableProperty.BUTTON_BACKGROUND, node.backgroundHex, ctx)
-        if (bgColor != null) {
-            try {
-                rv.setInt(R.id.node_button, "setBackgroundColor", bgColor)
-            } catch (_: Exception) { /* ignore */ }
-        }
+        val textColor = resolveColor(node, BindableProperty.BUTTON_TEXT_COLOR, node.textColorHex, ctx) ?: Color.WHITE
+        rv.setTextColor(R.id.node_button, textColor)
+        rv.setTextViewTextSize(R.id.node_button, TypedValue.COMPLEX_UNIT_SP, 13f)
 
-        val pendingIntent: PendingIntent? = resolveAction(requestCode(doc, node, bridgeId), node.action, bridgeId, intents)
+        val pendingIntent: PendingIntent? = resolveAction(requestCode(doc, node, bridgeId), node.action, bridgeId, intents, ctx)
 
         if (pendingIntent != null) {
             rv.setOnClickPendingIntent(R.id.node_button, pendingIntent)
@@ -459,12 +471,17 @@ class CustomWidgetRenderer(
         requestCode: Int,
         action: ButtonAction,
         bridgeId: Int?,
-        intents: WidgetActionIntents
+        intents: WidgetActionIntents,
+        ctx: VariableContext
     ): PendingIntent? = when (action) {
-        is ButtonAction.OpenApp ->
-            context.packageManager.getLaunchIntentForPackage(action.packageName)?.let {
-                PendingIntent.getActivity(context, requestCode, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-            }
+        is ButtonAction.OpenApp -> {
+            val targetPkg = action.packageName.ifBlank { ctx.notifPackage.orEmpty() }
+            if (targetPkg.isNotBlank()) {
+                context.packageManager.getLaunchIntentForPackage(targetPkg)?.let {
+                    PendingIntent.getActivity(context, requestCode, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+                }
+            } else null
+        }
 
         is ButtonAction.DeepLink -> {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(action.uri))

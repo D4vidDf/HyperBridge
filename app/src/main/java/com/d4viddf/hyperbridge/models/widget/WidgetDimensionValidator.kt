@@ -11,8 +11,8 @@ object WidgetDimensionValidator {
     const val CANVAS_WIDTH_DP = 350
     const val MAX_DEPTH = 6
     const val MAX_NODE_COUNT = 40
-    const val MIN_FONT_SP = 8
-    const val MAX_FONT_SP = 28
+    const val MIN_FONT_SP = 6
+    const val MAX_FONT_SP = 96
     /** HyperOS islands realistically fit 2-3 tappable buttons; more is a warning, not a hard block. */
     const val MAX_RECOMMENDED_BUTTONS = 3
 

@@ -62,6 +62,11 @@ class CustomWidgetTranslator(
         val replyAction = actions.firstOrNull { !it.remoteInputs.isNullOrEmpty() }
         val smartActions = extractSmartActions(sbn, config)
 
+        val highlightColor = resolveColor(theme, sbn.packageName, "#00E676")
+        val themePrimary = theme?.global?.highlightColor ?: highlightColor
+        val themeAccent = highlightColor
+        val themeSurface = theme?.global?.backgroundColor ?: "#1E1E1E"
+
         val ctx = VariableContext(
             notifTitle = effectiveTitle,
             notifText = effectiveText,
@@ -72,7 +77,10 @@ class CustomWidgetTranslator(
             notificationActionTitles = actions.map { it.title?.toString().orEmpty() },
             hasInlineReply = replyAction != null,
             smartActionTypes = smartActions.keys,
-            sourceLookup = { id, field -> runBlocking { sourceRepo.lookup(id, field) } }
+            sourceLookup = { id, field -> runBlocking { sourceRepo.lookup(id, field) } },
+            themePrimary = themePrimary,
+            themeAccent = themeAccent,
+            themeSurface = themeSurface
         )
 
         val intents = WidgetActionIntents(
@@ -81,7 +89,8 @@ class CustomWidgetTranslator(
             smartActions = smartActions
         )
 
-        val rv = renderer.render(doc, ctx, intents = intents)
+        val bridgeId = picKey.removePrefix("pic_").toIntOrNull()
+        val rv = renderer.render(doc, ctx, bridgeId = bridgeId, intents = intents)
 
         val builder = HyperIslandNotification.Builder(context, "custom_widget_channel", effectiveTitle)
         // Collapsed pill: the source app's icon (same recipe as WidgetTranslator). Without a big
@@ -105,9 +114,16 @@ class CustomWidgetTranslator(
         // (verified on device: with setCustomRemoteView alone the pill shows but never expands).
         builder.setCustomRemoteView(rv)
         builder.setCustomIslandExpandRemoteView(rv)
-        builder.setIslandConfig(timeout = config.timeout, dismissible = true)
+        builder.setIslandConfig(
+            timeout = config.timeout,
+            dismissible = true,
+            highlightColor = highlightColor,
+            expandedTimeMs = config.floatTimeout
+        )
+        builder.setIslandFirstFloat(config.isFloat == true)
         builder.setEnableFloat(config.isFloat == true)
         builder.setShowNotification(config.isShowShade == true)
+        builder.setHideDeco(true)
         builder.setReopen(true)
 
         return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
