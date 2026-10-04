@@ -387,20 +387,6 @@ fun StudioDesignContent(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = onUndo,
-                        enabled = canUndo
-                    ) {
-                        Icon(Icons.AutoMirrored.Rounded.Undo, stringResource(R.string.studio_undo))
-                    }
-
-                    IconButton(
-                        onClick = onRedo,
-                        enabled = canRedo
-                    ) {
-                        Icon(Icons.AutoMirrored.Rounded.Redo, stringResource(R.string.studio_redo))
-                    }
-
                     IconButton(onClick = onExport) {
                         Icon(Icons.Rounded.IosShare, stringResource(R.string.studio_export))
                     }
@@ -527,22 +513,26 @@ fun StudioDesignContent(
                     scenario = selectedScenario
                 )
 
-                Spacer(Modifier.height(96.dp))
+                Spacer(Modifier.height(112.dp))
             }
         }
 
-        // Movable floating toolbar & FAB on top of all elements of the screen
+        // Horizontal bottom floating toolbar & FAB on top of all elements of the screen
         StudioFloatingToolbar(
             zoom = zoom,
             isGridVisible = isGridVisible,
             isWireframeMode = isWireframeMode,
+            canUndo = canUndo,
+            canRedo = canRedo,
+            onUndo = onUndo,
+            onRedo = onRedo,
             onZoomIn = onZoomIn,
             onZoomOut = onZoomOut,
             onResetZoom = onResetZoom,
             onToggleGrid = onToggleGrid,
             onToggleWireframe = onToggleWireframe,
             onOpenAddElement = onOpenAddElement,
-            initialExpanded = false,
+            initialExpanded = true,
             modifier = Modifier.fillMaxSize()
         )
     }
