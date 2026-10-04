@@ -1885,6 +1885,16 @@
     <string name="studio_efx_shadow_direction">Direction</string>
     <string name="studio_efx_shadow_distance">Distance</string>
     <string name="studio_efx_shadow_color">Shadow Color</string>
+
+    <!-- Font Families -->
+    <string name="studio_property_font_family">Font Family</string>
+    <string name="studio_font_family_default">Default</string>
+    <string name="studio_font_family_sans_serif">Sans Serif</string>
+    <string name="studio_font_family_serif">Serif</string>
+    <string name="studio_font_family_monospace">Monospace</string>
+    <string name="studio_font_family_cursive">Cursive</string>
+    <string name="studio_font_family_casual">Casual</string>
+    <string name="studio_font_family_condensed">Condensed</string>
 </resources>
 
 

@@ -100,6 +100,24 @@ sealed interface CustomWidgetNode {
 enum class TextGravity { START, CENTER, END }
 
 @Serializable
+enum class TextFontFamily {
+    @SerialName("default")
+    DEFAULT,
+    @SerialName("sans_serif")
+    SANS_SERIF,
+    @SerialName("serif")
+    SERIF,
+    @SerialName("monospace")
+    MONOSPACE,
+    @SerialName("cursive")
+    CURSIVE,
+    @SerialName("casual")
+    CASUAL,
+    @SerialName("condensed")
+    CONDENSED
+}
+
+@Serializable
 enum class TextSizingType {
     @SerialName("fixed_font_height")
     FIXED_FONT_HEIGHT,
@@ -201,6 +219,7 @@ data class TextNode(
     val maxLines: Int = 1,
     val marquee: Boolean = false,
     val gravity: TextGravity = TextGravity.START,
+    val fontFamily: TextFontFamily = TextFontFamily.DEFAULT,
     val sizingType: TextSizingType = TextSizingType.FIXED_FONT_HEIGHT,
     val boxWidthDp: Int? = null,
     val filterMode: TextFilterMode = TextFilterMode.NORMAL,

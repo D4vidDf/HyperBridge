@@ -38,6 +38,7 @@ import com.d4viddf.hyperbridge.models.widget.ProgressStyle
 import com.d4viddf.hyperbridge.models.widget.ShapeNode
 import com.d4viddf.hyperbridge.models.widget.TextGravity
 import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.TextFontFamily
 import com.d4viddf.hyperbridge.models.widget.TextSizingType
 import com.d4viddf.hyperbridge.receiver.WidgetActionReceiver
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
@@ -221,20 +222,41 @@ class CustomWidgetRenderer(
         val template = resolveString(node, BindableProperty.TEXT_TEMPLATE, node.template, ctx).orEmpty()
         val resolved = engine.resolve(template, ctx)
 
-        val textToSet: CharSequence = if (node.bold || node.italic) {
+        val hasStyle = node.bold || node.italic
+        val familyName = when (node.fontFamily) {
+            TextFontFamily.DEFAULT -> null
+            TextFontFamily.SANS_SERIF -> "sans-serif"
+            TextFontFamily.SERIF -> "serif"
+            TextFontFamily.MONOSPACE -> "monospace"
+            TextFontFamily.CURSIVE -> "cursive"
+            TextFontFamily.CASUAL -> "casual"
+            TextFontFamily.CONDENSED -> "sans-serif-condensed"
+        }
+
+        val textToSet: CharSequence = if (hasStyle || familyName != null) {
             android.text.SpannableString(resolved).apply {
-                val style = when {
-                    node.bold && node.italic -> android.graphics.Typeface.BOLD_ITALIC
-                    node.bold -> android.graphics.Typeface.BOLD
-                    node.italic -> android.graphics.Typeface.ITALIC
-                    else -> android.graphics.Typeface.NORMAL
+                if (hasStyle) {
+                    val style = when {
+                        node.bold && node.italic -> android.graphics.Typeface.BOLD_ITALIC
+                        node.bold -> android.graphics.Typeface.BOLD
+                        node.italic -> android.graphics.Typeface.ITALIC
+                        else -> android.graphics.Typeface.NORMAL
+                    }
+                    setSpan(
+                        android.text.style.StyleSpan(style),
+                        0,
+                        length,
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
                 }
-                setSpan(
-                    android.text.style.StyleSpan(style),
-                    0,
-                    length,
-                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
+                if (familyName != null) {
+                    setSpan(
+                        android.text.style.TypefaceSpan(familyName),
+                        0,
+                        length,
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
             }
         } else {
             resolved

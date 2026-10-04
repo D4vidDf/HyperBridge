@@ -573,6 +573,34 @@ private fun TextItemDetailsEditor(
 
         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
             Text(
+                text = stringResource(R.string.studio_property_font_family),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextFontFamily.entries.forEach { family ->
+                    FilterChip(
+                        selected = node.fontFamily == family,
+                        onClick = { onChange(node.copy(fontFamily = family)) },
+                        label = {
+                            Text(
+                                text = stringResource(fontFamilyLabel(family)),
+                                fontFamily = previewComposeFontFamily(family)
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Text(
                 text = stringResource(R.string.studio_text_sizing_type),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -2436,6 +2464,26 @@ private fun textureTypeLabel(type: TextTextureType): Int = when (type) {
     TextTextureType.RADIAL_GRADIENT -> R.string.studio_efx_texture_radial_gradient
     TextTextureType.SWEEP_GRADIENT -> R.string.studio_efx_texture_sweep_gradient
     TextTextureType.BITMAP -> R.string.studio_efx_texture_bitmap
+}
+
+private fun previewComposeFontFamily(family: TextFontFamily): androidx.compose.ui.text.font.FontFamily = when (family) {
+    TextFontFamily.DEFAULT -> androidx.compose.ui.text.font.FontFamily.Default
+    TextFontFamily.SANS_SERIF -> androidx.compose.ui.text.font.FontFamily.SansSerif
+    TextFontFamily.SERIF -> androidx.compose.ui.text.font.FontFamily.Serif
+    TextFontFamily.MONOSPACE -> androidx.compose.ui.text.font.FontFamily.Monospace
+    TextFontFamily.CURSIVE -> androidx.compose.ui.text.font.FontFamily.Cursive
+    TextFontFamily.CASUAL -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("casual", android.graphics.Typeface.NORMAL))
+    TextFontFamily.CONDENSED -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL))
+}
+
+private fun fontFamilyLabel(family: TextFontFamily): Int = when (family) {
+    TextFontFamily.DEFAULT -> R.string.studio_font_family_default
+    TextFontFamily.SANS_SERIF -> R.string.studio_font_family_sans_serif
+    TextFontFamily.SERIF -> R.string.studio_font_family_serif
+    TextFontFamily.MONOSPACE -> R.string.studio_font_family_monospace
+    TextFontFamily.CURSIVE -> R.string.studio_font_family_cursive
+    TextFontFamily.CASUAL -> R.string.studio_font_family_casual
+    TextFontFamily.CONDENSED -> R.string.studio_font_family_condensed
 }
 
 @Composable

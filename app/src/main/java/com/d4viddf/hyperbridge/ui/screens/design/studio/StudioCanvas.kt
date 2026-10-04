@@ -287,12 +287,23 @@ private fun CanvasNode(
                     )
                 } else null
 
+                val composeFontFamily = when (node.fontFamily) {
+                    TextFontFamily.DEFAULT -> androidx.compose.ui.text.font.FontFamily.Default
+                    TextFontFamily.SANS_SERIF -> androidx.compose.ui.text.font.FontFamily.SansSerif
+                    TextFontFamily.SERIF -> androidx.compose.ui.text.font.FontFamily.Serif
+                    TextFontFamily.MONOSPACE -> androidx.compose.ui.text.font.FontFamily.Monospace
+                    TextFontFamily.CURSIVE -> androidx.compose.ui.text.font.FontFamily.Cursive
+                    TextFontFamily.CASUAL -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("casual", android.graphics.Typeface.NORMAL))
+                    TextFontFamily.CONDENSED -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL))
+                }
+
                 Text(
                     text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, context).ifBlank { node.template },
                     color = safeParseColor(resolvedColor),
                     fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
                     fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
                     fontStyle = if (node.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
+                    fontFamily = composeFontFamily,
                     textAlign = textAlign,
                     style = if (textShadow != null) androidx.compose.ui.text.TextStyle(shadow = textShadow) else androidx.compose.ui.text.TextStyle.Default,
                     maxLines = node.maxLines,

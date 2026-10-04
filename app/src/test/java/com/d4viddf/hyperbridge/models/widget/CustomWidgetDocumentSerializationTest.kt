@@ -185,6 +185,7 @@ class CustomWidgetDocumentSerializationTest {
                     TextNode(
                         id = "text-styled",
                         template = "Hello EFX",
+                        fontFamily = TextFontFamily.SERIF,
                         sizingType = TextSizingType.FIXED_WIDTH,
                         boxWidthDp = 180,
                         filterMode = TextFilterMode.MULTIPLY,
@@ -216,6 +217,7 @@ class CustomWidgetDocumentSerializationTest {
 
         assertEquals(doc, decoded)
         val textNode = (decoded.root as LayoutContainer).children.first() as TextNode
+        assertEquals(TextFontFamily.SERIF, textNode.fontFamily)
         assertEquals(TextSizingType.FIXED_WIDTH, textNode.sizingType)
         assertEquals(180, textNode.boxWidthDp)
         assertEquals(TextFilterMode.MULTIPLY, textNode.filterMode)
