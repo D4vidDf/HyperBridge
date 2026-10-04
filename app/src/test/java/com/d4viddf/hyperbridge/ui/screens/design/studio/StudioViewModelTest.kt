@@ -440,4 +440,47 @@ class StudioViewModelTest {
         assertTrue(finalDoc.root.children.any { it.id == "text-1" })
         assertTrue(finalGroup.children.none { it.id == "text-1" })
     }
+
+    @Test
+    fun moveIntoViaViewModelPreservesCanvasCoordinates() {
+        val doc = CustomWidgetDocument(
+            id = "test-doc",
+            meta = CustomWidgetMetadata(name = "Test Widget"),
+            canvas = CanvasSize.MEDIUM,
+            root = LayoutContainer(
+                id = "root",
+                layout = ContainerLayout.ABSOLUTE,
+                children = listOf(
+                    TextNode(id = "text-1", bounds = NodeBounds(x = 140, y = 90)),
+                    TextNode(id = "text-2", bounds = NodeBounds(x = 60, y = 40))
+                )
+            )
+        )
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        // Group text-2
+        vm.groupNode("text-2")
+        val groupId = vm.selectedNodeId.value!!
+        val group = vm.document.value.findNode(groupId) as LayoutContainer
+        assertEquals(60, group.bounds.x)
+        assertEquals(40, group.bounds.y)
+        val text2InGroup = vm.document.value.findNode("text-2") as TextNode
+        assertEquals(0, text2InGroup.bounds.x)
+        assertEquals(0, text2InGroup.bounds.y)
+        assertEquals(Pair(60, 40), vm.document.value.absolutePositionOf("text-2"))
+
+        // Move text-1 into the group
+        vm.moveInto("text-1", groupId)
+        val text1InGroup = vm.document.value.findNode("text-1") as TextNode
+        assertEquals(80, text1InGroup.bounds.x) // 140 - 60 = 80
+        assertEquals(50, text1InGroup.bounds.y) // 90 - 40 = 50
+        assertEquals(Pair(140, 90), vm.document.value.absolutePositionOf("text-1"))
+
+        // Move text-1 back to root
+        vm.moveInto("text-1", "root")
+        val text1InRoot = vm.document.value.findNode("text-1") as TextNode
+        assertEquals(140, text1InRoot.bounds.x)
+        assertEquals(90, text1InRoot.bounds.y)
+        assertEquals(Pair(140, 90), vm.document.value.absolutePositionOf("text-1"))
+    }
 }

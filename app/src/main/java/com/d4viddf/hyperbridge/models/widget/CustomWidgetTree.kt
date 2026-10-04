@@ -143,7 +143,39 @@ fun CustomWidgetDocument.duplicateNode(id: String): Pair<CustomWidgetDocument, S
 }
 
 /**
+ * Calculates the absolute Cartesian position (x, y in dp) of a node relative to the canvas root.
+ * Root itself is at (0, 0). For any descendant, its absolute position is the sum of its own
+ * bounds offset plus the bounds offsets and internal padding of all its ancestor containers below root.
+ */
+fun CustomWidgetDocument.absolutePositionOf(id: String): Pair<Int, Int> {
+    if (id == root.id) return Pair(0, 0)
+    val node = findNode(id) ?: return Pair(0, 0)
+
+    fun findAncestors(current: LayoutContainer, targetId: String): List<LayoutContainer>? {
+        for (child in current.children) {
+            if (child.id == targetId) {
+                return listOf(current)
+            }
+            if (child is LayoutContainer) {
+                val subPath = findAncestors(child, targetId)
+                if (subPath != null) {
+                    return listOf(current) + subPath
+                }
+            }
+        }
+        return null
+    }
+
+    val ancestors = findAncestors(root, id) ?: emptyList()
+    val containerOffsetX = ancestors.drop(1).sumOf { it.bounds.x + it.paddingDp }
+    val containerOffsetY = ancestors.drop(1).sumOf { it.bounds.y + it.paddingDp }
+
+    return Pair(containerOffsetX + node.bounds.x, containerOffsetY + node.bounds.y)
+}
+
+/**
  * Groups the node into a new LayoutContainer with a generated ID, replacing the node in-place.
+ * The child node's relative coordinates are reset to (0, 0) so that its canvas position is preserved.
  */
 fun CustomWidgetDocument.groupNode(id: String, layout: ContainerLayout = ContainerLayout.BOX): Pair<CustomWidgetDocument, String?> {
     if (root.id == id) return Pair(this, null)
@@ -158,7 +190,7 @@ fun CustomWidgetDocument.groupNode(id: String, layout: ContainerLayout = Contain
         name = "Group",
         layout = layout,
         bounds = targetNode.bounds,
-        children = listOf(targetNode)
+        children = listOf(targetNode.withBounds(targetNode.bounds.copy(x = 0, y = 0)))
     )
 
     val updatedChildren = parent.children.toMutableList().apply {
@@ -170,6 +202,7 @@ fun CustomWidgetDocument.groupNode(id: String, layout: ContainerLayout = Contain
 
 /**
  * Dissolves a LayoutContainer and inlines its children into its parent container.
+ * Each child's coordinates are converted back to the parent container's coordinate space.
  */
 fun CustomWidgetDocument.ungroupNode(containerId: String): CustomWidgetDocument {
     if (root.id == containerId) return this
@@ -178,9 +211,17 @@ fun CustomWidgetDocument.ungroupNode(containerId: String): CustomWidgetDocument 
     if (index < 0) return this
 
     val targetNode = parent.children[index] as? LayoutContainer ?: return this
+    val shiftedChildren = targetNode.children.map { child ->
+        child.withBounds(
+            child.bounds.copy(
+                x = child.bounds.x + targetNode.bounds.x + targetNode.paddingDp,
+                y = child.bounds.y + targetNode.bounds.y + targetNode.paddingDp
+            )
+        )
+    }
     val updatedChildren = parent.children.toMutableList().apply {
         removeAt(index)
-        addAll(index, targetNode.children)
+        addAll(index, shiftedChildren)
     }
     val updatedParent = parent.copy(children = updatedChildren)
     return replaceNode(parent.id) { updatedParent }
@@ -208,13 +249,27 @@ fun CustomWidgetDocument.moveNodeToBack(id: String): CustomWidgetDocument {
 }
 
 /**
- * Moves a node into another container.
+ * Moves a node into another container, preserving its visual position on the canvas
+ * by translating coordinates between the source and target containers.
  */
 fun CustomWidgetDocument.moveInto(nodeId: String, targetContainerId: String): CustomWidgetDocument {
     if (nodeId == root.id || nodeId == targetContainerId) return this
     val nodeToMove = findNode(nodeId) ?: return this
     if (nodeToMove is LayoutContainer && nodeToMove.findNode(targetContainerId) != null) return this
+    val targetContainer = findNode(targetContainerId) as? LayoutContainer ?: return this
+
+    val (nodeAbsX, nodeAbsY) = absolutePositionOf(nodeId)
+    val (targetAbsX, targetAbsY) = if (targetContainerId == root.id) {
+        Pair(0, 0)
+    } else {
+        val (tx, ty) = absolutePositionOf(targetContainerId)
+        Pair(tx + targetContainer.paddingDp, ty + targetContainer.paddingDp)
+    }
+
+    val newRelX = nodeAbsX - targetAbsX
+    val newRelY = nodeAbsY - targetAbsY
+    val adjustedNode = nodeToMove.withBounds(nodeToMove.bounds.copy(x = newRelX, y = newRelY))
 
     val withoutNode = removeNode(nodeId)
-    return withoutNode.addChild(targetContainerId, nodeToMove)
+    return withoutNode.addChild(targetContainerId, adjustedNode)
 }
