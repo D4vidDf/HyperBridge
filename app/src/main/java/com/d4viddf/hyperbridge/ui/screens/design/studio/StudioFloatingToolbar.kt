@@ -1,6 +1,5 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -9,8 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.automirrored.rounded.Undo
@@ -22,27 +19,27 @@ import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.ZoomIn
 import androidx.compose.material.icons.rounded.ZoomOut
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 
 /**
- * Permanent horizontal floating toolbar and FAB overlay for the Studio Design Screen.
+ * Official Material 3 Expressive [HorizontalFloatingToolbar] with integrated FAB for the Studio Design Screen.
  *
  * Stays permanently visible alongside the primary Add FAB in the screen's FAB position,
  * providing one-tap access to Undo, Redo, Zoom controls, Grid/Wireframe toggles, and Add Element.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun StudioFloatingToolbar(
     zoom: Float,
@@ -60,24 +57,24 @@ fun StudioFloatingToolbar(
     onRedo: () -> Unit = {},
     onOpenAddElement: (() -> Unit)? = null
 ) {
-    Row(
+    HorizontalFloatingToolbar(
+        expanded = true,
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        // Floating horizontal toolbar
-        Surface(
-            modifier = Modifier
-                .weight(1f, fill = false)
-                .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp)),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
-            shape = RoundedCornerShape(24.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-        ) {
+        floatingActionButton = {
+            onOpenAddElement?.let { onAdd ->
+                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                    onClick = onAdd
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = stringResource(R.string.studio_add_element_title)
+                    )
+                }
+            }
+        },
+        content = {
             Row(
-                modifier = Modifier
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .horizontalScroll(rememberScrollState()),
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -216,23 +213,5 @@ fun StudioFloatingToolbar(
                 }
             }
         }
-
-        // Primary Add Element FAB
-        onOpenAddElement?.let { onAdd ->
-            FloatingActionButton(
-                onClick = onAdd,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape,
-                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 6.dp),
-                modifier = Modifier.size(54.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = stringResource(R.string.studio_add_element_title),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-    }
+    )
 }
