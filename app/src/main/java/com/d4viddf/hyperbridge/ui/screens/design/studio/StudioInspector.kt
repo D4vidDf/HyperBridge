@@ -802,11 +802,14 @@ private fun ColorsTabContent(
                 )
             }
 
-            else -> {
-                Text(
-                    text = stringResource(R.string.studio_items_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            is LayoutContainer -> {
+                StudioColorField(
+                    label = stringResource(R.string.studio_property_background),
+                    colorHex = node.backgroundHex.orEmpty().ifBlank { if (node.id == "root") "#141414" else "#00000000" },
+                    onColorHexChange = { onChange(node.copy(backgroundHex = it.ifBlank { null })) },
+                    boundFormula = node.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
                 )
             }
         }
@@ -2590,7 +2593,7 @@ private fun ContainerTabContent(
 
         StudioColorField(
             label = stringResource(R.string.studio_property_background),
-            colorHex = container.backgroundHex.orEmpty().ifBlank { "#00000000" },
+            colorHex = container.backgroundHex.orEmpty().ifBlank { if (container.id == "root") "#141414" else "#00000000" },
             onColorHexChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
             boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
             onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },

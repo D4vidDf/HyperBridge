@@ -95,12 +95,18 @@ fun StudioCanvas(
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
     context: VariableContext = scenario.toVariableContext()
 ) {
+    val rootBgFormula = root.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
+    val resolvedRootBg = if (!isWireframeMode && !rootBgFormula.isNullOrBlank()) {
+        previewEngine.resolve(rootBgFormula, context).ifBlank { root.backgroundHex }
+    } else root.backgroundHex
+    val canvasBg = resolvedRootBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it) } ?: StudioCanvasBackground
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(canvasHeightDp.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(StudioCanvasBackground)
+            .background(canvasBg)
             .drawBehind {
                 if (isGridVisible) {
                     val stepPx = 16.dp.toPx()
@@ -561,8 +567,24 @@ private fun CanvasContainer(
     context: VariableContext,
     zoom: Float = 1f
 ) {
+    val bgFormula = node.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
+    val resolvedBg = if (!isWireframeMode && !bgFormula.isNullOrBlank()) {
+        previewEngine.resolve(bgFormula, context).ifBlank { node.backgroundHex }
+    } else node.backgroundHex
+    val backgroundColor = resolvedBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it) }
+
     val freePositioning = node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX
-    val containerModifier = if (node.bounds.widthDp == null) modifier.fillMaxSize() else modifier
+    val containerModifier = (if (node.bounds.widthDp == null) modifier.fillMaxSize() else modifier)
+        .then(
+            if (node.id != "root" && backgroundColor != null && backgroundColor != Color.Transparent) {
+                Modifier.background(backgroundColor)
+            } else Modifier
+        )
+        .then(
+            if (node.paddingDp > 0) {
+                Modifier.padding(node.paddingDp.dp)
+            } else Modifier
+        )
 
     when (node.layout) {
         ContainerLayout.ROW -> Row(

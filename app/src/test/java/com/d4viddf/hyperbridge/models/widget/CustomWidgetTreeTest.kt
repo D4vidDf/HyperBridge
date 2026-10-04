@@ -194,4 +194,25 @@ class CustomWidgetTreeTest {
         val group = updated.findNode("group") as LayoutContainer
         assertEquals(listOf("nested", "t1"), group.children.map { it.id })
     }
+
+    @Test
+    fun updateRootContainerBackgroundColor() {
+        val doc = sampleDoc()
+        val updated = doc.replaceNode("root") {
+            (it as LayoutContainer).copy(backgroundHex = "#123456")
+        }
+        assertEquals("#123456", updated.root.backgroundHex)
+    }
+
+    @Test
+    fun updateGroupContainerBackgroundColorAndBinding() {
+        val doc = sampleDoc()
+        val updated = doc.replaceNode("group") {
+            (it as LayoutContainer).copy(backgroundHex = "#ABCDEF")
+                .withBinding(BindableProperty.CONTAINER_BACKGROUND.key, "{theme.card}") as LayoutContainer
+        }
+        val group = updated.findNode("group") as LayoutContainer
+        assertEquals("#ABCDEF", group.backgroundHex)
+        assertEquals("{theme.card}", group.bindings[BindableProperty.CONTAINER_BACKGROUND.key])
+    }
 }

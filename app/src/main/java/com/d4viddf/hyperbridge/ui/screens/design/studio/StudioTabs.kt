@@ -33,7 +33,7 @@ enum class StudioTab(val labelRes: Int) {
     companion object {
         fun tabsFor(node: CustomWidgetNode?, isRoot: Boolean): List<StudioTab> {
             return when {
-                node == null || isRoot -> listOf(ITEMS, CONTAINER, DESIGN, SCOPE)
+                node == null || isRoot -> listOf(ITEMS, CONTAINER, COLORS, DESIGN, SCOPE)
                 node is TextNode -> listOf(ITEM, COLORS, EFX, POSITION)
                 node is LayoutContainer -> listOf(ITEMS, ITEM, POSITION, CONTAINER, COLORS)
                 else -> listOf(ITEM, POSITION, COLORS, VALUE, ACTIONS)

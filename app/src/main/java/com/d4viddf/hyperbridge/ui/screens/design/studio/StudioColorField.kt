@@ -236,14 +236,15 @@ fun StudioColorField(
 
     if (showColorPicker) {
         CustomColorBottomSheet(
-            initialColor = parsedColor,
+            initialColor = if (parsedColor.alpha == 0f) Color.DarkGray else parsedColor,
             onDismiss = { showColorPicker = false },
             onColorAdded = { newColor ->
                 val clean = colorHex.removePrefix("#")
                 val hex = if (clean.length == 8) {
                     val alpha = clean.take(2)
+                    val effectiveAlpha = if (alpha.equals("00", ignoreCase = true)) "FF" else alpha
                     val rgb = String.format("%06X", 0xFFFFFF and newColor.toArgb())
-                    "#$alpha$rgb"
+                    "#$effectiveAlpha$rgb"
                 } else {
                     String.format("#%06X", 0xFFFFFF and newColor.toArgb())
                 }
