@@ -1709,6 +1709,10 @@
     <string name="studio_progress_preview_label">Preview: %1$s / %2$d (%3$d%%)</string>
     <string name="studio_layer_name">Layer Name</string>
     <string name="studio_layer_locked">Locked</string>
+    <string name="studio_layer_unlocked">Unlocked</string>
+    <string name="studio_layer_expand">Expand group</string>
+    <string name="studio_layer_collapse">Collapse group</string>
+    <string name="studio_layer_more_options">Layer options</string>
     <string name="studio_layer_lock_desc">Prevent canvas drag and resize</string>
     <string name="studio_bind_formula">Formula / Binding</string>
     <string name="studio_bind_static">Static value</string>

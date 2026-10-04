@@ -1419,6 +1419,10 @@
     <string name="studio_progress_preview_label">Vista previa: %1$s / %2$d (%3$d%%)</string>
     <string name="studio_layer_name">Nombre de capa</string>
     <string name="studio_layer_locked">Bloqueado</string>
+    <string name="studio_layer_unlocked">Desbloqueado</string>
+    <string name="studio_layer_expand">Expandir grupo</string>
+    <string name="studio_layer_collapse">Contraer grupo</string>
+    <string name="studio_layer_more_options">Opciones de capa</string>
     <string name="studio_layer_lock_desc">Evitar arrastrar y redimensionar en el lienzo</string>
     <string name="studio_bind_formula">Fórmula / Enlace</string>
     <string name="studio_bind_static">Valor estático</string>

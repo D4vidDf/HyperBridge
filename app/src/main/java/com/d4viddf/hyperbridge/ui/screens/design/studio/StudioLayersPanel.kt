@@ -3,7 +3,6 @@ package com.d4viddf.hyperbridge.ui.screens.design.studio
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,6 +61,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -265,12 +267,17 @@ private fun LayerTreeItem(
             else -> MaterialTheme.colorScheme.onSurface
         }
 
-        Card(
+        Surface(
+            selected = isSelected,
+            onClick = onSelect,
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = containerColor),
+            color = containerColor,
+            contentColor = contentColor,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onSelect)
+                .semantics {
+                    role = Role.Button
+                }
         ) {
             Row(
                 modifier = Modifier
@@ -280,10 +287,13 @@ private fun LayerTreeItem(
             ) {
                 // Expand/collapse chevron for groups
                 if (node is LayoutContainer && node.children.isNotEmpty()) {
-                    IconButton(onClick = onToggleExpand, modifier = Modifier.size(24.dp)) {
+                    IconButton(
+                        onClick = onToggleExpand,
+                        modifier = Modifier.size(32.dp)
+                    ) {
                         Icon(
                             imageVector = if (isExpanded) Icons.Rounded.KeyboardArrowDown else Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null,
+                            contentDescription = stringResource(if (isExpanded) R.string.studio_layer_collapse else R.string.studio_layer_expand),
                             modifier = Modifier.size(18.dp),
                             tint = contentColor
                         )
@@ -338,17 +348,23 @@ private fun LayerTreeItem(
                 }
 
                 // Lock toggle button
-                IconButton(onClick = onToggleLock, modifier = Modifier.size(28.dp)) {
+                IconButton(
+                    onClick = onToggleLock,
+                    modifier = Modifier.size(32.dp)
+                ) {
                     Icon(
                         imageVector = if (node.locked) Icons.Rounded.Lock else Icons.Rounded.LockOpen,
-                        contentDescription = stringResource(R.string.studio_layer_locked),
+                        contentDescription = stringResource(if (node.locked) R.string.studio_layer_locked else R.string.studio_layer_unlocked),
                         modifier = Modifier.size(16.dp),
                         tint = if (node.locked) MaterialTheme.colorScheme.error else contentColor.copy(alpha = 0.5f)
                     )
                 }
 
                 // Visibility toggle button
-                IconButton(onClick = onToggleVisibility, modifier = Modifier.size(28.dp)) {
+                IconButton(
+                    onClick = onToggleVisibility,
+                    modifier = Modifier.size(32.dp)
+                ) {
                     Icon(
                         imageVector = if (isHiddenInEditor) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                         contentDescription = stringResource(if (isHiddenInEditor) R.string.studio_layer_show_editor else R.string.studio_layer_hide_editor),
@@ -359,10 +375,13 @@ private fun LayerTreeItem(
 
                 // Overflow / context menu
                 Box {
-                    IconButton(onClick = { showMenu = true }, modifier = Modifier.size(28.dp)) {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(32.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.studio_layer_more_options),
                             modifier = Modifier.size(16.dp),
                             tint = contentColor
                         )
