@@ -54,6 +54,7 @@ import androidx.compose.runtime.setValue
 import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.layout
@@ -309,6 +310,7 @@ private fun CanvasNode(
             Modifier.graphicsLayer {
                 val conditionAlpha = if (!isConditionMet) 0.5f else 1f
                 alpha = (node.opacity * conditionAlpha).coerceIn(0f, 1f)
+                rotationZ = node.bounds.rotation
             }
         )
 
@@ -481,19 +483,50 @@ private fun CanvasNode(
 
             is ImageNode -> {
                 val tintFormula = node.bindings[BindableProperty.IMAGE_TINT.key]
-                val resolvedTint = if (!isWireframeMode && !tintFormula.isNullOrBlank()) {
-                    previewEngine.resolve(tintFormula, context).ifBlank { node.tintHex }
-                } else node.tintHex
+                val resolvedTint = if (node.tintEnabled) {
+                    if (!isWireframeMode && !tintFormula.isNullOrBlank()) {
+                        previewEngine.resolve(tintFormula, context).ifBlank { node.tintHex }
+                    } else node.tintHex
+                } else null
 
                 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-                val shape = com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId(node.shapeId).toShape()
-                val tintColor = resolvedTint?.let { safeParseColor(it) } ?: Color.White
+                val shape: androidx.compose.ui.graphics.Shape = when (node.shapeId) {
+                    "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
+                    "rounded", "rounded_rect" -> RoundedCornerShape(node.cornerRadiusDp.dp)
+                    "circle", "ellipse" -> CircleShape
+                    else -> com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId(node.shapeId).toShape()
+                }
+                val tintColor = resolvedTint?.let { safeParseColor(it) }
+
+                val imageBlendMode = when (node.filterMode) {
+                    TextFilterMode.NORMAL -> androidx.compose.ui.graphics.BlendMode.SrcOver
+                    TextFilterMode.CLEAR -> androidx.compose.ui.graphics.BlendMode.Clear
+                    TextFilterMode.SRC -> androidx.compose.ui.graphics.BlendMode.Src
+                    TextFilterMode.DST -> androidx.compose.ui.graphics.BlendMode.Dst
+                    TextFilterMode.XOR -> androidx.compose.ui.graphics.BlendMode.Xor
+                    TextFilterMode.DARKEN -> androidx.compose.ui.graphics.BlendMode.Darken
+                    TextFilterMode.LIGHTEN -> androidx.compose.ui.graphics.BlendMode.Lighten
+                    TextFilterMode.SCREEN -> androidx.compose.ui.graphics.BlendMode.Screen
+                    TextFilterMode.ADD -> androidx.compose.ui.graphics.BlendMode.Plus
+                    TextFilterMode.OVERLAY -> androidx.compose.ui.graphics.BlendMode.Overlay
+                    TextFilterMode.MULTIPLY -> androidx.compose.ui.graphics.BlendMode.Multiply
+                }
+
+                val imageModifier = contentModifier
+                    .then(if (node.blurRadius > 0) Modifier.blur(node.blurRadius.dp) else Modifier)
+                    .background(
+                        tintColor?.copy(alpha = 0.25f) ?: Color.White.copy(alpha = 0.08f),
+                        shape
+                    )
+                    .border(
+                        1.dp,
+                        tintColor?.copy(alpha = 0.5f) ?: Color.White.copy(alpha = 0.2f),
+                        shape
+                    )
+                    .clip(shape)
 
                 Box(
-                    modifier = contentModifier
-                        .background(tintColor.copy(alpha = 0.25f), shape)
-                        .border(1.dp, tintColor.copy(alpha = 0.5f), shape)
-                        .clip(shape),
+                    modifier = imageModifier,
                     contentAlignment = Alignment.Center
                 ) {
                     val iconVector = when (val src = node.source) {
@@ -509,13 +542,42 @@ private fun CanvasNode(
                         is ImageSource.SourceIcon -> Icons.Rounded.Widgets
                         is ImageSource.CustomAsset -> Icons.Rounded.Image
                     }
-                    val iconSize = (minOf(nodeWidth, nodeHeight) * 0.65).coerceAtLeast(12.0).dp
+                    val baseSize = minOf(nodeWidth, nodeHeight)
+                    val iconWidth = when (node.scaleType) {
+                        ImageScaleType.FIT_WIDTH -> nodeWidth.dp
+                        ImageScaleType.FIT_HEIGHT -> (nodeHeight * 0.75f).coerceAtLeast(12f).dp
+                        ImageScaleType.FIT_CENTER -> (baseSize * 0.65f).coerceAtLeast(12f).dp
+                        ImageScaleType.CENTER_CROP -> maxOf(nodeWidth, nodeHeight).dp
+                    }
+                    val iconHeight = when (node.scaleType) {
+                        ImageScaleType.FIT_WIDTH -> (nodeWidth * 0.75f).coerceAtLeast(12f).dp
+                        ImageScaleType.FIT_HEIGHT -> nodeHeight.dp
+                        ImageScaleType.FIT_CENTER -> (baseSize * 0.65f).coerceAtLeast(12f).dp
+                        ImageScaleType.CENTER_CROP -> maxOf(nodeWidth, nodeHeight).dp
+                    }
+
                     Icon(
                         imageVector = iconVector,
                         contentDescription = null,
-                        tint = tintColor,
-                        modifier = Modifier.size(iconSize)
+                        tint = tintColor ?: Color.White,
+                        modifier = Modifier
+                            .size(width = iconWidth, height = iconHeight)
+                            .then(
+                                if (node.filterMode != TextFilterMode.NORMAL) {
+                                    Modifier.graphicsLayer {
+                                        blendMode = imageBlendMode
+                                    }
+                                } else Modifier
+                            )
                     )
+
+                    if (node.attenuation > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = (node.attenuation / 100f).coerceIn(0f, 1f)))
+                        )
+                    }
                 }
             }
 

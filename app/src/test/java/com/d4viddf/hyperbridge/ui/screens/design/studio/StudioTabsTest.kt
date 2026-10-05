@@ -26,61 +26,61 @@ class StudioTabsTest {
     }
 
     @Test
-    fun `tabsFor child container returns items, item, position, container, colors`() {
+    fun `tabsFor child container returns items, info, position, container, colors, visibility`() {
         val child = LayoutContainer(id = "child_group")
         val tabs = StudioTab.tabsFor(child, isRoot = false)
         assertEquals(
-            listOf(StudioTab.ITEMS, StudioTab.ITEM, StudioTab.POSITION, StudioTab.CONTAINER, StudioTab.COLORS),
+            listOf(StudioTab.ITEMS, StudioTab.INFO, StudioTab.POSITION, StudioTab.CONTAINER, StudioTab.COLORS, StudioTab.VISIBILITY),
             tabs
         )
     }
 
     @Test
-    fun `tabsFor progress bar returns item, position, colors, value, actions`() {
+    fun `tabsFor progress bar returns info, position, colors, value, actions, visibility`() {
         val progress = ProgressNode(id = "progress_bar")
         val tabs = StudioTab.tabsFor(progress, isRoot = false)
         assertEquals(
-            listOf(StudioTab.ITEM, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS),
+            listOf(StudioTab.INFO, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS, StudioTab.VISIBILITY),
             tabs
         )
     }
 
     @Test
-    fun `tabsFor text node returns item, colors, efx, position`() {
+    fun `tabsFor text node returns info, colors, efx, position, visibility`() {
         val text = TextNode(id = "title_text")
         val tabs = StudioTab.tabsFor(text, isRoot = false)
         assertEquals(
-            listOf(StudioTab.ITEM, StudioTab.COLORS, StudioTab.EFX, StudioTab.POSITION),
+            listOf(StudioTab.INFO, StudioTab.COLORS, StudioTab.EFX, StudioTab.POSITION, StudioTab.VISIBILITY),
             tabs
         )
     }
 
     @Test
-    fun `tabsFor button node returns item, position, colors, value, actions`() {
+    fun `tabsFor button node returns info, position, colors, value, actions, visibility`() {
         val button = ButtonNode(id = "btn_action")
         val tabs = StudioTab.tabsFor(button, isRoot = false)
         assertEquals(
-            listOf(StudioTab.ITEM, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS),
+            listOf(StudioTab.INFO, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS, StudioTab.VISIBILITY),
             tabs
         )
     }
 
     @Test
-    fun `tabsFor image node returns item, position, colors, value, actions`() {
+    fun `tabsFor image node returns value, position, efx, actions, info, visibility`() {
         val image = ImageNode(id = "avatar_img")
         val tabs = StudioTab.tabsFor(image, isRoot = false)
         assertEquals(
-            listOf(StudioTab.ITEM, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS),
+            listOf(StudioTab.VALUE, StudioTab.POSITION, StudioTab.EFX, StudioTab.ACTIONS, StudioTab.INFO, StudioTab.VISIBILITY),
             tabs
         )
     }
 
     @Test
-    fun `tabsFor shape node returns item, position, colors, value, actions`() {
+    fun `tabsFor shape node returns info, position, colors, value, actions, visibility`() {
         val shape = ShapeNode(id = "shape_bg")
         val tabs = StudioTab.tabsFor(shape, isRoot = false)
         assertEquals(
-            listOf(StudioTab.ITEM, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS),
+            listOf(StudioTab.INFO, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS, StudioTab.VISIBILITY),
             tabs
         )
     }

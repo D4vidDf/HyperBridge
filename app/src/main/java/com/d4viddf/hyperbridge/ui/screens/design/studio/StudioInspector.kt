@@ -199,12 +199,19 @@ fun StudioInspector(
                 }
             }
 
-            StudioTab.ITEM -> {
-                ItemTabContent(
-                    node = node,
-                    onChange = onChange,
-                    onRequestFormulaEditor = { editingFormulaPropKey = it }
-                )
+            StudioTab.ITEM, StudioTab.INFO -> {
+                if (node is ImageNode) {
+                    ImageInfoTabContent(
+                        node = node,
+                        onChange = onChange
+                    )
+                } else {
+                    ItemTabContent(
+                        node = node,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                }
             }
 
             StudioTab.EFX -> {
@@ -213,7 +220,21 @@ fun StudioInspector(
                         node = node,
                         onChange = onChange
                     )
+                } else if (node is ImageNode) {
+                    ImageEfxTabContent(
+                        node = node,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
                 }
+            }
+
+            StudioTab.VISIBILITY -> {
+                VisibilityTabContent(
+                    node = node,
+                    scenario = scenario,
+                    onChange = onChange
+                )
             }
 
             StudioTab.POSITION, StudioTab.LAYER -> {
@@ -1586,68 +1607,6 @@ private fun ImageNodeEditor(
                 )
             }
         }
-
-        Spacer(Modifier.height(4.dp))
-
-        // 2. Shape picker
-        Text(
-            text = stringResource(R.string.studio_image_shape),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        val shapes = listOf("circle", "square", "cookie", "arch", "clover8")
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            shapes.forEach { shapeId ->
-                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true)
-                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-                val shape = getShapeFromId(shapeId).toShape()
-
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(shape)
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                        .border(
-                            width = if (isSelected) 2.dp else 1.dp,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant,
-                            shape = shape
-                        )
-                        .clickable { onChange(node.copy(shapeId = shapeId)) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = shapeId.take(2).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        // 3. Tint Color
-        StudioColorField(
-            label = stringResource(R.string.studio_property_tint),
-            colorHex = node.tintHex.orEmpty().ifBlank { "#FFFFFF" },
-            onColorHexChange = { onChange(node.copy(tintHex = it.ifBlank { null })) },
-            boundFormula = node.bindings[BindableProperty.IMAGE_TINT.key],
-            onFormulaChange = { onChange(node.withBinding(BindableProperty.IMAGE_TINT.key, it)) },
-            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.IMAGE_TINT.key) }
-        )
     }
 
     if (showSourceSheet) {
@@ -2094,11 +2053,11 @@ private fun ShapeNodeEditor(
 private fun PositionTabContent(
     node: CustomWidgetNode,
     isRoot: Boolean,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
+    canMoveUp: Boolean = false,
+    canMoveDown: Boolean = false,
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
     onChange: (CustomWidgetNode) -> Unit,
-    onMoveLayer: (Int) -> Unit,
+    onMoveLayer: (Int) -> Unit = {},
     onMoveToFront: () -> Unit = {},
     onMoveToBack: () -> Unit = {},
     onDuplicate: () -> Unit = {},
@@ -2162,58 +2121,17 @@ private fun PositionTabContent(
                 onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BOUNDS_HEIGHT.key) }
             )
 
-            Text(
-                text = stringResource(R.string.studio_layer_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            StudioStepper(
+                label = stringResource(R.string.studio_property_rotation),
+                value = node.bounds.rotation.toInt(),
+                onValueChange = { onChange(node.withBounds(node.bounds.copy(rotation = it.toFloat()))) },
+                unitSuffix = "°",
+                min = 0,
+                max = 360,
+                boundFormula = node.bindings[BindableProperty.ROTATION.key],
+                onFormulaChange = { onChange(node.withBinding(BindableProperty.ROTATION.key, it)) },
+                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.ROTATION.key) }
             )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { onMoveLayer(1) }, enabled = canMoveUp) {
-                    Icon(Icons.Rounded.ArrowUpward, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.studio_layer_forward))
-                }
-                TextButton(onClick = { onMoveLayer(-1) }, enabled = canMoveDown) {
-                    Icon(Icons.Rounded.ArrowDownward, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.studio_layer_back))
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onMoveToFront) {
-                    Icon(Icons.Rounded.VerticalAlignTop, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.studio_layer_front))
-                }
-                TextButton(onClick = onMoveToBack) {
-                    Icon(Icons.Rounded.VerticalAlignBottom, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.studio_layer_back_stack))
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onDuplicate) {
-                    Icon(Icons.Rounded.ContentCopy, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.studio_layer_duplicate))
-                }
-                TextButton(onClick = onGroup) {
-                    Icon(Icons.Rounded.Folder, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.studio_layer_group))
-                }
-            }
-
-            StudioSection(stringResource(R.string.studio_section_visibility)) {
-                ConditionEditor(
-                    condition = node.showIf,
-                    scenario = scenario,
-                    onChange = { onChange(node.withShowIf(it)) }
-                )
-            }
 
             TextButton(
                 onClick = onDelete,
@@ -2223,6 +2141,293 @@ private fun PositionTabContent(
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.studio_delete_element))
             }
+        }
+    }
+}
+
+@Composable
+private fun VisibilityTabContent(
+    node: CustomWidgetNode,
+    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
+    onChange: (CustomWidgetNode) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_visibility)) {
+        ConditionEditor(
+            condition = node.showIf,
+            scenario = scenario,
+            onChange = { onChange(node.withShowIf(it)) }
+        )
+    }
+}
+
+@Composable
+private fun ImageEfxTabContent(
+    node: ImageNode,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_efx)) {
+        StudioStepper(
+            label = stringResource(R.string.studio_property_opacity),
+            value = (node.opacity * 100).toInt(),
+            onValueChange = { onChange(node.copy(opacity = it.coerceIn(0, 100) / 100f)) },
+            unitSuffix = "%",
+            min = 0,
+            max = 100,
+            boundFormula = node.bindings[BindableProperty.OPACITY.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.OPACITY.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.OPACITY.key) }
+        )
+
+        LabelledSwitch(
+            label = stringResource(R.string.studio_image_tint_enable),
+            checked = node.tintEnabled,
+            onCheckedChange = { isEnabled ->
+                onChange(
+                    node.copy(
+                        tintEnabled = isEnabled,
+                        tintHex = if (isEnabled && node.tintHex.isNullOrBlank()) "#FFFFFF" else node.tintHex
+                    )
+                )
+            }
+        )
+
+        if (node.tintEnabled) {
+            StudioColorField(
+                label = stringResource(R.string.studio_property_tint),
+                colorHex = node.tintHex.orEmpty().ifBlank { "#FFFFFF" },
+                onColorHexChange = { onChange(node.copy(tintHex = it.ifBlank { null })) },
+                boundFormula = node.bindings[BindableProperty.IMAGE_TINT.key],
+                onFormulaChange = { onChange(node.withBinding(BindableProperty.IMAGE_TINT.key, it)) },
+                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.IMAGE_TINT.key) }
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.studio_image_filter),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextFilterMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = node.filterMode == mode,
+                    onClick = { onChange(node.copy(filterMode = mode)) },
+                    label = { Text(stringResource(filterModeLabel(mode))) }
+                )
+            }
+        }
+
+        StudioStepper(
+            label = stringResource(R.string.studio_image_blur),
+            value = node.blurRadius,
+            onValueChange = { onChange(node.copy(blurRadius = it.coerceIn(0, 100))) },
+            unitSuffix = "dp",
+            min = 0,
+            max = 100
+        )
+
+        StudioStepper(
+            label = stringResource(R.string.studio_image_attenuation),
+            value = node.attenuation,
+            onValueChange = { onChange(node.copy(attenuation = it.coerceIn(0, 100))) },
+            unitSuffix = "%",
+            min = 0,
+            max = 100
+        )
+    }
+}
+
+@Composable
+private fun ImageInfoTabContent(
+    node: ImageNode,
+    onChange: (CustomWidgetNode) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_info)) {
+        OutlinedTextField(
+            value = node.name.orEmpty(),
+            onValueChange = { onChange(node.copy(name = it.ifBlank { null })) },
+            label = { Text(stringResource(R.string.studio_layer_name)) },
+            placeholder = { Text(defaultNodeTitle(node)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Rounded.Title,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = nodeIcon(node),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = defaultNodeTitle(node),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "ID: ${node.id}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        LabelledSwitch(
+            label = stringResource(R.string.studio_layer_locked),
+            checked = node.locked,
+            onCheckedChange = { onChange(node.copy(locked = it)) }
+        )
+
+        // Mode (Bitmap / SVG)
+        Text(
+            text = stringResource(R.string.studio_image_mode),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = node.mode == ImageMode.BITMAP,
+                onClick = { onChange(node.copy(mode = ImageMode.BITMAP)) },
+                label = { Text(stringResource(R.string.studio_image_mode_bitmap)) }
+            )
+            FilterChip(
+                selected = node.mode == ImageMode.SVG,
+                onClick = { onChange(node.copy(mode = ImageMode.SVG)) },
+                label = { Text(stringResource(R.string.studio_image_mode_svg)) }
+            )
+        }
+
+        // Escalado (Scale Type)
+        Text(
+            text = stringResource(R.string.studio_image_scale),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.FIT_WIDTH,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_WIDTH)) },
+                label = { Text(stringResource(R.string.studio_image_scale_fit_width)) }
+            )
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.FIT_HEIGHT,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_HEIGHT)) },
+                label = { Text(stringResource(R.string.studio_image_scale_fit_height)) }
+            )
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.FIT_CENTER,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_CENTER)) },
+                label = { Text(stringResource(R.string.studio_image_scale_fit_center)) }
+            )
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.CENTER_CROP,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.CENTER_CROP)) },
+                label = { Text(stringResource(R.string.studio_image_scale_center_crop)) }
+            )
+        }
+
+        // Shape & Custom Rounded Borders
+        Text(
+            text = stringResource(R.string.studio_image_shape),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        val shapes = listOf("circle", "square", "rounded", "cookie", "arch", "clover8")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            shapes.forEach { shapeId ->
+                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true)
+                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                val shape = when (shapeId) {
+                    "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
+                    "rounded", "rounded_rect" -> RoundedCornerShape(node.cornerRadiusDp.dp)
+                    "circle", "ellipse" -> CircleShape
+                    else -> getShapeFromId(shapeId).toShape()
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(shape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant,
+                            shape = shape
+                        )
+                        .clickable { onChange(node.copy(shapeId = shapeId)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (shapeId == "rounded") "RD" else shapeId.take(2).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        if (node.shapeId == "rounded" || node.shapeId == "rounded_rect") {
+            StudioStepper(
+                label = stringResource(R.string.studio_property_shape_corner_radius),
+                value = node.cornerRadiusDp,
+                onValueChange = { onChange(node.copy(cornerRadiusDp = it.coerceIn(0, 100))) },
+                unitSuffix = "dp",
+                min = 0,
+                max = 100
+            )
         }
     }
 }

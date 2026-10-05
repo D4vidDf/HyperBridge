@@ -13,17 +13,20 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.widget.ButtonNode
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
+import com.d4viddf.hyperbridge.models.widget.ImageNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
 import com.d4viddf.hyperbridge.models.widget.TextNode
 
 enum class StudioTab(val labelRes: Int) {
     ITEMS(R.string.studio_tab_items),
-    ITEM(R.string.studio_tab_item),
+    ITEM(R.string.studio_tab_info),
+    INFO(R.string.studio_tab_info),
     POSITION(R.string.studio_tab_position),
     COLORS(R.string.studio_tab_colors),
     EFX(R.string.studio_tab_efx),
     VALUE(R.string.studio_tab_value),
     ACTIONS(R.string.studio_tab_actions),
+    VISIBILITY(R.string.studio_tab_visibility),
     CONTAINER(R.string.studio_tab_container),
     BACKGROUND(R.string.studio_tab_background),
     GLOBAL(R.string.studio_tab_global),
@@ -36,9 +39,10 @@ enum class StudioTab(val labelRes: Int) {
         fun tabsFor(node: CustomWidgetNode?, isRoot: Boolean): List<StudioTab> {
             return when {
                 node == null || isRoot -> listOf(ITEMS, BACKGROUND, GLOBAL, DESIGN, SCOPE)
-                node is TextNode -> listOf(ITEM, COLORS, EFX, POSITION)
-                node is LayoutContainer -> listOf(ITEMS, ITEM, POSITION, CONTAINER, COLORS)
-                else -> listOf(ITEM, POSITION, COLORS, VALUE, ACTIONS)
+                node is ImageNode -> listOf(VALUE, POSITION, EFX, ACTIONS, INFO, VISIBILITY)
+                node is TextNode -> listOf(INFO, COLORS, EFX, POSITION, VISIBILITY)
+                node is LayoutContainer -> listOf(ITEMS, INFO, POSITION, CONTAINER, COLORS, VISIBILITY)
+                else -> listOf(INFO, POSITION, COLORS, VALUE, ACTIONS, VISIBILITY)
             }
         }
     }

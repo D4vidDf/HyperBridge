@@ -1626,4 +1626,22 @@
     <string name="studio_layer_move_out_of_group">Mover fuera del grupo</string>
     <string name="studio_layer_move_up">Subir</string>
     <string name="studio_layer_move_down">Bajar</string>
+
+    <!-- Studio ImageNode Enhancements & Tab Organization -->
+    <string name="studio_tab_info">Info</string>
+    <string name="studio_tab_visibility">Visibilidad</string>
+    <string name="studio_property_rotation">Rotación</string>
+    <string name="studio_image_mode">Modo</string>
+    <string name="studio_image_mode_bitmap">Mapa de bits</string>
+    <string name="studio_image_mode_svg">SVG</string>
+    <string name="studio_image_scale">Escalado</string>
+    <string name="studio_image_scale_fit_width">Ajustar ancho</string>
+    <string name="studio_image_scale_fit_height">Ajustar altura</string>
+    <string name="studio_image_scale_fit_center">Ajustar centro</string>
+    <string name="studio_image_scale_center_crop">Recortar central</string>
+    <string name="studio_image_tint_enable">Habilitar tinte</string>
+    <string name="studio_image_blur">Desenfoque</string>
+    <string name="studio_image_attenuation">Atenuación</string>
+    <string name="studio_image_filter">Filtro</string>
+    <string name="studio_shape_rounded_custom">Redondeado</string>
 </resources>

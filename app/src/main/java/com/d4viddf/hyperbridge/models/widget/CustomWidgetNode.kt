@@ -18,7 +18,8 @@ data class NodeBounds(
     val x: Int = 0,
     val y: Int = 0,
     val widthDp: Int? = null,
-    val heightDp: Int? = null
+    val heightDp: Int? = null,
+    val rotation: Float = 0f
 )
 
 /**
@@ -257,6 +258,26 @@ sealed interface ImageSource {
 }
 
 @Serializable
+enum class ImageMode {
+    @SerialName("bitmap")
+    BITMAP,
+    @SerialName("svg")
+    SVG
+}
+
+@Serializable
+enum class ImageScaleType {
+    @SerialName("fit_width")
+    FIT_WIDTH,
+    @SerialName("fit_height")
+    FIT_HEIGHT,
+    @SerialName("fit_center")
+    FIT_CENTER,
+    @SerialName("center_crop")
+    CENTER_CROP
+}
+
+@Serializable
 @SerialName("image")
 data class ImageNode(
     override val id: String,
@@ -267,7 +288,14 @@ data class ImageNode(
     override val bindings: Map<String, String> = emptyMap(),
     val source: ImageSource = ImageSource.SystemGlyph("notification"),
     val shapeId: String = "circle",
+    val cornerRadiusDp: Int = 8,
+    val mode: ImageMode = ImageMode.BITMAP,
+    val scaleType: ImageScaleType = ImageScaleType.FIT_CENTER,
+    val blurRadius: Int = 0,
+    val attenuation: Int = 0,
+    val filterMode: TextFilterMode = TextFilterMode.NORMAL,
     val tintHex: String? = null,
+    val tintEnabled: Boolean = tintHex != null,
     override val showIf: NodeCondition = NodeCondition.Always,
     override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
@@ -457,7 +485,8 @@ enum class BindableProperty(val key: String) {
     SHAPE_FILL("fillColorHex"),
     SHAPE_STROKE("strokeColorHex"),
     SHAPE_STROKE_WIDTH("strokeWidthDp"),
-    OPACITY("opacity")
+    OPACITY("opacity"),
+    ROTATION("rotation")
 }
 
 fun CustomWidgetNode.withBounds(bounds: NodeBounds): CustomWidgetNode = when (this) {

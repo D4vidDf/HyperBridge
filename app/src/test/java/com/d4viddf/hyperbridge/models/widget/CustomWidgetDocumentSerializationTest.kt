@@ -256,4 +256,105 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals("content://media/external/images/123", decoded.root.backgroundImageUri)
         assertEquals(ImageSource.NotifMedia("picture"), decoded.root.backgroundImageSource)
     }
+
+    @Test
+    fun roundTripsImageNodeWithNewProperties() {
+        val doc = CustomWidgetDocument(
+            id = "image-test",
+            meta = CustomWidgetMetadata(name = "Image Props"),
+            root = LayoutContainer(
+                id = "root",
+                children = listOf(
+                    ImageNode(
+                        id = "img_custom",
+                        bounds = NodeBounds(x = 10, y = 20, widthDp = 64, heightDp = 64, rotation = 45f),
+                        source = ImageSource.SystemGlyph("battery"),
+                        shapeId = "rounded",
+                        cornerRadiusDp = 16,
+                        mode = ImageMode.SVG,
+                        scaleType = ImageScaleType.CENTER_CROP,
+                        blurRadius = 12,
+                        attenuation = 30,
+                        filterMode = TextFilterMode.MULTIPLY,
+                        tintHex = "#FF1122",
+                        tintEnabled = true
+                    )
+                )
+            )
+        )
+
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+
+        assertEquals(doc, decoded)
+        val img = decoded.root.children.first() as ImageNode
+        assertEquals(45f, img.bounds.rotation)
+        assertEquals("rounded", img.shapeId)
+        assertEquals(16, img.cornerRadiusDp)
+        assertEquals(ImageMode.SVG, img.mode)
+        assertEquals(ImageScaleType.CENTER_CROP, img.scaleType)
+        assertEquals(12, img.blurRadius)
+        assertEquals(30, img.attenuation)
+        assertEquals(TextFilterMode.MULTIPLY, img.filterMode)
+        assertEquals("#FF1122", img.tintHex)
+        assertEquals(true, img.tintEnabled)
+    }
+
+    @Test
+    fun deserializesLegacyImageNodeWithoutNewProperties() {
+        val legacyJson = """
+            {
+              "id": "legacy-img-widget",
+              "meta": { "name": "Legacy Image" },
+              "root": {
+                "type": "container",
+                "id": "root",
+                "children": [
+                  {
+                    "type": "image",
+                    "id": "img_old"
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), legacyJson)
+        val img = decoded.root.children.first() as ImageNode
+        assertEquals(0f, img.bounds.rotation)
+        assertEquals(8, img.cornerRadiusDp)
+        assertEquals(ImageMode.BITMAP, img.mode)
+        assertEquals(ImageScaleType.FIT_CENTER, img.scaleType)
+        assertEquals(0, img.blurRadius)
+        assertEquals(0, img.attenuation)
+        assertEquals(TextFilterMode.NORMAL, img.filterMode)
+        assertEquals(false, img.tintEnabled)
+        assertEquals(null, img.tintHex)
+    }
+
+    @Test
+    fun deserializesLegacyImageNodeWithTintHexDefaultsTintEnabledToTrue() {
+        val legacyJson = """
+            {
+              "id": "legacy-tint-widget",
+              "meta": { "name": "Legacy Tint" },
+              "root": {
+                "type": "container",
+                "id": "root",
+                "children": [
+                  {
+                    "type": "image",
+                    "id": "img_tinted",
+                    "tintHex": "#FF0000"
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), legacyJson)
+        val img = decoded.root.children.first() as ImageNode
+        assertEquals("#FF0000", img.tintHex)
+        assertEquals(true, img.tintEnabled)
+    }
 }

@@ -1916,6 +1916,24 @@
     <string name="studio_layer_move_out_of_group">Move out of group</string>
     <string name="studio_layer_move_up">Move up</string>
     <string name="studio_layer_move_down">Move down</string>
+
+    <!-- Studio ImageNode Enhancements & Tab Organization -->
+    <string name="studio_tab_info">Info</string>
+    <string name="studio_tab_visibility">Visibility</string>
+    <string name="studio_property_rotation">Rotation</string>
+    <string name="studio_image_mode">Mode</string>
+    <string name="studio_image_mode_bitmap">Bitmap</string>
+    <string name="studio_image_mode_svg">SVG</string>
+    <string name="studio_image_scale">Scaling</string>
+    <string name="studio_image_scale_fit_width">Fit width</string>
+    <string name="studio_image_scale_fit_height">Fit height</string>
+    <string name="studio_image_scale_fit_center">Fit center</string>
+    <string name="studio_image_scale_center_crop">Center crop</string>
+    <string name="studio_image_tint_enable">Enable tint</string>
+    <string name="studio_image_blur">Blur</string>
+    <string name="studio_image_attenuation">Attenuation</string>
+    <string name="studio_image_filter">Filter</string>
+    <string name="studio_shape_rounded_custom">Rounded</string>
 </resources>
 
 

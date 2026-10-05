@@ -100,6 +100,13 @@ class CustomWidgetRenderer(
         val resolvedOpacity = resolveFloat(node, BindableProperty.OPACITY, node.opacity, ctx) ?: 1f
         rv.setFloat(rootViewId(node), "setAlpha", resolvedOpacity.coerceIn(0f, 1f))
 
+        val resolvedRotation = resolveFloat(node, BindableProperty.ROTATION, node.bounds.rotation, ctx) ?: node.bounds.rotation
+        if (resolvedRotation != 0f) {
+            try {
+                rv.setFloat(rootViewId(node), "setRotation", resolvedRotation)
+            } catch (_: Exception) { /* best-effort rotation */ }
+        }
+
         // Any element can carry a tap action, not just buttons (#328); ButtonNode wired its own.
         if (node !is ButtonNode) {
             node.onClick?.let { action ->
@@ -283,12 +290,14 @@ class CustomWidgetRenderer(
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_image)
         val bitmap = resolveImageBitmap(doc, node, ctx)
         if (bitmap != null) {
-            val shaped = applyShape(bitmap, node.shapeId)
+            val shaped = applyShape(bitmap, node.shapeId, node.cornerRadiusDp)
             rv.setImageViewBitmap(R.id.node_image, shaped)
         }
-        val tintColor = resolveColor(node, BindableProperty.IMAGE_TINT, node.tintHex, ctx)
-        if (tintColor != null) {
-            rv.setInt(R.id.node_image, "setColorFilter", tintColor)
+        if (node.tintEnabled) {
+            val tintColor = resolveColor(node, BindableProperty.IMAGE_TINT, node.tintHex, ctx)
+            if (tintColor != null) {
+                rv.setInt(R.id.node_image, "setColorFilter", tintColor)
+            }
         }
         return rv
     }
@@ -413,20 +422,32 @@ class CustomWidgetRenderer(
         return bitmap
     }
 
-    private fun applyShape(source: Bitmap, shapeId: String): Bitmap {
+    private fun applyShape(source: Bitmap, shapeId: String, cornerRadiusDp: Int = 8): Bitmap {
         val size = 96
         val output = createBitmap(size, size)
         val canvas = Canvas(output)
-        val polygon = getShapeFromId(shapeId)
-        val path = polygon.toPath()
-        val bounds = RectF()
-        path.computeBounds(bounds, true)
-        val matrix = Matrix()
-        matrix.setRectToRect(bounds, RectF(0f, 0f, size.toFloat(), size.toFloat()), Matrix.ScaleToFit.FILL)
-        path.transform(matrix)
-
+        val rect = RectF(0f, 0f, size.toFloat(), size.toFloat())
         val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        canvas.drawPath(path, maskPaint)
+
+        when (shapeId) {
+            "rectangle", "square" -> canvas.drawRect(rect, maskPaint)
+            "rounded", "rounded_rect" -> {
+                val radiusPx = (cornerRadiusDp * (size / 24f)).coerceIn(0f, size / 2f)
+                canvas.drawRoundRect(rect, radiusPx, radiusPx, maskPaint)
+            }
+            "circle", "ellipse" -> canvas.drawOval(rect, maskPaint)
+            else -> {
+                val polygon = getShapeFromId(shapeId)
+                val path = polygon.toPath()
+                val bounds = RectF()
+                path.computeBounds(bounds, true)
+                val matrix = Matrix()
+                matrix.setRectToRect(bounds, rect, Matrix.ScaleToFit.FILL)
+                path.transform(matrix)
+                canvas.drawPath(path, maskPaint)
+            }
+        }
+
         val srcPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         }
