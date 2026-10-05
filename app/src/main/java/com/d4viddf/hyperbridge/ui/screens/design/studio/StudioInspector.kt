@@ -1611,7 +1611,32 @@ private fun ImageNodeEditor(
 
         Spacer(Modifier.height(4.dp))
 
-        // 2. Shape & Custom Rounded Borders
+        // 2. Mode (Bitmap / SVG)
+        Text(
+            text = stringResource(R.string.studio_image_mode),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = node.mode == ImageMode.BITMAP,
+                onClick = { onChange(node.copy(mode = ImageMode.BITMAP)) },
+                label = { Text(stringResource(R.string.studio_image_mode_bitmap)) }
+            )
+            FilterChip(
+                selected = node.mode == ImageMode.SVG,
+                onClick = { onChange(node.copy(mode = ImageMode.SVG)) },
+                label = { Text(stringResource(R.string.studio_image_mode_svg)) }
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // 3. Shape & Custom Rounded Borders
         Text(
             text = stringResource(R.string.studio_image_shape),
             style = MaterialTheme.typography.labelMedium,
@@ -2411,29 +2436,6 @@ private fun ImageInfoTabContent(
             checked = node.locked,
             onCheckedChange = { onChange(node.copy(locked = it)) }
         )
-
-        // Mode (Bitmap / SVG)
-        Text(
-            text = stringResource(R.string.studio_image_mode),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FilterChip(
-                selected = node.mode == ImageMode.BITMAP,
-                onClick = { onChange(node.copy(mode = ImageMode.BITMAP)) },
-                label = { Text(stringResource(R.string.studio_image_mode_bitmap)) }
-            )
-            FilterChip(
-                selected = node.mode == ImageMode.SVG,
-                onClick = { onChange(node.copy(mode = ImageMode.SVG)) },
-                label = { Text(stringResource(R.string.studio_image_mode_svg)) }
-            )
-        }
     }
 }
 
