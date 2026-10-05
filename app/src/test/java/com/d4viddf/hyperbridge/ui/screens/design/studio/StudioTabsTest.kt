@@ -66,11 +66,11 @@ class StudioTabsTest {
     }
 
     @Test
-    fun `tabsFor image node returns value, position, efx, actions, info, visibility`() {
+    fun `tabsFor image node returns image, position, efx, actions, info, visibility`() {
         val image = ImageNode(id = "avatar_img")
         val tabs = StudioTab.tabsFor(image, isRoot = false)
         assertEquals(
-            listOf(StudioTab.VALUE, StudioTab.POSITION, StudioTab.EFX, StudioTab.ACTIONS, StudioTab.INFO, StudioTab.VISIBILITY),
+            listOf(StudioTab.IMAGE, StudioTab.POSITION, StudioTab.EFX, StudioTab.ACTIONS, StudioTab.INFO, StudioTab.VISIBILITY),
             tabs
         )
     }

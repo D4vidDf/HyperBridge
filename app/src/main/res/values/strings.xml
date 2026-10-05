@@ -1918,6 +1918,7 @@
     <string name="studio_layer_move_down">Move down</string>
 
     <!-- Studio ImageNode Enhancements & Tab Organization -->
+    <string name="studio_tab_image">Image</string>
     <string name="studio_tab_info">Info</string>
     <string name="studio_tab_visibility">Visibility</string>
     <string name="studio_property_rotation">Rotation</string>

@@ -263,7 +263,7 @@ fun StudioInspector(
                 )
             }
 
-            StudioTab.VALUE -> {
+            StudioTab.VALUE, StudioTab.IMAGE -> {
                 ValueTabContent(
                     node = node,
                     scenario = scenario,
@@ -875,7 +875,8 @@ private fun ValueTabContent(
     onRequestFormulaEditor: (String) -> Unit,
     onRequestAppChooser: ((String) -> Unit) -> Unit
 ) {
-    StudioSection(stringResource(R.string.studio_tab_value)) {
+    val title = if (node is ImageNode) stringResource(R.string.studio_tab_image) else stringResource(R.string.studio_tab_value)
+    StudioSection(title) {
         when (node) {
             is ProgressNode -> {
                 ProgressValueEditor(
@@ -1607,6 +1608,108 @@ private fun ImageNodeEditor(
                 )
             }
         }
+
+        Spacer(Modifier.height(4.dp))
+
+        // 2. Shape & Custom Rounded Borders
+        Text(
+            text = stringResource(R.string.studio_image_shape),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        val shapes = listOf("circle", "square", "rounded", "cookie", "arch", "clover8")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            shapes.forEach { shapeId ->
+                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true)
+                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                val shape = when (shapeId) {
+                    "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
+                    "rounded", "rounded_rect" -> RoundedCornerShape(node.cornerRadiusDp.dp)
+                    "circle", "ellipse" -> CircleShape
+                    else -> getShapeFromId(shapeId).toShape()
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(shape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant,
+                            shape = shape
+                        )
+                        .clickable { onChange(node.copy(shapeId = shapeId)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (shapeId == "rounded") "RD" else shapeId.take(2).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        if (node.shapeId == "rounded" || node.shapeId == "rounded_rect") {
+            StudioStepper(
+                label = stringResource(R.string.studio_property_shape_corner_radius),
+                value = node.cornerRadiusDp,
+                onValueChange = { onChange(node.copy(cornerRadiusDp = it.coerceIn(0, 100))) },
+                unitSuffix = "dp",
+                min = 0,
+                max = 100
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // 3. Escalado (Scale Type)
+        Text(
+            text = stringResource(R.string.studio_image_scale),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.FIT_WIDTH,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_WIDTH)) },
+                label = { Text(stringResource(R.string.studio_image_scale_fit_width)) }
+            )
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.FIT_HEIGHT,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_HEIGHT)) },
+                label = { Text(stringResource(R.string.studio_image_scale_fit_height)) }
+            )
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.FIT_CENTER,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_CENTER)) },
+                label = { Text(stringResource(R.string.studio_image_scale_fit_center)) }
+            )
+            FilterChip(
+                selected = node.scaleType == ImageScaleType.CENTER_CROP,
+                onClick = { onChange(node.copy(scaleType = ImageScaleType.CENTER_CROP)) },
+                label = { Text(stringResource(R.string.studio_image_scale_center_crop)) }
+            )
+        }
     }
 
     if (showSourceSheet) {
@@ -2329,104 +2432,6 @@ private fun ImageInfoTabContent(
                 selected = node.mode == ImageMode.SVG,
                 onClick = { onChange(node.copy(mode = ImageMode.SVG)) },
                 label = { Text(stringResource(R.string.studio_image_mode_svg)) }
-            )
-        }
-
-        // Escalado (Scale Type)
-        Text(
-            text = stringResource(R.string.studio_image_scale),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FilterChip(
-                selected = node.scaleType == ImageScaleType.FIT_WIDTH,
-                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_WIDTH)) },
-                label = { Text(stringResource(R.string.studio_image_scale_fit_width)) }
-            )
-            FilterChip(
-                selected = node.scaleType == ImageScaleType.FIT_HEIGHT,
-                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_HEIGHT)) },
-                label = { Text(stringResource(R.string.studio_image_scale_fit_height)) }
-            )
-            FilterChip(
-                selected = node.scaleType == ImageScaleType.FIT_CENTER,
-                onClick = { onChange(node.copy(scaleType = ImageScaleType.FIT_CENTER)) },
-                label = { Text(stringResource(R.string.studio_image_scale_fit_center)) }
-            )
-            FilterChip(
-                selected = node.scaleType == ImageScaleType.CENTER_CROP,
-                onClick = { onChange(node.copy(scaleType = ImageScaleType.CENTER_CROP)) },
-                label = { Text(stringResource(R.string.studio_image_scale_center_crop)) }
-            )
-        }
-
-        // Shape & Custom Rounded Borders
-        Text(
-            text = stringResource(R.string.studio_image_shape),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        val shapes = listOf("circle", "square", "rounded", "cookie", "arch", "clover8")
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            shapes.forEach { shapeId ->
-                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true)
-                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-                val shape = when (shapeId) {
-                    "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
-                    "rounded", "rounded_rect" -> RoundedCornerShape(node.cornerRadiusDp.dp)
-                    "circle", "ellipse" -> CircleShape
-                    else -> getShapeFromId(shapeId).toShape()
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(shape)
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                        .border(
-                            width = if (isSelected) 2.dp else 1.dp,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant,
-                            shape = shape
-                        )
-                        .clickable { onChange(node.copy(shapeId = shapeId)) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (shapeId == "rounded") "RD" else shapeId.take(2).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-
-        if (node.shapeId == "rounded" || node.shapeId == "rounded_rect") {
-            StudioStepper(
-                label = stringResource(R.string.studio_property_shape_corner_radius),
-                value = node.cornerRadiusDp,
-                onValueChange = { onChange(node.copy(cornerRadiusDp = it.coerceIn(0, 100))) },
-                unitSuffix = "dp",
-                min = 0,
-                max = 100
             )
         }
     }

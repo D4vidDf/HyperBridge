@@ -25,6 +25,7 @@ enum class StudioTab(val labelRes: Int) {
     COLORS(R.string.studio_tab_colors),
     EFX(R.string.studio_tab_efx),
     VALUE(R.string.studio_tab_value),
+    IMAGE(R.string.studio_tab_image),
     ACTIONS(R.string.studio_tab_actions),
     VISIBILITY(R.string.studio_tab_visibility),
     CONTAINER(R.string.studio_tab_container),
@@ -39,7 +40,7 @@ enum class StudioTab(val labelRes: Int) {
         fun tabsFor(node: CustomWidgetNode?, isRoot: Boolean): List<StudioTab> {
             return when {
                 node == null || isRoot -> listOf(ITEMS, BACKGROUND, GLOBAL, DESIGN, SCOPE)
-                node is ImageNode -> listOf(VALUE, POSITION, EFX, ACTIONS, INFO, VISIBILITY)
+                node is ImageNode -> listOf(IMAGE, POSITION, EFX, ACTIONS, INFO, VISIBILITY)
                 node is TextNode -> listOf(INFO, COLORS, EFX, POSITION, VISIBILITY)
                 node is LayoutContainer -> listOf(ITEMS, INFO, POSITION, CONTAINER, COLORS, VISIBILITY)
                 else -> listOf(INFO, POSITION, COLORS, VALUE, ACTIONS, VISIBILITY)
