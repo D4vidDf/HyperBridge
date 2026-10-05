@@ -35,8 +35,11 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Widgets
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -44,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -594,12 +598,65 @@ private fun CanvasNode(
                     previewEngine.resolve(trackColorFormula, context).ifBlank { node.trackColorHex }
                 } else node.trackColorHex
 
-                LinearProgressIndicator(
-                    progress = { (value.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f) },
-                    color = safeParseColor(resolvedProgressColor),
-                    trackColor = safeParseColor(resolvedTrackColor),
-                    modifier = contentModifier
-                )
+                val fraction = (value.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f)
+
+                val fgColor = when (node.colorMode) {
+                    ProgressColorMode.CURRENT -> MaterialTheme.colorScheme.primary
+                    ProgressColorMode.GRADIENT -> safeParseColor(resolvedProgressColor)
+                    ProgressColorMode.MULTICOLOR -> safeParseColor(resolvedProgressColor)
+                    ProgressColorMode.FLAT -> safeParseColor(resolvedProgressColor)
+                }
+                val bgColor = when (node.colorMode) {
+                    ProgressColorMode.CURRENT -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> safeParseColor(resolvedTrackColor)
+                }
+
+                when {
+                    node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE -> {
+                        CircularProgressIndicator(
+                            progress = { fraction },
+                            color = fgColor,
+                            trackColor = bgColor,
+                            strokeWidth = node.strokeWidthDp.dp.coerceAtLeast(2.dp),
+                            modifier = contentModifier
+                        )
+                    }
+                    node.mode == ProgressIndicatorMode.DIVIDED -> {
+                        Row(
+                            modifier = contentModifier,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val totalSegments = 10
+                            val filledSegments = (fraction * totalSegments).toInt()
+                            for (i in 0 until totalSegments) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(if (i < filledSegments) fgColor else bgColor)
+                                )
+                            }
+                        }
+                    }
+                    node.mode == ProgressIndicatorMode.WAVE -> {
+                        WavyProgressCanvas(
+                            fraction = fraction,
+                            progressColor = fgColor,
+                            trackColor = bgColor,
+                            strokeWidth = node.strokeWidthDp.dp,
+                            modifier = contentModifier
+                        )
+                    }
+                    else -> {
+                        LinearProgressIndicator(
+                            progress = { fraction },
+                            color = fgColor,
+                            trackColor = bgColor,
+                            modifier = contentModifier
+                        )
+                    }
+                }
             }
 
             is ButtonNode -> {
@@ -814,5 +871,54 @@ internal fun studioGlyphIcon(glyphName: String): androidx.compose.ui.graphics.ve
     "check" -> Icons.Rounded.Check
     "close" -> Icons.Rounded.Clear
     else -> Icons.Rounded.Image
+}
+
+@Composable
+internal fun WavyProgressCanvas(
+    fraction: Float,
+    progressColor: Color,
+    trackColor: Color,
+    strokeWidth: Dp,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        val midY = height / 2f
+        val strokePx = strokeWidth.toPx().coerceAtLeast(2f)
+
+        val trackPath = androidx.compose.ui.graphics.Path()
+        val numCycles = 4f
+        val step = 2f
+        var x = 0f
+        trackPath.moveTo(0f, midY)
+        while (x <= width) {
+            val y = midY + kotlin.math.sin(x / width * numCycles * 2 * Math.PI).toFloat() * (height / 3f)
+            trackPath.lineTo(x, y)
+            x += step
+        }
+        drawPath(
+            path = trackPath,
+            color = trackColor,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        )
+
+        if (fraction > 0f) {
+            val activeWidth = width * fraction
+            val activePath = androidx.compose.ui.graphics.Path()
+            activePath.moveTo(0f, midY)
+            x = 0f
+            while (x <= activeWidth) {
+                val y = midY + kotlin.math.sin(x / width * numCycles * 2 * Math.PI).toFloat() * (height / 3f)
+                activePath.lineTo(x, y)
+                x += step
+            }
+            drawPath(
+                path = activePath,
+                color = progressColor,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            )
+        }
+    }
 }
 

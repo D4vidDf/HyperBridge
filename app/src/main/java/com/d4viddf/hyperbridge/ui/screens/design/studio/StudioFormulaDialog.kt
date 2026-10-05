@@ -78,7 +78,12 @@ val FORMULA_TOKEN_CATALOG: Map<FormulaTokenCategory, List<FormulaTokenItem>> = m
         FormulaTokenItem("{notif.title}", "Title", "Calendar Event"),
         FormulaTokenItem("{notif.text}", "Content", "Review in 15 mins"),
         FormulaTokenItem("{notif.progress}", "Progress (0..100)", "64"),
-        FormulaTokenItem("{notif.package}", "Package name", "com.google.android.calendar")
+        FormulaTokenItem("{notif.package}", "Package name", "com.google.android.calendar"),
+        FormulaTokenItem("{media.progress}", "Media Progress (0..100)", "45"),
+        FormulaTokenItem("{media.track}", "Media Track", "Midnight City"),
+        FormulaTokenItem("{media.artist}", "Media Artist", "M83"),
+        FormulaTokenItem("{media.duration}", "Media Duration", "04:03"),
+        FormulaTokenItem("{media.position}", "Media Position", "01:49")
     ),
     FormulaTokenCategory.DEVICE to listOf(
         FormulaTokenItem("{device.battery}", "Battery %", "85"),

@@ -27,7 +27,12 @@ data class VariableContext(
     val themeSurface: String? = "#1E1E1E",
     val notifAvatarBitmap: android.graphics.Bitmap? = null,
     val notifPictureBitmap: android.graphics.Bitmap? = null,
-    val notifSmallIconBitmap: android.graphics.Bitmap? = null
+    val notifSmallIconBitmap: android.graphics.Bitmap? = null,
+    val mediaProgress: Int? = null,
+    val mediaTrack: String? = null,
+    val mediaArtist: String? = null,
+    val mediaDuration: String? = null,
+    val mediaPosition: String? = null
 )
 
 /**
@@ -51,6 +56,11 @@ class WidgetVariableEngine {
             token == "notif.package" -> ctx.notifPackage
             token == "device.battery" -> ctx.deviceBatteryPercent?.toString()
             token == "time.now" -> ctx.timeNowFormatted
+            token == "media.progress" -> ctx.mediaProgress?.toString() ?: ctx.notifProgress?.toString()
+            token == "media.track" -> ctx.mediaTrack ?: ctx.notifTitle
+            token == "media.artist" -> ctx.mediaArtist ?: ctx.notifText
+            token == "media.duration" -> ctx.mediaDuration
+            token == "media.position" -> ctx.mediaPosition
             token == "theme.primary" -> ctx.themePrimary
             token == "theme.accent" -> ctx.themeAccent
             token == "theme.highlight" -> ctx.themePrimary ?: ctx.themeAccent

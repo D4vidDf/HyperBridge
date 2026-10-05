@@ -357,4 +357,63 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals("#FF0000", img.tintHex)
         assertEquals(true, img.tintEnabled)
     }
+
+    @Test
+    fun roundTripsProgressNodeWithNewProperties() {
+        val node = ProgressNode(
+            id = "prog_1",
+            style = ProgressStyle.LINEAR,
+            mode = ProgressIndicatorMode.WAVE,
+            colorMode = ProgressColorMode.GRADIENT,
+            strokeWidthDp = 6,
+            filterMode = TextFilterMode.MULTIPLY,
+            valueTemplate = "{media.progress}",
+            maxValue = 100,
+            trackColorHex = "#44000000",
+            progressColorHex = "#FF00FF"
+        )
+        val doc = CustomWidgetDocument(
+            id = "test_doc",
+            meta = CustomWidgetMetadata(name = "Prog Test"),
+            root = LayoutContainer(id = "root", children = listOf(node))
+        )
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+        val decodedProgress = decoded.root.children.first() as ProgressNode
+
+        assertEquals(ProgressIndicatorMode.WAVE, decodedProgress.mode)
+        assertEquals(ProgressColorMode.GRADIENT, decodedProgress.colorMode)
+        assertEquals(6, decodedProgress.strokeWidthDp)
+        assertEquals(TextFilterMode.MULTIPLY, decodedProgress.filterMode)
+        assertEquals("{media.progress}", decodedProgress.valueTemplate)
+    }
+
+    @Test
+    fun deserializesLegacyProgressNodeWithoutNewPropertiesWithDefaults() {
+        val legacyJson = """
+            {
+              "id": "legacy-prog-widget",
+              "meta": { "name": "Legacy Prog" },
+              "root": {
+                "type": "container",
+                "id": "root",
+                "children": [
+                  {
+                    "type": "progress",
+                    "id": "battery_bar",
+                    "valueTemplate": "{device.battery}"
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), legacyJson)
+        val prog = decoded.root.children.first() as ProgressNode
+        assertEquals(ProgressIndicatorMode.LINE, prog.mode)
+        assertEquals(ProgressColorMode.FLAT, prog.colorMode)
+        assertEquals(4, prog.strokeWidthDp)
+        assertEquals(TextFilterMode.NORMAL, prog.filterMode)
+        assertEquals("{device.battery}", prog.valueTemplate)
+    }
 }

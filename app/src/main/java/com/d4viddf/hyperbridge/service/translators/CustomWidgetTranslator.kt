@@ -56,6 +56,8 @@ class CustomWidgetTranslator(
         }
 
         val progress = sbn.notification.extras.getInt("android.progress", -1).takeIf { it >= 0 }
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, context)
+        val mediaProgress = mediaResult.progressPercent ?: progress
 
         // What the notification itself offers: its buttons, whether one of them replies inline,
         // and any Smart Action (#270) found in its text. Conditional nodes are evaluated against
@@ -98,7 +100,7 @@ class CustomWidgetTranslator(
         val ctx = VariableContext(
             notifTitle = effectiveTitle,
             notifText = effectiveText,
-            notifProgress = progress,
+            notifProgress = progress ?: mediaProgress,
             notifPackage = sbn.packageName,
             deviceBatteryPercent = DeviceVariables.batteryPercent(context),
             timeNowFormatted = DeviceVariables.timeNow(),
@@ -111,7 +113,12 @@ class CustomWidgetTranslator(
             themeSurface = themeSurface,
             notifAvatarBitmap = notifAvatarBitmap,
             notifPictureBitmap = notifPictureBitmap,
-            notifSmallIconBitmap = notifSmallIconBitmap
+            notifSmallIconBitmap = notifSmallIconBitmap,
+            mediaProgress = mediaProgress,
+            mediaTrack = effectiveTitle,
+            mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: effectiveText,
+            mediaDuration = mediaResult.durationFormatted,
+            mediaPosition = mediaResult.currentFormatted
         )
 
         val intents = WidgetActionIntents(

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,12 +30,14 @@ import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.LinearScale
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
@@ -52,6 +55,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -255,25 +259,63 @@ fun StudioInspector(
                 )
             }
 
+            StudioTab.PROGRESS -> {
+                if (node is ProgressNode) {
+                    ProgressTabContent(
+                        node = node,
+                        scenario = scenario,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                }
+            }
+
+            StudioTab.STYLE -> {
+                if (node is ProgressNode) {
+                    ProgressStyleTabContent(
+                        node = node,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                }
+            }
+
             StudioTab.COLORS -> {
-                ColorsTabContent(
-                    node = node,
-                    onChange = onChange,
-                    onRequestFormulaEditor = { editingFormulaPropKey = it }
-                )
+                if (node is ProgressNode) {
+                    ProgressColorTabContent(
+                        node = node,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                } else {
+                    ColorsTabContent(
+                        node = node,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                }
             }
 
             StudioTab.VALUE, StudioTab.IMAGE -> {
-                ValueTabContent(
-                    node = node,
-                    scenario = scenario,
-                    onChange = onChange,
-                    onRequestFormulaEditor = { editingFormulaPropKey = it },
-                    onRequestAppChooser = { cb ->
-                        appChooserCallback = cb
-                        isAppChooserOpen = true
-                    }
-                )
+                if (node is ProgressNode) {
+                    ProgressTabContent(
+                        node = node,
+                        scenario = scenario,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                } else {
+                    ValueTabContent(
+                        node = node,
+                        scenario = scenario,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it },
+                        onRequestAppChooser = { cb ->
+                            appChooserCallback = cb
+                            isAppChooserOpen = true
+                        }
+                    )
+                }
             }
 
             StudioTab.CONTAINER -> {
@@ -526,7 +568,7 @@ private fun ItemTabContent(
     onChange: (CustomWidgetNode) -> Unit,
     onRequestFormulaEditor: (String) -> Unit = {}
 ) {
-    StudioSection(stringResource(R.string.studio_tab_item)) {
+    StudioSection(stringResource(R.string.studio_tab_info)) {
         OutlinedTextField(
             value = node.name.orEmpty(),
             onValueChange = { onChange(node.withName(it.ifBlank { null })) },
@@ -879,7 +921,7 @@ private fun ValueTabContent(
     StudioSection(title) {
         when (node) {
             is ProgressNode -> {
-                ProgressValueEditor(
+                ProgressTabContent(
                     node = node,
                     scenario = scenario,
                     onChange = onChange,
@@ -926,14 +968,17 @@ private fun ValueTabContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProgressValueEditor(
+private fun ProgressTabContent(
     node: ProgressNode,
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
     onChange: (CustomWidgetNode) -> Unit,
     onRequestFormulaEditor: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    StudioSection(stringResource(R.string.studio_tab_progress)) {
         Text(
             text = stringResource(R.string.studio_progress_linked_to),
             style = MaterialTheme.typography.labelMedium,
@@ -944,7 +989,83 @@ private fun ProgressValueEditor(
         val isBattery = node.valueTemplate == "{device.battery}"
         val isNotif = node.valueTemplate == "{notif.progress}"
         val isMedia = node.valueTemplate == "{media.progress}"
-        val isCustom = !isBattery && !isNotif && !isMedia
+
+        val linkedIcon = when {
+            isBattery -> Icons.Rounded.BatteryChargingFull
+            isNotif -> Icons.Rounded.Notifications
+            isMedia -> Icons.Rounded.MusicNote
+            else -> Icons.Rounded.Tune
+        }
+
+        val linkedTitle = when {
+            isBattery -> stringResource(R.string.studio_progress_link_battery)
+            isNotif -> stringResource(R.string.studio_progress_link_notif)
+            isMedia -> stringResource(R.string.studio_progress_link_media)
+            else -> stringResource(R.string.studio_progress_link_custom)
+        }
+
+        // Linked data summary box
+        Card(
+            onClick = { showBottomSheet = true },
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = linkedIcon,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = linkedTitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = node.valueTemplate,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = stringResource(R.string.studio_progress_select_source),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Progress Mode selector (Line, Circle, Divided, Wave)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.studio_progress_mode),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
 
         Row(
             modifier = Modifier
@@ -952,97 +1073,23 @@ private fun ProgressValueEditor(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            FilterChip(
-                selected = isBattery,
-                onClick = {
-                    onChange(node.copy(valueTemplate = "{device.battery}", maxValue = 100))
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.BatteryChargingFull,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                label = { Text(stringResource(R.string.studio_progress_link_battery)) }
-            )
-
-            FilterChip(
-                selected = isNotif,
-                onClick = {
-                    onChange(node.copy(valueTemplate = "{notif.progress}", maxValue = 100))
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.Notifications,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                label = { Text(stringResource(R.string.studio_progress_link_notif)) }
-            )
-
-            FilterChip(
-                selected = isMedia,
-                onClick = {
-                    onChange(node.copy(valueTemplate = "{media.progress}", maxValue = 100))
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.MusicNote,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                label = { Text(stringResource(R.string.studio_progress_link_media)) }
-            )
-
-            FilterChip(
-                selected = isCustom,
-                onClick = {
-                    if (!isCustom) {
-                        onChange(node.copy(valueTemplate = "{notif.progress}"))
-                    }
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.Tune,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                label = { Text(stringResource(R.string.studio_progress_link_custom)) }
-            )
-        }
-
-        OutlinedTextField(
-            value = node.valueTemplate,
-            onValueChange = { onChange(node.copy(valueTemplate = it)) },
-            label = { Text(stringResource(R.string.studio_property_template)) },
-            trailingIcon = {
-                IconButton(onClick = { onRequestFormulaEditor(BindableProperty.PROGRESS_VALUE.key) }) {
-                    Icon(
-                        imageVector = Icons.Rounded.Calculate,
-                        contentDescription = stringResource(R.string.studio_bind_formula),
-                        tint = if (node.bindings[BindableProperty.PROGRESS_VALUE.key] != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.size(18.dp)
-                    )
+            ProgressIndicatorMode.entries.forEach { mode ->
+                val labelRes = when (mode) {
+                    ProgressIndicatorMode.LINE -> R.string.studio_progress_mode_line
+                    ProgressIndicatorMode.CIRCLE -> R.string.studio_progress_mode_circle
+                    ProgressIndicatorMode.DIVIDED -> R.string.studio_progress_mode_divided
+                    ProgressIndicatorMode.WAVE -> R.string.studio_progress_mode_wave
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        VariableTokenRow { token ->
-            onChange(node.copy(valueTemplate = node.valueTemplate + token))
+                FilterChip(
+                    selected = node.mode == mode,
+                    onClick = {
+                        val newStyle = if (mode == ProgressIndicatorMode.CIRCLE) ProgressStyle.RING else ProgressStyle.LINEAR
+                        onChange(node.copy(mode = mode, style = newStyle))
+                    },
+                    label = { Text(stringResource(labelRes)) }
+                )
+            }
         }
-
-        StudioStepper(
-            label = stringResource(R.string.studio_property_max_value),
-            value = node.maxValue,
-            onValueChange = { onChange(node.copy(maxValue = it.coerceAtLeast(1))) },
-            min = 1,
-            max = 1000
-        )
 
         // Live Resolved Value Preview Card
         val previewEngine = remember { WidgetVariableEngine() }
@@ -1086,14 +1133,333 @@ private fun ProgressValueEditor(
                     )
                 }
 
-                LinearProgressIndicator(
-                    progress = { fraction },
-                    color = safeParseColor(node.progressColorHex),
-                    trackColor = safeParseColor(node.trackColorHex),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                when (node.mode) {
+                    ProgressIndicatorMode.CIRCLE -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                progress = { fraction },
+                                color = safeParseColor(node.progressColorHex),
+                                trackColor = safeParseColor(node.trackColorHex),
+                                strokeWidth = node.strokeWidthDp.dp.coerceAtLeast(2.dp),
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+                    }
+                    ProgressIndicatorMode.DIVIDED -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(node.bounds.heightDp?.dp ?: 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val totalSegments = 10
+                            val filledSegments = (fraction * totalSegments).toInt()
+                            for (i in 0 until totalSegments) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(
+                                            if (i < filledSegments) safeParseColor(node.progressColorHex)
+                                            else safeParseColor(node.trackColorHex)
+                                        )
+                                )
+                            }
+                        }
+                    }
+                    ProgressIndicatorMode.WAVE -> {
+                        WavyProgressCanvas(
+                            fraction = fraction,
+                            progressColor = safeParseColor(node.progressColorHex),
+                            trackColor = safeParseColor(node.trackColorHex),
+                            strokeWidth = node.strokeWidthDp.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(node.bounds.heightDp?.dp?.coerceAtLeast(12.dp) ?: 12.dp)
+                        )
+                    }
+                    ProgressIndicatorMode.LINE -> {
+                        LinearProgressIndicator(
+                            progress = { fraction },
+                            color = safeParseColor(node.progressColorHex),
+                            trackColor = safeParseColor(node.trackColorHex),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(node.bounds.heightDp?.dp ?: 8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_progress_sheet_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                // Battery option
+                LinkedDataSheetItem(
+                    icon = Icons.Rounded.BatteryChargingFull,
+                    title = stringResource(R.string.studio_progress_link_battery),
+                    description = stringResource(R.string.studio_progress_link_battery_desc),
+                    selected = node.valueTemplate == "{device.battery}",
+                    onClick = {
+                        onChange(node.copy(valueTemplate = "{device.battery}", maxValue = 100))
+                        showBottomSheet = false
+                    }
+                )
+
+                // Notification progress option
+                LinkedDataSheetItem(
+                    icon = Icons.Rounded.Notifications,
+                    title = stringResource(R.string.studio_progress_link_notif),
+                    description = stringResource(R.string.studio_progress_link_notif_desc),
+                    selected = node.valueTemplate == "{notif.progress}",
+                    onClick = {
+                        onChange(node.copy(valueTemplate = "{notif.progress}", maxValue = 100))
+                        showBottomSheet = false
+                    }
+                )
+
+                // Media progress option
+                LinkedDataSheetItem(
+                    icon = Icons.Rounded.MusicNote,
+                    title = stringResource(R.string.studio_progress_link_media),
+                    description = stringResource(R.string.studio_progress_link_media_desc),
+                    selected = node.valueTemplate == "{media.progress}",
+                    onClick = {
+                        onChange(node.copy(valueTemplate = "{media.progress}", maxValue = 100))
+                        showBottomSheet = false
+                    }
+                )
+
+                // Custom template option
+                LinkedDataSheetItem(
+                    icon = Icons.Rounded.Tune,
+                    title = stringResource(R.string.studio_progress_link_custom),
+                    description = stringResource(R.string.studio_progress_link_custom_desc),
+                    selected = node.valueTemplate != "{device.battery}" && node.valueTemplate != "{notif.progress}" && node.valueTemplate != "{media.progress}",
+                    onClick = {
+                        showBottomSheet = false
+                        onRequestFormulaEditor(BindableProperty.PROGRESS_VALUE.key)
+                    }
+                )
+
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProgressColorTabContent(
+    node: ProgressNode,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_colors)) {
+        // Mode: plano, gradiente, actual, multicolor
+        Text(
+            text = stringResource(R.string.studio_progress_color_mode),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ProgressColorMode.entries.forEach { mode ->
+                val labelRes = when (mode) {
+                    ProgressColorMode.FLAT -> R.string.studio_progress_color_mode_flat
+                    ProgressColorMode.GRADIENT -> R.string.studio_progress_color_mode_gradient
+                    ProgressColorMode.CURRENT -> R.string.studio_progress_color_mode_current
+                    ProgressColorMode.MULTICOLOR -> R.string.studio_progress_color_mode_multicolor
+                }
+                FilterChip(
+                    selected = node.colorMode == mode,
+                    onClick = { onChange(node.copy(colorMode = mode)) },
+                    label = { Text(stringResource(labelRes)) }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // FgColor
+        StudioColorField(
+            label = stringResource(R.string.studio_progress_fg_color),
+            colorHex = node.progressColorHex,
+            onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
+            boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        // FndColor
+        StudioColorField(
+            label = stringResource(R.string.studio_progress_fnd_color),
+            colorHex = node.trackColorHex,
+            onColorHexChange = { onChange(node.copy(trackColorHex = it)) },
+            boundFormula = node.bindings[BindableProperty.PROGRESS_TRACK_COLOR.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_TRACK_COLOR.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_TRACK_COLOR.key) }
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        // Filter Mode
+        Text(
+            text = stringResource(R.string.studio_text_filter_mode),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextFilterMode.entries.forEach { filter ->
+                FilterChip(
+                    selected = node.filterMode == filter,
+                    onClick = { onChange(node.copy(filterMode = filter)) },
+                    label = { Text(stringResource(filterModeLabel(filter))) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProgressStyleTabContent(
+    node: ProgressNode,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit
+) {
+    StudioSection(stringResource(R.string.studio_tab_style)) {
+        // Lineal or Circular style selector
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = node.style == ProgressStyle.LINEAR,
+                onClick = {
+                    val newMode = if (node.mode == ProgressIndicatorMode.CIRCLE) ProgressIndicatorMode.LINE else node.mode
+                    onChange(node.copy(style = ProgressStyle.LINEAR, mode = newMode))
+                },
+                label = { Text(stringResource(R.string.studio_progress_style_lineal)) }
+            )
+            FilterChip(
+                selected = node.style == ProgressStyle.RING,
+                onClick = { onChange(node.copy(style = ProgressStyle.RING, mode = ProgressIndicatorMode.CIRCLE)) },
+                label = { Text(stringResource(R.string.studio_progress_style_circular)) }
+            )
+        }
+
+        // Size / Thickness
+        StudioStepper(
+            label = stringResource(R.string.studio_progress_stroke_size),
+            value = node.strokeWidthDp,
+            onValueChange = { onChange(node.copy(strokeWidthDp = it.coerceIn(1, 32))) },
+            unitSuffix = "dp",
+            min = 1,
+            max = 32,
+            boundFormula = node.bindings[BindableProperty.PROGRESS_STROKE_WIDTH.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_STROKE_WIDTH.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_STROKE_WIDTH.key) }
+        )
+
+        // Height
+        StudioStepper(
+            label = stringResource(R.string.studio_property_height),
+            value = node.bounds.heightDp ?: 8,
+            onValueChange = { onChange(node.withBounds(node.bounds.copy(heightDp = it.coerceAtLeast(2)))) },
+            unitSuffix = "dp",
+            min = 2,
+            max = 200,
+            boundFormula = node.bindings[BindableProperty.BOUNDS_HEIGHT.key],
+            onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_HEIGHT.key, it)) },
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BOUNDS_HEIGHT.key) }
+        )
+    }
+}
+
+@Composable
+private fun LinkedDataSheetItem(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (selected) {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }

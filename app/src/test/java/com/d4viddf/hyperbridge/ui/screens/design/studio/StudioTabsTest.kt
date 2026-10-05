@@ -36,11 +36,11 @@ class StudioTabsTest {
     }
 
     @Test
-    fun `tabsFor progress bar returns info, position, colors, value, actions, visibility`() {
+    fun `tabsFor progress bar returns progress, colors, style, position, visibility, info`() {
         val progress = ProgressNode(id = "progress_bar")
         val tabs = StudioTab.tabsFor(progress, isRoot = false)
         assertEquals(
-            listOf(StudioTab.INFO, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS, StudioTab.VISIBILITY),
+            listOf(StudioTab.PROGRESS, StudioTab.COLORS, StudioTab.STYLE, StudioTab.POSITION, StudioTab.VISIBILITY, StudioTab.INFO),
             tabs
         )
     }

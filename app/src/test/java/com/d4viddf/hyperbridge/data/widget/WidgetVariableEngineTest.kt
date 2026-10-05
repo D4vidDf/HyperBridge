@@ -54,4 +54,26 @@ class WidgetVariableEngineTest {
         assertEquals("#3DDA82", engine.resolve("{theme.primary}", ctx))
         assertEquals("#FF00FF", engine.resolve("{theme.accent}", ctx))
     }
+
+    @Test
+    fun resolvesMediaTokens() {
+        val ctx = VariableContext(
+            mediaProgress = 62,
+            mediaTrack = "Midnight City",
+            mediaArtist = "M83",
+            mediaDuration = "04:03",
+            mediaPosition = "02:30"
+        )
+        assertEquals("62", engine.resolve("{media.progress}", ctx))
+        assertEquals("Midnight City", engine.resolve("{media.track}", ctx))
+        assertEquals("M83", engine.resolve("{media.artist}", ctx))
+        assertEquals("04:03", engine.resolve("{media.duration}", ctx))
+        assertEquals("02:30", engine.resolve("{media.position}", ctx))
+    }
+
+    @Test
+    fun mediaProgressFallsBackToNotifProgress() {
+        val ctx = VariableContext(notifProgress = 35)
+        assertEquals("35", engine.resolve("{media.progress}", ctx))
+    }
 }

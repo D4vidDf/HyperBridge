@@ -300,7 +300,24 @@ data class ImageNode(
     override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
 
+@Serializable
 enum class ProgressStyle { LINEAR, RING }
+
+@Serializable
+enum class ProgressIndicatorMode {
+    LINE,
+    CIRCLE,
+    DIVIDED,
+    WAVE
+}
+
+@Serializable
+enum class ProgressColorMode {
+    FLAT,
+    GRADIENT,
+    CURRENT,
+    MULTICOLOR
+}
 
 @Serializable
 @SerialName("progress")
@@ -312,6 +329,10 @@ data class ProgressNode(
     override val opacity: Float = 1f,
     override val bindings: Map<String, String> = emptyMap(),
     val style: ProgressStyle = ProgressStyle.LINEAR,
+    val mode: ProgressIndicatorMode = ProgressIndicatorMode.LINE,
+    val colorMode: ProgressColorMode = ProgressColorMode.FLAT,
+    val strokeWidthDp: Int = 4,
+    val filterMode: TextFilterMode = TextFilterMode.NORMAL,
     val valueTemplate: String = "{device.battery}",
     val maxValue: Int = 100,
     val trackColorHex: String = "#33FFFFFF",
@@ -475,6 +496,7 @@ enum class BindableProperty(val key: String) {
     PROGRESS_VALUE("valueTemplate"),
     PROGRESS_COLOR("progressColorHex"),
     PROGRESS_TRACK_COLOR("trackColorHex"),
+    PROGRESS_STROKE_WIDTH("strokeWidthDp"),
     BUTTON_LABEL("label"),
     BUTTON_TEXT_COLOR("textColorHex"),
     BUTTON_BACKGROUND("backgroundHex"),

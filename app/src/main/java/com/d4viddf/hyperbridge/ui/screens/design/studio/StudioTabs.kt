@@ -15,6 +15,7 @@ import com.d4viddf.hyperbridge.models.widget.ButtonNode
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
 import com.d4viddf.hyperbridge.models.widget.ImageNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.ProgressNode
 import com.d4viddf.hyperbridge.models.widget.TextNode
 
 enum class StudioTab(val labelRes: Int) {
@@ -26,6 +27,8 @@ enum class StudioTab(val labelRes: Int) {
     EFX(R.string.studio_tab_efx),
     VALUE(R.string.studio_tab_value),
     IMAGE(R.string.studio_tab_image),
+    PROGRESS(R.string.studio_tab_progress),
+    STYLE(R.string.studio_tab_style),
     ACTIONS(R.string.studio_tab_actions),
     VISIBILITY(R.string.studio_tab_visibility),
     CONTAINER(R.string.studio_tab_container),
@@ -40,6 +43,7 @@ enum class StudioTab(val labelRes: Int) {
         fun tabsFor(node: CustomWidgetNode?, isRoot: Boolean): List<StudioTab> {
             return when {
                 node == null || isRoot -> listOf(ITEMS, BACKGROUND, GLOBAL, DESIGN, SCOPE)
+                node is ProgressNode -> listOf(PROGRESS, COLORS, STYLE, POSITION, VISIBILITY, INFO)
                 node is ImageNode -> listOf(IMAGE, POSITION, EFX, ACTIONS, INFO, VISIBILITY)
                 node is TextNode -> listOf(INFO, COLORS, EFX, POSITION, VISIBILITY)
                 node is LayoutContainer -> listOf(ITEMS, INFO, POSITION, CONTAINER, COLORS, VISIBILITY)
