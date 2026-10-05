@@ -80,7 +80,7 @@ class CustomWidgetRenderer(
             is LayoutContainer -> renderContainer(doc, node, ctx, bridgeId, intents)
             is TextNode -> renderText(doc, node, ctx)
             is ImageNode -> renderImage(doc, node, ctx)
-            is ProgressNode -> renderProgress(node, ctx)
+            is ProgressNode -> renderProgress(doc, node, ctx)
             is ButtonNode -> renderButton(doc, node, bridgeId, intents, ctx)
             is ShapeNode -> renderShape(node, ctx)
         }
@@ -102,7 +102,11 @@ class CustomWidgetRenderer(
                 maxOf(heightDp, minNeeded)
             }
             node is ProgressNode && (node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE) -> {
-                maxOf(widthDp ?: 36, heightDp ?: 36, 36)
+                val base = maxOf(widthDp ?: 36, heightDp ?: 36, 36)
+                if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(base, node.thumbSizeDp + 4) else base
+            }
+            node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE -> {
+                maxOf(heightDp ?: 8, node.thumbSizeDp + 4)
             }
             node is ProgressNode && node.mode == ProgressIndicatorMode.WAVE -> {
                 if (heightDp == null || heightDp < 16) 16 else heightDp
@@ -111,7 +115,8 @@ class CustomWidgetRenderer(
         }
         val effectiveWidthDp = when {
             node is ProgressNode && (node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE) -> {
-                maxOf(widthDp ?: 36, heightDp ?: 36, 36)
+                val base = maxOf(widthDp ?: 36, heightDp ?: 36, 36)
+                if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(base, node.thumbSizeDp + 4) else base
             }
             else -> widthDp
         }
@@ -488,17 +493,25 @@ class CustomWidgetRenderer(
         return output
     }
 
-    private fun renderProgress(node: ProgressNode, ctx: VariableContext): RemoteViews {
+    private fun renderProgress(doc: CustomWidgetDocument, node: ProgressNode, ctx: VariableContext): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_progress_linear)
         val isCircular = node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE
         val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx) ?: (if (isCircular) 36 else 64)
         val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx) ?: (if (isCircular) 36 else 8)
         val effectiveWidthDp = when {
-            isCircular -> maxOf(widthDp, heightDp, 36)
+            isCircular -> {
+                val base = maxOf(widthDp, heightDp, 36)
+                if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(base, node.thumbSizeDp + 4) else base
+            }
+            node.thumbType != ProgressIndicatorThumb.NONE -> maxOf(widthDp, node.thumbSizeDp + 4)
             else -> widthDp
         }
         val effectiveHeightDp = when {
-            isCircular -> maxOf(widthDp, heightDp, 36)
+            isCircular -> {
+                val base = maxOf(widthDp, heightDp, 36)
+                if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(base, node.thumbSizeDp + 4) else base
+            }
+            node.thumbType != ProgressIndicatorThumb.NONE -> maxOf(heightDp, node.thumbSizeDp + 4)
             node.mode == ProgressIndicatorMode.WAVE && heightDp < 16 -> 16
             else -> heightDp
         }
@@ -544,6 +557,11 @@ class CustomWidgetRenderer(
         val roundCaps = resolveBoolean(node, BindableProperty.PROGRESS_ROUND_CAPS, node.roundCaps, ctx)
         val strokeCap = if (roundCaps) Paint.Cap.ROUND else Paint.Cap.BUTT
 
+        val thumbSizeDp = resolveInt(node, BindableProperty.PROGRESS_THUMB_SIZE, node.thumbSizeDp, ctx) ?: node.thumbSizeDp
+        val thumbSizePx = dpToPx(thumbSizeDp.coerceIn(4, 48)).coerceAtLeast(4)
+        val thumbRadiusPx = thumbSizePx / 2f
+        val thumbColor = resolveColor(node, BindableProperty.PROGRESS_THUMB_COLOR, node.thumbColorHex, ctx) ?: progressColor
+
         val bitmap = createBitmap(widthPx, heightPx)
         val canvas = Canvas(bitmap)
 
@@ -551,10 +569,10 @@ class CustomWidgetRenderer(
             isCircular -> {
                 val size = minOf(widthPx, heightPx).toFloat()
                 val effectiveStroke = strokeWidthPx.coerceAtMost(size / 3f).coerceAtLeast(1f)
-                val inset = effectiveStroke / 2f
+                val inset = maxOf(effectiveStroke / 2f, thumbRadiusPx)
                 val left = (widthPx - size) / 2f + inset
                 val top = (heightPx - size) / 2f + inset
-                val arcRect = RectF(left, top, left + size - effectiveStroke, top + size - effectiveStroke)
+                val arcRect = RectF(left, top, left + size - inset * 2f, top + size - inset * 2f)
 
                 val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                     color = trackColor
@@ -581,6 +599,15 @@ class CustomWidgetRenderer(
                         }
                     }
                     canvas.drawArc(arcRect, -90f, fraction * 360f, false, progressPaint)
+                }
+
+                if (node.thumbType != ProgressIndicatorThumb.NONE) {
+                    val currentAngleDeg = -90f + fraction * 360f
+                    val arcRadius = (size - inset * 2f) / 2f
+                    val angleRad = Math.toRadians(currentAngleDeg.toDouble())
+                    val cx = (widthPx / 2f) + arcRadius * kotlin.math.cos(angleRad).toFloat()
+                    val cy = (heightPx / 2f) + arcRadius * kotlin.math.sin(angleRad).toFloat()
+                    drawProgressThumb(canvas, doc, node, ctx, cx, cy, thumbSizePx, thumbColor)
                 }
             }
 
@@ -614,6 +641,13 @@ class CustomWidgetRenderer(
                     val rect = RectF(left, 0f, right, heightPx.toFloat())
                     canvas.drawRoundRect(rect, radiusPx, radiusPx, segPaint)
                 }
+
+                if (node.thumbType != ProgressIndicatorThumb.NONE && filledSegments > 0) {
+                    val lastSegRight = (filledSegments - 1) * (segmentWidth + spacingPx) + segmentWidth
+                    val cx = lastSegRight.coerceIn(thumbRadiusPx, widthPx.toFloat() - thumbRadiusPx)
+                    val cy = heightPx / 2f
+                    drawProgressThumb(canvas, doc, node, ctx, cx, cy, thumbSizePx, thumbColor)
+                }
             }
 
             node.mode == ProgressIndicatorMode.WAVE -> {
@@ -622,7 +656,7 @@ class CustomWidgetRenderer(
                 val midY = h / 2f
                 val effectiveStroke = strokeWidthPx.coerceAtMost(h / 2f).coerceAtLeast(1f)
                 val halfStroke = effectiveStroke / 2f
-                val maxAmplitude = (midY - halfStroke).coerceAtLeast(1f)
+                val maxAmplitude = (midY - maxOf(halfStroke, thumbRadiusPx)).coerceAtLeast(1f)
                 val amplitude = minOf(h / 3f, maxAmplitude)
 
                 val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -666,6 +700,12 @@ class CustomWidgetRenderer(
                     }
                     canvas.drawPath(activePath, activePaint)
                 }
+
+                if (node.thumbType != ProgressIndicatorThumb.NONE) {
+                    val cx = (w * fraction).coerceIn(0f, w)
+                    val cy = midY + kotlin.math.sin(cx / w * numCycles * 2 * Math.PI).toFloat() * amplitude
+                    drawProgressThumb(canvas, doc, node, ctx, cx, cy, thumbSizePx, thumbColor)
+                }
             }
 
             else -> {
@@ -691,11 +731,126 @@ class CustomWidgetRenderer(
                     val fillRadius = radiusPx.coerceAtMost(activeWidth / 2f)
                     canvas.drawRoundRect(RectF(0f, 0f, activeWidth, heightPx.toFloat()), fillRadius, fillRadius, progressPaint)
                 }
+
+                if (node.thumbType != ProgressIndicatorThumb.NONE) {
+                    val trackUsableWidth = widthPx.toFloat() - 2f * thumbRadiusPx
+                    val cx = if (trackUsableWidth > 0) thumbRadiusPx + trackUsableWidth * fraction else widthPx.toFloat() * fraction
+                    val cy = heightPx / 2f
+                    drawProgressThumb(canvas, doc, node, ctx, cx, cy, thumbSizePx, thumbColor)
+                }
             }
         }
 
         rv.setImageViewBitmap(R.id.node_progress, bitmap)
         return rv
+    }
+
+    private fun drawProgressThumb(
+        canvas: Canvas,
+        doc: CustomWidgetDocument,
+        node: ProgressNode,
+        ctx: VariableContext,
+        cx: Float,
+        cy: Float,
+        sizePx: Int,
+        thumbColor: Int
+    ) {
+        if (node.thumbType == ProgressIndicatorThumb.NONE) return
+        val radius = sizePx / 2f
+        when (node.thumbType) {
+            ProgressIndicatorThumb.NONE -> Unit
+            ProgressIndicatorThumb.ROUNDED -> {
+                val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = thumbColor
+                    style = Paint.Style.FILL
+                }
+                canvas.drawCircle(cx, cy, radius, fillPaint)
+
+                val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.WHITE
+                    style = Paint.Style.STROKE
+                    strokeWidth = dpToPx(1).toFloat().coerceAtLeast(1f)
+                }
+                canvas.drawCircle(cx, cy, radius, strokePaint)
+            }
+            ProgressIndicatorThumb.CUSTOM_PIC -> {
+                val badge = resolveThumbBitmap(doc, node, ctx, sizePx)
+                if (badge != null) {
+                    canvas.drawBitmap(badge, cx - radius, cy - radius, null)
+                } else {
+                    val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = thumbColor
+                        style = Paint.Style.FILL
+                    }
+                    canvas.drawCircle(cx, cy, radius, fillPaint)
+                    val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.WHITE
+                        style = Paint.Style.STROKE
+                        strokeWidth = dpToPx(1).toFloat().coerceAtLeast(1f)
+                    }
+                    canvas.drawCircle(cx, cy, radius, strokePaint)
+                }
+            }
+        }
+    }
+
+    private fun resolveThumbBitmap(
+        doc: CustomWidgetDocument,
+        node: ProgressNode,
+        ctx: VariableContext,
+        sizePx: Int
+    ): Bitmap? {
+        val source = node.thumbImageSource ?: ImageSource.NotifMedia("album_art")
+        val raw = try {
+            when (source) {
+                is ImageSource.NotifMedia -> {
+                    when (source.mediaType) {
+                        "avatar" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap ?: ctx.notifSmallIconBitmap
+                        "picture" -> ctx.notifPictureBitmap ?: ctx.notifAvatarBitmap
+                        "album_art" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap
+                        "small_icon" -> ctx.notifSmallIconBitmap ?: ctx.notifAvatarBitmap
+                        else -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap ?: ctx.notifSmallIconBitmap
+                    }
+                }
+                is ImageSource.AppIconOf -> {
+                    val pkg = engine.resolve(source.packageTemplate, ctx)
+                    if (pkg.isBlank()) null else drawableToBitmap(context.packageManager.getApplicationIcon(pkg))
+                }
+                is ImageSource.ContactAvatarOf -> ctx.notifAvatarBitmap
+                is ImageSource.CustomAsset -> {
+                    val file = widgetRepository.assetFile(doc.id, source.fileName)
+                    if (file.exists()) android.graphics.BitmapFactory.decodeFile(file.absolutePath) else null
+                }
+                is ImageSource.SystemGlyph -> systemGlyphBitmap(source.glyphName)
+                is ImageSource.SourceIcon -> {
+                    val path = engine.resolve("{source.${source.sourceId}.icon}", ctx)
+                    if (path.isBlank()) null else android.graphics.BitmapFactory.decodeFile(path)
+                }
+            }
+        } catch (_: Exception) {
+            null
+        } ?: return null
+
+        val output = createBitmap(sizePx, sizePx)
+        val canvas = Canvas(output)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val rect = RectF(0f, 0f, sizePx.toFloat(), sizePx.toFloat())
+        canvas.drawOval(rect, paint)
+
+        val srcPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        }
+        val scaled = Bitmap.createScaledBitmap(raw, sizePx, sizePx, true)
+        canvas.drawBitmap(scaled, 0f, 0f, srcPaint)
+
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = dpToPx(1).toFloat().coerceAtLeast(1f)
+        }
+        val strokeInset = strokePaint.strokeWidth / 2f
+        canvas.drawOval(RectF(strokeInset, strokeInset, sizePx - strokeInset, sizePx - strokeInset), strokePaint)
+        return output
     }
 
     private fun renderButton(doc: CustomWidgetDocument, node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents, ctx: VariableContext): RemoteViews {

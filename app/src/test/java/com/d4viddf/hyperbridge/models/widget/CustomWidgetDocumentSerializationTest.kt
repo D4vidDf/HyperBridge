@@ -374,7 +374,11 @@ class CustomWidgetDocumentSerializationTest {
             gradientEndColorHex = "#00FFFF",
             currentSource = "media",
             multiColorsHex = listOf("#FF0000", "#00FF00", "#0000FF"),
-            roundCaps = false
+            roundCaps = false,
+            thumbType = ProgressIndicatorThumb.CUSTOM_PIC,
+            thumbSizeDp = 16,
+            thumbColorHex = "#FFAA00",
+            thumbImageSource = ImageSource.NotifMedia("album_art")
         )
         val doc = CustomWidgetDocument(
             id = "test_doc",
@@ -394,6 +398,10 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals("media", decodedProgress.currentSource)
         assertEquals(listOf("#FF0000", "#00FF00", "#0000FF"), decodedProgress.multiColorsHex)
         assertEquals(false, decodedProgress.roundCaps)
+        assertEquals(ProgressIndicatorThumb.CUSTOM_PIC, decodedProgress.thumbType)
+        assertEquals(16, decodedProgress.thumbSizeDp)
+        assertEquals("#FFAA00", decodedProgress.thumbColorHex)
+        assertEquals(ImageSource.NotifMedia("album_art"), decodedProgress.thumbImageSource)
     }
 
     @Test
@@ -426,5 +434,9 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals("#38BDF8", prog.gradientEndColorHex)
         assertEquals("system", prog.currentSource)
         assertEquals(listOf("#4CAF50", "#FFEB3B", "#FF9800", "#F44336"), prog.multiColorsHex)
+        assertEquals(ProgressIndicatorThumb.NONE, prog.thumbType)
+        assertEquals(12, prog.thumbSizeDp)
+        assertEquals(null, prog.thumbColorHex)
+        assertEquals(null, prog.thumbImageSource)
     }
 }

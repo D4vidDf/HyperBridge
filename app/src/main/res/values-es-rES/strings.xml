@@ -1572,6 +1572,13 @@
     <string name="studio_node_progress">Indicador de progreso</string>
     <string name="studio_progress_round_caps">Extremos redondeados</string>
     <string name="studio_progress_round_caps_desc">Redondear el inicio y el final del indicador de progreso</string>
+    <string name="studio_progress_indicator_header">Indicador de posición</string>
+    <string name="studio_progress_thumb_none">Ninguno</string>
+    <string name="studio_progress_thumb_rounded">Redondeado</string>
+    <string name="studio_progress_thumb_custom_pic">Imagen personalizada</string>
+    <string name="studio_progress_thumb_size">Tamaño del indicador</string>
+    <string name="studio_progress_thumb_color">Color del indicador</string>
+    <string name="studio_progress_thumb_source">Origen de imagen</string>
     <string name="studio_add_shape">Forma</string>
     <string name="studio_add_shape_desc">Una forma geométrica, tarjeta o placa de fondo</string>
     <string name="studio_property_gravity">Alineación del texto</string>

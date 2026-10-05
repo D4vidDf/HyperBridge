@@ -256,10 +256,16 @@ private fun CanvasNode(
 
     val nodeWidth = if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
         node.boxWidthDp
+    } else if (node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE) {
+        maxOf(node.bounds.widthDp ?: defaultW, node.thumbSizeDp + 4)
     } else {
         node.bounds.widthDp ?: defaultW
     }
-    val baseNodeHeight = node.bounds.heightDp ?: defaultH
+    val baseNodeHeight = if (node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE) {
+        maxOf(node.bounds.heightDp ?: defaultH, node.thumbSizeDp + 4)
+    } else {
+        node.bounds.heightDp ?: defaultH
+    }
     val nodeHeight = if (node is TextNode && node.maxLines > 1 && node.bounds.heightDp != null) {
         maxOf(baseNodeHeight, (node.fontSizeSp * 1.35f * node.maxLines).roundToInt())
     } else baseNodeHeight
@@ -633,11 +639,26 @@ private fun CanvasNode(
                 }
 
                 val strokeCap = if (node.roundCaps) androidx.compose.ui.graphics.StrokeCap.Round else androidx.compose.ui.graphics.StrokeCap.Butt
+                val thumbColorFormula = node.bindings[BindableProperty.PROGRESS_THUMB_COLOR.key]
+                val thumbSizeFormula = node.bindings[BindableProperty.PROGRESS_THUMB_SIZE.key]
+
+                val resolvedThumbColorHex = if (!isWireframeMode && !thumbColorFormula.isNullOrBlank()) {
+                    previewEngine.resolve(thumbColorFormula, context).ifBlank { node.thumbColorHex }
+                } else node.thumbColorHex
+
+                val resolvedThumbSizeDp = if (!isWireframeMode && !thumbSizeFormula.isNullOrBlank()) {
+                    previewEngine.resolve(thumbSizeFormula, context).toIntOrNull() ?: node.thumbSizeDp
+                } else node.thumbSizeDp
+
+                val thumbColor = resolvedThumbColorHex?.let { safeParseColor(it) } ?: colorList.first()
+                val thumbSizeDp = resolvedThumbSizeDp
                 when {
                     node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE -> {
                         val strokeWidthPx = node.strokeWidthDp.dp.coerceAtLeast(2.dp)
                         Canvas(modifier = contentModifier) {
                             val strokePx = strokeWidthPx.toPx()
+                            val thumbRadiusPx = if (node.thumbType != ProgressIndicatorThumb.NONE) (thumbSizeDp.dp / 2f).toPx() else 0f
+                            val arcRadius = (minOf(size.width, size.height) - maxOf(strokePx, thumbRadiusPx * 2f)) / 2f
                             drawArc(
                                 color = trackColor,
                                 startAngle = 0f,
@@ -659,35 +680,94 @@ private fun CanvasNode(
                                     style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
                                 )
                             }
+                            if (node.thumbType != ProgressIndicatorThumb.NONE) {
+                                val currentAngleDeg = -90f + fraction * 360f
+                                val angleRad = Math.toRadians(currentAngleDeg.toDouble())
+                                val cx = (size.width / 2f) + arcRadius * kotlin.math.cos(angleRad).toFloat()
+                                val cy = (size.height / 2f) + arcRadius * kotlin.math.sin(angleRad).toFloat()
+                                drawCircle(
+                                    color = if (node.thumbType == ProgressIndicatorThumb.CUSTOM_PIC) Color(0xFF1E293B) else thumbColor,
+                                    radius = thumbRadiusPx,
+                                    center = Offset(cx, cy)
+                                )
+                                drawCircle(
+                                    color = Color.White,
+                                    radius = thumbRadiusPx,
+                                    center = Offset(cx, cy),
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx())
+                                )
+                                if (node.thumbType == ProgressIndicatorThumb.CUSTOM_PIC) {
+                                    drawCircle(
+                                        color = thumbColor,
+                                        radius = (thumbRadiusPx * 0.55f).coerceAtLeast(1f),
+                                        center = Offset(cx, cy)
+                                    )
+                                }
+                            }
                         }
                     }
                     node.mode == ProgressIndicatorMode.DIVIDED -> {
-                        Row(
-                            modifier = contentModifier,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            val totalSegments = 10
-                            val filledSegments = (fraction * totalSegments).toInt()
-                            val segmentShape = if (node.roundCaps) RoundedCornerShape(2.dp) else androidx.compose.ui.graphics.RectangleShape
-                            for (i in 0 until totalSegments) {
-                                val segColor = if (i < filledSegments) {
-                                    when {
-                                        colorList.size == 1 -> colorList.first()
-                                        node.colorMode == ProgressColorMode.GRADIENT -> {
-                                            val ratio = i.toFloat() / (totalSegments - 1).coerceAtLeast(1)
-                                            androidx.compose.ui.graphics.lerp(colorList.first(), colorList.last(), ratio)
+                        Box(modifier = contentModifier) {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                val totalSegments = 10
+                                val filledSegments = (fraction * totalSegments).toInt()
+                                val segmentShape = if (node.roundCaps) RoundedCornerShape(2.dp) else androidx.compose.ui.graphics.RectangleShape
+                                for (i in 0 until totalSegments) {
+                                    val segColor = if (i < filledSegments) {
+                                        when {
+                                            colorList.size == 1 -> colorList.first()
+                                            node.colorMode == ProgressColorMode.GRADIENT -> {
+                                                val ratio = i.toFloat() / (totalSegments - 1).coerceAtLeast(1)
+                                                androidx.compose.ui.graphics.lerp(colorList.first(), colorList.last(), ratio)
+                                            }
+                                            else -> colorList[i % colorList.size]
                                         }
-                                        else -> colorList[i % colorList.size]
-                                    }
-                                } else trackColor
+                                    } else trackColor
 
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .clip(segmentShape)
-                                        .background(segColor)
-                                )
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                            .clip(segmentShape)
+                                            .background(segColor)
+                                    )
+                                }
+                            }
+                            if (node.thumbType != ProgressIndicatorThumb.NONE) {
+                                val thumbSize = thumbSizeDp.dp
+                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                    val thumbRadiusPx = (thumbSize / 2f).toPx()
+                                    val totalSegments = 10
+                                    val filledSegments = (fraction * totalSegments).toInt()
+                                    if (filledSegments > 0) {
+                                        val spacingPx = 4.dp.toPx()
+                                        val segW = (size.width - spacingPx * (totalSegments - 1)) / totalSegments
+                                        val segRight = (filledSegments - 1) * (segW + spacingPx) + segW
+                                        val cx = segRight.coerceIn(thumbRadiusPx, size.width - thumbRadiusPx)
+                                        val cy = size.height / 2f
+                                        drawCircle(
+                                            color = if (node.thumbType == ProgressIndicatorThumb.CUSTOM_PIC) Color(0xFF1E293B) else thumbColor,
+                                            radius = thumbRadiusPx,
+                                            center = Offset(cx, cy)
+                                        )
+                                        drawCircle(
+                                            color = Color.White,
+                                            radius = thumbRadiusPx,
+                                            center = Offset(cx, cy),
+                                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx())
+                                        )
+                                        if (node.thumbType == ProgressIndicatorThumb.CUSTOM_PIC) {
+                                            drawCircle(
+                                                color = thumbColor,
+                                                radius = (thumbRadiusPx * 0.55f).coerceAtLeast(1f),
+                                                center = Offset(cx, cy)
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -698,24 +778,59 @@ private fun CanvasNode(
                             trackColor = trackColor,
                             strokeWidth = node.strokeWidthDp.dp,
                             modifier = contentModifier,
-                            roundCaps = node.roundCaps
+                            roundCaps = node.roundCaps,
+                            thumbType = node.thumbType,
+                            thumbSizeDp = thumbSizeDp,
+                            thumbColor = thumbColor
                         )
                     }
                     else -> {
                         val barRadius = if (node.roundCaps) ((node.bounds.heightDp ?: 8).dp / 2f) else 0.dp
                         Box(
                             modifier = contentModifier
-                                .clip(RoundedCornerShape(barRadius))
-                                .background(trackColor)
                         ) {
-                            if (fraction > 0f) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .fillMaxWidth(fraction)
-                                        .clip(RoundedCornerShape(barRadius))
-                                        .background(progressBrush)
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(barRadius))
+                                    .background(trackColor)
+                            ) {
+                                if (fraction > 0f) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .fillMaxWidth(fraction)
+                                            .clip(RoundedCornerShape(barRadius))
+                                            .background(progressBrush)
+                                    )
+                                }
+                            }
+                            if (node.thumbType != ProgressIndicatorThumb.NONE) {
+                                val thumbSize = thumbSizeDp.dp
+                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                    val thumbRadiusPx = (thumbSize / 2f).toPx()
+                                    val usableW = size.width - thumbRadiusPx * 2f
+                                    val cx = if (usableW > 0) thumbRadiusPx + usableW * fraction else size.width * fraction
+                                    val cy = size.height / 2f
+                                    drawCircle(
+                                        color = if (node.thumbType == ProgressIndicatorThumb.CUSTOM_PIC) Color(0xFF1E293B) else thumbColor,
+                                        radius = thumbRadiusPx,
+                                        center = Offset(cx, cy)
+                                    )
+                                    drawCircle(
+                                        color = Color.White,
+                                        radius = thumbRadiusPx,
+                                        center = Offset(cx, cy),
+                                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx())
+                                    )
+                                    if (node.thumbType == ProgressIndicatorThumb.CUSTOM_PIC) {
+                                        drawCircle(
+                                            color = thumbColor,
+                                            radius = (thumbRadiusPx * 0.55f).coerceAtLeast(1f),
+                                            center = Offset(cx, cy)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -903,7 +1018,7 @@ private const val CANVAS_WIDTH_DP = 350
 
 private fun defaultWidthOf(node: CustomWidgetNode): Int = when (node) {
     is ImageNode -> 24
-    is ProgressNode -> 64
+    is ProgressNode -> if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(64, node.thumbSizeDp + 4) else 64
     is ButtonNode -> 80
     is LayoutContainer -> node.adaptedContentWidth() ?: 120
     is TextNode -> 80
@@ -912,7 +1027,7 @@ private fun defaultWidthOf(node: CustomWidgetNode): Int = when (node) {
 
 private fun defaultHeightOf(node: CustomWidgetNode): Int = when (node) {
     is ImageNode -> 24
-    is ProgressNode -> 12
+    is ProgressNode -> if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(12, node.thumbSizeDp + 4) else 12
     is ButtonNode -> 36
     is LayoutContainer -> node.adaptedContentHeight() ?: 60
     is TextNode -> 24
@@ -943,7 +1058,10 @@ internal fun WavyProgressCanvas(
     trackColor: Color,
     strokeWidth: Dp,
     modifier: Modifier = Modifier,
-    roundCaps: Boolean = true
+    roundCaps: Boolean = true,
+    thumbType: ProgressIndicatorThumb = ProgressIndicatorThumb.NONE,
+    thumbSizeDp: Int = 12,
+    thumbColor: Color = Color.White
 ) {
     Canvas(modifier = modifier) {
         val width = size.width
@@ -984,6 +1102,30 @@ internal fun WavyProgressCanvas(
                 style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
             )
         }
+
+        if (thumbType != ProgressIndicatorThumb.NONE) {
+            val thumbRadiusPx = (thumbSizeDp.dp / 2f).toPx()
+            val cx = width * fraction
+            val cy = midY + kotlin.math.sin(fraction * numCycles * 2 * Math.PI).toFloat() * (height / 3f)
+            drawCircle(
+                color = if (thumbType == ProgressIndicatorThumb.CUSTOM_PIC) Color(0xFF1E293B) else thumbColor,
+                radius = thumbRadiusPx,
+                center = Offset(cx, cy)
+            )
+            drawCircle(
+                color = Color.White,
+                radius = thumbRadiusPx,
+                center = Offset(cx, cy),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx())
+            )
+            if (thumbType == ProgressIndicatorThumb.CUSTOM_PIC) {
+                drawCircle(
+                    color = thumbColor,
+                    radius = (thumbRadiusPx * 0.55f).coerceAtLeast(1f),
+                    center = Offset(cx, cy)
+                )
+            }
+        }
     }
 }
 
@@ -994,7 +1136,10 @@ internal fun WavyProgressCanvas(
     trackColor: Color,
     strokeWidth: Dp,
     modifier: Modifier = Modifier,
-    roundCaps: Boolean = true
+    roundCaps: Boolean = true,
+    thumbType: ProgressIndicatorThumb = ProgressIndicatorThumb.NONE,
+    thumbSizeDp: Int = 12,
+    thumbColor: Color = Color.White
 ) {
     WavyProgressCanvas(
         fraction = fraction,
@@ -1002,7 +1147,10 @@ internal fun WavyProgressCanvas(
         trackColor = trackColor,
         strokeWidth = strokeWidth,
         modifier = modifier,
-        roundCaps = roundCaps
+        roundCaps = roundCaps,
+        thumbType = thumbType,
+        thumbSizeDp = thumbSizeDp,
+        thumbColor = thumbColor
     )
 }
 

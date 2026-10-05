@@ -320,6 +320,13 @@ enum class ProgressColorMode {
 }
 
 @Serializable
+enum class ProgressIndicatorThumb {
+    NONE,
+    ROUNDED,
+    CUSTOM_PIC
+}
+
+@Serializable
 @SerialName("progress")
 data class ProgressNode(
     override val id: String,
@@ -341,6 +348,10 @@ data class ProgressNode(
     val currentSource: String = "system",
     val multiColorsHex: List<String> = listOf("#4CAF50", "#FFEB3B", "#FF9800", "#F44336"),
     val roundCaps: Boolean = true,
+    val thumbType: ProgressIndicatorThumb = ProgressIndicatorThumb.NONE,
+    val thumbSizeDp: Int = 12,
+    val thumbColorHex: String? = null,
+    val thumbImageSource: ImageSource? = null,
     override val showIf: NodeCondition = NodeCondition.Always,
     override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
@@ -503,6 +514,8 @@ enum class BindableProperty(val key: String) {
     PROGRESS_TRACK_COLOR("trackColorHex"),
     PROGRESS_STROKE_WIDTH("strokeWidthDp"),
     PROGRESS_ROUND_CAPS("roundCaps"),
+    PROGRESS_THUMB_SIZE("thumbSizeDp"),
+    PROGRESS_THUMB_COLOR("thumbColorHex"),
     BUTTON_LABEL("label"),
     BUTTON_TEXT_COLOR("textColorHex"),
     BUTTON_BACKGROUND("backgroundHex"),

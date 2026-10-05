@@ -1862,6 +1862,13 @@
     <string name="studio_node_progress">Progress indicator</string>
     <string name="studio_progress_round_caps">Rounded ends</string>
     <string name="studio_progress_round_caps_desc">Make the start and end of the progress indicator rounded</string>
+    <string name="studio_progress_indicator_header">Position indicator</string>
+    <string name="studio_progress_thumb_none">None</string>
+    <string name="studio_progress_thumb_rounded">Rounded</string>
+    <string name="studio_progress_thumb_custom_pic">Custom picture</string>
+    <string name="studio_progress_thumb_size">Indicator size</string>
+    <string name="studio_progress_thumb_color">Indicator color</string>
+    <string name="studio_progress_thumb_source">Picture source</string>
     <string name="studio_add_shape">Shape</string>
     <string name="studio_add_shape_desc">A geometric shape, card or background plate</string>
     <string name="studio_property_gravity">Text alignment</string>
