@@ -58,6 +58,31 @@ class IslandUpdateResolverTest {
     }
 
     @Test
+    fun progressUpdateTriggersSilentContentUpdate() {
+        val initialDecision = IslandUpdateResolver.decide(
+            logicalId = "media:spotify",
+            candidateBridgeId = 1001,
+            contentHash = 10,
+            previous = null
+        )
+        assertEquals(IslandPresentationKind.NEW, initialDecision.kind)
+        assertEquals(1001, initialDecision.bridgeId)
+        assertFalse(initialDecision.onlyAlertOnce)
+
+        val updatedDecision = IslandUpdateResolver.decide(
+            logicalId = "media:spotify",
+            candidateBridgeId = 1001,
+            contentHash = 15,
+            previous = PreviousIslandPresentation("media:spotify", 1001, 10),
+            presentationReason = IslandPresentationReason.CONTENT_UPDATE
+        )
+        assertEquals(IslandPresentationKind.UPDATE, updatedDecision.kind)
+        assertEquals(1001, updatedDecision.bridgeId)
+        assertTrue(updatedDecision.onlyAlertOnce)
+        assertFalse(updatedDecision.cancelBeforeNotify)
+    }
+
+    @Test
     fun sourcePromotionAllowsAutoExpand() {
         val decision = IslandUpdateResolver.decide(
             logicalId = "conversation-a",

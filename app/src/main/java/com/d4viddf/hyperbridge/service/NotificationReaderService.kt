@@ -10,7 +10,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.MediaMetadata
+import android.media.session.MediaController
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -87,6 +93,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
@@ -158,6 +165,7 @@ class NotificationReaderService : NotificationListenerService() {
     private val expiredIslands = ExpiredIslandRegistry()
     private val timeoutJobs = ConcurrentHashMap<String, Job>()
     private val removalJobs = ConcurrentHashMap<String, Job>()
+    private val mediaProgressJobs = ConcurrentHashMap<String, Job>()
     private lateinit var permanentIslandManager: PermanentIslandManager
     @Volatile private var vpnIslandActive = false
     private lateinit var vpnIslandController: VpnIslandController
@@ -736,6 +744,7 @@ class NotificationReaderService : NotificationListenerService() {
         val island = activeIslands.remove(originalKey)
         activeTranslations.remove(originalKey)
         timeoutJobs.remove(originalKey)?.cancel()
+        mediaProgressJobs.remove(originalKey)?.cancel()
         if (island?.type == NotificationType.CALL && !preserveCallSession) {
             callSessionTracker.end(island.logicalId)
         }
@@ -798,6 +807,79 @@ class NotificationReaderService : NotificationListenerService() {
             timeoutJobs[originalKey] = job
             job.invokeOnCompletion { timeoutJobs.remove(originalKey, job) }
         }
+    }
+
+    private fun monitorMediaProgress(
+        logicalKey: String,
+        sbn: StatusBarNotification
+    ) {
+        mediaProgressJobs.remove(logicalKey)?.cancel()
+
+        val extras = sbn.notification.extras ?: return
+        val token: MediaSession.Token = (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, MediaSession.Token::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) as? MediaSession.Token
+        }) ?: return
+
+        val controller = runCatching { MediaController(this@NotificationReaderService, token) }.getOrNull() ?: return
+
+        val mainHandler = Handler(Looper.getMainLooper())
+        val callback = object : MediaController.Callback() {
+            override fun onPlaybackStateChanged(state: PlaybackState?) {
+                val latestSbn = try {
+                    activeNotifications?.firstOrNull { it.key == sbn.key } ?: sbn
+                } catch (_: Exception) { sbn }
+                enqueueSourceNotification(latestSbn)
+            }
+            override fun onMetadataChanged(metadata: MediaMetadata?) {
+                val latestSbn = try {
+                    activeNotifications?.firstOrNull { it.key == sbn.key } ?: sbn
+                } catch (_: Exception) { sbn }
+                enqueueSourceNotification(latestSbn)
+            }
+        }
+
+        val job = serviceScope.launch {
+            var lastReportedPercent: Int? = null
+            var lastReportedPos: String? = null
+
+            try {
+                controller.registerCallback(callback, mainHandler)
+                while (isActive) {
+                    delay(1000L)
+                    if (!activeIslands.containsKey(logicalKey)) {
+                        break
+                    }
+                    val state = controller.playbackState
+                    if (state == null || state.state != PlaybackState.STATE_PLAYING) {
+                        continue
+                    }
+
+                    val latestSbn = try {
+                        activeNotifications?.firstOrNull { it.key == sbn.key } ?: sbn
+                    } catch (_: Exception) { sbn }
+
+                    val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(latestSbn, this@NotificationReaderService)
+                    val currentPercent = mediaResult.progressPercent
+                    val currentPos = mediaResult.currentFormatted
+                    if (currentPercent != lastReportedPercent || currentPos != lastReportedPos) {
+                        lastReportedPercent = currentPercent
+                        lastReportedPos = currentPos
+                        enqueueSourceNotification(latestSbn)
+                    }
+                }
+            } catch (_: Exception) {
+                // Ignore controller or session disconnect exceptions
+            } finally {
+                try {
+                    controller.unregisterCallback(callback)
+                } catch (_: Exception) {}
+            }
+        }
+        mediaProgressJobs[logicalKey] = job
+        job.invokeOnCompletion { mediaProgressJobs.remove(logicalKey, job) }
     }
 
     /** Human-readable name for a NotificationListenerService REASON_* removal code. */
@@ -1621,9 +1703,12 @@ class NotificationReaderService : NotificationListenerService() {
                 val isIndeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
                 val actionState = sbn.notification.actions?.joinToString { it.title?.toString() ?: "" } ?: ""
 
+                val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, this)
                 val newContentHash = effectiveTitle.hashCode() * 31 +
                         effectiveText.hashCode() + actualProgress + actualMax +
-                        isIndeterminate.hashCode() + actionState.hashCode()
+                        isIndeterminate.hashCode() + actionState.hashCode() +
+                        (mediaResult.progressPercent ?: 0) * 17 +
+                        (mediaResult.currentFormatted?.hashCode() ?: 0)
 
                 if (shouldSuppressExpiredSource(sbn, type, effectiveKey, newContentHash, recovery, messageEventFingerprint)) {
                     return
@@ -1710,6 +1795,7 @@ class NotificationReaderService : NotificationListenerService() {
                 }
 
                 handlePostNotificationSideEffects(effectiveKey, decision.bridgeId, processingGeneration, finalConfig, type, true, sbn, effectiveTitle, effectiveText)
+                monitorMediaProgress(effectiveKey, sbn)
                 return
             }
 
@@ -1799,7 +1885,23 @@ class NotificationReaderService : NotificationListenerService() {
                 baseHash xor preferences.getSystemUpdateDesignSync().hashCode()
             } else {
                 val normalizedJson = RenderedJsonNormalizer.normalize(data.jsonParam)
-                normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
+                val baseHash = normalizedJson?.hashCode() ?: data.jsonParam.hashCode()
+
+                val actualProgress = extras.getInt(Notification.EXTRA_PROGRESS, -1)
+                val actualMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, -1)
+                val isIndeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
+                val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, this)
+                val actionState = sbn.notification.actions?.joinToString { it.title?.toString() ?: "" } ?: ""
+
+                val progressHash = (actualProgress * 31) xor
+                        (actualMax * 17) xor
+                        (isIndeterminate.hashCode()) xor
+                        ((mediaResult.progressPercent ?: -1) * 37) xor
+                        (mediaResult.currentFormatted?.hashCode() ?: 0) xor
+                        (mediaResult.durationFormatted?.hashCode() ?: 0)
+
+                val textHash = effectiveTitle.hashCode() * 31 + effectiveText.hashCode() + actionState.hashCode()
+                baseHash xor progressHash xor textHash
             }
 
             if (shouldSuppressExpiredSource(sbn, type, effectiveKey, newContentHash, recovery, messageEventFingerprint)) {
@@ -1881,6 +1983,7 @@ class NotificationReaderService : NotificationListenerService() {
                 text = effectiveText,
                 forceLifecycleTimeout = isSavedScreenRecording
             )
+            monitorMediaProgress(effectiveKey, sbn)
 
         } catch (e: Exception) {
             Log.e(TAG, "💥 Error processing standard notification", e)
@@ -2597,6 +2700,8 @@ class NotificationReaderService : NotificationListenerService() {
         screenRecordingSessionTracker.clear()
         messageFamilyTracker.clear()
         messageEventTracker.clear()
+        mediaProgressJobs.values.forEach { it.cancel() }
+        mediaProgressJobs.clear()
         serviceScope.cancel() 
     }
 }
