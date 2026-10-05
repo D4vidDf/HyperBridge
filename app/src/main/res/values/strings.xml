@@ -1859,6 +1859,7 @@
 
     <!-- Stage 8: Renderer Parity & Shapes -->
     <string name="studio_node_shape">Design shape</string>
+    <string name="studio_node_progress">Progress indicator</string>
     <string name="studio_add_shape">Shape</string>
     <string name="studio_add_shape_desc">A geometric shape, card or background plate</string>
     <string name="studio_property_gravity">Text alignment</string>

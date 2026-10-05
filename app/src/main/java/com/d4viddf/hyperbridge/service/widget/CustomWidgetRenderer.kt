@@ -7,15 +7,20 @@ import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
+import android.graphics.Shader
+import android.graphics.SweepGradient
 import android.net.Uri
 import android.util.TypedValue
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
 import androidx.graphics.shapes.toPath
@@ -91,11 +96,26 @@ class CustomWidgetRenderer(
         } else {
             resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
         }
-        val effectiveHeightDp = if (node is TextNode && node.maxLines > 1 && heightDp != null) {
-            val minNeeded = (node.fontSizeSp * 1.35f * node.maxLines).toInt()
-            maxOf(heightDp, minNeeded)
-        } else heightDp
-        applySize(rv, rootViewId(node), widthDp, effectiveHeightDp)
+        val effectiveHeightDp = when {
+            node is TextNode && node.maxLines > 1 && heightDp != null -> {
+                val minNeeded = (node.fontSizeSp * 1.35f * node.maxLines).toInt()
+                maxOf(heightDp, minNeeded)
+            }
+            node is ProgressNode && (node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE) -> {
+                maxOf(widthDp ?: 36, heightDp ?: 36, 36)
+            }
+            node is ProgressNode && node.mode == ProgressIndicatorMode.WAVE -> {
+                if (heightDp == null || heightDp < 16) 16 else heightDp
+            }
+            else -> heightDp
+        }
+        val effectiveWidthDp = when {
+            node is ProgressNode && (node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE) -> {
+                maxOf(widthDp ?: 36, heightDp ?: 36, 36)
+            }
+            else -> widthDp
+        }
+        applySize(rv, rootViewId(node), effectiveWidthDp, effectiveHeightDp)
 
         val resolvedOpacity = resolveFloat(node, BindableProperty.OPACITY, node.opacity, ctx) ?: 1f
         rv.setFloat(rootViewId(node), "setAlpha", resolvedOpacity.coerceIn(0f, 1f))
@@ -460,22 +480,208 @@ class CustomWidgetRenderer(
 
     private fun renderProgress(node: ProgressNode, ctx: VariableContext): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_progress_linear)
-        val valueTemplate = resolveString(node, BindableProperty.PROGRESS_VALUE, node.valueTemplate, ctx).orEmpty()
-        val resolved = engine.resolve(valueTemplate, ctx).toIntOrNull() ?: 0
-        rv.setProgressBar(R.id.node_progress, node.maxValue, resolved.coerceIn(0, node.maxValue), false)
+        val isCircular = node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE
+        val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx) ?: (if (isCircular) 36 else 64)
+        val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx) ?: (if (isCircular) 36 else 8)
+        val effectiveWidthDp = when {
+            isCircular -> maxOf(widthDp, heightDp, 36)
+            else -> widthDp
+        }
+        val effectiveHeightDp = when {
+            isCircular -> maxOf(widthDp, heightDp, 36)
+            node.mode == ProgressIndicatorMode.WAVE && heightDp < 16 -> 16
+            else -> heightDp
+        }
 
-        val progressColor = resolveColor(node, BindableProperty.PROGRESS_COLOR, node.progressColorHex, ctx)
-        if (progressColor != null) {
-            try {
-                rv.setColorStateList(R.id.node_progress, "setProgressTintList", android.content.res.ColorStateList.valueOf(progressColor))
-            } catch (_: Exception) { /* best-effort tint only */ }
-        }
+        val widthPx = dpToPx(effectiveWidthDp).coerceAtLeast(1)
+        val heightPx = dpToPx(effectiveHeightDp).coerceAtLeast(1)
+
+        val valueTemplate = resolveString(node, BindableProperty.PROGRESS_VALUE, node.valueTemplate, ctx).orEmpty()
+        val resolvedValue = engine.resolve(valueTemplate, ctx).toIntOrNull() ?: 0
+        val fraction = (resolvedValue.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f)
+
         val trackColor = resolveColor(node, BindableProperty.PROGRESS_TRACK_COLOR, node.trackColorHex, ctx)
-        if (trackColor != null) {
-            try {
-                rv.setColorStateList(R.id.node_progress, "setProgressBackgroundTintList", android.content.res.ColorStateList.valueOf(trackColor))
-            } catch (_: Exception) { /* best-effort tint only */ }
+            ?: 0x33FFFFFF
+        val progressColor = resolveColor(node, BindableProperty.PROGRESS_COLOR, node.progressColorHex, ctx)
+            ?: Color.WHITE
+        val gradientEndColor = resolveColor(node, BindableProperty.PROGRESS_GRADIENT_END_COLOR, node.gradientEndColorHex, ctx)
+            ?: 0xFF38BDF8.toInt()
+
+        val colorList: List<Int> = when (node.colorMode) {
+            ProgressColorMode.FLAT -> listOf(progressColor)
+            ProgressColorMode.GRADIENT -> listOf(progressColor, gradientEndColor)
+            ProgressColorMode.CURRENT -> {
+                val cur = when (node.currentSource) {
+                    "notification" -> 0xFF38BDF8.toInt()
+                    "media" -> 0xFFA855F7.toInt()
+                    else -> ctx.themePrimary?.let { try { it.toColorInt() } catch (_: Exception) { null } } ?: 0xFF38BDF8.toInt()
+                }
+                listOf(cur)
+            }
+            ProgressColorMode.MULTICOLOR -> {
+                if (node.multiColorsHex.isNotEmpty()) {
+                    val parsed = node.multiColorsHex.mapNotNull { try { it.toColorInt() } catch (_: Exception) { null } }
+                    if (parsed.isNotEmpty()) parsed else listOf(0xFF4CAF50.toInt(), 0xFFFFEB3B.toInt(), 0xFFFF9800.toInt(), 0xFFF44336.toInt())
+                } else {
+                    listOf(0xFF4CAF50.toInt(), 0xFFFFEB3B.toInt(), 0xFFFF9800.toInt(), 0xFFF44336.toInt())
+                }
+            }
         }
+
+        val strokeWidthDp = resolveInt(node, BindableProperty.PROGRESS_STROKE_WIDTH, node.strokeWidthDp, ctx) ?: node.strokeWidthDp
+        val strokeWidthPx = dpToPx(strokeWidthDp.coerceAtLeast(1)).toFloat().coerceAtLeast(2f)
+
+        val bitmap = createBitmap(widthPx, heightPx)
+        val canvas = Canvas(bitmap)
+
+        when {
+            isCircular -> {
+                val size = minOf(widthPx, heightPx).toFloat()
+                val effectiveStroke = strokeWidthPx.coerceAtMost(size / 3f).coerceAtLeast(1f)
+                val inset = effectiveStroke / 2f
+                val left = (widthPx - size) / 2f + inset
+                val top = (heightPx - size) / 2f + inset
+                val arcRect = RectF(left, top, left + size - effectiveStroke, top + size - effectiveStroke)
+
+                val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = trackColor
+                    style = Paint.Style.STROKE
+                    this.strokeWidth = effectiveStroke
+                    strokeCap = Paint.Cap.ROUND
+                }
+                canvas.drawArc(arcRect, 0f, 360f, false, trackPaint)
+
+                if (fraction > 0f) {
+                    val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        style = Paint.Style.STROKE
+                        this.strokeWidth = effectiveStroke
+                        strokeCap = Paint.Cap.ROUND
+                        if (colorList.size > 1) {
+                            val colors = (colorList + colorList.first()).toIntArray()
+                            val sweepGradient = SweepGradient(widthPx / 2f, heightPx / 2f, colors, null)
+                            val matrix = Matrix()
+                            matrix.setRotate(-90f, widthPx / 2f, heightPx / 2f)
+                            sweepGradient.setLocalMatrix(matrix)
+                            shader = sweepGradient
+                        } else {
+                            color = colorList.first()
+                        }
+                    }
+                    canvas.drawArc(arcRect, -90f, fraction * 360f, false, progressPaint)
+                }
+            }
+
+            node.mode == ProgressIndicatorMode.DIVIDED -> {
+                val totalSegments = 10
+                val spacingPx = dpToPx(4).toFloat()
+                val totalSpacing = spacingPx * (totalSegments - 1)
+                val segmentWidth = ((widthPx.toFloat() - totalSpacing) / totalSegments).coerceAtLeast(1f)
+                val radiusPx = dpToPx(2).toFloat().coerceAtMost(segmentWidth / 2f).coerceAtMost(heightPx / 2f)
+                val filledSegments = (fraction * totalSegments).toInt()
+
+                val segPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    style = Paint.Style.FILL
+                }
+
+                for (i in 0 until totalSegments) {
+                    val segColor = if (i < filledSegments) {
+                        when {
+                            colorList.size == 1 -> colorList.first()
+                            node.colorMode == ProgressColorMode.GRADIENT -> {
+                                val ratio = i.toFloat() / (totalSegments - 1).coerceAtLeast(1)
+                                ColorUtils.blendARGB(colorList.first(), colorList.last(), ratio)
+                            }
+                            else -> colorList[i % colorList.size]
+                        }
+                    } else trackColor
+
+                    segPaint.color = segColor
+                    val left = i * (segmentWidth + spacingPx)
+                    val right = left + segmentWidth
+                    val rect = RectF(left, 0f, right, heightPx.toFloat())
+                    canvas.drawRoundRect(rect, radiusPx, radiusPx, segPaint)
+                }
+            }
+
+            node.mode == ProgressIndicatorMode.WAVE -> {
+                val w = widthPx.toFloat()
+                val h = heightPx.toFloat()
+                val midY = h / 2f
+                val effectiveStroke = strokeWidthPx.coerceAtMost(h / 2f).coerceAtLeast(1f)
+                val halfStroke = effectiveStroke / 2f
+                val maxAmplitude = (midY - halfStroke).coerceAtLeast(1f)
+                val amplitude = minOf(h / 3f, maxAmplitude)
+
+                val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = trackColor
+                    style = Paint.Style.STROKE
+                    this.strokeWidth = effectiveStroke
+                    strokeCap = Paint.Cap.ROUND
+                }
+                val trackPath = Path()
+                val numCycles = 4f
+                val step = 2f
+                var x = 0f
+                trackPath.moveTo(0f, midY)
+                while (x <= w) {
+                    val y = midY + kotlin.math.sin(x / w * numCycles * 2 * Math.PI).toFloat() * amplitude
+                    trackPath.lineTo(x, y)
+                    x += step
+                }
+                canvas.drawPath(trackPath, trackPaint)
+
+                if (fraction > 0f) {
+                    val activeWidth = w * fraction
+                    val activePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        style = Paint.Style.STROKE
+                        this.strokeWidth = effectiveStroke
+                        strokeCap = Paint.Cap.ROUND
+                        if (colorList.size > 1) {
+                            val colors = colorList.toIntArray()
+                            shader = LinearGradient(0f, 0f, w, 0f, colors, null, Shader.TileMode.CLAMP)
+                        } else {
+                            color = colorList.first()
+                        }
+                    }
+                    val activePath = Path()
+                    activePath.moveTo(0f, midY)
+                    x = 0f
+                    while (x <= activeWidth) {
+                        val y = midY + kotlin.math.sin(x / w * numCycles * 2 * Math.PI).toFloat() * amplitude
+                        activePath.lineTo(x, y)
+                        x += step
+                    }
+                    canvas.drawPath(activePath, activePaint)
+                }
+            }
+
+            else -> {
+                val radiusPx = dpToPx(4).toFloat().coerceAtMost(heightPx / 2f)
+
+                val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = trackColor
+                    style = Paint.Style.FILL
+                }
+                canvas.drawRoundRect(RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat()), radiusPx, radiusPx, trackPaint)
+
+                if (fraction > 0f) {
+                    val activeWidth = (widthPx.toFloat() * fraction).coerceAtLeast(1f)
+                    val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        style = Paint.Style.FILL
+                        if (colorList.size > 1) {
+                            val colors = colorList.toIntArray()
+                            shader = LinearGradient(0f, 0f, widthPx.toFloat(), 0f, colors, null, Shader.TileMode.CLAMP)
+                        } else {
+                            color = colorList.first()
+                        }
+                    }
+                    val fillRadius = radiusPx.coerceAtMost(activeWidth / 2f)
+                    canvas.drawRoundRect(RectF(0f, 0f, activeWidth, heightPx.toFloat()), fillRadius, fillRadius, progressPaint)
+                }
+            }
+        }
+
+        rv.setImageViewBitmap(R.id.node_progress, bitmap)
         return rv
     }
 

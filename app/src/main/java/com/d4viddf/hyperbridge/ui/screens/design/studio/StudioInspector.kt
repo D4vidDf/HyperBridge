@@ -1094,7 +1094,22 @@ private fun ProgressTabContent(
                     selected = node.mode == mode,
                     onClick = {
                         val newStyle = if (mode == ProgressIndicatorMode.CIRCLE) ProgressStyle.RING else ProgressStyle.LINEAR
-                        onChange(node.copy(mode = mode, style = newStyle))
+                        val currentH = node.bounds.heightDp ?: 8
+                        val currentW = node.bounds.widthDp ?: 64
+                        val newBounds = when (mode) {
+                            ProgressIndicatorMode.CIRCLE -> {
+                                if (currentH < 24 || currentW < 24) {
+                                    node.bounds.copy(widthDp = maxOf(currentW, 36), heightDp = maxOf(currentH, 36))
+                                } else node.bounds
+                            }
+                            ProgressIndicatorMode.WAVE -> {
+                                if (currentH < 16) {
+                                    node.bounds.copy(heightDp = 16)
+                                } else node.bounds
+                            }
+                            else -> node.bounds
+                        }
+                        onChange(node.copy(mode = mode, style = newStyle, bounds = newBounds))
                     },
                     label = { Text(stringResource(labelRes)) }
                 )
@@ -1667,7 +1682,14 @@ private fun ProgressStyleTabContent(
             )
             FilterChip(
                 selected = node.style == ProgressStyle.RING,
-                onClick = { onChange(node.copy(style = ProgressStyle.RING, mode = ProgressIndicatorMode.CIRCLE)) },
+                onClick = {
+                    val currentH = node.bounds.heightDp ?: 8
+                    val currentW = node.bounds.widthDp ?: 64
+                    val newBounds = if (currentH < 24 || currentW < 24) {
+                        node.bounds.copy(widthDp = maxOf(currentW, 36), heightDp = maxOf(currentH, 36))
+                    } else node.bounds
+                    onChange(node.copy(style = ProgressStyle.RING, mode = ProgressIndicatorMode.CIRCLE, bounds = newBounds))
+                },
                 label = { Text(stringResource(R.string.studio_progress_style_circular)) }
             )
         }
