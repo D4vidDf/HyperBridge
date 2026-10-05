@@ -1570,6 +1570,8 @@
     <!-- Stage 8: Renderer Parity & Shapes -->
     <string name="studio_node_shape">Forma de diseño</string>
     <string name="studio_node_progress">Indicador de progreso</string>
+    <string name="studio_progress_round_caps">Extremos redondeados</string>
+    <string name="studio_progress_round_caps_desc">Redondear el inicio y el final del indicador de progreso</string>
     <string name="studio_add_shape">Forma</string>
     <string name="studio_add_shape_desc">Una forma geométrica, tarjeta o placa de fondo</string>
     <string name="studio_property_gravity">Alineación del texto</string>

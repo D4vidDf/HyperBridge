@@ -632,6 +632,7 @@ private fun CanvasNode(
                     androidx.compose.ui.graphics.SolidColor(colorList.first())
                 }
 
+                val strokeCap = if (node.roundCaps) androidx.compose.ui.graphics.StrokeCap.Round else androidx.compose.ui.graphics.StrokeCap.Butt
                 when {
                     node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE -> {
                         val strokeWidthPx = node.strokeWidthDp.dp.coerceAtLeast(2.dp)
@@ -642,7 +643,7 @@ private fun CanvasNode(
                                 startAngle = 0f,
                                 sweepAngle = 360f,
                                 useCenter = false,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
                             )
                             if (fraction > 0f) {
                                 val ringBrush = if (colorList.size > 1) {
@@ -655,7 +656,7 @@ private fun CanvasNode(
                                     startAngle = -90f,
                                     sweepAngle = fraction * 360f,
                                     useCenter = false,
-                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
                                 )
                             }
                         }
@@ -667,6 +668,7 @@ private fun CanvasNode(
                         ) {
                             val totalSegments = 10
                             val filledSegments = (fraction * totalSegments).toInt()
+                            val segmentShape = if (node.roundCaps) RoundedCornerShape(2.dp) else androidx.compose.ui.graphics.RectangleShape
                             for (i in 0 until totalSegments) {
                                 val segColor = if (i < filledSegments) {
                                     when {
@@ -683,7 +685,7 @@ private fun CanvasNode(
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
-                                        .clip(RoundedCornerShape(2.dp))
+                                        .clip(segmentShape)
                                         .background(segColor)
                                 )
                             }
@@ -695,13 +697,15 @@ private fun CanvasNode(
                             progressBrush = progressBrush,
                             trackColor = trackColor,
                             strokeWidth = node.strokeWidthDp.dp,
-                            modifier = contentModifier
+                            modifier = contentModifier,
+                            roundCaps = node.roundCaps
                         )
                     }
                     else -> {
+                        val barRadius = if (node.roundCaps) ((node.bounds.heightDp ?: 8).dp / 2f) else 0.dp
                         Box(
                             modifier = contentModifier
-                                .clip(RoundedCornerShape(4.dp))
+                                .clip(RoundedCornerShape(barRadius))
                                 .background(trackColor)
                         ) {
                             if (fraction > 0f) {
@@ -709,7 +713,7 @@ private fun CanvasNode(
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .fillMaxWidth(fraction)
-                                        .clip(RoundedCornerShape(4.dp))
+                                        .clip(RoundedCornerShape(barRadius))
                                         .background(progressBrush)
                                 )
                             }
@@ -938,13 +942,15 @@ internal fun WavyProgressCanvas(
     progressBrush: androidx.compose.ui.graphics.Brush,
     trackColor: Color,
     strokeWidth: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    roundCaps: Boolean = true
 ) {
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
         val midY = height / 2f
         val strokePx = strokeWidth.toPx().coerceAtLeast(2f)
+        val strokeCap = if (roundCaps) androidx.compose.ui.graphics.StrokeCap.Round else androidx.compose.ui.graphics.StrokeCap.Butt
 
         val trackPath = androidx.compose.ui.graphics.Path()
         val numCycles = 4f
@@ -959,7 +965,7 @@ internal fun WavyProgressCanvas(
         drawPath(
             path = trackPath,
             color = trackColor,
-            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
         )
 
         if (fraction > 0f) {
@@ -975,7 +981,7 @@ internal fun WavyProgressCanvas(
             drawPath(
                 path = activePath,
                 brush = progressBrush,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
             )
         }
     }
@@ -987,14 +993,16 @@ internal fun WavyProgressCanvas(
     progressColor: Color,
     trackColor: Color,
     strokeWidth: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    roundCaps: Boolean = true
 ) {
     WavyProgressCanvas(
         fraction = fraction,
         progressBrush = androidx.compose.ui.graphics.SolidColor(progressColor),
         trackColor = trackColor,
         strokeWidth = strokeWidth,
-        modifier = modifier
+        modifier = modifier,
+        roundCaps = roundCaps
     )
 }
 

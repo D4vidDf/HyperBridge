@@ -373,7 +373,8 @@ class CustomWidgetDocumentSerializationTest {
             progressColorHex = "#FF00FF",
             gradientEndColorHex = "#00FFFF",
             currentSource = "media",
-            multiColorsHex = listOf("#FF0000", "#00FF00", "#0000FF")
+            multiColorsHex = listOf("#FF0000", "#00FF00", "#0000FF"),
+            roundCaps = false
         )
         val doc = CustomWidgetDocument(
             id = "test_doc",
@@ -392,6 +393,7 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals("#00FFFF", decodedProgress.gradientEndColorHex)
         assertEquals("media", decodedProgress.currentSource)
         assertEquals(listOf("#FF0000", "#00FF00", "#0000FF"), decodedProgress.multiColorsHex)
+        assertEquals(false, decodedProgress.roundCaps)
     }
 
     @Test

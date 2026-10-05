@@ -1195,12 +1195,13 @@ private fun ProgressTabContent(
                             val strokeWidthPx = node.strokeWidthDp.dp.coerceAtLeast(2.dp)
                             Canvas(modifier = Modifier.size(48.dp)) {
                                 val strokePx = strokeWidthPx.toPx()
+                                val strokeCap = if (node.roundCaps) androidx.compose.ui.graphics.StrokeCap.Round else androidx.compose.ui.graphics.StrokeCap.Butt
                                 drawArc(
                                     color = previewTrackColor,
                                     startAngle = 0f,
                                     sweepAngle = 360f,
                                     useCenter = false,
-                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
                                 )
                                 if (fraction > 0f) {
                                     val ringBrush = if (previewColorList.size > 1) {
@@ -1213,7 +1214,7 @@ private fun ProgressTabContent(
                                         startAngle = -90f,
                                         sweepAngle = fraction * 360f,
                                         useCenter = false,
-                                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = strokeCap)
                                     )
                                 }
                             }
@@ -1228,6 +1229,7 @@ private fun ProgressTabContent(
                         ) {
                             val totalSegments = 10
                             val filledSegments = (fraction * totalSegments).toInt()
+                            val segmentShape = if (node.roundCaps) RoundedCornerShape(2.dp) else androidx.compose.ui.graphics.RectangleShape
                             for (i in 0 until totalSegments) {
                                 val segColor = if (i < filledSegments) {
                                     when {
@@ -1243,7 +1245,7 @@ private fun ProgressTabContent(
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
-                                        .clip(RoundedCornerShape(2.dp))
+                                        .clip(segmentShape)
                                         .background(segColor)
                                 )
                             }
@@ -1257,15 +1259,17 @@ private fun ProgressTabContent(
                             strokeWidth = node.strokeWidthDp.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(node.bounds.heightDp?.dp?.coerceAtLeast(12.dp) ?: 12.dp)
+                                .height(node.bounds.heightDp?.dp?.coerceAtLeast(12.dp) ?: 12.dp),
+                            roundCaps = node.roundCaps
                         )
                     }
                     ProgressIndicatorMode.LINE -> {
+                        val barRadius = if (node.roundCaps) ((node.bounds.heightDp ?: 8).dp / 2f) else 0.dp
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(node.bounds.heightDp?.dp ?: 8.dp)
-                                .clip(RoundedCornerShape(4.dp))
+                                .clip(RoundedCornerShape(barRadius))
                                 .background(previewTrackColor)
                         ) {
                             if (fraction > 0f) {
@@ -1273,7 +1277,7 @@ private fun ProgressTabContent(
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .fillMaxWidth(fraction)
-                                        .clip(RoundedCornerShape(4.dp))
+                                        .clip(RoundedCornerShape(barRadius))
                                         .background(previewBrush)
                                 )
                             }
@@ -1718,6 +1722,13 @@ private fun ProgressStyleTabContent(
             boundFormula = node.bindings[BindableProperty.BOUNDS_HEIGHT.key],
             onFormulaChange = { onChange(node.withBinding(BindableProperty.BOUNDS_HEIGHT.key, it)) },
             onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BOUNDS_HEIGHT.key) }
+        )
+
+        // Rounded ends (start and end)
+        LabelledSwitch(
+            label = stringResource(R.string.studio_progress_round_caps),
+            checked = node.roundCaps,
+            onCheckedChange = { onChange(node.copy(roundCaps = it)) }
         )
     }
 }
@@ -4131,6 +4142,7 @@ private fun BindingsTabContent(
             BindableProperty.PROGRESS_GRADIENT_END_COLOR,
             BindableProperty.PROGRESS_TRACK_COLOR,
             BindableProperty.PROGRESS_STROKE_WIDTH,
+            BindableProperty.PROGRESS_ROUND_CAPS,
             BindableProperty.OPACITY
         )
         is ButtonNode -> listOf(BindableProperty.BUTTON_LABEL, BindableProperty.BUTTON_TEXT_COLOR, BindableProperty.BUTTON_BACKGROUND, BindableProperty.OPACITY)

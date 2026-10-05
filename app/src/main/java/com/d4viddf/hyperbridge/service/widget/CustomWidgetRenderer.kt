@@ -196,6 +196,16 @@ class CustomWidgetRenderer(
         return staticValue
     }
 
+    private fun resolveBoolean(node: CustomWidgetNode, prop: BindableProperty, staticValue: Boolean, ctx: VariableContext): Boolean {
+        val formula = node.bindings[prop.key]
+        if (!formula.isNullOrBlank()) {
+            val resolved = engine.resolve(formula, ctx).trim()
+            if (resolved.equals("true", ignoreCase = true) || resolved == "1") return true
+            if (resolved.equals("false", ignoreCase = true) || resolved == "0") return false
+        }
+        return staticValue
+    }
+
     private fun renderContainer(
         doc: CustomWidgetDocument,
         node: LayoutContainer,
@@ -531,6 +541,9 @@ class CustomWidgetRenderer(
         val strokeWidthDp = resolveInt(node, BindableProperty.PROGRESS_STROKE_WIDTH, node.strokeWidthDp, ctx) ?: node.strokeWidthDp
         val strokeWidthPx = dpToPx(strokeWidthDp.coerceAtLeast(1)).toFloat().coerceAtLeast(2f)
 
+        val roundCaps = resolveBoolean(node, BindableProperty.PROGRESS_ROUND_CAPS, node.roundCaps, ctx)
+        val strokeCap = if (roundCaps) Paint.Cap.ROUND else Paint.Cap.BUTT
+
         val bitmap = createBitmap(widthPx, heightPx)
         val canvas = Canvas(bitmap)
 
@@ -547,7 +560,7 @@ class CustomWidgetRenderer(
                     color = trackColor
                     style = Paint.Style.STROKE
                     this.strokeWidth = effectiveStroke
-                    strokeCap = Paint.Cap.ROUND
+                    this.strokeCap = strokeCap
                 }
                 canvas.drawArc(arcRect, 0f, 360f, false, trackPaint)
 
@@ -555,7 +568,7 @@ class CustomWidgetRenderer(
                     val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                         style = Paint.Style.STROKE
                         this.strokeWidth = effectiveStroke
-                        strokeCap = Paint.Cap.ROUND
+                        this.strokeCap = strokeCap
                         if (colorList.size > 1) {
                             val colors = (colorList + colorList.first()).toIntArray()
                             val sweepGradient = SweepGradient(widthPx / 2f, heightPx / 2f, colors, null)
@@ -576,7 +589,7 @@ class CustomWidgetRenderer(
                 val spacingPx = dpToPx(4).toFloat()
                 val totalSpacing = spacingPx * (totalSegments - 1)
                 val segmentWidth = ((widthPx.toFloat() - totalSpacing) / totalSegments).coerceAtLeast(1f)
-                val radiusPx = dpToPx(2).toFloat().coerceAtMost(segmentWidth / 2f).coerceAtMost(heightPx / 2f)
+                val radiusPx = if (roundCaps) dpToPx(2).toFloat().coerceAtMost(segmentWidth / 2f).coerceAtMost(heightPx / 2f) else 0f
                 val filledSegments = (fraction * totalSegments).toInt()
 
                 val segPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -616,7 +629,7 @@ class CustomWidgetRenderer(
                     color = trackColor
                     style = Paint.Style.STROKE
                     this.strokeWidth = effectiveStroke
-                    strokeCap = Paint.Cap.ROUND
+                    this.strokeCap = strokeCap
                 }
                 val trackPath = Path()
                 val numCycles = 4f
@@ -635,7 +648,7 @@ class CustomWidgetRenderer(
                     val activePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                         style = Paint.Style.STROKE
                         this.strokeWidth = effectiveStroke
-                        strokeCap = Paint.Cap.ROUND
+                        this.strokeCap = strokeCap
                         if (colorList.size > 1) {
                             val colors = colorList.toIntArray()
                             shader = LinearGradient(0f, 0f, w, 0f, colors, null, Shader.TileMode.CLAMP)
@@ -656,7 +669,7 @@ class CustomWidgetRenderer(
             }
 
             else -> {
-                val radiusPx = dpToPx(4).toFloat().coerceAtMost(heightPx / 2f)
+                val radiusPx = if (roundCaps) heightPx / 2f else 0f
 
                 val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                     color = trackColor
