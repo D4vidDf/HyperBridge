@@ -588,38 +588,77 @@ private fun CanvasNode(
             is ProgressNode -> {
                 val value = if (isWireframeMode) 50 else previewEngine.resolve(node.valueTemplate, context).toIntOrNull() ?: 0
                 val progressColorFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key]
+                val gradientEndColorFormula = node.bindings[BindableProperty.PROGRESS_GRADIENT_END_COLOR.key]
                 val trackColorFormula = node.bindings[BindableProperty.PROGRESS_TRACK_COLOR.key]
 
                 val resolvedProgressColor = if (!isWireframeMode && !progressColorFormula.isNullOrBlank()) {
                     previewEngine.resolve(progressColorFormula, context).ifBlank { node.progressColorHex }
                 } else node.progressColorHex
 
+                val resolvedGradientEndColor = if (!isWireframeMode && !gradientEndColorFormula.isNullOrBlank()) {
+                    previewEngine.resolve(gradientEndColorFormula, context).ifBlank { node.gradientEndColorHex }
+                } else node.gradientEndColorHex
+
                 val resolvedTrackColor = if (!isWireframeMode && !trackColorFormula.isNullOrBlank()) {
                     previewEngine.resolve(trackColorFormula, context).ifBlank { node.trackColorHex }
                 } else node.trackColorHex
 
                 val fraction = (value.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f)
+                val trackColor = safeParseColor(resolvedTrackColor)
 
-                val fgColor = when (node.colorMode) {
-                    ProgressColorMode.CURRENT -> MaterialTheme.colorScheme.primary
-                    ProgressColorMode.GRADIENT -> safeParseColor(resolvedProgressColor)
-                    ProgressColorMode.MULTICOLOR -> safeParseColor(resolvedProgressColor)
-                    ProgressColorMode.FLAT -> safeParseColor(resolvedProgressColor)
+                val colorList: List<Color> = when (node.colorMode) {
+                    ProgressColorMode.FLAT -> listOf(safeParseColor(resolvedProgressColor))
+                    ProgressColorMode.GRADIENT -> listOf(safeParseColor(resolvedProgressColor), safeParseColor(resolvedGradientEndColor))
+                    ProgressColorMode.CURRENT -> {
+                        val cur = when (node.currentSource) {
+                            "notification" -> Color(0xFF38BDF8)
+                            "media" -> Color(0xFFA855F7)
+                            else -> MaterialTheme.colorScheme.primary
+                        }
+                        listOf(cur)
+                    }
+                    ProgressColorMode.MULTICOLOR -> {
+                        if (node.multiColorsHex.isNotEmpty()) {
+                            node.multiColorsHex.map { safeParseColor(it) }
+                        } else {
+                            listOf(Color(0xFF4CAF50), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFF44336))
+                        }
+                    }
                 }
-                val bgColor = when (node.colorMode) {
-                    ProgressColorMode.CURRENT -> MaterialTheme.colorScheme.surfaceVariant
-                    else -> safeParseColor(resolvedTrackColor)
+
+                val progressBrush = if (colorList.size > 1) {
+                    androidx.compose.ui.graphics.Brush.horizontalGradient(colorList)
+                } else {
+                    androidx.compose.ui.graphics.SolidColor(colorList.first())
                 }
 
                 when {
                     node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE -> {
-                        CircularProgressIndicator(
-                            progress = { fraction },
-                            color = fgColor,
-                            trackColor = bgColor,
-                            strokeWidth = node.strokeWidthDp.dp.coerceAtLeast(2.dp),
-                            modifier = contentModifier
-                        )
+                        val strokeWidthPx = node.strokeWidthDp.dp.coerceAtLeast(2.dp)
+                        Canvas(modifier = contentModifier) {
+                            val strokePx = strokeWidthPx.toPx()
+                            drawArc(
+                                color = trackColor,
+                                startAngle = 0f,
+                                sweepAngle = 360f,
+                                useCenter = false,
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                            )
+                            if (fraction > 0f) {
+                                val ringBrush = if (colorList.size > 1) {
+                                    androidx.compose.ui.graphics.Brush.sweepGradient(colorList + colorList.first())
+                                } else {
+                                    androidx.compose.ui.graphics.SolidColor(colorList.first())
+                                }
+                                drawArc(
+                                    brush = ringBrush,
+                                    startAngle = -90f,
+                                    sweepAngle = fraction * 360f,
+                                    useCenter = false,
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                                )
+                            }
+                        }
                     }
                     node.mode == ProgressIndicatorMode.DIVIDED -> {
                         Row(
@@ -629,12 +668,23 @@ private fun CanvasNode(
                             val totalSegments = 10
                             val filledSegments = (fraction * totalSegments).toInt()
                             for (i in 0 until totalSegments) {
+                                val segColor = if (i < filledSegments) {
+                                    when {
+                                        colorList.size == 1 -> colorList.first()
+                                        node.colorMode == ProgressColorMode.GRADIENT -> {
+                                            val ratio = i.toFloat() / (totalSegments - 1).coerceAtLeast(1)
+                                            androidx.compose.ui.graphics.lerp(colorList.first(), colorList.last(), ratio)
+                                        }
+                                        else -> colorList[i % colorList.size]
+                                    }
+                                } else trackColor
+
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
                                         .clip(RoundedCornerShape(2.dp))
-                                        .background(if (i < filledSegments) fgColor else bgColor)
+                                        .background(segColor)
                                 )
                             }
                         }
@@ -642,19 +692,28 @@ private fun CanvasNode(
                     node.mode == ProgressIndicatorMode.WAVE -> {
                         WavyProgressCanvas(
                             fraction = fraction,
-                            progressColor = fgColor,
-                            trackColor = bgColor,
+                            progressBrush = progressBrush,
+                            trackColor = trackColor,
                             strokeWidth = node.strokeWidthDp.dp,
                             modifier = contentModifier
                         )
                     }
                     else -> {
-                        LinearProgressIndicator(
-                            progress = { fraction },
-                            color = fgColor,
-                            trackColor = bgColor,
+                        Box(
                             modifier = contentModifier
-                        )
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(trackColor)
+                        ) {
+                            if (fraction > 0f) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(fraction)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(progressBrush)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -876,7 +935,7 @@ internal fun studioGlyphIcon(glyphName: String): androidx.compose.ui.graphics.ve
 @Composable
 internal fun WavyProgressCanvas(
     fraction: Float,
-    progressColor: Color,
+    progressBrush: androidx.compose.ui.graphics.Brush,
     trackColor: Color,
     strokeWidth: Dp,
     modifier: Modifier = Modifier
@@ -915,10 +974,27 @@ internal fun WavyProgressCanvas(
             }
             drawPath(
                 path = activePath,
-                color = progressColor,
+                brush = progressBrush,
                 style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
             )
         }
     }
+}
+
+@Composable
+internal fun WavyProgressCanvas(
+    fraction: Float,
+    progressColor: Color,
+    trackColor: Color,
+    strokeWidth: Dp,
+    modifier: Modifier = Modifier
+) {
+    WavyProgressCanvas(
+        fraction = fraction,
+        progressBrush = androidx.compose.ui.graphics.SolidColor(progressColor),
+        trackColor = trackColor,
+        strokeWidth = strokeWidth,
+        modifier = modifier
+    )
 }
 

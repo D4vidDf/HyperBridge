@@ -370,7 +370,10 @@ class CustomWidgetDocumentSerializationTest {
             valueTemplate = "{media.progress}",
             maxValue = 100,
             trackColorHex = "#44000000",
-            progressColorHex = "#FF00FF"
+            progressColorHex = "#FF00FF",
+            gradientEndColorHex = "#00FFFF",
+            currentSource = "media",
+            multiColorsHex = listOf("#FF0000", "#00FF00", "#0000FF")
         )
         val doc = CustomWidgetDocument(
             id = "test_doc",
@@ -386,6 +389,9 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals(6, decodedProgress.strokeWidthDp)
         assertEquals(TextFilterMode.MULTIPLY, decodedProgress.filterMode)
         assertEquals("{media.progress}", decodedProgress.valueTemplate)
+        assertEquals("#00FFFF", decodedProgress.gradientEndColorHex)
+        assertEquals("media", decodedProgress.currentSource)
+        assertEquals(listOf("#FF0000", "#00FF00", "#0000FF"), decodedProgress.multiColorsHex)
     }
 
     @Test
@@ -415,5 +421,8 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals(4, prog.strokeWidthDp)
         assertEquals(TextFilterMode.NORMAL, prog.filterMode)
         assertEquals("{device.battery}", prog.valueTemplate)
+        assertEquals("#38BDF8", prog.gradientEndColorHex)
+        assertEquals("system", prog.currentSource)
+        assertEquals(listOf("#4CAF50", "#FFEB3B", "#FF9800", "#F44336"), prog.multiColorsHex)
     }
 }

@@ -337,6 +337,9 @@ data class ProgressNode(
     val maxValue: Int = 100,
     val trackColorHex: String = "#33FFFFFF",
     val progressColorHex: String = "#FFFFFF",
+    val gradientEndColorHex: String = "#38BDF8",
+    val currentSource: String = "system",
+    val multiColorsHex: List<String> = listOf("#4CAF50", "#FFEB3B", "#FF9800", "#F44336"),
     override val showIf: NodeCondition = NodeCondition.Always,
     override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
@@ -495,6 +498,7 @@ enum class BindableProperty(val key: String) {
     TEXT_FONT_SIZE("fontSizeSp"),
     PROGRESS_VALUE("valueTemplate"),
     PROGRESS_COLOR("progressColorHex"),
+    PROGRESS_GRADIENT_END_COLOR("gradientEndColorHex"),
     PROGRESS_TRACK_COLOR("trackColorHex"),
     PROGRESS_STROKE_WIDTH("strokeWidthDp"),
     BUTTON_LABEL("label"),

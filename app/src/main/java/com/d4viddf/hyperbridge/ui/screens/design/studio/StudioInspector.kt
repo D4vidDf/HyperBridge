@@ -21,11 +21,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.Canvas
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.material.icons.rounded.Call
@@ -35,6 +37,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -68,6 +71,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -76,12 +80,18 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -1133,6 +1143,32 @@ private fun ProgressTabContent(
                     )
                 }
 
+                val previewColorList: List<Color> = when (node.colorMode) {
+                    ProgressColorMode.FLAT -> listOf(safeParseColor(node.progressColorHex))
+                    ProgressColorMode.GRADIENT -> listOf(safeParseColor(node.progressColorHex), safeParseColor(node.gradientEndColorHex))
+                    ProgressColorMode.CURRENT -> {
+                        val cur = when (node.currentSource) {
+                            "notification" -> Color(0xFF38BDF8)
+                            "media" -> Color(0xFFA855F7)
+                            else -> MaterialTheme.colorScheme.primary
+                        }
+                        listOf(cur)
+                    }
+                    ProgressColorMode.MULTICOLOR -> {
+                        if (node.multiColorsHex.isNotEmpty()) {
+                            node.multiColorsHex.map { safeParseColor(it) }
+                        } else {
+                            listOf(Color(0xFF4CAF50), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFF44336))
+                        }
+                    }
+                }
+                val previewTrackColor = safeParseColor(node.trackColorHex)
+                val previewBrush = if (previewColorList.size > 1) {
+                    Brush.horizontalGradient(previewColorList)
+                } else {
+                    SolidColor(previewColorList.first())
+                }
+
                 when (node.mode) {
                     ProgressIndicatorMode.CIRCLE -> {
                         Box(
@@ -1141,13 +1177,31 @@ private fun ProgressTabContent(
                                 .padding(vertical = 4.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(
-                                progress = { fraction },
-                                color = safeParseColor(node.progressColorHex),
-                                trackColor = safeParseColor(node.trackColorHex),
-                                strokeWidth = node.strokeWidthDp.dp.coerceAtLeast(2.dp),
-                                modifier = Modifier.size(48.dp)
-                            )
+                            val strokeWidthPx = node.strokeWidthDp.dp.coerceAtLeast(2.dp)
+                            Canvas(modifier = Modifier.size(48.dp)) {
+                                val strokePx = strokeWidthPx.toPx()
+                                drawArc(
+                                    color = previewTrackColor,
+                                    startAngle = 0f,
+                                    sweepAngle = 360f,
+                                    useCenter = false,
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                                )
+                                if (fraction > 0f) {
+                                    val ringBrush = if (previewColorList.size > 1) {
+                                        Brush.sweepGradient(previewColorList + previewColorList.first())
+                                    } else {
+                                        SolidColor(previewColorList.first())
+                                    }
+                                    drawArc(
+                                        brush = ringBrush,
+                                        startAngle = -90f,
+                                        sweepAngle = fraction * 360f,
+                                        useCenter = false,
+                                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                                    )
+                                }
+                            }
                         }
                     }
                     ProgressIndicatorMode.DIVIDED -> {
@@ -1160,15 +1214,22 @@ private fun ProgressTabContent(
                             val totalSegments = 10
                             val filledSegments = (fraction * totalSegments).toInt()
                             for (i in 0 until totalSegments) {
+                                val segColor = if (i < filledSegments) {
+                                    when {
+                                        previewColorList.size == 1 -> previewColorList.first()
+                                        node.colorMode == ProgressColorMode.GRADIENT -> {
+                                            val ratio = i.toFloat() / (totalSegments - 1).coerceAtLeast(1)
+                                            lerp(previewColorList.first(), previewColorList.last(), ratio)
+                                        }
+                                        else -> previewColorList[i % previewColorList.size]
+                                    }
+                                } else previewTrackColor
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
                                         .clip(RoundedCornerShape(2.dp))
-                                        .background(
-                                            if (i < filledSegments) safeParseColor(node.progressColorHex)
-                                            else safeParseColor(node.trackColorHex)
-                                        )
+                                        .background(segColor)
                                 )
                             }
                         }
@@ -1176,8 +1237,8 @@ private fun ProgressTabContent(
                     ProgressIndicatorMode.WAVE -> {
                         WavyProgressCanvas(
                             fraction = fraction,
-                            progressColor = safeParseColor(node.progressColorHex),
-                            trackColor = safeParseColor(node.trackColorHex),
+                            progressBrush = previewBrush,
+                            trackColor = previewTrackColor,
                             strokeWidth = node.strokeWidthDp.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1185,15 +1246,23 @@ private fun ProgressTabContent(
                         )
                     }
                     ProgressIndicatorMode.LINE -> {
-                        LinearProgressIndicator(
-                            progress = { fraction },
-                            color = safeParseColor(node.progressColorHex),
-                            trackColor = safeParseColor(node.trackColorHex),
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(node.bounds.heightDp?.dp ?: 8.dp)
                                 .clip(RoundedCornerShape(4.dp))
-                        )
+                                .background(previewTrackColor)
+                        ) {
+                            if (fraction > 0f) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(fraction)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(previewBrush)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -1308,15 +1377,82 @@ private fun ProgressColorTabContent(
 
         Spacer(Modifier.height(4.dp))
 
-        // FgColor
-        StudioColorField(
-            label = stringResource(R.string.studio_progress_fg_color),
-            colorHex = node.progressColorHex,
-            onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
-            boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
-            onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
-            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
-        )
+        // Color mode specific controls
+        when (node.colorMode) {
+            ProgressColorMode.FLAT -> {
+                StudioColorField(
+                    label = stringResource(R.string.studio_progress_fg_color),
+                    colorHex = node.progressColorHex,
+                    onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
+                    boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
+                )
+            }
+            ProgressColorMode.GRADIENT -> {
+                StudioColorField(
+                    label = stringResource(R.string.studio_progress_color_start),
+                    colorHex = node.progressColorHex,
+                    onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
+                    boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
+                )
+                Spacer(Modifier.height(4.dp))
+                StudioColorField(
+                    label = stringResource(R.string.studio_progress_color_end),
+                    colorHex = node.gradientEndColorHex,
+                    onColorHexChange = { onChange(node.copy(gradientEndColorHex = it)) },
+                    boundFormula = node.bindings[BindableProperty.PROGRESS_GRADIENT_END_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_GRADIENT_END_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_GRADIENT_END_COLOR.key) }
+                )
+            }
+            ProgressColorMode.CURRENT -> {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.studio_progress_current_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.studio_progress_current_source),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val sources = listOf(
+                        "system" to R.string.studio_progress_current_system,
+                        "notification" to R.string.studio_progress_current_notif,
+                        "media" to R.string.studio_progress_current_media
+                    )
+                    sources.forEach { (srcKey, srcLabelRes) ->
+                        FilterChip(
+                            selected = node.currentSource == srcKey,
+                            onClick = { onChange(node.copy(currentSource = srcKey)) },
+                            label = { Text(stringResource(srcLabelRes)) }
+                        )
+                    }
+                }
+            }
+            ProgressColorMode.MULTICOLOR -> {
+                MulticolorPaletteEditor(
+                    colors = node.multiColorsHex,
+                    onChange = { onChange(node.copy(multiColorsHex = it)) }
+                )
+            }
+        }
 
         Spacer(Modifier.height(4.dp))
 
@@ -1351,6 +1487,158 @@ private fun ProgressColorTabContent(
                     selected = node.filterMode == filter,
                     onClick = { onChange(node.copy(filterMode = filter)) },
                     label = { Text(stringResource(filterModeLabel(filter))) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MulticolorPaletteEditor(
+    colors: List<String>,
+    onChange: (List<String>) -> Unit
+) {
+    var selectedIndex by remember(colors.size) {
+        mutableIntStateOf(0.coerceAtMost((colors.size - 1).coerceAtLeast(0)))
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.studio_progress_multicolor_palette),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        // Palette Swatches Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            colors.forEachIndexed { index, colorHex ->
+                val parsedColor = safeParseColor(colorHex)
+                val isSelected = index == selectedIndex
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(parsedColor)
+                        .border(
+                            width = if (isSelected) 3.dp else 1.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                            shape = CircleShape
+                        )
+                        .clickable { selectedIndex = index },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        val iconTint = if (parsedColor.luminance() > 0.5f) Color.Black else Color.White
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            if (colors.size < 8) {
+                IconButton(
+                    onClick = {
+                        val defaultPalette = listOf("#4CAF50", "#FFEB3B", "#FF9800", "#F44336", "#2196F3", "#9C27B0", "#00BCD4", "#E91E63")
+                        val nextColor = defaultPalette.firstOrNull { it !in colors } ?: "#00E5FF"
+                        val updated = colors + nextColor
+                        onChange(updated)
+                        selectedIndex = updated.lastIndex
+                    },
+                    modifier = Modifier
+                        .size(38.dp)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = stringResource(R.string.studio_progress_add_color),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
+        // Selected Color Editor
+        if (selectedIndex in colors.indices) {
+            val currentColor = colors[selectedIndex]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    StudioColorField(
+                        label = "${stringResource(R.string.studio_progress_multicolor_palette)} #${selectedIndex + 1}",
+                        colorHex = currentColor,
+                        onColorHexChange = { newHex ->
+                            val updated = colors.toMutableList()
+                            updated[selectedIndex] = newHex
+                            onChange(updated)
+                        }
+                    )
+                }
+                if (colors.size > 2) {
+                    IconButton(
+                        onClick = {
+                            val updated = colors.toMutableList()
+                            updated.removeAt(selectedIndex)
+                            onChange(updated)
+                            selectedIndex = (selectedIndex - 1).coerceAtLeast(0)
+                        },
+                        modifier = Modifier.padding(top = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.DeleteOutline,
+                            contentDescription = stringResource(R.string.studio_progress_remove_color),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        }
+
+        // Presets
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val presets = listOf(
+                R.string.studio_progress_preset_traffic to listOf("#4CAF50", "#FFEB3B", "#FF9800", "#F44336"),
+                R.string.studio_progress_preset_rainbow to listOf("#E91E63", "#9C27B0", "#2196F3", "#4CAF50", "#FFEB3B", "#FF9800"),
+                R.string.studio_progress_preset_neon to listOf("#00F0FF", "#7000FF", "#FF007A", "#FFE600"),
+                R.string.studio_progress_preset_sunset to listOf("#F72585", "#7209B7", "#3A0CA3", "#4361EE", "#4CC9F0")
+            )
+
+            presets.forEach { (labelRes, presetColors) ->
+                SuggestionChip(
+                    onClick = {
+                        onChange(presetColors)
+                        selectedIndex = 0
+                    },
+                    label = { Text(stringResource(labelRes)) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.AutoAwesome,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 )
             }
         }
@@ -3815,7 +4103,14 @@ private fun BindingsTabContent(
 ) {
     val bindableProps = when (node) {
         is TextNode -> listOf(BindableProperty.TEXT_TEMPLATE, BindableProperty.TEXT_COLOR, BindableProperty.TEXT_FONT_SIZE, BindableProperty.OPACITY)
-        is ProgressNode -> listOf(BindableProperty.PROGRESS_VALUE, BindableProperty.PROGRESS_COLOR, BindableProperty.PROGRESS_TRACK_COLOR, BindableProperty.OPACITY)
+        is ProgressNode -> listOf(
+            BindableProperty.PROGRESS_VALUE,
+            BindableProperty.PROGRESS_COLOR,
+            BindableProperty.PROGRESS_GRADIENT_END_COLOR,
+            BindableProperty.PROGRESS_TRACK_COLOR,
+            BindableProperty.PROGRESS_STROKE_WIDTH,
+            BindableProperty.OPACITY
+        )
         is ButtonNode -> listOf(BindableProperty.BUTTON_LABEL, BindableProperty.BUTTON_TEXT_COLOR, BindableProperty.BUTTON_BACKGROUND, BindableProperty.OPACITY)
         is ImageNode -> listOf(BindableProperty.IMAGE_TINT, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
         is ShapeNode -> listOf(BindableProperty.SHAPE_FILL, BindableProperty.SHAPE_STROKE, BindableProperty.SHAPE_STROKE_WIDTH, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
