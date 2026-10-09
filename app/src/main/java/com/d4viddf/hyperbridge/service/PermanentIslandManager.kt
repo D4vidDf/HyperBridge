@@ -222,10 +222,17 @@ class PermanentIslandManager(
                 // #273 "island content sources": render the bound micro-widget instead of the
                 // blank spacer, so e.g. a weather app driving {source.weather.text} shows on the
                 // always-on permanent island.
+                val resolvedColorScheme = com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = widgetDoc.globals.colorSchemeConfig,
+                    embeddedYaml = widgetDoc.globals.embeddedColorSchemeYaml,
+                    isDark = true
+                )
                 val ctx = VariableContext(
                     deviceBatteryPercent = DeviceVariables.batteryPercent(context),
                     timeNowFormatted = DeviceVariables.timeNow(),
-                    sourceLookup = { id, field -> runBlocking { sourceRepository.lookup(id, field) } }
+                    sourceLookup = { id, field -> runBlocking { sourceRepository.lookup(id, field) } },
+                    colorScheme = resolvedColorScheme
                 )
                 val widgetView = widgetRenderer.render(widgetDoc, ctx, bridgeId = PERMANENT_BRIDGE_ID)
                 builder.setCustomRemoteView(widgetView)

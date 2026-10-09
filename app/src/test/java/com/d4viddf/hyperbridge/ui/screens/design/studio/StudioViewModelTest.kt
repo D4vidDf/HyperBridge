@@ -483,4 +483,41 @@ class StudioViewModelTest {
         assertEquals(90, text1InRoot.bounds.y)
         assertEquals(Pair(140, 90), vm.document.value.absolutePositionOf("text-1"))
     }
+
+    @Test
+    fun createNewDocumentResetsDocumentAndUndoHistory() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        // Modify document to add undo entry and set dirty flag
+        vm.updateNode(TextNode(id = "text-1", template = "Modified"))
+        assertTrue(vm.isDirty)
+        assertTrue(vm.canUndo.value)
+
+        // Calling createNewDocument resets everything to clean state
+        vm.createNewDocument()
+
+        assertFalse(vm.isDirty)
+        assertFalse(vm.canUndo.value)
+        assertFalse(vm.canRedo.value)
+        assertNull(vm.selectedNodeId.value)
+        assertTrue(vm.document.value.id.isNotEmpty())
+    }
+
+    @Test
+    fun loadWidgetWithNullResetsDirtyOrModifiedDocument() {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        vm.updateNode(TextNode(id = "text-1", template = "Modified"))
+        assertTrue(vm.isDirty)
+
+        // Calling loadWidget(null, emptyList()) should reset when isDirty
+        vm.loadWidget(null, emptyList())
+
+        assertFalse(vm.isDirty)
+        assertFalse(vm.canUndo.value)
+        assertFalse(vm.canRedo.value)
+    }
 }
+

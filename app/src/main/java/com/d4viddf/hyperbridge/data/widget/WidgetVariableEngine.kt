@@ -32,7 +32,10 @@ data class VariableContext(
     val mediaTrack: String? = null,
     val mediaArtist: String? = null,
     val mediaDuration: String? = null,
-    val mediaPosition: String? = null
+    val mediaPosition: String? = null,
+    val isMediaPlaying: Boolean = false,
+    val mediaState: String? = null,
+    val colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null
 )
 
 /**
@@ -61,10 +64,21 @@ class WidgetVariableEngine {
             token == "media.artist" -> ctx.mediaArtist ?: ctx.notifText
             token == "media.duration" -> ctx.mediaDuration
             token == "media.position" -> ctx.mediaPosition
-            token == "theme.primary" -> ctx.themePrimary
-            token == "theme.accent" -> ctx.themeAccent
-            token == "theme.highlight" -> ctx.themePrimary ?: ctx.themeAccent
-            token == "theme.surface" -> ctx.themeSurface
+            token == "media.is_playing" -> ctx.isMediaPlaying.toString()
+            token == "media.state" -> ctx.mediaState
+            token == "theme.primary" -> ctx.colorScheme?.getHex(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.PRIMARY) ?: ctx.themePrimary
+            token == "theme.accent" -> ctx.colorScheme?.getHex(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.SECONDARY) ?: ctx.themeAccent
+            token == "theme.highlight" -> ctx.colorScheme?.getHex(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.PRIMARY) ?: ctx.themePrimary ?: ctx.themeAccent
+            token == "theme.surface" -> ctx.colorScheme?.getHex(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.SURFACE) ?: ctx.themeSurface
+            token.startsWith("scheme.") -> {
+                val roleKey = token.removePrefix("scheme.")
+                val role = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.fromKey(roleKey)
+                if (role != null) {
+                    ctx.colorScheme?.getHex(role)
+                } else {
+                    ctx.colorScheme?.roles?.get(roleKey)
+                }
+            }
             else -> {
                 val parts = token.split(".")
                 if (parts.size == 3 && parts[0] == "source") {

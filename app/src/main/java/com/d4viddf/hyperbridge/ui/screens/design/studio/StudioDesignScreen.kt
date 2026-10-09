@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,9 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Redo
-import androidx.compose.material.icons.automirrored.rounded.Undo
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Save
@@ -28,7 +26,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -135,6 +132,9 @@ fun StudioDesignScreen(
             if (isDirty) {
                 showDiscardDialog = true
             } else {
+                if (widgetId == null) {
+                    studioViewModel.createNewDocument()
+                }
                 onBack()
             }
         }
@@ -152,6 +152,9 @@ fun StudioDesignScreen(
                     TextButton(
                         onClick = {
                             showDiscardDialog = false
+                            if (widgetId == null) {
+                                studioViewModel.createNewDocument()
+                            }
                             onBack()
                         }
                     ) {
@@ -480,13 +483,16 @@ fun StudioDesignContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 // Canvas preview
-                Box(
+                BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
+                    val availableWidthDp = maxWidth.value
                     StudioCanvas(
                         root = doc.root,
+                        canvasWidthDp = availableWidthDp,
                         canvasHeightDp = doc.canvas.heightDp,
                         selectedId = selectedNodeId,
                         onSelect = { onSelectNode(it) },

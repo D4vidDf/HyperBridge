@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/node_button"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/bg_widget_button"
-    android:paddingHorizontal="12dp"
-    android:paddingVertical="6dp"
-    android:gravity="center"
+    android:layout_width="80dp"
+    android:layout_height="36dp"
+    android:scaleType="fitXY"
     android:clickable="true"
     android:focusable="true" />

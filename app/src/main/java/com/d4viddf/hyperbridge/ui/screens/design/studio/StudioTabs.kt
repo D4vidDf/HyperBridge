@@ -37,13 +37,15 @@ enum class StudioTab(val labelRes: Int) {
     DESIGN(R.string.studio_tab_design),
     SCOPE(R.string.studio_tab_scope),
     LAYER(R.string.studio_tab_layer),
-    BINDINGS(R.string.studio_tab_bindings);
+    BINDINGS(R.string.studio_tab_bindings),
+    BUTTON(R.string.studio_tab_button);
 
     companion object {
         fun tabsFor(node: CustomWidgetNode?, isRoot: Boolean): List<StudioTab> {
             return when {
                 node == null || isRoot -> listOf(ITEMS, BACKGROUND, GLOBAL, DESIGN, SCOPE)
                 node is ProgressNode -> listOf(PROGRESS, COLORS, STYLE, POSITION, VISIBILITY, INFO)
+                node is ButtonNode -> listOf(BUTTON, ACTIONS, COLORS, STYLE, POSITION, VISIBILITY, INFO)
                 node is ImageNode -> listOf(IMAGE, POSITION, EFX, ACTIONS, INFO, VISIBILITY)
                 node is TextNode -> listOf(INFO, COLORS, EFX, POSITION, VISIBILITY)
                 node is LayoutContainer -> listOf(ITEMS, INFO, POSITION, CONTAINER, COLORS, VISIBILITY)

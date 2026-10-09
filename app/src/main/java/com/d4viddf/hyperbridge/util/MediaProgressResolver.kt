@@ -17,7 +17,9 @@ data class MediaProgressResult(
     val currentFormatted: String? = null,
     val durationFormatted: String? = null,
     val currentMs: Long? = null,
-    val durationMs: Long? = null
+    val durationMs: Long? = null,
+    val isPlaying: Boolean? = null,
+    val playbackStateStr: String? = null
 )
 
 object MediaProgressResolver {
@@ -36,7 +38,7 @@ object MediaProgressResolver {
         // 1. Try resolving via MediaSession.Token & MediaController if context is provided
         if (context != null) {
             val sessionResult = extractFromMediaSession(extras, context)
-            if (sessionResult?.progressPercent != null) {
+            if (sessionResult != null && (sessionResult.progressPercent != null || sessionResult.isPlaying != null)) {
                 return sessionResult
             }
         }
@@ -81,7 +83,16 @@ object MediaProgressResolver {
             val playbackState = controller.playbackState
             val rawPosition = playbackState?.position ?: 0L
 
-            val position = if (playbackState?.state == PlaybackState.STATE_PLAYING && playbackState.lastPositionUpdateTime > 0) {
+            val isPlaying = playbackState?.state == PlaybackState.STATE_PLAYING
+            val stateStr = when (playbackState?.state) {
+                PlaybackState.STATE_PLAYING -> "playing"
+                PlaybackState.STATE_PAUSED -> "paused"
+                PlaybackState.STATE_STOPPED -> "stopped"
+                PlaybackState.STATE_BUFFERING -> "buffering"
+                else -> null
+            }
+
+            val position = if (isPlaying && playbackState.lastPositionUpdateTime > 0) {
                 val speed = playbackState.playbackSpeed.takeIf { it > 0f } ?: 1f
                 val elapsed = SystemClock.elapsedRealtime() - playbackState.lastPositionUpdateTime
                 (rawPosition + (elapsed * speed).toLong()).coerceAtLeast(0L)
@@ -97,9 +108,17 @@ object MediaProgressResolver {
                     currentFormatted = formatMillisToTime(clampedPos),
                     durationFormatted = formatMillisToTime(duration),
                     currentMs = clampedPos,
-                    durationMs = duration
+                    durationMs = duration,
+                    isPlaying = isPlaying,
+                    playbackStateStr = stateStr
                 )
-            } else null
+            } else {
+                MediaProgressResult(
+                    progressPercent = null,
+                    isPlaying = isPlaying,
+                    playbackStateStr = stateStr
+                )
+            }
         }.getOrNull()
     }
 

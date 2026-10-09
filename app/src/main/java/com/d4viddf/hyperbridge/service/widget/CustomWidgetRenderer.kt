@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.service.widget
 
 import android.app.PendingIntent
+import kotlin.math.roundToInt
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -12,10 +13,12 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.SweepGradient
+import android.graphics.Typeface
 import android.net.Uri
 import android.util.TypedValue
 import android.widget.RemoteViews
@@ -55,15 +58,20 @@ class CustomWidgetRenderer(
         doc: CustomWidgetDocument,
         ctx: VariableContext,
         bridgeId: Int? = null,
-        intents: WidgetActionIntents = WidgetActionIntents()
+        intents: WidgetActionIntents = WidgetActionIntents(),
+        targetIslandWidthDp: Float? = null
     ): RemoteViews {
         val root = RemoteViews(context.packageName, R.layout.layout_widget_canvas_root)
         // Conditional nodes (#328) are dropped before rendering, so a button bound to an inline
         // reply simply does not exist on a notification that has none.
         val visibleRoot = NodeConditionEvaluator.prune(doc.root, ctx, engine) as? LayoutContainer
             ?: LayoutContainer(id = doc.root.id, layout = doc.root.layout)
-        val built = renderNode(doc, visibleRoot, ctx, bridgeId, intents)
+        val islandWidthDp = targetIslandWidthDp ?: getIslandWidthDp(context)
+        val scaleX = islandWidthDp / BASE_CANVAS_WIDTH_DP.toFloat()
+
+        val built = renderNode(doc, visibleRoot, ctx, bridgeId, intents, scaleX, islandWidthDp)
         root.removeAllViews(R.id.widget_canvas_insertion_point)
+        root.setViewLayoutWidth(R.id.widget_canvas_insertion_point, islandWidthDp, TypedValue.COMPLEX_UNIT_DIP)
         root.setViewLayoutHeight(R.id.widget_canvas_insertion_point, doc.canvas.heightDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
         root.addView(R.id.widget_canvas_insertion_point, built)
         return root
@@ -74,27 +82,48 @@ class CustomWidgetRenderer(
         node: CustomWidgetNode,
         ctx: VariableContext,
         bridgeId: Int?,
-        intents: WidgetActionIntents
+        intents: WidgetActionIntents,
+        scaleX: Float = 1f,
+        islandWidthDp: Float? = null
     ): RemoteViews {
         val rv = when (node) {
-            is LayoutContainer -> renderContainer(doc, node, ctx, bridgeId, intents)
-            is TextNode -> renderText(doc, node, ctx)
-            is ImageNode -> renderImage(doc, node, ctx)
-            is ProgressNode -> renderProgress(doc, node, ctx)
-            is ButtonNode -> renderButton(doc, node, bridgeId, intents, ctx)
-            is ShapeNode -> renderShape(node, ctx)
+            is LayoutContainer -> renderContainer(doc, node, ctx, bridgeId, intents, scaleX, islandWidthDp)
+            is TextNode -> renderText(doc, node, ctx, scaleX)
+            is ImageNode -> renderImage(doc, node, ctx, scaleX)
+            is ProgressNode -> renderProgress(doc, node, ctx, scaleX)
+            is ButtonNode -> renderButton(doc, node, bridgeId, intents, ctx, scaleX)
+            is ShapeNode -> renderShape(node, ctx, scaleX)
         }
-        val widthDp = if (node is LayoutContainer && node.bounds.widthDp == null && node.id != doc.root.id) {
+        val defaultWidth = when (node) {
+            is ButtonNode -> 80
+            is ImageNode -> 24
+            is ShapeNode -> 48
+            is ProgressNode -> 120
+            else -> null
+        }
+        val defaultHeight = when (node) {
+            is ButtonNode -> 36
+            is ImageNode -> 24
+            is ShapeNode -> 48
+            is ProgressNode -> 8
+            else -> null
+        }
+        val rawWidthDp = if (node is LayoutContainer && node.bounds.widthDp == null && node.id != doc.root.id) {
             node.adaptedContentWidth()
+        } else if (node.id == doc.root.id) {
+            islandWidthDp?.roundToInt() ?: (BASE_CANVAS_WIDTH_DP.toFloat() * scaleX).roundToInt()
         } else if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
             node.boxWidthDp
         } else {
-            resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx)
+            resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp ?: defaultWidth, ctx)
         }
+        val widthDp = if (node.id == doc.root.id) rawWidthDp else rawWidthDp?.let { (it * scaleX).roundToInt() }
         val heightDp = if (node is LayoutContainer && node.bounds.heightDp == null && node.id != doc.root.id) {
             node.adaptedContentHeight()
+        } else if (node.id == doc.root.id) {
+            doc.canvas.heightDp
         } else {
-            resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
+            resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp ?: defaultHeight, ctx)
         }
         val effectiveHeightDp = when {
             node is TextNode && node.maxLines > 1 && heightDp != null -> {
@@ -171,12 +200,26 @@ class CustomWidgetRenderer(
         if (!formula.isNullOrBlank()) {
             val resolved = engine.resolve(formula, ctx).trim()
             if (resolved.isNotEmpty()) {
-                try {
-                    return resolved.toColorInt()
-                } catch (_: Exception) {}
+                val hexCandidate = if (resolved.startsWith("@scheme:")) {
+                    val roleKey = resolved.removePrefix("@scheme:")
+                    val role = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.fromKey(roleKey)
+                    if (role != null) ctx.colorScheme?.getHex(role) else ctx.colorScheme?.roles?.get(roleKey)
+                } else resolved
+                if (!hexCandidate.isNullOrBlank()) {
+                    try {
+                        return hexCandidate.toColorInt()
+                    } catch (_: Exception) {}
+                }
             }
         }
-        return staticHex?.let {
+        val target = staticHex?.trim() ?: return null
+        val effectiveHex = if (target.startsWith("@scheme:")) {
+            val roleKey = target.removePrefix("@scheme:")
+            val role = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.fromKey(roleKey)
+            if (role != null) ctx.colorScheme?.getHex(role) else ctx.colorScheme?.roles?.get(roleKey)
+        } else target
+
+        return effectiveHex?.let {
             try { it.toColorInt() } catch (_: Exception) { null }
         }
     }
@@ -216,7 +259,9 @@ class CustomWidgetRenderer(
         node: LayoutContainer,
         ctx: VariableContext,
         bridgeId: Int?,
-        intents: WidgetActionIntents
+        intents: WidgetActionIntents,
+        scaleX: Float = 1f,
+        islandWidthDp: Float? = null
     ): RemoteViews {
         val layoutRes = when (node.layout) {
             ContainerLayout.ROW -> R.layout.layout_widget_container_row
@@ -236,20 +281,22 @@ class CustomWidgetRenderer(
         )
 
         node.children.forEachIndexed { index, child ->
-            val childRv = renderNode(doc, child, ctx, bridgeId, intents)
+            val childRv = renderNode(doc, child, ctx, bridgeId, intents, scaleX, islandWidthDp)
             if (node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX) {
-                childRv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_LEFT, child.bounds.x.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+                val scaledX = (child.bounds.x * scaleX).roundToInt()
+                childRv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_LEFT, scaledX.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
                 childRv.setViewLayoutMargin(rootViewId(child), RemoteViews.MARGIN_TOP, child.bounds.y.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
             } else if (index > 0 && node.gapDp > 0) {
                 val marginSide = if (node.layout == ContainerLayout.ROW) RemoteViews.MARGIN_LEFT else RemoteViews.MARGIN_TOP
-                childRv.setViewLayoutMargin(rootViewId(child), marginSide, node.gapDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+                val scaledGap = if (node.layout == ContainerLayout.ROW) (node.gapDp * scaleX).roundToInt() else node.gapDp
+                childRv.setViewLayoutMargin(rootViewId(child), marginSide, scaledGap.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
             }
             rv.addView(R.id.widget_container_root, childRv)
         }
         return rv
     }
 
-    private fun renderText(doc: CustomWidgetDocument, node: TextNode, ctx: VariableContext): RemoteViews {
+    private fun renderText(doc: CustomWidgetDocument, node: TextNode, ctx: VariableContext, scaleX: Float = 1f): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_text)
         val template = resolveString(node, BindableProperty.TEXT_TEMPLATE, node.template, ctx).orEmpty()
         val resolved = engine.resolve(template, ctx)
@@ -321,25 +368,55 @@ class CustomWidgetRenderer(
         return rv
     }
 
-    private fun renderImage(doc: CustomWidgetDocument, node: ImageNode, ctx: VariableContext): RemoteViews {
+    private fun renderImage(doc: CustomWidgetDocument, node: ImageNode, ctx: VariableContext, scaleX: Float = 1f): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_image)
-        val bitmap = resolveImageBitmap(doc, node, ctx)
+        val rawWidthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp ?: 24, ctx) ?: 24
+        val widthDp = (rawWidthDp * scaleX).roundToInt()
+        val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp ?: 24, ctx) ?: 24
+        val widthPx = dpToPx(widthDp).coerceAtLeast(1)
+        val heightPx = dpToPx(heightDp).coerceAtLeast(1)
+
+        val tintColor = if (node.tintEnabled) {
+            resolveColor(node, BindableProperty.IMAGE_TINT, node.tintHex, ctx)
+        } else null
+
+        val resolvedBmp = resolveImageBitmap(doc, node, ctx, widthPx, heightPx)
+        val isGlyph = node.source is ImageSource.SystemGlyph || resolvedBmp == null
+        val bitmap = resolvedBmp ?: systemGlyphBitmap(
+            when (val src = node.source) {
+                is ImageSource.NotifMedia -> if (src.mediaType == "album_art") "play" else "notification"
+                is ImageSource.AppIconOf -> "notification"
+                is ImageSource.ContactAvatarOf -> "call"
+                else -> "notification"
+            },
+            widthPx,
+            heightPx
+        )
+
         if (bitmap != null) {
-            val shaped = applyShape(bitmap, node.shapeId, node.cornerRadiusDp)
+            val shaped = applyShape(
+                source = bitmap,
+                shapeId = node.shapeId,
+                cornerRadiusDp = node.cornerRadiusDp,
+                widthPx = widthPx,
+                heightPx = heightPx,
+                scaleType = node.scaleType,
+                isGlyph = isGlyph,
+                tintColor = tintColor,
+                tintEnabled = node.tintEnabled,
+                attenuation = node.attenuation,
+                filterMode = node.filterMode,
+                drawContainerDecorations = true
+            )
             rv.setImageViewBitmap(R.id.node_image, shaped)
-        }
-        if (node.tintEnabled) {
-            val tintColor = resolveColor(node, BindableProperty.IMAGE_TINT, node.tintHex, ctx)
-            if (tintColor != null) {
-                rv.setInt(R.id.node_image, "setColorFilter", tintColor)
-            }
         }
         return rv
     }
 
-    private fun renderShape(node: ShapeNode, ctx: VariableContext): RemoteViews {
+    private fun renderShape(node: ShapeNode, ctx: VariableContext, scaleX: Float = 1f): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_shape)
-        val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx) ?: 48
+        val rawWidthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx) ?: 48
+        val widthDp = (rawWidthDp * scaleX).roundToInt()
         val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx) ?: 48
         val widthPx = dpToPx(widthDp).coerceAtLeast(1)
         val heightPx = dpToPx(heightDp).coerceAtLeast(1)
@@ -348,7 +425,7 @@ class CustomWidgetRenderer(
         val strokeColor = resolveColor(node, BindableProperty.SHAPE_STROKE, node.strokeColorHex, ctx)
         val strokeWidthPx = dpToPx(resolveInt(node, BindableProperty.SHAPE_STROKE_WIDTH, node.strokeWidthDp, ctx) ?: 0)
 
-        val bitmap = createBitmap(widthPx, heightPx)
+        val bitmap = createBitmapWithDensity(widthPx, heightPx)
         val canvas = Canvas(bitmap)
 
         val fillPaint = fillColor?.let {
@@ -406,7 +483,13 @@ class CustomWidgetRenderer(
         return rv
     }
 
-    private fun resolveImageBitmap(doc: CustomWidgetDocument, node: ImageNode, ctx: VariableContext): Bitmap? {
+    private fun resolveImageBitmap(
+        doc: CustomWidgetDocument,
+        node: ImageNode,
+        ctx: VariableContext,
+        widthPx: Int = 96,
+        heightPx: Int = 96
+    ): Bitmap? {
         return try {
             when (val source = node.source) {
                 is ImageSource.NotifMedia -> {
@@ -420,14 +503,14 @@ class CustomWidgetRenderer(
                 }
                 is ImageSource.AppIconOf -> {
                     val pkg = engine.resolve(source.packageTemplate, ctx)
-                    if (pkg.isBlank()) null else drawableToBitmap(context.packageManager.getApplicationIcon(pkg))
+                    if (pkg.isBlank()) null else drawableToBitmap(context.packageManager.getApplicationIcon(pkg), widthPx, heightPx)
                 }
                 is ImageSource.ContactAvatarOf -> ctx.notifAvatarBitmap
                 is ImageSource.CustomAsset -> {
                     val file = widgetRepository.assetFile(doc.id, source.fileName)
                     if (file.exists()) android.graphics.BitmapFactory.decodeFile(file.absolutePath) else null
                 }
-                is ImageSource.SystemGlyph -> systemGlyphBitmap(source.glyphName)
+                is ImageSource.SystemGlyph -> systemGlyphBitmap(source.glyphName, widthPx, heightPx)
                 is ImageSource.SourceIcon -> {
                     val path = engine.resolve("{source.${source.sourceId}.icon}", ctx)
                     if (path.isBlank()) null else android.graphics.BitmapFactory.decodeFile(path)
@@ -438,77 +521,157 @@ class CustomWidgetRenderer(
         }
     }
 
-    private fun systemGlyphBitmap(glyphName: String): Bitmap? {
-        val resId = when (glyphName) {
-            "battery" -> android.R.drawable.ic_lock_idle_charging
-            "notification" -> R.drawable.ic_launcher_foreground
-            else -> R.drawable.ic_launcher_foreground
+    private fun systemGlyphBitmap(glyphName: String, widthPx: Int = 96, heightPx: Int = 96): Bitmap? {
+        return try {
+            val bitmap = createBitmapWithDensity(widthPx, heightPx)
+            val canvas = Canvas(bitmap)
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
+            val rect = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
+            drawGlyph(canvas, glyphName, rect, paint)
+            bitmap
+        } catch (_: Exception) {
+            val drawable = ContextCompat.getDrawable(context, R.drawable.ic_launcher_foreground) ?: return null
+            drawableToBitmap(drawable, widthPx, heightPx)
         }
-        val drawable = ContextCompat.getDrawable(context, resId) ?: return null
-        return drawableToBitmap(drawable)
     }
 
-    private fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): Bitmap {
-        val size = 96
-        val bitmap = createBitmap(size, size)
+    private fun drawableToBitmap(drawable: android.graphics.drawable.Drawable, widthPx: Int = 96, heightPx: Int = 96): Bitmap {
+        val bitmap = createBitmapWithDensity(widthPx, heightPx)
         val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, size, size)
+        drawable.setBounds(0, 0, widthPx, heightPx)
         drawable.draw(canvas)
         return bitmap
     }
 
-    private fun applyShape(source: Bitmap, shapeId: String, cornerRadiusDp: Int = 8): Bitmap {
-        val size = 96
-        val output = createBitmap(size, size)
+    private fun applyShape(
+        source: Bitmap,
+        shapeId: String,
+        cornerRadiusDp: Int = 8,
+        widthPx: Int = 96,
+        heightPx: Int = 96,
+        scaleType: ImageScaleType = ImageScaleType.FIT_CENTER,
+        isGlyph: Boolean = false,
+        tintColor: Int? = null,
+        tintEnabled: Boolean = false,
+        attenuation: Int = 0,
+        filterMode: TextFilterMode = TextFilterMode.NORMAL,
+        drawContainerDecorations: Boolean = false
+    ): Bitmap {
+        val output = createBitmapWithDensity(widthPx, heightPx)
         val canvas = Canvas(output)
-        val rect = RectF(0f, 0f, size.toFloat(), size.toFloat())
-        val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val rect = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
 
+        val shapePath = Path()
         when (shapeId) {
-            "rectangle", "square" -> canvas.drawRect(rect, maskPaint)
+            "rectangle", "square" -> shapePath.addRect(rect, Path.Direction.CW)
             "rounded", "rounded_rect" -> {
-                val radiusPx = (cornerRadiusDp * (size / 24f)).coerceIn(0f, size / 2f)
-                canvas.drawRoundRect(rect, radiusPx, radiusPx, maskPaint)
+                val radiusPx = dpToPx(cornerRadiusDp).toFloat().coerceIn(0f, minOf(widthPx, heightPx) / 2f)
+                shapePath.addRoundRect(rect, radiusPx, radiusPx, Path.Direction.CW)
             }
-            "circle", "ellipse" -> canvas.drawOval(rect, maskPaint)
+            "circle", "ellipse" -> shapePath.addOval(rect, Path.Direction.CW)
             else -> {
                 val polygon = getShapeFromId(shapeId)
-                val path = polygon.toPath()
+                val polyPath = polygon.toPath()
                 val bounds = RectF()
-                path.computeBounds(bounds, true)
+                polyPath.computeBounds(bounds, true)
                 val matrix = Matrix()
                 matrix.setRectToRect(bounds, rect, Matrix.ScaleToFit.FILL)
-                path.transform(matrix)
-                canvas.drawPath(path, maskPaint)
+                polyPath.transform(matrix)
+                shapePath.addPath(polyPath)
             }
         }
 
-        val srcPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        if (drawContainerDecorations) {
+            val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                color = if (tintColor != null) {
+                    val a = (Color.alpha(tintColor) * 0.25f).roundToInt().coerceIn(0, 255)
+                    Color.argb(a, Color.red(tintColor), Color.green(tintColor), Color.blue(tintColor))
+                } else {
+                    Color.argb((255 * 0.08f).roundToInt(), 255, 255, 255)
+                }
+            }
+            canvas.drawPath(shapePath, bgPaint)
         }
-        val scaled = source.let {
-            android.graphics.Bitmap.createScaledBitmap(it, size, size, true)
+
+        val bounds = computeImageBounds(
+            srcW = source.width.toFloat(),
+            srcH = source.height.toFloat(),
+            widthPx = widthPx.toFloat(),
+            heightPx = heightPx.toFloat(),
+            scaleType = scaleType,
+            isGlyph = isGlyph,
+            minGlyphSize = dpToPx(12).toFloat()
+        )
+        val destRect = bounds.toRectF()
+
+        val imgPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        val effectiveTint = when {
+            tintColor != null && (tintEnabled || isGlyph) -> tintColor
+            isGlyph -> Color.WHITE
+            else -> null
         }
-        canvas.drawBitmap(scaled, 0f, 0f, srcPaint)
+        if (effectiveTint != null) {
+            imgPaint.colorFilter = PorterDuffColorFilter(effectiveTint, PorterDuff.Mode.SRC_IN)
+        }
+
+        when (filterMode) {
+            TextFilterMode.SCREEN -> PorterDuff.Mode.SCREEN
+            TextFilterMode.OVERLAY -> PorterDuff.Mode.OVERLAY
+            TextFilterMode.MULTIPLY -> PorterDuff.Mode.MULTIPLY
+            else -> null
+        }?.let { mode ->
+            imgPaint.xfermode = PorterDuffXfermode(mode)
+        }
+
+        canvas.save()
+        canvas.clipPath(shapePath)
+        canvas.drawBitmap(source, null, destRect, imgPaint)
+
+        if (attenuation > 0) {
+            val attAlpha = ((attenuation / 100f).coerceIn(0f, 1f) * 255).roundToInt()
+            val attPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                color = Color.argb(attAlpha, 0, 0, 0)
+            }
+            canvas.drawRect(rect, attPaint)
+        }
+        canvas.restore()
+
+        if (drawContainerDecorations) {
+            val strokeWidthPx = dpToPx(1).toFloat().coerceAtLeast(1f)
+            val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = strokeWidthPx
+                color = if (tintColor != null) {
+                    val a = (Color.alpha(tintColor) * 0.5f).roundToInt().coerceIn(0, 255)
+                    Color.argb(a, Color.red(tintColor), Color.green(tintColor), Color.blue(tintColor))
+                } else {
+                    Color.argb((255 * 0.2f).roundToInt(), 255, 255, 255)
+                }
+            }
+            canvas.drawPath(shapePath, strokePaint)
+        }
+
         return output
     }
 
-    private fun renderProgress(doc: CustomWidgetDocument, node: ProgressNode, ctx: VariableContext): RemoteViews {
+    private fun renderProgress(doc: CustomWidgetDocument, node: ProgressNode, ctx: VariableContext, scaleX: Float = 1f): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_progress_linear)
         val isCircular = node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE
-        val widthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx) ?: (if (isCircular) 36 else 64)
+        val rawWidthDp = resolveInt(node, BindableProperty.BOUNDS_WIDTH, node.bounds.widthDp, ctx) ?: (if (isCircular) 36 else 64)
         val heightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx) ?: (if (isCircular) 36 else 8)
         val effectiveWidthDp = when {
             isCircular -> {
-                val base = maxOf(widthDp, heightDp, 36)
+                val base = maxOf(rawWidthDp, heightDp, 36)
                 if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(base, node.thumbSizeDp + 4) else base
             }
-            node.thumbType != ProgressIndicatorThumb.NONE -> maxOf(widthDp, node.thumbSizeDp + 4)
-            else -> widthDp
+            node.thumbType != ProgressIndicatorThumb.NONE -> maxOf(rawWidthDp, node.thumbSizeDp + 4)
+            else -> rawWidthDp
         }
         val effectiveHeightDp = when {
             isCircular -> {
-                val base = maxOf(widthDp, heightDp, 36)
+                val base = maxOf(rawWidthDp, heightDp, 36)
                 if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(base, node.thumbSizeDp + 4) else base
             }
             node.thumbType != ProgressIndicatorThumb.NONE -> maxOf(heightDp, node.thumbSizeDp + 4)
@@ -516,7 +679,8 @@ class CustomWidgetRenderer(
             else -> heightDp
         }
 
-        val widthPx = dpToPx(effectiveWidthDp).coerceAtLeast(1)
+        val scaledWidthDp = if (isCircular) effectiveWidthDp else (effectiveWidthDp * scaleX).roundToInt()
+        val widthPx = dpToPx(scaledWidthDp).coerceAtLeast(1)
         val heightPx = dpToPx(effectiveHeightDp).coerceAtLeast(1)
 
         val valueTemplate = resolveString(node, BindableProperty.PROGRESS_VALUE, node.valueTemplate, ctx).orEmpty()
@@ -562,7 +726,7 @@ class CustomWidgetRenderer(
         val thumbRadiusPx = thumbSizePx / 2f
         val thumbColor = resolveColor(node, BindableProperty.PROGRESS_THUMB_COLOR, node.thumbColorHex, ctx) ?: progressColor
 
-        val bitmap = createBitmap(widthPx, heightPx)
+        val bitmap = createBitmapWithDensity(widthPx, heightPx)
         val canvas = Canvas(bitmap)
 
         when {
@@ -831,7 +995,7 @@ class CustomWidgetRenderer(
             null
         } ?: return null
 
-        val output = createBitmap(sizePx, sizePx)
+        val output = createBitmapWithDensity(sizePx, sizePx)
         val canvas = Canvas(output)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         val rect = RectF(0f, 0f, sizePx.toFloat(), sizePx.toFloat())
@@ -840,7 +1004,9 @@ class CustomWidgetRenderer(
         val srcPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         }
-        val scaled = Bitmap.createScaledBitmap(raw, sizePx, sizePx, true)
+        val scaled = Bitmap.createScaledBitmap(raw, sizePx, sizePx, true).apply {
+            density = context.resources.displayMetrics.densityDpi
+        }
         canvas.drawBitmap(scaled, 0f, 0f, srcPaint)
 
         val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -853,27 +1019,373 @@ class CustomWidgetRenderer(
         return output
     }
 
-    private fun renderButton(doc: CustomWidgetDocument, node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents, ctx: VariableContext): RemoteViews {
+    private fun drawGlyph(canvas: Canvas, glyphName: String, rect: RectF, paint: Paint) {
+        val cx = rect.centerX()
+        val cy = rect.centerY()
+        val size = minOf(rect.width(), rect.height())
+        if (size <= 0f) return
+
+        // Support custom icons (URI or file path), rounded by default
+        if (glyphName.startsWith("content://") || glyphName.startsWith("file://") || glyphName.startsWith("/")) {
+            try {
+                val bmp = if (glyphName.startsWith("/")) {
+                    android.graphics.BitmapFactory.decodeFile(glyphName)
+                } else {
+                    val uri = Uri.parse(glyphName)
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        android.graphics.BitmapFactory.decodeStream(stream)
+                    }
+                }
+                if (bmp != null) {
+                    val sizePx = size.roundToInt().coerceAtLeast(1)
+                    val shaped = applyShape(bmp, "rounded_rect", cornerRadiusDp = 6, widthPx = sizePx, heightPx = sizePx)
+                    canvas.drawBitmap(shaped, null, rect, null)
+                    return
+                }
+            } catch (_: Exception) {}
+        }
+
+        when (glyphName.lowercase()) {
+            "play", "play_arrow" -> {
+                val path = Path()
+                path.moveTo(cx - size * 0.35f, cy - size * 0.45f)
+                path.lineTo(cx + size * 0.45f, cy)
+                path.lineTo(cx - size * 0.35f, cy + size * 0.45f)
+                path.close()
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                canvas.drawPath(path, fillPaint)
+            }
+            "pause" -> {
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                val barW = size * 0.22f
+                val barH = size * 0.8f
+                canvas.drawRoundRect(RectF(cx - size * 0.35f, cy - barH / 2f, cx - size * 0.35f + barW, cy + barH / 2f), barW / 3f, barW / 3f, fillPaint)
+                canvas.drawRoundRect(RectF(cx + size * 0.35f - barW, cy - barH / 2f, cx + size * 0.35f, cy + barH / 2f), barW / 3f, barW / 3f, fillPaint)
+            }
+            "skip_next", "next" -> {
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                val path = Path()
+                path.moveTo(cx - size * 0.4f, cy - size * 0.4f)
+                path.lineTo(cx + size * 0.1f, cy)
+                path.lineTo(cx - size * 0.4f, cy + size * 0.4f)
+                path.close()
+                canvas.drawPath(path, fillPaint)
+                val barW = size * 0.18f
+                canvas.drawRoundRect(RectF(cx + size * 0.15f, cy - size * 0.4f, cx + size * 0.15f + barW, cy + size * 0.4f), barW / 3f, barW / 3f, fillPaint)
+            }
+            "skip_previous", "prev", "previous" -> {
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                val barW = size * 0.18f
+                canvas.drawRoundRect(RectF(cx - size * 0.15f - barW, cy - size * 0.4f, cx - size * 0.15f, cy + size * 0.4f), barW / 3f, barW / 3f, fillPaint)
+                val path = Path()
+                path.moveTo(cx + size * 0.4f, cy - size * 0.4f)
+                path.lineTo(cx - size * 0.1f, cy)
+                path.lineTo(cx + size * 0.4f, cy + size * 0.4f)
+                path.close()
+                canvas.drawPath(path, fillPaint)
+            }
+            "stop" -> {
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                val r = size * 0.38f
+                canvas.drawRoundRect(RectF(cx - r, cy - r, cx + r, cy + r), r * 0.25f, r * 0.25f, fillPaint)
+            }
+            "close", "clear" -> {
+                val strokePaint = Paint(paint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = (size * 0.18f).coerceAtLeast(2f)
+                    strokeCap = Paint.Cap.ROUND
+                }
+                val d = size * 0.35f
+                canvas.drawLine(cx - d, cy - d, cx + d, cy + d, strokePaint)
+                canvas.drawLine(cx + d, cy - d, cx - d, cy + d, strokePaint)
+            }
+            "check" -> {
+                val strokePaint = Paint(paint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = (size * 0.18f).coerceAtLeast(2f)
+                    strokeCap = Paint.Cap.ROUND
+                    strokeJoin = Paint.Join.ROUND
+                }
+                val path = Path()
+                path.moveTo(cx - size * 0.38f, cy)
+                path.lineTo(cx - size * 0.1f, cy + size * 0.35f)
+                path.lineTo(cx + size * 0.38f, cy - size * 0.35f)
+                canvas.drawPath(path, strokePaint)
+            }
+            "add", "plus" -> {
+                val strokePaint = Paint(paint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = (size * 0.18f).coerceAtLeast(2f)
+                    strokeCap = Paint.Cap.ROUND
+                }
+                val d = size * 0.35f
+                canvas.drawLine(cx - d, cy, cx + d, cy, strokePaint)
+                canvas.drawLine(cx, cy - d, cx, cy + d, strokePaint)
+            }
+            "remove", "minus" -> {
+                val strokePaint = Paint(paint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = (size * 0.18f).coerceAtLeast(2f)
+                    strokeCap = Paint.Cap.ROUND
+                }
+                val d = size * 0.35f
+                canvas.drawLine(cx - d, cy, cx + d, cy, strokePaint)
+            }
+            "notification", "notif" -> {
+                val bellPath = Path()
+                bellPath.moveTo(cx, cy - size * 0.36f)
+                bellPath.cubicTo(cx - size * 0.22f, cy - size * 0.36f, cx - size * 0.28f, cy, cx - size * 0.36f, cy + size * 0.22f)
+                bellPath.lineTo(cx + size * 0.36f, cy + size * 0.22f)
+                bellPath.cubicTo(cx + size * 0.28f, cy, cx + size * 0.22f, cy - size * 0.36f, cx, cy - size * 0.36f)
+                bellPath.close()
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                canvas.drawPath(bellPath, fillPaint)
+                canvas.drawCircle(cx, cy + size * 0.32f, (size * 0.08f).coerceAtLeast(2f), fillPaint)
+            }
+            "favorite", "heart", "like" -> {
+                val heartPath = Path()
+                heartPath.moveTo(cx, cy + size * 0.38f)
+                heartPath.cubicTo(cx - size * 0.45f, cy + size * 0.05f, cx - size * 0.45f, cy - size * 0.35f, cx - size * 0.2f, cy - size * 0.35f)
+                heartPath.cubicTo(cx - size * 0.05f, cy - size * 0.35f, cx, cy - size * 0.15f, cx, cy - size * 0.15f)
+                heartPath.cubicTo(cx, cy - size * 0.15f, cx + size * 0.05f, cy - size * 0.35f, cx + size * 0.2f, cy - size * 0.35f)
+                heartPath.cubicTo(cx + size * 0.45f, cy - size * 0.35f, cx + size * 0.45f, cy + size * 0.05f, cx, cy + size * 0.38f)
+                heartPath.close()
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                canvas.drawPath(heartPath, fillPaint)
+            }
+            "star" -> {
+                val starPath = Path()
+                val outerR = size * 0.42f
+                val innerR = outerR * 0.45f
+                for (i in 0 until 10) {
+                    val angle = (i * 36 - 90) * Math.PI / 180.0
+                    val r = if (i % 2 == 0) outerR else innerR
+                    val x = cx + (r * Math.cos(angle)).toFloat()
+                    val y = cy + (r * Math.sin(angle)).toFloat()
+                    if (i == 0) starPath.moveTo(x, y) else starPath.lineTo(x, y)
+                }
+                starPath.close()
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                canvas.drawPath(starPath, fillPaint)
+            }
+            "battery" -> {
+                val strokePaint = Paint(paint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = (size * 0.08f).coerceAtLeast(2f)
+                }
+                val bodyW = size * 0.7f
+                val bodyH = size * 0.38f
+                val bodyRect = RectF(cx - bodyW / 2f, cy - bodyH / 2f, cx + bodyW / 2f - size * 0.08f, cy + bodyH / 2f)
+                canvas.drawRoundRect(bodyRect, size * 0.06f, size * 0.06f, strokePaint)
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                val tipRect = RectF(cx + bodyW / 2f - size * 0.06f, cy - bodyH * 0.25f, cx + bodyW / 2f, cy + bodyH * 0.25f)
+                canvas.drawRoundRect(tipRect, 2f, 2f, fillPaint)
+                val innerRect = RectF(bodyRect.left + size * 0.08f, bodyRect.top + size * 0.08f, bodyRect.centerX(), bodyRect.bottom - size * 0.08f)
+                canvas.drawRect(innerRect, fillPaint)
+            }
+            "music", "music_note" -> {
+                val fillPaint = Paint(paint).apply { style = Paint.Style.FILL }
+                val strokePaint = Paint(paint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = (size * 0.1f).coerceAtLeast(2f)
+                }
+                canvas.drawOval(RectF(cx - size * 0.35f, cy + size * 0.1f, cx - size * 0.05f, cy + size * 0.35f), fillPaint)
+                canvas.drawLine(cx - size * 0.05f, cy + size * 0.2f, cx - size * 0.05f, cy - size * 0.35f, strokePaint)
+                val flagPath = Path()
+                flagPath.moveTo(cx - size * 0.05f, cy - size * 0.35f)
+                flagPath.cubicTo(cx + size * 0.15f, cy - size * 0.35f, cx + size * 0.25f, cy - size * 0.15f, cx + size * 0.2f, cy)
+                flagPath.lineTo(cx - size * 0.05f, cy - size * 0.15f)
+                flagPath.close()
+                canvas.drawPath(flagPath, fillPaint)
+            }
+            else -> {
+                val resId = when (glyphName.lowercase()) {
+                    "battery" -> android.R.drawable.ic_lock_idle_charging
+                    else -> R.drawable.ic_launcher_foreground
+                }
+                val drawable = ContextCompat.getDrawable(context, resId)
+                if (drawable != null) {
+                    val bmp = drawableToBitmap(drawable, rect.width().roundToInt().coerceAtLeast(1), rect.height().roundToInt().coerceAtLeast(1))
+                    val tintedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        colorFilter = PorterDuffColorFilter(paint.color, PorterDuff.Mode.SRC_IN)
+                    }
+                    canvas.drawBitmap(bmp, null, rect, tintedPaint)
+                }
+            }
+        }
+    }
+
+    private fun renderButton(doc: CustomWidgetDocument, node: ButtonNode, bridgeId: Int?, intents: WidgetActionIntents, ctx: VariableContext, scaleX: Float = 1f): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_button)
-        val rawLabel = resolveString(node, BindableProperty.BUTTON_LABEL, node.label, ctx).orEmpty()
+
+        val isConditionalActive = node.conditionalEnabled &&
+            NodeConditionEvaluator.isVisible(node.condition, ctx, engine)
+
+        val effectiveLabel = if (isConditionalActive) (node.conditionalLabel ?: node.label) else node.label
+        val rawLabel = resolveString(node, BindableProperty.BUTTON_LABEL, effectiveLabel, ctx).orEmpty()
         val resolvedLabel = engine.resolve(rawLabel, ctx)
-        rv.setTextViewText(R.id.node_button, resolvedLabel)
+
+        val effectiveIcon = if (isConditionalActive) (node.conditionalIcon ?: node.icon) else node.icon
+        val rawIcon = resolveString(node, BindableProperty.BUTTON_ICON, effectiveIcon, ctx)
+        val resolvedIcon = rawIcon?.let { engine.resolve(it, ctx).ifBlank { null } }
+
+        val effectiveSubIcon = if (isConditionalActive) (node.conditionalSubIcon ?: node.subIcon) else node.subIcon
+        val rawSubIcon = resolveString(node, BindableProperty.BUTTON_SUB_ICON, effectiveSubIcon, ctx)
+        val resolvedSubIcon = rawSubIcon?.let { engine.resolve(it, ctx).ifBlank { null } }
 
         val defaultBgColor = ctx.themePrimary?.let { try { it.toColorInt() } catch (_: Exception) { null } }
             ?: 0xFF3DDA82.toInt()
-        val bgColor = resolveColor(node, BindableProperty.BUTTON_BACKGROUND, node.backgroundHex, ctx) ?: defaultBgColor
-        try {
-            rv.setColorStateList(R.id.node_button, "setBackgroundTintList", ColorStateList.valueOf(bgColor))
-        } catch (_: Exception) {
-            rv.setInt(R.id.node_button, "setBackgroundColor", bgColor)
+        val effectiveBgHex = if (isConditionalActive) (node.conditionalBackgroundHex ?: node.backgroundHex) else node.backgroundHex
+        val bgColor = resolveColor(node, BindableProperty.BUTTON_BACKGROUND, effectiveBgHex, ctx) ?: defaultBgColor
+
+        val effectiveTextHex = if (isConditionalActive) (node.conditionalTextColorHex ?: node.textColorHex) else node.textColorHex
+        val textColor = resolveColor(node, BindableProperty.BUTTON_TEXT_COLOR, effectiveTextHex, ctx) ?: Color.WHITE
+
+        val effectiveShapeId = if (isConditionalActive) (node.conditionalShapeId ?: node.shapeId) else node.shapeId
+        val resolvedShapeId = resolveString(node, BindableProperty.BUTTON_SHAPE, effectiveShapeId, ctx) ?: effectiveShapeId
+
+        val effectiveCornerRadius = if (isConditionalActive) (node.conditionalCornerRadiusDp ?: node.cornerRadiusDp) else node.cornerRadiusDp
+        val resolvedCornerRadius = resolveInt(node, BindableProperty.BUTTON_CORNER_RADIUS, effectiveCornerRadius, ctx) ?: effectiveCornerRadius
+
+        val effectiveStrokeWidth = if (isConditionalActive) (node.conditionalStrokeWidthDp ?: node.strokeWidthDp) else node.strokeWidthDp
+        val resolvedStrokeWidth = resolveInt(node, BindableProperty.BUTTON_STROKE_WIDTH, effectiveStrokeWidth, ctx) ?: effectiveStrokeWidth
+
+        val effectiveStrokeColorHex = if (isConditionalActive) (node.conditionalStrokeColorHex ?: node.strokeColorHex) else node.strokeColorHex
+        val strokeColor = resolveColor(node, BindableProperty.BUTTON_STROKE_COLOR, effectiveStrokeColorHex, ctx)
+
+        val effectiveAction = if (isConditionalActive) (node.conditionalAction ?: node.action) else node.action
+        val pendingIntent: PendingIntent? = resolveAction(requestCode(doc, node, bridgeId), effectiveAction, bridgeId, intents, ctx)
+        val finalPendingIntent = pendingIntent ?: noopPendingIntent(requestCode(doc, node, bridgeId))
+
+        val rawWidthDp = node.bounds.widthDp?.takeIf { it > 0 } ?: 80
+        val widthDp = (rawWidthDp * scaleX).roundToInt()
+        val heightDp = node.bounds.heightDp?.takeIf { it > 0 } ?: 36
+        val widthPx = dpToPx(widthDp).coerceAtLeast(24)
+        val heightPx = dpToPx(heightDp).coerceAtLeast(24)
+
+        val bitmap = createBitmapWithDensity(widthPx, heightPx)
+        val canvas = Canvas(bitmap)
+
+        val rect = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = bgColor
+            style = Paint.Style.FILL
         }
 
-        val textColor = resolveColor(node, BindableProperty.BUTTON_TEXT_COLOR, node.textColorHex, ctx) ?: Color.WHITE
-        rv.setTextColor(R.id.node_button, textColor)
-        rv.setTextViewTextSize(R.id.node_button, TypedValue.COMPLEX_UNIT_SP, 13f)
+        val shapePath = Path()
+        when (resolvedShapeId.lowercase()) {
+            "rectangle", "square", "rect" -> {
+                shapePath.addRect(rect, Path.Direction.CW)
+            }
+            "circle", "ellipse" -> {
+                shapePath.addOval(rect, Path.Direction.CW)
+            }
+            "pill", "stadium" -> {
+                val r = heightPx / 2f
+                shapePath.addRoundRect(rect, r, r, Path.Direction.CW)
+            }
+            "rounded", "rounded_rect" -> {
+                val r = dpToPx(resolvedCornerRadius).toFloat().coerceIn(0f, minOf(widthPx, heightPx) / 2f)
+                shapePath.addRoundRect(rect, r, r, Path.Direction.CW)
+            }
+            else -> {
+                val polygon = getShapeFromId(resolvedShapeId)
+                val p = polygon.toPath()
+                val bounds = RectF()
+                p.computeBounds(bounds, true)
+                val matrix = Matrix()
+                matrix.setRectToRect(bounds, rect, Matrix.ScaleToFit.FILL)
+                p.transform(matrix, shapePath)
+            }
+        }
+        canvas.drawPath(shapePath, bgPaint)
 
-        val pendingIntent: PendingIntent? = resolveAction(requestCode(doc, node, bridgeId), node.action, bridgeId, intents, ctx)
-        val finalPendingIntent = pendingIntent ?: noopPendingIntent(requestCode(doc, node, bridgeId))
+        if (resolvedStrokeWidth > 0 && strokeColor != null) {
+            val strokeWidthPx = dpToPx(resolvedStrokeWidth).toFloat().coerceAtLeast(1f)
+            val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = strokeColor
+                style = Paint.Style.STROKE
+                this.strokeWidth = strokeWidthPx
+            }
+            canvas.drawPath(shapePath, strokePaint)
+        }
+
+        val resolvedIconSize = resolveInt(node, BindableProperty.BUTTON_ICON_SIZE, node.iconSizeDp, ctx) ?: node.iconSizeDp
+        val iconSizePx = dpToPx(resolvedIconSize.coerceIn(8, 48)).coerceAtMost(heightPx - 4)
+        val hasIcon = !resolvedIcon.isNullOrBlank()
+        val hasText = resolvedLabel.isNotBlank() && node.iconPosition != ButtonIconPosition.ICON_ONLY
+
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = textColor
+            textSize = dpToPx(13).toFloat()
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = textColor
+        }
+
+        if (hasIcon && !hasText) {
+            val iconRect = RectF(
+                (widthPx - iconSizePx) / 2f,
+                (heightPx - iconSizePx) / 2f,
+                (widthPx + iconSizePx) / 2f,
+                (heightPx + iconSizePx) / 2f
+            )
+            drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+        } else if (hasText && !hasIcon) {
+            val textY = (heightPx / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
+            canvas.drawText(resolvedLabel, widthPx / 2f, textY, textPaint)
+        } else if (hasIcon && hasText) {
+            val gapPx = dpToPx(4)
+            val textWidth = textPaint.measureText(resolvedLabel)
+            val textY = (heightPx / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
+
+            when (node.iconPosition) {
+                ButtonIconPosition.LEADING -> {
+                    val totalContentW = iconSizePx + gapPx + textWidth
+                    val startX = ((widthPx - totalContentW) / 2f).coerceAtLeast(4f)
+                    val iconRect = RectF(startX, (heightPx - iconSizePx) / 2f, startX + iconSizePx, (heightPx + iconSizePx) / 2f)
+                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                    val textCenterX = startX + iconSizePx + gapPx + (textWidth / 2f)
+                    canvas.drawText(resolvedLabel, textCenterX, textY, textPaint)
+                }
+                ButtonIconPosition.TRAILING -> {
+                    val totalContentW = textWidth + gapPx + iconSizePx
+                    val startX = ((widthPx - totalContentW) / 2f).coerceAtLeast(4f)
+                    val textCenterX = startX + (textWidth / 2f)
+                    canvas.drawText(resolvedLabel, textCenterX, textY, textPaint)
+                    val iconRect = RectF(startX + textWidth + gapPx, (heightPx - iconSizePx) / 2f, startX + textWidth + gapPx + iconSizePx, (heightPx + iconSizePx) / 2f)
+                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                }
+                ButtonIconPosition.TOP -> {
+                    val smallIconSize = (iconSizePx * 0.75f).toInt()
+                    val totalContentH = smallIconSize + gapPx + dpToPx(12)
+                    val startY = ((heightPx - totalContentH) / 2f).coerceAtLeast(2f)
+                    val iconRect = RectF((widthPx - smallIconSize) / 2f, startY, (widthPx + smallIconSize) / 2f, startY + smallIconSize)
+                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                    val labelY = startY + smallIconSize + gapPx + dpToPx(10)
+                    canvas.drawText(resolvedLabel, widthPx / 2f, labelY, textPaint)
+                }
+                ButtonIconPosition.ICON_ONLY -> {
+                    val iconRect = RectF((widthPx - iconSizePx) / 2f, (heightPx - iconSizePx) / 2f, (widthPx + iconSizePx) / 2f, (heightPx + iconSizePx) / 2f)
+                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                }
+            }
+        }
+
+        if (!resolvedSubIcon.isNullOrBlank()) {
+            val badgeSize = (iconSizePx * 0.65f).coerceAtLeast(dpToPx(10).toFloat())
+            val badgeRect = RectF(widthPx - badgeSize - dpToPx(2), heightPx - badgeSize - dpToPx(2), widthPx.toFloat() - dpToPx(2), heightPx.toFloat() - dpToPx(2))
+            val badgeBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = bgColor
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(badgeRect.centerX(), badgeRect.centerY(), badgeSize / 2f, badgeBgPaint)
+            drawGlyph(canvas, resolvedSubIcon, badgeRect, iconPaint)
+        }
+
+        rv.setImageViewBitmap(R.id.node_button, bitmap)
         rv.setOnClickPendingIntent(R.id.node_button, finalPendingIntent)
         return rv
     }
@@ -930,6 +1442,14 @@ class CustomWidgetRenderer(
             PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
+        is ButtonAction.MediaControl -> {
+            val intent = Intent(context, WidgetActionReceiver::class.java).apply {
+                setAction(WidgetActionReceiver.ACTION_MEDIA_CONTROL)
+                putExtra(WidgetActionReceiver.EXTRA_MEDIA_COMMAND, action.command)
+            }
+            PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
         // Inline reply fires the notification's own reply action when it has one; a hand-drawn
         // button still cannot open the keyboard by itself.
         is ButtonAction.InlineReply -> intents.inlineReply
@@ -950,4 +1470,72 @@ class CustomWidgetRenderer(
     private fun dpToPx(dp: Int): Int {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), context.resources.displayMetrics).toInt()
     }
+
+    private fun createBitmapWithDensity(w: Int, h: Int): Bitmap {
+        val bmp = createBitmap(w.coerceAtLeast(1), h.coerceAtLeast(1))
+        bmp.density = context.resources.displayMetrics.densityDpi
+        return bmp
+    }
+
+    companion object {
+        const val BASE_CANVAS_WIDTH_DP = 350
+
+        fun getIslandWidthDp(context: Context): Float {
+            val displayMetrics = context.resources.displayMetrics
+            val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
+            return (screenWidthDp - 24f).coerceIn(320f, 600f)
+        }
+
+        fun computeImageBounds(
+            srcW: Float,
+            srcH: Float,
+            widthPx: Float,
+            heightPx: Float,
+            scaleType: ImageScaleType,
+            isGlyph: Boolean = false,
+            minGlyphSize: Float = 12f
+        ): ImageBounds {
+            val baseSizePx = minOf(widthPx, heightPx)
+            val (targetW, targetH) = when (scaleType) {
+                ImageScaleType.FIT_WIDTH -> {
+                    val w = widthPx
+                    val h = if (isGlyph) (widthPx * 0.75f).coerceAtLeast(minGlyphSize) else (srcH * (widthPx / srcW.coerceAtLeast(1f)))
+                    Pair(w, h)
+                }
+                ImageScaleType.FIT_HEIGHT -> {
+                    val h = heightPx
+                    val w = if (isGlyph) (heightPx * 0.75f).coerceAtLeast(minGlyphSize) else (srcW * (heightPx / srcH.coerceAtLeast(1f)))
+                    Pair(w, h)
+                }
+                ImageScaleType.FIT_CENTER -> {
+                    if (isGlyph) {
+                        val glyphSize = (baseSizePx * 0.65f).coerceAtLeast(minGlyphSize)
+                        Pair(glyphSize, glyphSize)
+                    } else {
+                        val scale = minOf(widthPx / srcW.coerceAtLeast(1f), heightPx / srcH.coerceAtLeast(1f))
+                        Pair(srcW * scale, srcH * scale)
+                    }
+                }
+                ImageScaleType.CENTER_CROP -> {
+                    if (isGlyph) {
+                        val cropSize = maxOf(widthPx, heightPx)
+                        Pair(cropSize, cropSize)
+                    } else {
+                        val scale = maxOf(widthPx / srcW.coerceAtLeast(1f), heightPx / srcH.coerceAtLeast(1f))
+                        Pair(srcW * scale, srcH * scale)
+                    }
+                }
+            }
+
+            val left = (widthPx - targetW) / 2f
+            val top = (heightPx - targetH) / 2f
+            return ImageBounds(left, top, targetW, targetH)
+        }
+    }
+}
+
+data class ImageBounds(val left: Float, val top: Float, val width: Float, val height: Float) {
+    val right: Float get() = left + width
+    val bottom: Float get() = top + height
+    fun toRectF(): RectF = RectF(left, top, right, bottom)
 }

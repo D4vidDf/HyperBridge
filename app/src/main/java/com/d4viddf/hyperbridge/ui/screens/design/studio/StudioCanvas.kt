@@ -23,22 +23,40 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.ThumbUp
+import androidx.compose.material.icons.rounded.VolumeOff
+import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Widgets
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -100,6 +118,7 @@ fun StudioCanvas(
     onMove: (id: String, dxDp: Int, dyDp: Int) -> Unit,
     onResize: (id: String, widthDp: Int, heightDp: Int) -> Unit,
     modifier: Modifier = Modifier,
+    canvasWidthDp: Float = CANVAS_WIDTH_DP.toFloat(),
     zoom: Float = 1f,
     isGridVisible: Boolean = false,
     isWireframeMode: Boolean = false,
@@ -108,13 +127,37 @@ fun StudioCanvas(
     context: VariableContext = scenario.toVariableContext(),
     globals: CustomWidgetGlobals = CustomWidgetGlobals()
 ) {
+    val canvasScaleX = (canvasWidthDp / CANVAS_WIDTH_DP.toFloat()).coerceAtLeast(0.1f)
+    val contextLocal = LocalContext.current
+    val effectiveColorScheme = remember(globals.colorSchemeConfig, globals.embeddedColorSchemeYaml) {
+        com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+            context = contextLocal,
+            config = globals.colorSchemeConfig,
+            embeddedYaml = globals.embeddedColorSchemeYaml,
+            appIconBitmap = context.notifSmallIconBitmap,
+            mediaBitmaps = mapOf(
+                "album_art" to context.notifPictureBitmap,
+                "picture" to context.notifPictureBitmap,
+                "avatar" to context.notifAvatarBitmap
+            ),
+            isDark = true
+        )
+    }
+
+    val effectiveContext = remember(context, effectiveColorScheme) {
+        if (context.colorScheme == null) {
+            context.copy(colorScheme = effectiveColorScheme)
+        } else {
+            context
+        }
+    }
+
     val rootBgFormula = root.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
     val resolvedRootBg = if (!isWireframeMode && !rootBgFormula.isNullOrBlank()) {
-        previewEngine.resolve(rootBgFormula, context).ifBlank { root.backgroundHex }
+        previewEngine.resolve(rootBgFormula, effectiveContext).ifBlank { root.backgroundHex }
     } else root.backgroundHex
-    val canvasBg = resolvedRootBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it) } ?: StudioCanvasBackground
+    val canvasBg = resolvedRootBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it, effectiveColorScheme) } ?: StudioCanvasBackground
 
-    val contextLocal = LocalContext.current
     val rootPictureBitmap: ImageBitmap? = remember(root.backgroundImageUri, root.backgroundType) {
         if (!isWireframeMode && root.backgroundType == ContainerBackgroundType.PICTURE && !root.backgroundImageUri.isNullOrBlank()) {
             try {
@@ -130,7 +173,7 @@ fun StudioCanvas(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
+            .width(canvasWidthDp.dp)
             .height(canvasHeightDp.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(canvasBg)
@@ -207,15 +250,17 @@ fun StudioCanvas(
                     onResize = onResize,
                     isWireframeMode = isWireframeMode,
                     hiddenNodeIds = hiddenNodeIds,
-                    context = context,
+                    context = effectiveContext,
                     zoom = zoom,
-                    globals = globals
+                    globals = globals,
+                    scaleX = canvasScaleX
                 )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CanvasNode(
     node: CustomWidgetNode,
@@ -228,11 +273,13 @@ private fun CanvasNode(
     hiddenNodeIds: Set<String> = emptySet(),
     context: VariableContext = VariableContext(),
     zoom: Float = 1f,
-    globals: CustomWidgetGlobals = CustomWidgetGlobals()
+    globals: CustomWidgetGlobals = CustomWidgetGlobals(),
+    scaleX: Float = 1f
 ) {
     if (hiddenNodeIds.contains(node.id)) return
 
     val density = LocalDensity.current
+    val colorScheme = context.colorScheme
     val currentNode by rememberUpdatedState(node)
     val isSelected = node.id == selectedId
     val canMove = draggable && !node.locked
@@ -254,13 +301,14 @@ private fun CanvasNode(
         (node.fontSizeSp * 1.4f * node.maxLines).roundToInt().coerceAtLeast(24)
     } else defaultHeightOf(node)
 
-    val nodeWidth = if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
+    val rawWidth = if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
         node.boxWidthDp
     } else if (node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE) {
         maxOf(node.bounds.widthDp ?: defaultW, node.thumbSizeDp + 4)
     } else {
         node.bounds.widthDp ?: defaultW
     }
+    val nodeWidth = (rawWidth * scaleX).roundToInt()
     val baseNodeHeight = if (node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE) {
         maxOf(node.bounds.heightDp ?: defaultH, node.thumbSizeDp + 4)
     } else {
@@ -293,7 +341,7 @@ private fun CanvasNode(
                         change.consume()
                         with(density) {
                             val effectiveZoom = zoom.coerceAtLeast(0.1f)
-                            accumulatedDx += (dragAmount.x / effectiveZoom).toDp().value
+                            accumulatedDx += (dragAmount.x / effectiveZoom / scaleX).toDp().value
                             accumulatedDy += (dragAmount.y / effectiveZoom).toDp().value
                         }
                         val dx = accumulatedDx.toInt()
@@ -339,7 +387,8 @@ private fun CanvasNode(
                 hiddenNodeIds = hiddenNodeIds,
                 context = context,
                 zoom = zoom,
-                globals = globals
+                globals = globals,
+                scaleX = scaleX
             )
             is TextNode -> {
                 val colorFormula = node.bindings[BindableProperty.TEXT_COLOR.key]
@@ -358,7 +407,7 @@ private fun CanvasNode(
                     val dx = (node.efx.shadow.distance * kotlin.math.cos(rad)).toFloat()
                     val dy = (node.efx.shadow.distance * kotlin.math.sin(rad)).toFloat()
                     androidx.compose.ui.graphics.Shadow(
-                        color = safeParseColor(node.efx.shadow.colorHex),
+                        color = safeParseColor(node.efx.shadow.colorHex, colorScheme),
                         offset = androidx.compose.ui.geometry.Offset(dx, dy),
                         blurRadius = node.efx.shadow.blurRadius.toFloat()
                     )
@@ -375,8 +424,8 @@ private fun CanvasNode(
                     TextFontFamily.CONDENSED -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL))
                 }
 
-                val startColor = safeParseColor(resolvedColor)
-                val endColor = safeParseColor(node.efx.textureColorHex ?: "#FF5722")
+                val startColor = safeParseColor(resolvedColor, colorScheme)
+                val endColor = safeParseColor(node.efx.textureColorHex ?: "#FF5722", colorScheme)
                 val gradientColors = if (node.efx.textureParallel) {
                     listOf(endColor, startColor)
                 } else {
@@ -441,7 +490,7 @@ private fun CanvasNode(
 
                 Text(
                     text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, context).ifBlank { node.template },
-                    color = if (textureBrush != null) androidx.compose.ui.graphics.Color.Unspecified else safeParseColor(resolvedColor),
+                    color = if (textureBrush != null) androidx.compose.ui.graphics.Color.Unspecified else safeParseColor(resolvedColor, colorScheme),
                     fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
                     fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
                     fontStyle = if (node.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
@@ -468,8 +517,8 @@ private fun CanvasNode(
                     previewEngine.resolve(strokeFormula, context).ifBlank { node.strokeColorHex }
                 } else node.strokeColorHex
 
-                val fillColor = resolvedFill?.let { safeParseColor(it) } ?: Color.Transparent
-                val strokeColor = resolvedStroke?.let { safeParseColor(it) } ?: Color.Transparent
+                val fillColor = resolvedFill?.let { safeParseColor(it, colorScheme) } ?: Color.Transparent
+                val strokeColor = resolvedStroke?.let { safeParseColor(it, colorScheme) } ?: Color.Transparent
 
                 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
                 val shape: androidx.compose.ui.graphics.Shape = when (node.shapeId) {
@@ -506,7 +555,7 @@ private fun CanvasNode(
                     "circle", "ellipse" -> CircleShape
                     else -> com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId(node.shapeId).toShape()
                 }
-                val tintColor = resolvedTint?.let { safeParseColor(it) }
+                val tintColor = resolvedTint?.let { safeParseColor(it, colorScheme) }
 
                 val imageBlendMode = when (node.filterMode) {
                     TextFilterMode.NORMAL -> androidx.compose.ui.graphics.BlendMode.SrcOver
@@ -610,11 +659,11 @@ private fun CanvasNode(
                 } else node.trackColorHex
 
                 val fraction = (value.toFloat() / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f)
-                val trackColor = safeParseColor(resolvedTrackColor)
+                val trackColor = safeParseColor(resolvedTrackColor, colorScheme)
 
                 val colorList: List<Color> = when (node.colorMode) {
-                    ProgressColorMode.FLAT -> listOf(safeParseColor(resolvedProgressColor))
-                    ProgressColorMode.GRADIENT -> listOf(safeParseColor(resolvedProgressColor), safeParseColor(resolvedGradientEndColor))
+                    ProgressColorMode.FLAT -> listOf(safeParseColor(resolvedProgressColor, colorScheme))
+                    ProgressColorMode.GRADIENT -> listOf(safeParseColor(resolvedProgressColor, colorScheme), safeParseColor(resolvedGradientEndColor, colorScheme))
                     ProgressColorMode.CURRENT -> {
                         val cur = when (node.currentSource) {
                             "notification" -> Color(0xFF38BDF8)
@@ -625,7 +674,7 @@ private fun CanvasNode(
                     }
                     ProgressColorMode.MULTICOLOR -> {
                         if (node.multiColorsHex.isNotEmpty()) {
-                            node.multiColorsHex.map { safeParseColor(it) }
+                            node.multiColorsHex.map { safeParseColor(it, colorScheme) }
                         } else {
                             listOf(Color(0xFF4CAF50), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFF44336))
                         }
@@ -650,7 +699,7 @@ private fun CanvasNode(
                     previewEngine.resolve(thumbSizeFormula, context).toIntOrNull() ?: node.thumbSizeDp
                 } else node.thumbSizeDp
 
-                val thumbColor = resolvedThumbColorHex?.let { safeParseColor(it) } ?: colorList.first()
+                val thumbColor = resolvedThumbColorHex?.let { safeParseColor(it, colorScheme) } ?: colorList.first()
                 val thumbSizeDp = resolvedThumbSizeDp
                 when {
                     node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE -> {
@@ -838,27 +887,191 @@ private fun CanvasNode(
             }
 
             is ButtonNode -> {
+                val isConditionalActive = !isWireframeMode && node.conditionalEnabled &&
+                    NodeConditionEvaluator.isVisible(node.condition, context, previewEngine)
+
+                val effectiveLabel = if (isConditionalActive) (node.conditionalLabel ?: node.label) else node.label
+                val labelFormula = node.bindings[BindableProperty.BUTTON_LABEL.key]
+                val resolvedLabel = if (!isWireframeMode && !labelFormula.isNullOrBlank()) {
+                    previewEngine.resolve(labelFormula, context).ifBlank { effectiveLabel }
+                } else effectiveLabel
+
+                val effectiveIcon = if (isConditionalActive) (node.conditionalIcon ?: node.icon) else node.icon
+                val iconFormula = node.bindings[BindableProperty.BUTTON_ICON.key]
+                val resolvedIcon = if (!isWireframeMode && !iconFormula.isNullOrBlank()) {
+                    previewEngine.resolve(iconFormula, context).ifBlank { effectiveIcon }
+                } else effectiveIcon
+
+                val effectiveSubIcon = if (isConditionalActive) (node.conditionalSubIcon ?: node.subIcon) else node.subIcon
+                val subIconFormula = node.bindings[BindableProperty.BUTTON_SUB_ICON.key]
+                val resolvedSubIcon = if (!isWireframeMode && !subIconFormula.isNullOrBlank()) {
+                    previewEngine.resolve(subIconFormula, context).ifBlank { effectiveSubIcon }
+                } else effectiveSubIcon
+
+                val effectiveBg = if (isConditionalActive) (node.conditionalBackgroundHex ?: node.backgroundHex) else node.backgroundHex
                 val bgFormula = node.bindings[BindableProperty.BUTTON_BACKGROUND.key]
-                val textFormula = node.bindings[BindableProperty.BUTTON_TEXT_COLOR.key]
-
                 val resolvedBg = if (!isWireframeMode && !bgFormula.isNullOrBlank()) {
-                    previewEngine.resolve(bgFormula, context).ifBlank { node.backgroundHex }
-                } else node.backgroundHex
+                    previewEngine.resolve(bgFormula, context).ifBlank { effectiveBg }
+                } else effectiveBg
 
-                val resolvedText = if (!isWireframeMode && !textFormula.isNullOrBlank()) {
-                    previewEngine.resolve(textFormula, context).ifBlank { node.textColorHex }
-                } else node.textColorHex
+                val effectiveTextHex = if (isConditionalActive) (node.conditionalTextColorHex ?: node.textColorHex) else node.textColorHex
+                val textFormula = node.bindings[BindableProperty.BUTTON_TEXT_COLOR.key]
+                val resolvedTextHex = if (!isWireframeMode && !textFormula.isNullOrBlank()) {
+                    previewEngine.resolve(textFormula, context).ifBlank { effectiveTextHex }
+                } else effectiveTextHex
+
+                val effectiveShapeId = if (isConditionalActive) (node.conditionalShapeId ?: node.shapeId) else node.shapeId
+                val shapeFormula = node.bindings[BindableProperty.BUTTON_SHAPE.key]
+                val resolvedShapeId = if (!isWireframeMode && !shapeFormula.isNullOrBlank()) {
+                    previewEngine.resolve(shapeFormula, context).ifBlank { effectiveShapeId }
+                } else effectiveShapeId
+
+                val effectiveCornerRadius = if (isConditionalActive) (node.conditionalCornerRadiusDp ?: node.cornerRadiusDp) else node.cornerRadiusDp
+                val cornerRadiusFormula = node.bindings[BindableProperty.BUTTON_CORNER_RADIUS.key]
+                val resolvedCornerRadiusDp = if (!isWireframeMode && !cornerRadiusFormula.isNullOrBlank()) {
+                    previewEngine.resolve(cornerRadiusFormula, context).toIntOrNull() ?: effectiveCornerRadius
+                } else effectiveCornerRadius
+
+                val effectiveStrokeWidth = if (isConditionalActive) (node.conditionalStrokeWidthDp ?: node.strokeWidthDp) else node.strokeWidthDp
+                val strokeWidthFormula = node.bindings[BindableProperty.BUTTON_STROKE_WIDTH.key]
+                val resolvedStrokeWidthDp = if (!isWireframeMode && !strokeWidthFormula.isNullOrBlank()) {
+                    previewEngine.resolve(strokeWidthFormula, context).toIntOrNull() ?: effectiveStrokeWidth
+                } else effectiveStrokeWidth
+
+                val effectiveStrokeColorHex = if (isConditionalActive) (node.conditionalStrokeColorHex ?: node.strokeColorHex) else node.strokeColorHex
+                val strokeColorFormula = node.bindings[BindableProperty.BUTTON_STROKE_COLOR.key]
+                val resolvedStrokeColorHex = if (!isWireframeMode && !strokeColorFormula.isNullOrBlank()) {
+                    previewEngine.resolve(strokeColorFormula, context).ifBlank { effectiveStrokeColorHex }
+                } else effectiveStrokeColorHex
+
+                val buttonBgColor = resolvedBg?.let { safeParseColor(it, colorScheme) } ?: MaterialTheme.colorScheme.primary
+                val buttonTextColor = safeParseColor(resolvedTextHex, colorScheme)
+                val buttonStrokeColor = resolvedStrokeColorHex?.let { safeParseColor(it, colorScheme) }
+
+                val composeShape: androidx.compose.ui.graphics.Shape = when (resolvedShapeId.lowercase()) {
+                    "rectangle", "square", "rect" -> RoundedCornerShape(0.dp)
+                    "circle", "ellipse" -> CircleShape
+                    "pill", "stadium" -> RoundedCornerShape(50)
+                    "rounded", "rounded_rect" -> RoundedCornerShape(resolvedCornerRadiusDp.dp)
+                    else -> com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId(resolvedShapeId).toShape()
+                }
+
+                val borderModifier = if (resolvedStrokeWidthDp > 0 && buttonStrokeColor != null) {
+                    Modifier.border(resolvedStrokeWidthDp.dp, buttonStrokeColor, composeShape)
+                } else Modifier
 
                 Box(
                     modifier = contentModifier
-                        .background(
-                            resolvedBg?.let { safeParseColor(it) } ?: MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(12.dp)
-                        )
+                        .clip(composeShape)
+                        .background(buttonBgColor)
+                        .then(borderModifier)
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = node.label, color = safeParseColor(resolvedText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val hasIcon = !resolvedIcon.isNullOrBlank()
+                    val hasText = resolvedLabel.isNotBlank() && node.iconPosition != ButtonIconPosition.ICON_ONLY
+                    val iconSizeFormula = node.bindings[BindableProperty.BUTTON_ICON_SIZE.key]
+                    val resolvedIconSizeDp = if (!isWireframeMode && !iconSizeFormula.isNullOrBlank()) {
+                        previewEngine.resolve(iconSizeFormula, context).toIntOrNull() ?: node.iconSizeDp
+                    } else node.iconSizeDp
+                    val iconSize = resolvedIconSizeDp.coerceIn(8, 48).dp
+
+                    if (hasIcon && !hasText) {
+                        StudioButtonIcon(
+                            iconStr = resolvedIcon!!,
+                            tint = buttonTextColor,
+                            modifier = Modifier.size(iconSize)
+                        )
+                    } else if (hasText && !hasIcon) {
+                        Text(
+                            text = resolvedLabel,
+                            color = buttonTextColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    } else if (hasIcon && hasText) {
+                        when (node.iconPosition) {
+                            ButtonIconPosition.LEADING -> {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    StudioButtonIcon(
+                                        iconStr = resolvedIcon!!,
+                                        tint = buttonTextColor,
+                                        modifier = Modifier.size(iconSize)
+                                    )
+                                    Text(
+                                        text = resolvedLabel,
+                                        color = buttonTextColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                            ButtonIconPosition.TRAILING -> {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = resolvedLabel,
+                                        color = buttonTextColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    StudioButtonIcon(
+                                        iconStr = resolvedIcon!!,
+                                        tint = buttonTextColor,
+                                        modifier = Modifier.size(iconSize)
+                                    )
+                                }
+                            }
+                            ButtonIconPosition.TOP -> {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    StudioButtonIcon(
+                                        iconStr = resolvedIcon!!,
+                                        tint = buttonTextColor,
+                                        modifier = Modifier.size((resolvedIconSizeDp * 0.8f).roundToInt().dp)
+                                    )
+                                    Text(
+                                        text = resolvedLabel,
+                                        color = buttonTextColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                            ButtonIconPosition.ICON_ONLY -> {
+                                StudioButtonIcon(
+                                    iconStr = resolvedIcon!!,
+                                    tint = buttonTextColor,
+                                    modifier = Modifier.size(iconSize)
+                                )
+                            }
+                        }
+                    }
+
+                    // Sub-icon badge
+                    if (!resolvedSubIcon.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .size((resolvedIconSizeDp * 0.65f).roundToInt().coerceAtLeast(10).dp)
+                                .clip(CircleShape)
+                                .background(buttonBgColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            StudioButtonIcon(
+                                iconStr = resolvedSubIcon,
+                                tint = buttonTextColor,
+                                modifier = Modifier.fillMaxSize(0.8f)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -889,7 +1102,7 @@ private fun CanvasNode(
                             change.consume()
                             with(density) {
                                 val effectiveZoom = zoom.coerceAtLeast(0.1f)
-                                currentWidthDp = (currentWidthDp + (dragAmount.x / effectiveZoom).toDp().value)
+                                currentWidthDp = (currentWidthDp + (dragAmount.x / effectiveZoom / scaleX).toDp().value)
                                     .coerceIn(MIN_SIZE_DP.toFloat(), CANVAS_WIDTH_DP.toFloat())
                                 currentHeightDp = (currentHeightDp + (dragAmount.y / effectiveZoom).toDp().value)
                                     .coerceAtLeast(MIN_SIZE_DP.toFloat())
@@ -923,13 +1136,14 @@ private fun CanvasContainer(
     hiddenNodeIds: Set<String> = emptySet(),
     context: VariableContext,
     zoom: Float = 1f,
-    globals: CustomWidgetGlobals = CustomWidgetGlobals()
+    globals: CustomWidgetGlobals = CustomWidgetGlobals(),
+    scaleX: Float = 1f
 ) {
     val bgFormula = node.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
     val resolvedBg = if (!isWireframeMode && !bgFormula.isNullOrBlank()) {
         previewEngine.resolve(bgFormula, context).ifBlank { node.backgroundHex }
     } else node.backgroundHex
-    val backgroundColor = resolvedBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it) }
+    val backgroundColor = resolvedBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it, context.colorScheme) }
 
     val freePositioning = node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX
     val containerModifier = (if (node.bounds.widthDp == null) modifier.fillMaxSize() else modifier)
@@ -947,7 +1161,7 @@ private fun CanvasContainer(
     when (node.layout) {
         ContainerLayout.ROW -> Row(
             modifier = containerModifier,
-            horizontalArrangement = Arrangement.spacedBy(node.gapDp.dp)
+            horizontalArrangement = Arrangement.spacedBy((node.gapDp * scaleX).dp)
         ) {
             node.children.forEach {
                 CanvasNode(
@@ -961,7 +1175,8 @@ private fun CanvasContainer(
                     hiddenNodeIds = hiddenNodeIds,
                     context = context,
                     zoom = zoom,
-                    globals = globals
+                    globals = globals,
+                    scaleX = scaleX
                 )
             }
         }
@@ -982,7 +1197,8 @@ private fun CanvasContainer(
                     hiddenNodeIds = hiddenNodeIds,
                     context = context,
                     zoom = zoom,
-                    globals = globals
+                    globals = globals,
+                    scaleX = scaleX
                 )
             }
         }
@@ -990,7 +1206,7 @@ private fun CanvasContainer(
         ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = containerModifier) {
             node.children.forEach { child ->
                 val childModifier = if (node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX) {
-                    Modifier.absoluteOffset(child.bounds.x.dp, child.bounds.y.dp)
+                    Modifier.absoluteOffset((child.bounds.x * scaleX).dp, child.bounds.y.dp)
                 } else Modifier
 
                 Box(modifier = childModifier) {
@@ -1005,7 +1221,8 @@ private fun CanvasContainer(
                         hiddenNodeIds = hiddenNodeIds,
                         context = context,
                         zoom = zoom,
-                        globals = globals
+                        globals = globals,
+                        scaleX = scaleX
                     )
                 }
             }
@@ -1040,14 +1257,97 @@ fun NodeBounds.movedBy(dxDp: Int, dyDp: Int, canvasWidthDp: Int, canvasHeightDp:
     y = (y + dyDp).coerceIn(0, (canvasHeightDp - (heightDp ?: 0)).coerceAtLeast(0))
 )
 
+@Composable
+fun StudioButtonIcon(
+    iconStr: String,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    val isCustomUri = iconStr.startsWith("content://") || iconStr.startsWith("file://") || iconStr.startsWith("/")
+    if (isCustomUri) {
+        val context = LocalContext.current
+        val bitmap = remember(iconStr) {
+            try {
+                if (iconStr.startsWith("/")) {
+                    BitmapFactory.decodeFile(iconStr)
+                } else {
+                    val uri = Uri.parse(iconStr)
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        BitmapFactory.decodeStream(stream)
+                    }
+                }
+            } catch (_: Exception) {
+                null
+            }
+        }
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = null,
+                modifier = modifier.clip(RoundedCornerShape(4.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Rounded.Image,
+                contentDescription = null,
+                tint = tint,
+                modifier = modifier
+            )
+        }
+    } else {
+        Icon(
+            imageVector = studioGlyphIcon(iconStr),
+            contentDescription = null,
+            tint = tint,
+            modifier = modifier
+        )
+    }
+}
+
 internal fun studioGlyphIcon(glyphName: String): androidx.compose.ui.graphics.vector.ImageVector = when (glyphName.lowercase()) {
     "notification", "notif" -> Icons.Rounded.Notifications
-    "play" -> Icons.Rounded.PlayArrow
-    "pause" -> Icons.Rounded.SmartButton
+    "play", "play_arrow" -> Icons.Rounded.PlayArrow
+    "pause" -> Icons.Rounded.Pause
+    "skip_next", "next" -> Icons.Rounded.SkipNext
+    "skip_previous", "prev", "previous" -> Icons.Rounded.SkipPrevious
+    "stop" -> Icons.Rounded.Stop
+    "fast_forward" -> Icons.Rounded.FastForward
+    "fast_rewind", "rewind" -> Icons.Rounded.FastRewind
+    "volume_up", "volume" -> Icons.Rounded.VolumeUp
+    "volume_off", "mute" -> Icons.Rounded.VolumeOff
+    "favorite", "heart", "like" -> Icons.Rounded.Favorite
+    "thumb_up" -> Icons.Rounded.ThumbUp
+    "share" -> Icons.Rounded.Share
+    "settings" -> Icons.Rounded.Settings
+    "refresh" -> Icons.Rounded.Refresh
+    "add", "plus" -> Icons.Rounded.Add
+    "remove", "minus" -> Icons.Rounded.Remove
     "message", "mail" -> Icons.Rounded.Email
     "call", "phone" -> Icons.Rounded.Call
     "check" -> Icons.Rounded.Check
     "close" -> Icons.Rounded.Clear
+    "music", "music_note" -> Icons.Rounded.MusicNote
+    "button" -> Icons.Rounded.SmartButton
+    "star" -> Icons.Rounded.Star
+    "search" -> Icons.Rounded.Search
+    "download" -> Icons.Rounded.Download
+    "upload" -> Icons.Rounded.Upload
+    "edit" -> Icons.Rounded.Edit
+    "delete", "trash" -> Icons.Rounded.Delete
+    "home" -> Icons.Rounded.Home
+    "info" -> Icons.Rounded.Info
+    "warning" -> Icons.Rounded.Warning
+    "lock" -> Icons.Rounded.Lock
+    "unlock" -> Icons.Rounded.LockOpen
+    "camera" -> Icons.Rounded.CameraAlt
+    "mic" -> Icons.Rounded.Mic
+    "wifi" -> Icons.Rounded.Wifi
+    "bluetooth" -> Icons.Rounded.Bluetooth
+    "flashlight" -> Icons.Rounded.FlashlightOn
+    "battery" -> Icons.Rounded.BatteryFull
+    "alarm" -> Icons.Rounded.Alarm
+    "power" -> Icons.Rounded.PowerSettingsNew
     else -> Icons.Rounded.Image
 }
 

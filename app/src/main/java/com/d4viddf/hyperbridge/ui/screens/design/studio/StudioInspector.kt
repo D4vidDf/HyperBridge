@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
 import android.net.Uri
+import kotlin.math.roundToInt
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,8 +24,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.Canvas
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.ArrowDownward
@@ -91,6 +100,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
@@ -165,6 +175,17 @@ fun StudioInspector(
     var isAppChooserOpen by remember { mutableStateOf(false) }
     var appChooserCallback by remember { mutableStateOf<((String) -> Unit)?>(null) }
 
+    val context = LocalContext.current
+    val inspectorColorScheme = remember(document?.globals?.colorSchemeConfig, document?.globals?.embeddedColorSchemeYaml) {
+        val gl = document?.globals ?: CustomWidgetGlobals()
+        com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+            context = context,
+            config = gl.colorSchemeConfig,
+            embeddedYaml = gl.embeddedColorSchemeYaml,
+            isDark = true
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -200,7 +221,10 @@ fun StudioInspector(
                     BackgroundTabContent(
                         container = node,
                         onChange = onChange,
-                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                        onRequestFormulaEditor = { editingFormulaPropKey = it },
+                        colorScheme = inspectorColorScheme,
+                        document = document,
+                        onUpdateGlobals = onUpdateGlobals
                     )
                 }
             }
@@ -234,7 +258,8 @@ fun StudioInspector(
                 if (node is TextNode) {
                     EfxTabContent(
                         node = node,
-                        onChange = onChange
+                        onChange = onChange,
+                        colorScheme = inspectorColorScheme
                     )
                 } else if (node is ImageNode) {
                     ImageEfxTabContent(
@@ -277,7 +302,20 @@ fun StudioInspector(
                         node = node,
                         scenario = scenario,
                         onChange = onChange,
-                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                        onRequestFormulaEditor = { editingFormulaPropKey = it },
+                        colorScheme = inspectorColorScheme
+                    )
+                }
+            }
+
+            StudioTab.BUTTON -> {
+                if (node is ButtonNode) {
+                    ButtonTabContent(
+                        node = node,
+                        scenario = scenario,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it },
+                        colorScheme = inspectorColorScheme
                     )
                 }
             }
@@ -285,6 +323,12 @@ fun StudioInspector(
             StudioTab.STYLE -> {
                 if (node is ProgressNode) {
                     ProgressStyleTabContent(
+                        node = node,
+                        onChange = onChange,
+                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                    )
+                } else if (node is ButtonNode) {
+                    ButtonStyleTabContent(
                         node = node,
                         onChange = onChange,
                         onRequestFormulaEditor = { editingFormulaPropKey = it }
@@ -297,13 +341,19 @@ fun StudioInspector(
                     ProgressColorTabContent(
                         node = node,
                         onChange = onChange,
-                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                        onRequestFormulaEditor = { editingFormulaPropKey = it },
+                        colorScheme = inspectorColorScheme,
+                        document = document,
+                        onUpdateGlobals = onUpdateGlobals
                     )
                 } else {
                     ColorsTabContent(
                         node = node,
                         onChange = onChange,
-                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                        onRequestFormulaEditor = { editingFormulaPropKey = it },
+                        colorScheme = inspectorColorScheme,
+                        document = document,
+                        onUpdateGlobals = onUpdateGlobals
                     )
                 }
             }
@@ -335,7 +385,10 @@ fun StudioInspector(
                     ContainerTabContent(
                         container = node,
                         onChange = onChange,
-                        onRequestFormulaEditor = { editingFormulaPropKey = it }
+                        onRequestFormulaEditor = { editingFormulaPropKey = it },
+                        colorScheme = inspectorColorScheme,
+                        document = document,
+                        onUpdateGlobals = onUpdateGlobals
                     )
                 }
             }
@@ -790,8 +843,20 @@ private fun TextItemDetailsEditor(
 private fun ColorsTabContent(
     node: CustomWidgetNode,
     onChange: (CustomWidgetNode) -> Unit,
-    onRequestFormulaEditor: (String) -> Unit
+    onRequestFormulaEditor: (String) -> Unit,
+    colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null,
+    document: CustomWidgetDocument? = null,
+    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null
 ) {
+    if (document != null && onUpdateGlobals != null && colorScheme != null) {
+        StudioColorSchemeSelectorCard(
+            globals = document.globals,
+            onUpdateGlobals = onUpdateGlobals,
+            activeColorScheme = colorScheme
+        )
+        Spacer(Modifier.height(12.dp))
+    }
+
     StudioSection(stringResource(R.string.studio_tab_colors)) {
         when (node) {
             is ProgressNode -> {
@@ -801,7 +866,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -812,7 +880,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(trackColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.PROGRESS_TRACK_COLOR.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_TRACK_COLOR.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_TRACK_COLOR.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_TRACK_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
             }
 
@@ -823,7 +894,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(colorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.TEXT_COLOR.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.TEXT_COLOR.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_COLOR.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -859,7 +933,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(textColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.BUTTON_TEXT_COLOR.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_TEXT_COLOR.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BUTTON_TEXT_COLOR.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BUTTON_TEXT_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -870,8 +947,75 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(backgroundHex = it.ifBlank { null })) },
                     boundFormula = node.bindings[BindableProperty.BUTTON_BACKGROUND.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_BACKGROUND.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BUTTON_BACKGROUND.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BUTTON_BACKGROUND.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
+
+                Spacer(Modifier.height(4.dp))
+
+                StudioColorField(
+                    label = stringResource(R.string.studio_button_stroke_color),
+                    colorHex = node.strokeColorHex.orEmpty().ifBlank { "#FFFFFF" },
+                    onColorHexChange = { onChange(node.copy(strokeColorHex = it.ifBlank { null })) },
+                    boundFormula = node.bindings[BindableProperty.BUTTON_STROKE_COLOR.key],
+                    onFormulaChange = { onChange(node.withBinding(BindableProperty.BUTTON_STROKE_COLOR.key, it)) },
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.BUTTON_STROKE_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
+                )
+
+                if (node.conditionalEnabled) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.studio_button_conditional_colors),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(4.dp))
+
+                    StudioColorField(
+                        label = stringResource(R.string.studio_property_color),
+                        colorHex = node.conditionalTextColorHex ?: node.textColorHex,
+                        onColorHexChange = { onChange(node.copy(conditionalTextColorHex = it)) },
+                        boundFormula = null,
+                        onFormulaChange = {},
+                        onRequestFormulaEditor = {},
+                        colorScheme = colorScheme,
+                        globals = document?.globals,
+                        onUpdateGlobals = onUpdateGlobals
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    StudioColorField(
+                        label = stringResource(R.string.studio_property_background),
+                        colorHex = (node.conditionalBackgroundHex ?: node.backgroundHex).orEmpty().ifBlank { "#333333" },
+                        onColorHexChange = { onChange(node.copy(conditionalBackgroundHex = it.ifBlank { null })) },
+                        boundFormula = null,
+                        onFormulaChange = {},
+                        onRequestFormulaEditor = {},
+                        colorScheme = colorScheme,
+                        globals = document?.globals,
+                        onUpdateGlobals = onUpdateGlobals
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    StudioColorField(
+                        label = stringResource(R.string.studio_button_stroke_color),
+                        colorHex = (node.conditionalStrokeColorHex ?: node.strokeColorHex).orEmpty().ifBlank { "#FFFFFF" },
+                        onColorHexChange = { onChange(node.copy(conditionalStrokeColorHex = it.ifBlank { null })) },
+                        boundFormula = null,
+                        onFormulaChange = {},
+                        onRequestFormulaEditor = {},
+                        colorScheme = colorScheme,
+                        globals = document?.globals,
+                        onUpdateGlobals = onUpdateGlobals
+                    )
+                }
             }
 
             is ImageNode -> {
@@ -881,7 +1025,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(tintHex = it.ifBlank { null })) },
                     boundFormula = node.bindings[BindableProperty.IMAGE_TINT.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.IMAGE_TINT.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.IMAGE_TINT.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.IMAGE_TINT.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
             }
 
@@ -892,7 +1039,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(fillColorHex = it.ifBlank { null })) },
                     boundFormula = node.bindings[BindableProperty.SHAPE_FILL.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.SHAPE_FILL.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.SHAPE_FILL.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.SHAPE_FILL.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -903,7 +1053,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(strokeColorHex = it.ifBlank { null })) },
                     boundFormula = node.bindings[BindableProperty.SHAPE_STROKE.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.SHAPE_STROKE.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.SHAPE_STROKE.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.SHAPE_STROKE.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
             }
 
@@ -914,7 +1067,10 @@ private fun ColorsTabContent(
                     onColorHexChange = { onChange(node.copy(backgroundHex = it.ifBlank { null })) },
                     boundFormula = node.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
             }
         }
@@ -986,7 +1142,8 @@ private fun ProgressTabContent(
     node: ProgressNode,
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
     onChange: (CustomWidgetNode) -> Unit,
-    onRequestFormulaEditor: (String) -> Unit
+    onRequestFormulaEditor: (String) -> Unit,
+    colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
 
@@ -1161,8 +1318,8 @@ private fun ProgressTabContent(
                 }
 
                 val previewColorList: List<Color> = when (node.colorMode) {
-                    ProgressColorMode.FLAT -> listOf(safeParseColor(node.progressColorHex))
-                    ProgressColorMode.GRADIENT -> listOf(safeParseColor(node.progressColorHex), safeParseColor(node.gradientEndColorHex))
+                    ProgressColorMode.FLAT -> listOf(safeParseColor(node.progressColorHex, colorScheme))
+                    ProgressColorMode.GRADIENT -> listOf(safeParseColor(node.progressColorHex, colorScheme), safeParseColor(node.gradientEndColorHex, colorScheme))
                     ProgressColorMode.CURRENT -> {
                         val cur = when (node.currentSource) {
                             "notification" -> Color(0xFF38BDF8)
@@ -1173,19 +1330,19 @@ private fun ProgressTabContent(
                     }
                     ProgressColorMode.MULTICOLOR -> {
                         if (node.multiColorsHex.isNotEmpty()) {
-                            node.multiColorsHex.map { safeParseColor(it) }
+                            node.multiColorsHex.map { safeParseColor(it, colorScheme) }
                         } else {
                             listOf(Color(0xFF4CAF50), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFF44336))
                         }
                     }
                 }
-                val previewTrackColor = safeParseColor(node.trackColorHex)
+                val previewTrackColor = safeParseColor(node.trackColorHex, colorScheme)
                 val previewBrush = if (previewColorList.size > 1) {
                     Brush.horizontalGradient(previewColorList)
                 } else {
                     SolidColor(previewColorList.first())
                 }
-                val previewThumbColor = node.thumbColorHex?.let { safeParseColor(it) } ?: previewColorList.first()
+                val previewThumbColor = node.thumbColorHex?.let { safeParseColor(it, colorScheme) } ?: previewColorList.first()
 
                 when (node.mode) {
                     ProgressIndicatorMode.CIRCLE -> {
@@ -1463,8 +1620,20 @@ private fun ProgressTabContent(
 private fun ProgressColorTabContent(
     node: ProgressNode,
     onChange: (CustomWidgetNode) -> Unit,
-    onRequestFormulaEditor: (String) -> Unit
+    onRequestFormulaEditor: (String) -> Unit,
+    colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null,
+    document: CustomWidgetDocument? = null,
+    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null
 ) {
+    if (document != null && onUpdateGlobals != null && colorScheme != null) {
+        StudioColorSchemeSelectorCard(
+            globals = document.globals,
+            onUpdateGlobals = onUpdateGlobals,
+            activeColorScheme = colorScheme
+        )
+        Spacer(Modifier.height(12.dp))
+    }
+
     StudioSection(stringResource(R.string.studio_tab_colors)) {
         // Mode: plano, gradiente, actual, multicolor
         Text(
@@ -1506,7 +1675,10 @@ private fun ProgressColorTabContent(
                     onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
             }
             ProgressColorMode.GRADIENT -> {
@@ -1516,7 +1688,10 @@ private fun ProgressColorTabContent(
                     onColorHexChange = { onChange(node.copy(progressColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.PROGRESS_COLOR.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_COLOR.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
                 Spacer(Modifier.height(4.dp))
                 StudioColorField(
@@ -1525,7 +1700,10 @@ private fun ProgressColorTabContent(
                     onColorHexChange = { onChange(node.copy(gradientEndColorHex = it)) },
                     boundFormula = node.bindings[BindableProperty.PROGRESS_GRADIENT_END_COLOR.key],
                     onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_GRADIENT_END_COLOR.key, it)) },
-                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_GRADIENT_END_COLOR.key) }
+                    onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_GRADIENT_END_COLOR.key) },
+                    colorScheme = colorScheme,
+                    globals = document?.globals,
+                    onUpdateGlobals = onUpdateGlobals
                 )
             }
             ProgressColorMode.CURRENT -> {
@@ -1583,7 +1761,8 @@ private fun ProgressColorTabContent(
             onColorHexChange = { onChange(node.copy(trackColorHex = it)) },
             boundFormula = node.bindings[BindableProperty.PROGRESS_TRACK_COLOR.key],
             onFormulaChange = { onChange(node.withBinding(BindableProperty.PROGRESS_TRACK_COLOR.key, it)) },
-            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_TRACK_COLOR.key) }
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.PROGRESS_TRACK_COLOR.key) },
+            colorScheme = colorScheme
         )
 
         Spacer(Modifier.height(4.dp))
@@ -1922,6 +2101,937 @@ private fun ProgressStyleTabContent(
                             selected = isSelected,
                             onClick = { onChange(node.copy(thumbImageSource = src)) },
                             label = { Text(label, style = MaterialTheme.typography.labelSmall) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ButtonStyleTabContent(
+    node: ButtonNode,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit
+) {
+    val presetShapes = listOf("rounded_rect", "pill", "circle", "rectangle", "cookie", "clover", "star", "squircle")
+
+    StudioSection(stringResource(R.string.studio_button_shape)) {
+        Text(
+            text = stringResource(R.string.studio_button_shape),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            presetShapes.forEach { shapeId ->
+                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true)
+                val shape = when (shapeId) {
+                    "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
+                    "pill" -> RoundedCornerShape(50)
+                    "circle" -> CircleShape
+                    "rounded", "rounded_rect" -> RoundedCornerShape(node.cornerRadiusDp.dp)
+                    else -> getShapeFromId(shapeId).toShape()
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(shape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant,
+                            shape = shape
+                        )
+                        .clickable { onChange(node.copy(shapeId = shapeId)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (shapeId == "rounded_rect") "RD" else shapeId.take(2).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        if (node.shapeId == "rounded" || node.shapeId == "rounded_rect") {
+            Spacer(Modifier.height(8.dp))
+            StudioStepper(
+                label = stringResource(R.string.studio_button_corner_radius),
+                value = node.cornerRadiusDp,
+                onValueChange = { onChange(node.copy(cornerRadiusDp = it.coerceIn(0, 100))) },
+                unitSuffix = "dp",
+                min = 0,
+                max = 100
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+        StudioStepper(
+            label = stringResource(R.string.studio_button_stroke_width),
+            value = node.strokeWidthDp,
+            onValueChange = { onChange(node.copy(strokeWidthDp = it.coerceIn(0, 20))) },
+            unitSuffix = "dp",
+            min = 0,
+            max = 20
+        )
+    }
+
+    if (node.conditionalEnabled) {
+        Spacer(Modifier.height(8.dp))
+        StudioSection(stringResource(R.string.studio_button_conditional_shape)) {
+            val currentCondShape = node.conditionalShapeId ?: node.shapeId
+            Text(
+                text = stringResource(R.string.studio_button_shape),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                presetShapes.forEach { shapeId ->
+                    val isSelected = currentCondShape.equals(shapeId, ignoreCase = true)
+                    val shape = when (shapeId) {
+                        "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
+                        "pill" -> RoundedCornerShape(50)
+                        "circle" -> CircleShape
+                        "rounded", "rounded_rect" -> RoundedCornerShape((node.conditionalCornerRadiusDp ?: node.cornerRadiusDp).dp)
+                        else -> getShapeFromId(shapeId).toShape()
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(shape)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainerHigh
+                            )
+                            .border(
+                                width = if (isSelected) 2.dp else 1.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.outlineVariant,
+                                shape = shape
+                            )
+                            .clickable { onChange(node.copy(conditionalShapeId = shapeId)) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (shapeId == "rounded_rect") "RD" else shapeId.take(2).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            if (currentCondShape == "rounded" || currentCondShape == "rounded_rect") {
+                Spacer(Modifier.height(8.dp))
+                StudioStepper(
+                    label = stringResource(R.string.studio_button_corner_radius),
+                    value = node.conditionalCornerRadiusDp ?: node.cornerRadiusDp,
+                    onValueChange = { onChange(node.copy(conditionalCornerRadiusDp = it.coerceIn(0, 100))) },
+                    unitSuffix = "dp",
+                    min = 0,
+                    max = 100
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+            StudioStepper(
+                label = stringResource(R.string.studio_button_stroke_width),
+                value = node.conditionalStrokeWidthDp ?: node.strokeWidthDp,
+                onValueChange = { onChange(node.copy(conditionalStrokeWidthDp = it.coerceIn(0, 20))) },
+                unitSuffix = "dp",
+                min = 0,
+                max = 20
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ButtonTabContent(
+    node: ButtonNode,
+    scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
+    onChange: (CustomWidgetNode) -> Unit,
+    onRequestFormulaEditor: (String) -> Unit,
+    colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null
+) {
+    var previewConditional by remember { mutableStateOf(false) }
+    var isPickingForConditional by remember { mutableStateOf(false) }
+    var iconTargetIsConditional by remember { mutableStateOf(false) }
+    var showIconPickerSheet by remember { mutableStateOf(false) }
+
+    val customIconPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            if (isPickingForConditional) {
+                onChange(node.copy(conditionalIcon = uri.toString()))
+            } else {
+                onChange(node.copy(icon = uri.toString()))
+            }
+        }
+    }
+
+    val quickButtonGlyphs = listOf(
+        "play", "pause", "skip_next", "skip_previous", "stop", "fast_forward", "fast_rewind",
+        "volume_up", "volume_off", "favorite", "thumb_up", "share", "notification",
+        "call", "message", "settings", "refresh", "add", "remove", "check", "close"
+    )
+
+    // Live Preview Card
+    StudioSection(stringResource(R.string.studio_tab_button)) {
+        if (node.conditionalEnabled) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = !previewConditional,
+                    onClick = { previewConditional = false },
+                    label = { Text(stringResource(R.string.studio_button_preview_default)) }
+                )
+                FilterChip(
+                    selected = previewConditional,
+                    onClick = { previewConditional = true },
+                    label = { Text(stringResource(R.string.studio_button_preview_conditional)) }
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+
+        // Live Preview Box
+        val dispLabel = if (previewConditional && node.conditionalEnabled) (node.conditionalLabel ?: node.label) else node.label
+        val dispIcon = if (previewConditional && node.conditionalEnabled) (node.conditionalIcon ?: node.icon) else node.icon
+        val dispSubIcon = if (previewConditional && node.conditionalEnabled) (node.conditionalSubIcon ?: node.subIcon) else node.subIcon
+        val dispBg = if (previewConditional && node.conditionalEnabled) (node.conditionalBackgroundHex ?: node.backgroundHex) else node.backgroundHex
+        val dispTextHex = if (previewConditional && node.conditionalEnabled) (node.conditionalTextColorHex ?: node.textColorHex) else node.textColorHex
+        val dispShapeId = if (previewConditional && node.conditionalEnabled) (node.conditionalShapeId ?: node.shapeId) else node.shapeId
+        val dispRadius = if (previewConditional && node.conditionalEnabled) (node.conditionalCornerRadiusDp ?: node.cornerRadiusDp) else node.cornerRadiusDp
+        val dispStrokeW = if (previewConditional && node.conditionalEnabled) (node.conditionalStrokeWidthDp ?: node.strokeWidthDp) else node.strokeWidthDp
+        val dispStrokeColorHex = if (previewConditional && node.conditionalEnabled) (node.conditionalStrokeColorHex ?: node.strokeColorHex) else node.strokeColorHex
+
+        val btnBgColor = dispBg?.let { safeParseColor(it, colorScheme) } ?: MaterialTheme.colorScheme.primary
+        val btnTextColor = safeParseColor(dispTextHex, colorScheme)
+        val btnStrokeColor = dispStrokeColorHex?.let { safeParseColor(it, colorScheme) }
+
+        val previewShape: androidx.compose.ui.graphics.Shape = when (dispShapeId.lowercase()) {
+            "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
+            "pill" -> RoundedCornerShape(50)
+            "circle" -> CircleShape
+            "rounded", "rounded_rect" -> RoundedCornerShape(dispRadius.dp)
+            else -> getShapeFromId(dispShapeId).toShape()
+        }
+
+        val borderMod = if (dispStrokeW > 0 && btnStrokeColor != null) {
+            Modifier.border(dispStrokeW.dp, btnStrokeColor, previewShape)
+        } else Modifier
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(previewShape)
+                    .background(btnBgColor)
+                    .then(borderMod)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val hasIcon = !dispIcon.isNullOrBlank()
+                val hasText = dispLabel.isNotBlank() && node.iconPosition != ButtonIconPosition.ICON_ONLY
+                val iconSize = node.iconSizeDp.coerceIn(12, 36).dp
+
+                if (hasIcon && !hasText) {
+                    StudioButtonIcon(
+                        iconStr = dispIcon!!,
+                        tint = btnTextColor,
+                        modifier = Modifier.size(iconSize)
+                    )
+                } else if (hasText && !hasIcon) {
+                    Text(
+                        text = dispLabel,
+                        color = btnTextColor,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                } else if (hasIcon && hasText) {
+                    when (node.iconPosition) {
+                        ButtonIconPosition.LEADING -> {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                StudioButtonIcon(
+                                    iconStr = dispIcon!!,
+                                    tint = btnTextColor,
+                                    modifier = Modifier.size(iconSize)
+                                )
+                                Text(
+                                    text = dispLabel,
+                                    color = btnTextColor,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                        ButtonIconPosition.TRAILING -> {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = dispLabel,
+                                    color = btnTextColor,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                StudioButtonIcon(
+                                    iconStr = dispIcon!!,
+                                    tint = btnTextColor,
+                                    modifier = Modifier.size(iconSize)
+                                )
+                            }
+                        }
+                        ButtonIconPosition.TOP -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                StudioButtonIcon(
+                                    iconStr = dispIcon!!,
+                                    tint = btnTextColor,
+                                    modifier = Modifier.size((node.iconSizeDp * 0.8f).roundToInt().dp)
+                                )
+                                Text(
+                                    text = dispLabel,
+                                    color = btnTextColor,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                        ButtonIconPosition.ICON_ONLY -> {
+                            StudioButtonIcon(
+                                iconStr = dispIcon!!,
+                                tint = btnTextColor,
+                                modifier = Modifier.size(iconSize)
+                            )
+                        }
+                    }
+                }
+
+                if (!dispSubIcon.isNullOrBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size((node.iconSizeDp * 0.65f).roundToInt().coerceAtLeast(10).dp)
+                            .clip(CircleShape)
+                            .background(btnBgColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        StudioButtonIcon(
+                            iconStr = dispSubIcon,
+                            tint = btnTextColor,
+                            modifier = Modifier.fillMaxSize(0.8f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Label & Text
+    StudioSection(stringResource(R.string.studio_property_label)) {
+        OutlinedTextField(
+            value = node.label,
+            onValueChange = { onChange(node.copy(label = it)) },
+            label = { Text(stringResource(R.string.studio_property_label)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+        VariableTokenRow { token ->
+            onChange(node.copy(label = node.label + token))
+        }
+    }
+
+    // Icon Selector & Size
+    StudioSection(stringResource(R.string.studio_button_icon)) {
+        val isCustomIcon = node.icon?.let { it.startsWith("content://") || it.startsWith("file://") || it.startsWith("/") } == true
+        if (isCustomIcon) {
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    StudioButtonIcon(
+                        iconStr = node.icon!!,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.studio_button_custom_icon),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = node.icon!!.substringAfterLast('/'),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            isPickingForConditional = false
+                            customIconPickerLauncher.launch("image/*")
+                        },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(stringResource(R.string.studio_button_select_custom_icon), style = MaterialTheme.typography.labelSmall)
+                    }
+                    IconButton(
+                        onClick = { onChange(node.copy(icon = null)) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(Icons.Rounded.DeleteOutline, contentDescription = stringResource(R.string.studio_button_remove_custom_icon), tint = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    isPickingForConditional = false
+                    customIconPickerLauncher.launch("image/*")
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.studio_button_select_custom_icon), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+
+            OutlinedButton(
+                onClick = {
+                    iconTargetIsConditional = false
+                    showIconPickerSheet = true
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Rounded.Apps, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.studio_button_more_icons), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+
+        OutlinedTextField(
+            value = node.icon.orEmpty(),
+            onValueChange = { onChange(node.copy(icon = it.ifBlank { null })) },
+            label = { Text(stringResource(R.string.studio_button_icon)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            FilterChip(
+                selected = node.icon == null,
+                onClick = { onChange(node.copy(icon = null)) },
+                label = { Text(stringResource(R.string.studio_icon_none)) }
+            )
+            quickButtonGlyphs.forEach { glyph ->
+                FilterChip(
+                    selected = node.icon == glyph,
+                    onClick = { onChange(node.copy(icon = glyph)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = studioGlyphIcon(glyph),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    label = { Text(glyph) }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.studio_button_icon_size_label),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            listOf(14, 18, 22, 26, 32, 40).forEach { sizePreset ->
+                FilterChip(
+                    selected = node.iconSizeDp == sizePreset,
+                    onClick = { onChange(node.copy(iconSizeDp = sizePreset)) },
+                    label = {
+                        Text(if (sizePreset == 18) "${sizePreset}dp (default)" else "${sizePreset}dp")
+                    }
+                )
+            }
+        }
+
+        StudioStepper(
+            label = stringResource(R.string.studio_button_icon_size),
+            value = node.iconSizeDp,
+            onValueChange = { onChange(node.copy(iconSizeDp = it.coerceIn(8, 48))) },
+            unitSuffix = "dp",
+            min = 8,
+            max = 48
+        )
+    }
+
+    // Sub-Icon (Badge)
+    StudioSection(stringResource(R.string.studio_button_sub_icon)) {
+        OutlinedTextField(
+            value = node.subIcon.orEmpty(),
+            onValueChange = { onChange(node.copy(subIcon = it.ifBlank { null })) },
+            label = { Text(stringResource(R.string.studio_button_sub_icon)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            FilterChip(
+                selected = node.subIcon == null,
+                onClick = { onChange(node.copy(subIcon = null)) },
+                label = { Text(stringResource(R.string.studio_icon_none)) }
+            )
+            listOf("play", "pause", "music", "check", "close", "notification", "favorite", "star").forEach { glyph ->
+                FilterChip(
+                    selected = node.subIcon == glyph,
+                    onClick = { onChange(node.copy(subIcon = glyph)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = studioGlyphIcon(glyph),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    label = { Text(glyph) }
+                )
+            }
+        }
+    }
+
+    // Icon Position & Size
+    StudioSection(stringResource(R.string.studio_button_icon_position)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonIconPosition.entries.forEach { pos ->
+                val labelRes = when (pos) {
+                    ButtonIconPosition.LEADING -> R.string.studio_icon_pos_leading
+                    ButtonIconPosition.TRAILING -> R.string.studio_icon_pos_trailing
+                    ButtonIconPosition.ICON_ONLY -> R.string.studio_icon_pos_icon_only
+                    ButtonIconPosition.TOP -> R.string.studio_icon_pos_top
+                }
+                FilterChip(
+                    selected = node.iconPosition == pos,
+                    onClick = { onChange(node.copy(iconPosition = pos)) },
+                    label = { Text(stringResource(labelRes)) }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        StudioStepper(
+            label = stringResource(R.string.studio_button_icon_size),
+            value = node.iconSizeDp,
+            onValueChange = { onChange(node.copy(iconSizeDp = it.coerceIn(8, 48))) },
+            unitSuffix = "dp",
+            min = 8,
+            max = 48
+        )
+    }
+
+    // Conditional State
+    StudioSection(stringResource(R.string.studio_button_conditional_state)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.studio_button_conditional_state),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(R.string.studio_button_conditional_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = node.conditionalEnabled,
+                onCheckedChange = { onChange(node.copy(conditionalEnabled = it)) }
+            )
+        }
+
+        if (node.conditionalEnabled) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.studio_button_condition),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            ConditionEditor(
+                condition = node.condition,
+                scenario = scenario,
+                onChange = { onChange(node.copy(condition = it)) }
+            )
+
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = node.conditionalLabel.orEmpty(),
+                onValueChange = { onChange(node.copy(conditionalLabel = it.ifBlank { null })) },
+                label = { Text(stringResource(R.string.studio_button_conditional_label)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            VariableTokenRow { token ->
+                onChange(node.copy(conditionalLabel = (node.conditionalLabel.orEmpty()) + token))
+            }
+
+            val isCustomCondIcon = node.conditionalIcon?.let { it.startsWith("content://") || it.startsWith("file://") || it.startsWith("/") } == true
+            if (isCustomCondIcon) {
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        StudioButtonIcon(
+                            iconStr = node.conditionalIcon!!,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(36.dp)
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.studio_button_custom_icon),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = node.conditionalIcon!!.substringAfterLast('/'),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        IconButton(
+                            onClick = { onChange(node.copy(conditionalIcon = null)) },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(Icons.Rounded.DeleteOutline, contentDescription = stringResource(R.string.studio_button_remove_custom_icon), tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        isPickingForConditional = true
+                        customIconPickerLauncher.launch("image/*")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_button_select_custom_icon), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        iconTargetIsConditional = true
+                        showIconPickerSheet = true
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Rounded.Apps, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.studio_button_more_icons), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = node.conditionalIcon.orEmpty(),
+                onValueChange = { onChange(node.copy(conditionalIcon = it.ifBlank { null })) },
+                label = { Text(stringResource(R.string.studio_button_conditional_icon)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                FilterChip(
+                    selected = node.conditionalIcon == null,
+                    onClick = { onChange(node.copy(conditionalIcon = null)) },
+                    label = { Text(stringResource(R.string.studio_icon_none)) }
+                )
+                quickButtonGlyphs.forEach { glyph ->
+                    FilterChip(
+                        selected = node.conditionalIcon == glyph,
+                        onClick = { onChange(node.copy(conditionalIcon = glyph)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = studioGlyphIcon(glyph),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        label = { Text(glyph) }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = node.conditionalSubIcon.orEmpty(),
+                onValueChange = { onChange(node.copy(conditionalSubIcon = it.ifBlank { null })) },
+                label = { Text(stringResource(R.string.studio_button_conditional_sub_icon)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    if (showIconPickerSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showIconPickerSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            ButtonIconPickerContent(
+                currentIcon = if (iconTargetIsConditional) node.conditionalIcon else node.icon,
+                onSelectIcon = { selectedIcon ->
+                    if (iconTargetIsConditional) {
+                        onChange(node.copy(conditionalIcon = selectedIcon.ifBlank { null }))
+                    } else {
+                        onChange(node.copy(icon = selectedIcon.ifBlank { null }))
+                    }
+                    showIconPickerSheet = false
+                },
+                onPickCustomImage = {
+                    isPickingForConditional = iconTargetIsConditional
+                    customIconPickerLauncher.launch("image/*")
+                    showIconPickerSheet = false
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ButtonIconPickerContent(
+    currentIcon: String?,
+    onSelectIcon: (String) -> Unit,
+    onPickCustomImage: () -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    val allIcons = remember {
+        listOf(
+            // Media
+            "play", "pause", "skip_next", "skip_previous", "stop", "fast_forward", "fast_rewind",
+            "volume_up", "volume_off", "music",
+            // Actions
+            "favorite", "thumb_up", "share", "refresh", "settings", "check", "close", "add", "remove",
+            "edit", "delete", "search", "download", "upload",
+            // Communication
+            "notification", "call", "message",
+            // System & Device
+            "home", "star", "lock", "unlock", "camera", "mic", "wifi", "bluetooth",
+            "flashlight", "battery", "alarm", "power", "info", "warning", "button"
+        )
+    }
+
+    val filteredIcons = remember(searchQuery) {
+        if (searchQuery.isBlank()) allIcons
+        else allIcons.filter { it.contains(searchQuery.trim(), ignoreCase = true) }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .heightIn(max = 520.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.studio_button_icon_picker_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            FilledTonalButton(
+                onClick = onPickCustomImage,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.studio_button_select_custom_icon), style = MaterialTheme.typography.labelMedium)
+            }
+        }
+
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text(stringResource(R.string.studio_button_icon_picker_search)) },
+            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { searchQuery = "" }) {
+                        Icon(Icons.Rounded.Clear, contentDescription = null)
+                    }
+                }
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 72.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 24.dp)
+        ) {
+            item {
+                Card(
+                    onClick = { onSelectIcon("") },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (currentIcon == null) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().height(72.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(Icons.Rounded.Clear, contentDescription = null, modifier = Modifier.size(24.dp))
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.studio_icon_none),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+
+            items(filteredIcons) { glyph ->
+                val isSelected = currentIcon == glyph
+                Card(
+                    onClick = { onSelectIcon(glyph) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().height(72.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = studioGlyphIcon(glyph),
+                            contentDescription = glyph,
+                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = glyph,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -3357,7 +4467,8 @@ private fun LayerTabContent(
 @Composable
 private fun EfxTabContent(
     node: TextNode,
-    onChange: (CustomWidgetNode) -> Unit
+    onChange: (CustomWidgetNode) -> Unit,
+    colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null
 ) {
     StudioSection(stringResource(R.string.studio_tab_efx)) {
         // --- 1. MASK ---
@@ -3468,8 +4579,8 @@ private fun EfxTabContent(
                 }
 
                 if (node.efx.texture != TextTextureType.NONE) {
-                    val previewStart = safeParseColor(node.colorHex)
-                    val previewEnd = safeParseColor(node.efx.textureColorHex ?: "#FF5722")
+                    val previewStart = safeParseColor(node.colorHex, colorScheme)
+                    val previewEnd = safeParseColor(node.efx.textureColorHex ?: "#FF5722", colorScheme)
                     val previewColors = if (node.efx.textureParallel) {
                         listOf(previewEnd, previewStart)
                     } else {
@@ -3503,7 +4614,8 @@ private fun EfxTabContent(
                     StudioColorField(
                         label = stringResource(R.string.studio_efx_texture_color),
                         colorHex = node.efx.textureColorHex ?: "#FF5722",
-                        onColorHexChange = { onChange(node.copy(efx = node.efx.copy(textureColorHex = it))) }
+                        onColorHexChange = { onChange(node.copy(efx = node.efx.copy(textureColorHex = it))) },
+                        colorScheme = colorScheme
                     )
 
                     StudioStepper(
@@ -3615,7 +4727,8 @@ private fun EfxTabContent(
                     StudioColorField(
                         label = stringResource(R.string.studio_efx_shadow_color),
                         colorHex = node.efx.shadow.colorHex,
-                        onColorHexChange = { onChange(node.copy(efx = node.efx.copy(shadow = node.efx.shadow.copy(colorHex = it)))) }
+                        onColorHexChange = { onChange(node.copy(efx = node.efx.copy(shadow = node.efx.shadow.copy(colorHex = it)))) },
+                        colorScheme = colorScheme
                     )
                 }
             }
@@ -3677,8 +4790,20 @@ private fun fontFamilyLabel(family: TextFontFamily): Int = when (family) {
 private fun ContainerTabContent(
     container: LayoutContainer,
     onChange: (CustomWidgetNode) -> Unit,
-    onRequestFormulaEditor: (String) -> Unit = {}
+    onRequestFormulaEditor: (String) -> Unit = {},
+    colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null,
+    document: CustomWidgetDocument? = null,
+    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null
 ) {
+    if (document != null && onUpdateGlobals != null && colorScheme != null) {
+        StudioColorSchemeSelectorCard(
+            globals = document.globals,
+            onUpdateGlobals = onUpdateGlobals,
+            activeColorScheme = colorScheme
+        )
+        Spacer(Modifier.height(12.dp))
+    }
+
     StudioSection(stringResource(R.string.studio_tab_container)) {
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -3753,7 +4878,10 @@ private fun ContainerTabContent(
             onColorHexChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
             boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
             onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
-            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
+            onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) },
+            colorScheme = colorScheme,
+            globals = document?.globals,
+            onUpdateGlobals = onUpdateGlobals
         )
     }
 }
@@ -3762,7 +4890,10 @@ private fun ContainerTabContent(
 private fun BackgroundTabContent(
     container: LayoutContainer,
     onChange: (CustomWidgetNode) -> Unit,
-    onRequestFormulaEditor: (String) -> Unit = {}
+    onRequestFormulaEditor: (String) -> Unit = {},
+    colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null,
+    document: CustomWidgetDocument? = null,
+    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null
 ) {
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -3776,6 +4907,15 @@ private fun BackgroundTabContent(
                 )
             )
         }
+    }
+
+    if (document != null && onUpdateGlobals != null && colorScheme != null) {
+        StudioColorSchemeSelectorCard(
+            globals = document.globals,
+            onUpdateGlobals = onUpdateGlobals,
+            activeColorScheme = colorScheme
+        )
+        Spacer(Modifier.height(12.dp))
     }
 
     StudioSection(stringResource(R.string.studio_tab_background)) {
@@ -3828,7 +4968,10 @@ private fun BackgroundTabContent(
                 onColorHexChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
                 boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
                 onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
-                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
+                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) },
+                colorScheme = colorScheme,
+                globals = document?.globals,
+                onUpdateGlobals = onUpdateGlobals
             )
         } else {
             Text(
@@ -3989,24 +5132,243 @@ private fun BackgroundTabContent(
 }
 
 @Composable
+private fun StudioColorSchemeSelectorCard(
+    globals: CustomWidgetGlobals,
+    onUpdateGlobals: (CustomWidgetGlobals) -> Unit,
+    activeColorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition
+) {
+    val context = LocalContext.current
+    StudioSection(stringResource(R.string.studio_color_scheme_title)) {
+        Text(
+            text = stringResource(R.string.studio_color_scheme_source),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val sources = listOf(
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_DYNAMIC to R.string.studio_color_scheme_phone_dynamic,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_EXPRESSIVE to R.string.studio_color_scheme_phone_expressive,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.APP_ICON_EXPRESSIVE to R.string.studio_color_scheme_app_icon,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE to R.string.studio_color_scheme_notif_media,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET to R.string.studio_color_scheme_custom_preset
+            )
+
+            sources.forEach { (sourceType, labelRes) ->
+                FilterChip(
+                    selected = globals.colorSchemeConfig.sourceType == sourceType,
+                    onClick = {
+                        val newCfg = globals.colorSchemeConfig.copy(sourceType = sourceType)
+                        onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg))
+                    },
+                    label = { Text(stringResource(labelRes)) }
+                )
+            }
+        }
+
+        if (globals.colorSchemeConfig.sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.studio_color_scheme_media_source),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val mediaKeys = listOf(
+                    "album_art" to R.string.studio_color_scheme_media_album_art,
+                    "picture" to R.string.studio_color_scheme_media_picture,
+                    "avatar" to R.string.studio_color_scheme_media_avatar
+                )
+                mediaKeys.forEach { (key, labelRes) ->
+                    FilterChip(
+                        selected = globals.colorSchemeConfig.mediaSourceKey == key,
+                        onClick = {
+                            val newCfg = globals.colorSchemeConfig.copy(mediaSourceKey = key)
+                            onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg))
+                        },
+                        label = { Text(stringResource(labelRes)) }
+                    )
+                }
+            }
+        }
+
+        if (globals.colorSchemeConfig.sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.studio_color_scheme_presets),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.BUILT_IN_PRESETS.forEach { preset ->
+                    val isSelected = (globals.colorSchemeConfig.customSchemeId == preset.id) ||
+                        (globals.colorSchemeConfig.customSchemeId == null && preset.id == "default")
+                    FilterChip(
+                        selected = isSelected && globals.embeddedColorSchemeYaml == null,
+                        onClick = {
+                            val newCfg = globals.colorSchemeConfig.copy(customSchemeId = preset.id)
+                            onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = null))
+                        },
+                        label = { Text(preset.name) }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            val importYamlLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent()
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    try {
+                        val text = context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
+                        if (!text.isNullOrBlank()) {
+                            val parsed = com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.parse(text)
+                            val newCfg = globals.colorSchemeConfig.copy(
+                                sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
+                                customSchemeId = parsed.id
+                            )
+                            onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = text))
+                        }
+                    } catch (_: Exception) {}
+                }
+            }
+
+            val exportYamlLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.CreateDocument("application/yaml")
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    try {
+                        val yaml = com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.serialize(activeColorScheme)
+                        context.contentResolver.openOutputStream(uri)?.use { it.write(yaml.toByteArray()) }
+                    } catch (_: Exception) {}
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                androidx.compose.material3.OutlinedButton(
+                    onClick = { importYamlLauncher.launch("*/*") },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.FileUpload, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.studio_color_scheme_import_yaml), style = MaterialTheme.typography.labelSmall)
+                }
+                androidx.compose.material3.OutlinedButton(
+                    onClick = { exportYamlLauncher.launch("${activeColorScheme.name.lowercase().replace(" ", "_")}.hscheme.yaml") },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.FileDownload, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.studio_color_scheme_export_yaml), style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        // Live Scheme Roles Swatch Strip
+        Text(
+            text = "${stringResource(R.string.studio_color_scheme_tab_tokens)} (${activeColorScheme.name})",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.entries.take(8).forEach { role ->
+                val hex = activeColorScheme.getHex(role) ?: "#888888"
+                val color = safeParseColor(hex, activeColorScheme)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                    )
+                    Text(
+                        text = role.tokenKey.take(3),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun GlobalTabContent(
     document: CustomWidgetDocument,
     onUpdateGlobals: (CustomWidgetGlobals) -> Unit,
     onApplyFontToAll: (TextFontFamily) -> Unit
 ) {
     val globals = document.globals
+    val context = LocalContext.current
+
+    // Resolve active color scheme for preview in Global Tab
+    val activeColorScheme = remember(globals.colorSchemeConfig, globals.embeddedColorSchemeYaml) {
+        com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+            context = context,
+            config = globals.colorSchemeConfig,
+            embeddedYaml = globals.embeddedColorSchemeYaml,
+            isDark = true
+        )
+    }
+
+    StudioColorSchemeSelectorCard(
+        globals = globals,
+        onUpdateGlobals = onUpdateGlobals,
+        activeColorScheme = activeColorScheme
+    )
+
+    Spacer(Modifier.height(12.dp))
 
     StudioSection(stringResource(R.string.studio_tab_global)) {
         StudioColorField(
             label = stringResource(R.string.studio_global_primary_color),
             colorHex = globals.primaryColorHex,
-            onColorHexChange = { onUpdateGlobals(globals.copy(primaryColorHex = it)) }
+            onColorHexChange = { onUpdateGlobals(globals.copy(primaryColorHex = it)) },
+            colorScheme = activeColorScheme
         )
 
         StudioColorField(
             label = stringResource(R.string.studio_global_accent_color),
             colorHex = globals.accentColorHex,
-            onColorHexChange = { onUpdateGlobals(globals.copy(accentColorHex = it)) }
+            onColorHexChange = { onUpdateGlobals(globals.copy(accentColorHex = it)) },
+            colorScheme = activeColorScheme
         )
 
         Spacer(Modifier.height(8.dp))
@@ -4323,6 +5685,25 @@ private fun ActionsTabContent(
             onRequestAppChooser = onRequestAppChooser
         )
     }
+
+    if (node is ButtonNode && node.conditionalEnabled) {
+        Spacer(Modifier.height(8.dp))
+        StudioSection(stringResource(R.string.studio_button_conditional_action)) {
+            Text(
+                text = stringResource(R.string.studio_button_conditional_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            ActionEditor(
+                action = node.conditionalAction ?: node.action,
+                allowNone = false,
+                onChange = { action ->
+                    onChange(node.copy(conditionalAction = action))
+                },
+                onRequestAppChooser = onRequestAppChooser
+            )
+        }
+    }
 }
 
 @Composable
@@ -4344,7 +5725,19 @@ private fun BindingsTabContent(
             BindableProperty.PROGRESS_THUMB_COLOR,
             BindableProperty.OPACITY
         )
-        is ButtonNode -> listOf(BindableProperty.BUTTON_LABEL, BindableProperty.BUTTON_TEXT_COLOR, BindableProperty.BUTTON_BACKGROUND, BindableProperty.OPACITY)
+        is ButtonNode -> listOf(
+            BindableProperty.BUTTON_LABEL,
+            BindableProperty.BUTTON_ICON,
+            BindableProperty.BUTTON_ICON_SIZE,
+            BindableProperty.BUTTON_SUB_ICON,
+            BindableProperty.BUTTON_TEXT_COLOR,
+            BindableProperty.BUTTON_BACKGROUND,
+            BindableProperty.BUTTON_SHAPE,
+            BindableProperty.BUTTON_CORNER_RADIUS,
+            BindableProperty.BUTTON_STROKE_COLOR,
+            BindableProperty.BUTTON_STROKE_WIDTH,
+            BindableProperty.OPACITY
+        )
         is ImageNode -> listOf(BindableProperty.IMAGE_TINT, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
         is ShapeNode -> listOf(BindableProperty.SHAPE_FILL, BindableProperty.SHAPE_STROKE, BindableProperty.SHAPE_STROKE_WIDTH, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
         is LayoutContainer -> listOf(BindableProperty.CONTAINER_BACKGROUND, BindableProperty.BOUNDS_WIDTH, BindableProperty.BOUNDS_HEIGHT, BindableProperty.OPACITY)
@@ -4920,6 +6313,31 @@ private fun ActionEditor(
             }
         }
 
+        is ButtonAction.MediaControl -> {
+            val commands = listOf(
+                "play_pause" to R.string.studio_media_cmd_play_pause,
+                "next" to R.string.studio_media_cmd_next,
+                "previous" to R.string.studio_media_cmd_prev,
+                "play" to R.string.studio_media_cmd_play,
+                "pause" to R.string.studio_media_cmd_pause,
+                "stop" to R.string.studio_media_cmd_stop
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                commands.forEach { (cmd, labelRes) ->
+                    FilterChip(
+                        selected = action.command == cmd,
+                        onClick = { onChange(ButtonAction.MediaControl(cmd)) },
+                        label = { Text(stringResource(labelRes)) }
+                    )
+                }
+            }
+        }
+
         else -> Unit
     }
 }
@@ -5018,6 +6436,7 @@ private enum class ConditionKind(val labelRes: Int) {
     INLINE_REPLY(R.string.studio_condition_has_reply),
     SMART_ACTION(R.string.studio_condition_has_smart_action),
     PROGRESS(R.string.studio_condition_has_progress),
+    MEDIA_PLAYING(R.string.studio_condition_is_media_playing),
     NOT_BLANK(R.string.studio_condition_not_blank),
     MATCHES(R.string.studio_condition_matches);
 
@@ -5027,6 +6446,7 @@ private enum class ConditionKind(val labelRes: Int) {
         INLINE_REPLY -> NodeCondition.HasInlineReply
         SMART_ACTION -> NodeCondition.HasSmartAction("OTP")
         PROGRESS -> NodeCondition.HasProgress
+        MEDIA_PLAYING -> NodeCondition.IsMediaPlaying
         NOT_BLANK -> NodeCondition.NotBlank("{notif.text}")
         MATCHES -> NodeCondition.Matches("{notif.title}", "")
     }
@@ -5038,6 +6458,7 @@ private enum class ConditionKind(val labelRes: Int) {
             is NodeCondition.HasInlineReply -> INLINE_REPLY
             is NodeCondition.HasSmartAction -> SMART_ACTION
             is NodeCondition.HasProgress -> PROGRESS
+            is NodeCondition.IsMediaPlaying -> MEDIA_PLAYING
             is NodeCondition.NotBlank -> NOT_BLANK
             is NodeCondition.Matches -> MATCHES
             is NodeCondition.Not -> of(condition.condition)
@@ -5052,6 +6473,7 @@ private enum class ActionKind(val labelRes: Int) {
     OPEN_APP(R.string.studio_action_open_app),
     INLINE_REPLY(R.string.studio_action_reply),
     SMART_ACTION(R.string.studio_action_smart),
+    MEDIA_CONTROL(R.string.studio_action_media_control),
     DEEP_LINK(R.string.studio_action_deep_link),
     BROADCAST(R.string.studio_action_broadcast_kind),
     DISMISS(R.string.studio_action_dismiss);
@@ -5061,6 +6483,7 @@ private enum class ActionKind(val labelRes: Int) {
         OPEN_APP -> ButtonAction.OpenApp("")
         INLINE_REPLY -> ButtonAction.InlineReply
         SMART_ACTION -> ButtonAction.SmartAction("OTP")
+        MEDIA_CONTROL -> ButtonAction.MediaControl("play_pause")
         DEEP_LINK -> ButtonAction.DeepLink("")
         BROADCAST -> ButtonAction.Broadcast("")
         DISMISS -> ButtonAction.Dismiss
@@ -5072,6 +6495,7 @@ private enum class ActionKind(val labelRes: Int) {
             is ButtonAction.NotificationAction -> NOTIFICATION_ACTION
             is ButtonAction.InlineReply -> INLINE_REPLY
             is ButtonAction.SmartAction -> SMART_ACTION
+            is ButtonAction.MediaControl -> MEDIA_CONTROL
             is ButtonAction.OpenApp -> OPEN_APP
             is ButtonAction.DeepLink -> DEEP_LINK
             is ButtonAction.Broadcast -> BROADCAST

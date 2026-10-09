@@ -95,28 +95,59 @@ class StudioViewModel(
     private val _boundTranslator = MutableStateFlow<CustomTranslator?>(null)
     val boundTranslator: StateFlow<CustomTranslator?> = _boundTranslator.asStateFlow()
 
+    private var currentLoadedWidgetId: String? = null
+
     init {
         val draftJson = savedStateHandle.get<String>(KEY_DRAFT_DOC)
         if (draftJson != null) {
             try {
                 val draft = json.decodeFromString(CustomWidgetDocument.serializer(), draftJson)
                 _document.value = draft
+                currentLoadedWidgetId = draft.id
             } catch (_: Exception) { /* ignore parse error and use initial */ }
         }
     }
 
+    fun createNewDocument() {
+        currentLoadedWidgetId = null
+        val newDoc = createInitialDocument()
+        _document.value = newDoc
+        _savedDocument.value = newDoc
+        _selectedNodeId.value = null
+        undoStack.clear()
+        redoStack.clear()
+        updateHistoryFlags()
+        savedStateHandle.remove<String>(KEY_DRAFT_DOC)
+        existingTranslator = null
+        _boundTranslator.value = null
+    }
+
     fun loadWidget(widgetId: String?, allTranslators: List<CustomTranslator>) {
         if (widgetId == null) {
-            // New widget draft or existing draft from savedStateHandle
+            // If already loaded an existing widget or modified previous doc, reset to clean new doc
+            if (currentLoadedWidgetId != null || isDirty || undoStack.isNotEmpty()) {
+                createNewDocument()
+            }
+            existingTranslator = null
             _boundTranslator.value = null
             return
         }
+
+        if (widgetId == currentLoadedWidgetId && _document.value.id == widgetId) {
+            // Already loaded this widget, update bound translator if needed
+            existingTranslator = allTranslators.firstOrNull { it.presentation.widgetId == widgetId }
+            _boundTranslator.value = existingTranslator
+            return
+        }
+
+        currentLoadedWidgetId = widgetId
 
         viewModelScope.launch {
             val loaded = repository.getWidget(widgetId)
             if (loaded != null) {
                 _document.value = loaded
                 _savedDocument.value = loaded
+                _selectedNodeId.value = null
                 persistDraft(loaded)
                 undoStack.clear()
                 redoStack.clear()
@@ -407,7 +438,7 @@ class StudioViewModel(
 
     private fun createInitialDocument(): CustomWidgetDocument {
         val defaultName = try {
-            getApplication<Application>()?.getString(R.string.studio_new_design) ?: "New Design"
+            getApplication<Application>().getString(R.string.studio_new_design)
         } catch (_: Throwable) {
             "New Design"
         }

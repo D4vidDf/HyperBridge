@@ -50,6 +50,10 @@ sealed interface NodeCondition {
     @SerialName("has_progress")
     data object HasProgress : NodeCondition
 
+    @Serializable
+    @SerialName("is_media_playing")
+    data object IsMediaPlaying : NodeCondition
+
     /** True when [template], once resolved, is not blank. */
     @Serializable
     @SerialName("not_blank")
@@ -393,13 +397,30 @@ sealed interface ButtonAction {
         val extraKey: String? = null,
         val extraValue: String? = null
     ) : ButtonAction
+
+    /** Dispatches a media control command: play_pause, next, previous, stop. */
+    @Serializable
+    @SerialName("media_control")
+    data class MediaControl(val command: String = "play_pause") : ButtonAction
+}
+
+@Serializable
+enum class ButtonIconPosition {
+    @SerialName("leading")
+    LEADING,
+    @SerialName("trailing")
+    TRAILING,
+    @SerialName("icon_only")
+    ICON_ONLY,
+    @SerialName("top")
+    TOP
 }
 
 @Serializable
 @SerialName("button")
 data class ButtonNode(
     override val id: String,
-    override val bounds: NodeBounds = NodeBounds(),
+    override val bounds: NodeBounds = NodeBounds(widthDp = 80, heightDp = 36),
     override val name: String? = null,
     override val locked: Boolean = false,
     override val opacity: Float = 1f,
@@ -408,7 +429,30 @@ data class ButtonNode(
     val action: ButtonAction = ButtonAction.NotificationAction(0),
     val backgroundHex: String? = null,
     val textColorHex: String = "#FFFFFF",
-    override val showIf: NodeCondition = NodeCondition.Always
+    override val showIf: NodeCondition = NodeCondition.Always,
+    // Icon & Sub-icon
+    val icon: String? = null,
+    val subIcon: String? = null,
+    val iconPosition: ButtonIconPosition = ButtonIconPosition.LEADING,
+    val iconSizeDp: Int = 18,
+    // Shape & Styling
+    val shapeId: String = "rounded_rect",
+    val cornerRadiusDp: Int = 12,
+    val strokeColorHex: String? = null,
+    val strokeWidthDp: Int = 0,
+    // Conditional State Overrides (e.g. media play/pause, etc.)
+    val conditionalEnabled: Boolean = false,
+    val condition: NodeCondition = NodeCondition.IsMediaPlaying,
+    val conditionalLabel: String? = null,
+    val conditionalIcon: String? = null,
+    val conditionalSubIcon: String? = null,
+    val conditionalTextColorHex: String? = null,
+    val conditionalBackgroundHex: String? = null,
+    val conditionalShapeId: String? = null,
+    val conditionalCornerRadiusDp: Int? = null,
+    val conditionalStrokeColorHex: String? = null,
+    val conditionalStrokeWidthDp: Int? = null,
+    val conditionalAction: ButtonAction? = null
 ) : CustomWidgetNode {
     override val onClick: ButtonAction? get() = action
 }
@@ -466,7 +510,9 @@ data class LayoutContainer(
 data class CustomWidgetGlobals(
     val primaryColorHex: String = "#FFFFFF",
     val accentColorHex: String = "#0A84FF",
-    val fontFamily: TextFontFamily = TextFontFamily.DEFAULT
+    val fontFamily: TextFontFamily = TextFontFamily.DEFAULT,
+    val colorSchemeConfig: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
+    val embeddedColorSchemeYaml: String? = null
 )
 
 @Serializable
@@ -517,8 +563,15 @@ enum class BindableProperty(val key: String) {
     PROGRESS_THUMB_SIZE("thumbSizeDp"),
     PROGRESS_THUMB_COLOR("thumbColorHex"),
     BUTTON_LABEL("label"),
+    BUTTON_ICON("icon"),
+    BUTTON_SUB_ICON("subIcon"),
     BUTTON_TEXT_COLOR("textColorHex"),
     BUTTON_BACKGROUND("backgroundHex"),
+    BUTTON_SHAPE("shapeId"),
+    BUTTON_CORNER_RADIUS("cornerRadiusDp"),
+    BUTTON_STROKE_COLOR("strokeColorHex"),
+    BUTTON_STROKE_WIDTH("strokeWidthDp"),
+    BUTTON_ICON_SIZE("iconSizeDp"),
     IMAGE_TINT("tintHex"),
     CONTAINER_BACKGROUND("backgroundHex"),
     BOUNDS_WIDTH("widthDp"),

@@ -67,6 +67,25 @@ class CustomWidgetDocumentSerializationTest {
                     ButtonNode(id = "dismiss", label = "Dismiss", action = ButtonAction.Dismiss),
                     ButtonNode(id = "reply", label = "Reply", action = ButtonAction.InlineReply),
                     ButtonNode(id = "link", label = "Link", action = ButtonAction.DeepLink("https://example.com")),
+                    ButtonNode(
+                        id = "media_btn",
+                        label = "Play",
+                        action = ButtonAction.MediaControl("play_pause"),
+                        icon = "play",
+                        subIcon = "music",
+                        iconPosition = ButtonIconPosition.LEADING,
+                        iconSizeDp = 20,
+                        shapeId = "pill",
+                        cornerRadiusDp = 16,
+                        strokeColorHex = "#FFFFFF",
+                        strokeWidthDp = 2,
+                        conditionalEnabled = true,
+                        condition = NodeCondition.IsMediaPlaying,
+                        conditionalLabel = "Pause",
+                        conditionalIcon = "pause",
+                        conditionalSubIcon = "music",
+                        conditionalAction = ButtonAction.MediaControl("pause")
+                    ),
                     LayoutContainer(
                         id = "row",
                         layout = ContainerLayout.ABSOLUTE,
@@ -235,7 +254,12 @@ class CustomWidgetDocumentSerializationTest {
             globals = CustomWidgetGlobals(
                 primaryColorHex = "#AABBCC",
                 accentColorHex = "#112233",
-                fontFamily = TextFontFamily.MONOSPACE
+                fontFamily = TextFontFamily.MONOSPACE,
+                colorSchemeConfig = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(
+                    sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE,
+                    mediaSourceKey = "album_art"
+                ),
+                embeddedColorSchemeYaml = "id: test\nname: Test\nroles:\n  primary: \"#FF5500\""
             ),
             root = LayoutContainer(
                 id = "root",
@@ -252,6 +276,9 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals("#AABBCC", decoded.globals.primaryColorHex)
         assertEquals("#112233", decoded.globals.accentColorHex)
         assertEquals(TextFontFamily.MONOSPACE, decoded.globals.fontFamily)
+        assertEquals(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE, decoded.globals.colorSchemeConfig.sourceType)
+        assertEquals("album_art", decoded.globals.colorSchemeConfig.mediaSourceKey)
+        assertEquals("id: test\nname: Test\nroles:\n  primary: \"#FF5500\"", decoded.globals.embeddedColorSchemeYaml)
         assertEquals(ContainerBackgroundType.PICTURE, decoded.root.backgroundType)
         assertEquals("content://media/external/images/123", decoded.root.backgroundImageUri)
         assertEquals(ImageSource.NotifMedia("picture"), decoded.root.backgroundImageSource)
@@ -438,5 +465,37 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals(12, prog.thumbSizeDp)
         assertEquals(null, prog.thumbColorHex)
         assertEquals(null, prog.thumbImageSource)
+    }
+
+    @Test
+    fun roundTripsButtonNodeWithColorSchemeTokens() {
+        val button = ButtonNode(
+            id = "btn-scheme",
+            label = "Play",
+            icon = "play",
+            textColorHex = "@scheme:onPrimary",
+            backgroundHex = "@scheme:primary",
+            strokeColorHex = "@scheme:outline",
+            conditionalEnabled = true,
+            conditionalTextColorHex = "@scheme:onSecondary",
+            conditionalBackgroundHex = "@scheme:secondary",
+            conditionalStrokeColorHex = "@scheme:outlineVariant"
+        )
+        val doc = CustomWidgetDocument(
+            id = "test-btn-scheme",
+            meta = CustomWidgetMetadata(name = "Button Scheme Test"),
+            root = LayoutContainer(id = "root", children = listOf(button))
+        )
+
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+        val decodedBtn = decoded.root.children.first() as ButtonNode
+
+        assertEquals("@scheme:onPrimary", decodedBtn.textColorHex)
+        assertEquals("@scheme:primary", decodedBtn.backgroundHex)
+        assertEquals("@scheme:outline", decodedBtn.strokeColorHex)
+        assertEquals("@scheme:onSecondary", decodedBtn.conditionalTextColorHex)
+        assertEquals("@scheme:secondary", decodedBtn.conditionalBackgroundHex)
+        assertEquals("@scheme:outlineVariant", decodedBtn.conditionalStrokeColorHex)
     }
 }

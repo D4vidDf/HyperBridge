@@ -298,11 +298,9 @@ fun HomeScreen(
                                         DesignManagerScreen(
                                             onBack = { designRoute = DesignRoute.DASHBOARD },
                                             onAddDesign = {
-                                                // Create a new design in editor
-                                                editingTranslatorId = null
-                                                newTranslatorPackageName = null
-                                                previousTranslatorManagerRoute = DesignRoute.DESIGN_MANAGER
-                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                                // Create a new custom design in Studio
+                                                editingCustomWidgetId = null
+                                                designRoute = DesignRoute.STUDIO_EDITOR
                                             },
                                             onEditDesign = { id ->
                                                 editingTranslatorId = id

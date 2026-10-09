@@ -56,11 +56,11 @@ class StudioTabsTest {
     }
 
     @Test
-    fun `tabsFor button node returns info, position, colors, value, actions, visibility`() {
+    fun `tabsFor button node returns button, actions, colors, style, position, visibility, info`() {
         val button = ButtonNode(id = "btn_action")
         val tabs = StudioTab.tabsFor(button, isRoot = false)
         assertEquals(
-            listOf(StudioTab.INFO, StudioTab.POSITION, StudioTab.COLORS, StudioTab.VALUE, StudioTab.ACTIONS, StudioTab.VISIBILITY),
+            listOf(StudioTab.BUTTON, StudioTab.ACTIONS, StudioTab.COLORS, StudioTab.STYLE, StudioTab.POSITION, StudioTab.VISIBILITY, StudioTab.INFO),
             tabs
         )
     }

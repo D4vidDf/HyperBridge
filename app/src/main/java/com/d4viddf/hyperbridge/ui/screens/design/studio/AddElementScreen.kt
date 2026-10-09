@@ -71,7 +71,7 @@ enum class StudioElement(
             IMAGE -> ImageNode(id = id, bounds = NodeBounds(x = 8, y = 8, widthDp = 24, heightDp = 24))
             SHAPE -> ShapeNode(id = id, bounds = NodeBounds(x = 8, y = 8, widthDp = 48, heightDp = 48))
             PROGRESS -> ProgressNode(id = id, bounds = NodeBounds(x = 8, y = 8, widthDp = 120, heightDp = 8))
-            BUTTON -> ButtonNode(id = id, label = "Button", bounds = NodeBounds(x = 8, y = 8))
+            BUTTON -> ButtonNode(id = id, label = "Button", bounds = NodeBounds(x = 8, y = 8, widthDp = 80, heightDp = 36))
             CONTAINER -> LayoutContainer(id = id, layout = ContainerLayout.ROW, bounds = NodeBounds(x = 8, y = 8))
         }
     }

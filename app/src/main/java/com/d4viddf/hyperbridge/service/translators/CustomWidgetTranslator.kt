@@ -97,6 +97,25 @@ class CustomWidgetTranslator(
             notif.smallIcon?.loadDrawable(context)?.toBitmap()
         } catch (_: Exception) { null }
 
+        val iconBitmap = try {
+            context.packageManager.getApplicationIcon(sbn.packageName).toBitmap()
+        } catch (_: Exception) {
+            null
+        }
+
+        val resolvedColorScheme = com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+            context = context,
+            config = doc.globals.colorSchemeConfig,
+            embeddedYaml = doc.globals.embeddedColorSchemeYaml ?: theme?.embeddedColorSchemeYaml,
+            appIconBitmap = iconBitmap,
+            mediaBitmaps = mapOf(
+                "album_art" to notifPictureBitmap,
+                "picture" to notifPictureBitmap,
+                "avatar" to notifAvatarBitmap
+            ),
+            isDark = true
+        )
+
         val ctx = VariableContext(
             notifTitle = effectiveTitle,
             notifText = effectiveText,
@@ -118,7 +137,10 @@ class CustomWidgetTranslator(
             mediaTrack = effectiveTitle,
             mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: effectiveText,
             mediaDuration = mediaResult.durationFormatted,
-            mediaPosition = mediaResult.currentFormatted
+            mediaPosition = mediaResult.currentFormatted,
+            isMediaPlaying = mediaResult.isPlaying ?: false,
+            mediaState = mediaResult.playbackStateStr,
+            colorScheme = resolvedColorScheme
         )
 
         val intents = WidgetActionIntents(
@@ -131,13 +153,6 @@ class CustomWidgetTranslator(
         val rv = renderer.render(doc, ctx, bridgeId = bridgeId, intents = intents)
 
         val builder = HyperIslandNotification.Builder(context, "custom_widget_channel", effectiveTitle)
-        // Collapsed pill: the source app's icon (same recipe as WidgetTranslator). Without a big
-        // island info block HyperOS shows an anonymous pill that never expands.
-        val iconBitmap = try {
-            context.packageManager.getApplicationIcon(sbn.packageName).toBitmap()
-        } catch (_: Exception) {
-            null
-        }
         if (iconBitmap != null) {
             builder.addPicture(HyperPicture(picKey, Icon.createWithBitmap(iconBitmap)))
             builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = picKey)))

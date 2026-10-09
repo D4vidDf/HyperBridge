@@ -3,5 +3,5 @@
     android:id="@+id/node_image"
     android:layout_width="24dp"
     android:layout_height="24dp"
-    android:scaleType="centerCrop"
+    android:scaleType="fitXY"
     android:contentDescription="@string/studio_node_image" />

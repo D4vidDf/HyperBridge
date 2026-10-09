@@ -29,6 +29,8 @@ object NodeConditionEvaluator {
 
         is NodeCondition.HasProgress -> ctx.notifProgress != null
 
+        is NodeCondition.IsMediaPlaying -> ctx.isMediaPlaying
+
         is NodeCondition.NotBlank ->
             engine.resolve(condition.template, ctx).isNotBlank()
 
