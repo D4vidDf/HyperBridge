@@ -163,6 +163,51 @@ class CallNotificationClassifierTest {
     }
 
     @Test
+    fun multiWordMuteLabelsAreMicrophoneControls() {
+        listOf("Mute microphone", "Tap to mute", "Mute call").forEach { title ->
+            val action = CallActionSignal(title, 0, true)
+            assertEquals(title, CallActionRole.MICROPHONE, classifier.roleForAction(action))
+            assertEquals(title, CallMicrophoneState.UNMUTED, classifier.microphoneStateForAction(action))
+        }
+        val unmute = CallActionSignal("Unmute microphone", 0, true)
+        assertEquals(CallMicrophoneState.MUTED, classifier.microphoneStateForAction(unmute))
+    }
+
+    @Test
+    fun paddedOrUnrelatedLabelsAreNotMicrophoneControls() {
+        listOf(" Open call", "Video ", "Community", "Muted chats").forEach { title ->
+            val action = CallActionSignal(title, 0, true)
+            assertEquals(title, CallActionRole.OTHER, classifier.roleForAction(action))
+            assertEquals(title, CallMicrophoneState.UNKNOWN, classifier.microphoneStateForAction(action))
+        }
+    }
+
+    @Test
+    fun multiWordMuteAppearingAfterCallingMarksCallActive() {
+        val tracker = CallSessionTracker()
+        val calling = classifier.classify(
+            baseSignals(
+                category = CallNotificationClassifier.CATEGORY_CALL,
+                callType = CallNotificationClassifier.CALL_TYPE_ONGOING,
+                actions = listOf(action("Hang up"))
+            )
+        )
+        val connected = classifier.classify(
+            baseSignals(
+                category = CallNotificationClassifier.CATEGORY_CALL,
+                callType = CallNotificationClassifier.CALL_TYPE_ONGOING,
+                actions = listOf(action("Mute microphone"), action("Hang up"))
+            )
+        )
+
+        assertEquals(CallState.OUTGOING_CALLING, tracker.resolve(input(calling, 10_000L)).state)
+        val session = tracker.resolve(input(connected, 20_000L))
+
+        assertEquals(CallState.ACTIVE, session.state)
+        assertEquals(CallActiveEvidence.CONNECTED_ACTIONS_APPEARED, session.activeEvidence)
+    }
+
+    @Test
     fun ongoingControlsPreferAppMuteThenHangUp() {
         val actions = listOf(
             CallActionSignal("Speaker", 0, true),

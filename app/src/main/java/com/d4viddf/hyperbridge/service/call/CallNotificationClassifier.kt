@@ -204,12 +204,23 @@ class CallNotificationClassifier(
         }
     }
 
+    /**
+     * Whole-word match, so "Mute microphone" and "Tap to mute" count as a microphone control
+     * while "Unmute" never matches the "mute" keyword.
+     */
     private fun matchesActionKeyword(normalizedTitle: String, keyword: String): Boolean {
         val normalizedKeyword = keyword.trim().lowercase()
         if (normalizedKeyword.isEmpty()) return false
-        return normalizedTitle == normalizedKeyword ||
-                normalizedTitle.startsWith(" ") ||
-                normalizedTitle.endsWith(" ")
+        var from = 0
+        while (true) {
+            val index = normalizedTitle.indexOf(normalizedKeyword, from)
+            if (index < 0) return false
+            val end = index + normalizedKeyword.length
+            val startsWord = index == 0 || !normalizedTitle[index - 1].isLetterOrDigit()
+            val endsWord = end == normalizedTitle.length || !normalizedTitle[end].isLetterOrDigit()
+            if (startsWord && endsWord) return true
+            from = index + 1
+        }
     }
 
     companion object {
