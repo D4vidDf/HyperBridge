@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerScreen
+import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioDesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.WidgetConfigScreen
@@ -60,7 +61,8 @@ private enum class DesignRoute {
     THEME_CREATOR,
     DESIGN_MANAGER,
     TRANSLATOR_MANAGER,
-    TRANSLATOR_EDITOR
+    TRANSLATOR_EDITOR,
+    STUDIO_EDITOR
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +83,7 @@ fun HomeScreen(
     var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
     var editingThemeId by remember { mutableStateOf<String?>(null) }
     var editingTranslatorId by remember { mutableStateOf<String?>(null) }
+    var editingCustomWidgetId by remember { mutableStateOf<String?>(null) }
     var newTranslatorPackageName by remember { mutableStateOf<String?>(null) }
     var previousTranslatorManagerRoute by remember { mutableStateOf(DesignRoute.TRANSLATOR_MANAGER) }
 
@@ -103,6 +106,10 @@ fun HomeScreen(
                 DesignRoute.THEME_CREATOR -> {
                     editingThemeId = null
                     DesignRoute.THEME_MANAGER
+                }
+                DesignRoute.STUDIO_EDITOR -> {
+                    editingCustomWidgetId = null
+                    DesignRoute.DESIGN_MANAGER
                 }
                 DesignRoute.TRANSLATOR_EDITOR -> {
                     editingTranslatorId = null
@@ -198,6 +205,16 @@ fun HomeScreen(
                                         )
                                     }
 
+                                    DesignRoute.STUDIO_EDITOR -> {
+                                        StudioDesignScreen(
+                                            widgetId = editingCustomWidgetId,
+                                            onBack = {
+                                                editingCustomWidgetId = null
+                                                designRoute = DesignRoute.DESIGN_MANAGER
+                                            }
+                                        )
+                                    }
+
                                     DesignRoute.WIDGET_LIST -> {
                                         SavedAppWidgetsScreen(
                                             onBack = { designRoute = DesignRoute.DASHBOARD },
@@ -256,17 +273,19 @@ fun HomeScreen(
                                         DesignManagerScreen(
                                             onBack = { designRoute = DesignRoute.DASHBOARD },
                                             onAddDesign = {
-                                                // Create a new design in editor
-                                                editingTranslatorId = null
-                                                newTranslatorPackageName = null
-                                                previousTranslatorManagerRoute = DesignRoute.DESIGN_MANAGER
-                                                designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                                // Create a new custom design in Studio
+                                                editingCustomWidgetId = null
+                                                designRoute = DesignRoute.STUDIO_EDITOR
                                             },
                                             onEditDesign = { id ->
                                                 editingTranslatorId = id
                                                 newTranslatorPackageName = null
                                                 previousTranslatorManagerRoute = DesignRoute.DESIGN_MANAGER
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
+                                            },
+                                            onOpenStudio = { widgetId ->
+                                                editingCustomWidgetId = widgetId
+                                                designRoute = DesignRoute.STUDIO_EDITOR
                                             }
                                         )
                                     }

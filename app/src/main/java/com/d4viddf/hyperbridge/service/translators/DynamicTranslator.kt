@@ -754,6 +754,7 @@ class DynamicTranslator(
         map["progress.is_indeterminate"] = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false).toString()
 
         // Call & Media fields
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, context)
         map["notif.caller_name"] = callerName ?: sender ?: title
         map["call.caller_name"] = callerName ?: sender ?: title
         map["notif.call_state"] = callState ?: ""
@@ -762,6 +763,13 @@ class DynamicTranslator(
         map["media.artist"] = mediaArtist ?: ""
         map["media.album"] = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
         map["media.track"] = title
+        map["media.progress"] = mediaResult.progressPercent?.toString() ?: progress ?: ""
+        if (mediaResult.currentFormatted != null) {
+            map["media.position"] = mediaResult.currentFormatted
+        }
+        if (mediaResult.durationFormatted != null) {
+            map["media.duration"] = mediaResult.durationFormatted
+        }
 
         // App & System metadata
         map["app.name"] = try {
