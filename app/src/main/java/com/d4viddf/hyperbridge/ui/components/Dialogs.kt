@@ -92,7 +92,7 @@ fun AppConfigBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val navEditDesc = stringResource(R.string.cd_nav_edit)
-    val activeDesc = stringResource(R.string.cd_app_state_active)
+    val activeDesc = stringResource(R.string.status_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
 
     ModalBottomSheet(

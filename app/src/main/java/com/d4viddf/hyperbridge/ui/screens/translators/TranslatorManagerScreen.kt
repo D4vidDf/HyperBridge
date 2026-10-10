@@ -1,7 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.translators
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -251,7 +250,7 @@ fun TranslatorManagerContent(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(R.string.translators_manager_title),
+                            text = stringResource(R.string.design_section_translators),
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -347,7 +346,7 @@ fun TranslatorManagerContent(
                         onClick = {
                             onResetFilter?.invoke() ?: onFilterStateChange?.invoke(TranslatorFilterState()) ?: onFilterSelected?.invoke(TranslatorFilterScope.ALL)
                         },
-                        label = { Text(stringResource(R.string.translators_filter_all)) },
+                        label = { Text(stringResource(R.string.all)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -766,7 +765,7 @@ fun TranslatorFilterSheet(
         scopeFilteredTranslators.map { it.meta.author.trim() }.filter { it.isNotEmpty() }.distinct().sorted()
     }
     val availableIcons = remember(scopeFilteredTranslators) {
-        scopeFilteredTranslators.mapNotNull { it.meta.iconName }.filter { it.isNotEmpty() }.distinct().sorted()
+        scopeFilteredTranslators.map { it.meta.iconName }.filter { it.isNotEmpty() }.distinct().sorted()
     }
 
     // Clean up selections that are no longer present in the active scope filter
@@ -835,11 +834,11 @@ fun TranslatorFilterSheet(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         val scopeOptions = listOf(
-                            TranslatorFilterScope.ALL to R.string.translators_filter_all,
-                            TranslatorFilterScope.ACTIVE to R.string.translators_filter_active,
-                            TranslatorFilterScope.INACTIVE to R.string.translators_filter_inactive,
-                            TranslatorFilterScope.GLOBAL to R.string.translators_filter_global,
-                            TranslatorFilterScope.APPS to R.string.translators_filter_apps,
+                            TranslatorFilterScope.ALL to R.string.all,
+                            TranslatorFilterScope.ACTIVE to R.string.status_active,
+                            TranslatorFilterScope.INACTIVE to R.string.cd_app_state_inactive,
+                            TranslatorFilterScope.GLOBAL to R.string.translator_scope_global,
+                            TranslatorFilterScope.APPS to R.string.apps_section_header,
                             TranslatorFilterScope.SYSTEM_APPS to R.string.translators_filter_system_apps,
                             TranslatorFilterScope.NOTIF_TYPES to R.string.translators_filter_types
                         )
@@ -864,7 +863,7 @@ fun TranslatorFilterSheet(
                 if (availableNotificationTypes.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = stringResource(R.string.translators_filter_types_section),
+                            text = stringResource(R.string.active_notifications_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary

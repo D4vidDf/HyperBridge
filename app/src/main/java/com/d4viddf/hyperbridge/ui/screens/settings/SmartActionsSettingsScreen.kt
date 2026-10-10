@@ -193,7 +193,7 @@ fun SmartActionsSettingsContent(
                 SettingsDivider()
                 SettingsSwitchItem(
                     icon = Icons.Outlined.Directions,
-                    title = stringResource(R.string.setting_smart_actions_navigation),
+                    title = stringResource(R.string.smart_action_directions),
                     subtitle = stringResource(R.string.setting_smart_actions_navigation_desc),
                     checked = config.navigation,
                     onCheckedChange = { onTypeChange(SmartActionType.NAVIGATION, it) }

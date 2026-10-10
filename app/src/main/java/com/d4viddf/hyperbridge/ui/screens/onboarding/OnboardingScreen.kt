@@ -642,7 +642,7 @@ fun PriorityEducationPage(prefs: AppPreferences) {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        stringResource(R.string.island_behavior),
+                        stringResource(R.string.island_behavior_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -715,7 +715,7 @@ fun BehaviorConfigPage(prefs: AppPreferences) {
     val scope = rememberCoroutineScope()
 
     OnboardingPageLayout(
-        title = stringResource(R.string.island_behavior),
+        title = stringResource(R.string.island_behavior_title),
         description = stringResource(R.string.behavior_desc_glob_config),
         icon = Icons.Default.Settings,
         iconColor = MaterialTheme.colorScheme.primary
@@ -832,7 +832,7 @@ fun AutoHideConfigPage(prefs: AppPreferences) {
     val isTimeoutEnabled = currentTimeout > 0
 
     OnboardingPageLayout(
-        title = stringResource(R.string.island_behavior),
+        title = stringResource(R.string.island_behavior_title),
         description = stringResource(R.string.behavior_desc_hide_long),
         icon = Icons.Rounded.Timer,
         iconColor = MaterialTheme.colorScheme.primary
@@ -1185,7 +1185,7 @@ fun ShizukuPage(prefs: AppPreferences) {
             }
         } else if (isWorkaroundEnabled) {
             ListOptionCard(
-                title = stringResource(if (isPermissionGranted) R.string.shizuku_permission_granted else R.string.shizuku_status_running),
+                title = stringResource(if (isPermissionGranted) R.string.perm_granted else R.string.shizuku_status_running),
                 subtitle = stringResource(if (isPermissionGranted) R.string.shizuku_status_running else R.string.shizuku_permission_denied),
                 icon = if (isPermissionGranted) Icons.Default.Security else Icons.Default.Warning,
                 shape = RoundedCornerShape(24.dp),
@@ -1367,7 +1367,7 @@ fun FeaturedNotificationCheckPage(context: Context) {
                 )
             ) {
                 Text(
-                    stringResource(if (isGranted) R.string.featured_notifications_enabled else R.string.featured_notifications_open_settings),
+                    stringResource(if (isGranted) R.string.system_integration_enabled else R.string.featured_notifications_open_settings),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -1399,7 +1399,7 @@ fun FeaturedNotificationCheckPage(context: Context) {
 @Composable
 fun OptimizationPage(context: Context) {
     OnboardingPageLayout(
-        title = stringResource(R.string.optimization_title),
+        title = stringResource(R.string.device_optimization),
         description = stringResource(R.string.optimization_desc),
         icon = Icons.Default.BatteryStd,
         iconColor = MaterialTheme.colorScheme.secondary

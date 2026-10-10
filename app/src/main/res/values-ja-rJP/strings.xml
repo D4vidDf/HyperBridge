@@ -61,7 +61,6 @@
     <string name="licenses_subtitle">サードパーティ製ソフトウェア</string>
     <string name="footer_made_with_love">スペインで❤️を込めて制作</string>
 
-    <string name="app_health_desc">アプリがバックグラウンドで正しく動作するには、すべての項目が緑色である必要があります。</string>
     <string name="req_permissions">必要な権限</string>
     <string name="notif_access">通知へのアクセス</string>
     <string name="notif_access_desc">アプリのイベントを読み取るために必要です</string>
@@ -72,7 +71,6 @@
     <string name="recents_note">注意: 「最近使ったアプリ」画面でもアプリをロックしてください。</string>
     <string name="status_active">有効</string>
 
-    <string name="cat_all">すべて</string>
     <string name="cat_music">音楽</string>
     <string name="cat_nav">ナビゲーション</string>
     <string name="cat_timer">生産性</string>
@@ -173,7 +171,6 @@
     <string name="cd_enable_type">%s の通知を有効にする</string>
     <string name="cd_disable_type">%s の通知を無効にする</string>
     <string name="cd_nav_edit">ナビゲーションレイアウトを編集</string>
-    <string name="cd_app_state_active">有効</string>
     <string name="cd_app_state_inactive">無効</string>
 
     <string name="cd_move_up">上に移動</string>
@@ -181,8 +178,6 @@
     <string name="cd_drag_handle">ドラッグハンドル。ダブルタップして長押しすると並び替え、または操作ボタンで移動できます。</string>
     <string name="cd_app_icon">%s のアプリアイコン</string>
     <string name="cd_nav_preview">ナビゲーションプレビュー: 左に%1$s、右に%2$s</string>
-    <string name="cd_expand_changelog">バージョン詳細を展開</string>
-    <string name="cd_collapse_changelog">バージョン詳細を折りたたむ</string>
 
     <string name="nav_preview_instruction">右折します</string>
     <string name="nav_preview_distance">200m</string>
@@ -280,7 +275,6 @@
     <string name="backup_empty_suffix">（空）</string>
     <string name="action_restore_selected">選択したデータを復元</string>
 
-    <string name="optimization_title">デバイスの最適化</string>
 
     <string name="privacy_card_title">オフラインファースト</string>
     <string name="privacy_card_desc">インターネット接続は不要です。</string>
@@ -335,7 +329,6 @@
     <string name="size_xlarge">特大（380dp）</string>
 
     <string name="app_uninstalled_badge">アンインストール済み</string>
-    <string name="settings_action">設定</string>
 
     <string name="saved_widgets_title">保存済みウィジェット</string>
     <string name="no_saved_widgets">保存されたウィジェットがありません。</string>
@@ -351,7 +344,6 @@
     <string name="theme_installer_action_later">後で使用するため保存</string>
     <string name="theme_installer_error_title">インポートに失敗しました</string>
     <string name="theme_installer_error_generic">テーマファイルを検証できませんでした。</string>
-    <string name="theme_installer_btn_close">閉じる</string>
     <string name="theme_manager_title">マイテーマ</string>
     <string name="theme_manager_cd_add">新しいテーマを追加</string>
 
@@ -365,10 +357,6 @@
     <string name="theme_sheet_title">新しいテーマを追加</string>
 
     <string name="theme_sheet_action_create">新しいテーマを作成</string>
-    <string name="theme_sheet_action_find">検索</string>
-    <string name="theme_action_import_short">インポート</string>
-    <string name="theme_card_action_edit">編集</string>
-    <string name="theme_card_action_export">エクスポート</string>
 
     <string name="creator_title_new">テーマを作成</string>
     <string name="creator_title_edit">テーマを編集</string>
@@ -376,7 +364,6 @@
     <string name="creator_nav_icons">アイコン＆形状</string>
     <string name="creator_nav_calls">通話スタイル</string>
     <string name="creator_nav_apps">アプリ設定</string>
-    <string name="creator_action_save">保存</string>
     <string name="creator_btn_edit_info">テーマ情報を編集</string>
     <string name="creator_sub_colors">配色とコントラスト</string>
     <string name="creator_sub_icons">形状と余白</string>
@@ -386,7 +373,6 @@
     <string name="meta_title">テーマ情報</string>
     <string name="meta_label_name">テーマ名</string>
     <string name="meta_label_author">作成者名</string>
-    <string name="meta_action_done">完了</string>
 
     <string name="colors_tab_presets">プリセット</string>
     <string name="colors_tab_custom">カスタム</string>
@@ -396,7 +382,6 @@
     <string name="colors_label_custom_title">カスタムカラー</string>
     <string name="colors_cd_add_custom">カスタムカラーを追加</string>
     <string name="colors_dialog_title">色を選択</string>
-    <string name="colors_action_done">完了</string>
 
     <string name="icons_tab_style">スタイル</string>
     <string name="icons_tab_assets">アイコン</string>
@@ -404,7 +389,6 @@
     <string name="icons_label_size">アイコンサイズ</string>
     <string name="icons_label_full">フル</string>
     <string name="icons_label_minimal">ミニマル</string>
-    <string name="icons_group_nav">ナビゲーション</string>
     <string name="icons_btn_start">開始</string>
     <string name="icons_btn_end">終了</string>
     <string name="icons_group_progress">進行状況</string>
@@ -432,13 +416,7 @@
     <string name="design_section_themes">テーマ</string>
     <string name="design_section_widgets">ウィジェット</string>
 
-    <string name="design_browse_more">もっと見る</string>
-    <string name="design_add_new">新規追加</string>
     <string name="design_add_design">デザインを追加</string>
-    <string name="design_add_to_island">カスタマイズ</string>
-    <string name="design_system_widget_beta">システムウィジェット（ベータ）</string>
-    <string name="design_get_themes">テーマを入手</string>
-    <string name="design_empty_widget_title">最初のウィジェットを追加</string>
     <string name="design">デザイン</string>
 
     <string name="creator_nav_actions">全体アクション</string>
@@ -508,7 +486,6 @@
 
     <string name="channel_live_updates">ネイティブライブアップデート</string>
 
-    <string name="engine_preview_title">プレビュー</string>
     <string name="engine_design_section">通知デザイン</string>
     <string name="engine_xiaomi_title">Xiaomi Featuredデザイン</string>
     <string name="engine_xiaomi_desc">Xiaomiの意図に沿った、モダンなHyperOSレイアウトです。</string>
@@ -545,7 +522,6 @@
     <string name="trigger_override">トリガーの上書き</string>
     <string name="trigger_app_desc">このアプリでアイランドを表示させるイベントを選択してください。</string>
     <string name="enable_triggers">特定のトリガーを有効にする</string>
-    <string name="open_source_licenses">オープンソースライセンス</string>
     <string name="remove_original_notification">元の通知を削除</string>
     <string name="remove_original_notification_desc">ライブアップデートが表示されている間、元の通知を自動的に消去します。</string>
     <string name="onboarding_can_be_changed">これらのオプションは、後から設定画面やテーマ設定でいつでも変更できます。</string>

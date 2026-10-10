@@ -39,7 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,7 +65,6 @@ class ThemeInstallerActivity : ComponentActivity() {
         setContent {
             // [FIX] Detect System Theme & Use Dynamic Colors
             val darkTheme = isSystemInDarkTheme()
-            val context = LocalContext.current
 
             val colorScheme = when {
                 darkTheme -> darkColorScheme()
@@ -322,7 +320,7 @@ private fun ErrorContent(onClose: () -> Unit) {
             containerColor = MaterialTheme.colorScheme.error
         )
     ) {
-        Text(stringResource(R.string.theme_installer_btn_close))
+        Text(stringResource(R.string.close))
     }
 }
 

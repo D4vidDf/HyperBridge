@@ -75,6 +75,7 @@ import com.d4viddf.hyperbridge.ui.components.formatSeconds
 import com.d4viddf.hyperbridge.ui.components.timeoutSteps
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.launch
+import androidx.core.graphics.createBitmap
 
 @Composable
 fun SystemUpdateSettingsScreen(
@@ -194,7 +195,7 @@ fun SystemUpdateSettingsContent(
                             Text(
                                 text = when (leftDesign) {
                                     SystemUpdateLeftDesign.ICON_AND_TEXT -> stringResource(R.string.system_updater_left_option_icon_and_text)
-                                    SystemUpdateLeftDesign.ICON_ONLY -> stringResource(R.string.system_updater_left_option_icon_only)
+                                    SystemUpdateLeftDesign.ICON_ONLY -> stringResource(R.string.screen_recording_left_option_icon_only)
                                     SystemUpdateLeftDesign.TEXT_ONLY -> stringResource(R.string.system_updater_left_option_text_only)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
@@ -232,7 +233,7 @@ fun SystemUpdateSettingsContent(
                                 text = when (rightDesign) {
                                     SystemUpdateRightDesign.PERCENTAGE -> stringResource(R.string.system_updater_right_option_percentage)
                                     SystemUpdateRightDesign.PROGRESS_CIRCLE -> stringResource(R.string.system_updater_right_option_progress_circle)
-                                    SystemUpdateRightDesign.NONE -> stringResource(R.string.system_updater_right_option_none)
+                                    SystemUpdateRightDesign.NONE -> stringResource(R.string.screen_recording_right_option_none)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary
@@ -357,7 +358,7 @@ fun SystemUpdateSettingsContent(
             labelFor = { option ->
                 when (option) {
                     SystemUpdateLeftDesign.ICON_AND_TEXT -> stringResource(R.string.system_updater_left_option_icon_and_text)
-                    SystemUpdateLeftDesign.ICON_ONLY -> stringResource(R.string.system_updater_left_option_icon_only)
+                    SystemUpdateLeftDesign.ICON_ONLY -> stringResource(R.string.screen_recording_left_option_icon_only)
                     SystemUpdateLeftDesign.TEXT_ONLY -> stringResource(R.string.system_updater_left_option_text_only)
                 }
             },
@@ -378,7 +379,7 @@ fun SystemUpdateSettingsContent(
                 when (option) {
                     SystemUpdateRightDesign.PERCENTAGE -> stringResource(R.string.system_updater_right_option_percentage)
                     SystemUpdateRightDesign.PROGRESS_CIRCLE -> stringResource(R.string.system_updater_right_option_progress_circle)
-                    SystemUpdateRightDesign.NONE -> stringResource(R.string.system_updater_right_option_none)
+                    SystemUpdateRightDesign.NONE -> stringResource(R.string.screen_recording_right_option_none)
                 }
             },
             onSelect = {
@@ -663,7 +664,7 @@ private fun SystemUpdateIconDisplay(
                     val drawable = context.packageManager.getApplicationIcon(com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME)
                     val w = drawable.intrinsicWidth.takeIf { it > 0 } ?: 96
                     val h = drawable.intrinsicHeight.takeIf { it > 0 } ?: 96
-                    val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+                    val bmp = createBitmap(w, h)
                     val canvas = android.graphics.Canvas(bmp)
                     drawable.setBounds(0, 0, w, h)
                     drawable.draw(canvas)

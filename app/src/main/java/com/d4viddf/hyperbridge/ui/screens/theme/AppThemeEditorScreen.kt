@@ -112,7 +112,7 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                                 when (currentRoute) {
                                     AppEditorRoute.BEHAVIOR_MENU -> R.string.behaviour_triggers
                                     AppEditorRoute.BEHAVIOR_ENGINE -> R.string.engine
-                                    AppEditorRoute.BEHAVIOR_ISLAND -> R.string.island_behavior
+                                    AppEditorRoute.BEHAVIOR_ISLAND -> R.string.island_behavior_title
                                     AppEditorRoute.BEHAVIOR_TYPES -> R.string.active_notifications_title
                                     AppEditorRoute.COLORS -> R.string.creator_nav_colors
                                     AppEditorRoute.ICONS -> R.string.creator_nav_icons

@@ -217,7 +217,7 @@ fun InfoScreen(
                     ),
                     SettingsItemData(
                         Icons.Default.BugReport,
-                        stringResource(R.string.bug_report_entry_title),
+                        stringResource(R.string.bug_report_title),
                         stringResource(R.string.bug_report_entry_subtitle),
                         onBugReportClick
                     )

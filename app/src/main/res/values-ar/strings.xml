@@ -71,7 +71,6 @@ Hyper Bridge</string>
     <string name="licenses_subtitle">برمجيات الطرف الثالث</string>
     <string name="footer_made_with_love">صُنع بـ ❤️ في إسبانيا</string>
 
-    <string name="app_health_desc">تأكد من أن جميع الفحوصات باللون الأخضر ليعمل التطبيق بشكل صحيح في الخلفية.</string>
     <string name="req_permissions">الأذونات المطلوبة</string>
     <string name="notif_access">الوصول إلى الإشعارات</string>
     <string name="notif_access_desc">مطلوب لقراءة أحداث التطبيقات</string>
@@ -82,7 +81,6 @@ Hyper Bridge</string>
     <string name="recents_note">ملاحظة: يُرجى أيضاً قفل التطبيق في قائمة التطبيقات الحديثة (Recents).</string>
     <string name="status_active">نشط</string>
 
-    <string name="cat_all">الكل</string>
     <string name="cat_music">الموسيقى</string>
     <string name="cat_nav">الملاحة</string>
     <string name="cat_timer">الإنتاجية</string>
@@ -180,7 +178,6 @@ Hyper Bridge</string>
     <string name="cd_enable_type">تفعيل إشعارات %s</string>
     <string name="cd_disable_type">تعطيل إشعارات %s</string>
     <string name="cd_nav_edit">تعديل تخطيط الملاحة</string>
-    <string name="cd_app_state_active">نشط</string>
     <string name="cd_app_state_inactive">غير نشط</string>
 
     <string name="cd_move_up">تحريك العنصر لأعلى</string>
@@ -188,8 +185,6 @@ Hyper Bridge</string>
     <string name="cd_drag_handle">مقبض السحب. انقر مرتين مع الاستمرار لإعادة الترتيب، أو استخدم الإجراءات للتحريك.</string>
     <string name="cd_app_icon">أيقونة تطبيق %s</string>
     <string name="cd_nav_preview">معاينة الملاحة: %1$s على اليسار، %2$s على اليمين</string>
-    <string name="cd_expand_changelog">توسيع تفاصيل الإصدار</string>
-    <string name="cd_collapse_changelog">طي تفاصيل الإصدار</string>
 
     <string name="nav_preview_instruction">انعطف يميناً</string>
     <string name="nav_preview_distance">200 م</string>
@@ -224,7 +219,6 @@ Hyper Bridge</string>
     <string name="shizuku_enable_workaround">تفعيل الحل البديل</string>
     <string name="shizuku_workaround_desc">إذا كنت تستخدم روماً صينياً، يجب تفعيل حل Shizuku لتعمل الإشعارات بشكل سليم.</string>
     <string name="shizuku_status_running">Shizuku قيد التشغيل</string>
-    <string name="shizuku_permission_granted">تم منح الإذن</string>
     <string name="shizuku_permission_denied">تم رفض الإذن</string>
     <string name="shizuku_request_permission">منح إذن Shizuku</string>
     <string name="shizuku_not_installed">تطبيق Shizuku غير مثبت أو متوقف. يرجى تثبيت وتشغيل Shizuku أولاً.</string>
@@ -295,7 +289,6 @@ Hyper Bridge</string>
     <string name="backup_empty_suffix"> (فارغ)</string>
     <string name="action_restore_selected">استعادة البيانات المحددة</string>
 
-    <string name="optimization_title">تحسين أداء الجهاز</string>
 
     <string name="privacy_card_title">يعمل دون اتصال أولاً</string>
     <string name="privacy_card_desc">لا يتطلب أي اتصال بالإنترنت.</string>
@@ -356,7 +349,6 @@ Hyper Bridge</string>
     <string name="size_xlarge">كبير جداً (380dp)</string>
 
     <string name="app_uninstalled_badge">تم إلغاء التثبيت</string>
-    <string name="settings_action">الإعدادات</string>
 
     <string name="saved_widgets_title">الأدوات المحفوظة</string>
     <string name="no_saved_widgets">لم يتم العثور على أدوات محفوظة.</string>
@@ -372,7 +364,6 @@ Hyper Bridge</string>
     <string name="theme_installer_action_later">حفظ لوقت لاحق</string>
     <string name="theme_installer_error_title">فشل الاستيراد</string>
     <string name="theme_installer_error_generic">تعذر التحقق من ملف الثيم.</string>
-    <string name="theme_installer_btn_close">إغلاق</string>
     <string name="theme_manager_title">ثيماتي</string>
     <string name="theme_manager_cd_add">إضافة ثيم جديد</string>
 
@@ -386,10 +377,6 @@ Hyper Bridge</string>
     <string name="theme_sheet_title">إضافة ثيم جديد</string>
 
     <string name="theme_sheet_action_create">إنشاء ثيم جديد</string>
-    <string name="theme_sheet_action_find">بحث</string>
-    <string name="theme_action_import_short">استيراد</string>
-    <string name="theme_card_action_edit">تعديل</string>
-    <string name="theme_card_action_export">تصدير</string>
 
     <string name="creator_title_new">إنشاء ثيم</string>
     <string name="creator_title_edit">تعديل الثيم</string>
@@ -397,7 +384,6 @@ Hyper Bridge</string>
     <string name="creator_nav_icons">الأيقونات والأشكال</string>
     <string name="creator_nav_calls">نمط المكالمات</string>
     <string name="creator_nav_apps">تخصيص التطبيقات</string>
-    <string name="creator_action_save">حفظ</string>
     <string name="creator_btn_edit_info">تعديل معلومات الثيم</string>
     <string name="creator_sub_colors">لوحات الألوان والتباين</string>
     <string name="creator_sub_icons">الشكل والمسافات البادئة</string>
@@ -407,7 +393,6 @@ Hyper Bridge</string>
     <string name="meta_title">معلومات الثيم</string>
     <string name="meta_label_name">اسم الثيم</string>
     <string name="meta_label_author">اسم المؤلف</string>
-    <string name="meta_action_done">تم</string>
 
     <string name="colors_tab_presets">قوالب جاهزة</string>
     <string name="colors_tab_custom">مخصص</string>
@@ -417,7 +402,6 @@ Hyper Bridge</string>
     <string name="colors_label_custom_title">لون مخصص</string>
     <string name="colors_cd_add_custom">إضافة لون مخصص</string>
     <string name="colors_dialog_title">اختر لوناً</string>
-    <string name="colors_action_done">تم</string>
 
     <string name="icons_tab_style">النمط</string>
     <string name="icons_tab_assets">الأيقونات</string>
@@ -425,7 +409,6 @@ Hyper Bridge</string>
     <string name="icons_label_size">حجم الأيقونة</string>
     <string name="icons_label_full">كامل</string>
     <string name="icons_label_minimal">مبسط</string>
-    <string name="icons_group_nav">الملاحة</string>
     <string name="icons_btn_start">البدء</string>
     <string name="icons_btn_end">الانتهاء</string>
     <string name="icons_group_progress">التقدم</string>
@@ -453,13 +436,7 @@ Hyper Bridge</string>
     <string name="design_section_themes">الثيمات</string>
     <string name="design_section_widgets">الأدوات (Widgets)</string>
 
-    <string name="design_browse_more">استعراض المزيد</string>
-    <string name="design_add_new">إضافة جديد</string>
     <string name="design_add_design">إضافة تصميم</string>
-    <string name="design_add_to_island">التخصيص</string>
-    <string name="design_system_widget_beta">أداة النظام (تجريبي)</string>
-    <string name="design_get_themes">الحصول على ثيمات</string>
-    <string name="design_empty_widget_title">أضف أداتك الأولى</string>
     <string name="design">التصميم</string>
 
     <string name="creator_nav_actions">الإجراءات العامة</string>
@@ -528,7 +505,6 @@ Hyper Bridge</string>
 
     <string name="channel_live_updates">التحديثات المباشرة الأصلية</string>
 
-    <string name="engine_preview_title">معاينة</string>
     <string name="engine_design_section">تصميم الإشعار</string>
     <string name="engine_xiaomi_title">تصميم شاومي المميز</string>
     <string name="engine_xiaomi_desc">تخطيط HyperOS العصري مع تصميم شاومي المخصص.</string>
@@ -575,7 +551,6 @@ Hyper Bridge</string>
     <string name="trigger_override">تجاوز المشغل</string>
     <string name="trigger_app_desc">حدد الأحداث التي تُظهر الجزيرة لهذا التطبيق.</string>
     <string name="enable_triggers">تفعيل مشغلات محددة</string>
-    <string name="open_source_licenses">رخص المصادر المفتوحة</string>
     <string name="remove_original_notification">إزالة الإشعار الأصلي</string>
     <string name="remove_original_notification_desc">إغلاق الإشعار المصدري تلقائياً عندما يكون التحديث المباشر نشطاً.</string>
     <string name="dismiss_with_original">الإغلاق مع الإشعار الأصلي</string>
@@ -634,7 +609,6 @@ Hyper Bridge</string>
     <string name="featured_notifications_check">فحص الإشعارات المميزة</string>
     <string name="featured_notifications_check_desc">دعنا نتحقق مما إذا كان نظامك مهيأ بشكل صحيح لعرض جزر Hyper Bridge.</string>
     <string name="featured_notifications_not_supported">غير مدعوم</string>
-    <string name="featured_notifications_enabled">مفعل</string>
     <string name="featured_notifications_open_settings">فتح إعدادات النظام</string>
     <string name="featured_notifications_troubleshoot_title">لماذا لا تظهر هذه كجزيرة؟</string>
     <string name="featured_notifications_troubleshoot_desc">قام جهاز شاومي باعتراض الإشعار لكنه تعذر عرضه كجزيرة مميزة لأن الإذن معطل في إعدادات النظام.

@@ -386,7 +386,7 @@ fun SchemeOrCustomColorBottomSheet(
                         },
                         modifier = Modifier.weight(1f).height(50.dp)
                     ) {
-                        Text(stringResource(R.string.colors_action_done))
+                        Text(stringResource(R.string.done))
                     }
                 }
             }

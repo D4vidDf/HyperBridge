@@ -215,7 +215,7 @@ fun ScreenRecordingSettingsContent(
                             Spacer(Modifier.height(2.dp))
                             Text(
                                 text = when (rightDesign) {
-                                    ScreenRecordingRightDesign.TIMER -> stringResource(R.string.screen_recording_right_option_timer)
+                                    ScreenRecordingRightDesign.TIMER -> stringResource(R.string.fallback_timer)
                                     ScreenRecordingRightDesign.NONE -> stringResource(R.string.screen_recording_right_option_none)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
@@ -325,7 +325,7 @@ fun ScreenRecordingSettingsContent(
             selected = rightDesign,
             labelFor = { option ->
                 when (option) {
-                    ScreenRecordingRightDesign.TIMER -> stringResource(R.string.screen_recording_right_option_timer)
+                    ScreenRecordingRightDesign.TIMER -> stringResource(R.string.fallback_timer)
                     ScreenRecordingRightDesign.NONE -> stringResource(R.string.screen_recording_right_option_none)
                 }
             },

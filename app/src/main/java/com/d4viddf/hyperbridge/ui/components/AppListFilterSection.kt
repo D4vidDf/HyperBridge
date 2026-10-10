@@ -222,7 +222,7 @@ fun AppListFilterSection(
 @StringRes
 private fun getCategoryLabelRes(category: AppCategory): Int {
     return when (category) {
-        AppCategory.ALL -> R.string.cat_all
+        AppCategory.ALL -> R.string.all
         AppCategory.MUSIC -> R.string.cat_music
         AppCategory.MAPS -> R.string.cat_nav
         AppCategory.TIMER -> R.string.cat_timer

@@ -45,7 +45,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.ui.AppListViewModel
 import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerScreen
-import com.d4viddf.hyperbridge.ui.screens.design.SavedCustomWidgetsScreen
 import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioDesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.DesignScreen
 import com.d4viddf.hyperbridge.ui.screens.design.SavedAppWidgetsScreen
@@ -63,7 +62,6 @@ private enum class DesignRoute {
     DESIGN_MANAGER,
     TRANSLATOR_MANAGER,
     TRANSLATOR_EDITOR,
-    STUDIO_LIST,
     STUDIO_EDITOR
 }
 
@@ -111,9 +109,8 @@ fun HomeScreen(
                 }
                 DesignRoute.STUDIO_EDITOR -> {
                     editingCustomWidgetId = null
-                    DesignRoute.STUDIO_LIST
+                    DesignRoute.DESIGN_MANAGER
                 }
-
                 DesignRoute.TRANSLATOR_EDITOR -> {
                     editingTranslatorId = null
                     newTranslatorPackageName = null
@@ -204,29 +201,7 @@ fun HomeScreen(
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             },
                                             onLaunchPicker = { showWidgetPicker = true },
-                                            onLaunchStudio = { widgetId ->
-                                                editingCustomWidgetId = widgetId
-                                                designRoute = DesignRoute.STUDIO_EDITOR
-                                            },
-                                            onBrowseStudio = {
-                                                editingCustomWidgetId = null
-                                                designRoute = DesignRoute.STUDIO_LIST
-                                            },
                                             onSettingsClick = onSettingsClick
-                                        )
-                                    }
-
-                                    DesignRoute.STUDIO_LIST -> {
-                                        SavedCustomWidgetsScreen(
-                                            onBack = { designRoute = DesignRoute.DASHBOARD },
-                                            onEditWidget = { id ->
-                                                editingCustomWidgetId = id
-                                                designRoute = DesignRoute.STUDIO_EDITOR
-                                            },
-                                            onCreateNew = {
-                                                editingCustomWidgetId = null
-                                                designRoute = DesignRoute.STUDIO_EDITOR
-                                            }
                                         )
                                     }
 
@@ -235,7 +210,7 @@ fun HomeScreen(
                                             widgetId = editingCustomWidgetId,
                                             onBack = {
                                                 editingCustomWidgetId = null
-                                                designRoute = DesignRoute.STUDIO_LIST
+                                                designRoute = DesignRoute.DESIGN_MANAGER
                                             }
                                         )
                                     }
