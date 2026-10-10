@@ -18,6 +18,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.SignalCellular4Bar
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.produceState
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioCanvas
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -115,6 +124,22 @@ fun HyperOsIslandPreview(
         null
     }
     val templateCard = template?.card
+
+    // Custom Micro-Widget Studio support (#273)
+    val context = LocalContext.current
+    val widgetRepository = remember(context) { CustomWidgetRepository(context) }
+    val isCustomWidget = presentation.mode == PresentationMode.WIDGET
+    var isWidgetLoading by remember { mutableStateOf(false) }
+    val widgetDoc by produceState<CustomWidgetDocument?>(initialValue = null, presentation.widgetId, isCustomWidget) {
+        if (isCustomWidget && !presentation.widgetId.isNullOrBlank()) {
+            isWidgetLoading = true
+            value = widgetRepository.getWidget(presentation.widgetId)
+            isWidgetLoading = false
+        } else {
+            value = null
+            isWidgetLoading = false
+        }
+    }
 
     // 1. Resolve Effective Theme Styling
     val linkedTheme = if (translator.themeBinding.themeId.isNotBlank() && translator.themeBinding.themeId != "active") {
@@ -372,7 +397,88 @@ fun HyperOsIslandPreview(
                         enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
                         exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
                     ) {
-                        if (templateCard != null) {
+                        if (isCustomWidget) {
+                            if (widgetDoc != null) {
+                                BoxWithConstraints(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(24.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val availableWidthDp = maxWidth.value
+                                    StudioCanvas(
+                                        root = widgetDoc!!.root,
+                                        canvasWidthDp = availableWidthDp,
+                                        canvasHeightDp = widgetDoc!!.canvas.heightDp,
+                                        selectedId = null,
+                                        onSelect = {},
+                                        onMove = { _, _, _ -> },
+                                        onResize = { _, _, _ -> },
+                                        zoom = 1f,
+                                        isGridVisible = false,
+                                        isWireframeMode = false,
+                                        globals = widgetDoc!!.globals
+                                    )
+                                }
+                            } else if (isWidgetLoading) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(60.dp)
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .background(Color.Black),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.5.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else {
+                                Card(
+                                    shape = RoundedCornerShape(24.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.Black),
+                                    border = CardDefaults.outlinedCardBorder().copy(
+                                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                            listOf(Color(0xFF2B2B2B), Color(0xFF141414))
+                                        ),
+                                        width = 1.dp
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 20.dp, horizontal = 16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Widgets,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                        Text(
+                                            text = if (presentation.widgetId.isNullOrBlank()) {
+                                                stringResource(R.string.select_app_widget)
+                                            } else {
+                                                "Widget: ${presentation.widgetId}"
+                                            },
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.custom_design_title),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color.White.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                }
+                            }
+                        } else if (templateCard != null) {
                             TemplateFocusCard(
                                 layout = templateCard,
                                 iconName = translator.meta.iconName.takeIf { it.isNotBlank() && it != "AutoAwesome" }

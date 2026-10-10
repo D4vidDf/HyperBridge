@@ -133,6 +133,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -141,6 +142,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -177,6 +179,8 @@ import com.d4viddf.hyperbridge.models.translator.ProgressConditions
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
 import com.d4viddf.hyperbridge.models.translator.SmartActionType
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.translator.TextSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ThemeBinding
@@ -546,14 +550,22 @@ fun TranslatorMainList(
                 }
             }
 
-            val menuItems = if (isRawParamV2) {
-                listOf(
+            val isWidget = translator.presentation.mode == PresentationMode.WIDGET
+
+            val menuItems = when {
+                isRawParamV2 -> listOf(
                     TranslatorRoute.APPS,
                     TranslatorRoute.CONDITIONS,
                     TranslatorRoute.BEHAVIOR
                 )
-            } else {
-                listOf(
+                isWidget -> listOf(
+                    TranslatorRoute.APPS,
+                    TranslatorRoute.CONDITIONS,
+                    TranslatorRoute.PRESENTATION,
+                    TranslatorRoute.PILL,
+                    TranslatorRoute.BEHAVIOR
+                )
+                else -> listOf(
                     TranslatorRoute.APPS,
                     TranslatorRoute.CONDITIONS,
                     TranslatorRoute.PRESENTATION,
@@ -1996,6 +2008,14 @@ fun TranslatorPresentationContent(
         }
 
         if (presentation.mode == PresentationMode.WIDGET) {
+            val context = LocalContext.current
+            val repository = remember(context) { CustomWidgetRepository(context) }
+            val selectedDoc by produceState<CustomWidgetDocument?>(initialValue = null, presentation.widgetId) {
+                value = if (!presentation.widgetId.isNullOrBlank()) {
+                    repository.getWidget(presentation.widgetId)
+                } else null
+            }
+
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)),
@@ -2024,7 +2044,7 @@ fun TranslatorPresentationContent(
                         }
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.translator_pres_wip_title),
+                            text = stringResource(R.string.custom_design_title),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.tertiary,
                             fontWeight = FontWeight.Bold
@@ -2047,11 +2067,12 @@ fun TranslatorPresentationContent(
                         Icon(Icons.Outlined.Widgets, null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = if (presentation.widgetId.isNullOrBlank()) {
-                                stringResource(R.string.select_app_widget)
-                            } else {
-                                presentation.widgetId
-                            }
+                            text = selectedDoc?.canvas?.let { "${it.name} (${it.heightDp}dp)" }
+                                ?: if (presentation.widgetId.isNullOrBlank()) {
+                                    stringResource(R.string.select_app_widget)
+                                } else {
+                                    presentation.widgetId
+                                }
                         )
                     }
                 }
@@ -2889,12 +2910,18 @@ fun WidgetSelectionSheet(
 @Composable
 fun WidgetSelectionContent(
     currentWidgetId: String?,
-    onWidgetSelected: (String) -> Unit
+    onWidgetSelected: (String) -> Unit,
+    widgets: List<CustomWidgetDocument>? = null
 ) {
-    val widgets = listOf(
-        Triple("widget_default_status", R.string.translator_pres_widget_default, Icons.Outlined.Widgets),
-        Triple("widget_counter_timer", R.string.translator_pres_widget_counter, Icons.Outlined.Timer)
-    )
+    val context = LocalContext.current
+    val repository = remember(context) { CustomWidgetRepository(context) }
+    var loadedWidgets by remember { mutableStateOf<List<CustomWidgetDocument>?>(widgets) }
+
+    LaunchedEffect(widgets) {
+        if (widgets == null) {
+            loadedWidgets = repository.getAvailableWidgets()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -2921,62 +2948,107 @@ fun WidgetSelectionContent(
             )
         }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(widgets) { (wId, nameRes, icon) ->
-                val isSelected = currentWidgetId == wId
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    onClick = { onWidgetSelected(wId) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+        val widgetList = loadedWidgets
+        if (widgetList == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.5.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        } else if (widgetList.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 32.dp, horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Outlined.Widgets,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(40.dp)
+                )
+                Text(
+                    text = stringResource(R.string.design_card_widgets_empty),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.studio_empty),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(widgetList) { widgetDoc ->
+                    val isSelected = currentWidgetId == widgetDoc.id
+                    val iconName = widgetDoc.meta.icon.ifBlank { "Widgets" }
+                    val iconVector = getTranslatorOutlinedIcon(iconName)
+
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        onClick = { onWidgetSelected(widgetDoc.id) },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(36.dp)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    icon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.size(20.dp)
+                            Surface(
+                                shape = CircleShape,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        iconVector,
+                                        contentDescription = null,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = widgetDoc.canvas.name.ifBlank { widgetDoc.id },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = "${widgetDoc.canvas.heightDp} dp · ID: ${widgetDoc.id.take(8)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(nameRes),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "ID: $wId",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        if (isSelected) {
-                            Spacer(Modifier.width(12.dp))
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                            if (isSelected) {
+                                Spacer(Modifier.width(12.dp))
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }
