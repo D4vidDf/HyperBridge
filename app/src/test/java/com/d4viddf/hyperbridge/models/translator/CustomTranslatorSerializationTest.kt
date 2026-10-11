@@ -155,6 +155,7 @@ class CustomTranslatorSerializationTest {
     fun testTranslatorRegistryPriorityAndScopeMatching() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
             override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getAllTranslators() = emptyList<TranslatorEntity>()
             override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
             override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null
@@ -232,6 +233,7 @@ class CustomTranslatorSerializationTest {
     fun testTypeSpecificConditionsMatching() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
             override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getAllTranslators() = emptyList<TranslatorEntity>()
             override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
             override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null
@@ -363,6 +365,7 @@ class CustomTranslatorSerializationTest {
     fun testHasActiveTranslatorsForPackageAndNotificationTypeScope() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
             override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getAllTranslators() = emptyList<TranslatorEntity>()
             override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
             override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null

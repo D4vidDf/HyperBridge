@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.db.TranslatorEntity
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.TargetScope
@@ -284,6 +285,11 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch(Dispatchers.IO) {
             val entity = TranslatorEntity.fromCustomTranslator(translator)
             translatorDao.insertTranslator(entity)
+            if (translator.presentation.mode == PresentationMode.WIDGET && !translator.presentation.widgetId.isNullOrBlank()) {
+                try {
+                    CustomWidgetRepository(getApplication()).saveTranslatorForWidget(translator.presentation.widgetId, translator)
+                } catch (_: Exception) {}
+            }
             withContext(Dispatchers.Main) {
                 onDone()
             }

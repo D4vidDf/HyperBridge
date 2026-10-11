@@ -8,9 +8,18 @@ import androidx.core.content.FileProvider
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.db.TranslatorDao
 import com.d4viddf.hyperbridge.data.db.TranslatorEntity
+import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.PresentationConfig
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
+import com.d4viddf.hyperbridge.models.translator.TargetScope
+import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
+import com.d4viddf.hyperbridge.models.widget.WidgetImportGuard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -35,6 +44,7 @@ class TranslatorRepository(
 ) {
 
     private val tag = "TranslatorRepository"
+    private val json = Json { ignoreUnknownKeys = true; prettyPrint = true }
     private val translatorsStorageDir = File(context.filesDir, "translators")
 
     init {
@@ -70,6 +80,25 @@ class TranslatorRepository(
                             input.copyTo(zos)
                         }
                         zos.closeEntry()
+                    }
+                }
+
+                // 3. If presentation mode is WIDGET, package the custom widget files (widget.json + assets)
+                if (translator.presentation.mode == PresentationMode.WIDGET) {
+                    val widgetId = translator.presentation.widgetId
+                    if (!widgetId.isNullOrBlank()) {
+                        val widgetDir = File(context.filesDir, "custom_widgets/$widgetId")
+                        if (widgetDir.exists() && widgetDir.isDirectory) {
+                            widgetDir.walkTopDown().filter { it.isFile }.forEach { file ->
+                                val relPath = file.relativeTo(widgetDir).path.replace('\\', '/')
+                                if (relPath != "translator.json") {
+                                    val entry = ZipEntry(relPath)
+                                    zos.putNextEntry(entry)
+                                    file.inputStream().use { input -> input.copyTo(zos) }
+                                    zos.closeEntry()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -157,6 +186,96 @@ class TranslatorRepository(
                     }
                     entry = zip.nextEntry
                 }
+            }
+
+            val widgetJsonFile = File(tempDir, "widget.json").takeIf { it.exists() }
+                ?: tempDir.walkTopDown().firstOrNull { it.isFile && it.name == "widget.json" }
+
+            if (widgetJsonFile != null) {
+                // This package contains a custom widget design (.hwidget or bundled .htrans)
+                if (widgetJsonFile.length() > WidgetImportGuard.MAX_CONFIG_BYTES) {
+                    throw IllegalArgumentException("Invalid widget: widget.json too large")
+                }
+                val widgetText = widgetJsonFile.readText(Charsets.UTF_8)
+                if (WidgetImportGuard.jsonNestingDepth(widgetText) > WidgetImportGuard.MAX_JSON_NESTING) {
+                    throw IllegalArgumentException("Invalid widget: nested too deeply")
+                }
+                val decodedWidget = try {
+                    json.decodeFromString(CustomWidgetDocument.serializer(), widgetText)
+                } catch (e: Exception) {
+                    throw IllegalArgumentException("Invalid widget.json structure", e)
+                }
+
+                val finalWidgetId = decodedWidget.id.takeIf { WidgetImportGuard.isSafeId(it) } ?: UUID.randomUUID().toString()
+                val docToSave = if (finalWidgetId == decodedWidget.id) decodedWidget else decodedWidget.copy(id = finalWidgetId)
+                val validatedDoc = WidgetDimensionValidator.validate(docToSave).clamped
+
+                val widgetsStorageDir = File(context.filesDir, "custom_widgets")
+                if (!widgetsStorageDir.exists()) widgetsStorageDir.mkdirs()
+                val targetWidgetDir = File(widgetsStorageDir, finalWidgetId)
+                if (targetWidgetDir.exists()) targetWidgetDir.deleteRecursively()
+                targetWidgetDir.mkdirs()
+
+                val savedConfigFile = File(targetWidgetDir, "widget.json")
+                savedConfigFile.writeText(json.encodeToString(CustomWidgetDocument.serializer(), validatedDoc))
+
+                val assetsSourceDir = File(widgetJsonFile.parentFile, "assets")
+                if (assetsSourceDir.exists() && assetsSourceDir.isDirectory) {
+                    val targetAssetsDir = File(targetWidgetDir, "assets")
+                    targetAssetsDir.mkdirs()
+                    assetsSourceDir.copyRecursively(targetAssetsDir, overwrite = true)
+                }
+
+                // Resolve translator: either from translator.json if configured, or generate a default one
+                val translator = if (!translatorJsonString.isNullOrBlank()) {
+                    val parsed = CustomTranslator.fromJson(translatorJsonString).getOrThrow()
+                    val existing = translatorDao.getTranslatorById(parsed.id)
+                    val safeId = if (existing != null && existing.toCustomTranslator().getOrNull()?.presentation?.widgetId != finalWidgetId) {
+                        UUID.randomUUID().toString()
+                    } else {
+                        parsed.id
+                    }
+                    parsed.copy(
+                        id = safeId,
+                        presentation = parsed.presentation.copy(
+                            mode = PresentationMode.WIDGET,
+                            widgetId = finalWidgetId
+                        )
+                    )
+                } else {
+                    CustomTranslator(
+                        id = UUID.randomUUID().toString(),
+                        meta = TranslatorMetadata(
+                            name = validatedDoc.meta.name.ifBlank { "Custom Design" },
+                            iconName = validatedDoc.meta.icon.ifBlank { "dashboard_customize" }
+                        ),
+                        targetScope = TargetScope.NOTIFICATION_TYPE,
+                        targetPackages = emptyList(),
+                        targetNotificationTypes = listOf(NotificationType.STANDARD.name),
+                        presentation = PresentationConfig(
+                            mode = PresentationMode.WIDGET,
+                            widgetId = finalWidgetId
+                        )
+                    )
+                }
+
+                File(targetWidgetDir, "translator.json").writeText(CustomTranslator.toJson(translator))
+
+                val extractedIconsDir = File(tempDir, "icons")
+                if (extractedIconsDir.exists() && extractedIconsDir.isDirectory) {
+                    val targetIconsDir = File(translatorsStorageDir, "${translator.id}/icons")
+                    if (targetIconsDir.exists()) targetIconsDir.deleteRecursively()
+                    targetIconsDir.mkdirs()
+                    extractedIconsDir.copyRecursively(targetIconsDir, overwrite = true)
+                }
+
+                val entity = TranslatorEntity.fromCustomTranslator(translator)
+                translatorDao.insertTranslator(entity)
+
+                try {
+                    Log.i(tag, "Custom widget design imported successfully: ${translator.meta.name} (widgetId=$finalWidgetId)")
+                } catch (_: Throwable) {}
+                return translator
             }
 
             if (translatorJsonString.isNullOrBlank()) {

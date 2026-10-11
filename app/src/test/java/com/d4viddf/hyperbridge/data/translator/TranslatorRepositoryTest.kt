@@ -21,6 +21,12 @@ import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.translator.TypeSpecificConditions
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.TextNode
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -61,6 +67,7 @@ class TranslatorRepositoryTest {
         val insertedTranslators = mutableListOf<TranslatorEntity>()
 
         override fun getAllTranslatorsFlow() = emptyFlow<List<TranslatorEntity>>()
+        override suspend fun getAllTranslators() = insertedTranslators.toList()
         override fun getActiveTranslatorsFlow() = emptyFlow<List<TranslatorEntity>>()
         override suspend fun getActiveTranslators() = insertedTranslators.filter { it.isEnabled }
         override suspend fun getTranslatorById(id: String) = insertedTranslators.find { it.id == id }
@@ -327,5 +334,99 @@ class TranslatorRepositoryTest {
         val ids = fakeDao.insertedTranslators.map { it.id }.toSet()
         assertTrue(ids.contains("bundled.rule.1"))
         assertTrue(ids.contains("bundled.rule.2"))
+    }
+
+    @Test
+    fun testExportAndImportHwidgetPackageWithConfiguredTranslator() = runBlocking {
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+        val widgetDoc = CustomWidgetDocument(
+            id = "custom_test_widget",
+            meta = CustomWidgetMetadata(name = "Custom Island Design"),
+            root = LayoutContainer(
+                id = "root",
+                children = listOf(TextNode(id = "title", template = "{notif.title}"))
+            )
+        )
+        widgetRepo.saveWidget(widgetDoc)
+
+        val configuredTranslator = CustomTranslator(
+            id = "trans_custom_test",
+            meta = TranslatorMetadata(name = "Custom Island Design"),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.whatsapp"),
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = "custom_test_widget"
+            )
+        )
+        widgetRepo.saveTranslatorForWidget("custom_test_widget", configuredTranslator)
+
+        val exportedFile = widgetRepo.exportWidget("custom_test_widget", configuredTranslator)
+        assertNotNull(exportedFile)
+        assertTrue(exportedFile!!.exists())
+
+        // In a fresh context/repository (simulating importing on another device or design screen)
+        val freshFilesDir = tempFolder.newFolder("fresh_files")
+        val freshCacheDir = tempFolder.newFolder("fresh_cache")
+        val freshContext = FakeTestContext(freshFilesDir, freshCacheDir)
+        val freshDao = FakeTranslatorDao()
+        val freshTransRepo = TranslatorRepository(freshContext, freshDao)
+        val freshWidgetRepo = CustomWidgetRepository(freshContext, freshDao)
+
+        val importResult = exportedFile.inputStream().use {
+            freshTransRepo.importTranslatorFromStream(it)
+        }
+
+        assertTrue("Importing .hwidget with configured translator should succeed", importResult.isSuccess)
+        val imported = importResult.getOrNull()
+        assertNotNull(imported)
+        assertEquals("Custom Island Design", imported!!.meta.name)
+        assertEquals(TargetScope.SPECIFIC_APPS, imported.targetScope)
+        assertEquals(listOf("com.whatsapp"), imported.targetPackages)
+        assertEquals(PresentationMode.WIDGET, imported.presentation.mode)
+        assertEquals("custom_test_widget", imported.presentation.widgetId)
+
+        // Verify widget document was installed and loads cleanly
+        val loadedDoc = freshWidgetRepo.getWidget("custom_test_widget")
+        assertNotNull("Widget document should be installed in custom_widgets/", loadedDoc)
+        assertEquals("custom_test_widget", loadedDoc!!.id)
+
+        // Verify translator was also persisted with widget and in DAO
+        val loadedTrans = freshWidgetRepo.getTranslatorForWidget("custom_test_widget")
+        assertNotNull("Translator should be persisted in widget folder", loadedTrans)
+        assertEquals(1, freshDao.insertedTranslators.size)
+        assertEquals("custom_test_widget", freshDao.insertedTranslators.first().toCustomTranslator().getOrNull()?.presentation?.widgetId)
+    }
+
+    @Test
+    fun testImportHwidgetWithoutTranslatorGeneratesDefaultTranslatorAndInstallsWidget() = runBlocking {
+        // Create a raw .hwidget zip containing ONLY widget.json
+        val widgetDoc = CustomWidgetDocument(
+            id = "bare_widget",
+            meta = CustomWidgetMetadata(name = "Bare Widget Design"),
+            root = LayoutContainer(id = "root", children = emptyList())
+        )
+        val json = kotlinx.serialization.json.Json { prettyPrint = true }
+        val zipBytes = ByteArrayOutputStream().use { bos ->
+            ZipOutputStream(bos).use { zos ->
+                zos.putNextEntry(ZipEntry("widget.json"))
+                zos.write(json.encodeToString(CustomWidgetDocument.serializer(), widgetDoc).toByteArray())
+                zos.closeEntry()
+            }
+            bos.toByteArray()
+        }
+
+        val importResult = repository.importTranslatorFromStream(ByteArrayInputStream(zipBytes))
+        assertTrue("Importing bare widget should succeed and create default translator", importResult.isSuccess)
+        val imported = importResult.getOrNull()
+        assertNotNull(imported)
+        assertEquals("Bare Widget Design", imported!!.meta.name)
+        assertEquals(PresentationMode.WIDGET, imported.presentation.mode)
+        assertEquals("bare_widget", imported.presentation.widgetId)
+
+        // Verify widget was saved
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+        val loadedDoc = widgetRepo.getWidget("bare_widget")
+        assertNotNull("Widget document should be installed", loadedDoc)
     }
 }

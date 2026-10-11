@@ -1,4 +1,4 @@
-﻿<resources>
+<resources>
     <string name="app_name">Hyper Bridge</string>
 
     <string name="back">Back</string>
@@ -384,6 +384,31 @@
     <string name="theme_installer_action_later">Save for Later</string>
     <string name="theme_installer_error_title">Import Failed</string>
     <string name="theme_installer_error_generic">Could not verify the theme file.</string>
+
+    <string name="package_installer_analyzing">Analyzing package...</string>
+    <string name="widget_installer_title">Design Ready</string>
+    <string name="widget_installer_dimensions">%1$d × %2$d dp</string>
+    <string name="widget_installer_linked_translator">Linked: %s</string>
+    <string name="widget_installer_apply_question">Do you want to import this custom design?</string>
+    <string name="widget_installer_action_import">Import Design</string>
+    <string name="widget_installer_success_title">Design Imported</string>
+    <string name="widget_installer_success_message">Custom design \"%s\" was imported successfully.</string>
+
+    <string name="translator_installer_title">Translator Ready</string>
+    <string name="translator_installer_apply_question">Do you want to import this translator?</string>
+    <string name="translator_installer_action_import">Import Translator</string>
+    <string name="translator_installer_success_title">Translator Imported</string>
+    <string name="translator_installer_success_message">Translator \"%s\" was imported successfully.</string>
+
+    <string name="backup_installer_title">Backup Ready</string>
+    <string name="backup_installer_apply_question">Do you want to restore this backup?</string>
+    <string name="backup_installer_action_restore">Restore Backup</string>
+    <string name="backup_installer_success_title">Backup Restored</string>
+    <string name="backup_installer_success_message">Settings and data were restored successfully.</string>
+
+    <string name="package_installer_action_done">Done</string>
+    <string name="package_installer_action_cancel">Cancel</string>
+    <string name="package_installer_unsupported">The selected file is not a supported HyperBridge package.</string>
     <string name="theme_manager_title">My Themes</string>
     <string name="theme_manager_cd_add">Add New Theme</string>
 

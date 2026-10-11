@@ -11,6 +11,7 @@ import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.widget.*
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -518,6 +519,28 @@ class StudioViewModelTest {
         assertFalse(vm.isDirty)
         assertFalse(vm.canUndo.value)
         assertFalse(vm.canRedo.value)
+    }
+
+    @Test
+    fun testExportWidgetSavesConfiguredTranslatorAndExportsHwidget() = runBlocking {
+        val doc = createSampleDocument()
+        val vm = StudioViewModel(app, SavedStateHandle(), repository = repository, initialDocument = doc)
+
+        vm.setTargetScope(TargetScope.SPECIFIC_APPS)
+        vm.addTargetPackage("com.test.app")
+        vm.setNotificationType(NotificationType.MESSAGE)
+
+        val exportedFile = vm.exportWidget()
+        assertNotNull(exportedFile)
+        assertTrue(exportedFile!!.exists())
+
+        // Verify translator was saved for this widget
+        val translator = repository.getTranslatorForWidget(doc.id)
+        assertNotNull("Configured translator should be saved for the widget on export", translator)
+        assertEquals(TargetScope.SPECIFIC_APPS, translator!!.targetScope)
+        assertEquals(listOf("com.test.app"), translator.targetPackages)
+        assertEquals(doc.id, translator.presentation.widgetId)
+        assertEquals(PresentationMode.WIDGET, translator.presentation.mode)
     }
 }
 

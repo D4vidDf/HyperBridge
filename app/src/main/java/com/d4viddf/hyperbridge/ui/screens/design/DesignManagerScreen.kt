@@ -149,17 +149,11 @@ fun DesignManagerContent(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.importTranslator(uri) { result ->
-                if (result.isSuccess) {
-                    val imported = result.getOrNull()
-                    val msg = context.getString(R.string.translators_import_success, imported?.meta?.name ?: "")
-                    scope.launch { snackbarHostState.showSnackbar(msg) }
-                } else {
-                    val errorMsg = result.exceptionOrNull()?.localizedMessage ?: "Unknown error"
-                    val msg = context.getString(R.string.translators_import_failed, errorMsg)
-                    scope.launch { snackbarHostState.showSnackbar(msg) }
-                }
+            val intent = android.content.Intent(context, com.d4viddf.hyperbridge.ui.screens.theme.ThemeInstallerActivity::class.java).apply {
+                data = uri
+                flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
             }
+            context.startActivity(intent)
         }
     }
 
