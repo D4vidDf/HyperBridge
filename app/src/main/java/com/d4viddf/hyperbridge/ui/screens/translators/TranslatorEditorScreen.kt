@@ -7840,29 +7840,11 @@ fun TranslatorPillMediaOrderContent(
                         Spacer(Modifier.width(12.dp))
 
                         Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = stringResource(titleRes),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                if (isEnabled) {
-                                    val position = mediaOrder.indexOf(item) + 1
-                                    Spacer(Modifier.width(6.dp))
-                                    Surface(
-                                        shape = RoundedCornerShape(6.dp),
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                    ) {
-                                        Text(
-                                            text = "#$position",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
-                                        )
-                                    }
-                                }
-                            }
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
                             Text(
                                 text = stringResource(descRes),
                                 style = MaterialTheme.typography.bodySmall,
