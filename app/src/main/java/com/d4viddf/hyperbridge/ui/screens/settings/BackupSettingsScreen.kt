@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -209,6 +211,26 @@ fun BackupSettingsScreen(
                     icon = Icons.Default.CheckCircle,
                     checked = exportSelection.includePriorities,
                     onCheckedChange = { exportSelection = exportSelection.copy(includePriorities = it) }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                BackupOptionItem(
+                    title = stringResource(R.string.option_translators),
+                    subtitle = stringResource(R.string.option_translators_desc),
+                    icon = Icons.Outlined.Code,
+                    checked = exportSelection.includeTranslators,
+                    onCheckedChange = { exportSelection = exportSelection.copy(includeTranslators = it) }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                BackupOptionItem(
+                    title = stringResource(R.string.option_custom_widgets),
+                    subtitle = stringResource(R.string.option_custom_widgets_desc),
+                    icon = Icons.Outlined.Widgets,
+                    checked = exportSelection.includeCustomWidgets,
+                    onCheckedChange = { exportSelection = exportSelection.copy(includeCustomWidgets = it) }
                 )
             }
 

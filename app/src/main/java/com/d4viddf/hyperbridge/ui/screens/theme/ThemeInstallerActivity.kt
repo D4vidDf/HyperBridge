@@ -728,8 +728,16 @@ private fun BackupReadyContent(
         overflow = TextOverflow.Ellipsis
     )
 
+    val transCount = backup.translators?.size ?: 0
+    val widgetCount = backup.widgets?.size ?: 0
+    val summaryText = buildList {
+        add("${backup.settings.size} settings")
+        if (transCount > 0) add("$transCount translators")
+        if (widgetCount > 0) add("$widgetCount designs")
+    }.joinToString(" • ")
+
     Text(
-        text = "${backup.settings.size} items • v${backup.metadata.versionName}",
+        text = "$summaryText • v${backup.metadata.versionName}",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )

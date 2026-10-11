@@ -291,6 +291,14 @@
     <string name="option_priorities">Priority Rules</string>
     <string name="option_priorities_desc">Custom notification priority configurations</string>
 
+    <string name="option_translators">Custom Translators</string>
+    <string name="option_translators_desc">Notification translators and custom rules</string>
+    <string name="option_translators_count_suffix">items</string>
+
+    <string name="option_custom_widgets">Custom Widgets &amp; Designs</string>
+    <string name="option_custom_widgets_desc">Custom micro-widgets, layout designs, and assets</string>
+    <string name="option_custom_widgets_count_suffix">items</string>
+
     <string name="action_export">Create Backup</string>
     <string name="action_import">Restore Backup</string>
 
