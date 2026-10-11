@@ -101,12 +101,13 @@ class CustomWidgetTranslator(
         } catch (_: Exception) { null }
 
         val notifPictureBitmap: Bitmap? = try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                 extras.getParcelable(Notification.EXTRA_PICTURE, Bitmap::class.java)
             } else {
                 @Suppress("DEPRECATION")
                 extras.getParcelable(Notification.EXTRA_PICTURE) as? Bitmap
-            }
+            }) ?: (extras.getParcelable<android.graphics.drawable.Icon>("android.pictureIcon")?.let { loadIconBitmap(it, sbn.packageName) })
+               ?: (extras.getParcelable<android.graphics.drawable.Icon>(Notification.EXTRA_PICTURE_ICON)?.let { loadIconBitmap(it, sbn.packageName) })
         } catch (_: Exception) { null }
 
         val notifSmallIconBitmap: Bitmap? = try {
@@ -124,12 +125,13 @@ class CustomWidgetTranslator(
                 val controller = android.media.session.MediaController(context, token)
                 controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART)
                     ?: controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ART)
+                    ?: controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON)
             } else null
         } catch (_: Exception) {
             null
         }
 
-        val mediaArtworkBmp = notifAvatarBitmap ?: mediaSessionBmp ?: notifPictureBitmap ?: run {
+        val mediaArtworkBmp = mediaSessionBmp ?: notifAvatarBitmap ?: notifPictureBitmap ?: run {
             val resolved = resolveNotificationVisual(sbn)
             if (resolved.source == NotificationVisualSource.PICTURE || resolved.source == NotificationVisualSource.LARGE_ICON) {
                 resolved.bitmap
@@ -195,24 +197,40 @@ class CustomWidgetTranslator(
         val hiddenKey = "hidden_pixel"
         builder.addPicture(getTransparentPicture(hiddenKey))
 
+        val pillConfig = customTranslator?.presentation?.pill
+        val leftDesign = pillConfig?.leftDesign ?: PillLeftDesign.ICON_AND_TEXT
+        val rightDesign = pillConfig?.rightDesign ?: PillRightDesign.AUTO
+
+        val mediaOrder = pillConfig?.mediaOrder?.ifEmpty {
+            listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST)
+        } ?: listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST)
+
+        val hasAlbumCover = mediaOrder.contains(PillMediaItem.ALBUM_COVER)
+
+        val pillShapeId = customTranslator?.presentation?.leftSlot?.shape ?: resolveShape(effectiveTheme, sbn.packageName)
+        val themedMediaPillBmp = if (mediaArtworkBmp != null) {
+            clipBitmapToShape(mediaArtworkBmp, pillShapeId, 0)
+        } else null
+
+        if (mediaArtworkBmp != null && themedMediaPillBmp != null) {
+            builder.addPicture(HyperPicture("media_pill_art", themedMediaPillBmp))
+            builder.addPicture(HyperPicture("album_art", themedMediaPillBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_imageText", mediaArtworkBmp))
+        }
+
         val appIconPicture = if (iconBitmap != null) {
             HyperPicture(picKey, Icon.createWithBitmap(iconBitmap))
         } else {
             resolveIcon(sbn, picKey)
         }
-        builder.addPicture(appIconPicture)
-
-        val mediaPillArtKey = "media_pill_art"
-        val pillShapeId = customTranslator?.presentation?.leftSlot?.shape ?: resolveShape(effectiveTheme, sbn.packageName)
-        if (mediaArtworkBmp != null) {
-            val themedMediaPillBmp = applyThemeToActionIcon(mediaArtworkBmp, pillShapeId, 0, android.graphics.Color.TRANSPARENT)
-            builder.addPicture(HyperPicture(mediaPillArtKey, themedMediaPillBmp))
-            builder.addPicture(HyperPicture("album_art", mediaArtworkBmp))
+        val defaultPicPicture = if (leftDesign == PillLeftDesign.MEDIA && themedMediaPillBmp != null && hasAlbumCover) {
+            HyperPicture(picKey, themedMediaPillBmp)
+        } else {
+            appIconPicture
         }
-
-        val pillConfig = customTranslator?.presentation?.pill
-        val leftDesign = pillConfig?.leftDesign ?: PillLeftDesign.ICON_AND_TEXT
-        val rightDesign = pillConfig?.rightDesign ?: PillRightDesign.AUTO
+        builder.addPicture(defaultPicPicture)
 
         val progressConfig = customTranslator?.presentation?.progressSlot
         val hasProgress = (progressConfig?.type == ProgressSlotType.PROGRESS_BAR || rightDesign == PillRightDesign.PROGRESS_PERCENT) &&
@@ -222,10 +240,6 @@ class CustomWidgetTranslator(
 
         val isTimer = (progressConfig?.type == ProgressSlotType.TIMER || rightDesign == PillRightDesign.TIMER) &&
                 notif.`when` > System.currentTimeMillis()
-
-        val mediaOrder = pillConfig?.mediaOrder?.ifEmpty {
-            listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST)
-        } ?: listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST)
 
         val mediaTrack = effectiveTitle
         val mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.ifBlank { null } ?: effectiveText
@@ -242,8 +256,8 @@ class CustomWidgetTranslator(
         val pillLeftPicKey = when (leftDesign) {
             PillLeftDesign.HIDDEN -> hiddenKey
             PillLeftDesign.MEDIA -> {
-                if (mediaOrder.contains(PillMediaItem.ALBUM_COVER)) {
-                    if (mediaArtworkBmp != null) mediaPillArtKey else primaryPicKey
+                if (hasAlbumCover) {
+                    if (themedMediaPillBmp != null) "album_art" else primaryPicKey
                 } else hiddenKey
             }
             else -> primaryPicKey
@@ -267,14 +281,15 @@ class CustomWidgetTranslator(
 
         val showBigIslandPic = leftDesign != PillLeftDesign.TEXT_ONLY &&
                 leftDesign != PillLeftDesign.HIDDEN &&
-                leftSlotConfig?.source != "HIDDEN"
+                leftSlotConfig?.source != "HIDDEN" &&
+                (leftDesign != PillLeftDesign.MEDIA || hasAlbumCover)
 
         when {
             hasProgress -> {
                 builder.setProgressBar(progressPercent, progressColor)
                 val progressPicKey = if (showBigIslandPic) pillLeftPicKey else ""
                 builder.setBigIslandProgressCircle(progressPicKey, pillLeftText, progressPercent, progressColor, true)
-                builder.setSmallIslandCircularProgress(pillLeftPicKey, progressPercent, progressColor, isCCW = true)
+                builder.setSmallIslandCircularProgress(if (showBigIslandPic) pillLeftPicKey else primaryPicKey, progressPercent, progressColor, isCCW = true)
             }
             isTimer -> {
                 val baseTime = notif.`when`.let { if (it > 0) it else System.currentTimeMillis() }
@@ -286,20 +301,21 @@ class CustomWidgetTranslator(
                 } else {
                     builder.setBigIslandCountUp(baseTime, timerPicKey)
                 }
-                builder.setSmallIsland(pillLeftPicKey)
+                builder.setSmallIsland(if (showBigIslandPic) pillLeftPicKey else primaryPicKey)
             }
             else -> {
-                val leftBigIslandText = if (rightDesign == PillRightDesign.NONE) pillLeftText else ""
+                val leftBigIslandText = pillLeftText
                 val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
+                val rightBigIslandTitle = if (leftBigIslandText.isNotBlank()) "" else effectiveTitle
                 builder.setBigIslandInfo(
                     left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
                     right = if (rightDesign != PillRightDesign.NONE) {
-                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(effectiveTitle, pillRightText))
+                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(rightBigIslandTitle, pillRightText))
                     } else {
                         ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo("", ""))
                     }
                 )
-                builder.setSmallIsland(pillLeftPicKey)
+                builder.setSmallIsland(if (hasAlbumCover && themedMediaPillBmp != null) "album_art" else (if (showBigIslandPic) pillLeftPicKey else primaryPicKey))
             }
         }
 
