@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -170,6 +171,7 @@ import com.d4viddf.hyperbridge.models.translator.MediaConditions
 import com.d4viddf.hyperbridge.models.translator.MessagingConditions
 import com.d4viddf.hyperbridge.models.translator.NavigationConditions
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
+import com.d4viddf.hyperbridge.models.translator.PillMediaItem
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
 import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
@@ -7100,6 +7102,7 @@ fun TranslatorPillContent(
 ) {
     var showLeftSheet by remember { mutableStateOf(false) }
     var showRightSheet by remember { mutableStateOf(false) }
+    var showMediaOrderSheet by remember { mutableStateOf(false) }
     var showLearnSheet by remember { mutableStateOf(false) }
 
     val leftDesign = pillConfig.leftDesign
@@ -7117,6 +7120,7 @@ fun TranslatorPillContent(
         MaterialTheme.colorScheme.primary
     }
 
+    val context = LocalContext.current
     val iconShapeId = linkedTheme?.global?.iconShapeId ?: "circle"
     val iconShape = getShapeFromId(iconShapeId).toShape()
 
@@ -7138,7 +7142,8 @@ fun TranslatorPillContent(
             left = leftDesign,
             right = rightDesign,
             highlightColor = highlightColor,
-            iconShape = iconShape
+            iconShape = iconShape,
+            mediaOrder = pillConfig.mediaOrder
         )
 
         // --- LEARN HOW COMPACT PILL WORKS BUTTON ---
@@ -7197,6 +7202,7 @@ fun TranslatorPillContent(
                                     PillLeftDesign.ICON_AND_TEXT -> Icons.Outlined.AutoAwesome
                                     PillLeftDesign.AVATAR -> Icons.Outlined.Person
                                     PillLeftDesign.TEXT_ONLY -> Icons.Outlined.TextFields
+                                    PillLeftDesign.MEDIA -> Icons.Outlined.MusicNote
                                     PillLeftDesign.HIDDEN -> Icons.Outlined.VisibilityOff
                                 },
                                 contentDescription = null,
@@ -7219,6 +7225,7 @@ fun TranslatorPillContent(
                                 PillLeftDesign.ICON_ONLY -> stringResource(R.string.screen_recording_left_option_icon_only)
                                 PillLeftDesign.TEXT_ONLY -> stringResource(R.string.screen_recording_left_option_text_only)
                                 PillLeftDesign.AVATAR -> stringResource(R.string.translator_pill_left_avatar)
+                                PillLeftDesign.MEDIA -> stringResource(R.string.translator_pill_left_media)
                                 PillLeftDesign.HIDDEN -> stringResource(R.string.translator_pill_left_hidden)
                             },
                             style = MaterialTheme.typography.bodySmall,
@@ -7295,6 +7302,74 @@ fun TranslatorPillContent(
             }
         }
 
+        // --- MEDIA CONFIGURATION CARD (VISIBLE ONLY WHEN LEFT IS MEDIA) ---
+        if (leftDesign == PillLeftDesign.MEDIA) {
+            Text(
+                stringResource(R.string.translator_pill_media_preferences_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .clickable { showMediaOrderSheet = true }
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Outlined.MusicNote,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.translator_pill_media_order_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = if (pillConfig.mediaOrder.isEmpty()) {
+                                stringResource(R.string.nav_content_none)
+                            } else {
+                                pillConfig.mediaOrder.joinToString(" • ") { item ->
+                                    when (item) {
+                                        PillMediaItem.ALBUM_COVER -> context.getString(R.string.translator_pill_media_item_album_cover)
+                                        PillMediaItem.TRACK -> context.getString(R.string.translator_pill_media_item_track)
+                                        PillMediaItem.ARTIST -> context.getString(R.string.translator_pill_media_item_artist)
+                                    }
+                                }
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
     }
 
@@ -7322,6 +7397,17 @@ fun TranslatorPillContent(
         )
     }
 
+    // Media Order Bottom Sheet
+    if (showMediaOrderSheet) {
+        TranslatorPillMediaOrderSheet(
+            mediaOrder = pillConfig.mediaOrder,
+            onUpdateOrder = { newOrder ->
+                onPillConfigChange(pillConfig.copy(mediaOrder = newOrder))
+            },
+            onDismiss = { showMediaOrderSheet = false }
+        )
+    }
+
     // Learn Guide Bottom Sheet
     if (showLearnSheet) {
         TranslatorPillGuideSheet(
@@ -7336,7 +7422,12 @@ private fun TranslatorPillIslandPreview(
     left: PillLeftDesign,
     right: PillRightDesign,
     highlightColor: Color,
-    iconShape: Shape
+    iconShape: Shape,
+    mediaOrder: List<PillMediaItem> = listOf(
+        PillMediaItem.ALBUM_COVER,
+        PillMediaItem.TRACK,
+        PillMediaItem.ARTIST
+    )
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -7356,7 +7447,10 @@ private fun TranslatorPillIslandPreview(
                 rightText = if (right == PillRightDesign.TIMER) "00:05" else "00:05",
                 progressPercent = 65,
                 highlightColor = highlightColor,
-                iconShape = iconShape
+                iconShape = iconShape,
+                mediaOrder = mediaOrder,
+                mediaTrack = "Starboy",
+                mediaArtist = "The Weeknd"
             )
         }
     }
@@ -7393,6 +7487,7 @@ fun TranslatorPillLeftSelectionContent(
         Triple(PillLeftDesign.ICON_ONLY, Pair(R.string.screen_recording_left_option_icon_only, R.string.translator_pill_left_icon_only_desc), Icons.Outlined.AutoAwesome),
         Triple(PillLeftDesign.TEXT_ONLY, Pair(R.string.screen_recording_left_option_text_only, R.string.translator_pill_left_text_only_desc), Icons.Outlined.TextFields),
         Triple(PillLeftDesign.AVATAR, Pair(R.string.translator_pill_left_avatar, R.string.translator_pill_left_avatar_desc), Icons.Outlined.Person),
+        Triple(PillLeftDesign.MEDIA, Pair(R.string.translator_pill_left_media, R.string.translator_pill_left_media_desc), Icons.Outlined.MusicNote),
         Triple(PillLeftDesign.HIDDEN, Pair(R.string.translator_pill_left_hidden, R.string.translator_pill_left_hidden_desc), Icons.Outlined.VisibilityOff)
     )
 
@@ -7623,6 +7718,221 @@ fun TranslatorPillGuideSheet(
         docsUrl = DocumentationUrls.CUSTOM_TRANSLATORS_DOCS,
         icon = Icons.Outlined.AutoAwesome
     )
+}
+
+// --- MEDIA ORDER BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorPillMediaOrderSheet(
+    mediaOrder: List<PillMediaItem>,
+    onUpdateOrder: (List<PillMediaItem>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorPillMediaOrderContent(
+            mediaOrder = mediaOrder,
+            onUpdateOrder = onUpdateOrder
+        )
+    }
+}
+
+@Composable
+fun TranslatorPillMediaOrderContent(
+    mediaOrder: List<PillMediaItem>,
+    onUpdateOrder: (List<PillMediaItem>) -> Unit
+) {
+    val allPossibleItems = remember { PillMediaItem.entries }
+    var itemOrder by remember {
+        mutableStateOf(mediaOrder + (allPossibleItems - mediaOrder.toSet()))
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                Icons.Outlined.MusicNote,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = stringResource(R.string.translator_pill_media_order_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.translator_pill_media_order_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            itemsIndexed(itemOrder) { index, item ->
+                val isEnabled = mediaOrder.contains(item)
+                val (titleRes, descRes, icon) = when (item) {
+                    PillMediaItem.ALBUM_COVER -> Triple(
+                        R.string.translator_pill_media_item_album_cover,
+                        R.string.translator_pill_media_item_album_cover_desc,
+                        Icons.Outlined.Album
+                    )
+                    PillMediaItem.TRACK -> Triple(
+                        R.string.translator_pill_media_item_track,
+                        R.string.translator_pill_media_item_track_desc,
+                        Icons.Outlined.MusicNote
+                    )
+                    PillMediaItem.ARTIST -> Triple(
+                        R.string.translator_pill_media_item_artist,
+                        R.string.translator_pill_media_item_artist_desc,
+                        Icons.Outlined.Person
+                    )
+                }
+
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isEnabled) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(titleRes),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                if (isEnabled) {
+                                    val position = mediaOrder.indexOf(item) + 1
+                                    Spacer(Modifier.width(6.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    ) {
+                                        Text(
+                                            text = "#$position",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            Text(
+                                text = stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Move Up
+                        IconButton(
+                            onClick = {
+                                if (index > 0) {
+                                    val list = itemOrder.toMutableList()
+                                    val temp = list.removeAt(index)
+                                    list.add(index - 1, temp)
+                                    itemOrder = list
+                                    onUpdateOrder(list.filter { it in mediaOrder })
+                                }
+                            },
+                            enabled = index > 0,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowUpward,
+                                contentDescription = "Move Up",
+                                tint = if (index > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outlineVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        // Move Down
+                        IconButton(
+                            onClick = {
+                                if (index < itemOrder.lastIndex) {
+                                    val list = itemOrder.toMutableList()
+                                    val temp = list.removeAt(index)
+                                    list.add(index + 1, temp)
+                                    itemOrder = list
+                                    onUpdateOrder(list.filter { it in mediaOrder })
+                                }
+                            },
+                            enabled = index < itemOrder.lastIndex,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowDownward,
+                                contentDescription = "Move Down",
+                                tint = if (index < itemOrder.lastIndex) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outlineVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        Spacer(Modifier.width(4.dp))
+
+                        // Enable / Disable Switch
+                        Switch(
+                            checked = isEnabled,
+                            onCheckedChange = { checked ->
+                                val newSelected = if (checked) {
+                                    mediaOrder + item
+                                } else {
+                                    mediaOrder.filter { it != item }
+                                }
+                                onUpdateOrder(itemOrder.filter { it in newSelected })
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 

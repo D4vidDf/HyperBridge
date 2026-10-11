@@ -1245,6 +1245,17 @@
     <string name="translator_pill_left_text_only_desc">Shows the short title text without an icon</string>
     <string name="translator_pill_left_avatar">Contact avatar</string>
     <string name="translator_pill_left_avatar_desc">Displays the sender picture or contact avatar</string>
+    <string name="translator_pill_left_media">Media / Now Playing</string>
+    <string name="translator_pill_left_media_desc">Displays album art, track title, or artist according to your preference</string>
+    <string name="translator_pill_media_preferences_title">Media Preferences</string>
+    <string name="translator_pill_media_order_title">Media Preference Order</string>
+    <string name="translator_pill_media_order_subtitle">Choose which media elements to display and adjust priority order from top to bottom.</string>
+    <string name="translator_pill_media_item_album_cover">Album Cover</string>
+    <string name="translator_pill_media_item_album_cover_desc">Displays the album or playback cover artwork</string>
+    <string name="translator_pill_media_item_track">Track Title</string>
+    <string name="translator_pill_media_item_track_desc">Displays the song or audio title</string>
+    <string name="translator_pill_media_item_artist">Artist Name</string>
+    <string name="translator_pill_media_item_artist_desc">Displays the artist or creator name</string>
     <string name="translator_pill_left_hidden">Hidden / Empty</string>
     <string name="translator_pill_left_hidden_desc">Leaves the left pill slot empty</string>
     <string name="translator_pill_right_auto">Auto-detect (Recommended)</string>

@@ -402,15 +402,36 @@ class DynamicTranslator(
             highlightColor
         }
 
+        val mediaOrder = pillConfig.mediaOrder.ifEmpty {
+            listOf(
+                com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER,
+                com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK,
+                com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST
+            )
+        }
+        val mediaTrack = variableMap["media.track"]?.ifBlank { null } ?: finalTitle
+        val mediaArtist = variableMap["media.artist"]?.ifBlank { null } ?: finalText
+
+        val mediaPillText = when (mediaOrder.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+
         val primaryPicKey = if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey
         val pillLeftPicKey = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN -> hiddenKey
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA -> {
+                // If ALBUM_COVER is in mediaOrder, show album cover/art picKey; otherwise show hiddenKey or app icon
+                if (mediaOrder.contains(com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER)) primaryPicKey else hiddenKey
+            }
             else -> primaryPicKey
         }
 
         val pillLeftText = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.ICON_AND_TEXT,
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY -> finalTitle
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA -> mediaPillText
             else -> ""
         }
 

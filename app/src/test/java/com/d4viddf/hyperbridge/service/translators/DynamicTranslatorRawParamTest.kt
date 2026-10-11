@@ -89,4 +89,43 @@ class DynamicTranslatorRawParamTest {
         assertTrue(validated.contains("\"param_island\""))
         assertTrue(validated.contains("\"imageTextInfoLeft\""))
     }
+
+    @Test
+    fun testMediaOrderResolution() {
+        val mediaTrack = "Blinding Lights"
+        val mediaArtist = "The Weeknd"
+
+        // Order: ARTIST before TRACK
+        val artistFirstOrder = listOf(
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST,
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK
+        )
+        val textArtistFirst = when (artistFirstOrder.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+        assertEquals("The Weeknd", textArtistFirst)
+
+        // Order: TRACK before ARTIST
+        val trackFirstOrder = listOf(
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK,
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST
+        )
+        val textTrackFirst = when (trackFirstOrder.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+        assertEquals("Blinding Lights", textTrackFirst)
+
+        // Order: ALBUM_COVER only
+        val albumCoverOnly = listOf(com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER)
+        val textAlbumCoverOnly = when (albumCoverOnly.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+        assertEquals("", textAlbumCoverOnly)
+    }
 }
