@@ -139,6 +139,84 @@ class CustomWidgetRepository(
         }
     }
 
+    /**
+     * Clones an existing widget design and its associated configuration to a new unique widget ID.
+     * Copies all assets, writes a cloned widget.json with the new widget ID, and binds a new
+     * translator with [newTranslatorId].
+     */
+    suspend fun duplicateWidget(
+        sourceWidgetId: String,
+        newName: String? = null,
+        sourceTranslator: CustomTranslator? = null,
+        newTranslatorId: String = UUID.randomUUID().toString()
+    ): Pair<CustomWidgetDocument, CustomTranslator>? = withContext(Dispatchers.IO) {
+        if (!WidgetImportGuard.isSafeId(sourceWidgetId)) return@withContext null
+        val sourceFolder = File(widgetsDir, sourceWidgetId)
+        if (!sourceFolder.exists()) return@withContext null
+
+        val sourceDoc = getWidget(sourceWidgetId) ?: return@withContext null
+        val newWidgetId = UUID.randomUUID().toString()
+        val targetFolder = File(widgetsDir, newWidgetId)
+        if (!targetFolder.exists()) targetFolder.mkdirs()
+
+        // 1. Copy assets if present
+        val sourceAssets = File(sourceFolder, "assets")
+        if (sourceAssets.exists() && sourceAssets.isDirectory) {
+            val targetAssets = File(targetFolder, "assets")
+            targetAssets.mkdirs()
+            sourceAssets.copyRecursively(targetAssets, overwrite = true)
+        }
+
+        // 2. Clone CustomWidgetDocument
+        val effectiveName = newName ?: "${sourceDoc.meta.name} (Copy)"
+        val duplicatedDoc = sourceDoc.copy(
+            id = newWidgetId,
+            meta = sourceDoc.meta.copy(name = effectiveName)
+        )
+        val configFile = File(targetFolder, "widget.json")
+        configFile.writeText(json.encodeToString(CustomWidgetDocument.serializer(), duplicatedDoc))
+
+        // 3. Resolve and clone bound CustomTranslator
+        val boundSourceTranslator = sourceTranslator ?: getTranslatorForWidget(sourceWidgetId)
+        val duplicatedTranslator = boundSourceTranslator?.copy(
+            id = newTranslatorId,
+            meta = boundSourceTranslator.meta.copy(
+                name = effectiveName,
+                iconName = duplicatedDoc.meta.icon.ifBlank { boundSourceTranslator.meta.iconName }
+            ),
+            priority = boundSourceTranslator.priority - 1,
+            presentation = boundSourceTranslator.presentation.copy(
+                mode = PresentationMode.WIDGET,
+                widgetId = newWidgetId
+            )
+        ) ?: CustomTranslator(
+            id = newTranslatorId,
+            meta = TranslatorMetadata(
+                name = effectiveName,
+                iconName = duplicatedDoc.meta.icon.ifBlank { "dashboard_customize" }
+            ),
+            targetScope = TargetScope.NOTIFICATION_TYPE,
+            targetPackages = emptyList(),
+            targetNotificationTypes = listOf(NotificationType.STANDARD.name),
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = newWidgetId
+            )
+        )
+
+        val translatorFile = File(targetFolder, "translator.json")
+        translatorFile.writeText(CustomTranslator.toJson(duplicatedTranslator))
+
+        // 4. Save duplicated translator in database if DAO is available
+        try {
+            getTranslatorDao()?.insertTranslator(TranslatorEntity.fromCustomTranslator(duplicatedTranslator))
+        } catch (e: Exception) {
+            Log.w(tag, "Failed to register duplicated translator in database", e)
+        }
+
+        Pair(duplicatedDoc, duplicatedTranslator)
+    }
+
     suspend fun exportWidget(id: String, translator: CustomTranslator? = null): File? = withContext(Dispatchers.IO) {
         if (!WidgetImportGuard.isSafeId(id)) return@withContext null
         val sourceFolder = File(widgetsDir, id)

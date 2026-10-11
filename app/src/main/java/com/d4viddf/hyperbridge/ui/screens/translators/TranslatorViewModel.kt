@@ -297,20 +297,62 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun duplicateTranslator(source: CustomTranslator, onDone: () -> Unit = {}) {
-        val newId = UUID.randomUUID().toString()
-        val duplicated = source.copy(
-            id = newId,
-            meta = source.meta.copy(
-                name = "${source.meta.name} (Copy)"
-            ),
-            priority = source.priority - 1
-        )
-        saveTranslator(duplicated, onDone)
+        viewModelScope.launch(Dispatchers.IO) {
+            val newTranslatorId = UUID.randomUUID().toString()
+            val widgetId = source.presentation.widgetId
+            if (source.presentation.mode == PresentationMode.WIDGET && !widgetId.isNullOrBlank()) {
+                val widgetRepo = CustomWidgetRepository(getApplication(), translatorDao)
+                widgetRepo.duplicateWidget(
+                    sourceWidgetId = widgetId,
+                    newName = "${source.meta.name} (Copy)",
+                    sourceTranslator = source,
+                    newTranslatorId = newTranslatorId
+                )
+            } else {
+                // If non-widget translator has custom icons stored under filesDir/translators/<source.id>/icons, copy them
+                try {
+                    val iconsDir = java.io.File(getApplication<Application>().filesDir, "translators/${source.id}/icons")
+                    if (iconsDir.exists() && iconsDir.isDirectory) {
+                        val targetIconsDir = java.io.File(getApplication<Application>().filesDir, "translators/$newTranslatorId/icons")
+                        if (!targetIconsDir.exists()) targetIconsDir.mkdirs()
+                        iconsDir.copyRecursively(targetIconsDir, overwrite = true)
+                    }
+                } catch (_: Exception) {}
+
+                val duplicated = source.copy(
+                    id = newTranslatorId,
+                    meta = source.meta.copy(
+                        name = "${source.meta.name} (Copy)"
+                    ),
+                    priority = source.priority - 1
+                )
+                val entity = TranslatorEntity.fromCustomTranslator(duplicated)
+                translatorDao.insertTranslator(entity)
+            }
+            withContext(Dispatchers.Main) {
+                onDone()
+            }
+        }
     }
 
     fun deleteTranslator(id: String, onDone: () -> Unit = {}) {
         viewModelScope.launch(Dispatchers.IO) {
+            val existing = translatorDao.getTranslatorById(id)?.toCustomTranslator()?.getOrNull()
             translatorDao.deleteTranslatorById(id)
+            if (existing != null && existing.presentation.mode == PresentationMode.WIDGET) {
+                val widgetId = existing.presentation.widgetId
+                if (!widgetId.isNullOrBlank()) {
+                    // Check if any other translator still points to this widgetId
+                    val otherReferencing = translatorDao.getAllTranslators().any {
+                        it.toCustomTranslator().getOrNull()?.presentation?.widgetId == widgetId
+                    }
+                    if (!otherReferencing) {
+                        try {
+                            CustomWidgetRepository(getApplication()).deleteWidget(widgetId)
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
             withContext(Dispatchers.Main) {
                 onDone()
             }

@@ -429,4 +429,91 @@ class TranslatorRepositoryTest {
         val loadedDoc = widgetRepo.getWidget("bare_widget")
         assertNotNull("Widget document should be installed", loadedDoc)
     }
+
+    @Test
+    fun testDuplicateWidgetDecouplesWidgetIdAndTranslator() = runBlocking {
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+
+        // 1. Setup original widget and translator
+        val originalWidgetId = "orig_widget_123"
+        val originalDoc = CustomWidgetDocument(
+            id = originalWidgetId,
+            meta = CustomWidgetMetadata(name = "Original Design"),
+            root = LayoutContainer(id = "root", children = listOf(TextNode(id = "text_1", template = "Original Text")))
+        )
+        val originalTranslatorId = "orig_trans_123"
+        val originalTranslator = CustomTranslator(
+            id = originalTranslatorId,
+            meta = TranslatorMetadata(name = "Original Design"),
+            priority = 100,
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = originalWidgetId
+            )
+        )
+
+        widgetRepo.saveWidget(originalDoc, originalTranslator)
+        fakeDao.insertTranslator(TranslatorEntity.fromCustomTranslator(originalTranslator))
+
+        // Create a dummy asset file in the original widget's folder
+        val assetDir = File(File(fakeContext.filesDir, "custom_widgets/$originalWidgetId"), "assets")
+        assetDir.mkdirs()
+        File(assetDir, "test_icon.png").writeText("fake image bytes")
+
+        // 2. Duplicate the widget
+        val newTranslatorId = "copy_trans_456"
+        val duplicationResult = widgetRepo.duplicateWidget(
+            sourceWidgetId = originalWidgetId,
+            newName = "Original Design (Copy)",
+            sourceTranslator = originalTranslator,
+            newTranslatorId = newTranslatorId
+        )
+
+        assertNotNull("Duplication should succeed", duplicationResult)
+        val (duplicatedDoc, duplicatedTranslator) = duplicationResult!!
+
+        // Assert widget IDs are distinct
+        assertTrue("Duplicated widgetId must not equal original", duplicatedDoc.id != originalWidgetId)
+        assertEquals("Original Design (Copy)", duplicatedDoc.meta.name)
+
+        // Assert translator IDs and bound widgetIds are distinct
+        assertEquals(newTranslatorId, duplicatedTranslator.id)
+        assertEquals("Original Design (Copy)", duplicatedTranslator.meta.name)
+        assertEquals(duplicatedDoc.id, duplicatedTranslator.presentation.widgetId)
+        assertEquals(99, duplicatedTranslator.priority) // priority was decremented by 1
+
+        // Verify the asset was copied to the new widget's folder
+        val duplicatedAsset = File(File(fakeContext.filesDir, "custom_widgets/${duplicatedDoc.id}"), "assets/test_icon.png")
+        assertTrue("Assets should be copied to duplicate widget folder", duplicatedAsset.exists())
+        assertEquals("fake image bytes", duplicatedAsset.readText())
+
+        // 3. Edit the original widget document and verify the duplicated widget remains unaffected
+        val modifiedOriginalDoc = originalDoc.copy(
+            meta = originalDoc.meta.copy(name = "Modified Original"),
+            root = LayoutContainer(id = "root", children = listOf(TextNode(id = "text_1", template = "Changed Text")))
+        )
+        widgetRepo.saveWidget(modifiedOriginalDoc)
+
+        val retrievedOriginal = widgetRepo.getWidget(originalWidgetId)
+        val retrievedDuplicate = widgetRepo.getWidget(duplicatedDoc.id)
+
+        assertNotNull(retrievedOriginal)
+        assertNotNull(retrievedDuplicate)
+        assertEquals("Modified Original", retrievedOriginal!!.meta.name)
+        assertEquals("Original Design (Copy)", retrievedDuplicate!!.meta.name)
+        val dupRoot = retrievedDuplicate.root as LayoutContainer
+        assertEquals("Original Text", (dupRoot.children.first() as TextNode).template)
+
+        // 4. Edit the duplicated widget document and verify the original remains unaffected
+        val modifiedDuplicateDoc = duplicatedDoc.copy(
+            meta = duplicatedDoc.meta.copy(name = "Edited Duplicate Design")
+        )
+        widgetRepo.saveWidget(modifiedDuplicateDoc)
+
+        val reloadedOriginal = widgetRepo.getWidget(originalWidgetId)
+        val reloadedDuplicate = widgetRepo.getWidget(duplicatedDoc.id)
+
+        assertEquals("Modified Original", reloadedOriginal!!.meta.name)
+        assertEquals("Edited Duplicate Design", reloadedDuplicate!!.meta.name)
+    }
 }
