@@ -138,6 +138,8 @@
     <string name="setting_float">Heads-up Popup</string>
     <string name="setting_float_desc">Show the full notification banner briefly before minimizing to the Island.</string>
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
+    <string name="setting_float_only_on_first">Pop-up only on initial alert</string>
+    <string name="setting_float_only_on_first_desc">Show heads-up popup only on the first alert and prevent repeated pop-ups on background updates or progress changes.</string>
 
     <string name="setting_shade">Notification Panel</string>
     <string name="setting_shade_desc">Keep notification visible in the notification shade alongside the island.</string>

@@ -155,7 +155,8 @@ data class BehaviorOverride(
     @SerialName("is_show_shade") val isShowShade: Boolean? = null,
     @SerialName("remove_original_notification") val removeOriginalNotification: Boolean? = null,
     @SerialName("dismiss_with_original") val dismissWithOriginal: Boolean? = null,
-    @SerialName("enable_inline_reply") val enableInlineReply: Boolean? = null
+    @SerialName("enable_inline_reply") val enableInlineReply: Boolean? = null,
+    @SerialName("float_only_on_first") val floatOnlyOnFirst: Boolean = true
 )
 
 @Serializable

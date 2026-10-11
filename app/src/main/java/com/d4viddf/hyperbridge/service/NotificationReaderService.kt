@@ -1826,7 +1826,8 @@ class NotificationReaderService : NotificationListenerService() {
                         config = finalConfig,
                         theme = activeTheme,
                         widgetId = studioWidgetId,
-                        customTranslator = matchedCustomTranslator
+                        customTranslator = matchedCustomTranslator,
+                        isUpdate = isUpdate
                     )
                 } else dynamicTranslator.translate(
                     sbn = sbn,

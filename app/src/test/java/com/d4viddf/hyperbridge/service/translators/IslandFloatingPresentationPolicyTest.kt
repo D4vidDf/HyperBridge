@@ -37,4 +37,28 @@ class IslandFloatingPresentationPolicyTest {
         assertFalse(presentation.enableFloat)
         assertFalse(presentation.islandFirstFloat)
     }
+
+    @Test
+    fun updateAllowsFloatingWhenFloatOnlyOnFirstIsFalse() {
+        val presentation = IslandFloatingPresentationPolicy.resolve(
+            configuredToFloat = true,
+            isUpdate = true,
+            floatOnlyOnFirst = false
+        )
+
+        assertTrue(presentation.enableFloat)
+        assertTrue(presentation.islandFirstFloat)
+    }
+
+    @Test
+    fun updateDisallowsFloatingWhenFloatOnlyOnFirstIsTrue() {
+        val presentation = IslandFloatingPresentationPolicy.resolve(
+            configuredToFloat = true,
+            isUpdate = true,
+            floatOnlyOnFirst = true
+        )
+
+        assertFalse(presentation.enableFloat)
+        assertFalse(presentation.islandFirstFloat)
+    }
 }

@@ -114,6 +114,8 @@
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
     <string name="setting_float_timeout_desc">Cuánto tiempo la ventana emergente se mantiene visible.</string>
+    <string name="setting_float_only_on_first">Emergente solo en la primera alerta</string>
+    <string name="setting_float_only_on_first_desc">Muestra la ventana emergente solo en la primera alerta y evita ventanas emergentes continuas en actualizaciones secundarias o cambios de progreso.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
     <string name="setting_shade_desc">Mantén la notificación visible en el panel de notificaciones junto a la isla.</string>
     <string name="seconds_suffix">%ds</string>

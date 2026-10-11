@@ -4748,6 +4748,7 @@ fun TranslatorBehaviorContent(
     val isTimeoutEnabled = (behavior.timeoutSeconds != null && behavior.timeoutSeconds > 0)
 
     val isFloatEnabled = behavior.isFloat ?: true
+    val floatOnlyOnFirst = behavior.floatOnlyOnFirst
     val currentFloatTimeout = behavior.floatTimeoutSeconds ?: 10
     val isShowShade = behavior.isShowShade ?: false
 
@@ -5056,6 +5057,34 @@ fun TranslatorBehaviorContent(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.setting_float_only_on_first),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.setting_float_only_on_first_desc),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Spacer(Modifier.width(16.dp))
+                                Switch(
+                                    checked = floatOnlyOnFirst,
+                                    onCheckedChange = { onBehaviorChange(behavior.copy(floatOnlyOnFirst = it)) }
+                                )
+                            }
                         }
                     }
                 }

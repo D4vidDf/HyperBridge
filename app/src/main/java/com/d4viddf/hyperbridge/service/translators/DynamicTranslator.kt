@@ -145,7 +145,8 @@ class DynamicTranslator(
             finalTitle
         )
 
-        builder.applyFloatingPresentation(isFloat, isUpdate)
+        val floatOnlyOnFirst = customTranslator.behaviorOverride.floatOnlyOnFirst
+        builder.applyFloatingPresentation(isFloat, isUpdate, floatOnlyOnFirst)
         builder.setIslandConfig(
             timeout = customTranslator.behaviorOverride.timeoutSeconds ?: config.timeout,
             dismissible = false, // Set to false for HyperOS 4 compatibility (prevents island from failing to show or being discarded)

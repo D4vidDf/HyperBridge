@@ -13,8 +13,12 @@ data class IslandFloatingPresentation(
  * already collapsed. A logical event may float once; later payload refreshes may not.
  */
 object IslandFloatingPresentationPolicy {
-    fun resolve(configuredToFloat: Boolean, isUpdate: Boolean): IslandFloatingPresentation {
-        val mayAutoExpand = configuredToFloat && !isUpdate
+    fun resolve(
+        configuredToFloat: Boolean,
+        isUpdate: Boolean,
+        floatOnlyOnFirst: Boolean = true
+    ): IslandFloatingPresentation {
+        val mayAutoExpand = configuredToFloat && (!isUpdate || !floatOnlyOnFirst)
         return IslandFloatingPresentation(
             enableFloat = mayAutoExpand,
             islandFirstFloat = mayAutoExpand
@@ -24,9 +28,10 @@ object IslandFloatingPresentationPolicy {
 
 internal fun HyperIslandNotification.applyFloatingPresentation(
     configuredToFloat: Boolean,
-    isUpdate: Boolean
+    isUpdate: Boolean,
+    floatOnlyOnFirst: Boolean = true
 ) = apply {
-    val presentation = IslandFloatingPresentationPolicy.resolve(configuredToFloat, isUpdate)
+    val presentation = IslandFloatingPresentationPolicy.resolve(configuredToFloat, isUpdate, floatOnlyOnFirst)
     setEnableFloat(presentation.enableFloat)
     setIslandFirstFloat(presentation.islandFirstFloat)
 }

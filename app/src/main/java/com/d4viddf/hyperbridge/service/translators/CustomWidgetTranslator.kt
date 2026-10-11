@@ -59,7 +59,8 @@ class CustomWidgetTranslator(
         config: IslandConfig,
         theme: HyperTheme?,
         widgetId: String,
-        customTranslator: CustomTranslator? = null
+        customTranslator: CustomTranslator? = null,
+        isUpdate: Boolean = false
     ): HyperIslandData {
         val doc = requireNotNull(widgetRepo.getWidget(widgetId)) {
             "Custom design $widgetId is missing from the Studio store"
@@ -330,11 +331,12 @@ class CustomWidgetTranslator(
             highlightColor = highlightColor,
             expandedTimeMs = customTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout
         )
-        builder.setIslandFirstFloat(config.isFloat == true)
-        builder.setEnableFloat(config.isFloat == true)
-        builder.setShowNotification(config.isShowShade == true)
+        val isFloat = customTranslator?.behaviorOverride?.isFloat ?: config.isFloat ?: false
+        val floatOnlyOnFirst = customTranslator?.behaviorOverride?.floatOnlyOnFirst ?: true
+        builder.applyFloatingPresentation(isFloat, isUpdate, floatOnlyOnFirst)
+        builder.setShowNotification(customTranslator?.behaviorOverride?.isShowShade ?: config.isShowShade ?: false)
         builder.setHideDeco(true)
-        builder.setReopen(true)
+        if (!isUpdate) builder.setReopen(true)
 
         return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
     }
