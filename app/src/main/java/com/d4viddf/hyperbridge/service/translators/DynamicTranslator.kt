@@ -26,6 +26,7 @@ import com.d4viddf.hyperbridge.models.translator.SmartActionCategory
 import com.d4viddf.hyperbridge.models.translator.VariableSource
 import com.d4viddf.hyperbridge.models.translator.VariableType
 import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
+import com.d4viddf.hyperbridge.service.visual.NotificationVisualSource
 import com.google.gson.JsonParser
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
@@ -185,15 +186,43 @@ class DynamicTranslator(
             } catch (_: Exception) {
                 null
             }
-        } ?: notifPictureBmp ?: getNotificationBitmap(sbn)
+        } ?: notifPictureBmp
 
-        val posterBmp = notifPictureBmp ?: largeBmp
+        val mediaSessionBmp = try {
+            val token = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, android.media.session.MediaSession.Token::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) as? android.media.session.MediaSession.Token
+            }
+            if (token != null) {
+                val controller = android.media.session.MediaController(context, token)
+                controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART)
+                    ?: controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ART)
+            } else null
+        } catch (_: Exception) {
+            null
+        }
 
-        if (largeBmp != null) {
-            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", largeBmp))
-            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", largeBmp))
-            builder.addPicture(HyperPicture("album_art", largeBmp))
-            builder.addPicture(HyperPicture("miui.focus.pic_imageText", largeBmp))
+        val mediaArtworkBmp = largeBmp ?: mediaSessionBmp ?: notifPictureBmp ?: run {
+            val resolved = resolveNotificationVisual(sbn)
+            if (resolved.source == NotificationVisualSource.PICTURE || resolved.source == NotificationVisualSource.LARGE_ICON) {
+                resolved.bitmap
+            } else null
+        }
+
+        val posterBmp = notifPictureBmp ?: mediaArtworkBmp
+        val mediaPillArtKey = "media_pill_art"
+
+        if (mediaArtworkBmp != null) {
+            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("album_art", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_imageText", mediaArtworkBmp))
+
+            val pillShapeId = customTranslator.presentation.leftSlot.shape ?: resolveShape(effectiveTheme, sbn.packageName)
+            val themedMediaPillBmp = applyThemeToActionIcon(mediaArtworkBmp, pillShapeId, 0, android.graphics.Color.TRANSPARENT)
+            builder.addPicture(HyperPicture(mediaPillArtKey, themedMediaPillBmp))
         }
         if (posterBmp != null) {
             builder.addPicture(HyperPicture("poster", posterBmp))
@@ -207,10 +236,14 @@ class DynamicTranslator(
         builder.addPicture(resolveIcon(sbn, "default_icon"))
 
         // 5. Extract & Bundle Custom Dynamic Variables & Images
+        variableMap["pic.media_pill_art"] = mediaPillArtKey
+        variableMap["media_pill_art"] = mediaPillArtKey
+
         val availablePictureKeys = mutableSetOf(
             picKey,
             "picKey",
             hiddenKey,
+            mediaPillArtKey,
             "miui.focus.pic_app_icon",
             "miui.focus.pic_large_icon",
             "miui.focus.pic_sender_avatar",
@@ -313,7 +346,10 @@ class DynamicTranslator(
 
         val isMedia = notif.extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
                 notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true ||
-                customTranslator.presentation.templateId == "tpl_media_compact"
+                customTranslator.presentation.templateId == "tpl_media_compact" ||
+                customTranslator.targetNotificationTypes.contains("MEDIA") ||
+                customTranslator.presentation.pill.leftDesign == com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA ||
+                customTranslator.presentation.leftSlot.source in listOf("MEDIA", "ALBUM_ART", "ALBUM_ART_OR_APP_ICON")
 
         // 5. Left Slot Graphic & Hidden Pixel
         val leftSlotConfig = customTranslator.presentation.leftSlot
@@ -354,16 +390,7 @@ class DynamicTranslator(
                 }
             }
             isMedia -> {
-                val largeIcon = notif.getLargeIcon()
-                val albumArt: android.graphics.Bitmap? = if (largeIcon != null) {
-                    loadIconBitmap(largeIcon, sbn.packageName)
-                } else {
-                    try {
-                        extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
-                    } catch (_: Exception) {
-                        null
-                    }
-                }
+                val albumArt = mediaArtworkBmp
                 if (albumArt != null) {
                     val shapeId = leftSlotConfig.shape ?: resolveShape(effectiveTheme, sbn.packageName)
                     val themedBmp = applyThemeToActionIcon(albumArt, shapeId, 0, android.graphics.Color.TRANSPARENT)
@@ -422,8 +449,10 @@ class DynamicTranslator(
         val pillLeftPicKey = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN -> hiddenKey
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA -> {
-                // If ALBUM_COVER is in mediaOrder, show album cover/art picKey; otherwise show hiddenKey or app icon
-                if (mediaOrder.contains(com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER)) primaryPicKey else hiddenKey
+                // If ALBUM_COVER is in mediaOrder, prefer mediaPillArtKey (the themed media artwork) if available, falling back to primaryPicKey; otherwise show hiddenKey
+                if (mediaOrder.contains(com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER)) {
+                    if (mediaArtworkBmp != null) mediaPillArtKey else primaryPicKey
+                } else hiddenKey
             }
             else -> primaryPicKey
         }
