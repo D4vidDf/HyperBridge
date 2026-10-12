@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Navigation
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -55,7 +56,8 @@ fun GlobalSettingsScreen(
     onEngineSettingsClick: () -> Unit,
     onDndSettingsClick: () -> Unit,
     onPermanentIslandClick: () -> Unit,
-    onSmartActionsClick: () -> Unit
+    onSmartActionsClick: () -> Unit,
+    onDiscountKeywordsClick: () -> Unit = {}
 ) {
 
     Scaffold(
@@ -101,12 +103,12 @@ fun GlobalSettingsScreen(
             )
             Spacer(Modifier.height(16.dp))
 
-            // Group 2: Permanent Island and Smart Actions
+            // Group 2: Permanent Island, Smart Actions and discount keywords
             ListOptionCard(
                 title = stringResource(R.string.permanent_island_title),
                 subtitle = stringResource(R.string.permanent_island_desc),
                 icon = Icons.Outlined.PushPin,
-                shape = getExpressiveShape(2, 0, ShapeStyle.Large),
+                shape = getExpressiveShape(3, 0, ShapeStyle.Large),
                 onClick = onPermanentIslandClick
             )
             Spacer(Modifier.height(2.dp))
@@ -114,8 +116,16 @@ fun GlobalSettingsScreen(
                 title = stringResource(R.string.smart_actions_title),
                 subtitle = stringResource(R.string.smart_actions_desc),
                 icon = Icons.Outlined.AutoAwesome,
-                shape = getExpressiveShape(2, 1, ShapeStyle.Large),
+                shape = getExpressiveShape(3, 1, ShapeStyle.Large),
                 onClick = onSmartActionsClick
+            )
+            Spacer(Modifier.height(2.dp))
+            ListOptionCard(
+                title = stringResource(R.string.discount_keywords_title),
+                subtitle = stringResource(R.string.discount_keywords_desc),
+                icon = Icons.Outlined.Sell,
+                shape = getExpressiveShape(3, 2, ShapeStyle.Large),
+                onClick = onDiscountKeywordsClick
             )
             Spacer(Modifier.height(16.dp))
 
@@ -206,4 +216,4 @@ fun GlobalSettingsScreenPreview() {
             onSmartActionsClick = {}
         )
     }
-}
+}

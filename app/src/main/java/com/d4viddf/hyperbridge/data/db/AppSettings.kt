@@ -34,6 +34,7 @@ object SettingsKeys {
     const val GLOBAL_DISMISS_WITH_ORIGINAL = "global_dismiss_with_original"
     const val GLOBAL_ENABLE_INLINE_REPLY = "global_enable_inline_reply"
     const val GLOBAL_BLOCKED_TERMS = "global_blocked_terms"
+    const val PROGRESS_DISCOUNT_KEYWORDS = "progress_discount_keywords"
 
     // Nav
     const val NAV_LEFT = "nav_left_content"

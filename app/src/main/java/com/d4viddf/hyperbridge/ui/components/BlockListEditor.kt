@@ -45,7 +45,10 @@ import com.d4viddf.hyperbridge.R
 fun BlocklistEditor(
     terms: Set<String>,
     onUpdate: (Set<String>) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    title: String = stringResource(R.string.blocked_terms),
+    description: String = stringResource(R.string.blocked_terms_desc),
+    placeholder: String = stringResource(R.string.add_blocked_word)
 ) {
     var text by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -55,13 +58,13 @@ fun BlocklistEditor(
         Row(verticalAlignment = Alignment.CenterVertically) {
 
             Text(
-                text = stringResource(R.string.blocked_terms),
+                text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }
         Text(
-            text = stringResource(R.string.blocked_terms_desc),
+            text = description,
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray,
             modifier = Modifier.padding( bottom = 12.dp)
@@ -72,7 +75,7 @@ fun BlocklistEditor(
             value = text,
             onValueChange = { text = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(R.string.add_blocked_word)) },
+            placeholder = { Text(placeholder) },
             trailingIcon = {
                 IconButton(
                     onClick = {

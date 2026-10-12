@@ -83,11 +83,15 @@ fun mainNavGraph(
             onEngineSettingsClick = { navigator.navigate(Screen.EngineSettings) },
             onDndSettingsClick = { navigator.navigate(Screen.DndSettings) },
             onPermanentIslandClick = { navigator.navigate(Screen.PermanentIslandConfig) },
-            onSmartActionsClick = { navigator.navigate(Screen.SmartActions) }
+            onSmartActionsClick = { navigator.navigate(Screen.SmartActions) },
+            onDiscountKeywordsClick = { navigator.navigate(Screen.ProgressDiscountKeywords) }
         )
     }
     entry<Screen.SmartActions> {
         com.d4viddf.hyperbridge.ui.screens.settings.SmartActionsSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.ProgressDiscountKeywords> {
+        com.d4viddf.hyperbridge.ui.screens.settings.ProgressDiscountKeywordsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.DndSettings> {
         com.d4viddf.hyperbridge.ui.screens.settings.DndSettingsScreen(onBack = { navigator.goBack() })

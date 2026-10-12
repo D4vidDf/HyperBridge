@@ -1,10 +1,16 @@
 package com.d4viddf.hyperbridge.service.translators
 
 import org.junit.Assert.assertEquals
+import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 class TextPercentageExtractorTest {
+
+    @After
+    fun resetCustomKeywords() {
+        TextPercentageExtractor.customKeywords = emptySet()
+    }
 
     @Test
     fun readsDownloadProgress() {
@@ -61,5 +67,29 @@ class TextPercentageExtractorTest {
     @Test
     fun skipsADiscountMatchAndKeepsALaterProgressMatch() {
         assertEquals(35, TextPercentageExtractor.extract(null, "-10% bundle · installing 35%"))
+    }
+
+    @Test
+    fun customKeywordsSkipTheString() {
+        assertEquals(25, TextPercentageExtractor.extract(null, "Liquidación 25% en tienda"))
+        TextPercentageExtractor.customKeywords = setOf(" liquidación ", "")
+        assertNull(TextPercentageExtractor.extract(null, "LIQUIDACIÓN 25% en tienda"))
+        assertEquals(40, TextPercentageExtractor.extract(null, "Downloading 40%"))
+    }
+
+    @Test
+    fun customKeywordsMatchWholeWordsLiterally() {
+        TextPercentageExtractor.customKeywords = setOf("bonus", "x2.5")
+        assertEquals(60, TextPercentageExtractor.extract(null, "Bonuses unlocked 60%"))
+        assertNull(TextPercentageExtractor.extract(null, "Bonus 60% extra"))
+        assertEquals(10, TextPercentageExtractor.extract(null, "x205 10%"))
+        assertNull(TextPercentageExtractor.extract(null, "x2.5 points 10%"))
+    }
+
+    @Test
+    fun clearingCustomKeywordsRestoresProgress() {
+        TextPercentageExtractor.customKeywords = setOf("bonus")
+        TextPercentageExtractor.customKeywords = emptySet()
+        assertEquals(60, TextPercentageExtractor.extract(null, "Bonus 60%"))
     }
 }

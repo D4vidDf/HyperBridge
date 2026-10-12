@@ -553,6 +553,10 @@ class AppPreferences internal constructor(
     val globalBlockedTermsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.GLOBAL_BLOCKED_TERMS).map { it.deserializeSet() }
     suspend fun setGlobalBlockedTerms(terms: Set<String>) = save(SettingsKeys.GLOBAL_BLOCKED_TERMS, terms.serialize())
 
+    /** Extra words that mark a "NN%" as a discount, not progress (on top of the built-in ones). */
+    val progressDiscountKeywordsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.PROGRESS_DISCOUNT_KEYWORDS).map { it.deserializeSet() }
+    suspend fun setProgressDiscountKeywords(terms: Set<String>) = save(SettingsKeys.PROGRESS_DISCOUNT_KEYWORDS, terms.serialize())
+
     fun getAppBlockedTerms(packageName: String): Flow<Set<String>> {
         return dao.getSettingFlow("config_${packageName}_blocked").map { it.deserializeSet() }
     }

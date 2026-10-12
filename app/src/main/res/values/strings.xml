@@ -211,6 +211,10 @@
     <string name="app_specific_rules">App Specific Rules</string>
     <string name="manage_app_rules_desc">Customize filters for specific applications</string>
     <string name="blocked_terms_count">%d terms blocked</string>
+    <string name="discount_keywords_title">Discount keywords</string>
+    <string name="discount_keywords_desc">Words that mean a percentage is a discount, not progress</string>
+    <string name="discount_keywords_editor_desc">A percentage next to one of these words (e.g. \"Clearance 30 %\") won\'t show a progress bar. Built-in words like sale, off, discount or promo already apply; add your own here.</string>
+    <string name="add_discount_keyword">Add word (e.g. Clearance)</string>
     <string name="no_active_rules">No active rules</string>
 
     <string name="setup_health_title">System Compatibility</string>

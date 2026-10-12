@@ -6,6 +6,7 @@ package com.d4viddf.hyperbridge.service.translators
  * A percentage that reads as a discount is not progress: "50% off", "-20%", "Save 30%" or
  * "20% de descuento" from a store app would otherwise become a progress bar, since store
  * packages are treated as downloads. A string with a discount word (whole word) is skipped.
+ * Users can add their own words on top of the built-in ones ([customKeywords]).
  */
 object TextPercentageExtractor {
 
@@ -17,25 +18,35 @@ object TextPercentageExtractor {
     /** "-20%", "−20 %" (a signed percentage is a change, not progress). */
     private val SIGN_BEFORE = Regex("""[-−–+]\s*$""")
 
-    private val DISCOUNT_WORDS = Regex(
-        "(?<![\\p{L}\\p{N}])(?:" +
-            // English
-            "discounts?|discounted|sale|save|coupons?|promo|deals?|cashback|" +
+    private val DISCOUNT_WORDS = wholeWords(
+        // English
+        "discounts?|discounted|sale|save|coupons?|promo|deals?|cashback|" +
             // Spanish / Galician / Portuguese
             "descuentos?|desconto|descontos|dto|rebajas?|rebaixas?|ofertas?|" +
             // Italian / French / German
             "sconto|sconti|remise|soldes|réduction|rabatt|" +
             // Russian / Ukrainian
-            "скидк[аиуе]|знижк[аиу]" +
-            ")(?![\\p{L}\\p{N}])",
-        RegexOption.IGNORE_CASE
+            "скидк[аиуе]|знижк[аиу]"
     )
+
+    @Volatile
+    private var customWords: Regex? = null
+
+    /** Extra discount words from the app settings, matched like the built-in ones. */
+    var customKeywords: Set<String> = emptySet()
+        set(value) {
+            val cleaned = value.map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+            field = cleaned
+            customWords = if (cleaned.isEmpty()) null
+            else wholeWords(cleaned.joinToString("|") { Regex.escape(it) })
+        }
 
     fun extract(title: String?, text: String?): Int? =
         text?.let(::fromString) ?: title?.let(::fromString)
 
     private fun fromString(value: String): Int? {
         if (DISCOUNT_WORDS.containsMatchIn(value)) return null
+        if (customWords?.containsMatchIn(value) == true) return null
         for (match in PERCENT.findAll(value)) {
             val before = value.substring(0, match.range.first)
             val after = value.substring(match.range.last + 1)
@@ -45,4 +56,9 @@ object TextPercentageExtractor {
         }
         return null
     }
+
+    private fun wholeWords(alternatives: String) = Regex(
+        "(?<![\\p{L}\\p{N}])(?:$alternatives)(?![\\p{L}\\p{N}])",
+        RegexOption.IGNORE_CASE
+    )
 }

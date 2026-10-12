@@ -30,6 +30,7 @@ sealed interface Screen : NavKey {
     @Serializable data object ScreenRecordingCustomization : Screen
     @Serializable data object SystemUpdateCustomization : Screen
     @Serializable data object SmartActions : Screen
+    @Serializable data object ProgressDiscountKeywords : Screen
     @Serializable data object FloatingSetup : Screen
     @Serializable data object Diagnostics : Screen
     @Serializable data class AppConfig(val packageName: String) : Screen

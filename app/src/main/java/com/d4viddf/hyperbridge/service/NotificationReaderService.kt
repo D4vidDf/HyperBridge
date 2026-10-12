@@ -324,6 +324,9 @@ class NotificationReaderService : NotificationListenerService() {
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
         serviceScope.launch { preferences.appPriorityListFlow.collectLatest { appPriorityList = it } }
         serviceScope.launch { preferences.globalBlockedTermsFlow.collectLatest { globalBlockedTerms = it } }
+        serviceScope.launch {
+            preferences.progressDiscountKeywordsFlow.collectLatest { TextPercentageExtractor.customKeywords = it }
+        }
         serviceScope.launch { preferences.isDndModeEnabledFlow.collectLatest { isDndModeEnabled = it } }
         serviceScope.launch { preferences.autoDetectDndFlow.collectLatest { autoDetectDnd = it } }
 
