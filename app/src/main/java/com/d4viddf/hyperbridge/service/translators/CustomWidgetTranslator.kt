@@ -26,6 +26,15 @@ import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import kotlinx.coroutines.runBlocking
 
+import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
+import com.d4viddf.hyperbridge.models.translator.PillMediaItem
+import com.d4viddf.hyperbridge.models.translator.PillRightDesign
+import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
+import com.d4viddf.hyperbridge.service.visual.NotificationVisualSource
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
+import io.github.d4viddf.hyperisland_kit.models.TextInfo
+
 /**
  * Renders a custom design (Phase 5, #273): a translator whose presentation mode is WIDGET carries
  * a `widgetId`, and the island body becomes that Studio document rendered as a RemoteViews tree.
@@ -49,11 +58,15 @@ class CustomWidgetTranslator(
         effectiveText: String,
         config: IslandConfig,
         theme: HyperTheme?,
-        widgetId: String
+        widgetId: String,
+        customTranslator: CustomTranslator? = null,
+        isUpdate: Boolean = false
     ): HyperIslandData {
         val doc = requireNotNull(widgetRepo.getWidget(widgetId)) {
             "Custom design $widgetId is missing from the Studio store"
         }
+
+        val effectiveTheme = customTranslator?.let { resolveTheme(it, theme) } ?: theme
 
         val progress = sbn.notification.extras.getInt("android.progress", -1).takeIf { it >= 0 }
         val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, context)
@@ -66,16 +79,20 @@ class CustomWidgetTranslator(
         val replyAction = actions.firstOrNull { !it.remoteInputs.isNullOrEmpty() }
         val smartActions = extractSmartActions(sbn, config)
 
-        val highlightColor = resolveColor(theme, sbn.packageName, "#00E676")
-        val themePrimary = theme?.global?.highlightColor ?: highlightColor
+        val highlightColor = if (customTranslator?.themeBinding?.overrideHighlightColor != null) {
+            customTranslator.themeBinding.overrideHighlightColor
+        } else {
+            resolveColor(effectiveTheme, sbn.packageName, "#00E676")
+        }
+        val themePrimary = effectiveTheme?.global?.highlightColor ?: highlightColor
         val themeAccent = highlightColor
-        val themeSurface = theme?.global?.backgroundColor ?: "#1E1E1E"
+        val themeSurface = effectiveTheme?.global?.backgroundColor ?: "#1E1E1E"
 
         val notif = sbn.notification
         val extras = notif.extras
 
         val notifAvatarBitmap: Bitmap? = try {
-            notif.getLargeIcon()?.loadDrawable(context)?.toBitmap()
+            notif.getLargeIcon()?.let { loadIconBitmap(it, sbn.packageName) }
                 ?: (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                     extras.getParcelable(Notification.EXTRA_LARGE_ICON, Bitmap::class.java)
                 } else {
@@ -85,17 +102,42 @@ class CustomWidgetTranslator(
         } catch (_: Exception) { null }
 
         val notifPictureBitmap: Bitmap? = try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                 extras.getParcelable(Notification.EXTRA_PICTURE, Bitmap::class.java)
             } else {
                 @Suppress("DEPRECATION")
                 extras.getParcelable(Notification.EXTRA_PICTURE) as? Bitmap
-            }
+            }) ?: (extras.getParcelable<android.graphics.drawable.Icon>("android.pictureIcon")?.let { loadIconBitmap(it, sbn.packageName) })
+               ?: (extras.getParcelable<android.graphics.drawable.Icon>(Notification.EXTRA_PICTURE_ICON)?.let { loadIconBitmap(it, sbn.packageName) })
         } catch (_: Exception) { null }
 
         val notifSmallIconBitmap: Bitmap? = try {
             notif.smallIcon?.loadDrawable(context)?.toBitmap()
         } catch (_: Exception) { null }
+
+        val mediaSessionBmp = try {
+            val token = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, android.media.session.MediaSession.Token::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) as? android.media.session.MediaSession.Token
+            }
+            if (token != null) {
+                val controller = android.media.session.MediaController(context, token)
+                controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART)
+                    ?: controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ART)
+                    ?: controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+            } else null
+        } catch (_: Exception) {
+            null
+        }
+
+        val mediaArtworkBmp = mediaSessionBmp ?: notifAvatarBitmap ?: notifPictureBitmap ?: run {
+            val resolved = resolveNotificationVisual(sbn)
+            if (resolved.source == NotificationVisualSource.PICTURE || resolved.source == NotificationVisualSource.LARGE_ICON) {
+                resolved.bitmap
+            } else null
+        }
 
         val iconBitmap = try {
             context.packageManager.getApplicationIcon(sbn.packageName).toBitmap()
@@ -106,10 +148,10 @@ class CustomWidgetTranslator(
         val resolvedColorScheme = com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
             context = context,
             config = doc.globals.colorSchemeConfig,
-            embeddedYaml = doc.globals.embeddedColorSchemeYaml ?: theme?.embeddedColorSchemeYaml,
+            embeddedYaml = doc.globals.embeddedColorSchemeYaml ?: effectiveTheme?.embeddedColorSchemeYaml,
             appIconBitmap = iconBitmap,
             mediaBitmaps = mapOf(
-                "album_art" to notifPictureBitmap,
+                "album_art" to (mediaArtworkBmp ?: notifPictureBitmap),
                 "picture" to notifPictureBitmap,
                 "avatar" to notifAvatarBitmap
             ),
@@ -153,33 +195,165 @@ class CustomWidgetTranslator(
         val rv = renderer.render(doc, ctx, bridgeId = bridgeId, intents = intents)
 
         val builder = HyperIslandNotification.Builder(context, "custom_widget_channel", effectiveTitle)
-        if (iconBitmap != null) {
-            builder.addPicture(HyperPicture(picKey, Icon.createWithBitmap(iconBitmap)))
-            builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = picKey)))
-            builder.setSmallIsland(picKey)
-        } else {
-            builder.setBigIslandInfo(left = ImageTextInfoLeft(picInfo = PicInfo(pic = "default_icon")))
-            builder.setSmallIsland("default_icon")
-            builder.addPicture(getTransparentPicture("default_icon"))
+        val hiddenKey = "hidden_pixel"
+        builder.addPicture(getTransparentPicture(hiddenKey))
+
+        val pillConfig = customTranslator?.presentation?.pill
+        val leftDesign = pillConfig?.leftDesign ?: PillLeftDesign.ICON_AND_TEXT
+        val rightDesign = pillConfig?.rightDesign ?: PillRightDesign.AUTO
+
+        val mediaOrder = pillConfig?.mediaOrder?.ifEmpty {
+            listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST)
+        } ?: listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST)
+
+        val hasAlbumCover = mediaOrder.contains(PillMediaItem.ALBUM_COVER)
+
+        val pillShapeId = customTranslator?.presentation?.leftSlot?.shape ?: resolveShape(effectiveTheme, sbn.packageName)
+        val themedMediaPillBmp = if (mediaArtworkBmp != null) {
+            clipBitmapToShape(mediaArtworkBmp, pillShapeId, 0)
+        } else null
+
+        if (mediaArtworkBmp != null && themedMediaPillBmp != null) {
+            builder.addPicture(HyperPicture("media_pill_art", themedMediaPillBmp))
+            builder.addPicture(HyperPicture("album_art", themedMediaPillBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_imageText", mediaArtworkBmp))
         }
+
+        val appIconPicture = if (iconBitmap != null) {
+            HyperPicture(picKey, Icon.createWithBitmap(iconBitmap))
+        } else {
+            resolveIcon(sbn, picKey)
+        }
+        val defaultPicPicture = if (leftDesign == PillLeftDesign.MEDIA && themedMediaPillBmp != null && hasAlbumCover) {
+            HyperPicture(picKey, themedMediaPillBmp)
+        } else {
+            appIconPicture
+        }
+        builder.addPicture(defaultPicPicture)
+
+        val progressConfig = customTranslator?.presentation?.progressSlot
+        val hasProgress = (progressConfig?.type == ProgressSlotType.PROGRESS_BAR || rightDesign == PillRightDesign.PROGRESS_PERCENT) &&
+                (mediaProgress != null || progress != null)
+        val progressPercent = (mediaProgress ?: progress ?: 0).coerceIn(0, 100)
+        val progressColor = effectiveTheme?.defaultProgress?.activeColor ?: highlightColor
+
+        val isTimer = (progressConfig?.type == ProgressSlotType.TIMER || rightDesign == PillRightDesign.TIMER) &&
+                notif.`when` > System.currentTimeMillis()
+
+        val mediaTrack = effectiveTitle
+        val mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.ifBlank { null } ?: effectiveText
+
+        val mediaPillText = when (mediaOrder.firstOrNull { it != PillMediaItem.ALBUM_COVER }) {
+            PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+
+        val leftSlotConfig = customTranslator?.presentation?.leftSlot
+        val primaryPicKey = if (leftSlotConfig?.source == "HIDDEN") hiddenKey else picKey
+
+        val pillLeftPicKey = when (leftDesign) {
+            PillLeftDesign.HIDDEN -> hiddenKey
+            PillLeftDesign.MEDIA -> {
+                if (hasAlbumCover) {
+                    if (themedMediaPillBmp != null) "album_art" else primaryPicKey
+                } else hiddenKey
+            }
+            else -> primaryPicKey
+        }
+
+        val pillLeftText = when (leftDesign) {
+            PillLeftDesign.ICON_AND_TEXT,
+            PillLeftDesign.TEXT_ONLY -> effectiveTitle
+            PillLeftDesign.MEDIA -> mediaPillText
+            else -> ""
+        }
+
+        val pillRightText = when (rightDesign) {
+            PillRightDesign.HIGHLIGHT_TEXT -> {
+                val highlightTpl = customTranslator?.presentation?.textSlot?.highlightTextTemplate
+                if (!highlightTpl.isNullOrBlank()) highlightTpl.replace("{notif.title}", effectiveTitle).replace("{notif.text}", effectiveText) else effectiveText
+            }
+            PillRightDesign.NONE -> ""
+            else -> effectiveText
+        }
+
+        val showBigIslandPic = leftDesign != PillLeftDesign.TEXT_ONLY &&
+                leftDesign != PillLeftDesign.HIDDEN &&
+                leftSlotConfig?.source != "HIDDEN" &&
+                (leftDesign != PillLeftDesign.MEDIA || hasAlbumCover)
+
+        when {
+            hasProgress -> {
+                builder.setProgressBar(progressPercent, progressColor)
+                val progressPicKey = if (showBigIslandPic) pillLeftPicKey else ""
+                builder.setBigIslandProgressCircle(progressPicKey, pillLeftText, progressPercent, progressColor, true)
+                builder.setSmallIslandCircularProgress(if (showBigIslandPic) pillLeftPicKey else primaryPicKey, progressPercent, progressColor, isCCW = true)
+            }
+            isTimer -> {
+                val baseTime = notif.`when`.let { if (it > 0) it else System.currentTimeMillis() }
+                val now = System.currentTimeMillis()
+                val isCountdown = baseTime > now
+                val timerPicKey = if (showBigIslandPic) pillLeftPicKey else ""
+                if (isCountdown) {
+                    builder.setBigIslandCountdown(baseTime, timerPicKey)
+                } else {
+                    builder.setBigIslandCountUp(baseTime, timerPicKey)
+                }
+                builder.setSmallIsland(if (showBigIslandPic) pillLeftPicKey else primaryPicKey)
+            }
+            else -> {
+                val leftBigIslandText = pillLeftText
+                val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
+                val rightBigIslandTitle = if (leftBigIslandText.isNotBlank()) "" else effectiveTitle
+                builder.setBigIslandInfo(
+                    left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
+                    right = if (rightDesign != PillRightDesign.NONE) {
+                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(rightBigIslandTitle, pillRightText))
+                    } else {
+                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo("", ""))
+                    }
+                )
+                builder.setSmallIsland(if (hasAlbumCover && themedMediaPillBmp != null) "album_art" else (if (showBigIslandPic) pillLeftPicKey else primaryPicKey))
+            }
+        }
+
         // Expanded island: the rendered micro-widget. HyperOS reads the expanded content from the
         // island-expand slot, not from the notification's custom view, so both must be set
         // (verified on device: with setCustomRemoteView alone the pill shows but never expands).
         builder.setCustomRemoteView(rv)
         builder.setCustomIslandExpandRemoteView(rv)
         builder.setIslandConfig(
-            timeout = config.timeout,
+            timeout = customTranslator?.behaviorOverride?.timeoutSeconds ?: config.timeout,
             dismissible = false,
             highlightColor = highlightColor,
-            expandedTimeMs = config.floatTimeout
+            expandedTimeMs = customTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout
         )
-        builder.setIslandFirstFloat(config.isFloat == true)
-        builder.setEnableFloat(config.isFloat == true)
-        builder.setShowNotification(config.isShowShade == true)
+        val isFloat = customTranslator?.behaviorOverride?.isFloat ?: config.isFloat ?: false
+        val floatOnlyOnFirst = customTranslator?.behaviorOverride?.floatOnlyOnFirst ?: true
+        builder.applyFloatingPresentation(isFloat, isUpdate, floatOnlyOnFirst)
+        builder.setShowNotification(customTranslator?.behaviorOverride?.isShowShade ?: config.isShowShade ?: false)
         builder.setHideDeco(true)
-        builder.setReopen(true)
+        if (!isUpdate) builder.setReopen(true)
 
         return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
+    }
+
+    private fun resolveTheme(customTranslator: CustomTranslator, activeTheme: HyperTheme?): HyperTheme? {
+        val binding = customTranslator.themeBinding
+        if (binding.embeddedTheme != null) {
+            return binding.embeddedTheme
+        }
+        if (binding.themeId.equals("active", ignoreCase = true)) {
+            return activeTheme
+        }
+        val fetchedTheme = repository?.getThemeById(binding.themeId)
+        if (fetchedTheme != null) {
+            return fetchedTheme
+        }
+        return if (binding.fallbackToActiveIfMissing) activeTheme else null
     }
 
     /**

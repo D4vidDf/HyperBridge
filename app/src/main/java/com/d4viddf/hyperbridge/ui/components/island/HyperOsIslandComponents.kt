@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
@@ -62,6 +63,7 @@ import com.d4viddf.hyperbridge.models.translator.ActionDisplayMode
 import com.d4viddf.hyperbridge.models.translator.ActionSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ActionSource
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
+import com.d4viddf.hyperbridge.models.translator.PillMediaItem
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
@@ -626,6 +628,13 @@ fun HyperOsCompactPill(
     hasProgress: Boolean = false,
     highlightColor: Color = Color(0xFF3482FF),
     iconShape: Shape = CircleShape,
+    mediaOrder: List<PillMediaItem> = listOf(
+        PillMediaItem.ALBUM_COVER,
+        PillMediaItem.TRACK,
+        PillMediaItem.ARTIST
+    ),
+    mediaTrack: String = "Track Title",
+    mediaArtist: String = "Artist Name",
     modifier: Modifier = Modifier
 ) {
     val horizontalPaddingPx = with(LocalDensity.current) { 10.dp.roundToPx() }
@@ -740,6 +749,76 @@ fun HyperOsCompactPill(
                                     fontWeight = FontWeight.Medium,
                                     isLeftSide = true,
                                     maxTextWidth = 32.dp
+                                )
+                            }
+                        }
+                        PillLeftDesign.MEDIA -> {
+                            val effectiveOrder = mediaOrder.ifEmpty {
+                                listOf(
+                                    PillMediaItem.ALBUM_COVER,
+                                    PillMediaItem.TRACK,
+                                    PillMediaItem.ARTIST
+                                )
+                            }
+                            val hasAlbumCover = effectiveOrder.contains(PillMediaItem.ALBUM_COVER)
+                            val mediaPillText = when (effectiveOrder.firstOrNull { it != PillMediaItem.ALBUM_COVER }) {
+                                PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+                                PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+                                else -> ""
+                            }
+
+                            if (hasAlbumCover && mediaPillText.isNotBlank()) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.widthIn(max = 52.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(highlightColor),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Album,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                    }
+                                    Spacer(Modifier.width(4.dp))
+                                    HyperOsPillFadingText(
+                                        text = mediaPillText,
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        isLeftSide = true,
+                                        maxTextWidth = 32.dp
+                                    )
+                                }
+                            } else if (hasAlbumCover) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(highlightColor),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Album,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(10.dp)
+                                    )
+                                }
+                            } else if (mediaPillText.isNotBlank()) {
+                                HyperOsPillFadingText(
+                                    text = mediaPillText,
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    isLeftSide = true,
+                                    maxTextWidth = 52.dp
                                 )
                             }
                         }

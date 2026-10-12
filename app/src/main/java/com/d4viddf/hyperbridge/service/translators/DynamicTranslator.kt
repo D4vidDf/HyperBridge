@@ -26,6 +26,7 @@ import com.d4viddf.hyperbridge.models.translator.SmartActionCategory
 import com.d4viddf.hyperbridge.models.translator.VariableSource
 import com.d4viddf.hyperbridge.models.translator.VariableType
 import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
+import com.d4viddf.hyperbridge.service.visual.NotificationVisualSource
 import com.google.gson.JsonParser
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
@@ -144,7 +145,8 @@ class DynamicTranslator(
             finalTitle
         )
 
-        builder.applyFloatingPresentation(isFloat, isUpdate)
+        val floatOnlyOnFirst = customTranslator.behaviorOverride.floatOnlyOnFirst
+        builder.applyFloatingPresentation(isFloat, isUpdate, floatOnlyOnFirst)
         builder.setIslandConfig(
             timeout = customTranslator.behaviorOverride.timeoutSeconds ?: config.timeout,
             dismissible = false, // Set to false for HyperOS 4 compatibility (prevents island from failing to show or being discarded)
@@ -185,15 +187,43 @@ class DynamicTranslator(
             } catch (_: Exception) {
                 null
             }
-        } ?: notifPictureBmp ?: getNotificationBitmap(sbn)
+        } ?: notifPictureBmp
 
-        val posterBmp = notifPictureBmp ?: largeBmp
+        val mediaSessionBmp = try {
+            val token = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, android.media.session.MediaSession.Token::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) as? android.media.session.MediaSession.Token
+            }
+            if (token != null) {
+                val controller = android.media.session.MediaController(context, token)
+                controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART)
+                    ?: controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ART)
+                    ?: controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+            } else null
+        } catch (_: Exception) {
+            null
+        }
 
-        if (largeBmp != null) {
-            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", largeBmp))
-            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", largeBmp))
-            builder.addPicture(HyperPicture("album_art", largeBmp))
-            builder.addPicture(HyperPicture("miui.focus.pic_imageText", largeBmp))
+        val mediaArtworkBmp = mediaSessionBmp ?: largeBmp ?: notifPictureBmp ?: run {
+            val resolved = resolveNotificationVisual(sbn)
+            if (resolved.source == NotificationVisualSource.PICTURE || resolved.source == NotificationVisualSource.LARGE_ICON) {
+                resolved.bitmap
+            } else null
+        }
+
+        val posterBmp = notifPictureBmp ?: mediaArtworkBmp
+        val mediaPillArtKey = "media_pill_art"
+
+        if (mediaArtworkBmp != null) {
+            val pillShapeId = customTranslator.presentation.leftSlot.shape ?: resolveShape(effectiveTheme, sbn.packageName)
+            val themedMediaPillBmp = clipBitmapToShape(mediaArtworkBmp, pillShapeId, 0)
+            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", mediaArtworkBmp))
+            builder.addPicture(HyperPicture("album_art", themedMediaPillBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_imageText", mediaArtworkBmp))
+            builder.addPicture(HyperPicture(mediaPillArtKey, themedMediaPillBmp))
         }
         if (posterBmp != null) {
             builder.addPicture(HyperPicture("poster", posterBmp))
@@ -207,10 +237,14 @@ class DynamicTranslator(
         builder.addPicture(resolveIcon(sbn, "default_icon"))
 
         // 5. Extract & Bundle Custom Dynamic Variables & Images
+        variableMap["pic.media_pill_art"] = mediaPillArtKey
+        variableMap["media_pill_art"] = mediaPillArtKey
+
         val availablePictureKeys = mutableSetOf(
             picKey,
             "picKey",
             hiddenKey,
+            mediaPillArtKey,
             "miui.focus.pic_app_icon",
             "miui.focus.pic_large_icon",
             "miui.focus.pic_sender_avatar",
@@ -313,7 +347,10 @@ class DynamicTranslator(
 
         val isMedia = notif.extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
                 notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true ||
-                customTranslator.presentation.templateId == "tpl_media_compact"
+                customTranslator.presentation.templateId == "tpl_media_compact" ||
+                customTranslator.targetNotificationTypes.contains("MEDIA") ||
+                customTranslator.presentation.pill.leftDesign == com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA ||
+                customTranslator.presentation.leftSlot.source in listOf("MEDIA", "ALBUM_ART", "ALBUM_ART_OR_APP_ICON")
 
         // 5. Left Slot Graphic & Hidden Pixel
         val leftSlotConfig = customTranslator.presentation.leftSlot
@@ -347,26 +384,17 @@ class DynamicTranslator(
                 }
                 if (avatarBmp != null) {
                     val shapeId = leftSlotConfig.shape ?: resolveShape(effectiveTheme, sbn.packageName)
-                    val themedBmp = applyThemeToActionIcon(avatarBmp, shapeId, 0, android.graphics.Color.TRANSPARENT)
+                    val themedBmp = clipBitmapToShape(avatarBmp, shapeId, 0)
                     HyperPicture(picKey, themedBmp)
                 } else {
                     resolveIcon(sbn, picKey)
                 }
             }
             isMedia -> {
-                val largeIcon = notif.getLargeIcon()
-                val albumArt: android.graphics.Bitmap? = if (largeIcon != null) {
-                    loadIconBitmap(largeIcon, sbn.packageName)
-                } else {
-                    try {
-                        extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
-                    } catch (_: Exception) {
-                        null
-                    }
-                }
+                val albumArt = mediaArtworkBmp
                 if (albumArt != null) {
                     val shapeId = leftSlotConfig.shape ?: resolveShape(effectiveTheme, sbn.packageName)
-                    val themedBmp = applyThemeToActionIcon(albumArt, shapeId, 0, android.graphics.Color.TRANSPARENT)
+                    val themedBmp = clipBitmapToShape(albumArt, shapeId, 0)
                     HyperPicture(picKey, themedBmp)
                 } else {
                     resolveIcon(sbn, picKey)
@@ -402,15 +430,38 @@ class DynamicTranslator(
             highlightColor
         }
 
+        val mediaOrder = pillConfig.mediaOrder.ifEmpty {
+            listOf(
+                com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER,
+                com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK,
+                com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST
+            )
+        }
+        val mediaTrack = variableMap["media.track"]?.ifBlank { null } ?: finalTitle
+        val mediaArtist = variableMap["media.artist"]?.ifBlank { null } ?: finalText
+
+        val mediaPillText = when (mediaOrder.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+
         val primaryPicKey = if (leftSlotConfig.source == "HIDDEN") hiddenKey else picKey
+        val hasAlbumCover = mediaOrder.contains(com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER)
         val pillLeftPicKey = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN -> hiddenKey
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA -> {
+                if (hasAlbumCover) {
+                    if (mediaArtworkBmp != null) "album_art" else primaryPicKey
+                } else hiddenKey
+            }
             else -> primaryPicKey
         }
 
         val pillLeftText = when (leftDesign) {
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.ICON_AND_TEXT,
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY -> finalTitle
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA -> mediaPillText
             else -> ""
         }
 
@@ -425,7 +476,8 @@ class DynamicTranslator(
 
         val showBigIslandPic = leftDesign != com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY &&
                 leftDesign != com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN &&
-                leftSlotConfig.source != "HIDDEN"
+                leftSlotConfig.source != "HIDDEN" &&
+                (leftDesign != com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA || hasAlbumCover)
 
         val isIncomingCall = callSession?.state == com.d4viddf.hyperbridge.service.call.CallState.INCOMING_RINGING ||
                 (callSession == null && isCall && (notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("CallStyle") == true || notif.category == Notification.CATEGORY_CALL))
@@ -454,7 +506,7 @@ class DynamicTranslator(
                 builder.setProgressBar(progressPercent, progressColor)
                 val progressPicKey = if (showBigIslandPic) pillLeftPicKey else ""
                 builder.setBigIslandProgressCircle(progressPicKey, pillLeftText, progressPercent, progressColor, true)
-                builder.setSmallIslandCircularProgress(pillLeftPicKey, progressPercent, progressColor, isCCW = true)
+                builder.setSmallIslandCircularProgress(if (showBigIslandPic) pillLeftPicKey else primaryPicKey, progressPercent, progressColor, isCCW = true)
 
                 if (bridgeActions.isNotEmpty()) {
                     bridgeActions.forEach {
@@ -497,7 +549,7 @@ class DynamicTranslator(
                 } else {
                     builder.setBigIslandCountUp(baseTime, timerPicKey)
                 }
-                builder.setSmallIsland(pillLeftPicKey)
+                builder.setSmallIsland(if (showBigIslandPic) pillLeftPicKey else primaryPicKey)
 
                 if (bridgeActions.isNotEmpty()) {
                     bridgeActions.forEach {
@@ -526,12 +578,16 @@ class DynamicTranslator(
                     actionKeys = if (actionKeys.isNotEmpty()) actionKeys.take(3) else null
                 )
 
-                val leftBigIslandText = if (rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) pillLeftText else ""
+                val leftBigIslandText = pillLeftText
                 val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
+                val rightBigIslandTitle = if (leftBigIslandText.isNotBlank()) "" else finalTitle
                 builder.setBigIslandInfo(
-                    left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, ""))
+                    left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
+                    right = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) {
+                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(rightBigIslandTitle, pillRightText))
+                    } else null
                 )
-                builder.setSmallIsland(pillLeftPicKey)
+                builder.setSmallIsland(if (hasAlbumCover && mediaArtworkBmp != null) "album_art" else (if (showBigIslandPic) pillLeftPicKey else primaryPicKey))
                 builder.setHideDeco(true).setReopen(true).setShowSmallIcon(true)
 
                 if (bridgeActions.isNotEmpty()) {
@@ -614,17 +670,18 @@ class DynamicTranslator(
                     )
                 }
 
-                val leftBigIslandText = if (rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) pillLeftText else ""
+                val leftBigIslandText = pillLeftText
                 val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
+                val rightBigIslandTitle = if (leftBigIslandText.isNotBlank()) "" else finalTitle
                 builder.setBigIslandInfo(
                     left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
                     right = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) {
-                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(finalTitle, pillRightText))
+                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(rightBigIslandTitle, pillRightText))
                     } else {
                         ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo("", ""))
                     }
                 )
-                builder.setSmallIsland(pillLeftPicKey)
+                builder.setSmallIsland(if (hasAlbumCover && mediaArtworkBmp != null) "album_art" else (if (showBigIslandPic) pillLeftPicKey else primaryPicKey))
 
                 if (bridgeActions.isNotEmpty()) {
                     if (isAvatarSource) {

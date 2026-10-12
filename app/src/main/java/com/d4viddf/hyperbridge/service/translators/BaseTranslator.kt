@@ -303,6 +303,40 @@ abstract class BaseTranslator(
         return applyThemeToActionIcon(source, shapeId, padding, bgColor)
     }
 
+    protected fun clipBitmapToShape(source: Bitmap, shapeId: String, paddingPercent: Int = 0): Bitmap {
+        val size = 96
+        val output = createBitmap(size, size)
+        val canvas = Canvas(output)
+
+        val polygon = getShapeFromId(shapeId)
+        val path = polygon.toPath()
+        val bounds = RectF()
+        path.computeBounds(bounds, true)
+
+        val matrix = Matrix()
+        val destRect = RectF(0f, 0f, size.toFloat(), size.toFloat())
+        matrix.setRectToRect(bounds, destRect, Matrix.ScaleToFit.FILL)
+        path.transform(matrix)
+
+        val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.BLACK
+            style = Paint.Style.FILL
+        }
+        canvas.drawPath(path, maskPaint)
+
+        val paddingPx = (size * (paddingPercent / 100f))
+        val iconDestRect = RectF(paddingPx, paddingPx, size - paddingPx, size - paddingPx)
+
+        if (iconDestRect.width() > 0 && iconDestRect.height() > 0) {
+            val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+            }
+            drawNormalizedBitmap(canvas, source, iconDestRect, iconPaint)
+        }
+
+        return output
+    }
+
     // --- CORE LOGIC ---
 
     protected fun extractBridgeActions(

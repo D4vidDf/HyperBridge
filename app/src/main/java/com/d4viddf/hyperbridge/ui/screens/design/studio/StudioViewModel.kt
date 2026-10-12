@@ -155,6 +155,7 @@ class StudioViewModel(
             }
 
             existingTranslator = allTranslators.firstOrNull { it.presentation.widgetId == widgetId }
+                ?: repository.getTranslatorForWidget(widgetId)
             _boundTranslator.value = existingTranslator
             existingTranslator?.let { trans ->
                 _targetScope.value = trans.targetScope
@@ -403,10 +404,11 @@ class StudioViewModel(
                 _targetScope.value,
                 _targetPackages.value,
                 _notificationType.value,
-                existingTranslator
+                existingTranslator ?: _boundTranslator.value
             )
             existingTranslator = translator
             _boundTranslator.value = translator
+            repository.saveTranslatorForWidget(clamped.id, translator)
             onSaveTranslator(translator)
 
             _isSaving.value = false
@@ -415,7 +417,20 @@ class StudioViewModel(
     }
 
     suspend fun exportWidget(): File? {
-        return repository.exportWidget(_document.value.id)
+        val validation = WidgetDimensionValidator.validate(_document.value)
+        val clamped = validation.clamped
+        repository.saveWidget(clamped)
+        val translator = _boundTranslator.value ?: existingTranslator ?: createOrUpdateTranslator(
+            clamped,
+            _targetScope.value,
+            _targetPackages.value,
+            _notificationType.value,
+            existingTranslator
+        )
+        existingTranslator = translator
+        _boundTranslator.value = translator
+        repository.saveTranslatorForWidget(clamped.id, translator)
+        return repository.exportWidget(clamped.id, translator)
     }
 
     private fun pushHistory(doc: CustomWidgetDocument) {

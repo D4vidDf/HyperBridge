@@ -155,7 +155,8 @@ data class BehaviorOverride(
     @SerialName("is_show_shade") val isShowShade: Boolean? = null,
     @SerialName("remove_original_notification") val removeOriginalNotification: Boolean? = null,
     @SerialName("dismiss_with_original") val dismissWithOriginal: Boolean? = null,
-    @SerialName("enable_inline_reply") val enableInlineReply: Boolean? = null
+    @SerialName("enable_inline_reply") val enableInlineReply: Boolean? = null,
+    @SerialName("float_only_on_first") val floatOnlyOnFirst: Boolean = true
 )
 
 @Serializable
@@ -295,8 +296,20 @@ data class RawParamV2Config(
 @Serializable
 data class CompactPillConfig(
     @SerialName("left_design") val leftDesign: PillLeftDesign = PillLeftDesign.ICON_AND_TEXT,
-    @SerialName("right_design") val rightDesign: PillRightDesign = PillRightDesign.AUTO
+    @SerialName("right_design") val rightDesign: PillRightDesign = PillRightDesign.AUTO,
+    @SerialName("media_order") val mediaOrder: List<PillMediaItem> = listOf(
+        PillMediaItem.ALBUM_COVER,
+        PillMediaItem.TRACK,
+        PillMediaItem.ARTIST
+    )
 )
+
+@Serializable
+enum class PillMediaItem {
+    @SerialName("ALBUM_COVER") ALBUM_COVER,
+    @SerialName("TRACK") TRACK,
+    @SerialName("ARTIST") ARTIST
+}
 
 @Serializable
 enum class PillLeftDesign {
@@ -304,6 +317,7 @@ enum class PillLeftDesign {
     @SerialName("ICON_ONLY") ICON_ONLY,
     @SerialName("TEXT_ONLY") TEXT_ONLY,
     @SerialName("AVATAR") AVATAR,
+    @SerialName("MEDIA") MEDIA,
     @SerialName("HIDDEN") HIDDEN
 }
 

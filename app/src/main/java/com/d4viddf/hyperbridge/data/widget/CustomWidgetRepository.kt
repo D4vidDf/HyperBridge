@@ -3,6 +3,15 @@ package com.d4viddf.hyperbridge.data.widget
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.d4viddf.hyperbridge.data.db.AppDatabase
+import com.d4viddf.hyperbridge.data.db.TranslatorDao
+import com.d4viddf.hyperbridge.data.db.TranslatorEntity
+import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.PresentationConfig
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
+import com.d4viddf.hyperbridge.models.translator.TargetScope
+import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
 import com.d4viddf.hyperbridge.models.widget.WidgetImportGuard
@@ -21,11 +30,22 @@ import java.util.zip.ZipOutputStream
  * and packages/unpacks them as `.hwidget` archives for sharing. 1:1 clone of
  * [com.d4viddf.hyperbridge.data.theme.ThemeRepository]'s file-based persistence pattern.
  */
-class CustomWidgetRepository(private val context: Context) {
+class CustomWidgetRepository(
+    private val context: Context,
+    private val translatorDao: TranslatorDao? = null
+) {
 
     private val tag = "HyperBridgeWidgetStudio"
     private val json = Json { ignoreUnknownKeys = true; prettyPrint = true }
     private val widgetsDir = File(context.filesDir, "custom_widgets")
+
+    private fun getTranslatorDao(): TranslatorDao? {
+        return translatorDao ?: try {
+            AppDatabase.getDatabase(context).translatorDao()
+        } catch (_: Throwable) {
+            null
+        }
+    }
 
     init {
         if (!widgetsDir.exists()) widgetsDir.mkdirs()
@@ -71,12 +91,44 @@ class CustomWidgetRepository(private val context: Context) {
         return getAvailableWidgets().firstOrNull { it.boundPackage == pkg }
     }
 
-    suspend fun saveWidget(doc: CustomWidgetDocument) {
+    suspend fun saveWidget(doc: CustomWidgetDocument, translator: CustomTranslator? = null) {
         withContext(Dispatchers.IO) {
             val widgetFolder = File(widgetsDir, doc.id)
             if (!widgetFolder.exists()) widgetFolder.mkdirs()
             val configFile = File(widgetFolder, "widget.json")
             configFile.writeText(json.encodeToString(CustomWidgetDocument.serializer(), doc))
+            if (translator != null) {
+                val translatorFile = File(widgetFolder, "translator.json")
+                translatorFile.writeText(CustomTranslator.toJson(translator))
+            }
+        }
+    }
+
+    suspend fun saveTranslatorForWidget(widgetId: String, translator: CustomTranslator) {
+        withContext(Dispatchers.IO) {
+            if (!WidgetImportGuard.isSafeId(widgetId)) return@withContext
+            val widgetFolder = File(widgetsDir, widgetId)
+            if (!widgetFolder.exists()) widgetFolder.mkdirs()
+            val translatorFile = File(widgetFolder, "translator.json")
+            translatorFile.writeText(CustomTranslator.toJson(translator))
+        }
+    }
+
+    suspend fun getTranslatorForWidget(widgetId: String): CustomTranslator? = withContext(Dispatchers.IO) {
+        if (!WidgetImportGuard.isSafeId(widgetId)) return@withContext null
+        try {
+            val translatorFile = File(widgetsDir, "$widgetId/translator.json")
+            if (translatorFile.exists()) {
+                val parsed = CustomTranslator.fromJson(translatorFile.readText()).getOrNull()
+                if (parsed != null) return@withContext parsed
+            }
+            // Fallback: check database if available
+            getTranslatorDao()?.getAllTranslators()?.firstOrNull {
+                it.toCustomTranslator().getOrNull()?.presentation?.widgetId == widgetId
+            }?.toCustomTranslator()?.getOrNull()
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to load translator for widget $widgetId", e)
+            null
         }
     }
 
@@ -87,10 +139,99 @@ class CustomWidgetRepository(private val context: Context) {
         }
     }
 
-    suspend fun exportWidget(id: String): File? = withContext(Dispatchers.IO) {
+    /**
+     * Clones an existing widget design and its associated configuration to a new unique widget ID.
+     * Copies all assets, writes a cloned widget.json with the new widget ID, and binds a new
+     * translator with [newTranslatorId].
+     */
+    suspend fun duplicateWidget(
+        sourceWidgetId: String,
+        newName: String? = null,
+        sourceTranslator: CustomTranslator? = null,
+        newTranslatorId: String = UUID.randomUUID().toString()
+    ): Pair<CustomWidgetDocument, CustomTranslator>? = withContext(Dispatchers.IO) {
+        if (!WidgetImportGuard.isSafeId(sourceWidgetId)) return@withContext null
+        val sourceFolder = File(widgetsDir, sourceWidgetId)
+        if (!sourceFolder.exists()) return@withContext null
+
+        val sourceDoc = getWidget(sourceWidgetId) ?: return@withContext null
+        val newWidgetId = UUID.randomUUID().toString()
+        val targetFolder = File(widgetsDir, newWidgetId)
+        if (!targetFolder.exists()) targetFolder.mkdirs()
+
+        // 1. Copy assets if present
+        val sourceAssets = File(sourceFolder, "assets")
+        if (sourceAssets.exists() && sourceAssets.isDirectory) {
+            val targetAssets = File(targetFolder, "assets")
+            targetAssets.mkdirs()
+            sourceAssets.copyRecursively(targetAssets, overwrite = true)
+        }
+
+        // 2. Clone CustomWidgetDocument
+        val effectiveName = newName ?: "${sourceDoc.meta.name} (Copy)"
+        val duplicatedDoc = sourceDoc.copy(
+            id = newWidgetId,
+            meta = sourceDoc.meta.copy(name = effectiveName)
+        )
+        val configFile = File(targetFolder, "widget.json")
+        configFile.writeText(json.encodeToString(CustomWidgetDocument.serializer(), duplicatedDoc))
+
+        // 3. Resolve and clone bound CustomTranslator
+        val boundSourceTranslator = sourceTranslator ?: getTranslatorForWidget(sourceWidgetId)
+        val duplicatedTranslator = boundSourceTranslator?.copy(
+            id = newTranslatorId,
+            meta = boundSourceTranslator.meta.copy(
+                name = effectiveName,
+                iconName = duplicatedDoc.meta.icon.ifBlank { boundSourceTranslator.meta.iconName }
+            ),
+            priority = boundSourceTranslator.priority - 1,
+            presentation = boundSourceTranslator.presentation.copy(
+                mode = PresentationMode.WIDGET,
+                widgetId = newWidgetId
+            )
+        ) ?: CustomTranslator(
+            id = newTranslatorId,
+            meta = TranslatorMetadata(
+                name = effectiveName,
+                iconName = duplicatedDoc.meta.icon.ifBlank { "dashboard_customize" }
+            ),
+            targetScope = TargetScope.NOTIFICATION_TYPE,
+            targetPackages = emptyList(),
+            targetNotificationTypes = listOf(NotificationType.STANDARD.name),
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = newWidgetId
+            )
+        )
+
+        val translatorFile = File(targetFolder, "translator.json")
+        translatorFile.writeText(CustomTranslator.toJson(duplicatedTranslator))
+
+        // 4. Save duplicated translator in database if DAO is available
+        try {
+            getTranslatorDao()?.insertTranslator(TranslatorEntity.fromCustomTranslator(duplicatedTranslator))
+        } catch (e: Exception) {
+            Log.w(tag, "Failed to register duplicated translator in database", e)
+        }
+
+        Pair(duplicatedDoc, duplicatedTranslator)
+    }
+
+    suspend fun exportWidget(id: String, translator: CustomTranslator? = null): File? = withContext(Dispatchers.IO) {
         if (!WidgetImportGuard.isSafeId(id)) return@withContext null
         val sourceFolder = File(widgetsDir, id)
         if (!sourceFolder.exists()) return@withContext null
+
+        // Ensure translator.json is included in the package if a translator is configured
+        val targetTranslator = translator ?: getTranslatorForWidget(id)
+        if (targetTranslator != null) {
+            try {
+                val translatorFile = File(sourceFolder, "translator.json")
+                translatorFile.writeText(CustomTranslator.toJson(targetTranslator))
+            } catch (e: Exception) {
+                Log.w(tag, "Failed to write translator.json before export", e)
+            }
+        }
 
         // Must be a directory FileProvider actually serves: res/xml/file_paths.xml only declares
         // a `<cache-path name="exports" path="exports/" />` root (shared with ThemeRepository's own
@@ -104,7 +245,7 @@ class CustomWidgetRepository(private val context: Context) {
             ZipOutputStream(FileOutputStream(zipFile)).use { zos ->
                 sourceFolder.walkTopDown().forEach { file ->
                     if (file.isFile) {
-                        val entryName = file.relativeTo(sourceFolder).path
+                        val entryName = file.relativeTo(sourceFolder).path.replace('\\', '/')
                         zos.putNextEntry(ZipEntry(entryName))
                         file.inputStream().use { it.copyTo(zos) }
                         zos.closeEntry()
@@ -183,9 +324,37 @@ class CustomWidgetRepository(private val context: Context) {
             val doc = if (finalId == decoded.id) decoded else decoded.copy(id = finalId)
 
             val validation = WidgetDimensionValidator.validate(doc)
-            if (validation.clamped != decoded) {
-                configFile.writeText(json.encodeToString(CustomWidgetDocument.serializer(), validation.clamped))
-            }
+            configFile.writeText(json.encodeToString(CustomWidgetDocument.serializer(), validation.clamped))
+
+            // Check if translator.json was included; if not, create a default bound translator
+            val translatorFile = File(tempDir, "translator.json")
+            val parsedTranslator = if (translatorFile.exists()) {
+                CustomTranslator.fromJson(translatorFile.readText()).getOrNull()?.let { parsed ->
+                    parsed.copy(
+                        presentation = parsed.presentation.copy(
+                            mode = PresentationMode.WIDGET,
+                            widgetId = finalId
+                        )
+                    )
+                }
+            } else null
+
+            val translatorToSave = parsedTranslator ?: CustomTranslator(
+                id = UUID.randomUUID().toString(),
+                meta = TranslatorMetadata(
+                    name = doc.meta.name.ifBlank { "Custom Design" },
+                    iconName = doc.meta.icon.ifBlank { "dashboard_customize" }
+                ),
+                targetScope = TargetScope.NOTIFICATION_TYPE,
+                targetPackages = emptyList(),
+                targetNotificationTypes = listOf(NotificationType.STANDARD.name),
+                presentation = PresentationConfig(
+                    mode = PresentationMode.WIDGET,
+                    widgetId = finalId
+                )
+            )
+
+            translatorFile.writeText(CustomTranslator.toJson(translatorToSave))
 
             val targetDir = File(widgetsDir, finalId)
             if (targetDir.exists()) targetDir.deleteRecursively()
@@ -193,6 +362,13 @@ class CustomWidgetRepository(private val context: Context) {
             if (!tempDir.renameTo(targetDir)) {
                 tempDir.copyRecursively(targetDir, overwrite = true)
                 tempDir.deleteRecursively()
+            }
+
+            // Register translator in database if available
+            try {
+                getTranslatorDao()?.insertTranslator(TranslatorEntity.fromCustomTranslator(translatorToSave))
+            } catch (e: Exception) {
+                Log.w(tag, "Failed to register translator in database", e)
             }
 
             finalId

@@ -155,6 +155,7 @@ class CustomTranslatorSerializationTest {
     fun testTranslatorRegistryPriorityAndScopeMatching() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
             override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getAllTranslators() = emptyList<TranslatorEntity>()
             override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
             override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null
@@ -232,6 +233,7 @@ class CustomTranslatorSerializationTest {
     fun testTypeSpecificConditionsMatching() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
             override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getAllTranslators() = emptyList<TranslatorEntity>()
             override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
             override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null
@@ -363,6 +365,7 @@ class CustomTranslatorSerializationTest {
     fun testHasActiveTranslatorsForPackageAndNotificationTypeScope() {
         val mockDao = object : com.d4viddf.hyperbridge.data.db.TranslatorDao {
             override fun getAllTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
+            override suspend fun getAllTranslators() = emptyList<TranslatorEntity>()
             override fun getActiveTranslatorsFlow() = kotlinx.coroutines.flow.emptyFlow<List<TranslatorEntity>>()
             override suspend fun getActiveTranslators() = emptyList<TranslatorEntity>()
             override suspend fun getTranslatorById(id: String) = null
@@ -615,6 +618,59 @@ class CustomTranslatorSerializationTest {
         println("SERIALIZED_YOUTUBE_HTRANS:\n$json")
         val parsed = CustomTranslator.fromJson(json).getOrThrow()
         assertEquals("tpl_youtube_movie_ticket_v2", parsed.id)
+    }
+
+    @Test
+    fun testCompactPillConfigWithMediaOrder() {
+        val translator = CustomTranslator(
+            id = "media_pill_test",
+            meta = TranslatorMetadata(
+                name = "Media Pill Test",
+                author = "Test"
+            ),
+            presentation = PresentationConfig(
+                pill = CompactPillConfig(
+                    leftDesign = PillLeftDesign.MEDIA,
+                    rightDesign = PillRightDesign.TIMER,
+                    mediaOrder = listOf(
+                        PillMediaItem.ARTIST,
+                        PillMediaItem.ALBUM_COVER
+                    )
+                )
+            )
+        )
+
+        val json = CustomTranslator.toJson(translator)
+        assertTrue(json.contains("\"left_design\": \"MEDIA\""))
+        assertTrue(json.contains("\"media_order\""))
+        assertTrue(json.contains("ARTIST"))
+
+        val decoded = CustomTranslator.fromJson(json).getOrThrow()
+        assertEquals(PillLeftDesign.MEDIA, decoded.presentation.pill.leftDesign)
+        assertEquals(PillRightDesign.TIMER, decoded.presentation.pill.rightDesign)
+        assertEquals(listOf(PillMediaItem.ARTIST, PillMediaItem.ALBUM_COVER), decoded.presentation.pill.mediaOrder)
+
+        // Test backwards compatibility: json without media_order defaults correctly
+        val jsonWithoutMediaOrder = """
+            {
+                "id": "legacy_pill",
+                "meta": {
+                    "name": "Legacy",
+                    "author": "Test"
+                },
+                "presentation": {
+                    "pill": {
+                        "left_design": "ICON_AND_TEXT"
+                    }
+                }
+            }
+        """.trimIndent()
+        val legacyDecoded = CustomTranslator.fromJson(jsonWithoutMediaOrder).getOrThrow()
+        assertEquals(PillLeftDesign.ICON_AND_TEXT, legacyDecoded.presentation.pill.leftDesign)
+        assertEquals(
+            listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST),
+            legacyDecoded.presentation.pill.mediaOrder
+        )
     }
 }
 

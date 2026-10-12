@@ -21,6 +21,12 @@ import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.translator.TypeSpecificConditions
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.TextNode
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -61,6 +67,7 @@ class TranslatorRepositoryTest {
         val insertedTranslators = mutableListOf<TranslatorEntity>()
 
         override fun getAllTranslatorsFlow() = emptyFlow<List<TranslatorEntity>>()
+        override suspend fun getAllTranslators() = insertedTranslators.toList()
         override fun getActiveTranslatorsFlow() = emptyFlow<List<TranslatorEntity>>()
         override suspend fun getActiveTranslators() = insertedTranslators.filter { it.isEnabled }
         override suspend fun getTranslatorById(id: String) = insertedTranslators.find { it.id == id }
@@ -327,5 +334,186 @@ class TranslatorRepositoryTest {
         val ids = fakeDao.insertedTranslators.map { it.id }.toSet()
         assertTrue(ids.contains("bundled.rule.1"))
         assertTrue(ids.contains("bundled.rule.2"))
+    }
+
+    @Test
+    fun testExportAndImportHwidgetPackageWithConfiguredTranslator() = runBlocking {
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+        val widgetDoc = CustomWidgetDocument(
+            id = "custom_test_widget",
+            meta = CustomWidgetMetadata(name = "Custom Island Design"),
+            root = LayoutContainer(
+                id = "root",
+                children = listOf(TextNode(id = "title", template = "{notif.title}"))
+            )
+        )
+        widgetRepo.saveWidget(widgetDoc)
+
+        val configuredTranslator = CustomTranslator(
+            id = "trans_custom_test",
+            meta = TranslatorMetadata(name = "Custom Island Design"),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.whatsapp"),
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = "custom_test_widget"
+            )
+        )
+        widgetRepo.saveTranslatorForWidget("custom_test_widget", configuredTranslator)
+
+        val exportedFile = widgetRepo.exportWidget("custom_test_widget", configuredTranslator)
+        assertNotNull(exportedFile)
+        assertTrue(exportedFile!!.exists())
+
+        // In a fresh context/repository (simulating importing on another device or design screen)
+        val freshFilesDir = tempFolder.newFolder("fresh_files")
+        val freshCacheDir = tempFolder.newFolder("fresh_cache")
+        val freshContext = FakeTestContext(freshFilesDir, freshCacheDir)
+        val freshDao = FakeTranslatorDao()
+        val freshTransRepo = TranslatorRepository(freshContext, freshDao)
+        val freshWidgetRepo = CustomWidgetRepository(freshContext, freshDao)
+
+        val importResult = exportedFile.inputStream().use {
+            freshTransRepo.importTranslatorFromStream(it)
+        }
+
+        assertTrue("Importing .hwidget with configured translator should succeed", importResult.isSuccess)
+        val imported = importResult.getOrNull()
+        assertNotNull(imported)
+        assertEquals("Custom Island Design", imported!!.meta.name)
+        assertEquals(TargetScope.SPECIFIC_APPS, imported.targetScope)
+        assertEquals(listOf("com.whatsapp"), imported.targetPackages)
+        assertEquals(PresentationMode.WIDGET, imported.presentation.mode)
+        assertEquals("custom_test_widget", imported.presentation.widgetId)
+
+        // Verify widget document was installed and loads cleanly
+        val loadedDoc = freshWidgetRepo.getWidget("custom_test_widget")
+        assertNotNull("Widget document should be installed in custom_widgets/", loadedDoc)
+        assertEquals("custom_test_widget", loadedDoc!!.id)
+
+        // Verify translator was also persisted with widget and in DAO
+        val loadedTrans = freshWidgetRepo.getTranslatorForWidget("custom_test_widget")
+        assertNotNull("Translator should be persisted in widget folder", loadedTrans)
+        assertEquals(1, freshDao.insertedTranslators.size)
+        assertEquals("custom_test_widget", freshDao.insertedTranslators.first().toCustomTranslator().getOrNull()?.presentation?.widgetId)
+    }
+
+    @Test
+    fun testImportHwidgetWithoutTranslatorGeneratesDefaultTranslatorAndInstallsWidget() = runBlocking {
+        // Create a raw .hwidget zip containing ONLY widget.json
+        val widgetDoc = CustomWidgetDocument(
+            id = "bare_widget",
+            meta = CustomWidgetMetadata(name = "Bare Widget Design"),
+            root = LayoutContainer(id = "root", children = emptyList())
+        )
+        val json = kotlinx.serialization.json.Json { prettyPrint = true }
+        val zipBytes = ByteArrayOutputStream().use { bos ->
+            ZipOutputStream(bos).use { zos ->
+                zos.putNextEntry(ZipEntry("widget.json"))
+                zos.write(json.encodeToString(CustomWidgetDocument.serializer(), widgetDoc).toByteArray())
+                zos.closeEntry()
+            }
+            bos.toByteArray()
+        }
+
+        val importResult = repository.importTranslatorFromStream(ByteArrayInputStream(zipBytes))
+        assertTrue("Importing bare widget should succeed and create default translator", importResult.isSuccess)
+        val imported = importResult.getOrNull()
+        assertNotNull(imported)
+        assertEquals("Bare Widget Design", imported!!.meta.name)
+        assertEquals(PresentationMode.WIDGET, imported.presentation.mode)
+        assertEquals("bare_widget", imported.presentation.widgetId)
+
+        // Verify widget was saved
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+        val loadedDoc = widgetRepo.getWidget("bare_widget")
+        assertNotNull("Widget document should be installed", loadedDoc)
+    }
+
+    @Test
+    fun testDuplicateWidgetDecouplesWidgetIdAndTranslator() = runBlocking {
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+
+        // 1. Setup original widget and translator
+        val originalWidgetId = "orig_widget_123"
+        val originalDoc = CustomWidgetDocument(
+            id = originalWidgetId,
+            meta = CustomWidgetMetadata(name = "Original Design"),
+            root = LayoutContainer(id = "root", children = listOf(TextNode(id = "text_1", template = "Original Text")))
+        )
+        val originalTranslatorId = "orig_trans_123"
+        val originalTranslator = CustomTranslator(
+            id = originalTranslatorId,
+            meta = TranslatorMetadata(name = "Original Design"),
+            priority = 100,
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = originalWidgetId
+            )
+        )
+
+        widgetRepo.saveWidget(originalDoc, originalTranslator)
+        fakeDao.insertTranslator(TranslatorEntity.fromCustomTranslator(originalTranslator))
+
+        // Create a dummy asset file in the original widget's folder
+        val assetDir = File(File(fakeContext.filesDir, "custom_widgets/$originalWidgetId"), "assets")
+        assetDir.mkdirs()
+        File(assetDir, "test_icon.png").writeText("fake image bytes")
+
+        // 2. Duplicate the widget
+        val newTranslatorId = "copy_trans_456"
+        val duplicationResult = widgetRepo.duplicateWidget(
+            sourceWidgetId = originalWidgetId,
+            newName = "Original Design (Copy)",
+            sourceTranslator = originalTranslator,
+            newTranslatorId = newTranslatorId
+        )
+
+        assertNotNull("Duplication should succeed", duplicationResult)
+        val (duplicatedDoc, duplicatedTranslator) = duplicationResult!!
+
+        // Assert widget IDs are distinct
+        assertTrue("Duplicated widgetId must not equal original", duplicatedDoc.id != originalWidgetId)
+        assertEquals("Original Design (Copy)", duplicatedDoc.meta.name)
+
+        // Assert translator IDs and bound widgetIds are distinct
+        assertEquals(newTranslatorId, duplicatedTranslator.id)
+        assertEquals("Original Design (Copy)", duplicatedTranslator.meta.name)
+        assertEquals(duplicatedDoc.id, duplicatedTranslator.presentation.widgetId)
+        assertEquals(99, duplicatedTranslator.priority) // priority was decremented by 1
+
+        // Verify the asset was copied to the new widget's folder
+        val duplicatedAsset = File(File(fakeContext.filesDir, "custom_widgets/${duplicatedDoc.id}"), "assets/test_icon.png")
+        assertTrue("Assets should be copied to duplicate widget folder", duplicatedAsset.exists())
+        assertEquals("fake image bytes", duplicatedAsset.readText())
+
+        // 3. Edit the original widget document and verify the duplicated widget remains unaffected
+        val modifiedOriginalDoc = originalDoc.copy(
+            meta = originalDoc.meta.copy(name = "Modified Original"),
+            root = LayoutContainer(id = "root", children = listOf(TextNode(id = "text_1", template = "Changed Text")))
+        )
+        widgetRepo.saveWidget(modifiedOriginalDoc)
+
+        val retrievedOriginal = widgetRepo.getWidget(originalWidgetId)
+        val retrievedDuplicate = widgetRepo.getWidget(duplicatedDoc.id)
+
+        assertNotNull(retrievedOriginal)
+        assertNotNull(retrievedDuplicate)
+        assertEquals("Modified Original", retrievedOriginal!!.meta.name)
+        assertEquals("Original Design (Copy)", retrievedDuplicate!!.meta.name)
+        val dupRoot = retrievedDuplicate.root as LayoutContainer
+        assertEquals("Original Text", (dupRoot.children.first() as TextNode).template)
+
+        // 4. Edit the duplicated widget document and verify the original remains unaffected
+        val modifiedDuplicateDoc = duplicatedDoc.copy(
+            meta = duplicatedDoc.meta.copy(name = "Edited Duplicate Design")
+        )
+        widgetRepo.saveWidget(modifiedDuplicateDoc)
+
+        val reloadedOriginal = widgetRepo.getWidget(originalWidgetId)
+        val reloadedDuplicate = widgetRepo.getWidget(duplicatedDoc.id)
+
+        assertEquals("Modified Original", reloadedOriginal!!.meta.name)
+        assertEquals("Edited Duplicate Design", reloadedDuplicate!!.meta.name)
     }
 }

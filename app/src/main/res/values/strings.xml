@@ -1,4 +1,4 @@
-﻿<resources>
+<resources>
     <string name="app_name">Hyper Bridge</string>
 
     <string name="back">Back</string>
@@ -138,6 +138,8 @@
     <string name="setting_float">Heads-up Popup</string>
     <string name="setting_float_desc">Show the full notification banner briefly before minimizing to the Island.</string>
     <string name="setting_float_timeout_desc">How long the heads-up popup stays visible.</string>
+    <string name="setting_float_only_on_first">Pop-up only on initial alert</string>
+    <string name="setting_float_only_on_first_desc">Show heads-up popup only on the first alert and prevent repeated pop-ups on background updates or progress changes.</string>
 
     <string name="setting_shade">Notification Panel</string>
     <string name="setting_shade_desc">Keep notification visible in the notification shade alongside the island.</string>
@@ -291,6 +293,14 @@
     <string name="option_priorities">Priority Rules</string>
     <string name="option_priorities_desc">Custom notification priority configurations</string>
 
+    <string name="option_translators">Custom Translators</string>
+    <string name="option_translators_desc">Notification translators and custom rules</string>
+    <string name="option_translators_count_suffix">items</string>
+
+    <string name="option_custom_widgets">Custom Widgets &amp; Designs</string>
+    <string name="option_custom_widgets_desc">Custom micro-widgets, layout designs, and assets</string>
+    <string name="option_custom_widgets_count_suffix">items</string>
+
     <string name="action_export">Create Backup</string>
     <string name="action_import">Restore Backup</string>
 
@@ -384,6 +394,31 @@
     <string name="theme_installer_action_later">Save for Later</string>
     <string name="theme_installer_error_title">Import Failed</string>
     <string name="theme_installer_error_generic">Could not verify the theme file.</string>
+
+    <string name="package_installer_analyzing">Analyzing package...</string>
+    <string name="widget_installer_title">Design Ready</string>
+    <string name="widget_installer_dimensions">%1$d × %2$d dp</string>
+    <string name="widget_installer_linked_translator">Linked: %s</string>
+    <string name="widget_installer_apply_question">Do you want to import this custom design?</string>
+    <string name="widget_installer_action_import">Import Design</string>
+    <string name="widget_installer_success_title">Design Imported</string>
+    <string name="widget_installer_success_message">Custom design \"%s\" was imported successfully.</string>
+
+    <string name="translator_installer_title">Translator Ready</string>
+    <string name="translator_installer_apply_question">Do you want to import this translator?</string>
+    <string name="translator_installer_action_import">Import Translator</string>
+    <string name="translator_installer_success_title">Translator Imported</string>
+    <string name="translator_installer_success_message">Translator \"%s\" was imported successfully.</string>
+
+    <string name="backup_installer_title">Backup Ready</string>
+    <string name="backup_installer_apply_question">Do you want to restore this backup?</string>
+    <string name="backup_installer_action_restore">Restore Backup</string>
+    <string name="backup_installer_success_title">Backup Restored</string>
+    <string name="backup_installer_success_message">Settings and data were restored successfully.</string>
+
+    <string name="package_installer_action_done">Done</string>
+    <string name="package_installer_action_cancel">Cancel</string>
+    <string name="package_installer_unsupported">The selected file is not a supported HyperBridge package.</string>
     <string name="theme_manager_title">My Themes</string>
     <string name="theme_manager_cd_add">Add New Theme</string>
 
@@ -1212,6 +1247,17 @@
     <string name="translator_pill_left_text_only_desc">Shows the short title text without an icon</string>
     <string name="translator_pill_left_avatar">Contact avatar</string>
     <string name="translator_pill_left_avatar_desc">Displays the sender picture or contact avatar</string>
+    <string name="translator_pill_left_media">Media / Now Playing</string>
+    <string name="translator_pill_left_media_desc">Displays album art, track title, or artist according to your preference</string>
+    <string name="translator_pill_media_preferences_title">Media Preferences</string>
+    <string name="translator_pill_media_order_title">Media Preference Order</string>
+    <string name="translator_pill_media_order_subtitle">Choose which media elements to display and adjust priority order from top to bottom.</string>
+    <string name="translator_pill_media_item_album_cover">Album Cover</string>
+    <string name="translator_pill_media_item_album_cover_desc">Displays the album or playback cover artwork</string>
+    <string name="translator_pill_media_item_track">Track Title</string>
+    <string name="translator_pill_media_item_track_desc">Displays the song or audio title</string>
+    <string name="translator_pill_media_item_artist">Artist Name</string>
+    <string name="translator_pill_media_item_artist_desc">Displays the artist or creator name</string>
     <string name="translator_pill_left_hidden">Hidden / Empty</string>
     <string name="translator_pill_left_hidden_desc">Leaves the left pill slot empty</string>
     <string name="translator_pill_right_auto">Auto-detect (Recommended)</string>

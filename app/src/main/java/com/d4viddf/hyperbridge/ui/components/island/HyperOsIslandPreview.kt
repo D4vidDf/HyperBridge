@@ -297,12 +297,7 @@ fun HyperOsIslandPreview(
                             checked = isSelected,
                             onCheckedChange = { previewMode = mode },
                             shapes = shape,
-                            colors = ToggleButtonDefaults.toggleButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSurface,
-                                checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            ),
+                            colors = ToggleButtonDefaults.colors(),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Text(

@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace = "com.d4viddf.hyperbridge"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.d4viddf.hyperbridge"
@@ -56,6 +54,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.appcompat)
+    implementation(libs.material)
     implementation(libs.androidx.palette.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime)
@@ -70,6 +69,7 @@ dependencies {
 
     implementation(libs.hyperisland.kit)
     implementation(libs.haze)
+    implementation(libs.haze.materials)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 

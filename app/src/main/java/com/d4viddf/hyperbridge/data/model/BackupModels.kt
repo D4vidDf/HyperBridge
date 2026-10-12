@@ -9,7 +9,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HyperBridgeBackup(
     @SerializedName("metadata") val metadata: BackupMetadata,
-    @SerializedName("settings") val settings: List<AppSettingBackup>
+    @SerializedName("settings") val settings: List<AppSettingBackup> = emptyList(),
+    @SerializedName("translators") val translators: List<TranslatorBackupItem>? = null,
+    @SerializedName("widgets") val widgets: List<CustomWidgetBackupItem>? = null
 )
 
 @Serializable
@@ -25,4 +27,21 @@ data class BackupMetadata(
 data class AppSettingBackup(
     @SerializedName("key") val key: String,
     @SerializedName("value") val value: String
+)
+
+@Serializable
+data class TranslatorBackupItem(
+    @SerializedName("id") val id: String,
+    @SerializedName("json_content") val jsonContent: String,
+    @SerializedName("is_enabled") val isEnabled: Boolean = true,
+    @SerializedName("priority") val priority: Int = 100,
+    @SerializedName("icons") val icons: Map<String, String>? = null
+)
+
+@Serializable
+data class CustomWidgetBackupItem(
+    @SerializedName("id") val id: String,
+    @SerializedName("config_json") val configJson: String,
+    @SerializedName("translator_json") val translatorJson: String? = null,
+    @SerializedName("assets") val assets: Map<String, String>? = null
 )

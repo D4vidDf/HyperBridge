@@ -12,6 +12,9 @@ interface TranslatorDao {
     @Query("SELECT * FROM custom_translators ORDER BY priority DESC")
     fun getAllTranslatorsFlow(): Flow<List<TranslatorEntity>>
 
+    @Query("SELECT * FROM custom_translators")
+    suspend fun getAllTranslators(): List<TranslatorEntity>
+
     @Query("SELECT * FROM custom_translators WHERE isEnabled = 1 ORDER BY priority DESC")
     fun getActiveTranslatorsFlow(): Flow<List<TranslatorEntity>>
 
