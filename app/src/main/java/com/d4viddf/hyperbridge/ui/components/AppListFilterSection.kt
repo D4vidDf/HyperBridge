@@ -143,12 +143,7 @@ fun AppListFilterSection(
                     checked = systemSelected,
                     onCheckedChange = { onSystemSelected(true) },
                     modifier = Modifier.semantics { role = Role.RadioButton },
-                    colors = ToggleButtonDefaults.toggleButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    ),
+                    colors = ToggleButtonDefaults.colors(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     Icon(
@@ -180,12 +175,7 @@ fun AppListFilterSection(
                         onCheckedChange = { onCategoryChange(category) },
                         shapes = shape,
                         modifier = Modifier.semantics { role = Role.RadioButton },
-                        colors = ToggleButtonDefaults.toggleButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                            checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        ),
+                        colors = ToggleButtonDefaults.colors(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         // Icon Animation

@@ -59,8 +59,10 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.theme.ColorMode
 import com.d4viddf.hyperbridge.ui.components.CustomColorBottomSheet
 import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -379,11 +381,25 @@ fun InlineReplyPreview(
                 verticalAlignment = Alignment.Bottom
             ) {
                 val tfHazeModifier = if (useBlur) {
-                    Modifier.hazeChild(state = hazeState, shape = RoundedCornerShape(textfieldCornerRadius.dp), style = dev.chrisbanes.haze.HazeStyle(blurRadius = 25.dp, backgroundColor = Color.Transparent, tint = dev.chrisbanes.haze.HazeTint(Color.Black.copy(alpha = 0.2f))))
+                    Modifier.clip(RoundedCornerShape(textfieldCornerRadius.dp)).hazeEffect(
+                        state = hazeState,
+                        style = HazeStyle(
+                            blurRadius = 25.dp,
+                            backgroundColor = Color.Transparent,
+                            tint = HazeTint(Color.Black.copy(alpha = 0.2f))
+                        )
+                    )
                 } else Modifier
 
                 val btnHazeModifier = if (useBlur) {
-                    Modifier.hazeChild(state = hazeState, shape = RoundedCornerShape(sendButtonCornerRadius.dp), style = dev.chrisbanes.haze.HazeStyle(blurRadius = 25.dp, backgroundColor = Color.Transparent, tint = dev.chrisbanes.haze.HazeTint(Color.Black.copy(alpha = 0.2f))))
+                    Modifier.clip(RoundedCornerShape(sendButtonCornerRadius.dp)).hazeEffect(
+                        state = hazeState,
+                        style = HazeStyle(
+                            blurRadius = 25.dp,
+                            backgroundColor = Color.Transparent,
+                            tint = HazeTint(Color.Black.copy(alpha = 0.2f))
+                        )
+                    )
                 } else Modifier
                 
                 Box(modifier = Modifier
