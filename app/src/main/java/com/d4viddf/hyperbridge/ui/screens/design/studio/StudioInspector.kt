@@ -1,9 +1,9 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
 import android.net.Uri
-import kotlin.math.roundToInt
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,30 +11,29 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -45,7 +44,6 @@ import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Folder
@@ -56,11 +54,10 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.VerticalAlignBottom
-import androidx.compose.material.icons.rounded.VerticalAlignTop
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.AssistChip
@@ -68,14 +65,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -100,11 +95,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -115,16 +110,56 @@ import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.TargetScope
-import com.d4viddf.hyperbridge.models.widget.*
+import com.d4viddf.hyperbridge.models.widget.BindableProperty
+import com.d4viddf.hyperbridge.models.widget.ButtonAction
+import com.d4viddf.hyperbridge.models.widget.ButtonIconPosition
+import com.d4viddf.hyperbridge.models.widget.ButtonNode
+import com.d4viddf.hyperbridge.models.widget.CanvasSize
+import com.d4viddf.hyperbridge.models.widget.ContainerBackgroundType
+import com.d4viddf.hyperbridge.models.widget.ContainerLayout
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetGlobals
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
+import com.d4viddf.hyperbridge.models.widget.ImageMode
+import com.d4viddf.hyperbridge.models.widget.ImageNode
+import com.d4viddf.hyperbridge.models.widget.ImageScaleType
+import com.d4viddf.hyperbridge.models.widget.ImageSource
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.NodeCondition
+import com.d4viddf.hyperbridge.models.widget.NodeConditionEvaluator
+import com.d4viddf.hyperbridge.models.widget.ProgressColorMode
+import com.d4viddf.hyperbridge.models.widget.ProgressIndicatorMode
+import com.d4viddf.hyperbridge.models.widget.ProgressIndicatorThumb
+import com.d4viddf.hyperbridge.models.widget.ProgressNode
+import com.d4viddf.hyperbridge.models.widget.ProgressStyle
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
+import com.d4viddf.hyperbridge.models.widget.TextFilterMode
+import com.d4viddf.hyperbridge.models.widget.TextFontFamily
+import com.d4viddf.hyperbridge.models.widget.TextGravity
+import com.d4viddf.hyperbridge.models.widget.TextMaskType
+import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.TextSizingType
+import com.d4viddf.hyperbridge.models.widget.TextTextureType
+import com.d4viddf.hyperbridge.models.widget.adaptedContentHeight
+import com.d4viddf.hyperbridge.models.widget.adaptedContentWidth
+import com.d4viddf.hyperbridge.models.widget.withBinding
+import com.d4viddf.hyperbridge.models.widget.withBounds
+import com.d4viddf.hyperbridge.models.widget.withLocked
+import com.d4viddf.hyperbridge.models.widget.withName
+import com.d4viddf.hyperbridge.models.widget.withOnClick
+import com.d4viddf.hyperbridge.models.widget.withOpacity
+import com.d4viddf.hyperbridge.models.widget.withShowIf
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 import com.d4viddf.hyperbridge.ui.screens.translators.TRANSLATOR_OUTLINED_ICONS
+import kotlin.math.roundToInt
 
 /**
  * Tab-oriented KWGT-style Inspector for CustomWidgetNode elements.
  */
 @Composable
 fun StudioInspector(
+    modifier: Modifier = Modifier,
     node: CustomWidgetNode,
     isRoot: Boolean,
     selectedTab: StudioTab,
@@ -136,7 +171,6 @@ fun StudioInspector(
     onSelectChild: (String) -> Unit = {},
     onAddChild: (String) -> Unit = {},
     onToggleLock: () -> Unit = {},
-    modifier: Modifier = Modifier,
     // Root document settings (used when isRoot == true)
     document: CustomWidgetDocument? = null,
     notificationType: NotificationType? = null,
@@ -2116,7 +2150,7 @@ private fun ButtonStyleTabContent(
     onChange: (CustomWidgetNode) -> Unit,
     onRequestFormulaEditor: (String) -> Unit
 ) {
-    val presetShapes = listOf("rounded_rect", "pill", "circle", "rectangle", "cookie", "clover", "star", "squircle")
+    val shapes = listOf("circle", "square", "rounded", "cookie", "arch", "clover8")
 
     StudioSection(stringResource(R.string.studio_button_shape)) {
         Text(
@@ -2128,15 +2162,16 @@ private fun ButtonStyleTabContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            presetShapes.forEach { shapeId ->
-                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true)
+            shapes.forEach { shapeId ->
+                val isSelected = node.shapeId.equals(shapeId, ignoreCase = true) ||
+                    (shapeId == "rounded" && node.shapeId.equals("rounded_rect", ignoreCase = true)) ||
+                    (shapeId == "square" && node.shapeId.equals("rectangle", ignoreCase = true))
                 val shape = when (shapeId) {
                     "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
-                    "pill" -> RoundedCornerShape(50)
-                    "circle" -> CircleShape
                     "rounded", "rounded_rect" -> RoundedCornerShape(node.cornerRadiusDp.dp)
+                    "circle", "ellipse" -> CircleShape
                     else -> getShapeFromId(shapeId).toShape()
                 }
 
@@ -2158,7 +2193,7 @@ private fun ButtonStyleTabContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (shapeId == "rounded_rect") "RD" else shapeId.take(2).uppercase(),
+                        text = if (shapeId == "rounded") "RD" else shapeId.take(2).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
@@ -2204,15 +2239,16 @@ private fun ButtonStyleTabContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                presetShapes.forEach { shapeId ->
-                    val isSelected = currentCondShape.equals(shapeId, ignoreCase = true)
+                shapes.forEach { shapeId ->
+                    val isSelected = currentCondShape.equals(shapeId, ignoreCase = true) ||
+                        (shapeId == "rounded" && currentCondShape.equals("rounded_rect", ignoreCase = true)) ||
+                        (shapeId == "square" && currentCondShape.equals("rectangle", ignoreCase = true))
                     val shape = when (shapeId) {
                         "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
-                        "pill" -> RoundedCornerShape(50)
-                        "circle" -> CircleShape
                         "rounded", "rounded_rect" -> RoundedCornerShape((node.conditionalCornerRadiusDp ?: node.cornerRadiusDp).dp)
+                        "circle", "ellipse" -> CircleShape
                         else -> getShapeFromId(shapeId).toShape()
                     }
 
@@ -2220,29 +2256,29 @@ private fun ButtonStyleTabContent(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(shape)
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surfaceContainerHigh
-                            )
-                            .border(
-                                width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.outlineVariant,
-                                shape = shape
-                            )
-                            .clickable { onChange(node.copy(conditionalShapeId = shapeId)) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (shapeId == "rounded_rect") "RD" else shapeId.take(2).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh
                         )
-                    }
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant,
+                            shape = shape
+                        )
+                        .clickable { onChange(node.copy(conditionalShapeId = shapeId)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (shapeId == "rounded") "RD" else shapeId.take(2).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
+        }
 
             if (currentCondShape == "rounded" || currentCondShape == "rounded_rect") {
                 Spacer(Modifier.height(8.dp))
@@ -2340,7 +2376,7 @@ private fun ButtonTabContent(
         val previewShape: androidx.compose.ui.graphics.Shape = when (dispShapeId.lowercase()) {
             "rectangle", "square" -> androidx.compose.ui.graphics.RectangleShape
             "pill" -> RoundedCornerShape(50)
-            "circle" -> CircleShape
+            "circle", "ellipse" -> CircleShape
             "rounded", "rounded_rect" -> RoundedCornerShape(dispRadius.dp)
             else -> getShapeFromId(dispShapeId).toShape()
         }
@@ -2369,7 +2405,7 @@ private fun ButtonTabContent(
 
                 if (hasIcon && !hasText) {
                     StudioButtonIcon(
-                        iconStr = dispIcon!!,
+                        iconStr = dispIcon,
                         tint = btnTextColor,
                         modifier = Modifier.size(iconSize)
                     )
@@ -2388,7 +2424,7 @@ private fun ButtonTabContent(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 StudioButtonIcon(
-                                    iconStr = dispIcon!!,
+                                    iconStr = dispIcon,
                                     tint = btnTextColor,
                                     modifier = Modifier.size(iconSize)
                                 )
@@ -2438,7 +2474,7 @@ private fun ButtonTabContent(
                         }
                         ButtonIconPosition.ICON_ONLY -> {
                             StudioButtonIcon(
-                                iconStr = dispIcon!!,
+                                iconStr = dispIcon,
                                 tint = btnTextColor,
                                 modifier = Modifier.size(iconSize)
                             )
@@ -2509,7 +2545,7 @@ private fun ButtonTabContent(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = node.icon!!.substringAfterLast('/'),
+                            text = node.icon.substringAfterLast('/'),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -2770,7 +2806,7 @@ private fun ButtonTabContent(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         StudioButtonIcon(
-                            iconStr = node.conditionalIcon!!,
+                            iconStr = node.conditionalIcon,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(36.dp)
                         )
@@ -2781,7 +2817,7 @@ private fun ButtonTabContent(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = node.conditionalIcon!!.substringAfterLast('/'),
+                                text = node.conditionalIcon.substringAfterLast('/'),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,

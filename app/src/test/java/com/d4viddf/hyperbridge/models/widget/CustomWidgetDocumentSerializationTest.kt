@@ -498,4 +498,29 @@ class CustomWidgetDocumentSerializationTest {
         assertEquals("@scheme:secondary", decodedBtn.conditionalBackgroundHex)
         assertEquals("@scheme:outlineVariant", decodedBtn.conditionalStrokeColorHex)
     }
+
+    @Test
+    fun roundTripsButtonNodeWithShapes() {
+        val shapes = listOf("circle", "square", "rounded", "cookie", "arch", "clover8")
+        shapes.forEach { shapeId ->
+            val button = ButtonNode(
+                id = "btn-$shapeId",
+                label = "Test $shapeId",
+                shapeId = shapeId,
+                conditionalEnabled = true,
+                conditionalShapeId = shapeId
+            )
+            val doc = CustomWidgetDocument(
+                id = "test-doc-$shapeId",
+                meta = CustomWidgetMetadata(name = "Shape Test"),
+                root = LayoutContainer(id = "root", children = listOf(button))
+            )
+            val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+            val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+            val decodedBtn = decoded.root.children.first() as ButtonNode
+
+            assertEquals(shapeId, decodedBtn.shapeId)
+            assertEquals(shapeId, decodedBtn.conditionalShapeId)
+        }
+    }
 }
