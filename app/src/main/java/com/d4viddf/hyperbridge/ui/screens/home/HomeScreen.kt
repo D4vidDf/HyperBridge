@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -79,16 +80,16 @@ fun HomeScreen(
     onEditTranslator: (String) -> Unit = {}
 ) {
 
-    var selectedTab by remember { mutableIntStateOf(1) }
-    var designRoute by remember { mutableStateOf(DesignRoute.DASHBOARD) }
-    var editingThemeId by remember { mutableStateOf<String?>(null) }
-    var editingTranslatorId by remember { mutableStateOf<String?>(null) }
-    var editingCustomWidgetId by remember { mutableStateOf<String?>(null) }
-    var newTranslatorPackageName by remember { mutableStateOf<String?>(null) }
-    var previousTranslatorManagerRoute by remember { mutableStateOf(DesignRoute.TRANSLATOR_MANAGER) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(1) }
+    var designRoute by rememberSaveable { mutableStateOf(DesignRoute.DASHBOARD) }
+    var editingThemeId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingTranslatorId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingCustomWidgetId by rememberSaveable { mutableStateOf<String?>(null) }
+    var newTranslatorPackageName by rememberSaveable { mutableStateOf<String?>(null) }
+    var previousTranslatorManagerRoute by rememberSaveable { mutableStateOf(DesignRoute.TRANSLATOR_MANAGER) }
 
-    var showWidgetPicker by remember { mutableStateOf(false) }
-    var editingWidgetId by remember { mutableStateOf<Int?>(null) }
+    var showWidgetPicker by rememberSaveable { mutableStateOf(false) }
+    var editingWidgetId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     val activeApps by viewModel.activeAppsState.collectAsState()
     val libraryApps by viewModel.libraryAppsState.collectAsState()

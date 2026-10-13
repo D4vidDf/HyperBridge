@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,8 +95,9 @@ fun MainRootNavigation(onExit: () -> Unit) {
     val currentVersionCode = packageInfo?.longVersionCode?.toInt() ?: 0
     val currentVersionName = packageInfo?.versionName ?: "0.5.0"
 
-    val isSetupComplete by produceState<Boolean?>(initialValue = null) {
-        preferences.isSetupComplete.collect { value = it }
+    var isSetupComplete by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(Unit) {
+        preferences.isSetupComplete.collect { isSetupComplete = it }
     }
 
     if (isSetupComplete == null) {
@@ -132,12 +134,12 @@ private fun MainNavigationContent(
     val isInitiallySetup = remember { isSetupComplete }
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = -1)
 
-    var showChangelog by remember { mutableStateOf(false) }
+    var showChangelog by rememberSaveable { mutableStateOf(false) }
     
     // Check for Troubleshoot Intent
     val activity = context as? AppCompatActivity
     val shouldOpenTroubleshoot = activity?.intent?.getBooleanExtra("open_troubleshoot", false) ?: false
-    var showTroubleshootDialog by remember { mutableStateOf(shouldOpenTroubleshoot) }
+    var showTroubleshootDialog by rememberSaveable { mutableStateOf(shouldOpenTroubleshoot) }
 
     val initialStartRoute = remember(isSetupComplete) { if (isSetupComplete) Screen.Home else Screen.Onboarding }
     val allPossibleTopLevel = remember(isSetupComplete) { setOf(Screen.Onboarding, Screen.Home) }
