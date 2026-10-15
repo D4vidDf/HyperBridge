@@ -41,7 +41,7 @@ fun SystemIntegrationListItem(
     onToggle: (Boolean) -> Unit,
     onSettingsClick: (() -> Unit)?
 ) {
-    val settingsAction = if (integration.id != SystemIntegrationId.VPN) onSettingsClick else null
+    val settingsAction = if (integration.id.hasSettings) onSettingsClick else null
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -61,9 +61,11 @@ fun SystemIntegrationListItem(
                         contentDescription = null,
                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp))
                     )
-                } else if (integration.id == SystemIntegrationId.VPN) {
+                } else if (integration.id == SystemIntegrationId.VPN || integration.id == SystemIntegrationId.CHARGING) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_vpn),
+                        painter = painterResource(
+                            if (integration.id == SystemIntegrationId.VPN) R.drawable.ic_vpn else R.drawable.ic_charging_bolt
+                        ),
                         contentDescription = null,
                         modifier = Modifier.size(25.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -73,7 +75,7 @@ fun SystemIntegrationListItem(
                         imageVector = when (integration.id) {
                             SystemIntegrationId.SCREEN_RECORDER -> Icons.Outlined.Videocam
                             SystemIntegrationId.SYSTEM_UPDATER -> Icons.Outlined.SystemUpdate
-                            SystemIntegrationId.VPN -> Icons.Outlined.Videocam
+                            SystemIntegrationId.VPN, SystemIntegrationId.CHARGING -> Icons.Outlined.Videocam
                         },
                         contentDescription = null,
                         modifier = Modifier.size(25.dp),
@@ -90,6 +92,7 @@ fun SystemIntegrationListItem(
                         SystemIntegrationId.SCREEN_RECORDER -> R.string.screen_recording_title
                         SystemIntegrationId.SYSTEM_UPDATER -> R.string.system_updater_title
                         SystemIntegrationId.VPN -> R.string.vpn_title
+                        SystemIntegrationId.CHARGING -> R.string.charging_island_title
                     }
                 ),
                 style = MaterialTheme.typography.titleMedium,

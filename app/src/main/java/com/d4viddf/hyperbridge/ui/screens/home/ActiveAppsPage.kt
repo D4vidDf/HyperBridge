@@ -227,7 +227,7 @@ fun ActiveAppsPageContent(
                                         SystemIntegrationListItem(
                                             integration = integration,
                                             onToggle = { onToggleSystem(integration.id, it) },
-                                            onSettingsClick = if (integration.available && integration.id != SystemIntegrationId.VPN) {
+                                            onSettingsClick = if (integration.available && integration.id.hasSettings) {
                                                 { onSystemConfig(integration) }
                                             } else null
                                         )
