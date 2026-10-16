@@ -74,6 +74,7 @@ fun HomeScreen(
     onNavConfigClick: (String) -> Unit,
     onScreenRecordingConfigClick: () -> Unit = {},
     onSystemUpdateConfigClick: () -> Unit = {},
+    onChargingConfigClick: () -> Unit = {},
     onAppConfigClick: (String) -> Unit = {},
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: (String?) -> Unit = {},
@@ -350,8 +351,8 @@ fun HomeScreen(
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN,
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> {}
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
                             onSettingsClick = onSettingsClick
@@ -367,8 +368,8 @@ fun HomeScreen(
                                 when (integration.id) {
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN,
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> {}
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
                                 }
                             },
                             onSettingsClick = onSettingsClick

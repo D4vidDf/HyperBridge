@@ -2663,6 +2663,7 @@ class NotificationReaderService : NotificationListenerService() {
                     // reconciliation pass and cancel its backing island.
                     if (id == VpnIslandController.NOTIFICATION_ID) continue
                     if (id == ChargingIslandController.NOTIFICATION_ID) continue
+                    if (id == ChargingIslandController.LOCKSCREEN_NOTIFICATION_ID) continue
                     if (id >= WIDGET_ID_BASE) continue
                     if (id in (WATCH_RELAY_ID_BASE - 0x0F)..WATCH_RELAY_ID_BASE) continue
                     if ((sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) continue

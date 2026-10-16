@@ -36,7 +36,12 @@ class ChargingTranslator(
         state.minutesToFull?.let { context.getString(R.string.charging_island_full_in, formatMinutes(it)) }
     ).joinToString(" · ")
 
-    fun translate(state: ChargingState, config: IslandConfig, theme: HyperTheme?): HyperIslandData {
+    fun translate(
+        state: ChargingState,
+        config: IslandConfig,
+        theme: HyperTheme?,
+        islandProperty: Int = VpnTranslator.ACTION_ORIENTED_ISLAND_PROPERTY
+    ): HyperIslandData {
         val title = title(state)
         val color = theme?.defaultProgress?.let { if (state.isFull) it.finishedColor else it.activeColor }
             ?: DEFAULT_COLOR
@@ -87,7 +92,7 @@ class ChargingTranslator(
         return HyperIslandData(
             builder.buildResourceBundle(),
             builder.buildJsonParam(
-                HyperIslandProtocolOptions(islandProperty = VpnTranslator.ACTION_ORIENTED_ISLAND_PROPERTY)
+                HyperIslandProtocolOptions(islandProperty = islandProperty)
             )
         )
     }
