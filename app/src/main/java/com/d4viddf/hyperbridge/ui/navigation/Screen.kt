@@ -29,6 +29,7 @@ sealed interface Screen : NavKey {
     @Serializable data object BugReport : Screen
     @Serializable data object ScreenRecordingCustomization : Screen
     @Serializable data object SystemUpdateCustomization : Screen
+    @Serializable data object ChargingCustomization : Screen
     @Serializable data object SmartActions : Screen
     @Serializable data object ProgressDiscountKeywords : Screen
     @Serializable data object FloatingSetup : Screen

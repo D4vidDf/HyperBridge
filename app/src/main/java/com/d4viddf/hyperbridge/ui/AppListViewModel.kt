@@ -42,7 +42,10 @@ data class AppInfo(
     val category: AppCategory = AppCategory.OTHER
 )
 
-enum class SystemIntegrationId { SCREEN_RECORDER, VPN, SYSTEM_UPDATER }
+/** [hasSettings]: false for integrations that are just an on/off switch. */
+enum class SystemIntegrationId(val hasSettings: Boolean) {
+    SCREEN_RECORDER(true), VPN(false), SYSTEM_UPDATER(true), CHARGING(true)
+}
 
 data class SystemIntegrationInfo(
     val id: SystemIntegrationId,
@@ -146,9 +149,10 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     val systemIntegrationsState: StateFlow<List<SystemIntegrationInfo>> = combine(
         preferences.allowedPackagesFlow,
         preferences.vpnIslandEnabledFlow,
+        preferences.chargingIslandEnabledFlow,
         _screenRecorderIntegrationApp,
         _systemUpdaterIntegrationApp
-    ) { allowedPackages, vpnEnabled, recorderApp, updaterApp ->
+    ) { allowedPackages, vpnEnabled, chargingEnabled, recorderApp, updaterApp ->
         listOf(
             SystemIntegrationInfo(
                 id = SystemIntegrationId.SCREEN_RECORDER,
@@ -167,6 +171,13 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             SystemIntegrationInfo(
                 id = SystemIntegrationId.VPN,
                 enabled = vpnEnabled,
+                available = true,
+                icon = null,
+                configurationApp = null
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.CHARGING,
+                enabled = chargingEnabled,
                 available = true,
                 icon = null,
                 configurationApp = null
@@ -340,6 +351,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                     enabled
                 )
                 SystemIntegrationId.VPN -> preferences.setVpnIslandEnabled(enabled)
+                SystemIntegrationId.CHARGING -> preferences.setChargingIslandEnabled(enabled)
             }
         }
     }

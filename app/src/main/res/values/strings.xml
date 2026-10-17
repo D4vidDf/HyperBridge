@@ -796,6 +796,17 @@
     <string name="vpn_blocking">Blocking internet</string>
     <string name="vpn_error">VPN error</string>
     <string name="vpn_disconnected">VPN is disconnected</string>
+    <string name="charging_island_title">Charging</string>
+    <string name="charging_island_charging">Charging</string>
+    <string name="charging_island_wireless">Charging wirelessly</string>
+    <string name="charging_island_plugged_in">Plugged in, not charging</string>
+    <string name="charging_island_full">Fully charged</string>
+    <string name="charging_island_watts">%1$d W</string>
+    <string name="charging_island_full_in">Full in %1$s</string>
+    <string name="charging_island_minutes">%1$d min</string>
+    <string name="charging_island_hours_minutes">%1$d h %2$d min</string>
+    <string name="charging_island_lockscreen">Show on lock screen</string>
+    <string name="charging_island_lockscreen_desc">Keep the charging pill at the cutout while the phone is locked. It may not show with Always-on Display.</string>
 
     <string name="floating_setup_title" translatable="false">Floating notification setup</string>
     <string name="floating_setup_settings_subtitle" translatable="false">Avoid duplicate native banners for selected apps</string>

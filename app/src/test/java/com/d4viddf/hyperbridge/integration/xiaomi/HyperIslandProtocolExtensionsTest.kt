@@ -20,4 +20,14 @@ class HyperIslandProtocolExtensionsTest {
         assertFalse(timer.has("timerTotal"))
         assertEquals(9_000L, timer["timerSystemCurrent"].asLong)
     }
+
+    @Test fun acceptsKeyguardIslandProperty() {
+        val patched = patchHyperIslandJson(
+            """{"param_v2":{"param_island":{"islandProperty":1}}}""",
+            HyperIslandProtocolOptions(islandProperty = KEYGUARD_ISLAND_PROPERTY)
+        )
+        val island = JsonParser.parseString(patched).asJsonObject
+            .getAsJsonObject("param_v2").getAsJsonObject("param_island")
+        assertEquals(0, island["islandProperty"].asInt)
+    }
 }

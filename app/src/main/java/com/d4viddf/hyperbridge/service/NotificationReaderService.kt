@@ -87,6 +87,7 @@ import com.d4viddf.hyperbridge.service.translators.WidgetTranslator
 import com.d4viddf.hyperbridge.service.updater.SystemUpdateTimeoutPolicy
 import com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier
 import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
+import com.d4viddf.hyperbridge.service.charging.ChargingIslandController
 import com.d4viddf.hyperbridge.util.ShizukuManager
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import kotlinx.coroutines.CoroutineScope
@@ -170,6 +171,8 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var permanentIslandManager: PermanentIslandManager
     @Volatile private var vpnIslandActive = false
     private lateinit var vpnIslandController: VpnIslandController
+    @Volatile private var chargingIslandActive = false
+    private lateinit var chargingIslandController: ChargingIslandController
     private val intentionallyRemovedKeys = ConcurrentHashMap<String, Long>()
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
@@ -319,6 +322,17 @@ class NotificationReaderService : NotificationListenerService() {
             }
         )
         vpnIslandController.start()
+        chargingIslandController = ChargingIslandController(
+            this,
+            serviceScope,
+            preferences,
+            themeRepository,
+            onIslandActiveChanged = { active ->
+                chargingIslandActive = active
+                updatePermanentIsland()
+            }
+        )
+        chargingIslandController.start()
 
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
@@ -980,7 +994,7 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun logStateChange(isLandscape: Boolean) {
         val orientation = if (isLandscape) "Landscape" else "Portrait"
-        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || vpnIslandActive || nativeIslands.hasFresh() || permanentIslandManager.isIslandActive()
+        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || vpnIslandActive || chargingIslandActive || nativeIslands.hasFresh() || permanentIslandManager.isIslandActive()
         val islandState = if (isIslandExhibited) "Showing Island" else "No Island"
         Log.d(TAG, "State: $orientation | $islandState")
     }
@@ -1045,12 +1059,14 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun updatePermanentIsland() {
         permanentIslandManager.onActiveNotificationsChanged(activeIslandCount(), nativeIslands.hasFresh())
-        DiagnosticsStore.setActiveIslands(activeIslands.size + if (vpnIslandActive) 1 else 0)
+        DiagnosticsStore.setActiveIslands(activeIslands.size + controllerIslandCount())
         val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         logStateChange(isLandscape)
     }
 
-    private fun activeIslandCount(): Int = activeIslands.size + activeWidgets.size + if (vpnIslandActive) 1 else 0
+    private fun activeIslandCount(): Int = activeIslands.size + activeWidgets.size + controllerIslandCount()
+
+    private fun controllerIslandCount(): Int = (if (vpnIslandActive) 1 else 0) + (if (chargingIslandActive) 1 else 0)
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -2646,6 +2662,8 @@ class NotificationReaderService : NotificationListenerService() {
                     // source-to-translation maps. Do not mistake it for an orphan during the
                     // reconciliation pass and cancel its backing island.
                     if (id == VpnIslandController.NOTIFICATION_ID) continue
+                    if (id == ChargingIslandController.NOTIFICATION_ID) continue
+                    if (id == ChargingIslandController.LOCKSCREEN_NOTIFICATION_ID) continue
                     if (id >= WIDGET_ID_BASE) continue
                     if (id in (WATCH_RELAY_ID_BASE - 0x0F)..WATCH_RELAY_ID_BASE) continue
                     if ((sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) continue
@@ -2688,6 +2706,7 @@ class NotificationReaderService : NotificationListenerService() {
         isConnected = false
         DiagnosticsStore.setServiceConnected(false)
         if (::vpnIslandController.isInitialized) vpnIslandController.stop()
+        if (::chargingIslandController.isInitialized) chargingIslandController.stop()
         unregisterReceiver(systemReceiver)
         unregisterReceiver(islandClickReceiver)
         syncJob?.cancel()

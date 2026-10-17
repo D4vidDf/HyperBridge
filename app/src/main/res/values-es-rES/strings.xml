@@ -615,6 +615,17 @@
     <string name="vpn_title">VPN</string>
     <string name="vpn_island_enabled">Supervisando conexiones VPN</string>
     <string name="vpn_is_connected">VPN conectada</string>
+    <string name="charging_island_title">Carga</string>
+    <string name="charging_island_charging">Cargando</string>
+    <string name="charging_island_wireless">Cargando sin cables</string>
+    <string name="charging_island_plugged_in">Conectado, sin cargar</string>
+    <string name="charging_island_full">Carga completa</string>
+    <string name="charging_island_watts">%1$d W</string>
+    <string name="charging_island_full_in">Completa en %1$s</string>
+    <string name="charging_island_minutes">%1$d min</string>
+    <string name="charging_island_hours_minutes">%1$d h %2$d min</string>
+    <string name="charging_island_lockscreen">Mostrar en la pantalla de bloqueo</string>
+    <string name="charging_island_lockscreen_desc">Mantiene la píldora de carga junto a la cámara con el móvil bloqueado. Puede no aparecer con la pantalla siempre activa.</string>
     <string name="vpn_connected_to">Conectado a %1$s</string>
     <string name="vpn_connecting">Conectando VPN</string>
     <string name="vpn_reconnecting">Reconectando VPN</string>
