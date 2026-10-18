@@ -467,6 +467,7 @@ fun DesignManagerContent(
     sharingDesign?.let { designToShare ->
         DesignShareBottomSheet(
             design = designToShare,
+            isTranslator = false,
             onDismiss = { sharingDesign = null },
             onSharePackage = {
                 viewModel.shareTranslator(context, designToShare) { result ->

@@ -168,6 +168,7 @@ fun TranslatorManagerScreen(
         DesignShareBottomSheet(
             design = translatorToShare,
             title = stringResource(R.string.translators_share_sheet_title),
+            isTranslator = true,
             onDismiss = { sharingTranslator = null },
             onSharePackage = {
                 viewModel.shareTranslator(context, translatorToShare) { result ->
