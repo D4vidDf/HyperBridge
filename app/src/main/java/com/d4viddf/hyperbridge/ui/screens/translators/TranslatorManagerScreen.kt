@@ -80,6 +80,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.TargetScope
+import com.d4viddf.hyperbridge.ui.screens.design.DesignShareBottomSheet
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import kotlinx.coroutines.launch
@@ -100,6 +101,7 @@ fun TranslatorManagerScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     var pendingExportTranslator by remember { mutableStateOf<CustomTranslator?>(null) }
+    var sharingTranslator by remember { mutableStateOf<CustomTranslator?>(null) }
 
     // SAF Import Launcher
     val importLauncher = rememberLauncherForActivityResult(
@@ -158,14 +160,25 @@ fun TranslatorManagerScreen(
             exportLauncher.launch(filename)
         },
         onShareTranslator = { translator ->
-            viewModel.shareTranslator(context, translator) { result ->
-                if (result.isFailure) {
-                    val msg = context.getString(R.string.translators_share_failed)
-                    scope.launch { snackbarHostState.showSnackbar(msg) }
-                }
-            }
+            sharingTranslator = translator
         }
     )
+
+    sharingTranslator?.let { translatorToShare ->
+        DesignShareBottomSheet(
+            design = translatorToShare,
+            title = stringResource(R.string.translators_share_sheet_title),
+            onDismiss = { sharingTranslator = null },
+            onSharePackage = {
+                viewModel.shareTranslator(context, translatorToShare) { result ->
+                    if (result.isFailure) {
+                        val msg = context.getString(R.string.translators_share_failed)
+                        scope.launch { snackbarHostState.showSnackbar(msg) }
+                    }
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

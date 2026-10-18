@@ -87,6 +87,7 @@ import java.io.FileOutputStream
 @Composable
 fun DesignShareBottomSheet(
     design: CustomTranslator,
+    title: String = stringResource(R.string.design_share_sheet_title),
     onDismiss: () -> Unit,
     onSharePackage: () -> Unit
 ) {
@@ -134,7 +135,7 @@ fun DesignShareBottomSheet(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.design_share_sheet_title),
+                        text = title,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
