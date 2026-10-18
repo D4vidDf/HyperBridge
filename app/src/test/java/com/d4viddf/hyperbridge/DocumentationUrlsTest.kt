@@ -13,6 +13,11 @@ class DocumentationUrlsTest {
         assertEquals("https://hyper-bridge.app/docs/", DocumentationUrls.DOCS)
         assertEquals("https://hyper-bridge.app/docs/customization/", DocumentationUrls.CUSTOMIZATION_DOCS)
         assertEquals("https://hyper-bridge.app/docs/customization/theme-creator/", DocumentationUrls.THEME_CREATOR_DOCS)
+        assertEquals("https://hyper-bridge.app/showcase/", DocumentationUrls.SHOWCASE)
+        assertEquals("https://hyper-bridge.app/showcase/themes/", DocumentationUrls.SHOWCASE_THEMES)
+        assertEquals("https://hyper-bridge.app/showcase/designs/", DocumentationUrls.SHOWCASE_DESIGNS)
+        assertEquals("https://hyper-bridge.app/showcase/translators/", DocumentationUrls.SHOWCASE_TRANSLATORS)
+        assertEquals("https://hyper-bridge.app/showcase/schemes/", DocumentationUrls.SHOWCASE_SCHEMES)
     }
 
     @Test

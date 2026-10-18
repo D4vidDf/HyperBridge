@@ -1159,6 +1159,8 @@
 
     <!-- Design Screen Featured & Guides Sections -->
     <string name="design_section_featured">Destacados</string>
+    <string name="design_featured_showcase_title">Showcase de la Comunidad</string>
+    <string name="design_featured_showcase_subtitle">Explora creaciones y personalizaciones de la comunidad</string>
     <string name="design_featured_themes_title">Temas Hyper</string>
     <string name="design_featured_themes_subtitle">Explora paletas de color y estilos para la isla</string>
     <string name="design_featured_widgets_subtitle">Controla música, temporizadores y accesos directos</string>
@@ -1166,6 +1168,8 @@
     <string name="design_featured_designs_subtitle">Crea diseños a medida para viajes, pedidos y más</string>
     <string name="design_featured_translators_title">Traductores Inteligentes</string>
     <string name="design_featured_translators_subtitle">Intercepta notificaciones con reglas y regex</string>
+    <string name="design_featured_schemes_title">Esquemas de Color</string>
+    <string name="design_featured_schemes_subtitle">Descubre y descarga paletas y preajustes de color</string>
 
     <string name="design_guide_customization_desc">Centro de diseños, creador de temas, traductores y widgets</string>
     <string name="design_guide_features_title">Funciones</string>
