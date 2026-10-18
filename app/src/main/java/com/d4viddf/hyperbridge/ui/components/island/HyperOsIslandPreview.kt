@@ -1,7 +1,13 @@
 package com.d4viddf.hyperbridge.ui.components.island
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -333,17 +339,217 @@ fun HyperOsIslandPreview(
             }
 
             val minBoxHeight = when {
-                previewMode == IslandPreviewMode.COMPACT_PILL -> 54.dp
-                isCustomWidget && widgetDoc != null -> {
-                    val widgetHeight = widgetDoc!!.canvas.heightDp.dp
-                    if (previewMode == IslandPreviewMode.EXPANDED) {
-                        widgetHeight + 20.dp
-                    } else {
-                        widgetHeight + 62.dp
+                isCustomWidget && widgetDoc != null -> widgetDoc!!.canvas.heightDp.dp + 62.dp
+                showChrome -> 175.dp
+                else -> 190.dp
+            }
+
+            @Composable
+            fun StatusBarContent(showPill: Boolean = true) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(statusBarModifier)
+                        .height(34.dp)
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Left: Status Bar Clock
+                    Text(
+                        text = "12:00",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    )
+
+                    // Center: Compact Pill
+                    if (showChrome) {
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = showPill,
+                            enter = fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.85f),
+                            exit = fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.85f),
+                            modifier = Modifier.align(Alignment.Center)
+                        ) {
+                            HyperOsCompactPill(
+                                leftDesign = presentation.pill.leftDesign,
+                                rightDesign = presentation.pill.rightDesign,
+                                title = pillTitle,
+                                rightText = pillRightText,
+                                progressPercent = progressPercent,
+                                hasProgress = hasProgress,
+                                highlightColor = parsedHighlightColor,
+                                iconShape = iconShape
+                            )
+                        }
+                    } else if (showPill) {
+                        HyperOsCompactPill(
+                            leftDesign = presentation.pill.leftDesign,
+                            rightDesign = presentation.pill.rightDesign,
+                            title = pillTitle,
+                            rightText = pillRightText,
+                            progressPercent = progressPercent,
+                            hasProgress = hasProgress,
+                            highlightColor = parsedHighlightColor,
+                            iconShape = iconShape,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+
+                    // Right: Signal & Battery Icons
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        Icon(Icons.Default.SignalCellular4Bar, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
+                        Icon(Icons.Default.BatteryFull, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
                     }
                 }
-                showChrome -> 175.dp
-                else -> 150.dp
+            }
+
+            @Composable
+            fun ExpandedIslandContent() {
+                Box(modifier = Modifier.then(expandedModifier)) {
+                    if (isCustomWidget) {
+                        if (widgetDoc != null) {
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(24.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                val availableWidthDp = maxWidth.value
+                                StudioCanvas(
+                                    root = widgetDoc!!.root,
+                                    canvasWidthDp = availableWidthDp,
+                                    canvasHeightDp = widgetDoc!!.canvas.heightDp,
+                                    selectedId = null,
+                                    onSelect = {},
+                                    onMove = { _, _, _ -> },
+                                    onResize = { _, _, _ -> },
+                                    zoom = 1f,
+                                    isGridVisible = false,
+                                    isWireframeMode = false,
+                                    globals = widgetDoc!!.globals
+                                )
+                            }
+                        } else if (isWidgetLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(60.dp)
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .background(Color.Black),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.5.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        } else {
+                            Card(
+                                shape = RoundedCornerShape(24.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.Black),
+                                border = CardDefaults.outlinedCardBorder().copy(
+                                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                        listOf(Color(0xFF2B2B2B), Color(0xFF141414))
+                                    ),
+                                    width = 1.dp
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 20.dp, horizontal = 16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Widgets,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Text(
+                                        text = if (presentation.widgetId.isNullOrBlank()) {
+                                            stringResource(R.string.select_app_widget)
+                                        } else {
+                                            "Widget: ${presentation.widgetId}"
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.custom_design_title),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+                        }
+                    } else if (templateCard != null) {
+                        TemplateFocusCard(
+                            layout = templateCard,
+                            iconName = translator.meta.iconName.takeIf { it.isNotBlank() && it != "AutoAwesome" }
+                                ?: template.iconName,
+                            title = titleText,
+                            subtitle = subtitleText,
+                            highlight = highlightText,
+                            accent = parsedHighlightColor,
+                            progressPercent = progressPercent
+                        )
+                    } else HyperOsExpandedIsland {
+                        // Row 1: Graphic + Text
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            HyperOsLeftGraphic(
+                                source = presentation.leftSlot.source,
+                                highlightColor = parsedHighlightColor,
+                                iconShape = iconShape
+                            )
+
+                            HyperOsTextGroup(
+                                title = titleText,
+                                subtitle = subtitleText,
+                                highlightText = highlightText,
+                                highlightColor = parsedHighlightColor,
+                                textColor = textColor,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        // Row 2: Progress (if configured)
+                        if (hasProgress || presentation.progressSlot.type != ProgressSlotType.NONE) {
+                            Spacer(Modifier.height(2.dp))
+                            HyperOsProgressBar(
+                                progressPercent = progressPercent,
+                                progressSlot = presentation.progressSlot,
+                                highlightColor = progressColor
+                            )
+                        }
+
+                        // Row 3: Action Buttons (if configured)
+                        if (presentation.actionSlots.any { it.isVisible }) {
+                            Spacer(Modifier.height(4.dp))
+                            HyperOsActionButtons(
+                                actionSlots = presentation.actionSlots,
+                                highlightColor = parsedHighlightColor,
+                                buttonShape = iconShape,
+                                buttonPaddingPercent = buttonPaddingPercent,
+                                buttonBackgroundColor = buttonBackgroundColor,
+                                buttonTextColor = buttonTextColor
+                            )
+                        }
+                    }
+                }
             }
 
             // Preview Canvas (Maintains stable height matching expanded island so layout below does not shift)
@@ -353,211 +559,61 @@ fun HyperOsIslandPreview(
                     .heightIn(min = minBoxHeight)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFF141414))
+                    .animateContentSize(animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
                     .padding(horizontal = 12.dp, vertical = 10.dp),
-                contentAlignment = Alignment.TopCenter
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Status Bar Layer (Time on left, Compact Pill in center, Icons on right)
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = showChrome || previewMode == IslandPreviewMode.COMPACT_PILL || previewMode == IslandPreviewMode.BOTH,
-                        enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
-                        exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
+                if (showChrome) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(statusBarModifier)
-                                .height(34.dp)
-                                .padding(horizontal = 4.dp),
-                            contentAlignment = Alignment.Center
+                        StatusBarContent(showPill = previewMode == IslandPreviewMode.COMPACT_PILL)
+
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = previewMode == IslandPreviewMode.EXPANDED,
+                            enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
+                            exit = fadeOut(tween(180)) + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
                         ) {
-                            // Left: Status Bar Clock
-                            Text(
-                                text = "12:00",
-                                color = Color.White.copy(alpha = 0.85f),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.align(Alignment.CenterStart)
-                            )
-
-                            // Center: Compact Pill (When in COMPACT_PILL or BOTH mode)
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = previewMode == IslandPreviewMode.COMPACT_PILL || previewMode == IslandPreviewMode.BOTH,
-                                enter = fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.85f),
-                                exit = fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.85f),
-                                modifier = Modifier.align(Alignment.Center)
-                            ) {
-                                HyperOsCompactPill(
-                                    leftDesign = presentation.pill.leftDesign,
-                                    rightDesign = presentation.pill.rightDesign,
-                                    title = pillTitle,
-                                    rightText = pillRightText,
-                                    progressPercent = progressPercent,
-                                    hasProgress = hasProgress,
-                                    highlightColor = parsedHighlightColor,
-                                    iconShape = iconShape
-                                )
-                            }
-
-                            // Right: Signal & Battery Icons
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.align(Alignment.CenterEnd)
-                            ) {
-                                Icon(Icons.Default.SignalCellular4Bar, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
-                                Icon(Icons.Default.BatteryFull, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
-                            }
+                            ExpandedIslandContent()
                         }
                     }
-
-                    // Expanded Island (Animates smoothly underneath the status bar)
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = previewMode == IslandPreviewMode.EXPANDED || previewMode == IslandPreviewMode.BOTH,
-                        enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
-                        exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top),
-                        modifier = Modifier.then(expandedModifier)
-                    ) {
-                        if (isCustomWidget) {
-                            if (widgetDoc != null) {
-                                BoxWithConstraints(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(24.dp)),
-                                    contentAlignment = Alignment.Center
+                } else {
+                    AnimatedContent(
+                        targetState = previewMode,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
+                        },
+                        contentAlignment = Alignment.Center,
+                        label = "IslandSharePreviewTransition"
+                    ) { mode ->
+                        when (mode) {
+                            IslandPreviewMode.BOTH -> {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    val availableWidthDp = maxWidth.value
-                                    StudioCanvas(
-                                        root = widgetDoc!!.root,
-                                        canvasWidthDp = availableWidthDp,
-                                        canvasHeightDp = widgetDoc!!.canvas.heightDp,
-                                        selectedId = null,
-                                        onSelect = {},
-                                        onMove = { _, _, _ -> },
-                                        onResize = { _, _, _ -> },
-                                        zoom = 1f,
-                                        isGridVisible = false,
-                                        isWireframeMode = false,
-                                        globals = widgetDoc!!.globals
-                                    )
+                                    StatusBarContent(showPill = true)
+                                    ExpandedIslandContent()
                                 }
-                            } else if (isWidgetLoading) {
+                            }
+                            IslandPreviewMode.EXPANDED -> {
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(60.dp)
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .background(Color.Black),
+                                    modifier = Modifier.fillMaxWidth(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        strokeWidth = 2.5.dp,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                    ExpandedIslandContent()
                                 }
-                            } else {
-                                Card(
-                                    shape = RoundedCornerShape(24.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color.Black),
-                                    border = CardDefaults.outlinedCardBorder().copy(
-                                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                                            listOf(Color(0xFF2B2B2B), Color(0xFF141414))
-                                        ),
-                                        width = 1.dp
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
+                            }
+                            IslandPreviewMode.COMPACT_PILL -> {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 20.dp, horizontal = 16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Outlined.Widgets,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(28.dp)
-                                        )
-                                        Text(
-                                            text = if (presentation.widgetId.isNullOrBlank()) {
-                                                stringResource(R.string.select_app_widget)
-                                            } else {
-                                                "Widget: ${presentation.widgetId}"
-                                            },
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color.White
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.custom_design_title),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White.copy(alpha = 0.6f)
-                                        )
-                                    }
+                                    StatusBarContent(showPill = true)
                                 }
-                            }
-                        } else if (templateCard != null) {
-                            TemplateFocusCard(
-                                layout = templateCard,
-                                iconName = translator.meta.iconName.takeIf { it.isNotBlank() && it != "AutoAwesome" }
-                                    ?: template.iconName,
-                                title = titleText,
-                                subtitle = subtitleText,
-                                highlight = highlightText,
-                                accent = parsedHighlightColor,
-                                progressPercent = progressPercent
-                            )
-                        } else HyperOsExpandedIsland {
-                            // Row 1: Graphic + Text
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                HyperOsLeftGraphic(
-                                    source = presentation.leftSlot.source,
-                                    highlightColor = parsedHighlightColor,
-                                    iconShape = iconShape
-                                )
-
-                                HyperOsTextGroup(
-                                    title = titleText,
-                                    subtitle = subtitleText,
-                                    highlightText = highlightText,
-                                    highlightColor = parsedHighlightColor,
-                                    textColor = textColor,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-
-                            // Row 2: Progress (if configured)
-                            if (hasProgress || presentation.progressSlot.type != ProgressSlotType.NONE) {
-                                Spacer(Modifier.height(2.dp))
-                                HyperOsProgressBar(
-                                    progressPercent = progressPercent,
-                                    progressSlot = presentation.progressSlot,
-                                    highlightColor = progressColor
-                                )
-                            }
-
-                            // Row 3: Action Buttons (if configured)
-                            if (presentation.actionSlots.any { it.isVisible }) {
-                                Spacer(Modifier.height(4.dp))
-                                HyperOsActionButtons(
-                                    actionSlots = presentation.actionSlots,
-                                    highlightColor = parsedHighlightColor,
-                                    buttonShape = iconShape,
-                                    buttonPaddingPercent = buttonPaddingPercent,
-                                    buttonBackgroundColor = buttonBackgroundColor,
-                                    buttonTextColor = buttonTextColor
-                                )
                             }
                         }
                     }
