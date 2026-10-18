@@ -112,6 +112,8 @@ fun DesignShareBottomSheet(
     var isSavingImage by remember { mutableStateOf(false) }
 
     val graphicsLayer = rememberGraphicsLayer()
+    val pillGraphicsLayer = rememberGraphicsLayer()
+    val expandedGraphicsLayer = rememberGraphicsLayer()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -213,6 +215,12 @@ fun DesignShareBottomSheet(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(20.dp))
+                                    .drawWithContent {
+                                        expandedGraphicsLayer.record {
+                                            this@drawWithContent.drawContent()
+                                        }
+                                        drawLayer(expandedGraphicsLayer)
+                                    }
                             ) {
                                 val availableWidthDp = maxWidth.value
                                 StudioCanvas(
@@ -248,7 +256,19 @@ fun DesignShareBottomSheet(
                         HyperOsIslandPreview(
                             translator = design,
                             showChrome = false,
-                            mode = previewMode
+                            mode = previewMode,
+                            statusBarModifier = Modifier.drawWithContent {
+                                pillGraphicsLayer.record {
+                                    this@drawWithContent.drawContent()
+                                }
+                                drawLayer(pillGraphicsLayer)
+                            },
+                            expandedModifier = Modifier.drawWithContent {
+                                expandedGraphicsLayer.record {
+                                    this@drawWithContent.drawContent()
+                                }
+                                drawLayer(expandedGraphicsLayer)
+                            }
                         )
                     }
                 }
@@ -278,28 +298,76 @@ fun DesignShareBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                val shareButtonLabel = if (!isCustomWidget) {
+                    when (previewMode) {
+                        IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
+                        IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
+                        IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
+                    }
+                } else {
+                    stringResource(R.string.design_share_btn_share_image)
+                }
+
+                val saveButtonLabel = if (!isCustomWidget) {
+                    when (previewMode) {
+                        IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_save_both)
+                        IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_save_expanded)
+                        IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_save_pill)
+                    }
+                } else {
+                    stringResource(R.string.design_share_btn_save_image)
+                }
+
                 Button(
                     onClick = {
                         if (isExportingImage) return@Button
                         isExportingImage = true
                         scope.launch {
                             try {
-                                val imageBitmap = graphicsLayer.toImageBitmap()
-                                val bitmap = imageBitmap.asAndroidBitmap()
                                 val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
-                                val uri = saveBitmapToCache(context, bitmap, fileName)
-                                if (uri != null) {
-                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                        type = "image/png"
-                                        putExtra(Intent.EXTRA_STREAM, uri)
-                                        putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
-                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                if (!isCustomWidget && previewMode == IslandPreviewMode.BOTH) {
+                                    val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                                    val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                                    val bannerUri = saveBitmapToCache(context, bannerBitmap, "${fileName}_banner")
+                                    val pillUri = saveBitmapToCache(context, pillBitmap, "${fileName}_pill")
+
+                                    val uris = ArrayList(listOfNotNull(bannerUri, pillUri))
+                                    if (uris.isNotEmpty()) {
+                                        val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                                            type = "image/png"
+                                            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                                            putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
+                                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        context.startActivity(chooser)
+                                    } else {
+                                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
                                     }
-                                    val chooser = Intent.createChooser(shareIntent, context.getString(R.string.design_share_btn_share_image))
-                                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(chooser)
                                 } else {
-                                    Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                                    val layer = when {
+                                        previewMode == IslandPreviewMode.COMPACT_PILL -> pillGraphicsLayer
+                                        previewMode == IslandPreviewMode.EXPANDED -> expandedGraphicsLayer
+                                        else -> graphicsLayer
+                                    }
+                                    val imageBitmap = layer.toImageBitmap()
+                                    val bitmap = imageBitmap.asAndroidBitmap()
+                                    val suffix = if (previewMode == IslandPreviewMode.COMPACT_PILL) "_pill" else "_banner"
+                                    val uri = saveBitmapToCache(context, bitmap, "$fileName$suffix")
+                                    if (uri != null) {
+                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "image/png"
+                                            putExtra(Intent.EXTRA_STREAM, uri)
+                                            putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
+                                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        context.startActivity(chooser)
+                                    } else {
+                                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             } catch (e: Exception) {
                                 Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
@@ -323,7 +391,7 @@ fun DesignShareBottomSheet(
                         Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                     }
-                    Text(stringResource(R.string.design_share_btn_share_image))
+                    Text(shareButtonLabel)
                 }
 
                 Row(
@@ -336,14 +404,40 @@ fun DesignShareBottomSheet(
                             isSavingImage = true
                             scope.launch {
                                 try {
-                                    val imageBitmap = graphicsLayer.toImageBitmap()
-                                    val bitmap = imageBitmap.asAndroidBitmap()
                                     val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
-                                    val success = saveBitmapToPictures(context, bitmap, fileName)
-                                    if (success) {
-                                        Toast.makeText(context, R.string.design_share_image_saved, Toast.LENGTH_SHORT).show()
+                                    if (!isCustomWidget && previewMode == IslandPreviewMode.BOTH) {
+                                        val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                                        val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                                        val bannerSuccess = saveBitmapToPictures(context, bannerBitmap, "${fileName}_banner")
+                                        val pillSuccess = saveBitmapToPictures(context, pillBitmap, "${fileName}_pill")
+
+                                        if (bannerSuccess && pillSuccess) {
+                                            Toast.makeText(context, R.string.design_share_both_saved, Toast.LENGTH_SHORT).show()
+                                        } else if (bannerSuccess || pillSuccess) {
+                                            Toast.makeText(context, R.string.design_share_image_saved, Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                                        }
                                     } else {
-                                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                                        val layer = when {
+                                            previewMode == IslandPreviewMode.COMPACT_PILL -> pillGraphicsLayer
+                                            previewMode == IslandPreviewMode.EXPANDED -> expandedGraphicsLayer
+                                            else -> graphicsLayer
+                                        }
+                                        val imageBitmap = layer.toImageBitmap()
+                                        val bitmap = imageBitmap.asAndroidBitmap()
+                                        val suffix = if (previewMode == IslandPreviewMode.COMPACT_PILL) "_pill" else "_banner"
+                                        val success = saveBitmapToPictures(context, bitmap, "$fileName$suffix")
+                                        if (success) {
+                                            val msgRes = if (previewMode == IslandPreviewMode.COMPACT_PILL) {
+                                                R.string.design_share_pill_saved
+                                            } else {
+                                                R.string.design_share_image_saved
+                                            }
+                                            Toast.makeText(context, msgRes, Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                                        }
                                     }
                                 } catch (e: Exception) {
                                     Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
@@ -368,7 +462,7 @@ fun DesignShareBottomSheet(
                             Spacer(Modifier.width(6.dp))
                         }
                         Text(
-                            stringResource(R.string.design_share_btn_save_image),
+                            saveButtonLabel,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -402,7 +496,7 @@ private suspend fun saveBitmapToCache(context: Context, bitmap: Bitmap, fileName
     return withContext(Dispatchers.IO) {
         try {
             val cacheDir = File(context.cacheDir, "previews").apply { mkdirs() }
-            val file = File(cacheDir, "${fileName}_preview.png")
+            val file = File(cacheDir, "${fileName}.png")
             FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }

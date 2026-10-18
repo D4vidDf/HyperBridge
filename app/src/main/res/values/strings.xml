@@ -1914,9 +1914,17 @@
     <string name="design_share_mode_expanded">Big Island</string>
     <string name="design_share_mode_pill">Pill</string>
     <string name="design_share_btn_share_image">Share Picture</string>
+    <string name="design_share_btn_share_both">Share Both (Big + Pill)</string>
+    <string name="design_share_btn_share_expanded">Share Big Island</string>
+    <string name="design_share_btn_share_pill">Share Pill</string>
     <string name="design_share_btn_save_image">Save Picture</string>
+    <string name="design_share_btn_save_both">Save Both (Big + Pill)</string>
+    <string name="design_share_btn_save_expanded">Save Big Island</string>
+    <string name="design_share_btn_save_pill">Save Pill</string>
     <string name="design_share_btn_share_package">Share Package (.htrans)</string>
     <string name="design_share_image_saved">Preview picture saved to Pictures/HyperBridge</string>
+    <string name="design_share_both_saved">Big Island and Pill saved to Pictures/HyperBridge</string>
+    <string name="design_share_pill_saved">Pill picture saved to Pictures/HyperBridge</string>
     <string name="design_share_image_failed">Failed to generate preview image</string>
     <string name="design_share_showcase_hint">Optimized for HyperBridge Showcase &amp; social sharing</string>
 </resources>

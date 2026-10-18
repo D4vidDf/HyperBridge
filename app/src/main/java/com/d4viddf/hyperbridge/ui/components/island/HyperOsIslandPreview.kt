@@ -113,7 +113,9 @@ fun HyperOsIslandPreview(
     sample: IslandPreviewSample = IslandPreviewSample(),
     showChrome: Boolean = true,
     mode: IslandPreviewMode? = null,
-    onModeChange: ((IslandPreviewMode) -> Unit)? = null
+    onModeChange: ((IslandPreviewMode) -> Unit)? = null,
+    statusBarModifier: Modifier = Modifier,
+    expandedModifier: Modifier = Modifier
 ) {
     var internalMode by remember { mutableStateOf(initialMode) }
     val previewMode = mode ?: internalMode
@@ -330,11 +332,17 @@ fun HyperOsIslandPreview(
                 }
             }
 
+            val minBoxHeight = when {
+                previewMode == IslandPreviewMode.COMPACT_PILL -> 54.dp
+                showChrome -> 175.dp
+                else -> 150.dp
+            }
+
             // Preview Canvas (Maintains stable height matching expanded island so layout below does not shift)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = if (showChrome) 175.dp else 150.dp)
+                    .heightIn(min = minBoxHeight)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFF141414))
                     .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -349,6 +357,7 @@ fun HyperOsIslandPreview(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .then(statusBarModifier)
                             .height(34.dp)
                             .padding(horizontal = 4.dp),
                         contentAlignment = Alignment.Center
@@ -396,7 +405,8 @@ fun HyperOsIslandPreview(
                     androidx.compose.animation.AnimatedVisibility(
                         visible = previewMode == IslandPreviewMode.EXPANDED || previewMode == IslandPreviewMode.BOTH,
                         enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
-                        exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
+                        exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top),
+                        modifier = Modifier.then(expandedModifier)
                     ) {
                         if (isCustomWidget) {
                             if (widgetDoc != null) {
