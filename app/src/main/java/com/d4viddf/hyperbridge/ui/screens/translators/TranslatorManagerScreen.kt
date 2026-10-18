@@ -170,7 +170,7 @@ fun TranslatorManagerScreen(
             title = stringResource(R.string.translators_share_sheet_title),
             isTranslator = true,
             onDismiss = { sharingTranslator = null },
-            onSharePackage = {
+            onSharePackage = { _ ->
                 viewModel.shareTranslator(context, translatorToShare) { result ->
                     if (result.isFailure) {
                         val msg = context.getString(R.string.translators_share_failed)

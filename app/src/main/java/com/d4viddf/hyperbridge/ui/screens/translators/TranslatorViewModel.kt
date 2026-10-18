@@ -381,9 +381,14 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun shareTranslator(context: Context, translator: CustomTranslator, onResult: (Result<Unit>) -> Unit = {}) {
+    fun shareTranslator(
+        context: Context,
+        translator: CustomTranslator,
+        includeTranslator: Boolean = true,
+        onResult: (Result<Unit>) -> Unit = {}
+    ) {
         viewModelScope.launch {
-            val result = translatorRepo.shareTranslator(context, translator)
+            val result = translatorRepo.shareTranslator(context, translator, includeTranslator)
             withContext(Dispatchers.Main) {
                 onResult(result)
             }

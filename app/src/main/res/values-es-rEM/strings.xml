@@ -829,4 +829,6 @@
     <string name="design_share_pill_saved">Imagen de la pastilla guardada en Imágenes/HyperBridge</string>
     <string name="design_share_image_failed">Error al generar la imagen de vista previa</string>
     <string name="design_share_showcase_hint">Optimizado para HyperBridge Showcase y redes sociales</string>
+    <string name="design_share_include_translator_title">Incluir traductor vinculado</string>
+    <string name="design_share_include_translator_desc">Exporta las reglas y activadores junto con el diseño visual</string>
 </resources>

@@ -1922,4 +1922,6 @@
     <string name="design_share_pill_saved">Pill picture saved to Pictures/HyperBridge</string>
     <string name="design_share_image_failed">Failed to generate preview image</string>
     <string name="design_share_showcase_hint">Optimized for HyperBridge Showcase &amp; social sharing</string>
+    <string name="design_share_include_translator_title">Include linked translator</string>
+    <string name="design_share_include_translator_desc">Export the rules and triggers alongside the visual design</string>
 </resources>

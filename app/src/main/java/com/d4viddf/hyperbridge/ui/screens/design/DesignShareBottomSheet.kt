@@ -8,6 +8,7 @@ import android.provider.DocumentsContract
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -94,13 +96,14 @@ fun DesignShareBottomSheet(
     title: String = stringResource(R.string.design_share_sheet_title),
     isTranslator: Boolean = (design.presentation.mode != PresentationMode.WIDGET),
     onDismiss: () -> Unit,
-    onSharePackage: () -> Unit
+    onSharePackage: (includeTranslator: Boolean) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     var exportType by remember { mutableStateOf(ShareExportType.ALL) }
+    var includeTranslator by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
     var isSharing by remember { mutableStateOf(false) }
 
@@ -117,18 +120,20 @@ fun DesignShareBottomSheet(
         scope.launch {
             try {
                 val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
+                val shouldIncludeTranslator = isTranslator || includeTranslator
                 var savedCount = 0
 
-                // 1. If ALL or FILE: save package file (.htrans)
+                // 1. If ALL or FILE: save package file (.hwidget or .htrans)
                 if (exportType == ShareExportType.ALL || exportType == ShareExportType.FILE) {
+                    val extension = if (!isTranslator && !includeTranslator) "hwidget" else "htrans"
                     val packageUri = saveFileToTreeUri(
                         context = context,
                         treeUri = treeUri,
-                        fileName = "$fileName.htrans",
+                        fileName = "$fileName.$extension",
                         mimeType = "application/octet-stream"
                     ) { outputStream ->
                         val repo = TranslatorRepository(context)
-                        repo.exportTranslatorToZip(design, outputStream).getOrThrow()
+                        repo.exportTranslatorToZip(design, outputStream, shouldIncludeTranslator).getOrThrow()
                     }
                     if (packageUri != null) savedCount++
                 }
@@ -179,9 +184,10 @@ fun DesignShareBottomSheet(
             scope.launch {
                 try {
                     val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
+                    val shouldIncludeTranslator = isTranslator || includeTranslator
                     when (exportType) {
                         ShareExportType.FILE -> {
-                            onSharePackage()
+                            onSharePackage(shouldIncludeTranslator)
                         }
                         ShareExportType.IMAGES -> {
                             val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
@@ -223,7 +229,7 @@ fun DesignShareBottomSheet(
                         }
                         ShareExportType.ALL -> {
                             val repo = TranslatorRepository(context)
-                            val packageFileResult = repo.exportTranslatorToFile(design)
+                            val packageFileResult = repo.exportTranslatorToFile(design, shouldIncludeTranslator)
                             val packageFile = packageFileResult.getOrNull()
                             val packageUri = packageFile?.let {
                                 FileProvider.getUriForFile(context, "${context.packageName}.provider", it)
@@ -277,6 +283,8 @@ fun DesignShareBottomSheet(
             design = design,
             title = title,
             isTranslator = isTranslator,
+            includeTranslator = includeTranslator,
+            onIncludeTranslatorChange = { includeTranslator = it },
             exportType = exportType,
             onExportTypeChange = { exportType = it },
             isSaving = isSaving,
@@ -305,6 +313,8 @@ fun DesignShareSheetContent(
     design: CustomTranslator,
     title: String = stringResource(R.string.design_share_sheet_title),
     isTranslator: Boolean = (design.presentation.mode != PresentationMode.WIDGET),
+    includeTranslator: Boolean = false,
+    onIncludeTranslatorChange: (Boolean) -> Unit = {},
     exportType: ShareExportType = ShareExportType.ALL,
     onExportTypeChange: (ShareExportType) -> Unit = {},
     isSaving: Boolean = false,
@@ -401,6 +411,43 @@ fun DesignShareSheetContent(
                     statusBarModifier = statusBarModifier,
                     expandedModifier = expandedModifier
                 )
+            }
+        }
+
+        // Include linked translator option (only when sharing from Design Manager)
+        if (!isTranslator) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onIncludeTranslatorChange(!includeTranslator) }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = includeTranslator,
+                        onCheckedChange = onIncludeTranslatorChange
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_share_include_translator_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.design_share_include_translator_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
 
@@ -544,13 +591,32 @@ private fun DesignShareBottomSheetDesignPreview() {
             DesignShareSheetContent(
                 design = sampleShareTranslator(),
                 isTranslator = false,
+                includeTranslator = false,
                 exportType = ShareExportType.IMAGES
             )
         }
     }
 }
 
-@Preview(name = "3. Design Share BottomSheet - File Only", showBackground = true, backgroundColor = 0xFF1C1B1F)
+@Preview(name = "3. Design Share BottomSheet - Custom Design (With Translator)", showBackground = true, backgroundColor = 0xFF1C1B1F)
+@Composable
+private fun DesignShareBottomSheetDesignWithTranslatorPreview() {
+    MaterialTheme {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        ) {
+            DesignShareSheetContent(
+                design = sampleShareTranslator(),
+                isTranslator = false,
+                includeTranslator = true,
+                exportType = ShareExportType.ALL
+            )
+        }
+    }
+}
+
+@Preview(name = "4. Design Share BottomSheet - File Only", showBackground = true, backgroundColor = 0xFF1C1B1F)
 @Composable
 private fun DesignShareBottomSheetFilePreview() {
     MaterialTheme {

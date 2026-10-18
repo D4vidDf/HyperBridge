@@ -469,8 +469,8 @@ fun DesignManagerContent(
             design = designToShare,
             isTranslator = false,
             onDismiss = { sharingDesign = null },
-            onSharePackage = {
-                viewModel.shareTranslator(context, designToShare) { result ->
+            onSharePackage = { includeTranslator ->
+                viewModel.shareTranslator(context, designToShare, includeTranslator) { result ->
                     if (result.isFailure) {
                         val msg = context.getString(R.string.translators_share_failed)
                         scope.launch { snackbarHostState.showSnackbar(msg) }
