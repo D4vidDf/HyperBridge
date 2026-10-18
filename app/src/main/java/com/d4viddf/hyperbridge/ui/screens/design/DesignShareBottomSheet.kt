@@ -2,15 +2,12 @@ package com.d4viddf.hyperbridge.ui.screens.design
 
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaScannerConnection
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,10 +23,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
@@ -38,10 +33,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
@@ -55,7 +48,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -65,14 +57,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
-import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.models.translator.CustomTranslator
-import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
-import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.translator.CompactPillConfig
+import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
@@ -80,6 +69,8 @@ import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
 import com.d4viddf.hyperbridge.models.translator.TextSlotConfig
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
+import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
+import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -102,18 +93,11 @@ fun DesignShareBottomSheet(
         mutableStateOf(IslandPreviewMode.BOTH)
     }
 
-    var isExportingImage by remember { mutableStateOf(false) }
     var isSavingImage by remember { mutableStateOf(false) }
 
     val graphicsLayer = rememberGraphicsLayer()
     val pillGraphicsLayer = rememberGraphicsLayer()
     val expandedGraphicsLayer = rememberGraphicsLayer()
-
-    val shareButtonLabel = when (previewMode) {
-        IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
-        IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
-        IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
-    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -126,66 +110,8 @@ fun DesignShareBottomSheet(
             title = title,
             previewMode = previewMode,
             onPreviewModeChange = { previewMode = it },
-            isExportingImage = isExportingImage,
             isSavingImage = isSavingImage,
-            onShareImage = {
-                if (isExportingImage) return@DesignShareSheetContent
-                isExportingImage = true
-                scope.launch {
-                    try {
-                        val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
-                        if (previewMode == IslandPreviewMode.BOTH) {
-                            val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                            val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                            val bannerUri = saveBitmapToCache(context, bannerBitmap, "${fileName}_banner")
-                            val pillUri = saveBitmapToCache(context, pillBitmap, "${fileName}_pill")
-
-                            val uris = ArrayList(listOfNotNull(bannerUri, pillUri))
-                            if (uris.isNotEmpty()) {
-                                val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-                                    type = "image/png"
-                                    putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-                                    putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
-                                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(chooser)
-                            } else {
-                                Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            val layer = when {
-                                previewMode == IslandPreviewMode.COMPACT_PILL -> pillGraphicsLayer
-                                previewMode == IslandPreviewMode.EXPANDED -> expandedGraphicsLayer
-                                else -> graphicsLayer
-                            }
-                            val imageBitmap = layer.toImageBitmap()
-                            val bitmap = imageBitmap.asAndroidBitmap()
-                            val suffix = if (previewMode == IslandPreviewMode.COMPACT_PILL) "_pill" else "_banner"
-                            val uri = saveBitmapToCache(context, bitmap, "$fileName$suffix")
-                            if (uri != null) {
-                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "image/png"
-                                    putExtra(Intent.EXTRA_STREAM, uri)
-                                    putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
-                                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(chooser)
-                            } else {
-                                Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                    } finally {
-                        isExportingImage = false
-                    }
-                }
-            },
-            onSaveImage = {
+            onSaveImages = {
                 if (isSavingImage) return@DesignShareSheetContent
                 isSavingImage = true
                 scope.launch {
@@ -232,7 +158,7 @@ fun DesignShareBottomSheet(
                     }
                 }
             },
-            onSharePackage = onSharePackage,
+            onShare = onSharePackage,
             onDismiss = onDismiss,
             graphicsLayerModifier = Modifier.drawWithContent {
                 graphicsLayer.record {
@@ -263,11 +189,9 @@ fun DesignShareSheetContent(
     title: String = stringResource(R.string.design_share_sheet_title),
     previewMode: IslandPreviewMode = IslandPreviewMode.BOTH,
     onPreviewModeChange: (IslandPreviewMode) -> Unit = {},
-    isExportingImage: Boolean = false,
     isSavingImage: Boolean = false,
-    onShareImage: () -> Unit = {},
-    onSaveImage: () -> Unit = {},
-    onSharePackage: () -> Unit = {},
+    onSaveImages: () -> Unit = {},
+    onShare: () -> Unit = {},
     onDismiss: () -> Unit = {},
     graphicsLayerModifier: Modifier = Modifier,
     statusBarModifier: Modifier = Modifier,
@@ -281,7 +205,7 @@ fun DesignShareSheetContent(
             .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header: Title, Description, and Close Button
+        // Header: Title and Description
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -380,85 +304,62 @@ fun DesignShareSheetContent(
             )
         }
 
-        // Actions: Share Picture, Save Picture, Share Package
-        Column(
+        // Actions: Save Images and Share (shares the package file)
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            val shareButtonLabel = when (previewMode) {
-                IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
-                IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
-                IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
-            }
-
-            val saveButtonLabel = when (previewMode) {
-                IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_save_both)
-                IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_save_expanded)
-                IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_save_pill)
+            val saveImagesLabel = if (previewMode == IslandPreviewMode.BOTH) {
+                stringResource(R.string.design_share_btn_save_images)
+            } else {
+                stringResource(R.string.design_share_btn_save_image)
             }
 
             Button(
-                onClick = onShareImage,
-                modifier = Modifier.fillMaxWidth(),
+                onClick = onSaveImages,
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
-                enabled = !isExportingImage && !isSavingImage
+                enabled = !isSavingImage
             ) {
-                if (isExportingImage) {
+                if (isSavingImage) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(Modifier.width(8.dp))
                 } else {
-                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(
+                        Icons.Default.FileDownload,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
                     Spacer(Modifier.width(8.dp))
                 }
-                Text(shareButtonLabel)
+                Text(
+                    text = saveImagesLabel,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            FilledTonalButton(
+                onClick = onShare,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(16.dp),
+                enabled = !isSavingImage
             ) {
-                FilledTonalButton(
-                    onClick = onSaveImage,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = !isExportingImage && !isSavingImage
-                ) {
-                    if (isSavingImage) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(Modifier.width(6.dp))
-                    } else {
-                        Icon(Icons.Default.FileDownload, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                    }
-                    Text(
-                        saveButtonLabel,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                OutlinedButton(
-                    onClick = onSharePackage,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = !isExportingImage && !isSavingImage
-                ) {
-                    Icon(Icons.Default.UploadFile, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        stringResource(R.string.design_share_btn_share_package),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Icon(
+                    Icons.Default.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.design_share_btn_share),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -543,21 +444,6 @@ private fun DesignShareBottomSheetPillPreview() {
 
 private fun sanitizeFileName(name: String): String {
     return name.replace(Regex("[^a-zA-Z0-9._-]"), "_").trim('_').ifBlank { "hyperbridge_design" }
-}
-
-private suspend fun saveBitmapToCache(context: Context, bitmap: Bitmap, fileName: String): Uri? {
-    return withContext(Dispatchers.IO) {
-        try {
-            val cacheDir = File(context.cacheDir, "previews").apply { mkdirs() }
-            val file = File(cacheDir, "${fileName}.png")
-            FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            }
-            FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-        } catch (_: Exception) {
-            null
-        }
-    }
 }
 
 private suspend fun saveBitmapToPictures(context: Context, bitmap: Bitmap, fileName: String): Boolean {
