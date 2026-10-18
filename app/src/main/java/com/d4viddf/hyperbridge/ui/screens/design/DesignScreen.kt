@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Tune
@@ -584,12 +585,7 @@ fun DesignVariantBento(
             }
 
             // --- FEATURED SECTION ---
-            FeaturedSection(
-                onNavigateToThemes = onNavigateToThemes,
-                onNavigateToWidgets = onNavigateToWidgets,
-                onNavigateToDesigns = onNavigateToDesigns,
-                onNavigateToTranslators = onNavigateToTranslators
-            )
+            FeaturedSection()
 
             // --- GUIDES & DOCUMENTATION SECTION ---
             GuidesSection()
@@ -609,41 +605,33 @@ data class FeaturedCarouselItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FeaturedSection(
-    modifier: Modifier = Modifier,
-    onNavigateToThemes: () -> Unit,
-    onNavigateToWidgets: () -> Unit,
-    onNavigateToDesigns: () -> Unit,
-    onNavigateToTranslators: () -> Unit
+    modifier: Modifier = Modifier
 ) {
-    // TODO: In the future, clicking featured items will redirect to featured packs on the Hyper-Bridge.app website.
-    // The current internal navigation callbacks (onClick) are temporary placeholders.
+    val uriHandler = LocalUriHandler.current
     val featuredItems = listOf(
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_showcase_title),
+            subtitle = stringResource(R.string.design_featured_showcase_subtitle),
+            icon = Icons.Outlined.AutoAwesome,
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            onClick = { uriHandler.openUri(DocumentationUrls.SHOWCASE) }
+        ),
         FeaturedCarouselItem(
             title = stringResource(R.string.design_featured_themes_title),
             subtitle = stringResource(R.string.design_featured_themes_subtitle),
             icon = Icons.Rounded.Palette,
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            // TODO: Replace temporary onNavigateToThemes with redirect to featured themes pack on Hyper-Bridge.app website
-            onClick = onNavigateToThemes
-        ),
-        FeaturedCarouselItem(
-            title = stringResource(R.string.app_widgets_section_title),
-            subtitle = stringResource(R.string.design_featured_widgets_subtitle),
-            icon = Icons.Rounded.Widgets,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            // TODO: Replace temporary onNavigateToWidgets with redirect to featured widgets pack on Hyper-Bridge.app website
-            onClick = onNavigateToWidgets
+            onClick = { uriHandler.openUri(DocumentationUrls.SHOWCASE_THEMES) }
         ),
         FeaturedCarouselItem(
             title = stringResource(R.string.design_featured_designs_title),
             subtitle = stringResource(R.string.design_featured_designs_subtitle),
             icon = Icons.Outlined.DashboardCustomize,
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            // TODO: Replace temporary onNavigateToDesigns with redirect to featured interactive designs pack on Hyper-Bridge.app website
-            onClick = onNavigateToDesigns
+            onClick = { uriHandler.openUri(DocumentationUrls.SHOWCASE_DESIGNS) }
         ),
         FeaturedCarouselItem(
             title = stringResource(R.string.design_featured_translators_title),
@@ -651,8 +639,15 @@ private fun FeaturedSection(
             icon = Icons.Default.Extension,
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            // TODO: Replace temporary onNavigateToTranslators with redirect to featured translators pack on Hyper-Bridge.app website
-            onClick = onNavigateToTranslators
+            onClick = { uriHandler.openUri(DocumentationUrls.SHOWCASE_TRANSLATORS) }
+        ),
+        FeaturedCarouselItem(
+            title = stringResource(R.string.design_featured_schemes_title),
+            subtitle = stringResource(R.string.design_featured_schemes_subtitle),
+            icon = Icons.Rounded.ColorLens,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.primary,
+            onClick = { uriHandler.openUri(DocumentationUrls.SHOWCASE_SCHEMES) }
         )
     )
 
@@ -706,19 +701,32 @@ private fun FeaturedSection(
                             .fillMaxSize(),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Surface(
-                            modifier = Modifier.size(36.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = null,
-                                    tint = item.contentColor,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                            Surface(
+                                modifier = Modifier.size(36.dp),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = null,
+                                        tint = item.contentColor,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
+
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+                                contentDescription = null,
+                                tint = item.contentColor.copy(alpha = 0.6f),
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
 
                         Column {

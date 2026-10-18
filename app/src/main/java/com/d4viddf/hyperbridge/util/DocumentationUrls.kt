@@ -23,6 +23,12 @@ object DocumentationUrls {
     const val DIAGNOSTICS_DOCS = "https://hyper-bridge.app/docs/troubleshooting/diagnostics/"
     const val GITHUB_BUG_REPORT = "https://github.com/D4vidDf/HyperBridge/issues/new?template=bug_report.yml"
 
+    const val SHOWCASE = "https://hyper-bridge.app/showcase/"
+    const val SHOWCASE_THEMES = "https://hyper-bridge.app/showcase/themes/"
+    const val SHOWCASE_DESIGNS = "https://hyper-bridge.app/showcase/designs/"
+    const val SHOWCASE_TRANSLATORS = "https://hyper-bridge.app/showcase/translators/"
+    const val SHOWCASE_SCHEMES = "https://hyper-bridge.app/showcase/schemes/"
+
     /**
      * Resolves the localized changelog URL on https://hyper-bridge.app/ based on the active app locale.
      * Supported website translations include:

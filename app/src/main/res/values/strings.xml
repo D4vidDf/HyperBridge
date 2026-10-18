@@ -1399,6 +1399,8 @@
 
     <!-- Design Screen Featured & Guides Sections -->
     <string name="design_section_featured">Featured</string>
+    <string name="design_featured_showcase_title">Community Showcase</string>
+    <string name="design_featured_showcase_subtitle">Explore community creations and customizations</string>
     <string name="design_featured_themes_title">Hyper Themes</string>
     <string name="design_featured_themes_subtitle">Explore custom color palettes and island styles</string>
     <string name="design_featured_widgets_subtitle">Control music, timers, and app shortcuts directly</string>
@@ -1406,6 +1408,8 @@
     <string name="design_featured_designs_subtitle">Craft custom layouts for boarding, tracking, and more</string>
     <string name="design_featured_translators_title">Smart Translators</string>
     <string name="design_featured_translators_subtitle">Intercept notifications with custom regex and rules</string>
+    <string name="design_featured_schemes_title">Color Schemes</string>
+    <string name="design_featured_schemes_subtitle">Discover vibrant palettes and custom presets</string>
 
     <string name="design_guide_customization_desc">Design hub, theme creator, custom translators, and widgets</string>
     <string name="design_guide_features_title">Features</string>
