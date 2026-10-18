@@ -1,6 +1,5 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.AlertDialog
@@ -48,7 +46,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
@@ -210,22 +207,6 @@ fun StudioDesignScreen(
             onBack = handleBack,
             onUndo = { studioViewModel.undo() },
             onRedo = { studioViewModel.redo() },
-            onExport = {
-                scope.launch {
-                    val file = studioViewModel.exportWidget()
-                    if (file != null) {
-                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-                        val intent = Intent(Intent.ACTION_SEND).apply {
-                            type = "application/zip"
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        val chooser = Intent.createChooser(intent, context.getString(R.string.studio_export))
-                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        context.startActivity(chooser)
-                    }
-                }
-            },
             onRestore = { studioViewModel.restoreLastSaved() },
             onSave = {
                 studioViewModel.save(
@@ -359,7 +340,6 @@ fun StudioDesignContent(
     onBack: () -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
-    onExport: () -> Unit,
     onRestore: () -> Unit,
     onSave: () -> Unit,
     onOpenAddElement: () -> Unit,
@@ -427,10 +407,6 @@ fun StudioDesignContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onExport) {
-                        Icon(Icons.Rounded.IosShare, stringResource(R.string.studio_export))
-                    }
-
                     IconButton(
                         onClick = onRestore,
                         enabled = isDirty

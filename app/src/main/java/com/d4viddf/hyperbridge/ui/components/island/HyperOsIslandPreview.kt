@@ -63,7 +63,7 @@ import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 
 enum class IslandPreviewMode {
-    EXPANDED, COMPACT_PILL
+    EXPANDED, COMPACT_PILL, BOTH
 }
 
 /**
@@ -111,9 +111,12 @@ fun HyperOsIslandPreview(
     installedThemes: List<HyperTheme> = emptyList(),
     initialMode: IslandPreviewMode = IslandPreviewMode.EXPANDED,
     sample: IslandPreviewSample = IslandPreviewSample(),
-    showChrome: Boolean = true
+    showChrome: Boolean = true,
+    mode: IslandPreviewMode? = null,
+    onModeChange: ((IslandPreviewMode) -> Unit)? = null
 ) {
-    var previewMode by remember { mutableStateOf(initialMode) }
+    var internalMode by remember { mutableStateOf(initialMode) }
+    val previewMode = mode ?: internalMode
 
     // A TEMPLATE translator may carry nothing but its templateId, so resolve the preset first and
     // render from that: the gallery, the design cards and the editor all see the same island.
@@ -295,7 +298,10 @@ fun HyperOsIslandPreview(
                         }
                         ToggleButton(
                             checked = isSelected,
-                            onCheckedChange = { previewMode = mode },
+                            onCheckedChange = {
+                                internalMode = mode
+                                onModeChange?.invoke(mode)
+                            },
                             shapes = shape,
                             colors = ToggleButtonDefaults.colors(),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
@@ -356,9 +362,9 @@ fun HyperOsIslandPreview(
                             modifier = Modifier.align(Alignment.CenterStart)
                         )
 
-                        // Center: Compact Pill (When in COMPACT_PILL mode)
+                        // Center: Compact Pill (When in COMPACT_PILL or BOTH mode)
                         androidx.compose.animation.AnimatedVisibility(
-                            visible = previewMode == IslandPreviewMode.COMPACT_PILL,
+                            visible = previewMode == IslandPreviewMode.COMPACT_PILL || previewMode == IslandPreviewMode.BOTH,
                             enter = fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.85f),
                             exit = fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.85f),
                             modifier = Modifier.align(Alignment.Center)
@@ -388,7 +394,7 @@ fun HyperOsIslandPreview(
 
                     // Expanded Island (Animates smoothly underneath the status bar)
                     androidx.compose.animation.AnimatedVisibility(
-                        visible = previewMode == IslandPreviewMode.EXPANDED,
+                        visible = previewMode == IslandPreviewMode.EXPANDED || previewMode == IslandPreviewMode.BOTH,
                         enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
                         exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
                     ) {

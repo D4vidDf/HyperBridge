@@ -143,6 +143,7 @@ fun DesignManagerContent(
     var showAddDesign by remember { mutableStateOf(false) }
     var showHelpSheet by remember { mutableStateOf(false) }
     var pendingExportTranslator by remember { mutableStateOf<CustomTranslator?>(null) }
+    var sharingDesign by remember { mutableStateOf<CustomTranslator?>(null) }
 
     // SAF Import Launcher
     val importLauncher = rememberLauncherForActivityResult(
@@ -413,14 +414,7 @@ fun DesignManagerContent(
                                 onClick = { openDesign(design) },
                                 onDuplicate = { viewModel.duplicateTranslator(design) },
                                 onDelete = { viewModel.deleteTranslator(design.id) },
-                                onShare = {
-                                    viewModel.shareTranslator(context, design) { result ->
-                                        if (result.isFailure) {
-                                            val msg = context.getString(R.string.translators_share_failed)
-                                            scope.launch { snackbarHostState.showSnackbar(msg) }
-                                        }
-                                    }
-                                },
+                                onShare = { sharingDesign = design },
                                 onExport = {
                                     pendingExportTranslator = design
                                     val filename = "${design.meta.name.ifBlank { design.id }}.htrans"
@@ -435,14 +429,7 @@ fun DesignManagerContent(
                                 onClick = { openDesign(design) },
                                 onDuplicate = { viewModel.duplicateTranslator(design) },
                                 onDelete = { viewModel.deleteTranslator(design.id) },
-                                onShare = {
-                                    viewModel.shareTranslator(context, design) { result ->
-                                        if (result.isFailure) {
-                                            val msg = context.getString(R.string.translators_share_failed)
-                                            scope.launch { snackbarHostState.showSnackbar(msg) }
-                                        }
-                                    }
-                                },
+                                onShare = { sharingDesign = design },
                                 onExport = {
                                     pendingExportTranslator = design
                                     val filename = "${design.meta.name.ifBlank { design.id }}.htrans"
@@ -474,6 +461,21 @@ fun DesignManagerContent(
     if (showHelpSheet) {
         DesignManagerHelpSheet(
             onDismiss = { showHelpSheet = false }
+        )
+    }
+
+    sharingDesign?.let { designToShare ->
+        DesignShareBottomSheet(
+            design = designToShare,
+            onDismiss = { sharingDesign = null },
+            onSharePackage = {
+                viewModel.shareTranslator(context, designToShare) { result ->
+                    if (result.isFailure) {
+                        val msg = context.getString(R.string.translators_share_failed)
+                        scope.launch { snackbarHostState.showSnackbar(msg) }
+                    }
+                }
+            }
         )
     }
 }
