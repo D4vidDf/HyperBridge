@@ -30,6 +30,7 @@ import com.d4viddf.hyperbridge.models.widget.TextNode
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -40,6 +41,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 class TranslatorRepositoryTest {
@@ -515,5 +517,57 @@ class TranslatorRepositoryTest {
 
         assertEquals("Modified Original", reloadedOriginal!!.meta.name)
         assertEquals("Edited Duplicate Design", reloadedDuplicate!!.meta.name)
+    }
+
+    @Test
+    fun testExportDesignOnlyToFileHasHwidgetExtension(): Unit = runBlocking {
+        val translator = CustomTranslator(
+            id = "design.export.rule",
+            meta = TranslatorMetadata(name = "Design Only Export"),
+            targetScope = TargetScope.GLOBAL
+        )
+
+        val result = repository.exportTranslatorToFile(translator, includeTranslator = false)
+        assertTrue("Export should succeed", result.isSuccess)
+        val file = result.getOrThrow()
+        assertTrue("Exported file should exist", file.exists())
+        assertEquals("Design_Only_Export.hwidget", file.name)
+        assertTrue("File size should be greater than 0", file.length() > 0)
+    }
+
+    @Test
+    fun testExportDesignOnlyExcludesTranslatorJsonForCustomWidget(): Unit = runBlocking {
+        val widgetId = "widget_only_export_test"
+        val widgetDir = File(filesDir, "custom_widgets/$widgetId")
+        widgetDir.mkdirs()
+        File(widgetDir, "widget.json").writeText("{\"id\":\"$widgetId\",\"version\":1}")
+
+        val translator = CustomTranslator(
+            id = "trans_bound_to_widget",
+            meta = TranslatorMetadata(name = "Custom Widget Design"),
+            targetScope = TargetScope.GLOBAL,
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = widgetId
+            )
+        )
+
+        val zipBaos = ByteArrayOutputStream()
+        val exportResult = repository.exportTranslatorToZip(translator, zipBaos, includeTranslator = false)
+        assertTrue("Export to ZIP should succeed", exportResult.isSuccess)
+
+        // Read entries from the resulting ZIP
+        val zipBytes = zipBaos.toByteArray()
+        val entryNames = mutableListOf<String>()
+        ZipInputStream(ByteArrayInputStream(zipBytes)).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                entryNames.add(entry.name)
+                entry = zis.nextEntry
+            }
+        }
+
+        assertTrue("ZIP must contain widget.json", entryNames.contains("widget.json"))
+        assertFalse("ZIP must NOT contain translator.json when includeTranslator is false", entryNames.contains("translator.json"))
     }
 }

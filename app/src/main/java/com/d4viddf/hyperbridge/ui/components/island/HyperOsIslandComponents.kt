@@ -1,8 +1,5 @@
 package com.d4viddf.hyperbridge.ui.components.island
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,14 +89,7 @@ fun HyperOsExpandedIsland(
             ),
             width = 1.dp
         ),
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
-            )
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier
@@ -652,13 +642,7 @@ fun HyperOsCompactPill(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .background(Color.Black)
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
-            ),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Layout(

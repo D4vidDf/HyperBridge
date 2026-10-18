@@ -1905,4 +1905,23 @@
     <string name="studio_color_mode_scheme">Color Scheme</string>
     <string name="studio_color_mode_custom">Custom Color</string>
     <string name="studio_color_scheme_all_roles">All Roles</string>
+
+    <!-- Design & Translator Share Preview Bottom Sheet -->
+    <string name="design_share_sheet_title">Share Design</string>
+    <string name="translators_share_sheet_title">Share Translator</string>
+    <string name="design_share_preview_label">Preview Picture</string>
+    <string name="design_share_export_all">All</string>
+    <string name="design_share_export_images">Images</string>
+    <string name="design_share_export_file">File</string>
+    <string name="design_share_btn_save">Save</string>
+    <string name="design_share_btn_share">Share</string>
+    <string name="design_share_saved_to_folder">Saved to selected folder</string>
+    <string name="design_share_save_failed">Failed to save to folder</string>
+    <string name="design_share_image_saved">Preview picture saved to Pictures/HyperBridge</string>
+    <string name="design_share_both_saved">Big Island and Pill saved to Pictures/HyperBridge</string>
+    <string name="design_share_pill_saved">Pill picture saved to Pictures/HyperBridge</string>
+    <string name="design_share_image_failed">Failed to generate preview image</string>
+    <string name="design_share_showcase_hint">Optimized for HyperBridge Showcase &amp; social sharing</string>
+    <string name="design_share_include_translator_title">Include linked translator</string>
+    <string name="design_share_include_translator_desc">Export the rules and triggers alongside the visual design</string>
 </resources>

@@ -143,6 +143,7 @@ fun DesignManagerContent(
     var showAddDesign by remember { mutableStateOf(false) }
     var showHelpSheet by remember { mutableStateOf(false) }
     var pendingExportTranslator by remember { mutableStateOf<CustomTranslator?>(null) }
+    var sharingDesign by remember { mutableStateOf<CustomTranslator?>(null) }
 
     // SAF Import Launcher
     val importLauncher = rememberLauncherForActivityResult(
@@ -413,17 +414,11 @@ fun DesignManagerContent(
                                 onClick = { openDesign(design) },
                                 onDuplicate = { viewModel.duplicateTranslator(design) },
                                 onDelete = { viewModel.deleteTranslator(design.id) },
-                                onShare = {
-                                    viewModel.shareTranslator(context, design) { result ->
-                                        if (result.isFailure) {
-                                            val msg = context.getString(R.string.translators_share_failed)
-                                            scope.launch { snackbarHostState.showSnackbar(msg) }
-                                        }
-                                    }
-                                },
+                                onShare = { sharingDesign = design },
                                 onExport = {
                                     pendingExportTranslator = design
-                                    val filename = "${design.meta.name.ifBlank { design.id }}.htrans"
+                                    val name = design.meta.name.ifBlank { design.id }.removeSuffix(".htrans").removeSuffix(".hwidget")
+                                    val filename = "$name.hwidget"
                                     exportLauncher.launch(filename)
                                 }
                             )
@@ -435,17 +430,11 @@ fun DesignManagerContent(
                                 onClick = { openDesign(design) },
                                 onDuplicate = { viewModel.duplicateTranslator(design) },
                                 onDelete = { viewModel.deleteTranslator(design.id) },
-                                onShare = {
-                                    viewModel.shareTranslator(context, design) { result ->
-                                        if (result.isFailure) {
-                                            val msg = context.getString(R.string.translators_share_failed)
-                                            scope.launch { snackbarHostState.showSnackbar(msg) }
-                                        }
-                                    }
-                                },
+                                onShare = { sharingDesign = design },
                                 onExport = {
                                     pendingExportTranslator = design
-                                    val filename = "${design.meta.name.ifBlank { design.id }}.htrans"
+                                    val name = design.meta.name.ifBlank { design.id }.removeSuffix(".htrans").removeSuffix(".hwidget")
+                                    val filename = "$name.hwidget"
                                     exportLauncher.launch(filename)
                                 }
                             )
@@ -474,6 +463,22 @@ fun DesignManagerContent(
     if (showHelpSheet) {
         DesignManagerHelpSheet(
             onDismiss = { showHelpSheet = false }
+        )
+    }
+
+    sharingDesign?.let { designToShare ->
+        DesignShareBottomSheet(
+            design = designToShare,
+            isTranslator = false,
+            onDismiss = { sharingDesign = null },
+            onSharePackage = { includeTranslator ->
+                viewModel.shareTranslator(context, designToShare, includeTranslator) { result ->
+                    if (result.isFailure) {
+                        val msg = context.getString(R.string.translators_share_failed)
+                        scope.launch { snackbarHostState.showSnackbar(msg) }
+                    }
+                }
+            }
         )
     }
 }

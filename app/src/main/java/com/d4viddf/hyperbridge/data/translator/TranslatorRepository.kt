@@ -10,9 +10,11 @@ import com.d4viddf.hyperbridge.data.db.TranslatorDao
 import com.d4viddf.hyperbridge.data.db.TranslatorEntity
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.DataExtractionConfig
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.TargetScope
+import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
@@ -54,37 +56,59 @@ class TranslatorRepository(
     }
 
     /**
-     * Packages a [CustomTranslator] into a .htrans ZIP archive and writes it directly to the provided [OutputStream].
+     * Packages a [CustomTranslator] into a .htrans or .hwidget ZIP archive and writes it directly to the provided [OutputStream].
      */
     suspend fun exportTranslatorToZip(
         translator: CustomTranslator,
-        outputStream: OutputStream
+        outputStream: OutputStream,
+        includeTranslator: Boolean = true
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             ZipOutputStream(outputStream).use { zos ->
-                // 1. Write translator.json
-                val jsonContent = CustomTranslator.toJson(translator)
-                val jsonEntry = ZipEntry("translator.json")
-                zos.putNextEntry(jsonEntry)
-                zos.write(jsonContent.toByteArray(Charsets.UTF_8))
-                zos.closeEntry()
+                val isWidgetMode = translator.presentation.mode == PresentationMode.WIDGET
 
-                // 2. Write icons if they exist in the translator's storage directory
-                val iconDir = File(translatorsStorageDir, "${translator.id}/icons")
-                if (iconDir.exists() && iconDir.isDirectory) {
-                    iconDir.walkTopDown().filter { it.isFile }.forEach { file ->
-                        val relativePath = "icons/${file.relativeTo(iconDir).path.replace('\\', '/')}"
-                        val iconEntry = ZipEntry(relativePath)
-                        zos.putNextEntry(iconEntry)
-                        file.inputStream().use { input ->
-                            input.copyTo(zos)
+                // 1. Write translator.json:
+                // - Always write if includeTranslator is true
+                // - If includeTranslator is false, only write for non-widget presentations (e.g. templates)
+                //   where translator.json holds the presentation config, but strip triggers and rules.
+                if (includeTranslator || !isWidgetMode) {
+                    val translatorToExport = if (includeTranslator) {
+                        translator
+                    } else {
+                        translator.copy(
+                            targetScope = TargetScope.NOTIFICATION_TYPE,
+                            targetPackages = emptyList(),
+                            excludedPackages = emptyList(),
+                            targetNotificationTypes = emptyList(),
+                            conditions = TranslatorConditions(),
+                            customVariables = emptyList(),
+                            customActions = emptyList(),
+                            dataExtraction = DataExtractionConfig()
+                        )
+                    }
+                    val jsonContent = CustomTranslator.toJson(translatorToExport)
+                    val jsonEntry = ZipEntry("translator.json")
+                    zos.putNextEntry(jsonEntry)
+                    zos.write(jsonContent.toByteArray(Charsets.UTF_8))
+                    zos.closeEntry()
+
+                    // 2. Write icons if they exist in the translator's storage directory
+                    val iconDir = File(translatorsStorageDir, "${translator.id}/icons")
+                    if (iconDir.exists() && iconDir.isDirectory) {
+                        iconDir.walkTopDown().filter { it.isFile }.forEach { file ->
+                            val relativePath = "icons/${file.relativeTo(iconDir).path.replace('\\', '/')}"
+                            val iconEntry = ZipEntry(relativePath)
+                            zos.putNextEntry(iconEntry)
+                            file.inputStream().use { input ->
+                                input.copyTo(zos)
+                            }
+                            zos.closeEntry()
                         }
-                        zos.closeEntry()
                     }
                 }
 
                 // 3. If presentation mode is WIDGET, package the custom widget files (widget.json + assets)
-                if (translator.presentation.mode == PresentationMode.WIDGET) {
+                if (isWidgetMode) {
                     val widgetId = translator.presentation.widgetId
                     if (!widgetId.isNullOrBlank()) {
                         val widgetDir = File(context.filesDir, "custom_widgets/$widgetId")
@@ -106,18 +130,22 @@ class TranslatorRepository(
     }
 
     /**
-     * Exports a [CustomTranslator] into a cached .htrans file ready for sharing.
+     * Exports a [CustomTranslator] into a cached .htrans or .hwidget file ready for sharing.
      */
-    suspend fun exportTranslatorToFile(translator: CustomTranslator): Result<File> = withContext(Dispatchers.IO) {
+    suspend fun exportTranslatorToFile(
+        translator: CustomTranslator,
+        includeTranslator: Boolean = true
+    ): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
             val exportDir = File(context.cacheDir, "exports")
             if (!exportDir.exists()) exportDir.mkdirs()
 
             val sanitizedName = sanitizeFilename(translator.meta.name.ifBlank { translator.id })
-            val targetFile = File(exportDir, "$sanitizedName.htrans")
+            val extension = if (!includeTranslator) "hwidget" else "htrans"
+            val targetFile = File(exportDir, "$sanitizedName.$extension")
 
             targetFile.outputStream().use { fos ->
-                val exportResult = exportTranslatorToZip(translator, fos)
+                val exportResult = exportTranslatorToZip(translator, fos, includeTranslator)
                 if (exportResult.isFailure) {
                     throw exportResult.exceptionOrNull() ?: Exception("Export failed")
                 }
@@ -325,9 +353,13 @@ class TranslatorRepository(
     /**
      * Shares a [CustomTranslator] via Android ACTION_SEND Intent using FileProvider.
      */
-    suspend fun shareTranslator(context: Context, translator: CustomTranslator): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun shareTranslator(
+        context: Context,
+        translator: CustomTranslator,
+        includeTranslator: Boolean = true
+    ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val file = exportTranslatorToFile(translator).getOrThrow()
+            val file = exportTranslatorToFile(translator, includeTranslator).getOrThrow()
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",
@@ -351,6 +383,11 @@ class TranslatorRepository(
     }
 
     private fun sanitizeFilename(name: String): String {
-        return name.replace(Regex("[^a-zA-Z0-9._-]"), "_").trim('_')
+        return name
+            .removeSuffix(".htrans")
+            .removeSuffix(".hwidget")
+            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+            .trim('_')
+            .ifBlank { "hyperbridge_translator" }
     }
 }

@@ -766,4 +766,69 @@
     <string name="design_guide_features_title">Funciones</string>
     <string name="design_guide_features_desc">Apps del sistema, acciones inteligentes, respuesta rápida e isla permanente</string>
     <string name="feature_guides_redirect_desc">Consulta guías detalladas, tutoriales y documentación en nuestro sitio web.</string>
+
+    <string name="discount_keywords_title">Palabras clave de descuento</string>
+    <string name="discount_keywords_desc">Palabras que indican que un porcentaje es un descuento, no progreso</string>
+    <string name="discount_keywords_editor_desc">Un porcentaje junto a una de estas palabras (ej. \"Liquidación 30 %\") no mostrará una barra de progreso. Palabras integradas como rebaja, descuento o promo ya se aplican; añade las tuyas aquí.</string>
+    <string name="add_discount_keyword">Añadir palabra (ej. Liquidación)</string>
+
+    <string name="option_translators">Traductores personalizados</string>
+    <string name="option_translators_desc">Traductores de notificaciones y reglas personalizadas</string>
+    <string name="option_translators_count_suffix">elementos</string>
+
+    <string name="option_custom_widgets">Widgets y diseños personalizados</string>
+    <string name="option_custom_widgets_desc">Micro-widgets personalizados, diseños y recursos</string>
+    <string name="option_custom_widgets_count_suffix">elementos</string>
+
+    <string name="package_installer_analyzing">Analizando paquete…</string>
+    <string name="widget_installer_title">Diseño listo</string>
+    <string name="widget_installer_dimensions">%1$d × %2$d dp</string>
+    <string name="widget_installer_linked_translator">Vinculado: %s</string>
+    <string name="widget_installer_apply_question">¿Quieres importar este diseño personalizado?</string>
+    <string name="widget_installer_action_import">Importar diseño</string>
+    <string name="widget_installer_success_title">Diseño importado</string>
+    <string name="widget_installer_success_message">El diseño personalizado \"%s\" se importó correctamente.</string>
+
+    <string name="translator_installer_title">Traductor listo</string>
+    <string name="translator_installer_apply_question">¿Quieres importar este traductor?</string>
+    <string name="translator_installer_action_import">Importar traductor</string>
+    <string name="translator_installer_success_title">Traductor importado</string>
+    <string name="translator_installer_success_message">El traductor \"%s\" se importó correctamente.</string>
+
+    <string name="backup_installer_title">Copia de seguridad lista</string>
+    <string name="backup_installer_apply_question">¿Quieres restaurar esta copia de seguridad?</string>
+    <string name="backup_installer_action_restore">Restaurar copia de seguridad</string>
+    <string name="backup_installer_success_title">Copia de seguridad restaurada</string>
+    <string name="backup_installer_success_message">Los ajustes y los datos se restauraron correctamente.</string>
+
+    <string name="package_installer_action_done">Listo</string>
+    <string name="package_installer_action_cancel">Cancelar</string>
+    <string name="package_installer_unsupported">El archivo seleccionado no es un paquete compatible con HyperBridge.</string>
+
+    <!-- Fuentes de contenido de la isla -->
+    <string name="permanent_island_widget_label">Micro-widget mostrado aquí</string>
+    <string name="permanent_island_widget_none">Ninguno</string>
+    <string name="permanent_island_manage_sources">Gestionar fuentes de contenido de la isla</string>
+    <string name="source_apps_title">Fuentes de contenido de la isla</string>
+    <string name="source_apps_description">Las apps que permitas aquí pueden controlar un micro-widget en la isla permanente (por ejemplo, una app del tiempo mostrando las condiciones actuales). HyperBridge confía en la identidad declarada por cada app cuando se comunica por primera vez — esta garantía es más ligera que un remitente verificado criptográficamente, así que permite únicamente apps en las que confíes.</string>
+    <string name="source_apps_empty">Ninguna app se ha comunicado todavía. Una app debe transmitir a HyperBridge al menos una vez antes de aparecer aquí.</string>
+
+    <!-- Design & Translator Share Preview Bottom Sheet -->
+    <string name="design_share_sheet_title">Compartir diseño</string>
+    <string name="translators_share_sheet_title">Compartir traductor</string>
+    <string name="design_share_preview_label">Imagen de vista previa</string>
+    <string name="design_share_export_all">Todo</string>
+    <string name="design_share_export_images">Imágenes</string>
+    <string name="design_share_export_file">Archivo</string>
+    <string name="design_share_btn_save">Guardar</string>
+    <string name="design_share_btn_share">Compartir</string>
+    <string name="design_share_saved_to_folder">Guardado en la carpeta seleccionada</string>
+    <string name="design_share_save_failed">Error al guardar en la carpeta</string>
+    <string name="design_share_image_saved">Imagen de vista previa guardada en Imágenes/HyperBridge</string>
+    <string name="design_share_both_saved">Isla grande y pastilla guardadas en Imágenes/HyperBridge</string>
+    <string name="design_share_pill_saved">Imagen de la pastilla guardada en Imágenes/HyperBridge</string>
+    <string name="design_share_image_failed">Error al generar la imagen de vista previa</string>
+    <string name="design_share_showcase_hint">Optimizado para HyperBridge Showcase y redes sociales</string>
+    <string name="design_share_include_translator_title">Incluir traductor vinculado</string>
+    <string name="design_share_include_translator_desc">Exporta las reglas y activadores junto con el diseño visual</string>
 </resources>
