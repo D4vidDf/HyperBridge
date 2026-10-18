@@ -107,7 +107,7 @@ fun DesignShareBottomSheet(
             previewMode = previewMode,
             onPreviewModeChange = { previewMode = it },
             isSavingImage = isSavingImage,
-            onSaveImages = {
+            onSave = {
                 if (isSavingImage) return@DesignShareSheetContent
                 isSavingImage = true
                 scope.launch {
@@ -185,7 +185,7 @@ fun DesignShareSheetContent(
     previewMode: IslandPreviewMode = IslandPreviewMode.BOTH,
     onPreviewModeChange: (IslandPreviewMode) -> Unit = {},
     isSavingImage: Boolean = false,
-    onSaveImages: () -> Unit = {},
+    onSave: () -> Unit = {},
     onShare: () -> Unit = {},
     graphicsLayerModifier: Modifier = Modifier,
     statusBarModifier: Modifier = Modifier,
@@ -298,19 +298,13 @@ fun DesignShareSheetContent(
             )
         }
 
-        // Actions: Save Images and Share (shares the package file)
+        // Actions: Save and Share
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            val saveImagesLabel = if (previewMode == IslandPreviewMode.BOTH) {
-                stringResource(R.string.design_share_btn_save_images)
-            } else {
-                stringResource(R.string.design_share_btn_save_image)
-            }
-
             Button(
-                onClick = onSaveImages,
+                onClick = onSave,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
                 enabled = !isSavingImage
@@ -331,7 +325,7 @@ fun DesignShareSheetContent(
                     Spacer(Modifier.width(8.dp))
                 }
                 Text(
-                    text = saveImagesLabel,
+                    text = stringResource(R.string.design_share_btn_save),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

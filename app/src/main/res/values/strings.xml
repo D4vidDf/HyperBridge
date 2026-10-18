@@ -1913,8 +1913,7 @@
     <string name="design_share_mode_combined">Big + Pill</string>
     <string name="design_share_mode_expanded">Big Island</string>
     <string name="design_share_mode_pill">Pill</string>
-    <string name="design_share_btn_save_images">Save Images</string>
-    <string name="design_share_btn_save_image">Save Image</string>
+    <string name="design_share_btn_save">Save</string>
     <string name="design_share_btn_share">Share</string>
     <string name="design_share_image_saved">Preview picture saved to Pictures/HyperBridge</string>
     <string name="design_share_both_saved">Big Island and Pill saved to Pictures/HyperBridge</string>
