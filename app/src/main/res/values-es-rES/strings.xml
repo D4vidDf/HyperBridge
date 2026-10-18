@@ -865,6 +865,8 @@
     <string name="translators_create_button">Crear traductor</string>
     <string name="translators_action_edit">Editar</string>
     <string name="translators_action_delete">Eliminar</string>
+    <string name="translators_delete_confirm_title">¿Eliminar elemento?</string>
+    <string name="translators_delete_confirm_message">¿Estás seguro de que quieres eliminar \"%1$s\"? Esta acción no se puede deshacer.</string>
     <string name="translators_action_duplicate">Duplicar</string>
     <string name="translators_priority_label">Prioridad %1$d</string>
     <string name="translators_scope_global">Regla global</string>
