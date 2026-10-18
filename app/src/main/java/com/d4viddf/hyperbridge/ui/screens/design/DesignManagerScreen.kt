@@ -417,7 +417,8 @@ fun DesignManagerContent(
                                 onShare = { sharingDesign = design },
                                 onExport = {
                                     pendingExportTranslator = design
-                                    val filename = "${design.meta.name.ifBlank { design.id }}.htrans"
+                                    val name = design.meta.name.ifBlank { design.id }.removeSuffix(".htrans").removeSuffix(".hwidget")
+                                    val filename = "$name.hwidget"
                                     exportLauncher.launch(filename)
                                 }
                             )
@@ -432,7 +433,8 @@ fun DesignManagerContent(
                                 onShare = { sharingDesign = design },
                                 onExport = {
                                     pendingExportTranslator = design
-                                    val filename = "${design.meta.name.ifBlank { design.id }}.htrans"
+                                    val name = design.meta.name.ifBlank { design.id }.removeSuffix(".htrans").removeSuffix(".hwidget")
+                                    val filename = "$name.hwidget"
                                     exportLauncher.launch(filename)
                                 }
                             )

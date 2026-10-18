@@ -10,9 +10,11 @@ import com.d4viddf.hyperbridge.data.db.TranslatorDao
 import com.d4viddf.hyperbridge.data.db.TranslatorEntity
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.DataExtractionConfig
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.TargetScope
+import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.WidgetDimensionValidator
@@ -63,9 +65,28 @@ class TranslatorRepository(
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             ZipOutputStream(outputStream).use { zos ->
-                // 1. Write translator.json
-                if (includeTranslator) {
-                    val jsonContent = CustomTranslator.toJson(translator)
+                val isWidgetMode = translator.presentation.mode == PresentationMode.WIDGET
+
+                // 1. Write translator.json:
+                // - Always write if includeTranslator is true
+                // - If includeTranslator is false, only write for non-widget presentations (e.g. templates)
+                //   where translator.json holds the presentation config, but strip triggers and rules.
+                if (includeTranslator || !isWidgetMode) {
+                    val translatorToExport = if (includeTranslator) {
+                        translator
+                    } else {
+                        translator.copy(
+                            targetScope = TargetScope.NOTIFICATION_TYPE,
+                            targetPackages = emptyList(),
+                            excludedPackages = emptyList(),
+                            targetNotificationTypes = emptyList(),
+                            conditions = TranslatorConditions(),
+                            customVariables = emptyList(),
+                            customActions = emptyList(),
+                            dataExtraction = DataExtractionConfig()
+                        )
+                    }
+                    val jsonContent = CustomTranslator.toJson(translatorToExport)
                     val jsonEntry = ZipEntry("translator.json")
                     zos.putNextEntry(jsonEntry)
                     zos.write(jsonContent.toByteArray(Charsets.UTF_8))
@@ -87,7 +108,7 @@ class TranslatorRepository(
                 }
 
                 // 3. If presentation mode is WIDGET, package the custom widget files (widget.json + assets)
-                if (translator.presentation.mode == PresentationMode.WIDGET) {
+                if (isWidgetMode) {
                     val widgetId = translator.presentation.widgetId
                     if (!widgetId.isNullOrBlank()) {
                         val widgetDir = File(context.filesDir, "custom_widgets/$widgetId")
@@ -120,7 +141,7 @@ class TranslatorRepository(
             if (!exportDir.exists()) exportDir.mkdirs()
 
             val sanitizedName = sanitizeFilename(translator.meta.name.ifBlank { translator.id })
-            val extension = if (!includeTranslator && translator.presentation.mode == PresentationMode.WIDGET) "hwidget" else "htrans"
+            val extension = if (!includeTranslator) "hwidget" else "htrans"
             val targetFile = File(exportDir, "$sanitizedName.$extension")
 
             targetFile.outputStream().use { fos ->
@@ -362,6 +383,11 @@ class TranslatorRepository(
     }
 
     private fun sanitizeFilename(name: String): String {
-        return name.replace(Regex("[^a-zA-Z0-9._-]"), "_").trim('_')
+        return name
+            .removeSuffix(".htrans")
+            .removeSuffix(".hwidget")
+            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+            .trim('_')
+            .ifBlank { "hyperbridge_translator" }
     }
 }

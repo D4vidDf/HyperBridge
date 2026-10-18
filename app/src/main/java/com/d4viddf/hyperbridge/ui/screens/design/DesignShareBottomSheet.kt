@@ -634,7 +634,12 @@ private fun DesignShareBottomSheetFilePreview() {
 }
 
 private fun sanitizeFileName(name: String): String {
-    return name.replace(Regex("[^a-zA-Z0-9._-]"), "_").trim('_').ifBlank { "hyperbridge_design" }
+    return name
+        .removeSuffix(".htrans")
+        .removeSuffix(".hwidget")
+        .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+        .trim('_')
+        .ifBlank { "hyperbridge_design" }
 }
 
 private suspend fun saveFileToTreeUri(
