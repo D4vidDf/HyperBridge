@@ -104,7 +104,6 @@ fun DesignShareBottomSheet(
     var isSaving by remember { mutableStateOf(false) }
     var isSharing by remember { mutableStateOf(false) }
 
-    val graphicsLayer = rememberGraphicsLayer()
     val pillGraphicsLayer = rememberGraphicsLayer()
     val expandedGraphicsLayer = rememberGraphicsLayer()
 
@@ -284,12 +283,6 @@ fun DesignShareBottomSheet(
             isSharing = isSharing,
             onSave = { folderPickerLauncher.launch(null) },
             onShare = handleShare,
-            graphicsLayerModifier = Modifier.drawWithContent {
-                graphicsLayer.record {
-                    this@drawWithContent.drawContent()
-                }
-                drawLayer(graphicsLayer)
-            },
             statusBarModifier = Modifier.drawWithContent {
                 pillGraphicsLayer.record {
                     this@drawWithContent.drawContent()
@@ -318,7 +311,6 @@ fun DesignShareSheetContent(
     isSharing: Boolean = false,
     onSave: () -> Unit = {},
     onShare: () -> Unit = {},
-    graphicsLayerModifier: Modifier = Modifier,
     statusBarModifier: Modifier = Modifier,
     expandedModifier: Modifier = Modifier
 ) {
@@ -399,7 +391,6 @@ fun DesignShareSheetContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(graphicsLayerModifier)
                     .padding(4.dp),
                 contentAlignment = Alignment.Center
             ) {
