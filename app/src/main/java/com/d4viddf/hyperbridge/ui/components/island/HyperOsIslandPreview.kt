@@ -1,13 +1,11 @@
 package com.d4viddf.hyperbridge.ui.components.island
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -559,7 +557,13 @@ fun HyperOsIslandPreview(
                     .heightIn(min = minBoxHeight)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFF141414))
-                    .animateContentSize(animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
+                    .then(
+                        if (showChrome) {
+                            Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
+                        } else {
+                            Modifier
+                        }
+                    )
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -580,40 +584,31 @@ fun HyperOsIslandPreview(
                         }
                     }
                 } else {
-                    AnimatedContent(
-                        targetState = previewMode,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
-                        },
-                        contentAlignment = Alignment.Center,
-                        label = "IslandSharePreviewTransition"
-                    ) { mode ->
-                        when (mode) {
-                            IslandPreviewMode.BOTH -> {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    StatusBarContent(showPill = true)
-                                    ExpandedIslandContent()
-                                }
+                    when (previewMode) {
+                        IslandPreviewMode.BOTH -> {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                StatusBarContent(showPill = true)
+                                ExpandedIslandContent()
                             }
-                            IslandPreviewMode.EXPANDED -> {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    ExpandedIslandContent()
-                                }
+                        }
+                        IslandPreviewMode.EXPANDED -> {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ExpandedIslandContent()
                             }
-                            IslandPreviewMode.COMPACT_PILL -> {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    StatusBarContent(showPill = true)
-                                }
+                        }
+                        IslandPreviewMode.COMPACT_PILL -> {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                StatusBarContent(showPill = true)
                             }
                         }
                     }
