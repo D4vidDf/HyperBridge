@@ -3,8 +3,6 @@ package com.d4viddf.hyperbridge.ui.screens.design
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
-import android.media.MediaScannerConnection
-import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
@@ -74,8 +72,6 @@ import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -151,7 +147,7 @@ fun DesignShareBottomSheet(
                                 Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
                             }
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
                     } finally {
                         isSavingImage = false
@@ -159,7 +155,6 @@ fun DesignShareBottomSheet(
                 }
             },
             onShare = onSharePackage,
-            onDismiss = onDismiss,
             graphicsLayerModifier = Modifier.drawWithContent {
                 graphicsLayer.record {
                     this@drawWithContent.drawContent()
@@ -192,7 +187,6 @@ fun DesignShareSheetContent(
     isSavingImage: Boolean = false,
     onSaveImages: () -> Unit = {},
     onShare: () -> Unit = {},
-    onDismiss: () -> Unit = {},
     graphicsLayerModifier: Modifier = Modifier,
     statusBarModifier: Modifier = Modifier,
     expandedModifier: Modifier = Modifier
@@ -450,32 +444,21 @@ private suspend fun saveBitmapToPictures(context: Context, bitmap: Bitmap, fileN
     return withContext(Dispatchers.IO) {
         try {
             val uniqueName = "${fileName}_${System.currentTimeMillis()}.png"
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val values = ContentValues().apply {
-                    put(MediaStore.Images.Media.DISPLAY_NAME, uniqueName)
-                    put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-                    put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/HyperBridge")
-                    put(MediaStore.Images.Media.IS_PENDING, 1)
-                }
-                val resolver = context.contentResolver
-                val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return@withContext false
-                resolver.openOutputStream(uri)?.use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                }
-                values.clear()
-                values.put(MediaStore.Images.Media.IS_PENDING, 0)
-                resolver.update(uri, values, null, null)
-                true
-            } else {
-                val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                val appDir = File(picturesDir, "HyperBridge").apply { mkdirs() }
-                val file = File(appDir, uniqueName)
-                FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                }
-                MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf("image/png"), null)
-                true
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, uniqueName)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/HyperBridge")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
             }
+            val resolver = context.contentResolver
+            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return@withContext false
+            resolver.openOutputStream(uri)?.use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            values.clear()
+            values.put(MediaStore.Images.Media.IS_PENDING, 0)
+            resolver.update(uri, values, null, null)
+            true
         } catch (_: Exception) {
             false
         }
