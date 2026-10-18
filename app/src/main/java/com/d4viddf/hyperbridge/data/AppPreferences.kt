@@ -448,6 +448,44 @@ class AppPreferences internal constructor(
     suspend fun setSystemUpdateIconSource(iconSource: com.d4viddf.hyperbridge.models.SystemUpdateIconSource) =
         save(SettingsKeys.SYSTEM_UPDATE_ICON_SOURCE, iconSource.name)
 
+    // --- SYSTEM ISLAND: CHARGING ---
+    val chargingLeftDesignFlow: Flow<com.d4viddf.hyperbridge.models.ChargingLeftDesign> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_LEFT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ChargingLeftDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ChargingLeftDesign.CHARGING_SPEED
+        }
+
+    val chargingRightDesignFlow: Flow<com.d4viddf.hyperbridge.models.ChargingRightDesign> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_RIGHT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ChargingRightDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ChargingRightDesign.BATTERY_PERCENTAGE
+        }
+
+    val chargingExpandedProgressBarFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR).map { it.toBoolean(true) }
+
+    val chargingDesignFlow: Flow<com.d4viddf.hyperbridge.models.ChargingDesignConfig> =
+        combine(
+            chargingLeftDesignFlow,
+            chargingRightDesignFlow,
+            chargingExpandedProgressBarFlow
+        ) { left, right, showExpandedProgressBar ->
+            com.d4viddf.hyperbridge.models.ChargingDesignConfig(
+                left = left,
+                right = right,
+                showExpandedProgressBar = showExpandedProgressBar
+            )
+        }
+
+    suspend fun setChargingLeftDesign(design: com.d4viddf.hyperbridge.models.ChargingLeftDesign) =
+        save(SettingsKeys.CHARGING_LEFT_DESIGN, design.name)
+
+    suspend fun setChargingRightDesign(design: com.d4viddf.hyperbridge.models.ChargingRightDesign) =
+        save(SettingsKeys.CHARGING_RIGHT_DESIGN, design.name)
+
+    suspend fun setChargingExpandedProgressBar(show: Boolean) =
+        save(SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR, show.toString())
+
 
     // --- SMART ACTIONS (issue #270) ---
     val smartActionsConfigFlow: Flow<SmartActionsConfig> = combine(
@@ -1041,6 +1079,26 @@ class AppPreferences internal constructor(
             left = getSystemUpdateLeftDesignSync(),
             right = getSystemUpdateRightDesignSync(),
             iconSource = getSystemUpdateIconSourceSync()
+        )
+
+    fun getChargingLeftDesignSync(): com.d4viddf.hyperbridge.models.ChargingLeftDesign =
+        memoryCache[SettingsKeys.CHARGING_LEFT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ChargingLeftDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ChargingLeftDesign.CHARGING_SPEED
+
+    fun getChargingRightDesignSync(): com.d4viddf.hyperbridge.models.ChargingRightDesign =
+        memoryCache[SettingsKeys.CHARGING_RIGHT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ChargingRightDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ChargingRightDesign.BATTERY_PERCENTAGE
+
+    fun getChargingExpandedProgressBarSync(): Boolean =
+        memoryCache[SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR].toBoolean(true)
+
+    fun getChargingDesignSync(): com.d4viddf.hyperbridge.models.ChargingDesignConfig =
+        com.d4viddf.hyperbridge.models.ChargingDesignConfig(
+            left = getChargingLeftDesignSync(),
+            right = getChargingRightDesignSync(),
+            showExpandedProgressBar = getChargingExpandedProgressBarSync()
         )
 
     fun isVpnIslandEnabledSync(): Boolean = memoryCache["vpn_island_enabled"]?.toBoolean(true) ?: true

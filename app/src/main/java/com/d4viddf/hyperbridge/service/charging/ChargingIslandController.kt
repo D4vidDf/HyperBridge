@@ -17,6 +17,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.integration.xiaomi.KEYGUARD_ISLAND_PROPERTY
+import com.d4viddf.hyperbridge.models.ChargingDesignConfig
 import com.d4viddf.hyperbridge.service.BridgeNotificationChannels
 import com.d4viddf.hyperbridge.service.translators.ChargingTranslator
 import com.d4viddf.hyperbridge.util.ShizukuManager
@@ -55,6 +56,7 @@ class ChargingIslandController(
 
     @Volatile private var enabled = false
     @Volatile private var lockscreenEnabled = false
+    @Volatile private var design = ChargingDesignConfig()
     private var receiverRegistered = false
     private var lastBatteryIntent: Intent? = null
     private var shownState: ChargingState? = null
@@ -85,6 +87,19 @@ class ChargingIslandController(
             preferences.chargingIslandLockscreenFlow.collectLatest { show ->
                 lockscreenEnabled = show
                 refresh()
+            }
+        }
+        scope.launch {
+            preferences.chargingDesignFlow.collectLatest { newDesign ->
+                val changed = design != newDesign
+                design = newDesign
+                if (changed) {
+                    mutex.withLock {
+                        shownState = null
+                        lockscreenShownState = null
+                    }
+                    refresh()
+                }
             }
         }
     }
@@ -166,7 +181,12 @@ class ChargingIslandController(
             setReportedActive(false)
             return
         }
-        val data = translator.translate(state, preferences.getGlobalConfigSync(), themeRepository.activeTheme.value)
+        val data = translator.translate(
+            state = state,
+            config = preferences.getGlobalConfigSync(),
+            theme = themeRepository.activeTheme.value,
+            design = design
+        )
         val notification = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
             .setSmallIcon(R.drawable.ic_charging_bolt)
             .setContentTitle(translator.title(state))
@@ -208,8 +228,11 @@ class ChargingIslandController(
 
     private suspend fun postLockscreenIsland(state: ChargingState) {
         val data = translator.translate(
-            state, preferences.getGlobalConfigSync(), themeRepository.activeTheme.value,
-            islandProperty = KEYGUARD_ISLAND_PROPERTY
+            state = state,
+            config = preferences.getGlobalConfigSync(),
+            theme = themeRepository.activeTheme.value,
+            islandProperty = KEYGUARD_ISLAND_PROPERTY,
+            design = design
         )
         val notification = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
             .setSmallIcon(R.drawable.ic_charging_bolt)

@@ -58,4 +58,7 @@ object SettingsKeys {
     const val SYSTEM_UPDATE_LEFT_DESIGN = "system_update_left_design"
     const val SYSTEM_UPDATE_RIGHT_DESIGN = "system_update_right_design"
     const val SYSTEM_UPDATE_ICON_SOURCE = "system_update_icon_source"
+    const val CHARGING_LEFT_DESIGN = "charging_left_design"
+    const val CHARGING_RIGHT_DESIGN = "charging_right_design"
+    const val CHARGING_EXPANDED_PROGRESS_BAR = "charging_expanded_progress_bar"
 }
