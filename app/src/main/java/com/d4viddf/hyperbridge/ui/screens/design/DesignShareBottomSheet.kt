@@ -13,7 +13,6 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -51,7 +50,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -70,13 +68,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.d4viddf.hyperbridge.R
-import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
-import com.d4viddf.hyperbridge.models.translator.PresentationMode
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
 import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
-import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioCanvas
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -94,18 +88,9 @@ fun DesignShareBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val isCustomWidget = design.presentation.mode == PresentationMode.WIDGET
-
-    val widgetRepository = remember(context) { CustomWidgetRepository(context) }
-    val widgetDoc by produceState<CustomWidgetDocument?>(initialValue = null, design.presentation.widgetId) {
-        value = if (isCustomWidget && !design.presentation.widgetId.isNullOrBlank()) {
-            widgetRepository.getWidget(design.presentation.widgetId)
-        } else null
-    }
-
-    // Default to BOTH (Big + Pill) for templates/translators, or EXPANDED for custom widgets
+    // Default to BOTH (Big + Pill)
     var previewMode by remember {
-        mutableStateOf(if (isCustomWidget) IslandPreviewMode.EXPANDED else IslandPreviewMode.BOTH)
+        mutableStateOf(IslandPreviewMode.BOTH)
     }
 
     var isExportingImage by remember { mutableStateOf(false) }
@@ -155,37 +140,35 @@ fun DesignShareBottomSheet(
                 }
             }
 
-            // Segmented mode selector for Templates/Translators (Big + Pill, Big Island, Pill)
-            if (!isCustomWidget) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    val modes = listOf(
-                        IslandPreviewMode.BOTH to stringResource(R.string.design_share_mode_combined),
-                        IslandPreviewMode.EXPANDED to stringResource(R.string.design_share_mode_expanded),
-                        IslandPreviewMode.COMPACT_PILL to stringResource(R.string.design_share_mode_pill)
-                    )
-                    modes.forEachIndexed { index, (m, label) ->
-                        val isSelected = previewMode == m
-                        val shape = when (index) {
-                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                        }
-                        ToggleButton(
-                            checked = isSelected,
-                            onCheckedChange = { previewMode = m },
-                            shapes = shape,
-                            colors = ToggleButtonDefaults.colors(),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            )
-                        }
+            // Segmented mode selector (Big + Pill, Big Island, Pill)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                val modes = listOf(
+                    IslandPreviewMode.BOTH to stringResource(R.string.design_share_mode_combined),
+                    IslandPreviewMode.EXPANDED to stringResource(R.string.design_share_mode_expanded),
+                    IslandPreviewMode.COMPACT_PILL to stringResource(R.string.design_share_mode_pill)
+                )
+                modes.forEachIndexed { index, (m, label) ->
+                    val isSelected = previewMode == m
+                    val shape = when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    }
+                    ToggleButton(
+                        checked = isSelected,
+                        onCheckedChange = { previewMode = m },
+                        shapes = shape,
+                        colors = ToggleButtonDefaults.colors(),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        )
                     }
                 }
             }
@@ -206,71 +189,26 @@ fun DesignShareBottomSheet(
                             }
                             drawLayer(graphicsLayer)
                         }
-                        .padding(if (isCustomWidget) 12.dp else 4.dp),
+                        .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isCustomWidget) {
-                        if (widgetDoc != null) {
-                            BoxWithConstraints(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .drawWithContent {
-                                        expandedGraphicsLayer.record {
-                                            this@drawWithContent.drawContent()
-                                        }
-                                        drawLayer(expandedGraphicsLayer)
-                                    }
-                            ) {
-                                val availableWidthDp = maxWidth.value
-                                StudioCanvas(
-                                    root = widgetDoc!!.root,
-                                    canvasWidthDp = availableWidthDp,
-                                    canvasHeightDp = widgetDoc!!.canvas.heightDp,
-                                    selectedId = null,
-                                    onSelect = {},
-                                    onMove = { _, _, _ -> },
-                                    onResize = { _, _, _ -> },
-                                    zoom = 1f,
-                                    isGridVisible = false,
-                                    isWireframeMode = false,
-                                    globals = widgetDoc!!.globals
-                                )
+                    HyperOsIslandPreview(
+                        translator = design,
+                        showChrome = false,
+                        mode = previewMode,
+                        statusBarModifier = Modifier.drawWithContent {
+                            pillGraphicsLayer.record {
+                                this@drawWithContent.drawContent()
                             }
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.5.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                            drawLayer(pillGraphicsLayer)
+                        },
+                        expandedModifier = Modifier.drawWithContent {
+                            expandedGraphicsLayer.record {
+                                this@drawWithContent.drawContent()
                             }
+                            drawLayer(expandedGraphicsLayer)
                         }
-                    } else {
-                        // Templates / Translators: shows Big + Pill or selected mode
-                        HyperOsIslandPreview(
-                            translator = design,
-                            showChrome = false,
-                            mode = previewMode,
-                            statusBarModifier = Modifier.drawWithContent {
-                                pillGraphicsLayer.record {
-                                    this@drawWithContent.drawContent()
-                                }
-                                drawLayer(pillGraphicsLayer)
-                            },
-                            expandedModifier = Modifier.drawWithContent {
-                                expandedGraphicsLayer.record {
-                                    this@drawWithContent.drawContent()
-                                }
-                                drawLayer(expandedGraphicsLayer)
-                            }
-                        )
-                    }
+                    )
                 }
             }
 
@@ -298,24 +236,16 @@ fun DesignShareBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val shareButtonLabel = if (!isCustomWidget) {
-                    when (previewMode) {
-                        IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
-                        IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
-                        IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
-                    }
-                } else {
-                    stringResource(R.string.design_share_btn_share_image)
+                val shareButtonLabel = when (previewMode) {
+                    IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
+                    IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
+                    IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
                 }
 
-                val saveButtonLabel = if (!isCustomWidget) {
-                    when (previewMode) {
-                        IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_save_both)
-                        IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_save_expanded)
-                        IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_save_pill)
-                    }
-                } else {
-                    stringResource(R.string.design_share_btn_save_image)
+                val saveButtonLabel = when (previewMode) {
+                    IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_save_both)
+                    IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_save_expanded)
+                    IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_save_pill)
                 }
 
                 Button(
@@ -325,7 +255,7 @@ fun DesignShareBottomSheet(
                         scope.launch {
                             try {
                                 val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
-                                if (!isCustomWidget && previewMode == IslandPreviewMode.BOTH) {
+                                if (previewMode == IslandPreviewMode.BOTH) {
                                     val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
                                     val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
                                     val bannerUri = saveBitmapToCache(context, bannerBitmap, "${fileName}_banner")
@@ -405,7 +335,7 @@ fun DesignShareBottomSheet(
                             scope.launch {
                                 try {
                                     val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
-                                    if (!isCustomWidget && previewMode == IslandPreviewMode.BOTH) {
+                                    if (previewMode == IslandPreviewMode.BOTH) {
                                         val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
                                         val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
                                         val bannerSuccess = saveBitmapToPictures(context, bannerBitmap, "${fileName}_banner")

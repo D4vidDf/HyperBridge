@@ -334,6 +334,14 @@ fun HyperOsIslandPreview(
 
             val minBoxHeight = when {
                 previewMode == IslandPreviewMode.COMPACT_PILL -> 54.dp
+                isCustomWidget && widgetDoc != null -> {
+                    val widgetHeight = widgetDoc!!.canvas.heightDp.dp
+                    if (previewMode == IslandPreviewMode.EXPANDED) {
+                        widgetHeight + 20.dp
+                    } else {
+                        widgetHeight + 62.dp
+                    }
+                }
                 showChrome -> 175.dp
                 else -> 150.dp
             }
@@ -354,50 +362,56 @@ fun HyperOsIslandPreview(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Status Bar Layer (Time on left, Compact Pill in center, Icons on right)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .then(statusBarModifier)
-                            .height(34.dp)
-                            .padding(horizontal = 4.dp),
-                        contentAlignment = Alignment.Center
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showChrome || previewMode == IslandPreviewMode.COMPACT_PILL || previewMode == IslandPreviewMode.BOTH,
+                        enter = fadeIn() + androidx.compose.animation.expandVertically(expandFrom = Alignment.Top),
+                        exit = fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = Alignment.Top)
                     ) {
-                        // Left: Status Bar Clock
-                        Text(
-                            text = "12:00",
-                            color = Color.White.copy(alpha = 0.85f),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.align(Alignment.CenterStart)
-                        )
-
-                        // Center: Compact Pill (When in COMPACT_PILL or BOTH mode)
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = previewMode == IslandPreviewMode.COMPACT_PILL || previewMode == IslandPreviewMode.BOTH,
-                            enter = fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.85f),
-                            exit = fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.85f),
-                            modifier = Modifier.align(Alignment.Center)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(statusBarModifier)
+                                .height(34.dp)
+                                .padding(horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            HyperOsCompactPill(
-                                leftDesign = presentation.pill.leftDesign,
-                                rightDesign = presentation.pill.rightDesign,
-                                title = pillTitle,
-                                rightText = pillRightText,
-                                progressPercent = progressPercent,
-                                hasProgress = hasProgress,
-                                highlightColor = parsedHighlightColor,
-                                iconShape = iconShape
+                            // Left: Status Bar Clock
+                            Text(
+                                text = "12:00",
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.CenterStart)
                             )
-                        }
 
-                        // Right: Signal & Battery Icons
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.align(Alignment.CenterEnd)
-                        ) {
-                            Icon(Icons.Default.SignalCellular4Bar, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
-                            Icon(Icons.Default.BatteryFull, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
+                            // Center: Compact Pill (When in COMPACT_PILL or BOTH mode)
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = previewMode == IslandPreviewMode.COMPACT_PILL || previewMode == IslandPreviewMode.BOTH,
+                                enter = fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.85f),
+                                exit = fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.85f),
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+                                HyperOsCompactPill(
+                                    leftDesign = presentation.pill.leftDesign,
+                                    rightDesign = presentation.pill.rightDesign,
+                                    title = pillTitle,
+                                    rightText = pillRightText,
+                                    progressPercent = progressPercent,
+                                    hasProgress = hasProgress,
+                                    highlightColor = parsedHighlightColor,
+                                    iconShape = iconShape
+                                )
+                            }
+
+                            // Right: Signal & Battery Icons
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.align(Alignment.CenterEnd)
+                            ) {
+                                Icon(Icons.Default.SignalCellular4Bar, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
+                                Icon(Icons.Default.BatteryFull, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
+                            }
                         }
                     }
 
