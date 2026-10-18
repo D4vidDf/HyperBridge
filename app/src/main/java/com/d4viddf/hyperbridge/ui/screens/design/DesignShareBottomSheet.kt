@@ -71,13 +71,22 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
 import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
+import androidx.compose.ui.tooling.preview.Preview
+import com.d4viddf.hyperbridge.models.translator.CompactPillConfig
+import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
+import com.d4viddf.hyperbridge.models.translator.PillRightDesign
+import com.d4viddf.hyperbridge.models.translator.PresentationConfig
+import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
+import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
+import com.d4viddf.hyperbridge.models.translator.TextSlotConfig
+import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DesignShareBottomSheet(
     design: CustomTranslator,
@@ -100,320 +109,434 @@ fun DesignShareBottomSheet(
     val pillGraphicsLayer = rememberGraphicsLayer()
     val expandedGraphicsLayer = rememberGraphicsLayer()
 
+    val shareButtonLabel = when (previewMode) {
+        IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
+        IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
+        IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        DesignShareSheetContent(
+            design = design,
+            title = title,
+            previewMode = previewMode,
+            onPreviewModeChange = { previewMode = it },
+            isExportingImage = isExportingImage,
+            isSavingImage = isSavingImage,
+            onShareImage = {
+                if (isExportingImage) return@DesignShareSheetContent
+                isExportingImage = true
+                scope.launch {
+                    try {
+                        val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
+                        if (previewMode == IslandPreviewMode.BOTH) {
+                            val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                            val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                            val bannerUri = saveBitmapToCache(context, bannerBitmap, "${fileName}_banner")
+                            val pillUri = saveBitmapToCache(context, pillBitmap, "${fileName}_pill")
+
+                            val uris = ArrayList(listOfNotNull(bannerUri, pillUri))
+                            if (uris.isNotEmpty()) {
+                                val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                                    type = "image/png"
+                                    putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                                    putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
+                                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(chooser)
+                            } else {
+                                Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            val layer = when {
+                                previewMode == IslandPreviewMode.COMPACT_PILL -> pillGraphicsLayer
+                                previewMode == IslandPreviewMode.EXPANDED -> expandedGraphicsLayer
+                                else -> graphicsLayer
+                            }
+                            val imageBitmap = layer.toImageBitmap()
+                            val bitmap = imageBitmap.asAndroidBitmap()
+                            val suffix = if (previewMode == IslandPreviewMode.COMPACT_PILL) "_pill" else "_banner"
+                            val uri = saveBitmapToCache(context, bitmap, "$fileName$suffix")
+                            if (uri != null) {
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "image/png"
+                                    putExtra(Intent.EXTRA_STREAM, uri)
+                                    putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
+                                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(chooser)
+                            } else {
+                                Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                    } finally {
+                        isExportingImage = false
+                    }
+                }
+            },
+            onSaveImage = {
+                if (isSavingImage) return@DesignShareSheetContent
+                isSavingImage = true
+                scope.launch {
+                    try {
+                        val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
+                        if (previewMode == IslandPreviewMode.BOTH) {
+                            val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                            val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                            val bannerSuccess = saveBitmapToPictures(context, bannerBitmap, "${fileName}_banner")
+                            val pillSuccess = saveBitmapToPictures(context, pillBitmap, "${fileName}_pill")
+
+                            if (bannerSuccess && pillSuccess) {
+                                Toast.makeText(context, R.string.design_share_both_saved, Toast.LENGTH_SHORT).show()
+                            } else if (bannerSuccess || pillSuccess) {
+                                Toast.makeText(context, R.string.design_share_image_saved, Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            val layer = when {
+                                previewMode == IslandPreviewMode.COMPACT_PILL -> pillGraphicsLayer
+                                previewMode == IslandPreviewMode.EXPANDED -> expandedGraphicsLayer
+                                else -> graphicsLayer
+                            }
+                            val imageBitmap = layer.toImageBitmap()
+                            val bitmap = imageBitmap.asAndroidBitmap()
+                            val suffix = if (previewMode == IslandPreviewMode.COMPACT_PILL) "_pill" else "_banner"
+                            val success = saveBitmapToPictures(context, bitmap, "$fileName$suffix")
+                            if (success) {
+                                val msgRes = if (previewMode == IslandPreviewMode.COMPACT_PILL) {
+                                    R.string.design_share_pill_saved
+                                } else {
+                                    R.string.design_share_image_saved
+                                }
+                                Toast.makeText(context, msgRes, Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
+                    } finally {
+                        isSavingImage = false
+                    }
+                }
+            },
+            onSharePackage = onSharePackage,
+            onDismiss = onDismiss,
+            graphicsLayerModifier = Modifier.drawWithContent {
+                graphicsLayer.record {
+                    this@drawWithContent.drawContent()
+                }
+                drawLayer(graphicsLayer)
+            },
+            statusBarModifier = Modifier.drawWithContent {
+                pillGraphicsLayer.record {
+                    this@drawWithContent.drawContent()
+                }
+                drawLayer(pillGraphicsLayer)
+            },
+            expandedModifier = Modifier.drawWithContent {
+                expandedGraphicsLayer.record {
+                    this@drawWithContent.drawContent()
+                }
+                drawLayer(expandedGraphicsLayer)
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun DesignShareSheetContent(
+    design: CustomTranslator,
+    title: String = stringResource(R.string.design_share_sheet_title),
+    previewMode: IslandPreviewMode = IslandPreviewMode.BOTH,
+    onPreviewModeChange: (IslandPreviewMode) -> Unit = {},
+    isExportingImage: Boolean = false,
+    isSavingImage: Boolean = false,
+    onShareImage: () -> Unit = {},
+    onSaveImage: () -> Unit = {},
+    onSharePackage: () -> Unit = {},
+    onDismiss: () -> Unit = {},
+    graphicsLayerModifier: Modifier = Modifier,
+    statusBarModifier: Modifier = Modifier,
+    expandedModifier: Modifier = Modifier
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Header: Title, Description, and Close Button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header: Title, Description, and Close Button
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = design.meta.name.ifBlank { stringResource(R.string.design_section_designs) },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
+        // Segmented mode selector (Big + Pill, Big Island, Pill)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            val modes = listOf(
+                IslandPreviewMode.BOTH to stringResource(R.string.design_share_mode_combined),
+                IslandPreviewMode.EXPANDED to stringResource(R.string.design_share_mode_expanded),
+                IslandPreviewMode.COMPACT_PILL to stringResource(R.string.design_share_mode_pill)
+            )
+            modes.forEachIndexed { index, (m, label) ->
+                val isSelected = previewMode == m
+                val shape = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                }
+                ToggleButton(
+                    checked = isSelected,
+                    onCheckedChange = { onPreviewModeChange(m) },
+                    shapes = shape,
+                    colors = ToggleButtonDefaults.colors(),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
+                }
+            }
+        }
+
+        // Preview Capture Container (captured to Bitmap via graphicsLayer)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = Color(0xFF141414),
+            shadowElevation = 4.dp
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(graphicsLayerModifier)
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                HyperOsIslandPreview(
+                    translator = design,
+                    showChrome = false,
+                    mode = previewMode,
+                    statusBarModifier = statusBarModifier,
+                    expandedModifier = expandedModifier
+                )
+            }
+        }
+
+        // Showcase Hint
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.AutoAwesome,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = stringResource(R.string.design_share_showcase_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Actions: Share Picture, Save Picture, Share Package
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val shareButtonLabel = when (previewMode) {
+                IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
+                IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
+                IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
+            }
+
+            val saveButtonLabel = when (previewMode) {
+                IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_save_both)
+                IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_save_expanded)
+                IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_save_pill)
+            }
+
+            Button(
+                onClick = onShareImage,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                enabled = !isExportingImage && !isSavingImage
+            ) {
+                if (isExportingImage) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(Modifier.width(8.dp))
+                } else {
+                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(shareButtonLabel)
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                FilledTonalButton(
+                    onClick = onSaveImage,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isExportingImage && !isSavingImage
+                ) {
+                    if (isSavingImage) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.width(6.dp))
+                    } else {
+                        Icon(Icons.Default.FileDownload, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                    }
                     Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = design.meta.name.ifBlank { stringResource(R.string.design_section_designs) },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        saveButtonLabel,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.back))
-                }
-            }
 
-            // Segmented mode selector (Big + Pill, Big Island, Pill)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                val modes = listOf(
-                    IslandPreviewMode.BOTH to stringResource(R.string.design_share_mode_combined),
-                    IslandPreviewMode.EXPANDED to stringResource(R.string.design_share_mode_expanded),
-                    IslandPreviewMode.COMPACT_PILL to stringResource(R.string.design_share_mode_pill)
-                )
-                modes.forEachIndexed { index, (m, label) ->
-                    val isSelected = previewMode == m
-                    val shape = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    }
-                    ToggleButton(
-                        checked = isSelected,
-                        onCheckedChange = { previewMode = m },
-                        shapes = shape,
-                        colors = ToggleButtonDefaults.colors(),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                        )
-                    }
-                }
-            }
-
-            // Preview Capture Container (captured to Bitmap via graphicsLayer)
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                color = Color(0xFF141414),
-                shadowElevation = 4.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .drawWithContent {
-                            graphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
-                            drawLayer(graphicsLayer)
-                        }
-                        .padding(4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    HyperOsIslandPreview(
-                        translator = design,
-                        showChrome = false,
-                        mode = previewMode,
-                        statusBarModifier = Modifier.drawWithContent {
-                            pillGraphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
-                            drawLayer(pillGraphicsLayer)
-                        },
-                        expandedModifier = Modifier.drawWithContent {
-                            expandedGraphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
-                            drawLayer(expandedGraphicsLayer)
-                        }
-                    )
-                }
-            }
-
-            // Showcase Hint
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.AutoAwesome,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = stringResource(R.string.design_share_showcase_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Actions: Share Picture, Save Picture, Share Package
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val shareButtonLabel = when (previewMode) {
-                    IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_share_both)
-                    IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_share_expanded)
-                    IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_share_pill)
-                }
-
-                val saveButtonLabel = when (previewMode) {
-                    IslandPreviewMode.BOTH -> stringResource(R.string.design_share_btn_save_both)
-                    IslandPreviewMode.EXPANDED -> stringResource(R.string.design_share_btn_save_expanded)
-                    IslandPreviewMode.COMPACT_PILL -> stringResource(R.string.design_share_btn_save_pill)
-                }
-
-                Button(
-                    onClick = {
-                        if (isExportingImage) return@Button
-                        isExportingImage = true
-                        scope.launch {
-                            try {
-                                val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
-                                if (previewMode == IslandPreviewMode.BOTH) {
-                                    val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                                    val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                                    val bannerUri = saveBitmapToCache(context, bannerBitmap, "${fileName}_banner")
-                                    val pillUri = saveBitmapToCache(context, pillBitmap, "${fileName}_pill")
-
-                                    val uris = ArrayList(listOfNotNull(bannerUri, pillUri))
-                                    if (uris.isNotEmpty()) {
-                                        val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-                                            type = "image/png"
-                                            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-                                            putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                        }
-                                        val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
-                                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        context.startActivity(chooser)
-                                    } else {
-                                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    val layer = when {
-                                        previewMode == IslandPreviewMode.COMPACT_PILL -> pillGraphicsLayer
-                                        previewMode == IslandPreviewMode.EXPANDED -> expandedGraphicsLayer
-                                        else -> graphicsLayer
-                                    }
-                                    val imageBitmap = layer.toImageBitmap()
-                                    val bitmap = imageBitmap.asAndroidBitmap()
-                                    val suffix = if (previewMode == IslandPreviewMode.COMPACT_PILL) "_pill" else "_banner"
-                                    val uri = saveBitmapToCache(context, bitmap, "$fileName$suffix")
-                                    if (uri != null) {
-                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "image/png"
-                                            putExtra(Intent.EXTRA_STREAM, uri)
-                                            putExtra(Intent.EXTRA_SUBJECT, design.meta.name)
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                        }
-                                        val chooser = Intent.createChooser(shareIntent, shareButtonLabel)
-                                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        context.startActivity(chooser)
-                                    } else {
-                                        Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                            } finally {
-                                isExportingImage = false
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
+                OutlinedButton(
+                    onClick = onSharePackage,
+                    modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(16.dp),
                     enabled = !isExportingImage && !isSavingImage
                 ) {
-                    if (isExportingImage) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Spacer(Modifier.width(8.dp))
-                    } else {
-                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                    }
-                    Text(shareButtonLabel)
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilledTonalButton(
-                        onClick = {
-                            if (isSavingImage) return@FilledTonalButton
-                            isSavingImage = true
-                            scope.launch {
-                                try {
-                                    val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
-                                    if (previewMode == IslandPreviewMode.BOTH) {
-                                        val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                                        val pillBitmap = pillGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                                        val bannerSuccess = saveBitmapToPictures(context, bannerBitmap, "${fileName}_banner")
-                                        val pillSuccess = saveBitmapToPictures(context, pillBitmap, "${fileName}_pill")
-
-                                        if (bannerSuccess && pillSuccess) {
-                                            Toast.makeText(context, R.string.design_share_both_saved, Toast.LENGTH_SHORT).show()
-                                        } else if (bannerSuccess || pillSuccess) {
-                                            Toast.makeText(context, R.string.design_share_image_saved, Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                                        }
-                                    } else {
-                                        val layer = when {
-                                            previewMode == IslandPreviewMode.COMPACT_PILL -> pillGraphicsLayer
-                                            previewMode == IslandPreviewMode.EXPANDED -> expandedGraphicsLayer
-                                            else -> graphicsLayer
-                                        }
-                                        val imageBitmap = layer.toImageBitmap()
-                                        val bitmap = imageBitmap.asAndroidBitmap()
-                                        val suffix = if (previewMode == IslandPreviewMode.COMPACT_PILL) "_pill" else "_banner"
-                                        val success = saveBitmapToPictures(context, bitmap, "$fileName$suffix")
-                                        if (success) {
-                                            val msgRes = if (previewMode == IslandPreviewMode.COMPACT_PILL) {
-                                                R.string.design_share_pill_saved
-                                            } else {
-                                                R.string.design_share_image_saved
-                                            }
-                                            Toast.makeText(context, msgRes, Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, R.string.design_share_image_failed, Toast.LENGTH_SHORT).show()
-                                } finally {
-                                    isSavingImage = false
-                                }
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(16.dp),
-                        enabled = !isExportingImage && !isSavingImage
-                    ) {
-                        if (isSavingImage) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(Modifier.width(6.dp))
-                        } else {
-                            Icon(Icons.Default.FileDownload, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(6.dp))
-                        }
-                        Text(
-                            saveButtonLabel,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    OutlinedButton(
-                        onClick = onSharePackage,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(16.dp),
-                        enabled = !isExportingImage && !isSavingImage
-                    ) {
-                        Icon(Icons.Default.UploadFile, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            stringResource(R.string.design_share_btn_share_package),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                    Icon(Icons.Default.UploadFile, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        stringResource(R.string.design_share_btn_share_package),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
+        }
+    }
+}
+
+// ==========================================
+// PREVIEWS
+// ==========================================
+
+private fun sampleShareTranslator(): CustomTranslator = CustomTranslator(
+    id = "sample-share-translator",
+    meta = TranslatorMetadata(
+        name = "Food Delivery Tracker",
+        description = "Live food delivery updates with arrival timer",
+        author = "HyperBridge",
+        iconName = "delivery"
+    ),
+    presentation = PresentationConfig(
+        textSlot = TextSlotConfig(
+            titleTemplate = "Courier arriving soon",
+            subtitleTemplate = "Toyota Camry • 2 km away",
+            highlightTextTemplate = "Live Order"
+        ),
+        progressSlot = ProgressSlotConfig(
+            type = ProgressSlotType.PROGRESS_BAR,
+            showPercentage = true
+        ),
+        pill = CompactPillConfig(
+            leftDesign = PillLeftDesign.ICON_AND_TEXT,
+            rightDesign = PillRightDesign.TIMER
+        )
+    )
+)
+
+@Preview(name = "1. Design Share BottomSheet - Combined (Big + Pill)", showBackground = true, backgroundColor = 0xFF1C1B1F)
+@Composable
+private fun DesignShareBottomSheetCombinedPreview() {
+    MaterialTheme {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        ) {
+            DesignShareSheetContent(
+                design = sampleShareTranslator(),
+                previewMode = IslandPreviewMode.BOTH
+            )
+        }
+    }
+}
+
+@Preview(name = "2. Design Share BottomSheet - Big Island Only", showBackground = true, backgroundColor = 0xFF1C1B1F)
+@Composable
+private fun DesignShareBottomSheetExpandedPreview() {
+    MaterialTheme {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        ) {
+            DesignShareSheetContent(
+                design = sampleShareTranslator(),
+                previewMode = IslandPreviewMode.EXPANDED
+            )
+        }
+    }
+}
+
+@Preview(name = "3. Design Share BottomSheet - Compact Pill Only", showBackground = true, backgroundColor = 0xFF1C1B1F)
+@Composable
+private fun DesignShareBottomSheetPillPreview() {
+    MaterialTheme {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        ) {
+            DesignShareSheetContent(
+                design = sampleShareTranslator(),
+                previewMode = IslandPreviewMode.COMPACT_PILL
+            )
         }
     }
 }
