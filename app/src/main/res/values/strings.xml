@@ -807,6 +807,17 @@
     <string name="charging_island_hours_minutes">%1$d h %2$d min</string>
     <string name="charging_island_lockscreen">Show on lock screen</string>
     <string name="charging_island_lockscreen_desc">Keep the charging pill at the cutout while the phone is locked. It may not show with Always-on Display.</string>
+    <string name="charging_left_option_speed">Icon and charging speed</string>
+    <string name="charging_left_option_remaining_time">Icon and remaining time</string>
+    <string name="charging_left_option_percentage">Icon and battery percentage</string>
+    <string name="charging_left_option_icon_only">Icon only</string>
+    <string name="charging_right_option_percentage">Battery percentage</string>
+    <string name="charging_right_option_progress_circle">Progress circle</string>
+    <string name="charging_right_option_speed">Charging speed</string>
+    <string name="charging_right_option_remaining_time">Remaining time</string>
+    <string name="charging_right_option_none">Nothing</string>
+    <string name="charging_island_expanded_progress">Expanded progress bar</string>
+    <string name="charging_island_expanded_progress_desc">Show a battery progress bar when the charging island is expanded.</string>
 
     <string name="floating_setup_title" translatable="false">Floating notification setup</string>
     <string name="floating_setup_settings_subtitle" translatable="false">Avoid duplicate native banners for selected apps</string>

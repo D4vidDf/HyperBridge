@@ -5,6 +5,9 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.integration.xiaomi.HyperIslandProtocolOptions
 import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
+import com.d4viddf.hyperbridge.models.ChargingDesignConfig
+import com.d4viddf.hyperbridge.models.ChargingLeftDesign
+import com.d4viddf.hyperbridge.models.ChargingRightDesign
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
@@ -36,11 +39,26 @@ class ChargingTranslator(
         state.minutesToFull?.let { context.getString(R.string.charging_island_full_in, formatMinutes(it)) }
     ).joinToString(" · ")
 
+    internal fun leftText(state: ChargingState, left: ChargingLeftDesign): String = when (left) {
+        ChargingLeftDesign.CHARGING_SPEED -> state.watts?.let { context.getString(R.string.charging_island_watts, it) }.orEmpty()
+        ChargingLeftDesign.REMAINING_TIME -> state.minutesToFull?.let { formatMinutes(it) }.orEmpty()
+        ChargingLeftDesign.BATTERY_PERCENTAGE -> "${state.percent}%"
+        ChargingLeftDesign.ICON_ONLY -> ""
+    }
+
+    internal fun rightText(state: ChargingState, right: ChargingRightDesign): String? = when (right) {
+        ChargingRightDesign.BATTERY_PERCENTAGE -> "${state.percent}%"
+        ChargingRightDesign.CHARGING_SPEED -> state.watts?.let { context.getString(R.string.charging_island_watts, it) }
+        ChargingRightDesign.REMAINING_TIME -> state.minutesToFull?.let { formatMinutes(it) }
+        ChargingRightDesign.PROGRESS_CIRCLE, ChargingRightDesign.NONE -> null
+    }
+
     fun translate(
         state: ChargingState,
         config: IslandConfig,
         theme: HyperTheme?,
-        islandProperty: Int = VpnTranslator.ACTION_ORIENTED_ISLAND_PROPERTY
+        islandProperty: Int = VpnTranslator.ACTION_ORIENTED_ISLAND_PROPERTY,
+        design: ChargingDesignConfig = ChargingDesignConfig()
     ): HyperIslandData {
         val title = title(state)
         val color = theme?.defaultProgress?.let { if (state.isFull) it.finishedColor else it.activeColor }
@@ -69,24 +87,32 @@ class ChargingTranslator(
             pictureKey = PIC_BOLT,
             appPkg = PIC_BADGE_BLANK
         )
-        builder.setProgressBar(state.percent, color)
+        if (design.showExpandedProgressBar) {
+            builder.setProgressBar(state.percent, color)
+        }
 
-        // Collapsed: bolt + speed on the left (when the kernel reports a believable current),
-        // percentage on the right; the small pill is a ring that fills with the battery.
-        builder.setBigIslandInfo(
-            left = ImageTextInfoLeft(
-                type = 1,
-                picInfo = PicInfo(type = 1, pic = PIC_BOLT),
-                textInfo = TextInfo(
-                    title = state.watts?.let { context.getString(R.string.charging_island_watts, it) }.orEmpty(),
-                    content = ""
+        val compactLeftText = leftText(state, design.left)
+        if (design.right == ChargingRightDesign.PROGRESS_CIRCLE) {
+            builder.setBigIslandProgressCircle(PIC_BOLT, compactLeftText, state.percent, color, true)
+        } else {
+            val rightInfo = rightText(state, design.right)?.let { text ->
+                ImageTextInfoRight(
+                    type = 2,
+                    textInfo = TextInfo(title = text, content = "")
                 )
-            ),
-            right = ImageTextInfoRight(
-                type = 2,
-                textInfo = TextInfo(title = "${state.percent}%", content = "")
+            }
+            builder.setBigIslandInfo(
+                left = ImageTextInfoLeft(
+                    type = 1,
+                    picInfo = PicInfo(type = 1, pic = PIC_BOLT),
+                    textInfo = TextInfo(
+                        title = compactLeftText,
+                        content = ""
+                    )
+                ),
+                right = rightInfo
             )
-        )
+        }
         builder.setSmallIslandCircularProgress(PIC_BOLT, state.percent, color, isCCW = true)
 
         return HyperIslandData(

@@ -165,4 +165,22 @@ class AppPreferencesCacheTest {
         preferences.toggleApp("com.unbridged.phone.service", true)
         assertTrue(preferences.isAppAllowedSync("com.unbridged.phone.service"))
     }
+
+    @Test
+    fun chargingDesignDefaultsAndUpdatesCorrectly() = kotlinx.coroutines.runBlocking {
+        val defaultDesign = preferences.getChargingDesignSync()
+        assertEquals(com.d4viddf.hyperbridge.models.ChargingLeftDesign.CHARGING_SPEED, defaultDesign.left)
+        assertEquals(com.d4viddf.hyperbridge.models.ChargingRightDesign.BATTERY_PERCENTAGE, defaultDesign.right)
+        assertTrue(defaultDesign.showExpandedProgressBar)
+
+        preferences.setChargingLeftDesign(com.d4viddf.hyperbridge.models.ChargingLeftDesign.REMAINING_TIME)
+        preferences.setChargingRightDesign(com.d4viddf.hyperbridge.models.ChargingRightDesign.PROGRESS_CIRCLE)
+        preferences.setChargingExpandedProgressBar(false)
+
+        val updatedDesign = preferences.getChargingDesignSync()
+        assertEquals(com.d4viddf.hyperbridge.models.ChargingLeftDesign.REMAINING_TIME, updatedDesign.left)
+        assertEquals(com.d4viddf.hyperbridge.models.ChargingRightDesign.PROGRESS_CIRCLE, updatedDesign.right)
+        assertFalse(updatedDesign.showExpandedProgressBar)
+    }
 }
+
