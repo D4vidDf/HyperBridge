@@ -996,6 +996,8 @@
     <string name="translators_create_button">Create Translator</string>
     <string name="translators_action_edit">Edit</string>
     <string name="translators_action_delete">Delete</string>
+    <string name="translators_delete_confirm_title">Delete item?</string>
+    <string name="translators_delete_confirm_message">Are you sure you want to delete \"%1$s\"? This action cannot be undone.</string>
     <string name="translators_action_duplicate">Duplicate</string>
     <string name="translators_priority_label">Priority %1$d</string>
     <string name="translators_scope_global">Global Rule</string>

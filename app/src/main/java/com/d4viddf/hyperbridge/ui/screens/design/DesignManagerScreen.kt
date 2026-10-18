@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.DashboardCustomize
@@ -40,11 +41,16 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Preview
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -52,6 +58,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -60,6 +67,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -79,6 +87,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
@@ -93,13 +102,11 @@ import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioCanvas
 import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioCanvasBackground
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
-import com.d4viddf.hyperbridge.ui.screens.translators.TranslatorCardItem
 import com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel
 import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
 import com.d4viddf.hyperbridge.util.DocumentationUrls
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DesignManagerScreen(
     onBack: () -> Unit,
@@ -125,7 +132,6 @@ fun DesignManagerScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DesignManagerContent(
     allTranslators: List<CustomTranslator>,
@@ -406,39 +412,22 @@ fun DesignManagerContent(
                     itemsIndexed(filteredDesigns, key = { _, item -> item.id }) { index, design ->
                         val shape = getExpressiveShape(filteredDesigns.size, index, ShapeStyle.Large)
 
-                        if (showPreviewView) {
-                            DesignPreviewCardItem(
-                                design = design,
-                                shape = shape,
-                                onToggle = { isEnabled -> viewModel.toggleTranslator(design.id, isEnabled) },
-                                onClick = { openDesign(design) },
-                                onDuplicate = { viewModel.duplicateTranslator(design) },
-                                onDelete = { viewModel.deleteTranslator(design.id) },
-                                onShare = { sharingDesign = design },
-                                onExport = {
-                                    pendingExportTranslator = design
-                                    val name = design.meta.name.ifBlank { design.id }.removeSuffix(".htrans").removeSuffix(".hwidget")
-                                    val filename = "$name.hwidget"
-                                    exportLauncher.launch(filename)
-                                }
-                            )
-                        } else {
-                            TranslatorCardItem(
-                                translator = design,
-                                shape = shape,
-                                onToggle = { isEnabled -> viewModel.toggleTranslator(design.id, isEnabled) },
-                                onClick = { openDesign(design) },
-                                onDuplicate = { viewModel.duplicateTranslator(design) },
-                                onDelete = { viewModel.deleteTranslator(design.id) },
-                                onShare = { sharingDesign = design },
-                                onExport = {
-                                    pendingExportTranslator = design
-                                    val name = design.meta.name.ifBlank { design.id }.removeSuffix(".htrans").removeSuffix(".hwidget")
-                                    val filename = "$name.hwidget"
-                                    exportLauncher.launch(filename)
-                                }
-                            )
-                        }
+                        DesignPreviewCardItem(
+                            design = design,
+                            shape = shape,
+                            showPreview = showPreviewView,
+                            onToggle = { isEnabled -> viewModel.toggleTranslator(design.id, isEnabled) },
+                            onClick = { openDesign(design) },
+                            onDuplicate = { viewModel.duplicateTranslator(design) },
+                            onDelete = { viewModel.deleteTranslator(design.id) },
+                            onShare = { sharingDesign = design },
+                            onExport = {
+                                pendingExportTranslator = design
+                                val name = design.meta.name.ifBlank { design.id }.removeSuffix(".htrans").removeSuffix(".hwidget")
+                                val filename = "$name.hwidget"
+                                exportLauncher.launch(filename)
+                            }
+                        )
                     }
                 }
             }
@@ -611,7 +600,7 @@ fun DesignManagerHelpSheet(
 @Composable
 fun DesignPreviewCardItem(
     design: CustomTranslator,
-    shape: androidx.compose.ui.graphics.Shape,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp),
     isChecked: Boolean = design.isEnabled,
     showPreview: Boolean = true,
     onToggle: (Boolean) -> Unit,
@@ -631,6 +620,14 @@ fun DesignPreviewCardItem(
         } else null
     }
 
+    val subtitleText = if (isCustomWidget) {
+        widgetDoc?.canvas?.let { "${it.name} · ${it.heightDp}dp" }
+            ?: stringResource(R.string.custom_design_title)
+    } else {
+        template?.let { stringResource(it.nameRes) }
+            ?: stringResource(R.string.translator_pres_mode_widget)
+    }
+
     Surface(
         onClick = onClick,
         shape = shape,
@@ -645,16 +642,16 @@ fun DesignPreviewCardItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header Row: Title, template name / custom showcase, switch
+            // Header: Icon + Title / Widget Subtitle / Full-row Scope + Switch
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    modifier = Modifier.size(44.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.size(46.dp),
+                    shape = RoundedCornerShape(14.dp),
                     color = if (isChecked) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {
@@ -672,7 +669,10 @@ fun DesignPreviewCardItem(
 
                 Spacer(Modifier.width(12.dp))
 
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -713,20 +713,18 @@ fun DesignPreviewCardItem(
                             }
                         }
                     }
-                    Spacer(Modifier.height(2.dp))
+
                     Text(
-                        text = if (isCustomWidget) {
-                            widgetDoc?.canvas?.let { "${it.name} · ${it.heightDp}dp" }
-                                ?: stringResource(R.string.custom_design_title)
-                        } else {
-                            template?.let { stringResource(it.nameRes) }
-                                ?: stringResource(R.string.translator_pres_mode_widget)
-                        },
+                        text = subtitleText,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        DesignScopeChip(design = design)
+                    }
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -737,108 +735,46 @@ fun DesignPreviewCardItem(
                 )
             }
 
-            // Live Island Preview / Studio Canvas Preview (conditional)
+            // Center: Live Island Preview / Studio Canvas Preview
             if (showPreview) {
-                if (isCustomWidget) {
-                    if (widgetDoc != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(20.dp))
-                        ) {
-                            StudioCanvas(
-                                root = widgetDoc!!.root,
-                                canvasHeightDp = widgetDoc!!.canvas.heightDp,
-                                selectedId = null,
-                                onSelect = {},
-                                onMove = { _, _, _ -> },
-                                onResize = { _, _, _ -> },
-                                zoom = 1f,
-                                isGridVisible = false,
-                                isWireframeMode = false
-                            )
-                        }
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(StudioCanvasBackground),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                } else {
-                    HyperOsIslandPreview(
-                        translator = design,
-                        showChrome = false
-                    )
-                }
+                DesignLivePreviewBox(
+                    design = design,
+                    isCustomWidget = isCustomWidget,
+                    widgetDoc = widgetDoc
+                )
             }
 
-            // Bottom Actions Row
+            // Bottom Footer: Clear primary Edit button + Share + Hamburger menu (Download, Copy, Remove)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Scope badge + Custom Canvas size badge
+                FilledTonalButton(
+                    onClick = onClick,
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
+                    modifier = Modifier.height(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.translators_action_edit),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = when (design.targetScope) {
-                            TargetScope.GLOBAL -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
-                            TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
-                            TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f)
-                        }
-                    ) {
-                        Text(
-                            text = when (design.targetScope) {
-                                TargetScope.GLOBAL -> stringResource(R.string.translators_scope_global)
-                                TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, design.targetPackages.size)
-                                TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, design.targetPackages.size)
-                                TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, design.targetNotificationTypes.size)
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = when (design.targetScope) {
-                                TargetScope.GLOBAL -> MaterialTheme.colorScheme.primary
-                                TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondary
-                                TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.error
-                                TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiary
-                            },
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-
-                    if (isCustomWidget && widgetDoc != null) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest
-                        ) {
-                            Text(
-                                text = "${widgetDoc!!.canvas.heightDp}dp",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Action buttons
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     FilledTonalIconButton(
                         onClick = onShare,
                         modifier = Modifier.size(36.dp),
@@ -852,61 +788,297 @@ fun DesignPreviewCardItem(
                             modifier = Modifier.size(16.dp)
                         )
                     }
-                    FilledTonalIconButton(
-                        onClick = onExport,
-                        modifier = Modifier.size(36.dp),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FileDownload,
-                            contentDescription = stringResource(R.string.translators_export_button),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    FilledTonalIconButton(
-                        onClick = onDuplicate,
-                        modifier = Modifier.size(36.dp),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = stringResource(R.string.translators_action_duplicate),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    FilledTonalIconButton(
-                        onClick = onClick,
-                        modifier = Modifier.size(36.dp),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.translators_action_edit),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    FilledTonalIconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.size(36.dp),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.translators_action_delete),
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
+
+                    DesignHamburgerMenuButton(
+                        itemName = design.meta.name.ifBlank { stringResource(R.string.design_section_designs) },
+                        onExport = onExport,
+                        onDuplicate = onDuplicate,
+                        onDelete = onDelete
+                    )
                 }
             }
         }
     }
 }
+
+@Composable
+private fun DesignHamburgerMenuButton(
+    itemName: String,
+    onExport: () -> Unit,
+    onDuplicate: () -> Unit,
+    onDelete: () -> Unit,
+    onShare: (() -> Unit)? = null,
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceContainerHigh
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    Box {
+        FilledTonalIconButton(
+            onClick = { expanded = true },
+            modifier = Modifier.size(36.dp),
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = containerColor
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ) {
+            if (onShare != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.translators_share_button)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onShare()
+                    }
+                )
+            }
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.translators_export_button)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.FileDownload,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                },
+                onClick = {
+                    expanded = false
+                    onExport()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.translators_action_duplicate)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                },
+                onClick = {
+                    expanded = false
+                    onDuplicate()
+                }
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 4.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = stringResource(R.string.translators_action_delete),
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp)
+                    )
+                },
+                colors = MenuDefaults.itemColors(
+                    textColor = MaterialTheme.colorScheme.error,
+                    leadingIconColor = MaterialTheme.colorScheme.error
+                ),
+                onClick = {
+                    expanded = false
+                    showDeleteConfirm = true
+                }
+            )
+        }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.translators_delete_confirm_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(text = stringResource(R.string.translators_delete_confirm_message, itemName))
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirm = false
+                        onDelete()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text(stringResource(R.string.translators_action_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun DesignScopeChip(design: CustomTranslator) {
+    val bgColor = when (design.targetScope) {
+        TargetScope.GLOBAL -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
+        TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
+        TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f)
+    }
+    val textColor = when (design.targetScope) {
+        TargetScope.GLOBAL -> MaterialTheme.colorScheme.primary
+        TargetScope.SPECIFIC_APPS -> MaterialTheme.colorScheme.secondary
+        TargetScope.SYSTEM_APPS -> MaterialTheme.colorScheme.error
+        TargetScope.NOTIFICATION_TYPE -> MaterialTheme.colorScheme.tertiary
+    }
+    val label = when (design.targetScope) {
+        TargetScope.GLOBAL -> stringResource(R.string.translators_scope_global)
+        TargetScope.SPECIFIC_APPS -> stringResource(R.string.translators_scope_apps, design.targetPackages.size)
+        TargetScope.SYSTEM_APPS -> stringResource(R.string.translators_scope_system_apps, design.targetPackages.size)
+        TargetScope.NOTIFICATION_TYPE -> stringResource(R.string.translators_scope_types, design.targetNotificationTypes.size)
+    }
+
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = bgColor
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+        )
+    }
+}
+
+@Composable
+private fun DesignLivePreviewBox(
+    design: CustomTranslator,
+    isCustomWidget: Boolean,
+    widgetDoc: CustomWidgetDocument?
+) {
+    if (isCustomWidget) {
+        if (widgetDoc != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+            ) {
+                StudioCanvas(
+                    root = widgetDoc.root,
+                    canvasHeightDp = widgetDoc.canvas.heightDp,
+                    selectedId = null,
+                    onSelect = {},
+                    onMove = { _, _, _ -> },
+                    onResize = { _, _, _ -> },
+                    zoom = 1f,
+                    isGridVisible = false,
+                    isWireframeMode = false
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(StudioCanvasBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    } else {
+        HyperOsIslandPreview(
+            translator = design,
+            showChrome = false
+        )
+    }
+}
+
+private val PreviewSampleDesign = CustomTranslator(
+    id = "preview-delivery-tracker",
+    meta = com.d4viddf.hyperbridge.models.translator.TranslatorMetadata(
+        name = "Express Delivery Tracker",
+        author = "HyperBridge",
+        description = "Live courier progress with ETA pill",
+        iconName = "LocalShipping"
+    ),
+    targetScope = TargetScope.SPECIFIC_APPS,
+    targetPackages = listOf("com.ubercab.eats", "com.dd.doordash", "com.glovo"),
+    isEnabled = true,
+    presentation = com.d4viddf.hyperbridge.models.translator.PresentationConfig(
+        mode = PresentationMode.TEMPLATE,
+        templateId = "delivery_progress",
+        textSlot = com.d4viddf.hyperbridge.models.translator.TextSlotConfig(
+            titleTemplate = "Courier arriving soon",
+            subtitleTemplate = "2 km away • 8 mins",
+            highlightTextTemplate = "Live"
+        ),
+        progressSlot = com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig(
+            type = com.d4viddf.hyperbridge.models.translator.ProgressSlotType.PROGRESS_BAR,
+            showPercentage = true
+        ),
+        pill = com.d4viddf.hyperbridge.models.translator.CompactPillConfig(
+            leftDesign = com.d4viddf.hyperbridge.models.translator.PillLeftDesign.ICON_AND_TEXT,
+            rightDesign = com.d4viddf.hyperbridge.models.translator.PillRightDesign.TIMER
+        )
+    )
+)
+
+@Preview(name = "Design Card Item Preview", showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun DesignPreviewCardItemPreview() {
+    MaterialTheme(colorScheme = androidx.compose.material3.darkColorScheme()) {
+        Box(modifier = Modifier.padding(16.dp)) {
+            DesignPreviewCardItem(
+                design = PreviewSampleDesign,
+                onToggle = {}
+            )
+        }
+    }
+}
+
+
