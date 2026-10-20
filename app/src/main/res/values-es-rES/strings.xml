@@ -664,6 +664,15 @@
     <string name="charging_island_hours_minutes">%1$d h %2$d min</string>
     <string name="charging_island_lockscreen">Mostrar en la pantalla de bloqueo</string>
     <string name="charging_island_lockscreen_desc">Mantiene la píldora de carga junto a la cámara con el móvil bloqueado. Puede no aparecer con la pantalla siempre activa.</string>
+    <string name="debugging_island_title">Depuración USB e inalámbrica</string>
+    <string name="debugging_island_usb_connected">Depuración USB conectada</string>
+    <string name="debugging_island_wireless_connected">Depuración inalámbrica conectada</string>
+    <string name="debugging_island_both_connected">Depuración USB e inalámbrica conectadas</string>
+    <string name="debugging_island_wireless_on">Depuración inalámbrica activada</string>
+    <string name="debugging_island_tap_to_manage">Toca para abrir las opciones de desarrollador</string>
+    <string name="debugging_island_short_usb">USB</string>
+    <string name="debugging_island_short_wireless">Wi-Fi</string>
+    <string name="debugging_island_short_both">USB + Wi-Fi</string>
     <string name="charging_left_option_speed">Icono y velocidad de carga</string>
     <string name="charging_left_option_remaining_time">Icono y tiempo restante</string>
     <string name="charging_left_option_percentage">Icono y porcentaje de batería</string>
