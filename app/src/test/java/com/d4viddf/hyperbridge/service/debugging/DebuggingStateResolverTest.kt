@@ -59,11 +59,16 @@ class DebuggingStateResolverTest {
     }
 
     @Test
-    fun `usb attached while wireless only listens counts as usb with the address kept off`() {
-        val state = resolve(usbEnabled = true, wirelessEnabled = true, usbConnected = true)
+    fun `usb attached while wireless only listens counts as usb and keeps the address`() {
+        val state = resolve(usbEnabled = true, wirelessEnabled = true, usbConnected = true, wifiAddress = "10.0.0.7")
         assertEquals(DebuggingTransport.USB, state?.transport)
         assertTrue(state!!.connected)
-        assertNull(state.wifiAddress)
+        assertEquals("10.0.0.7", state.wifiAddress)
+    }
+
+    @Test
+    fun `usb alone never carries an address`() {
+        assertNull(resolve(usbEnabled = true, usbConnected = true, wifiAddress = "10.0.0.7")!!.wifiAddress)
     }
 
     @Test

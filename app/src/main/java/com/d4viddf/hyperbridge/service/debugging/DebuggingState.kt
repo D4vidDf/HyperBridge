@@ -6,7 +6,7 @@ data class DebuggingState(
     val transport: DebuggingTransport,
     /** False while wireless debugging is on but no computer is attached yet. */
     val connected: Boolean,
-    /** Wi-Fi address of the phone, shown while wireless debugging is on. */
+    /** Wi-Fi address of the phone, set whenever wireless debugging is on. */
     val wifiAddress: String? = null
 )
 
@@ -43,7 +43,8 @@ object DebuggingStateResolver {
         val address = wifiAddress?.takeIf { wirelessEnabled && it.isNotBlank() }
         return when {
             usb && wireless -> DebuggingState(DebuggingTransport.BOTH, connected = true, wifiAddress = address)
-            usb -> DebuggingState(DebuggingTransport.USB, connected = true)
+            // Wireless may still be listening on the network: keep the address so the island says so.
+            usb -> DebuggingState(DebuggingTransport.USB, connected = true, wifiAddress = address)
             wireless -> DebuggingState(DebuggingTransport.WIRELESS, connected = true, wifiAddress = address)
             // A phone listening for adb on the network is worth showing even with nobody attached.
             // USB debugging left on without a cable is the normal state for developers: not shown.

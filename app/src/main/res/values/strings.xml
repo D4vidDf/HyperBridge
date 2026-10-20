@@ -812,6 +812,7 @@
     <string name="debugging_island_wireless_connected">Wireless debugging connected</string>
     <string name="debugging_island_both_connected">USB and wireless debugging connected</string>
     <string name="debugging_island_wireless_on">Wireless debugging is on</string>
+    <string name="debugging_island_wireless_on_at">Wireless debugging on · %1$s</string>
     <string name="debugging_island_tap_to_manage">Tap to open developer options</string>
     <string name="debugging_island_short_usb">USB</string>
     <string name="debugging_island_short_wireless">Wi-Fi</string>

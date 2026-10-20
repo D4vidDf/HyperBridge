@@ -29,8 +29,15 @@ class DebuggingTranslator(
         }
     )
 
-    fun content(state: DebuggingState): String =
-        state.wifiAddress ?: context.getString(R.string.debugging_island_tap_to_manage)
+    fun content(state: DebuggingState): String {
+        val address = state.wifiAddress ?: return context.getString(R.string.debugging_island_tap_to_manage)
+        // Over USB the address means wireless debugging is also listening, which the title doesn't say.
+        return if (state.transport == DebuggingTransport.USB) {
+            context.getString(R.string.debugging_island_wireless_on_at, address)
+        } else {
+            address
+        }
+    }
 
     internal fun shortLabel(state: DebuggingState): String = context.getString(
         when (state.transport) {

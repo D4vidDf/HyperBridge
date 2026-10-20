@@ -669,6 +669,7 @@
     <string name="debugging_island_wireless_connected">Depuración inalámbrica conectada</string>
     <string name="debugging_island_both_connected">Depuración USB e inalámbrica conectadas</string>
     <string name="debugging_island_wireless_on">Depuración inalámbrica activada</string>
+    <string name="debugging_island_wireless_on_at">Depuración inalámbrica activada · %1$s</string>
     <string name="debugging_island_tap_to_manage">Toca para abrir las opciones de desarrollador</string>
     <string name="debugging_island_short_usb">USB</string>
     <string name="debugging_island_short_wireless">Wi-Fi</string>
