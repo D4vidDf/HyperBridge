@@ -807,6 +807,16 @@
     <string name="charging_island_hours_minutes">%1$d h %2$d min</string>
     <string name="charging_island_lockscreen">Show on lock screen</string>
     <string name="charging_island_lockscreen_desc">Keep the charging pill at the cutout while the phone is locked. It may not show with Always-on Display.</string>
+    <string name="debugging_island_title">USB &amp; wireless debugging</string>
+    <string name="debugging_island_usb_connected">USB debugging connected</string>
+    <string name="debugging_island_wireless_connected">Wireless debugging connected</string>
+    <string name="debugging_island_both_connected">USB and wireless debugging connected</string>
+    <string name="debugging_island_wireless_on">Wireless debugging is on</string>
+    <string name="debugging_island_wireless_on_at">Wireless debugging on · %1$s</string>
+    <string name="debugging_island_tap_to_manage">Tap to open developer options</string>
+    <string name="debugging_island_short_usb">USB</string>
+    <string name="debugging_island_short_wireless">Wi-Fi</string>
+    <string name="debugging_island_short_both">USB + Wi-Fi</string>
     <string name="charging_left_option_speed">Icon and charging speed</string>
     <string name="charging_left_option_remaining_time">Icon and remaining time</string>
     <string name="charging_left_option_percentage">Icon and battery percentage</string>

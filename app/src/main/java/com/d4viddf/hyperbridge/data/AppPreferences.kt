@@ -195,6 +195,7 @@ class AppPreferences internal constructor(
     val vpnIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("vpn_island_enabled").map { it.toBoolean(true) }
     val chargingIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("charging_island_enabled").map { it.toBoolean(false) }
     val chargingIslandLockscreenFlow: Flow<Boolean> = dao.getSettingFlow("charging_island_lockscreen").map { it.toBoolean(false) }
+    val debuggingIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("debugging_island_enabled").map { it.toBoolean(false) }
     val isSetupComplete: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.SETUP_COMPLETE).map { it.toBoolean(false) }
     val lastSeenVersion: Flow<Int> = dao.getSettingFlow(SettingsKeys.LAST_VERSION).map { it.toInt(0) }
 
@@ -203,6 +204,7 @@ class AppPreferences internal constructor(
     suspend fun setVpnIslandEnabled(enabled: Boolean) = save("vpn_island_enabled", enabled.toString())
     suspend fun setChargingIslandEnabled(enabled: Boolean) = save("charging_island_enabled", enabled.toString())
     suspend fun setChargingIslandLockscreen(enabled: Boolean) = save("charging_island_lockscreen", enabled.toString())
+    suspend fun setDebuggingIslandEnabled(enabled: Boolean) = save("debugging_island_enabled", enabled.toString())
     suspend fun setPriorityEduShown(shown: Boolean) = save(SettingsKeys.PRIORITY_EDU, shown.toString())
 
     val featuredPermissionWarningFlow: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.FEATURED_PERMISSION_WARNING).map { it.toBoolean(false) }

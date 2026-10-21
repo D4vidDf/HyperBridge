@@ -352,7 +352,8 @@ fun HomeScreen(
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN,
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                 }
                             },
                             onSettingsClick = onSettingsClick
@@ -369,7 +370,8 @@ fun HomeScreen(
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> {}
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN,
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                 }
                             },
                             onSettingsClick = onSettingsClick
