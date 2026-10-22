@@ -100,8 +100,7 @@ fun mainNavGraph(
     }
     entry<Screen.PermanentIslandConfig> {
         com.d4viddf.hyperbridge.ui.screens.settings.PermanentIslandConfigScreen(
-            onBack = { navigator.goBack() },
-            onManageSources = { navigator.navigate(Screen.WidgetSourceApps) }
+            onBack = { navigator.goBack() }
         )
     }
     entry<Screen.WidgetSourceApps> {
