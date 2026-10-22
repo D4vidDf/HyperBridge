@@ -818,6 +818,7 @@
     <string name="charging_island_hours_minutes">%1$d h %2$d min</string>
     <string name="charging_island_lockscreen">Show on lock screen</string>
     <string name="charging_island_lockscreen_desc">Keep the charging pill at the cutout while the phone is locked. It may not show with Always-on Display.</string>
+    <string name="translator_show_on_lockscreen_desc">Keep the island pill at the cutout while the phone is locked. It may not show with Always-on Display.</string>
     <string name="debugging_island_title">USB &amp; wireless debugging</string>
     <string name="debugging_island_usb_connected">USB debugging connected</string>
     <string name="debugging_island_wireless_connected">Wireless debugging connected</string>

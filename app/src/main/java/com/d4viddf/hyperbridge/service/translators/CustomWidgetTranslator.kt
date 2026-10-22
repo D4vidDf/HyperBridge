@@ -12,6 +12,10 @@ import com.d4viddf.hyperbridge.data.widget.DeviceVariables
 import com.d4viddf.hyperbridge.data.widget.SourceRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
+import com.d4viddf.hyperbridge.integration.xiaomi.HyperIslandProtocolOptions
+import com.d4viddf.hyperbridge.integration.xiaomi.KEYGUARD_ISLAND_PROPERTY
+import com.d4viddf.hyperbridge.integration.xiaomi.buildCustomExtras
+import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
@@ -338,7 +342,19 @@ class CustomWidgetTranslator(
         builder.setHideDeco(true)
         if (!isUpdate) builder.setReopen(true)
 
-        return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
+        val showOnLockscreen = customTranslator?.behaviorOverride?.showOnLockscreen == true
+        val options = HyperIslandProtocolOptions(islandProperty = KEYGUARD_ISLAND_PROPERTY)
+        val customExtras = if (showOnLockscreen) {
+            builder.buildCustomExtras(options)
+        } else {
+            builder.buildCustomExtras()
+        }
+        val jsonParam = if (showOnLockscreen) {
+            builder.buildJsonParam(options)
+        } else {
+            builder.buildJsonParam()
+        }
+        return HyperIslandData(customExtras, jsonParam)
     }
 
     private fun resolveTheme(customTranslator: CustomTranslator, activeTheme: HyperTheme?): HyperTheme? {

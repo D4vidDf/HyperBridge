@@ -52,7 +52,8 @@ class CustomTranslatorSerializationTest {
                 isFloat = true,
                 floatTimeoutSeconds = 6,
                 timeoutSeconds = 45,
-                isShowShade = true
+                isShowShade = true,
+                showOnLockscreen = true
             ),
             dataExtraction = DataExtractionConfig(
                 extractProgressFromText = true,
@@ -119,6 +120,7 @@ class CustomTranslatorSerializationTest {
         assertEquals(2, decoded.targetPackages.size)
         assertEquals(250, decoded.priority)
         assertEquals(EngineMode.CUSTOM_ISLAND, decoded.engineMode)
+        assertTrue(decoded.behaviorOverride.showOnLockscreen)
         assertEquals(true, decoded.dataExtraction.extractProgressFromText)
         assertEquals(2, decoded.presentation.actionSlots.size)
         assertEquals(ActionMatchBy.INDEX, decoded.presentation.actionSlots[0].actionMatcher.matchBy)

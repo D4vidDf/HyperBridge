@@ -153,6 +153,7 @@ data class BehaviorOverride(
     @SerialName("float_timeout_seconds") val floatTimeoutSeconds: Int? = null,
     @SerialName("timeout_seconds") val timeoutSeconds: Int? = null,
     @SerialName("is_show_shade") val isShowShade: Boolean? = null,
+    @SerialName("show_on_lockscreen") val showOnLockscreen: Boolean = false,
     @SerialName("remove_original_notification") val removeOriginalNotification: Boolean? = null,
     @SerialName("dismiss_with_original") val dismissWithOriginal: Boolean? = null,
     @SerialName("enable_inline_reply") val enableInlineReply: Boolean? = null,

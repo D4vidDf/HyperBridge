@@ -30,4 +30,14 @@ class HyperIslandProtocolExtensionsTest {
             .getAsJsonObject("param_v2").getAsJsonObject("param_island")
         assertEquals(0, island["islandProperty"].asInt)
     }
+
+    @Test fun patchesCustomRemoteViewPayloadIslandProperty() {
+        val patched = patchHyperIslandCustomJson(
+            """{"ticker":"Song","param_island":{"islandProperty":1,"islandPriority":2}}""",
+            HyperIslandProtocolOptions(islandProperty = KEYGUARD_ISLAND_PROPERTY)
+        )
+        val island = JsonParser.parseString(patched).asJsonObject
+            .getAsJsonObject("param_island")
+        assertEquals(0, island["islandProperty"].asInt)
+    }
 }
