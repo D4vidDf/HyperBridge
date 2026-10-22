@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -50,6 +51,7 @@ class VpnIslandController(
     private val reducer = VpnSessionReducer()
     private val observer = VpnSystemObserver(context, this)
     private val providerRegistry = VpnProviderRegistry(context)
+    private val systemInspector = VpnSystemInspector(context, providerRegistry)
     private val notificationAnalyzer = VpnNotificationAnalyzer()
     private val controlResolver = VpnControlResolver(context)
     private val translator = VpnTranslator(context, themeRepository)
@@ -94,6 +96,18 @@ class VpnIslandController(
                     }
                 }
             }
+        }
+        scope.launch {
+            combine(
+                preferences.vpnDetectionModeFlow,
+                preferences.vpnDisabledProvidersFlow,
+                preferences.vpnProviderPriorityFlow
+            ) { mode, disabled, priority -> Triple(mode, disabled, priority) }
+                .collectLatest {
+                    if (enabled) {
+                        applyBestEvidence()
+                    }
+                }
         }
     }
 
@@ -225,24 +239,53 @@ class VpnIslandController(
         // user-facing VPN metadata. Capabilities/network existence remain the source of truth.
     }
 
+    private fun providerPriorityRank(packageName: String, priorityList: List<String>): Int {
+        val idx = priorityList.indexOf(packageName)
+        return if (idx == -1) Int.MAX_VALUE else idx
+    }
+
     private suspend fun applyBestEvidence() {
-        val best = sourceEvidence.values.maxWithOrNull(
-            compareBy<SourceEvidence> { it.evidence.provider.confidence }.thenBy { it.observedAtMillis }
-        )
-        val nativePresent = best?.evidence?.hasNativeXiaomiPayload == true
+        val mode = preferences.getVpnDetectionModeSync()
+        val disabled = preferences.getVpnDisabledProvidersSync()
+        val priorityList = preferences.getVpnProviderPrioritySync()
+        val allProviders = providerRegistry.providerPackages()
+        val allowedProviders = allProviders - disabled
+
+        val systemProvider = if (mode != VpnDetectionMode.NOTIFICATIONS_ONLY) {
+            systemInspector.resolveSystemProvider(allowedProviders)
+        } else {
+            null
+        }
+
+        val bestNotification = if (mode != VpnDetectionMode.SYSTEM_ONLY) {
+            sourceEvidence.values
+                .filter { it.evidence.provider.packageName in allowedProviders }
+                .filter { systemProvider == null || it.evidence.provider.packageName == systemProvider.packageName }
+                .maxWithOrNull(
+                    compareBy<SourceEvidence> { it.evidence.provider.confidence }
+                        .thenByDescending { providerPriorityRank(it.evidence.provider.packageName, priorityList) }
+                        .thenBy { it.observedAtMillis }
+                )
+        } else {
+            null
+        }
+
+        val resolvedProvider = systemProvider ?: bestNotification?.evidence?.provider
+        val nativePresent = bestNotification?.evidence?.hasNativeXiaomiPayload == true
         val event = VpnSessionEvent.Enriched(
-            provider = best?.evidence?.provider,
-            destination = best?.evidence?.destination,
-            traffic = best?.evidence?.traffic,
-            connectedAtMillis = best?.evidence?.connectedAtMillis,
-            timestampSource = best?.evidence?.timestampSource ?: VpnTimestampSource.UNKNOWN,
-            providerState = best?.evidence?.providerState,
-            controlProvenance = if (best?.disconnectIntent != null) {
+            provider = resolvedProvider,
+            destination = bestNotification?.evidence?.destination,
+            traffic = bestNotification?.evidence?.traffic,
+            connectedAtMillis = bestNotification?.evidence?.connectedAtMillis,
+            timestampSource = bestNotification?.evidence?.timestampSource ?: VpnTimestampSource.UNKNOWN,
+            providerState = bestNotification?.evidence?.providerState,
+            controlProvenance = if (bestNotification?.disconnectIntent != null) {
                 VpnControlProvenance.SOURCE_PENDING_INTENT
             } else {
                 VpnControlProvenance.UNSUPPORTED
             },
             nativeProviderIslandPresent = nativePresent,
+            authoritativeProviderOverride = true,
             observedAtMillis = System.currentTimeMillis()
         )
         val isMinor = mutex.withLock {
@@ -297,17 +340,24 @@ class VpnIslandController(
         }
 
         val isUpdate = postedGeneration == snapshot.generation
-        val visualSource = bestSourceFor(snapshot)
-        val notificationBacked = visualSource != null
+        val mode = preferences.getVpnDetectionModeSync()
+        val disabled = preferences.getVpnDisabledProvidersSync()
+        val priorityList = preferences.getVpnProviderPrioritySync()
+        val visualSource = if (mode != VpnDetectionMode.SYSTEM_ONLY) {
+            bestSourceFor(snapshot, disabled, priorityList)
+        } else {
+            null
+        }
+        val notificationBacked = visualSource != null || snapshot.provider != null
         val stableTimerStartMillis = timerOriginTracker.resolve(
             sessionGeneration = snapshot.generation,
             authoritativeStartMillis = snapshot.connectedAtMillis,
             observedAtMillis = System.currentTimeMillis()
         )
-        val visualControl = visualSource?.let { source ->
-            controlResolver.resolveDisconnect(snapshot, bestDisconnectSource(snapshot)?.disconnectIntent)
-                ?: controlResolver.manage(snapshot, source.contentIntent)
-        }
+        val visualControl = if (notificationBacked) {
+            controlResolver.resolveDisconnect(snapshot, bestDisconnectSource(snapshot, disabled)?.disconnectIntent)
+                ?: controlResolver.manage(snapshot, visualSource?.contentIntent)
+        } else null
         val actionIntent = when (visualControl?.kind) {
             VpnControlKind.DISCONNECT -> createDisconnectIntent(snapshot.logicalId)
             VpnControlKind.MANAGE -> visualControl.pendingIntent
@@ -321,7 +371,7 @@ class VpnIslandController(
             visualControl?.kind ?: VpnControlKind.MANAGE,
             actionIntent,
             notificationBacked,
-            timerStartedAtMillis = if (notificationBacked) snapshot.connectedAtMillis else stableTimerStartMillis,
+            timerStartedAtMillis = if (visualSource != null) snapshot.connectedAtMillis else stableTimerStartMillis,
             countryFlagBitmap = visualSource?.countryFlagBitmap
         )
         val notification = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
@@ -335,10 +385,11 @@ class VpnIslandController(
             .setVibrate(null)
             .addExtras(data.resources)
             .apply {
-                visualSource?.let { source ->
-                    if (source.contentIntent != null) {
-                        setContentIntent(source.contentIntent)
-                    } else snapshot.provider?.packageName?.let { pkg ->
+                val contentIntent = visualSource?.contentIntent
+                if (contentIntent != null) {
+                    setContentIntent(contentIntent)
+                } else {
+                    snapshot.provider?.packageName?.let { pkg ->
                         context.packageManager.getLaunchIntentForPackage(pkg)?.let { launch ->
                             setContentIntent(
                                 PendingIntent.getActivity(
@@ -362,14 +413,27 @@ class VpnIslandController(
         lastRenderAtMillis = System.currentTimeMillis()
     }
 
-    private fun bestDisconnectSource(snapshot: VpnSession): SourceEvidence? = sourceEvidence.values
+    private fun bestDisconnectSource(
+        snapshot: VpnSession,
+        disabled: Set<String> = preferences.getVpnDisabledProvidersSync()
+    ): SourceEvidence? = sourceEvidence.values
         .filter { it.disconnectIntent != null }
+        .filter { it.evidence.provider.packageName !in disabled }
         .filter { snapshot.provider == null || it.evidence.provider.packageName == snapshot.provider.packageName }
         .maxByOrNull { it.observedAtMillis }
 
-    private fun bestSourceFor(snapshot: VpnSession): SourceEvidence? = sourceEvidence.values
+    private fun bestSourceFor(
+        snapshot: VpnSession,
+        disabled: Set<String>,
+        priorityList: List<String>
+    ): SourceEvidence? = sourceEvidence.values
+        .filter { it.evidence.provider.packageName !in disabled }
         .filter { snapshot.provider == null || it.evidence.provider.packageName == snapshot.provider.packageName }
-        .maxWithOrNull(compareBy<SourceEvidence> { it.evidence.provider.confidence }.thenBy { it.observedAtMillis })
+        .maxWithOrNull(
+            compareBy<SourceEvidence> { it.evidence.provider.confidence }
+                .thenByDescending { providerPriorityRank(it.evidence.provider.packageName, priorityList) }
+                .thenBy { it.observedAtMillis }
+        )
 
     private fun createDisconnectIntent(logicalId: String): PendingIntent {
         val intent = Intent(context, VpnActionReceiver::class.java).apply {

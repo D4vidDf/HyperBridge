@@ -46,7 +46,11 @@ class VpnSessionReducer {
                 event.providerState == null &&
                 (event.provider == null || it.providerState in persistentNoNetworkStates)
             ) return null
-            val provider = chooseProvider(it.provider, event.provider)
+            val provider = if (event.authoritativeProviderOverride) {
+                event.provider
+            } else {
+                chooseProvider(it.provider, event.provider)
+            }
             val providerChanged = it.provider != null && provider?.packageName != it.provider.packageName
             val destination = chooseDestination(if (providerChanged) null else it.destination, event.destination)
             val timestamp = chooseTimestamp(it, event)

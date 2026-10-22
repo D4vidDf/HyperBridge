@@ -58,7 +58,7 @@ class BackupManager(
                 val key = setting.key
                 when {
                     key == SettingsKeys.GLOBAL_BLOCKED_TERMS || key.endsWith("_blocked") -> selection.includeBlocklist
-                    key == SettingsKeys.PRIORITY_ORDER -> selection.includePriorities
+                    key == SettingsKeys.PRIORITY_ORDER || key == SettingsKeys.VPN_PROVIDER_PRIORITY -> selection.includePriorities
                     else -> selection.includeSettings
                 }
             }.map { AppSettingBackup(it.key, it.value) }
@@ -158,7 +158,7 @@ class BackupManager(
                 val key = item.key
                 when {
                     key == SettingsKeys.GLOBAL_BLOCKED_TERMS || key.endsWith("_blocked") -> selection.includeBlocklist
-                    key == SettingsKeys.PRIORITY_ORDER -> selection.includePriorities
+                    key == SettingsKeys.PRIORITY_ORDER || key == SettingsKeys.VPN_PROVIDER_PRIORITY -> selection.includePriorities
                     else -> selection.includeSettings
                 }
             }.map { AppSetting(it.key, it.value) }

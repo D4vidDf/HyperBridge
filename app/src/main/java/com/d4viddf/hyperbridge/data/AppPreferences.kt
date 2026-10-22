@@ -488,6 +488,31 @@ class AppPreferences internal constructor(
     suspend fun setChargingExpandedProgressBar(show: Boolean) =
         save(SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR, show.toString())
 
+    // --- SYSTEM ISLAND: VPN ---
+    val vpnDetectionModeFlow: Flow<com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode> =
+        dao.getSettingFlow(SettingsKeys.VPN_DETECTION_MODE).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.AUTO
+        }
+
+    val vpnDisabledProvidersFlow: Flow<Set<String>> =
+        dao.getSettingFlow(SettingsKeys.VPN_DISABLED_PROVIDERS).map { it.deserializeSet() }
+
+    val vpnProviderPriorityFlow: Flow<List<String>> =
+        dao.getSettingFlow(SettingsKeys.VPN_PROVIDER_PRIORITY).map { it.deserializeList() }
+
+    suspend fun setVpnDetectionMode(mode: com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode) =
+        save(SettingsKeys.VPN_DETECTION_MODE, mode.name)
+
+    suspend fun setVpnProviderEnabled(packageName: String, enabled: Boolean) {
+        val current = dao.getSetting(SettingsKeys.VPN_DISABLED_PROVIDERS).deserializeSet()
+        val updated = if (enabled) current - packageName else current + packageName
+        save(SettingsKeys.VPN_DISABLED_PROVIDERS, updated.serialize())
+    }
+
+    suspend fun setVpnProviderPriority(order: List<String>) =
+        save(SettingsKeys.VPN_PROVIDER_PRIORITY, order.joinToString(","))
+
 
     // --- SMART ACTIONS (issue #270) ---
     val smartActionsConfigFlow: Flow<SmartActionsConfig> = combine(
@@ -1104,6 +1129,17 @@ class AppPreferences internal constructor(
         )
 
     fun isVpnIslandEnabledSync(): Boolean = memoryCache["vpn_island_enabled"]?.toBoolean(true) ?: true
+
+    fun getVpnDetectionModeSync(): com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode =
+        memoryCache[SettingsKeys.VPN_DETECTION_MODE]?.let {
+            runCatching { com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.AUTO
+
+    fun getVpnDisabledProvidersSync(): Set<String> =
+        memoryCache[SettingsKeys.VPN_DISABLED_PROVIDERS].deserializeSet()
+
+    fun getVpnProviderPrioritySync(): List<String> =
+        memoryCache[SettingsKeys.VPN_PROVIDER_PRIORITY].deserializeList()
 
 
     companion object {

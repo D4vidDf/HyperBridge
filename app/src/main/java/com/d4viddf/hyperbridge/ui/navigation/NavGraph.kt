@@ -56,6 +56,7 @@ fun mainNavGraph(
             onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) },
             onSystemUpdateConfigClick = { navigator.navigate(Screen.SystemUpdateCustomization) },
             onChargingConfigClick = { navigator.navigate(Screen.ChargingCustomization) },
+            onVpnConfigClick = { navigator.navigate(Screen.VpnCustomization) },
             onAppConfigClick = { pkg -> navigator.navigate(Screen.AppConfig(pkg)) }
         )
     }
@@ -204,6 +205,9 @@ fun mainNavGraph(
     }
     entry<Screen.ChargingCustomization> {
         com.d4viddf.hyperbridge.ui.screens.settings.ChargingSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.VpnCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.settings.VpnSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.AppConfig> { key ->
         AppConfigScreen(

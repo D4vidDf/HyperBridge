@@ -796,6 +796,17 @@
     <string name="vpn_blocking">Blocking internet</string>
     <string name="vpn_error">VPN error</string>
     <string name="vpn_disconnected">VPN is disconnected</string>
+    <string name="vpn_customization_title">VPN Island</string>
+    <string name="vpn_detection_mode_title">Detection Source</string>
+    <string name="vpn_detection_mode_auto">Automatic (System + Notifications)</string>
+    <string name="vpn_detection_mode_auto_desc">Resolves active VPN from Android system/Shizuku settings first, enriched by app notifications</string>
+    <string name="vpn_detection_mode_system_only">System Connection Only</string>
+    <string name="vpn_detection_mode_system_only_desc">Ignores status bar notifications; only uses system VPN state and Shizuku inspection</string>
+    <string name="vpn_detection_mode_notifications_only">Notifications Only</string>
+    <string name="vpn_detection_mode_notifications_only_desc">Attributes VPN sessions solely from active VPN app notifications</string>
+    <string name="vpn_providers_section_title">VPN Apps &amp; Priority</string>
+    <string name="vpn_providers_section_desc">Toggle which VPN apps are allowed to attribute the VPN Island, and use arrows to set their priority order when multiple apps are active.</string>
+    <string name="vpn_no_providers_installed">No apps with VPN services found on this device.</string>
     <string name="charging_island_title">Charging</string>
     <string name="charging_island_charging">Charging</string>
     <string name="charging_island_wireless">Charging wirelessly</string>

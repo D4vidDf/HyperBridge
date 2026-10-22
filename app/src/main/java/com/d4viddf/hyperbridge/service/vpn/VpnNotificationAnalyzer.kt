@@ -49,11 +49,20 @@ class VpnNotificationAnalyzer {
             observedAtMillis,
             adapter?.capabilities?.notificationTraffic == true
         )
+        val hasSemanticVpnEvidence = providerState != null ||
+            destination != null ||
+            traffic != null ||
+            containsVpnKeywords(lines)
+        val confidence = when {
+            adapter != null -> 95
+            hasSemanticVpnEvidence -> 85
+            else -> 80
+        }
         return VpnNotificationEvidence(
             provider = VpnProviderIdentity(
                 signals.packageName,
                 signals.appLabel,
-                if (adapter != null) 95 else 80,
+                confidence,
                 if (adapter != null) VpnEvidenceSource.PROVIDER_ADAPTER else VpnEvidenceSource.STRUCTURED_NOTIFICATION
             ),
             destination = destination,
@@ -85,9 +94,14 @@ class VpnNotificationAnalyzer {
             "blocking" in text || "internet blocked" in text -> VpnConnectionState.BLOCKING
             "critical error" in text || "vpn error" in text -> VpnConnectionState.ERROR
             "connecting" in text -> VpnConnectionState.CONNECTING
-            "connected" in text || "vpn active" in text -> VpnConnectionState.CONNECTED
+            "connected" in text || "vpn active" in text || "warp" in text -> VpnConnectionState.CONNECTED
             else -> null
         }
+    }
+
+    private fun containsVpnKeywords(lines: List<String>): Boolean {
+        val text = lines.joinToString(" ").lowercase(Locale.ROOT)
+        return VPN_SIGNAL_KEYWORDS.any { it in text }
     }
 
     private fun resolveDestination(lines: List<String>, localizedTemplates: List<String>): VpnDestination? {
@@ -192,6 +206,7 @@ class VpnNotificationAnalyzer {
         private val UP_TOTAL_AND_RATE_PATTERN = Regex("(?:\\u2191|upload|up)\\s*[:\\-]?\\s*\\d+(?:[.,]\\d+)?\\s*(?:B|KB|MB|GB)\\s*\\|\\s*(\\d+(?:[.,]\\d+)?)\\s*(B|KB|MB|GB)/s", RegexOption.IGNORE_CASE)
         private val FLAG_ICON_TOKENS = setOf("flag", "country", "location", "server")
         private val NON_FLAG_ICON_TOKENS = setOf("launcher", "app_icon", "appicon", "logo", "notification_icon")
+        private val VPN_SIGNAL_KEYWORDS = setOf("vpn", "tunnel", "wireguard", "openvpn", "warp", "1.1.1.1")
     }
 }
 
