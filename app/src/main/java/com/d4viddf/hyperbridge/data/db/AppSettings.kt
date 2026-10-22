@@ -61,4 +61,7 @@ object SettingsKeys {
     const val CHARGING_LEFT_DESIGN = "charging_left_design"
     const val CHARGING_RIGHT_DESIGN = "charging_right_design"
     const val CHARGING_EXPANDED_PROGRESS_BAR = "charging_expanded_progress_bar"
+    const val VPN_DETECTION_MODE = "vpn_detection_mode"
+    const val VPN_DISABLED_PROVIDERS = "vpn_disabled_providers"
+    const val VPN_PROVIDER_PRIORITY = "vpn_provider_priority"
 }

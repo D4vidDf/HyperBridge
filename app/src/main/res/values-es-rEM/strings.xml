@@ -437,6 +437,17 @@
     <string name="vpn_blocking">Bloqueando internet</string>
     <string name="vpn_error">Error de VPN</string>
     <string name="vpn_disconnected">VPN desconectada</string>
+    <string name="vpn_customization_title">Isla de VPN</string>
+    <string name="vpn_detection_mode_title">Fuente de detección</string>
+    <string name="vpn_detection_mode_auto">Automático (Sistema + Notificaciones)</string>
+    <string name="vpn_detection_mode_auto_desc">Identifica la VPN activa desde el sistema/Shizuku primero y la complementa con las notificaciones</string>
+    <string name="vpn_detection_mode_system_only">Solo conexión del sistema</string>
+    <string name="vpn_detection_mode_system_only_desc">Ignora las notificaciones de la barra de estado y usa solo el estado del sistema y Shizuku</string>
+    <string name="vpn_detection_mode_notifications_only">Solo notificaciones</string>
+    <string name="vpn_detection_mode_notifications_only_desc">Identifica las sesiones VPN únicamente a partir de las notificaciones activas de las apps VPN</string>
+    <string name="vpn_providers_section_title">Apps VPN y prioridad</string>
+    <string name="vpn_providers_section_desc">Activa qué apps VPN pueden mostrarse en la Isla de VPN y usa las flechas para definir su orden de prioridad cuando haya varias activas.</string>
+    <string name="vpn_no_providers_installed">No se encontraron aplicaciones con servicio VPN en este dispositivo.</string>
 
     <!-- Floating Notification Setup -->
     <string name="floating_setup_title">Configuración de notificaciones flotantes</string>

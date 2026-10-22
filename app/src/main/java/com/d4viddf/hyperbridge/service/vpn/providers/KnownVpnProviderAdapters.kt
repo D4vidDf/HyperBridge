@@ -18,7 +18,8 @@ object KnownVpnProviderAdapters {
         OpenVpnForAndroidAdapter,
         StrongSwanAdapter,
         WireGuardAdapter,
-        TailscaleAdapter
+        TailscaleAdapter,
+        CloudflareOneDotAdapter
     )
 
     fun forPackage(packageName: String): VpnProviderAdapter? = all.firstOrNull { it.matches(packageName) }
@@ -179,5 +180,19 @@ private object TailscaleAdapter : VpnProviderAdapter {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
+}
+
+private object CloudflareOneDotAdapter : VpnProviderAdapter {
+    override val id = "cloudflare_1111"
+    override val packageNames = setOf(
+        "com.cloudflare.onedotonedotonedotone",
+        "com.cloudflare.cloudflareoneagent"
+    )
+    override val capabilities = VpnAdapterCapabilities(
+        notificationMetadata = true,
+        notificationState = true,
+        notificationTraffic = false,
+        notificationTimestamp = false
+    )
 }
 

@@ -22,6 +22,7 @@ enum class VpnTimestampSource {
 }
 enum class VpnControlProvenance { SOURCE_PENDING_INTENT, PROVIDER_API, PUBLIC_SYSTEM_API, SHIZUKU_STOP_APP, SHIZUKU_FORCE_STOP, ROOT_FORCE_STOP, UNSUPPORTED }
 enum class VpnUnderlyingTransport { WIFI, CELLULAR, ETHERNET, BLUETOOTH, OTHER }
+enum class VpnDetectionMode { AUTO, SYSTEM_ONLY, NOTIFICATIONS_ONLY }
 
 data class VpnNetworkMetadata(
     val networkHandle: Long,
@@ -99,6 +100,7 @@ sealed interface VpnSessionEvent {
         val controlProvenance: VpnControlProvenance? = null,
         val providerState: VpnConnectionState? = null,
         val nativeProviderIslandPresent: Boolean? = null,
+        val authoritativeProviderOverride: Boolean = false,
         override val observedAtMillis: Long
     ) : VpnSessionEvent
     data class DisconnectRequested(override val observedAtMillis: Long) : VpnSessionEvent

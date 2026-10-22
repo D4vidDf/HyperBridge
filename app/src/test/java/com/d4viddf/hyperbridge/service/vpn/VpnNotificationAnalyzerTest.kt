@@ -140,6 +140,27 @@ class VpnNotificationAnalyzerTest {
         )
         assertNotNull(evidence)
         assertFalse(evidence!!.useLargeIconAsCountryFlag)
+        assertEquals(80, evidence.provider.confidence)
+    }
+    @Test fun semanticVpnNotificationOutranksGenericOngoingNotificationFromMultiPurposeApp() {
+        val kasperskyBg = analyzer.analyze(
+            signals(packageName = "com.kms.free", title = "Device is protected", text = "Real-time protection is active"),
+            setOf("com.kms.free", "com.cloudflare.onedotonedotonedotone", PACKAGE),
+            20_000L
+        )!!
+        val genericVpnConnected = analyzer.analyze(
+            signals(packageName = PACKAGE, title = "Connected", text = "Your Internet is private"),
+            setOf("com.kms.free", "com.cloudflare.onedotonedotonedotone", PACKAGE),
+            20_000L
+        )!!
+        val cloudflareOneDot = analyzer.analyze(
+            signals(packageName = "com.cloudflare.onedotonedotonedotone", title = "Connected", text = "Your Internet is private"),
+            setOf("com.kms.free", "com.cloudflare.onedotonedotonedotone", PACKAGE),
+            20_000L
+        )!!
+        assertTrue(genericVpnConnected.provider.confidence > kasperskyBg.provider.confidence)
+        assertTrue(cloudflareOneDot.provider.confidence > kasperskyBg.provider.confidence)
+        assertEquals(95, cloudflareOneDot.provider.confidence)
     }
     @Test fun ignoresNonProviderAndNonOngoing() {
         assertNull(analyzer.analyze(signals(), emptySet(), 20_000L))

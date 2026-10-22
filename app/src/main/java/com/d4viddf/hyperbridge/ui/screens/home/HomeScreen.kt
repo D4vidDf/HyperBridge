@@ -75,6 +75,7 @@ fun HomeScreen(
     onScreenRecordingConfigClick: () -> Unit = {},
     onSystemUpdateConfigClick: () -> Unit = {},
     onChargingConfigClick: () -> Unit = {},
+    onVpnConfigClick: () -> Unit = {},
     onAppConfigClick: (String) -> Unit = {},
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: (String?) -> Unit = {},
@@ -352,7 +353,7 @@ fun HomeScreen(
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN,
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> onVpnConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                 }
                             },
@@ -370,7 +371,7 @@ fun HomeScreen(
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SCREEN_RECORDER -> onScreenRecordingConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
-                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN,
+                                    com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> onVpnConfigClick()
                                     com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                 }
                             },
