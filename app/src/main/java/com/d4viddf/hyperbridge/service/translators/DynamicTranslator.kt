@@ -62,7 +62,8 @@ class DynamicTranslator(
         extractedSenderName: String? = null,
         extractedMediaArtist: String? = null,
         extractedConversationTitle: String? = null,
-        callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null
+        callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null,
+        isKeyguardLocked: Boolean = false
     ): HyperIslandData {
         // A TEMPLATE translator may only carry its templateId (imported .htrans, or one created
         // straight from the gallery), so fill the slots from the template preset before building.
@@ -340,9 +341,10 @@ class DynamicTranslator(
 
                 if (validatedJson != null) {
                     val finalRawJson = if (customTranslator.behaviorOverride.showOnLockscreen) {
+                        val targetIslandProperty = if (isKeyguardLocked) KEYGUARD_ISLAND_PROPERTY else 1
                         patchHyperIslandJson(
                             validatedJson,
-                            HyperIslandProtocolOptions(islandProperty = KEYGUARD_ISLAND_PROPERTY)
+                            HyperIslandProtocolOptions(islandProperty = targetIslandProperty)
                         )
                     } else {
                         validatedJson
@@ -725,11 +727,12 @@ class DynamicTranslator(
         }
 
         val jsonParam = if (customTranslator.behaviorOverride.showOnLockscreen) {
-            builder.buildJsonParam(HyperIslandProtocolOptions(islandProperty = KEYGUARD_ISLAND_PROPERTY))
+            val targetIslandProperty = if (isKeyguardLocked) KEYGUARD_ISLAND_PROPERTY else 1
+            builder.buildJsonParam(HyperIslandProtocolOptions(islandProperty = targetIslandProperty))
         } else {
             builder.buildJsonParam()
         }
-        Log.d(TAG, " [DynamicTranslator] '${customTranslator.meta.name}' (${sbn.packageName}): template=${customTranslator.presentation.templateId ?: customTranslator.presentation.mode.name}, float=$isFloat, shade=$isShade, showOnLockscreen=${customTranslator.behaviorOverride.showOnLockscreen}")
+        Log.d(TAG, " [DynamicTranslator] '${customTranslator.meta.name}' (${sbn.packageName}): template=${customTranslator.presentation.templateId ?: customTranslator.presentation.mode.name}, float=$isFloat, shade=$isShade, showOnLockscreen=${customTranslator.behaviorOverride.showOnLockscreen}, isKeyguardLocked=$isKeyguardLocked")
 
         return HyperIslandData(builder.buildResourceBundle(), jsonParam)
     }

@@ -64,7 +64,8 @@ class CustomWidgetTranslator(
         theme: HyperTheme?,
         widgetId: String,
         customTranslator: CustomTranslator? = null,
-        isUpdate: Boolean = false
+        isUpdate: Boolean = false,
+        isKeyguardLocked: Boolean = false
     ): HyperIslandData {
         val doc = requireNotNull(widgetRepo.getWidget(widgetId)) {
             "Custom design $widgetId is missing from the Studio store"
@@ -343,14 +344,17 @@ class CustomWidgetTranslator(
         if (!isUpdate) builder.setReopen(true)
 
         val showOnLockscreen = customTranslator?.behaviorOverride?.showOnLockscreen == true
-        val options = HyperIslandProtocolOptions(islandProperty = KEYGUARD_ISLAND_PROPERTY)
-        val customExtras = if (showOnLockscreen) {
-            builder.buildCustomExtras(options)
+        val targetIslandProperty = if (showOnLockscreen) {
+            if (isKeyguardLocked) KEYGUARD_ISLAND_PROPERTY else 1
+        } else null
+
+        val customExtras = if (targetIslandProperty != null) {
+            builder.buildCustomExtras(HyperIslandProtocolOptions(islandProperty = targetIslandProperty))
         } else {
             builder.buildCustomExtras()
         }
-        val jsonParam = if (showOnLockscreen) {
-            builder.buildJsonParam(options)
+        val jsonParam = if (targetIslandProperty != null) {
+            builder.buildJsonParam(HyperIslandProtocolOptions(islandProperty = targetIslandProperty))
         } else {
             builder.buildJsonParam()
         }
