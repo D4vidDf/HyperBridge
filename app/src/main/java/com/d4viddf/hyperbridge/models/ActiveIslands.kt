@@ -24,5 +24,8 @@ data class ActiveIsland(
     val screenRecordingSession: com.d4viddf.hyperbridge.service.recording.ScreenRecordingSession? = null,
     val deleteIntent: android.app.PendingIntent? = null,
     /** The mirrored source should be retired when this bridge notification is opened. */
-    val dismissSourceOnContentClick: Boolean = false
+    val dismissSourceOnContentClick: Boolean = false,
+    val postedOnLockscreen: Boolean = false,
+    val customTranslatorShowOnLockscreen: Boolean = false,
+    val sourceSbn: android.service.notification.StatusBarNotification? = null
 )

@@ -12,6 +12,10 @@ import com.d4viddf.hyperbridge.data.widget.DeviceVariables
 import com.d4viddf.hyperbridge.data.widget.SourceRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
+import com.d4viddf.hyperbridge.integration.xiaomi.HyperIslandProtocolOptions
+import com.d4viddf.hyperbridge.integration.xiaomi.KEYGUARD_ISLAND_PROPERTY
+import com.d4viddf.hyperbridge.integration.xiaomi.buildCustomExtras
+import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
@@ -60,7 +64,8 @@ class CustomWidgetTranslator(
         theme: HyperTheme?,
         widgetId: String,
         customTranslator: CustomTranslator? = null,
-        isUpdate: Boolean = false
+        isUpdate: Boolean = false,
+        isKeyguardLocked: Boolean = false
     ): HyperIslandData {
         val doc = requireNotNull(widgetRepo.getWidget(widgetId)) {
             "Custom design $widgetId is missing from the Studio store"
@@ -338,7 +343,22 @@ class CustomWidgetTranslator(
         builder.setHideDeco(true)
         if (!isUpdate) builder.setReopen(true)
 
-        return HyperIslandData(builder.buildCustomExtras(), builder.buildJsonParam())
+        val showOnLockscreen = customTranslator?.behaviorOverride?.showOnLockscreen == true
+        val targetIslandProperty = if (showOnLockscreen) {
+            if (isKeyguardLocked) KEYGUARD_ISLAND_PROPERTY else 1
+        } else null
+
+        val customExtras = if (targetIslandProperty != null) {
+            builder.buildCustomExtras(HyperIslandProtocolOptions(islandProperty = targetIslandProperty))
+        } else {
+            builder.buildCustomExtras()
+        }
+        val jsonParam = if (targetIslandProperty != null) {
+            builder.buildJsonParam(HyperIslandProtocolOptions(islandProperty = targetIslandProperty))
+        } else {
+            builder.buildJsonParam()
+        }
+        return HyperIslandData(customExtras, jsonParam)
     }
 
     private fun resolveTheme(customTranslator: CustomTranslator, activeTheme: HyperTheme?): HyperTheme? {

@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.service
 
 import android.Manifest
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -220,16 +221,77 @@ class NotificationReaderService : NotificationListenerService() {
     @Volatile
     private var isScreenOn = true
 
+    private val keyguardManager by lazy { getSystemService(KeyguardManager::class.java) }
+    private fun isKeyguardLocked(): Boolean = keyguardManager?.isKeyguardLocked == true
+
+    private fun resolveBridgeId(effectiveKey: String, isLockscreen: Boolean): Int {
+        val base = effectiveKey.hashCode()
+        return if (isLockscreen) {
+            val candidate = base xor 0x40000000
+            if (candidate in 8990..9100 || candidate in -20050..-19950) candidate + 1000 else candidate
+        } else {
+            base
+        }
+    }
+
+    private fun onUserPresent() {
+        serviceScope.launch {
+            val islandsToUnlock = notificationLifecycleMutex.withLock {
+                activeIslands.values.filter { it.postedOnLockscreen }
+            }
+            if (islandsToUnlock.isEmpty()) return@launch
+
+            Log.i(TAG, "Device unlocked (USER_PRESENT): refreshing ${islandsToUnlock.size} lockscreen island(s) to unlocked state")
+            for (island in islandsToUnlock) {
+                val sbn = island.sourceSbn ?: activeNotificationsOrNull()?.firstOrNull { it.key == island.sourceKey }
+                if (sbn != null) {
+                    try {
+                        NotificationManagerCompat.from(this@NotificationReaderService).cancel(island.id)
+                    } catch (_: Exception) {}
+                    enqueueSourceNotification(sbn, recovery = true)
+                }
+            }
+        }
+    }
+
+    private fun onScreenWake() {
+        if (!isKeyguardLocked()) return
+        serviceScope.launch {
+            val islandsToLock = notificationLifecycleMutex.withLock {
+                activeIslands.values.filter { island ->
+                    !island.postedOnLockscreen && island.customTranslatorShowOnLockscreen
+                }
+            }
+            if (islandsToLock.isEmpty()) return@launch
+
+            Log.i(TAG, "Screen woke on lockscreen: refreshing ${islandsToLock.size} island(s) for lockscreen presentation")
+            for (island in islandsToLock) {
+                val sbn = island.sourceSbn ?: activeNotificationsOrNull()?.firstOrNull { it.key == island.sourceKey }
+                if (sbn != null) {
+                    enqueueSourceNotification(sbn, recovery = true)
+                }
+            }
+        }
+    }
+
     private val systemReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == Intent.ACTION_USER_UNLOCKED) {
-                WidgetManager.init(this@NotificationReaderService)
-                syncNotifications(refresh = true)
-            } else if (intent.action == Intent.ACTION_SCREEN_ON) {
-                isScreenOn = true
-                syncNotifications(refresh = true)
-            } else if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                isScreenOn = false
+            when (intent.action) {
+                Intent.ACTION_USER_UNLOCKED -> {
+                    WidgetManager.init(this@NotificationReaderService)
+                    syncNotifications(refresh = true)
+                }
+                Intent.ACTION_SCREEN_ON -> {
+                    isScreenOn = true
+                    syncNotifications(refresh = true)
+                    onScreenWake()
+                }
+                Intent.ACTION_SCREEN_OFF -> {
+                    isScreenOn = false
+                }
+                Intent.ACTION_USER_PRESENT -> {
+                    onUserPresent()
+                }
             }
         }
     }
@@ -259,6 +321,7 @@ class NotificationReaderService : NotificationListenerService() {
         val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
         filter.addAction(Intent.ACTION_SCREEN_ON)
         filter.addAction(Intent.ACTION_SCREEN_OFF)
+        filter.addAction(Intent.ACTION_USER_PRESENT)
         registerReceiver(systemReceiver, filter)
         
         val clickFilter = IntentFilter("com.d4viddf.hyperbridge.ISLAND_CLICKED")
@@ -1668,7 +1731,13 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             val isUpdate = previous != null
-            var candidateBridgeId = previous?.id ?: effectiveKey.hashCode()
+            val isCustomLockscreen = (matchedCustomTranslator?.behaviorOverride?.showOnLockscreen == true) && isKeyguardLocked()
+            val lockscreenStateChanged = previous != null && (previous.postedOnLockscreen != isCustomLockscreen)
+            var candidateBridgeId = if (matchedCustomTranslator?.behaviorOverride?.showOnLockscreen == true) {
+                resolveBridgeId(effectiveKey, isCustomLockscreen)
+            } else {
+                previous?.id ?: effectiveKey.hashCode()
+            }
 
             if (isMessagingLifecycle && previous != null &&
                 previous.sourceKey == sbn.key && sbn.postTime < previous.sourcePostTime
@@ -1762,11 +1831,13 @@ class NotificationReaderService : NotificationListenerService() {
                     messageEventFingerprint = messageEventFingerprint
                 )
 
-                if (decision.kind == IslandPresentationKind.UNCHANGED) {
+                if (decision.kind == IslandPresentationKind.UNCHANGED && !lockscreenStateChanged) {
                     return
                 }
 
-                builder.setOnlyAlertOnce(decision.onlyAlertOnce)
+                val bridgeIdToUse = if (lockscreenStateChanged) candidateBridgeId else decision.bridgeId
+
+                builder.setOnlyAlertOnce(decision.onlyAlertOnce && !lockscreenStateChanged)
 
                 val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
                 if (!hasPermission && com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.isSupportIsland()) {
@@ -1789,15 +1860,18 @@ class NotificationReaderService : NotificationListenerService() {
 
                 val notification = builder.build()
 
-                if (decision.cancelBeforeNotify) {
-                    internalBridgeReplacements.mark(decision.bridgeId, effectiveKey, processingGeneration, System.currentTimeMillis())
-                    NotificationManagerCompat.from(this).cancel(decision.bridgeId)
+                if (decision.cancelBeforeNotify || lockscreenStateChanged) {
+                    internalBridgeReplacements.mark(bridgeIdToUse, effectiveKey, processingGeneration, System.currentTimeMillis())
+                    NotificationManagerCompat.from(this).cancel(previous?.id ?: bridgeIdToUse)
+                    if (previous != null && previous.id != bridgeIdToUse) {
+                        reverseTranslations.remove(previous.id)
+                    }
                 }
 
-                if (!decision.onlyAlertOnce) {
-                    ShizukuManager.notify(this, decision.bridgeId, notification)
+                if (!decision.onlyAlertOnce && !lockscreenStateChanged) {
+                    ShizukuManager.notify(this, bridgeIdToUse, notification)
                 } else {
-                    NotificationManagerCompat.from(this).notify(decision.bridgeId, notification)
+                    NotificationManagerCompat.from(this).notify(bridgeIdToUse, notification)
                 }
 
                 expiredIslands.acceptNewGeneration(
@@ -1807,10 +1881,10 @@ class NotificationReaderService : NotificationListenerService() {
                     effectiveKey
                 )
 
-                activeTranslations[effectiveKey] = decision.bridgeId
-                reverseTranslations[decision.bridgeId] = effectiveKey
+                activeTranslations[effectiveKey] = bridgeIdToUse
+                reverseTranslations[bridgeIdToUse] = effectiveKey
                 activeIslands[effectiveKey] = ActiveIsland(
-                    id = decision.bridgeId,
+                    id = bridgeIdToUse,
                     type = type,
                     postTime = System.currentTimeMillis(),
                     sourcePostTime = sbn.postTime,
@@ -1825,14 +1899,17 @@ class NotificationReaderService : NotificationListenerService() {
                     subText = "LiveUpdate",
                     lastContentHash = newContentHash,
                     messageEventFingerprint = messageEventFingerprint,
-                    deleteIntent = sbn.notification.deleteIntent
+                    deleteIntent = sbn.notification.deleteIntent,
+                    postedOnLockscreen = isCustomLockscreen,
+                    customTranslatorShowOnLockscreen = matchedCustomTranslator?.behaviorOverride?.showOnLockscreen == true,
+                    sourceSbn = sbn
                 )
                 updatePermanentIsland()
                 if (previous == null) {
                     DiagnosticsStore.record(type.name, "posted", sbn.packageName, "live-update")
                 }
 
-                handlePostNotificationSideEffects(effectiveKey, decision.bridgeId, processingGeneration, finalConfig, type, true, sbn, effectiveTitle, effectiveText)
+                handlePostNotificationSideEffects(effectiveKey, bridgeIdToUse, processingGeneration, finalConfig, type, true, sbn, effectiveTitle, effectiveText)
                 monitorMediaProgress(effectiveKey, sbn)
                 return
             }
@@ -1852,6 +1929,7 @@ class NotificationReaderService : NotificationListenerService() {
                     .takeIf { it.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.WIDGET }
                     ?.widgetId
                     ?.takeIf { it.isNotBlank() }
+                val isLocked = isKeyguardLocked()
                 if (studioWidgetId != null) {
                     // A custom design (Phase 5, #273): the island body is a rendered RemoteViews
                     // tree, not the slot layout DynamicTranslator builds. Matching, priority and
@@ -1865,7 +1943,8 @@ class NotificationReaderService : NotificationListenerService() {
                         theme = activeTheme,
                         widgetId = studioWidgetId,
                         customTranslator = matchedCustomTranslator,
-                        isUpdate = isUpdate
+                        isUpdate = isUpdate,
+                        isKeyguardLocked = isLocked
                     )
                 } else dynamicTranslator.translate(
                     sbn = sbn,
@@ -1879,7 +1958,8 @@ class NotificationReaderService : NotificationListenerService() {
                     extractedSenderName = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
                     extractedConversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString(),
                     extractedMediaArtist = mediaArtist,
-                    callSession = callSession
+                    callSession = callSession,
+                    isKeyguardLocked = isLocked
                 )
             } else if (isSystemUpdate) {
                 systemUpdateTranslator.translate(
@@ -1958,21 +2038,26 @@ class NotificationReaderService : NotificationListenerService() {
                 messageEventFingerprint = messageEventFingerprint
             )
 
-            if (decision.kind == IslandPresentationKind.UNCHANGED) {
+            if (decision.kind == IslandPresentationKind.UNCHANGED && !lockscreenStateChanged) {
                 return
             }
 
-            if (decision.cancelBeforeNotify) {
-                internalBridgeReplacements.mark(decision.bridgeId, effectiveKey, processingGeneration, System.currentTimeMillis())
-                NotificationManagerCompat.from(this).cancel(decision.bridgeId)
+            val bridgeIdToUse = if (lockscreenStateChanged) candidateBridgeId else decision.bridgeId
+
+            if (decision.cancelBeforeNotify || lockscreenStateChanged) {
+                internalBridgeReplacements.mark(bridgeIdToUse, effectiveKey, processingGeneration, System.currentTimeMillis())
+                NotificationManagerCompat.from(this).cancel(previous?.id ?: bridgeIdToUse)
+                if (previous != null && previous.id != bridgeIdToUse) {
+                    reverseTranslations.remove(previous.id)
+                }
             }
 
-            Log.i(TAG, " POSTING Island -> ID: ${decision.bridgeId}, Type: $type")
+            Log.i(TAG, " POSTING Island -> ID: $bridgeIdToUse, Type: $type")
             postStandardNotification(
                 sbn = sbn,
-                bridgeId = decision.bridgeId,
+                bridgeId = bridgeIdToUse,
                 data = data,
-                shouldAlertOnce = decision.onlyAlertOnce,
+                shouldAlertOnce = decision.onlyAlertOnce && !lockscreenStateChanged,
                 suppressContentIntent = isSavedScreenRecording
             )
 
@@ -1983,10 +2068,10 @@ class NotificationReaderService : NotificationListenerService() {
                 effectiveKey
             )
 
-            activeTranslations[effectiveKey] = decision.bridgeId
-            reverseTranslations[decision.bridgeId] = effectiveKey
+            activeTranslations[effectiveKey] = bridgeIdToUse
+            reverseTranslations[bridgeIdToUse] = effectiveKey
             activeIslands[effectiveKey] = ActiveIsland(
-                id = decision.bridgeId,
+                id = bridgeIdToUse,
                 type = type,
                 postTime = System.currentTimeMillis(),
                 sourcePostTime = sbn.postTime,
@@ -2004,7 +2089,10 @@ class NotificationReaderService : NotificationListenerService() {
                 callSession = callSession,
                 screenRecordingSession = screenRecordingSession,
                 deleteIntent = sbn.notification.deleteIntent,
-                dismissSourceOnContentClick = false
+                dismissSourceOnContentClick = false,
+                postedOnLockscreen = isCustomLockscreen,
+                customTranslatorShowOnLockscreen = matchedCustomTranslator?.behaviorOverride?.showOnLockscreen == true,
+                sourceSbn = sbn
             )
             updatePermanentIsland()
             if (previous == null) {
@@ -2013,7 +2101,7 @@ class NotificationReaderService : NotificationListenerService() {
 
             handlePostNotificationSideEffects(
                 originalKey = effectiveKey,
-                bridgeId = decision.bridgeId,
+                bridgeId = bridgeIdToUse,
                 generation = processingGeneration,
                 config = finalConfig,
                 type = type,

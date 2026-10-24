@@ -80,6 +80,7 @@ import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.Navigation
 import androidx.compose.material.icons.outlined.NearMe
@@ -4751,6 +4752,7 @@ fun TranslatorBehaviorContent(
     val floatOnlyOnFirst = behavior.floatOnlyOnFirst
     val currentFloatTimeout = behavior.floatTimeoutSeconds ?: 10
     val isShowShade = behavior.isShowShade ?: false
+    val showOnLockscreen = behavior.showOnLockscreen
 
     val removeOriginalOn = behavior.removeOriginalNotification == true
     val dismissWithOriginal = behavior.dismissWithOriginal ?: false
@@ -5094,7 +5096,7 @@ fun TranslatorBehaviorContent(
             Card(
                 onClick = { onBehaviorChange(behavior.copy(isShowShade = !isShowShade)) },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -5123,6 +5125,43 @@ fun TranslatorBehaviorContent(
                     Switch(
                         checked = isShowShade,
                         onCheckedChange = { onBehaviorChange(behavior.copy(isShowShade = it)) }
+                    )
+                }
+            }
+
+            // Show on Lock Screen Toggle Card
+            Card(
+                onClick = { onBehaviorChange(behavior.copy(showOnLockscreen = !showOnLockscreen)) },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        Icons.Outlined.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(20.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.charging_island_lockscreen),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            stringResource(R.string.translator_show_on_lockscreen_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(20.dp))
+                    Switch(
+                        checked = showOnLockscreen,
+                        onCheckedChange = { onBehaviorChange(behavior.copy(showOnLockscreen = it)) }
                     )
                 }
             }

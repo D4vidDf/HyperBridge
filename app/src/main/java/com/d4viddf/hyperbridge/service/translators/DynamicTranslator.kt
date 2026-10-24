@@ -8,6 +8,10 @@ import android.util.Log
 import androidx.core.graphics.toColorInt
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
+import com.d4viddf.hyperbridge.integration.xiaomi.HyperIslandProtocolOptions
+import com.d4viddf.hyperbridge.integration.xiaomi.KEYGUARD_ISLAND_PROPERTY
+import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
+import com.d4viddf.hyperbridge.integration.xiaomi.patchHyperIslandJson
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.SmartAction
@@ -58,7 +62,8 @@ class DynamicTranslator(
         extractedSenderName: String? = null,
         extractedMediaArtist: String? = null,
         extractedConversationTitle: String? = null,
-        callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null
+        callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null,
+        isKeyguardLocked: Boolean = false
     ): HyperIslandData {
         // A TEMPLATE translator may only carry its templateId (imported .htrans, or one created
         // straight from the gallery), so fill the slots from the template preset before building.
@@ -335,8 +340,17 @@ class DynamicTranslator(
                 Log.i(TAG, " [DynamicTranslator RAW_PARAM_V2] Available Actions in Bundle: [$actionKeys]")
 
                 if (validatedJson != null) {
-                    Log.i(TAG, " [DynamicTranslator RAW_PARAM_V2] Output JSON:\n$validatedJson")
-                    return HyperIslandData(bundle, validatedJson)
+                    val finalRawJson = if (customTranslator.behaviorOverride.showOnLockscreen) {
+                        val targetIslandProperty = if (isKeyguardLocked) KEYGUARD_ISLAND_PROPERTY else 1
+                        patchHyperIslandJson(
+                            validatedJson,
+                            HyperIslandProtocolOptions(islandProperty = targetIslandProperty)
+                        )
+                    } else {
+                        validatedJson
+                    }
+                    Log.i(TAG, " [DynamicTranslator RAW_PARAM_V2] Output JSON:\n$finalRawJson")
+                    return HyperIslandData(bundle, finalRawJson)
                 } else if (rawConfig?.fallbackToStandardOnError == false) {
                     Log.w(TAG, " [DynamicTranslator RAW_PARAM_V2] Invalid JSON but fallback disabled, Output JSON:\n$interpolatedJson")
                     return HyperIslandData(bundle, interpolatedJson)
@@ -712,8 +726,13 @@ class DynamicTranslator(
             }
         }
 
-        val jsonParam = builder.buildJsonParam()
-        Log.d(TAG, " [DynamicTranslator] '${customTranslator.meta.name}' (${sbn.packageName}): template=${customTranslator.presentation.templateId ?: customTranslator.presentation.mode.name}, float=$isFloat, shade=$isShade")
+        val jsonParam = if (customTranslator.behaviorOverride.showOnLockscreen) {
+            val targetIslandProperty = if (isKeyguardLocked) KEYGUARD_ISLAND_PROPERTY else 1
+            builder.buildJsonParam(HyperIslandProtocolOptions(islandProperty = targetIslandProperty))
+        } else {
+            builder.buildJsonParam()
+        }
+        Log.d(TAG, " [DynamicTranslator] '${customTranslator.meta.name}' (${sbn.packageName}): template=${customTranslator.presentation.templateId ?: customTranslator.presentation.mode.name}, float=$isFloat, shade=$isShade, showOnLockscreen=${customTranslator.behaviorOverride.showOnLockscreen}, isKeyguardLocked=$isKeyguardLocked")
 
         return HyperIslandData(builder.buildResourceBundle(), jsonParam)
     }
