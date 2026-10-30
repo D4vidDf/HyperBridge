@@ -134,17 +134,20 @@
 
                 <data android:scheme="content" />
                 <data android:scheme="file" />
+                <data android:host="*" />
                 <data android:mimeType="*/*" />
 
                 <data android:pathPattern=".*\\.hwidget" />
                 <data android:pathPattern=".*\\.htrans" />
                 <data android:pathPattern=".*\\.htheme" />
                 <data android:pathPattern=".*\\.hbr" />
+                <data android:pathPattern=".*\\.hscheme" />
 
                 <data android:pathSuffix=".hwidget" />
                 <data android:pathSuffix=".htrans" />
                 <data android:pathSuffix=".htheme" />
                 <data android:pathSuffix=".hbr" />
+                <data android:pathSuffix=".hscheme" />
             </intent-filter>
 
             <intent-filter>
@@ -154,30 +157,19 @@
 
                 <data android:scheme="content" />
                 <data android:scheme="file" />
+                <data android:host="*" />
 
                 <data android:pathPattern=".*\\.hwidget" />
                 <data android:pathPattern=".*\\.htrans" />
                 <data android:pathPattern=".*\\.htheme" />
                 <data android:pathPattern=".*\\.hbr" />
+                <data android:pathPattern=".*\\.hscheme" />
 
                 <data android:pathSuffix=".hwidget" />
                 <data android:pathSuffix=".htrans" />
                 <data android:pathSuffix=".htheme" />
                 <data android:pathSuffix=".hbr" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/octet-stream" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/json" />
+                <data android:pathSuffix=".hscheme" />
             </intent-filter>
         </activity>
 
