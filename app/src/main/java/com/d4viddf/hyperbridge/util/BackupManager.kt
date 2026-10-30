@@ -135,6 +135,13 @@ class BackupManager(
 
     suspend fun readBackupFile(uri: Uri): Result<HyperBridgeBackup> = withContext(Dispatchers.IO) {
         try {
+            val fileName = HyperBridgeFileExtensions.resolveFileName(context, uri)
+            if (fileName != null && HyperBridgeFileExtensions.extractExtension(fileName) != null &&
+                !HyperBridgeFileExtensions.isBackupFile(fileName)
+            ) {
+                return@withContext Result.failure(IllegalArgumentException("Unsupported file extension (expected .hbr)"))
+            }
+
             val backup = context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 java.io.InputStreamReader(inputStream, Charsets.UTF_8).use { reader ->
                     gson.fromJson(reader, HyperBridgeBackup::class.java)

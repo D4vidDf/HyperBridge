@@ -196,7 +196,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             if (zipFile != null) {
                 val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", zipFile)
                 val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "application/zip"
+                    type = "application/octet-stream"
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }

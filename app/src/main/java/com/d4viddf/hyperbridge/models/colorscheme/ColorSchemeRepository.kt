@@ -7,17 +7,21 @@ import java.io.File
 
 /**
  * Manages installed and creator-provided YAML color schemes.
- * Stores schemes as `*.yaml` files in `context.filesDir/color_schemes/`.
+ * Stores schemes as `*.hscheme` files in `context.filesDir/color_schemes/`.
  */
 class ColorSchemeRepository(private val context: Context) {
 
     private val schemesDir: File
         get() = File(context.filesDir, "color_schemes").apply { if (!exists()) mkdirs() }
 
+    private fun isSchemeFileName(name: String): Boolean {
+        return name.endsWith(".hscheme", ignoreCase = true) ||
+            name.endsWith(".yaml", ignoreCase = true) ||
+            name.endsWith(".yml", ignoreCase = true)
+    }
+
     suspend fun getInstalledSchemes(): List<ColorSchemeDefinition> = withContext(Dispatchers.IO) {
-        val files = schemesDir.listFiles { _, name ->
-            name.endsWith(".yaml", ignoreCase = true) || name.endsWith(".yml", ignoreCase = true)
-        } ?: emptyArray()
+        val files = schemesDir.listFiles { _, name -> isSchemeFileName(name) } ?: emptyArray()
 
         files.mapNotNull { file ->
             runCatching {
@@ -33,7 +37,7 @@ class ColorSchemeRepository(private val context: Context) {
 
     suspend fun saveScheme(def: ColorSchemeDefinition): File = withContext(Dispatchers.IO) {
         val safeName = def.name.replace(Regex("[^a-zA-Z0-9_-]"), "_").lowercase()
-        val file = File(schemesDir, "${safeName}.hscheme.yaml")
+        val file = File(schemesDir, "${safeName}.hscheme")
         val yaml = YamlColorSchemeParser.serialize(def)
         file.writeText(yaml)
         file
@@ -46,9 +50,7 @@ class ColorSchemeRepository(private val context: Context) {
     }
 
     suspend fun deleteScheme(id: String): Boolean = withContext(Dispatchers.IO) {
-        val files = schemesDir.listFiles { _, name ->
-            name.endsWith(".yaml", ignoreCase = true) || name.endsWith(".yml", ignoreCase = true)
-        } ?: emptyArray()
+        val files = schemesDir.listFiles { _, name -> isSchemeFileName(name) } ?: emptyArray()
 
         var deleted = false
         files.forEach { file ->

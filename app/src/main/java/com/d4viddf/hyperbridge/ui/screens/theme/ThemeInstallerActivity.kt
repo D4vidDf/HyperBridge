@@ -48,22 +48,38 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
+import com.d4viddf.hyperbridge.data.model.AppSettingBackup
+import com.d4viddf.hyperbridge.data.model.BackupMetadata
+import com.d4viddf.hyperbridge.data.model.CustomWidgetBackupItem
 import com.d4viddf.hyperbridge.data.model.HyperBridgeBackup
+import com.d4viddf.hyperbridge.data.model.TranslatorBackupItem
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.translator.TranslatorRepository
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition
+import com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRepository
+import com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser
+import com.d4viddf.hyperbridge.models.theme.GlobalConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
+import com.d4viddf.hyperbridge.models.theme.ThemeMetadata
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
+import com.d4viddf.hyperbridge.models.widget.CanvasSize
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
 import com.d4viddf.hyperbridge.util.BackupManager
 import com.d4viddf.hyperbridge.util.BackupSelection
+import com.d4viddf.hyperbridge.util.HyperBridgeFileExtensions
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -143,6 +159,9 @@ fun InstallerScreen(
                 }
                 is PackagePreview.Backup -> {
                     installState = InstallState.BackupReady(preview.backup, uri)
+                }
+                is PackagePreview.ColorScheme -> {
+                    installState = InstallState.ColorSchemeReady(preview.scheme, preview.rawText)
                 }
             }
         } catch (e: Exception) {
@@ -259,6 +278,28 @@ fun InstallerScreen(
                             onCancel = onFinish
                         )
                     }
+                    is InstallState.ColorSchemeReady -> {
+                        ColorSchemeReadyContent(
+                            scheme = state.scheme,
+                            onImport = {
+                                scope.launch {
+                                    try {
+                                        ColorSchemeRepository(context.applicationContext)
+                                            .importSchemeFromYaml(state.rawText)
+                                        installState = InstallState.SuccessMessage(
+                                            title = context.getString(R.string.studio_color_scheme_tab_tokens),
+                                            message = context.getString(R.string.studio_color_scheme_import_yaml_success)
+                                        )
+                                    } catch (e: Exception) {
+                                        installState = InstallState.Error(
+                                            e.localizedMessage ?: context.getString(R.string.studio_color_scheme_import_yaml_error)
+                                        )
+                                    }
+                                }
+                            },
+                            onCancel = onFinish
+                        )
+                    }
                     is InstallState.SuccessMessage -> {
                         SuccessMessageContent(
                             title = state.title,
@@ -285,6 +326,7 @@ private sealed class PackagePreview {
     data class CustomDesign(val widget: CustomWidgetDocument, val translator: CustomTranslator?) : PackagePreview()
     data class Translator(val translator: CustomTranslator) : PackagePreview()
     data class Backup(val backup: HyperBridgeBackup) : PackagePreview()
+    data class ColorScheme(val scheme: ColorSchemeDefinition, val rawText: String) : PackagePreview()
 }
 
 private fun readEntryBytes(zip: ZipInputStream): ByteArray {
@@ -302,6 +344,13 @@ private suspend fun inspectPackage(
     uri: Uri,
     themeRepo: ThemeRepository
 ): PackagePreview = withContext(Dispatchers.IO) {
+    val fileName = HyperBridgeFileExtensions.resolveFileName(context, uri)
+    if (fileName != null && HyperBridgeFileExtensions.extractExtension(fileName) != null &&
+        !HyperBridgeFileExtensions.isSupportedPackageFile(fileName)
+    ) {
+        throw IllegalArgumentException(context.getString(R.string.package_installer_unsupported))
+    }
+
     val isZip = context.contentResolver.openInputStream(uri)?.use { stream ->
         val header = ByteArray(4)
         val read = stream.read(header)
@@ -361,7 +410,17 @@ private suspend fun inspectPackage(
             stream.bufferedReader(Charsets.UTF_8).readText()
         } ?: throw IllegalArgumentException("Could not read file")
 
-        // 1. Try parsing as Backup
+        // 1. Try parsing as Color Scheme (.hscheme) if file extension is .hscheme or valid YAML scheme
+        if (fileName == null || HyperBridgeFileExtensions.isColorSchemeFile(fileName)) {
+            try {
+                val scheme = YamlColorSchemeParser.parse(text)
+                if (scheme.roles.isNotEmpty()) {
+                    return@withContext PackagePreview.ColorScheme(scheme, text)
+                }
+            } catch (_: Exception) {}
+        }
+
+        // 2. Try parsing as Backup
         try {
             val backup = Gson().fromJson(text, HyperBridgeBackup::class.java)
             if (backup?.metadata?.packageName == context.packageName) {
@@ -369,17 +428,25 @@ private suspend fun inspectPackage(
             }
         } catch (_: Exception) {}
 
-        // 2. Try parsing as Translator
+        // 3. Try parsing as Translator
         val parsedTranslator = CustomTranslator.fromJson(text).getOrNull()
         if (parsedTranslator != null) {
             return@withContext PackagePreview.Translator(parsedTranslator)
         }
 
-        // 3. Try parsing as Widget Document
+        // 4. Try parsing as Widget Document
         try {
             val doc = json.decodeFromString<CustomWidgetDocument>(text)
             if (doc.id.isNotBlank()) {
                 return@withContext PackagePreview.CustomDesign(doc, null)
+            }
+        } catch (_: Exception) {}
+
+        // 5. Fallback: try parsing as Color Scheme if not already matched
+        try {
+            val scheme = YamlColorSchemeParser.parse(text)
+            if (scheme.roles.isNotEmpty()) {
+                return@withContext PackagePreview.ColorScheme(scheme, text)
             }
         } catch (_: Exception) {}
 
@@ -877,6 +944,82 @@ private fun ErrorContent(
     }
 }
 
+@Composable
+private fun ColorSchemeReadyContent(
+    scheme: ColorSchemeDefinition,
+    onImport: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(72.dp)
+            .background(MaterialTheme.colorScheme.tertiaryContainer, RequestIconShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.Palette,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.size(32.dp)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Text(
+        text = stringResource(R.string.studio_color_scheme_tab_tokens),
+        style = MaterialTheme.typography.headlineSmall,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+        text = scheme.name.ifBlank { scheme.id },
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+
+    if (scheme.author.isNotBlank()) {
+        Text(
+            text = stringResource(R.string.theme_installer_author, scheme.author),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = onImport,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Icon(Icons.Rounded.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.studio_color_scheme_import_yaml))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.package_installer_action_cancel))
+        }
+    }
+}
+
 sealed class InstallState {
     data object Idle : InstallState()
     data object Installing : InstallState()
@@ -894,6 +1037,10 @@ sealed class InstallState {
         val backup: HyperBridgeBackup,
         val uri: Uri
     ) : InstallState()
+    data class ColorSchemeReady(
+        val scheme: ColorSchemeDefinition,
+        val rawText: String
+    ) : InstallState()
     data class SuccessMessage(
         val title: String,
         val message: String
@@ -902,3 +1049,166 @@ sealed class InstallState {
 }
 
 private val RequestIconShape = RoundedCornerShape(20.dp)
+
+@Composable
+private fun InstallerDialogSurfacePreviewContainer(
+    content: @Composable () -> Unit
+) {
+    HyperBridgeTheme {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .padding(16.dp)
+                .width(320.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Analyzing")
+@Composable
+private fun ThemeInstallerLoadingPreview() {
+    InstallerDialogSurfacePreviewContainer {
+        LoadingContent()
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Theme Ready (.htheme)")
+@Composable
+private fun ThemeInstallerThemeReadyPreview() {
+    InstallerDialogSurfacePreviewContainer {
+        ThemeSuccessContent(
+            theme = HyperTheme(
+                id = "hyper_neon",
+                meta = ThemeMetadata(
+                    name = "Hyper Neon",
+                    author = "d4viddf",
+                    version = 2
+                ),
+                global = GlobalConfig(highlightColor = "#00E5FF")
+            ),
+            onApply = {},
+            onCancel = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Widget Design Ready (.hwidget)")
+@Composable
+private fun ThemeInstallerWidgetReadyPreview() {
+    val sampleTranslator = CustomTranslator(
+        id = "media_trans",
+        meta = TranslatorMetadata(name = "Spotify Now Playing", author = "d4viddf")
+    )
+    InstallerDialogSurfacePreviewContainer {
+        WidgetReadyContent(
+            widgetDoc = CustomWidgetDocument(
+                id = "spotify_card",
+                meta = CustomWidgetMetadata(name = "Spotify Compact Card", author = "d4viddf"),
+                canvas = CanvasSize.MEDIUM,
+                root = LayoutContainer(id = "root")
+            ),
+            translator = sampleTranslator,
+            onImport = {},
+            onCancel = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Translator Ready (.htrans)")
+@Composable
+private fun ThemeInstallerTranslatorReadyPreview() {
+    InstallerDialogSurfacePreviewContainer {
+        TranslatorReadyContent(
+            translator = CustomTranslator(
+                id = "delivery_tracker",
+                meta = TranslatorMetadata(
+                    name = "Live Delivery Tracker",
+                    author = "HyperBridge Community",
+                    iconName = "LocalShipping"
+                )
+            ),
+            onImport = {},
+            onCancel = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Backup Ready (.hbr)")
+@Composable
+private fun ThemeInstallerBackupReadyPreview() {
+    InstallerDialogSurfacePreviewContainer {
+        BackupReadyContent(
+            backup = HyperBridgeBackup(
+                metadata = BackupMetadata(
+                    packageName = "com.d4viddf.hyperbridge",
+                    versionCode = 42,
+                    versionName = "0.6.0",
+                    timestamp = 1730000000000L,
+                    deviceModel = "Xiaomi 15 Pro"
+                ),
+                settings = listOf(
+                    AppSettingBackup("key1", "val1"),
+                    AppSettingBackup("key2", "val2")
+                ),
+                translators = listOf(
+                    TranslatorBackupItem(id = "t1", jsonContent = "{}")
+                ),
+                widgets = listOf(
+                    CustomWidgetBackupItem(id = "w1", configJson = "{}")
+                )
+            ),
+            onRestore = {},
+            onCancel = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Color Scheme Ready (.hscheme)")
+@Composable
+private fun ThemeInstallerColorSchemeReadyPreview() {
+    InstallerDialogSurfacePreviewContainer {
+        ColorSchemeReadyContent(
+            scheme = ColorSchemeDefinition(
+                id = "amoled_ocean",
+                name = "AMOLED Ocean Palette",
+                author = "d4viddf",
+                roles = mapOf("primary" to "#00B4D8")
+            ),
+            onImport = {},
+            onCancel = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Success")
+@Composable
+private fun ThemeInstallerSuccessPreview() {
+    InstallerDialogSurfacePreviewContainer {
+        SuccessMessageContent(
+            title = "Design Imported",
+            message = "Custom design \"Spotify Compact Card\" was imported successfully.",
+            onDone = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Installer - Error")
+@Composable
+private fun ThemeInstallerErrorPreview() {
+    InstallerDialogSurfacePreviewContainer {
+        ErrorContent(
+            message = "The selected file is not a supported HyperBridge package.",
+            onClose = {}
+        )
+    }
+}
+

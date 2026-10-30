@@ -5277,6 +5277,10 @@ private fun StudioColorSchemeSelectorCard(
             ) { uri: Uri? ->
                 if (uri != null) {
                     try {
+                        val fileName = com.d4viddf.hyperbridge.util.HyperBridgeFileExtensions.resolveFileName(context, uri)
+                        if (fileName != null && !com.d4viddf.hyperbridge.util.HyperBridgeFileExtensions.isColorSchemeFile(fileName)) {
+                            return@rememberLauncherForActivityResult
+                        }
                         val text = context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
                         if (!text.isNullOrBlank()) {
                             val parsed = com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.parse(text)
@@ -5291,7 +5295,7 @@ private fun StudioColorSchemeSelectorCard(
             }
 
             val exportYamlLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.CreateDocument("application/yaml")
+                contract = ActivityResultContracts.CreateDocument("application/octet-stream")
             ) { uri: Uri? ->
                 if (uri != null) {
                     try {
@@ -5313,8 +5317,8 @@ private fun StudioColorSchemeSelectorCard(
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.studio_color_scheme_import_yaml), style = MaterialTheme.typography.labelSmall)
                 }
-                androidx.compose.material3.OutlinedButton(
-                    onClick = { exportYamlLauncher.launch("${activeColorScheme.name.lowercase().replace(" ", "_")}.hscheme.yaml") },
+                OutlinedButton(
+                    onClick = { exportYamlLauncher.launch("${activeColorScheme.name.lowercase().replace(" ", "_")}.hscheme") },
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.FileDownload, null, modifier = Modifier.size(16.dp))

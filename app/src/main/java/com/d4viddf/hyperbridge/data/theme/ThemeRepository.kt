@@ -298,7 +298,7 @@ class ThemeRepository(private val context: Context) {
     }
 
     /**
-     * Zips the theme folder into a .hbr file for sharing.
+     * Zips the theme folder into a .htheme file for sharing.
      */
     suspend fun exportTheme(themeId: String): File? {
         return withContext(Dispatchers.IO) {
@@ -308,7 +308,7 @@ class ThemeRepository(private val context: Context) {
             val exportDir = File(context.cacheDir, "exports")
             if (!exportDir.exists()) exportDir.mkdirs()
 
-            val zipFile = File(exportDir, "${themeId}_v1.hbr")
+            val zipFile = File(exportDir, "${themeId}_v1.htheme")
             try {
                 java.util.zip.ZipOutputStream(java.io.FileOutputStream(zipFile)).use { zos ->
                     sourceFolder.walkTopDown().forEach { file ->
