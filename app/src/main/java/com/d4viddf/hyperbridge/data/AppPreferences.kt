@@ -168,7 +168,6 @@ class AppPreferences internal constructor(
     // --- HELPERS ---
     private fun String?.toBoolean(default: Boolean = false): Boolean = this?.toBooleanStrictOrNull() ?: default
     private fun String?.toInt(default: Int = 0): Int = this?.toIntOrNull() ?: default
-    private fun String?.toLong(default: Long = 0L): Long = this?.toLongOrNull() ?: default
 
     private fun Set<String>.serialize(): String = this.joinToString(",")
     private fun String?.deserializeSet(): Set<String> = this?.split(",")?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
@@ -209,9 +208,6 @@ class AppPreferences internal constructor(
 
     val featuredPermissionWarningFlow: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.FEATURED_PERMISSION_WARNING).map { it.toBoolean(false) }
     suspend fun setFeaturedPermissionWarning(show: Boolean) = save(SettingsKeys.FEATURED_PERMISSION_WARNING, show.toString())
-
-    val floatingSetupNoticePendingFlow: Flow<Boolean> =
-        dao.getSettingFlow(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING).map { it.toBoolean(false) }
 
     val floatingSetupConfirmedPackagesFlow: Flow<Set<String>> =
         dao.getSettingFlow(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).map { it.deserializeSet() }
@@ -466,16 +462,24 @@ class AppPreferences internal constructor(
     val chargingExpandedProgressBarFlow: Flow<Boolean> =
         dao.getSettingFlow(SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR).map { it.toBoolean(true) }
 
+    val chargingSpeedModeFlow: Flow<com.d4viddf.hyperbridge.models.ChargingSpeedMode> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_SPEED_MODE).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ChargingSpeedMode.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ChargingSpeedMode.REAL_TIME
+        }
+
     val chargingDesignFlow: Flow<com.d4viddf.hyperbridge.models.ChargingDesignConfig> =
         combine(
             chargingLeftDesignFlow,
             chargingRightDesignFlow,
-            chargingExpandedProgressBarFlow
-        ) { left, right, showExpandedProgressBar ->
+            chargingExpandedProgressBarFlow,
+            chargingSpeedModeFlow
+        ) { left, right, showExpandedProgressBar, speedMode ->
             com.d4viddf.hyperbridge.models.ChargingDesignConfig(
                 left = left,
                 right = right,
-                showExpandedProgressBar = showExpandedProgressBar
+                showExpandedProgressBar = showExpandedProgressBar,
+                speedMode = speedMode
             )
         }
 
@@ -487,6 +491,9 @@ class AppPreferences internal constructor(
 
     suspend fun setChargingExpandedProgressBar(show: Boolean) =
         save(SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR, show.toString())
+
+    suspend fun setChargingSpeedMode(mode: com.d4viddf.hyperbridge.models.ChargingSpeedMode) =
+        save(SettingsKeys.CHARGING_SPEED_MODE, mode.name)
 
     // --- SYSTEM ISLAND: VPN ---
     val vpnDetectionModeFlow: Flow<com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode> =
@@ -1113,11 +1120,17 @@ class AppPreferences internal constructor(
     fun getChargingExpandedProgressBarSync(): Boolean =
         memoryCache[SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR].toBoolean(true)
 
+    fun getChargingSpeedModeSync(): com.d4viddf.hyperbridge.models.ChargingSpeedMode =
+        memoryCache[SettingsKeys.CHARGING_SPEED_MODE]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ChargingSpeedMode.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ChargingSpeedMode.REAL_TIME
+
     fun getChargingDesignSync(): com.d4viddf.hyperbridge.models.ChargingDesignConfig =
         com.d4viddf.hyperbridge.models.ChargingDesignConfig(
             left = getChargingLeftDesignSync(),
             right = getChargingRightDesignSync(),
-            showExpandedProgressBar = getChargingExpandedProgressBarSync()
+            showExpandedProgressBar = getChargingExpandedProgressBarSync(),
+            speedMode = getChargingSpeedModeSync()
         )
 
     fun isVpnIslandEnabledSync(): Boolean = memoryCache["vpn_island_enabled"]?.toBoolean(true) ?: true

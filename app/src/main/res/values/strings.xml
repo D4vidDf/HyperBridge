@@ -838,6 +838,9 @@
     <string name="charging_right_option_speed">Charging speed</string>
     <string name="charging_right_option_remaining_time">Remaining time</string>
     <string name="charging_right_option_none">Nothing</string>
+    <string name="charging_speed_mode_title">Charging speed display</string>
+    <string name="charging_speed_mode_real_time">Real-time watts</string>
+    <string name="charging_speed_mode_max_negotiated">Max negotiated watts (e.g. 67 W / 90 W)</string>
     <string name="charging_island_expanded_progress">Expanded progress bar</string>
     <string name="charging_island_expanded_progress_desc">Show a battery progress bar when the charging island is expanded.</string>
 

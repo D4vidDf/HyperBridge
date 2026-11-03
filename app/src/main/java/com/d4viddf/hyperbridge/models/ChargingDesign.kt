@@ -15,8 +15,14 @@ enum class ChargingRightDesign {
     NONE
 }
 
+enum class ChargingSpeedMode {
+    REAL_TIME,
+    MAX_NEGOTIATED
+}
+
 data class ChargingDesignConfig(
     val left: ChargingLeftDesign = ChargingLeftDesign.CHARGING_SPEED,
     val right: ChargingRightDesign = ChargingRightDesign.BATTERY_PERCENTAGE,
-    val showExpandedProgressBar: Boolean = true
+    val showExpandedProgressBar: Boolean = true,
+    val speedMode: ChargingSpeedMode = ChargingSpeedMode.REAL_TIME
 )

@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.service.charging
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -29,6 +30,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Charging status island. There is no source notification to bridge, so like the VPN island
@@ -59,6 +61,9 @@ class ChargingIslandController(
     @Volatile private var design = ChargingDesignConfig()
     private var receiverRegistered = false
     private var lastBatteryIntent: Intent? = null
+    private var lastQuickChargeIntent: Intent? = null
+    private val recentCurrentSamples = ArrayDeque<Int>(MAX_CURRENT_SAMPLES)
+    private val designCapacityMah: Int by lazy { readDesignCapacityMah(context) }
     private var shownState: ChargingState? = null
     private var notificationPosted = false
     private var lockscreenShownState: ChargingState? = null
@@ -67,7 +72,14 @@ class ChargingIslandController(
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == Intent.ACTION_BATTERY_CHANGED) lastBatteryIntent = intent
+            when (intent.action) {
+                Intent.ACTION_BATTERY_CHANGED -> lastBatteryIntent = intent
+                ACTION_QUICK_CHARGE_TYPE -> lastQuickChargeIntent = intent
+                Intent.ACTION_POWER_DISCONNECTED -> {
+                    lastQuickChargeIntent = null
+                    recentCurrentSamples.clear()
+                }
+            }
             val woke = intent.action == Intent.ACTION_SCREEN_ON
             scope.launch { refresh(recheckLockscreen = woke) }
         }
@@ -109,6 +121,7 @@ class ChargingIslandController(
         unregisterReceiver()
         pollJob?.cancel()
         pollJob = null
+        recentCurrentSamples.clear()
         shownState = null
         cancelIsland()
         cancelLockscreenIsland()
@@ -122,9 +135,18 @@ class ChargingIslandController(
             addAction(Intent.ACTION_POWER_DISCONNECTED)
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_USER_PRESENT)
+            addAction(ACTION_QUICK_CHARGE_TYPE)
         }
-        // ACTION_BATTERY_CHANGED is sticky: registering hands back the current state at once.
-        lastBatteryIntent = ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        // ACTION_BATTERY_CHANGED and ACTION_QUICK_CHARGE_TYPE are sticky broadcasts.
+        lastBatteryIntent = ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        lastQuickChargeIntent = runCatching {
+            ContextCompat.registerReceiver(
+                context,
+                null,
+                IntentFilter(ACTION_QUICK_CHARGE_TYPE),
+                ContextCompat.RECEIVER_EXPORTED
+            )
+        }.getOrNull()
         receiverRegistered = true
         scope.launch { refresh() }
     }
@@ -133,20 +155,70 @@ class ChargingIslandController(
         if (receiverRegistered) runCatching { context.unregisterReceiver(receiver) }
         receiverRegistered = false
         lastBatteryIntent = null
+        lastQuickChargeIntent = null
+        recentCurrentSamples.clear()
     }
 
     private fun currentState(): ChargingState? {
         val intent = lastBatteryIntent ?: return null
-        val currentNow = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+        val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+        if (plugged == 0) {
+            recentCurrentSamples.clear()
+            return null
+        }
+        val rawCurrentNow = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+            ?.takeIf { it != 0 && it != Int.MIN_VALUE && it != Int.MAX_VALUE }
+            ?: batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
+                ?.takeIf { it != 0 && it != Int.MIN_VALUE && it != Int.MAX_VALUE }
+        val smoothedCurrent = smoothCurrent(rawCurrentNow)
+
+        val quickChargeIntent = lastQuickChargeIntent ?: runCatching {
+            ContextCompat.registerReceiver(
+                context,
+                null,
+                IntentFilter(ACTION_QUICK_CHARGE_TYPE),
+                ContextCompat.RECEIVER_EXPORTED
+            )
+        }.getOrNull()?.also { lastQuickChargeIntent = it }
+
+        val powerMaxWatts = quickChargeIntent?.getIntExtra(EXTRA_POWER_MAX, 0) ?: 0
+        val quickChargeType = quickChargeIntent?.getIntExtra(EXTRA_QUICK_CHARGE_TYPE, 0) ?: 0
+
+        val chargeCounter = intent.getIntExtra(EXTRA_CHARGE_COUNTER, 0).takeIf { it > 0 }
+            ?: batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
+                ?.takeIf { it > 0 }
+            ?: 0
+
         return ChargingStateResolver.resolve(
-            plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0),
+            plugged = plugged,
             status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN),
             level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0),
             scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100),
             voltageMillivolts = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0),
-            currentNow = currentNow,
-            chargeTimeRemainingMillis = batteryManager?.computeChargeTimeRemaining() ?: -1L
+            currentNow = smoothedCurrent,
+            chargeTimeRemainingMillis = batteryManager?.computeChargeTimeRemaining() ?: -1L,
+            powerMaxWatts = powerMaxWatts,
+            quickChargeType = quickChargeType,
+            maxChargingCurrentMicroamps = intent.getIntExtra(EXTRA_MAX_CHARGING_CURRENT, 0),
+            maxChargingVoltageMicrovolts = intent.getIntExtra(EXTRA_MAX_CHARGING_VOLTAGE, 0),
+            chargeCounterMicroampHours = chargeCounter,
+            designCapacityMah = designCapacityMah,
+            speedMode = design.speedMode
         )
+    }
+
+    private fun smoothCurrent(sample: Int?): Int? {
+        if (sample != null) {
+            val magnitude = kotlin.math.abs(sample.toLong()).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+            if (magnitude > 0) {
+                if (recentCurrentSamples.size >= MAX_CURRENT_SAMPLES) {
+                    recentCurrentSamples.removeFirst()
+                }
+                recentCurrentSamples.addLast(magnitude)
+            }
+        }
+        if (recentCurrentSamples.isEmpty()) return sample
+        return recentCurrentSamples.average().toInt()
     }
 
     private suspend fun refresh(recheckLockscreen: Boolean = false) = mutex.withLock {
@@ -169,7 +241,7 @@ class ChargingIslandController(
         if (pollJob?.isActive == true) return
         pollJob = scope.launch {
             while (isActive) {
-                delay(POLL_INTERVAL_MS)
+                delay(POLL_INTERVAL_MS.milliseconds)
                 refresh()
             }
         }
@@ -262,6 +334,7 @@ class ChargingIslandController(
     private fun clear() {
         pollJob?.cancel()
         pollJob = null
+        recentCurrentSamples.clear()
         shownState = null
         notificationPosted = false
         cancelIsland()
@@ -284,5 +357,21 @@ class ChargingIslandController(
         val NOTIFICATION_ID = ChargingTranslator.BUSINESS.hashCode()
         val LOCKSCREEN_NOTIFICATION_ID = (ChargingTranslator.BUSINESS + "_lockscreen").hashCode()
         private const val POLL_INTERVAL_MS = 5_000L
+        private const val MAX_CURRENT_SAMPLES = 4
+
+        private const val ACTION_QUICK_CHARGE_TYPE = "miui.intent.action.ACTION_QUICK_CHARGE_TYPE"
+        private const val EXTRA_POWER_MAX = "miui.intent.extra.POWER_MAX"
+        private const val EXTRA_QUICK_CHARGE_TYPE = "miui.intent.extra.quick_charge_type"
+        private const val EXTRA_MAX_CHARGING_CURRENT = "max_charging_current"
+        private const val EXTRA_MAX_CHARGING_VOLTAGE = "max_charging_voltage"
+        private const val EXTRA_CHARGE_COUNTER = "charge_counter"
+
+        @SuppressLint("PrivateApi")
+        private fun readDesignCapacityMah(context: Context): Int = runCatching {
+            val powerProfileClass = Class.forName("com.android.internal.os.PowerProfile")
+            val powerProfile = powerProfileClass.getConstructor(Context::class.java).newInstance(context)
+            val capacity = powerProfileClass.getMethod("getBatteryCapacity").invoke(powerProfile) as? Double
+            capacity?.toInt()?.takeIf { it in 2_000..15_000 } ?: 0
+        }.getOrDefault(0)
     }
 }
