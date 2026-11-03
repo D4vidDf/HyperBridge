@@ -842,4 +842,42 @@
     <string name="design_share_showcase_hint">Optimizado para HyperBridge Showcase y redes sociales</string>
     <string name="design_share_include_translator_title">Incluir traductor vinculado</string>
     <string name="design_share_include_translator_desc">Exporta las reglas y activadores junto con el diseño visual</string>
+
+    <!-- Color Scheme & Palette Tokens -->
+    <string name="studio_color_scheme_title">Esquema de color</string>
+    <string name="studio_color_scheme_source">Origen de la paleta</string>
+    <string name="studio_color_scheme_phone_dynamic">Dinámico del teléfono (Monet M3)</string>
+    <string name="studio_color_scheme_phone_expressive">Expresivo del teléfono (Dinámico M3)</string>
+    <string name="studio_color_scheme_app_icon">Expresivo del icono de la app</string>
+    <string name="studio_color_scheme_notif_media">Expresivo de multimedia de notificación</string>
+    <string name="studio_color_scheme_custom_preset">Paleta .hscheme</string>
+    <string name="studio_color_scheme_select_scheme">Paleta .hscheme seleccionada</string>
+    <string name="studio_color_scheme_search_placeholder">Buscar paletas…</string>
+    <string name="studio_color_scheme_built_in_header">Paletas integradas</string>
+    <string name="studio_color_scheme_imported_header">Paletas importadas (.hscheme)</string>
+    <string name="studio_color_scheme_empty_search">No se encontraron paletas</string>
+    <string name="studio_color_scheme_media_source">Recurso multimedia</string>
+    <string name="studio_color_scheme_media_album_art">Carátula de álbum / Multimedia grande</string>
+    <string name="studio_color_scheme_media_picture">Imagen adjunta</string>
+    <string name="studio_color_scheme_media_avatar">Avatar de usuario / Remitente</string>
+    <string name="studio_color_scheme_tab_tokens">Esquema de color</string>
+    <string name="studio_color_scheme_tab_custom">Color personalizado</string>
+    <string name="studio_color_scheme_token_badge">Token</string>
+    <string name="studio_color_scheme_export_yaml">Exportar .hscheme</string>
+    <string name="studio_color_scheme_import_yaml">Importar .hscheme</string>
+    <string name="studio_color_scheme_embed_yaml">Incrustado en el diseño</string>
+    <string name="studio_color_scheme_presets">Ajustes preestablecidos</string>
+    <string name="studio_color_scheme_quick_tokens">Colores del esquema</string>
+    <string name="studio_color_scheme_import_yaml_success">Esquema de color importado correctamente</string>
+    <string name="studio_color_scheme_import_yaml_error">Error al procesar el archivo YAML del esquema</string>
+    <string name="studio_color_mode_scheme">Esquema</string>
+    <string name="studio_color_mode_custom">Personalizado</string>
+    <string name="studio_color_scheme_all_roles">Todos los roles</string>
+    <string name="studio_font_family_section_title">Familia de fuente</string>
+    <string name="studio_font_family_select_title">Seleccionar familia de fuente</string>
+    <string name="studio_font_family_search_placeholder">Buscar fuentes…</string>
+    <string name="studio_font_family_system_header">Fuentes del sistema</string>
+    <string name="studio_font_family_imported_header">Fuentes importadas</string>
+    <string name="studio_font_family_import_button">Importar fuente (.ttf / .otf)</string>
+    <string name="studio_font_family_empty_search">No se encontraron fuentes</string>
 </resources>

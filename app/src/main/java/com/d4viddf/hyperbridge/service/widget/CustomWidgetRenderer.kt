@@ -302,6 +302,12 @@ class CustomWidgetRenderer(
         val resolved = engine.resolve(template, ctx)
 
         val hasStyle = node.bold || node.italic
+        val effectiveCustomFontUri = node.customFontUri
+            ?: if (node.fontFamily == TextFontFamily.DEFAULT) doc.globals.customFontUri else null
+        val customTypeface = if ( android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P && !effectiveCustomFontUri.isNullOrBlank()) {
+            com.d4viddf.hyperbridge.models.widget.CustomFontRepository.resolveTypefaceCached(context, effectiveCustomFontUri)
+        } else null
+
         val effectiveFontFamily = if (node.fontFamily == TextFontFamily.DEFAULT) doc.globals.fontFamily else node.fontFamily
         val familyName = when (effectiveFontFamily) {
             TextFontFamily.DEFAULT -> null
@@ -313,7 +319,7 @@ class CustomWidgetRenderer(
             TextFontFamily.CONDENSED -> "sans-serif-condensed"
         }
 
-        val textToSet: CharSequence = if (hasStyle || familyName != null) {
+        val textToSet: CharSequence = if (hasStyle || customTypeface != null || familyName != null) {
             android.text.SpannableString(resolved).apply {
                 if (hasStyle) {
                     val style = when {
@@ -329,7 +335,14 @@ class CustomWidgetRenderer(
                         android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                 }
-                if (familyName != null) {
+                if (customTypeface != null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    setSpan(
+                        android.text.style.TypefaceSpan(customTypeface),
+                        0,
+                        length,
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                } else if (familyName != null) {
                     setSpan(
                         android.text.style.TypefaceSpan(familyName),
                         0,

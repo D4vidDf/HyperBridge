@@ -20,10 +20,10 @@ class ColorSchemeRepository(private val context: Context) {
             name.endsWith(".yml", ignoreCase = true)
     }
 
-    suspend fun getInstalledSchemes(): List<ColorSchemeDefinition> = withContext(Dispatchers.IO) {
+    fun getInstalledSchemesSync(): List<ColorSchemeDefinition> {
         val files = schemesDir.listFiles { _, name -> isSchemeFileName(name) } ?: emptyArray()
 
-        files.mapNotNull { file ->
+        return files.mapNotNull { file ->
             runCatching {
                 val text = file.readText()
                 YamlColorSchemeParser.parse(text)
@@ -31,8 +31,26 @@ class ColorSchemeRepository(private val context: Context) {
         }
     }
 
+    suspend fun getInstalledSchemes(): List<ColorSchemeDefinition> = withContext(Dispatchers.IO) {
+        getInstalledSchemesSync()
+    }
+
+    fun getSchemeByIdSync(id: String): ColorSchemeDefinition? {
+        return getInstalledSchemesSync().firstOrNull { it.id == id }
+    }
+
+    fun getSchemeRawYamlByIdSync(id: String): String? {
+        val files = schemesDir.listFiles { _, name -> isSchemeFileName(name) } ?: emptyArray()
+        files.forEach { file ->
+            val text = runCatching { file.readText() }.getOrNull() ?: return@forEach
+            val parsed = runCatching { YamlColorSchemeParser.parse(text) }.getOrNull()
+            if (parsed?.id == id) return text
+        }
+        return null
+    }
+
     suspend fun getSchemeById(id: String): ColorSchemeDefinition? = withContext(Dispatchers.IO) {
-        getInstalledSchemes().firstOrNull { it.id == id }
+        getSchemeByIdSync(id)
     }
 
     suspend fun saveScheme(def: ColorSchemeDefinition): File = withContext(Dispatchers.IO) {

@@ -51,9 +51,19 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.TargetScope
-import com.d4viddf.hyperbridge.models.widget.*
+import com.d4viddf.hyperbridge.models.widget.CanvasSize
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetGlobals
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.TextFontFamily
+import com.d4viddf.hyperbridge.models.widget.adaptedContentHeight
+import com.d4viddf.hyperbridge.models.widget.adaptedContentWidth
+import com.d4viddf.hyperbridge.models.widget.findNode
+import com.d4viddf.hyperbridge.models.widget.parentOf
+import com.d4viddf.hyperbridge.models.widget.replaceNode
+import com.d4viddf.hyperbridge.models.widget.withBounds
 import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
-import kotlinx.coroutines.launch
 
 private const val CANVAS_WIDTH_DP = 350
 

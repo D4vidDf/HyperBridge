@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
@@ -152,6 +153,7 @@ import com.d4viddf.hyperbridge.models.widget.withShowIf
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 import com.d4viddf.hyperbridge.ui.screens.translators.TRANSLATOR_OUTLINED_ICONS
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
@@ -763,33 +765,14 @@ private fun TextItemDetailsEditor(
             onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.TEXT_FONT_SIZE.key) }
         )
 
-        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-            Text(
-                text = stringResource(R.string.studio_property_font_family),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TextFontFamily.entries.forEach { family ->
-                    FilterChip(
-                        selected = node.fontFamily == family,
-                        onClick = { onChange(node.copy(fontFamily = family)) },
-                        label = {
-                            Text(
-                                text = stringResource(fontFamilyLabel(family)),
-                                fontFamily = previewComposeFontFamily(family)
-                            )
-                        }
-                    )
-                }
+        StudioFontFamilySelector(
+            label = stringResource(R.string.studio_property_font_family),
+            selectedFamily = node.fontFamily,
+            selectedCustomFontUri = node.customFontUri,
+            onSelectFont = { family, customUri ->
+                onChange(node.copy(fontFamily = family, customFontUri = customUri))
             }
-        }
+        )
 
         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
             Text(
@@ -5167,6 +5150,7 @@ private fun BackgroundTabContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StudioColorSchemeSelectorCard(
     globals: CustomWidgetGlobals,
@@ -5174,142 +5158,239 @@ private fun StudioColorSchemeSelectorCard(
     activeColorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition
 ) {
     val context = LocalContext.current
-    StudioSection(stringResource(R.string.studio_color_scheme_title)) {
-        Text(
-            text = stringResource(R.string.studio_color_scheme_source),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val schemeRepo = remember { com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRepository(context.applicationContext) }
+
+    var showSourceBottomSheet by remember { mutableStateOf(false) }
+    var showSchemePickerBottomSheet by remember { mutableStateOf(false) }
+    var installedSchemes by remember { mutableStateOf<List<com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition>>(emptyList()) }
+    var refreshSchemesTrigger by remember { mutableIntStateOf(0) }
+
+    androidx.compose.runtime.LaunchedEffect(refreshSchemesTrigger, showSchemePickerBottomSheet) {
+        installedSchemes = schemeRepo.getInstalledSchemes()
+    }
+
+    val sources = remember {
+        listOf(
+            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_DYNAMIC to R.string.studio_color_scheme_phone_dynamic,
+            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_EXPRESSIVE to R.string.studio_color_scheme_phone_expressive,
+            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.APP_ICON_EXPRESSIVE to R.string.studio_color_scheme_app_icon,
+            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE to R.string.studio_color_scheme_notif_media,
+            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET to R.string.studio_color_scheme_custom_preset
         )
+    }
 
-        Spacer(Modifier.height(4.dp))
+    val currentSourceLabelRes = sources.firstOrNull { it.first == globals.colorSchemeConfig.sourceType }?.second
+        ?: R.string.studio_color_scheme_phone_dynamic
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val sources = listOf(
-                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_DYNAMIC to R.string.studio_color_scheme_phone_dynamic,
-                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_EXPRESSIVE to R.string.studio_color_scheme_phone_expressive,
-                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.APP_ICON_EXPRESSIVE to R.string.studio_color_scheme_app_icon,
-                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE to R.string.studio_color_scheme_notif_media,
-                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET to R.string.studio_color_scheme_custom_preset
-            )
-
-            sources.forEach { (sourceType, labelRes) ->
-                FilterChip(
-                    selected = globals.colorSchemeConfig.sourceType == sourceType,
-                    onClick = {
-                        val newCfg = globals.colorSchemeConfig.copy(sourceType = sourceType)
-                        onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg))
-                    },
-                    label = { Text(stringResource(labelRes)) }
-                )
+    val importYamlLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                try {
+                    val fileName = com.d4viddf.hyperbridge.util.HyperBridgeFileExtensions.resolveFileName(context, uri)
+                    if (fileName != null && !com.d4viddf.hyperbridge.util.HyperBridgeFileExtensions.isColorSchemeFile(fileName)) {
+                        return@launch
+                    }
+                    val text = context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
+                    if (!text.isNullOrBlank()) {
+                        val parsed = schemeRepo.importSchemeFromYaml(text)
+                        refreshSchemesTrigger++
+                        val newCfg = globals.colorSchemeConfig.copy(
+                            sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
+                            customSchemeId = parsed.id
+                        )
+                        onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = text))
+                    }
+                } catch (_: Exception) {}
             }
         }
+    }
 
-        if (globals.colorSchemeConfig.sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE) {
-            Spacer(Modifier.height(8.dp))
+    val exportYamlLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                val yaml = com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.serialize(activeColorScheme)
+                context.contentResolver.openOutputStream(uri)?.use { it.write(yaml.toByteArray()) }
+            } catch (_: Exception) {}
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        StudioSection(stringResource(R.string.studio_color_scheme_title)) {
             Text(
-                text = stringResource(R.string.studio_color_scheme_media_source),
+                text = stringResource(R.string.studio_color_scheme_source),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val mediaKeys = listOf(
-                    "album_art" to R.string.studio_color_scheme_media_album_art,
-                    "picture" to R.string.studio_color_scheme_media_picture,
-                    "avatar" to R.string.studio_color_scheme_media_avatar
-                )
-                mediaKeys.forEach { (key, labelRes) ->
-                    FilterChip(
-                        selected = globals.colorSchemeConfig.mediaSourceKey == key,
-                        onClick = {
-                            val newCfg = globals.colorSchemeConfig.copy(mediaSourceKey = key)
-                            onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg))
-                        },
-                        label = { Text(stringResource(labelRes)) }
-                    )
-                }
-            }
-        }
 
-        if (globals.colorSchemeConfig.sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.studio_color_scheme_presets),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // 1. Source Selector Dropdown Surface -> Opens BottomSheet 1
+            Surface(
+                onClick = { showSourceBottomSheet = true },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.BUILT_IN_PRESETS.forEach { preset ->
-                    val isSelected = (globals.colorSchemeConfig.customSchemeId == preset.id) ||
-                        (globals.colorSchemeConfig.customSchemeId == null && preset.id == "default")
-                    FilterChip(
-                        selected = isSelected && globals.embeddedColorSchemeYaml == null,
-                        onClick = {
-                            val newCfg = globals.colorSchemeConfig.copy(customSchemeId = preset.id)
-                            onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = null))
-                        },
-                        label = { Text(preset.name) }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(currentSourceLabelRes),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
+            if (globals.colorSchemeConfig.sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.studio_color_scheme_media_source),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val mediaKeys = listOf(
+                        "album_art" to R.string.studio_color_scheme_media_album_art,
+                        "picture" to R.string.studio_color_scheme_media_picture,
+                        "avatar" to R.string.studio_color_scheme_media_avatar
+                    )
+                    mediaKeys.forEach { (key, labelRes) ->
+                        FilterChip(
+                            selected = globals.colorSchemeConfig.mediaSourceKey == key,
+                            onClick = {
+                                val newCfg = globals.colorSchemeConfig.copy(mediaSourceKey = key)
+                                onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = null))
+                            },
+                            label = { Text(stringResource(labelRes)) }
+                        )
+                    }
+                }
+            }
 
-            val importYamlLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.GetContent()
-            ) { uri: Uri? ->
-                if (uri != null) {
-                    try {
-                        val fileName = com.d4viddf.hyperbridge.util.HyperBridgeFileExtensions.resolveFileName(context, uri)
-                        if (fileName != null && !com.d4viddf.hyperbridge.util.HyperBridgeFileExtensions.isColorSchemeFile(fileName)) {
-                            return@rememberLauncherForActivityResult
-                        }
-                        val text = context.contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
-                        if (!text.isNullOrBlank()) {
-                            val parsed = com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.parse(text)
-                            val newCfg = globals.colorSchemeConfig.copy(
-                                sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
-                                customSchemeId = parsed.id
+            // 2. When .hscheme (CUSTOM_PRESET) is selected: show box that opens BottomSheet 2 with all built-in + imported schemes
+            if (globals.colorSchemeConfig.sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.studio_color_scheme_select_scheme),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Surface(
+                    onClick = { showSchemePickerBottomSheet = true },
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            val primaryHex = activeColorScheme.getHex(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.PRIMARY) ?: "#0A84FF"
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(safeParseColor(primaryHex, activeColorScheme))
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                             )
-                            onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = text))
+                            Text(
+                                text = activeColorScheme.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
-                    } catch (_: Exception) {}
+                        Icon(
+                            imageVector = Icons.Rounded.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
-            val exportYamlLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.CreateDocument("application/octet-stream")
-            ) { uri: Uri? ->
-                if (uri != null) {
-                    try {
-                        val yaml = com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.serialize(activeColorScheme)
-                        context.contentResolver.openOutputStream(uri)?.use { it.write(yaml.toByteArray()) }
-                    } catch (_: Exception) {}
+            Spacer(Modifier.height(6.dp))
+
+            // Live Scheme Roles Swatch Strip
+            Text(
+                text = "${stringResource(R.string.studio_color_scheme_tab_tokens)} (${activeColorScheme.name})",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(2.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.entries.take(8).forEach { role ->
+                    val hex = activeColorScheme.getHex(role) ?: "#888888"
+                    val color = safeParseColor(hex, activeColorScheme)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        )
+                        Text(
+                            text = role.tokenKey.take(3),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
+        }
 
+        // Import & Export buttons below the Color Scheme surface — only when .hscheme (CUSTOM_PRESET) is selected
+        if (globals.colorSchemeConfig.sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                androidx.compose.material3.OutlinedButton(
+                OutlinedButton(
                     onClick = { importYamlLauncher.launch("*/*") },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -5327,44 +5408,272 @@ private fun StudioColorSchemeSelectorCard(
                 }
             }
         }
+    }
 
-        Spacer(Modifier.height(10.dp))
-
-        // Live Scheme Roles Swatch Strip
-        Text(
-            text = "${stringResource(R.string.studio_color_scheme_tab_tokens)} (${activeColorScheme.name})",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(4.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
+    // Bottom Sheet 1: Palette Source Selector
+    if (showSourceBottomSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showSourceBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
-            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.entries.take(8).forEach { role ->
-                val hex = activeColorScheme.getHex(role) ?: "#888888"
-                val color = safeParseColor(hex, activeColorScheme)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                    )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_color_scheme_source),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                sources.forEach { (sourceType, labelRes) ->
+                    val isSelected = globals.colorSchemeConfig.sourceType == sourceType
+                    Surface(
+                        onClick = {
+                            val newCfg = globals.colorSchemeConfig.copy(sourceType = sourceType)
+                            val updatedYaml = if (sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET) {
+                                globals.embeddedColorSchemeYaml
+                            } else null
+                            onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = updatedYaml))
+                            showSourceBottomSheet = false
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(labelRes),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = null
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Bottom Sheet 2: .hscheme Selector (Built-in + Imported with Search Bar)
+    if (showSchemePickerBottomSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var searchQuery by remember { mutableStateOf("") }
+
+        val builtInPresets = remember {
+            com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.BUILT_IN_PRESETS.map { preset ->
+                com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver
+                    .synthesizeExpressiveScheme(preset.seedColor, preset.name, isDark = true)
+                    .copy(id = preset.id, author = "HyperBridge")
+            }
+        }
+
+        val filteredBuiltIn = remember(builtInPresets, searchQuery) {
+            if (searchQuery.isBlank()) builtInPresets
+            else builtInPresets.filter {
+                it.name.contains(searchQuery, ignoreCase = true) ||
+                    it.id.contains(searchQuery, ignoreCase = true)
+            }
+        }
+
+        val filteredImported = remember(installedSchemes, searchQuery) {
+            if (searchQuery.isBlank()) installedSchemes
+            else installedSchemes.filter {
+                it.name.contains(searchQuery, ignoreCase = true) ||
+                    it.author.contains(searchQuery, ignoreCase = true) ||
+                    it.id.contains(searchQuery, ignoreCase = true)
+            }
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = { showSchemePickerBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 32.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_color_scheme_select_scheme),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text(stringResource(R.string.studio_color_scheme_search_placeholder)) },
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Rounded.Clear, contentDescription = null)
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (filteredBuiltIn.isNotEmpty()) {
                     Text(
-                        text = role.tokenKey.take(3),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(R.string.studio_color_scheme_built_in_header),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    filteredBuiltIn.forEach { scheme ->
+                        val isSelected = globals.embeddedColorSchemeYaml == null &&
+                            ((globals.colorSchemeConfig.customSchemeId == scheme.id) ||
+                                (globals.colorSchemeConfig.customSchemeId == null && scheme.id == "default"))
+                        SchemeOptionSurfaceItem(
+                            scheme = scheme,
+                            isSelected = isSelected,
+                            onClick = {
+                                val newCfg = globals.colorSchemeConfig.copy(
+                                    sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
+                                    customSchemeId = scheme.id
+                                )
+                                onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = null))
+                                showSchemePickerBottomSheet = false
+                            }
+                        )
+                    }
+                }
+
+                if (filteredImported.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.studio_color_scheme_imported_header),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    filteredImported.forEach { scheme ->
+                        val isSelected = globals.colorSchemeConfig.customSchemeId == scheme.id ||
+                            activeColorScheme.id == scheme.id
+                        SchemeOptionSurfaceItem(
+                            scheme = scheme,
+                            isSelected = isSelected,
+                            onClick = {
+                                val rawYaml = schemeRepo.getSchemeRawYamlByIdSync(scheme.id)
+                                    ?: com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.serialize(scheme)
+                                val newCfg = globals.colorSchemeConfig.copy(
+                                    sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
+                                    customSchemeId = scheme.id
+                                )
+                                onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = rawYaml))
+                                showSchemePickerBottomSheet = false
+                            }
+                        )
+                    }
+                }
+
+                if (filteredBuiltIn.isEmpty() && filteredImported.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.studio_color_scheme_empty_search),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 16.dp)
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SchemeOptionSurfaceItem(
+    scheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf(
+                        com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.PRIMARY,
+                        com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.SECONDARY,
+                        com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.TERTIARY
+                    ).forEach { role ->
+                        val hex = scheme.getHex(role) ?: "#888888"
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clip(CircleShape)
+                                .background(safeParseColor(hex, scheme))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        )
+                    }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = scheme.name.ifBlank { scheme.id },
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (scheme.author.isNotBlank()) {
+                        Text(
+                            text = scheme.author,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+            RadioButton(
+                selected = isSelected,
+                onClick = null
+            )
         }
     }
 }
@@ -5410,45 +5719,322 @@ private fun GlobalTabContent(
             onColorHexChange = { onUpdateGlobals(globals.copy(accentColorHex = it)) },
             colorScheme = activeColorScheme
         )
+    }
 
-        Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(12.dp))
 
+    StudioFontFamilySelector(
+        label = stringResource(R.string.studio_global_font_family),
+        selectedFamily = globals.fontFamily,
+        selectedCustomFontUri = globals.customFontUri,
+        onSelectFont = { family, customUri ->
+            onUpdateGlobals(globals.copy(fontFamily = family, customFontUri = customUri))
+        },
+        wrapInSectionTitle = stringResource(R.string.studio_font_family_section_title),
+        onApplyToAll = { onApplyFontToAll(globals.fontFamily) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StudioFontFamilySelector(
+    label: String,
+    selectedFamily: TextFontFamily,
+    selectedCustomFontUri: String?,
+    onSelectFont: (TextFontFamily, String?) -> Unit,
+    wrapInSectionTitle: String? = null,
+    onApplyToAll: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val fontRepo = remember { com.d4viddf.hyperbridge.models.widget.CustomFontRepository(context.applicationContext) }
+
+    var showFontBottomSheet by remember { mutableStateOf(false) }
+    var installedFonts by remember { mutableStateOf<List<com.d4viddf.hyperbridge.models.widget.CustomFontEntry>>(emptyList()) }
+    var refreshFontsTrigger by remember { mutableIntStateOf(0) }
+
+    androidx.compose.runtime.LaunchedEffect(refreshFontsTrigger, showFontBottomSheet) {
+        installedFonts = fontRepo.getInstalledFonts()
+    }
+
+    val importFontLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                fontRepo.importFontFromUri(uri).onSuccess { entry ->
+                    refreshFontsTrigger++
+                    onSelectFont(TextFontFamily.DEFAULT, entry.fileName)
+                }
+            }
+        }
+    }
+
+    val selectedCustomFont = remember(selectedCustomFontUri, installedFonts) {
+        selectedCustomFontUri?.let { uri ->
+            installedFonts.firstOrNull { it.fileName == uri }
+        }
+    }
+    val selectedFontLabel = selectedCustomFont?.displayName
+        ?: stringResource(fontFamilyLabel(selectedFamily))
+    val selectedPreviewFontFamily = remember(selectedFamily, selectedCustomFontUri) {
+        selectedCustomFontUri?.let { fontRepo.resolveComposeFontFamily(it) }
+            ?: previewComposeFontFamily(selectedFamily)
+    }
+
+    val selectorContent: @Composable () -> Unit = {
         Text(
-            text = stringResource(R.string.studio_global_font_family),
+            text = label,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            onClick = { showFontBottomSheet = true },
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            TextFontFamily.entries.forEach { family ->
-                FilterChip(
-                    selected = globals.fontFamily == family,
-                    onClick = { onUpdateGlobals(globals.copy(fontFamily = family)) },
-                    label = {
-                        Text(
-                            text = stringResource(fontFamilyLabel(family)),
-                            fontFamily = previewComposeFontFamily(family)
-                        )
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = selectedFontLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = selectedPreviewFontFamily,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        if (onApplyToAll != null) {
+            Spacer(Modifier.height(4.dp))
+            Button(
+                onClick = onApplyToAll,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Rounded.Title, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.studio_global_apply_to_all))
+            }
+        }
+    }
 
-        Button(
-            onClick = { onApplyFontToAll(globals.fontFamily) },
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = if (wrapInSectionTitle == null) 4.dp else 0.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (wrapInSectionTitle != null) {
+            StudioSection(wrapInSectionTitle) {
+                selectorContent()
+            }
+        } else {
+            selectorContent()
+        }
+
+        OutlinedButton(
+            onClick = { importFontLauncher.launch("*/*") },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Icons.Rounded.Title, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.studio_global_apply_to_all))
+            Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.studio_font_family_import_button), style = MaterialTheme.typography.labelSmall)
+        }
+    }
+
+    if (showFontBottomSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var fontSearchQuery by remember { mutableStateOf("") }
+
+        val systemFontEntries = TextFontFamily.entries.map { family ->
+            Triple(family, stringResource(fontFamilyLabel(family)), previewComposeFontFamily(family))
+        }
+        val filteredSystemFonts = remember(systemFontEntries, fontSearchQuery) {
+            if (fontSearchQuery.isBlank()) systemFontEntries
+            else systemFontEntries.filter { (_, labelText, _) ->
+                labelText.contains(fontSearchQuery, ignoreCase = true)
+            }
+        }
+        val filteredImportedFonts = remember(installedFonts, fontSearchQuery) {
+            if (fontSearchQuery.isBlank()) installedFonts
+            else installedFonts.filter {
+                it.displayName.contains(fontSearchQuery, ignoreCase = true) ||
+                    it.fileName.contains(fontSearchQuery, ignoreCase = true)
+            }
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = { showFontBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 32.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.studio_font_family_select_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    TextButton(onClick = { importFontLauncher.launch("*/*") }) {
+                        Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(R.string.studio_font_family_import_button))
+                    }
+                }
+
+                OutlinedTextField(
+                    value = fontSearchQuery,
+                    onValueChange = { fontSearchQuery = it },
+                    placeholder = { Text(stringResource(R.string.studio_font_family_search_placeholder)) },
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (fontSearchQuery.isNotEmpty()) {
+                            IconButton(onClick = { fontSearchQuery = "" }) {
+                                Icon(Icons.Rounded.Clear, contentDescription = null)
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (filteredSystemFonts.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.studio_font_family_system_header),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    filteredSystemFonts.forEach { (family, labelText, composeFamily) ->
+                        val isSelected = selectedCustomFontUri == null && selectedFamily == family
+                        Surface(
+                            onClick = {
+                                onSelectFont(family, null)
+                                showFontBottomSheet = false
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = labelText,
+                                    fontFamily = composeFamily,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurface
+                                )
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = null
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (filteredImportedFonts.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.studio_font_family_imported_header),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    filteredImportedFonts.forEach { entry ->
+                        val isSelected = selectedCustomFontUri == entry.fileName
+                        val entryFontFamily = remember(entry.fileName) {
+                            fontRepo.resolveComposeFontFamily(entry.fileName) ?: FontFamily.Default
+                        }
+                        Surface(
+                            onClick = {
+                                onSelectFont(TextFontFamily.DEFAULT, entry.fileName)
+                                showFontBottomSheet = false
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = entry.displayName,
+                                        fontFamily = entryFontFamily,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = entry.fileName,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = null
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (filteredSystemFonts.isEmpty() && filteredImportedFonts.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.studio_font_family_empty_search),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    )
+                }
+            }
         }
     }
 }
