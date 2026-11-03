@@ -1911,7 +1911,12 @@
     <string name="studio_color_scheme_phone_expressive">Phone Expressive (Dynamic M3)</string>
     <string name="studio_color_scheme_app_icon">App Icon Expressive</string>
     <string name="studio_color_scheme_notif_media">Notification Media Expressive</string>
-    <string name="studio_color_scheme_custom_preset">Custom YAML Scheme</string>
+    <string name="studio_color_scheme_custom_preset">.hscheme Palette</string>
+    <string name="studio_color_scheme_select_scheme">Selected .hscheme Palette</string>
+    <string name="studio_color_scheme_search_placeholder">Search palettes…</string>
+    <string name="studio_color_scheme_built_in_header">Built-in Palettes</string>
+    <string name="studio_color_scheme_imported_header">Imported Palettes (.hscheme)</string>
+    <string name="studio_color_scheme_empty_search">No matching palettes found</string>
     <string name="studio_color_scheme_media_source">Media Resource</string>
     <string name="studio_color_scheme_media_album_art">Album Art / Large Media</string>
     <string name="studio_color_scheme_media_picture">Picture Attachment</string>
@@ -1919,8 +1924,8 @@
     <string name="studio_color_scheme_tab_tokens">Color Scheme</string>
     <string name="studio_color_scheme_tab_custom">Custom Color</string>
     <string name="studio_color_scheme_token_badge">Token</string>
-    <string name="studio_color_scheme_export_yaml">Export Palette (YAML)</string>
-    <string name="studio_color_scheme_import_yaml">Import Palette (YAML)</string>
+    <string name="studio_color_scheme_export_yaml">Export .hscheme</string>
+    <string name="studio_color_scheme_import_yaml">Import .hscheme</string>
     <string name="studio_color_scheme_embed_yaml">Embedded in Design</string>
     <string name="studio_color_scheme_presets">Preset Schemes</string>
     <string name="studio_color_scheme_quick_tokens">Scheme Colors</string>
@@ -1929,6 +1934,13 @@
     <string name="studio_color_mode_scheme">Color Scheme</string>
     <string name="studio_color_mode_custom">Custom Color</string>
     <string name="studio_color_scheme_all_roles">All Roles</string>
+    <string name="studio_font_family_section_title">Font Family</string>
+    <string name="studio_font_family_select_title">Select Font Family</string>
+    <string name="studio_font_family_search_placeholder">Search fonts…</string>
+    <string name="studio_font_family_system_header">System Fonts</string>
+    <string name="studio_font_family_imported_header">Imported Fonts</string>
+    <string name="studio_font_family_import_button">Import Font (.ttf / .otf)</string>
+    <string name="studio_font_family_empty_search">No matching fonts found</string>
 
     <!-- Design & Translator Share Preview Bottom Sheet -->
     <string name="design_share_sheet_title">Share Design</string>

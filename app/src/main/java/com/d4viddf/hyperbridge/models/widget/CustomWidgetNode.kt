@@ -226,6 +226,7 @@ data class TextNode(
     val marquee: Boolean = false,
     val gravity: TextGravity = TextGravity.START,
     val fontFamily: TextFontFamily = TextFontFamily.DEFAULT,
+    val customFontUri: String? = null,
     val sizingType: TextSizingType = TextSizingType.FIXED_FONT_HEIGHT,
     val boxWidthDp: Int? = null,
     val filterMode: TextFilterMode = TextFilterMode.NORMAL,
@@ -511,6 +512,7 @@ data class CustomWidgetGlobals(
     val primaryColorHex: String = "#FFFFFF",
     val accentColorHex: String = "#0A84FF",
     val fontFamily: TextFontFamily = TextFontFamily.DEFAULT,
+    val customFontUri: String? = null,
     val colorSchemeConfig: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
     val embeddedColorSchemeYaml: String? = null
 )

@@ -246,16 +246,16 @@ class StudioViewModel(
         persistDraft(updated)
     }
 
-    fun applyFontToAllTextNodes(fontFamily: TextFontFamily) {
+    fun applyFontToAllTextNodes(fontFamily: TextFontFamily, customFontUri: String? = _document.value.globals.customFontUri) {
         val current = _document.value
         fun updateTree(node: CustomWidgetNode): CustomWidgetNode = when (node) {
-            is TextNode -> node.copy(fontFamily = fontFamily)
+            is TextNode -> node.copy(fontFamily = fontFamily, customFontUri = customFontUri)
             is LayoutContainer -> node.copy(children = node.children.map { updateTree(it) })
             else -> node
         }
         val updated = current.copy(
             root = updateTree(current.root) as LayoutContainer,
-            globals = current.globals.copy(fontFamily = fontFamily)
+            globals = current.globals.copy(fontFamily = fontFamily, customFontUri = customFontUri)
         )
         pushHistory(current)
         _document.value = updated

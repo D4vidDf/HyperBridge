@@ -66,9 +66,11 @@ object DynamicColorSchemeResolver {
             ColorSchemeSourceType.CUSTOM_PRESET -> {
                 val presetId = config.customSchemeId
                 val preset = presetId?.let { id ->
-                    presetLookup?.invoke(id) ?: BUILT_IN_PRESETS.firstOrNull { it.id == id }?.let { synthesizeExpressiveScheme(it.seedColor, it.name, isDark) }
+                    presetLookup?.invoke(id)
+                        ?: BUILT_IN_PRESETS.firstOrNull { it.id == id }?.let { synthesizeExpressiveScheme(it.seedColor, it.name, isDark).copy(id = it.id) }
+                        ?: runCatching { ColorSchemeRepository(context).getSchemeByIdSync(id) }.getOrNull()
                 }
-                preset ?: BUILT_IN_PRESETS.first().let { synthesizeExpressiveScheme(it.seedColor, it.name, isDark) }
+                preset ?: BUILT_IN_PRESETS.first().let { synthesizeExpressiveScheme(it.seedColor, it.name, isDark).copy(id = it.id) }
             }
         }
     }

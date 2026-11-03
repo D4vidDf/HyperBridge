@@ -2,12 +2,9 @@ package com.d4viddf.hyperbridge.ui.screens.design.studio
 
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,49 +21,60 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Alarm
 import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.BatteryFull
+import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FlashlightOn
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.rounded.SmartButton
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.ThumbUp
+import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material.icons.rounded.VolumeUp
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.material.icons.rounded.SmartButton
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.Widgets
-import androidx.compose.ui.draw.clip
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
-import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -73,29 +82,61 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
-import com.d4viddf.hyperbridge.models.widget.*
+import com.d4viddf.hyperbridge.models.widget.BindableProperty
+import com.d4viddf.hyperbridge.models.widget.ButtonIconPosition
+import com.d4viddf.hyperbridge.models.widget.ButtonNode
+import com.d4viddf.hyperbridge.models.widget.ContainerBackgroundType
+import com.d4viddf.hyperbridge.models.widget.ContainerLayout
+import com.d4viddf.hyperbridge.models.widget.CustomFontRepository
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetGlobals
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
+import com.d4viddf.hyperbridge.models.widget.ImageNode
+import com.d4viddf.hyperbridge.models.widget.ImageScaleType
+import com.d4viddf.hyperbridge.models.widget.ImageSource
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.NodeBounds
+import com.d4viddf.hyperbridge.models.widget.NodeConditionEvaluator
+import com.d4viddf.hyperbridge.models.widget.ProgressColorMode
+import com.d4viddf.hyperbridge.models.widget.ProgressIndicatorMode
+import com.d4viddf.hyperbridge.models.widget.ProgressIndicatorThumb
+import com.d4viddf.hyperbridge.models.widget.ProgressNode
+import com.d4viddf.hyperbridge.models.widget.ProgressStyle
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
+import com.d4viddf.hyperbridge.models.widget.TextFilterMode
+import com.d4viddf.hyperbridge.models.widget.TextFontFamily
+import com.d4viddf.hyperbridge.models.widget.TextGravity
+import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.TextSizingType
+import com.d4viddf.hyperbridge.models.widget.TextTextureType
+import com.d4viddf.hyperbridge.models.widget.adaptedContentHeight
+import com.d4viddf.hyperbridge.models.widget.adaptedContentWidth
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
+import kotlin.math.roundToInt
 
 /**
  * The Studio's canvas: a pure-Compose re-implementation of the AST, deliberately separate from the
@@ -413,8 +454,17 @@ private fun CanvasNode(
                     )
                 } else null
 
+                val appContext = LocalContext.current
+                val effectiveCustomFontUri = node.customFontUri ?: if (node.fontFamily == TextFontFamily.DEFAULT) globals.customFontUri else null
+                val customFontFamily = remember(effectiveCustomFontUri) {
+                    effectiveCustomFontUri?.let { uri ->
+                        CustomFontRepository.resolveTypefaceCached(appContext, uri)?.let {
+                            androidx.compose.ui.text.font.FontFamily(it)
+                        }
+                    }
+                }
                 val effectiveFontFamily = if (node.fontFamily == TextFontFamily.DEFAULT) globals.fontFamily else node.fontFamily
-                val composeFontFamily = when (effectiveFontFamily) {
+                val composeFontFamily = customFontFamily ?: when (effectiveFontFamily) {
                     TextFontFamily.DEFAULT -> androidx.compose.ui.text.font.FontFamily.Default
                     TextFontFamily.SANS_SERIF -> androidx.compose.ui.text.font.FontFamily.SansSerif
                     TextFontFamily.SERIF -> androidx.compose.ui.text.font.FontFamily.Serif
