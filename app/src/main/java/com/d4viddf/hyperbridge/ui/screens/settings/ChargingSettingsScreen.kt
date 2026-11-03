@@ -66,6 +66,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.models.ChargingLeftDesign
 import com.d4viddf.hyperbridge.models.ChargingRightDesign
+import com.d4viddf.hyperbridge.models.ChargingSpeedMode
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 import kotlinx.coroutines.launch
 
@@ -83,6 +84,9 @@ fun ChargingSettingsScreen(
     val rightDesign by preferences.chargingRightDesignFlow.collectAsState(
         initial = ChargingRightDesign.BATTERY_PERCENTAGE
     )
+    val speedMode by preferences.chargingSpeedModeFlow.collectAsState(
+        initial = ChargingSpeedMode.REAL_TIME
+    )
     val showExpandedProgressBar by preferences.chargingExpandedProgressBarFlow.collectAsState(
         initial = true
     )
@@ -93,10 +97,12 @@ fun ChargingSettingsScreen(
     ChargingSettingsContent(
         leftDesign = leftDesign,
         rightDesign = rightDesign,
+        speedMode = speedMode,
         showExpandedProgressBar = showExpandedProgressBar,
         showOnLockscreen = showOnLockscreen,
         onLeftDesignChange = { scope.launch { preferences.setChargingLeftDesign(it) } },
         onRightDesignChange = { scope.launch { preferences.setChargingRightDesign(it) } },
+        onSpeedModeChange = { scope.launch { preferences.setChargingSpeedMode(it) } },
         onShowExpandedProgressBarChange = { scope.launch { preferences.setChargingExpandedProgressBar(it) } },
         onShowOnLockscreenChange = { scope.launch { preferences.setChargingIslandLockscreen(it) } },
         onBack = onBack
@@ -108,16 +114,19 @@ fun ChargingSettingsScreen(
 fun ChargingSettingsContent(
     leftDesign: ChargingLeftDesign = ChargingLeftDesign.CHARGING_SPEED,
     rightDesign: ChargingRightDesign = ChargingRightDesign.BATTERY_PERCENTAGE,
+    speedMode: ChargingSpeedMode = ChargingSpeedMode.REAL_TIME,
     showExpandedProgressBar: Boolean = true,
     showOnLockscreen: Boolean,
     onLeftDesignChange: (ChargingLeftDesign) -> Unit = {},
     onRightDesignChange: (ChargingRightDesign) -> Unit = {},
+    onSpeedModeChange: (ChargingSpeedMode) -> Unit = {},
     onShowExpandedProgressBarChange: (Boolean) -> Unit = {},
     onShowOnLockscreenChange: (Boolean) -> Unit,
     onBack: () -> Unit
 ) {
     var showLeftSheet by remember { mutableStateOf(false) }
     var showRightSheet by remember { mutableStateOf(false) }
+    var showSpeedModeSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -224,6 +233,42 @@ fun ChargingSettingsContent(
                                     ChargingRightDesign.CHARGING_SPEED -> stringResource(R.string.charging_right_option_speed)
                                     ChargingRightDesign.REMAINING_TIME -> stringResource(R.string.charging_right_option_remaining_time)
                                     ChargingRightDesign.NONE -> stringResource(R.string.charging_right_option_none)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    // Charging Speed Mode Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showSpeedModeSheet = true }
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.charging_speed_mode_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = when (speedMode) {
+                                    ChargingSpeedMode.REAL_TIME -> stringResource(R.string.charging_speed_mode_real_time)
+                                    ChargingSpeedMode.MAX_NEGOTIATED -> stringResource(R.string.charging_speed_mode_max_negotiated)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary
@@ -349,6 +394,25 @@ fun ChargingSettingsContent(
                 onRightDesignChange(newRight)
             },
             onDismiss = { showRightSheet = false }
+        )
+    }
+
+    // Speed Mode Bottom Sheet
+    if (showSpeedModeSheet) {
+        ChargingOptionBottomSheet(
+            title = stringResource(R.string.charging_speed_mode_title),
+            options = ChargingSpeedMode.entries,
+            selected = speedMode,
+            labelFor = { option ->
+                when (option) {
+                    ChargingSpeedMode.REAL_TIME -> stringResource(R.string.charging_speed_mode_real_time)
+                    ChargingSpeedMode.MAX_NEGOTIATED -> stringResource(R.string.charging_speed_mode_max_negotiated)
+                }
+            },
+            onSelect = { newMode ->
+                onSpeedModeChange(newMode)
+            },
+            onDismiss = { showSpeedModeSheet = false }
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.service.charging
 
+import com.d4viddf.hyperbridge.models.ChargingSpeedMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -15,8 +16,30 @@ class ChargingStateResolverTest {
         scale: Int = 100,
         voltage: Int = 4200,
         current: Int? = 4_000_000,
-        remaining: Long = -1
-    ) = ChargingStateResolver.resolve(plugged, status, level, scale, voltage, current, remaining)
+        remaining: Long = -1,
+        powerMaxWatts: Int = 0,
+        quickChargeType: Int = 0,
+        maxChargingCurrentMicroamps: Int = 0,
+        maxChargingVoltageMicrovolts: Int = 0,
+        chargeCounterMicroampHours: Int = 0,
+        designCapacityMah: Int = 0,
+        speedMode: ChargingSpeedMode = ChargingSpeedMode.REAL_TIME
+    ) = ChargingStateResolver.resolve(
+        plugged = plugged,
+        status = status,
+        level = level,
+        scale = scale,
+        voltageMillivolts = voltage,
+        currentNow = current,
+        chargeTimeRemainingMillis = remaining,
+        powerMaxWatts = powerMaxWatts,
+        quickChargeType = quickChargeType,
+        maxChargingCurrentMicroamps = maxChargingCurrentMicroamps,
+        maxChargingVoltageMicrovolts = maxChargingVoltageMicrovolts,
+        chargeCounterMicroampHours = chargeCounterMicroampHours,
+        designCapacityMah = designCapacityMah,
+        speedMode = speedMode
+    )
 
     @Test
     fun `unplugged phone has no charging state`() {
@@ -84,4 +107,83 @@ class ChargingStateResolverTest {
         assertNull(ChargingStateResolver.watts(0, 4_000_000))
         assertNull(ChargingStateResolver.watts(4200, Int.MAX_VALUE))
     }
+
+    @Test
+    fun `max negotiated speed mode prefers Xiaomi POWER_MAX`() {
+        val state = resolve(
+            voltage = 4100,
+            current = 5_000_000,
+            powerMaxWatts = 67,
+            quickChargeType = 3,
+            speedMode = ChargingSpeedMode.MAX_NEGOTIATED
+        )!!
+        assertEquals(67, state.watts)
+    }
+
+    @Test
+    fun `real time speed mode compensates for dual-cell battery on high wattage Xiaomi charger`() {
+        // 4.1V single-cell * 7.5A per-cell = 30.75W single cell -> ~61W dual-cell pack on 67W charger
+        val state = resolve(
+            voltage = 4100,
+            current = 7_500_000,
+            powerMaxWatts = 67,
+            quickChargeType = 3,
+            speedMode = ChargingSpeedMode.REAL_TIME
+        )!!
+        assertEquals(61, state.watts)
+    }
+
+    @Test
+    fun `real time speed mode falls back to negotiated max watts when current is zero`() {
+        val state = resolve(
+            voltage = 4100,
+            current = 0,
+            powerMaxWatts = 33,
+            quickChargeType = 2,
+            speedMode = ChargingSpeedMode.REAL_TIME
+        )!!
+        assertEquals(33, state.watts)
+    }
+
+    @Test
+    fun `USB-PD max current and voltage provide negotiated watts when Xiaomi POWER_MAX is absent`() {
+        val maxW = ChargingStateResolver.negotiatedMaxWatts(
+            powerMaxWatts = 0,
+            maxChargingCurrentMicroamps = 3_000_000,
+            maxChargingVoltageMicrovolts = 9_000_000
+        )
+        assertEquals(27, maxW)
+    }
+
+    @Test
+    fun `Xiaomi quick charge profile overrides stale multi-hour batterystats ETA`() {
+        // 50% on a 5000mAh battery with 67W (quickChargeType=3), while AOSP batterystats claims 19 hours
+        val state = resolve(
+            level = 50,
+            voltage = 4100,
+            current = 0,
+            remaining = 19 * 3_600_000L,
+            powerMaxWatts = 67,
+            quickChargeType = 3,
+            designCapacityMah = 5000
+        )!!
+        // Xiaomi BatteryChargeTimeHelper at 50% for 67W / 5000mAh is ~23 minutes
+        assertEquals(23, state.minutesToFull)
+    }
+
+    @Test
+    fun `Xiaomi CV phase above 90 percent uses slower CV taper rate`() {
+        val state = resolve(
+            level = 95,
+            voltage = 4450,
+            current = 0,
+            remaining = 5 * 3_600_000L,
+            powerMaxWatts = 67,
+            quickChargeType = 3,
+            designCapacityMah = 5000
+        )!!
+        // 5% of maxFullTimeMs (5000 * 3600s / 5400mA = 3333s) = 166s -> rounds up to 3 minutes
+        assertEquals(3, state.minutesToFull)
+    }
 }
+

@@ -684,6 +684,9 @@
     <string name="charging_right_option_speed">Velocidad de carga</string>
     <string name="charging_right_option_remaining_time">Tiempo restante</string>
     <string name="charging_right_option_none">Nada</string>
+    <string name="charging_speed_mode_title">Visualización de velocidad de carga</string>
+    <string name="charging_speed_mode_real_time">Vatios en tiempo real</string>
+    <string name="charging_speed_mode_max_negotiated">Vatios máximos del cargador (ej. 67 W / 90 W)</string>
     <string name="charging_island_expanded_progress">Barra de progreso al expandir</string>
     <string name="charging_island_expanded_progress_desc">Muestra una barra de progreso de la batería cuando la isla de carga está expandida.</string>
     <string name="vpn_connected_to">Conectado a %1$s</string>
