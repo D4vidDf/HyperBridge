@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
+import androidx.core.net.toUri
 
 data class CustomFontEntry(
     val fileName: String,
@@ -60,12 +61,8 @@ class CustomFontRepository(private val context: Context) {
                 }
             } ?: throw IllegalArgumentException("Could not read font file")
 
-            // Verify the font file can be parsed by Android Typeface
-            val tf = Typeface.createFromFile(targetFile)
-            if (tf == null || tf == Typeface.DEFAULT) {
-                // Note: Typeface.createFromFile throws RuntimeException on invalid font in Android,
-                // or returns Typeface.DEFAULT on some versions.
-            }
+            // Verify the font file can be parsed by Android Typeface (throws RuntimeException if invalid)
+            Typeface.createFromFile(targetFile)
 
             CustomFontEntry(
                 fileName = targetFile.name,
@@ -100,7 +97,11 @@ class CustomFontRepository(private val context: Context) {
                 .removeSuffix(".otf")
                 .replace('_', ' ')
                 .replace('-', ' ')
-                .trim()
+                .split(' ')
+                .filter { it.isNotBlank() }
+                .joinToString(" ") { word ->
+                    word.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+                }
                 .ifBlank { "Custom Font" }
         }
 
@@ -108,8 +109,18 @@ class CustomFontRepository(private val context: Context) {
             if (fileName.isNullOrBlank()) return null
             typefaceCache[fileName]?.let { return it }
             return runCatching {
-                val cleanName = fileName.replace('\\', '/').substringAfterLast('/')
-                val file = File(File(context.filesDir, "custom_fonts"), cleanName)
+                val pathString = if (fileName.startsWith("file://")) {
+                    fileName.toUri().path ?: fileName.removePrefix("file://")
+                } else fileName
+
+                val directFile = File(pathString)
+                val file = if (directFile.exists() && directFile.isFile) {
+                    directFile
+                } else {
+                    val cleanName = pathString.replace('\\', '/').substringAfterLast('/')
+                    File(File(context.filesDir, "custom_fonts"), cleanName)
+                }
+
                 if (file.exists() && file.isFile) {
                     Typeface.createFromFile(file)?.also { typefaceCache[fileName] = it }
                 } else null

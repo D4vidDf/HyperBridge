@@ -1,10 +1,8 @@
 package com.d4viddf.hyperbridge.service.widget
 
 import android.app.PendingIntent
-import kotlin.math.roundToInt
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -19,21 +17,56 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.SweepGradient
 import android.graphics.Typeface
-import android.net.Uri
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.text.TextUtils
 import android.util.TypedValue
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import androidx.core.graphics.toColorInt
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withTranslation
+import androidx.core.net.toUri
 import androidx.graphics.shapes.toPath
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
-import com.d4viddf.hyperbridge.models.widget.*
+import com.d4viddf.hyperbridge.models.widget.BindableProperty
+import com.d4viddf.hyperbridge.models.widget.ButtonAction
+import com.d4viddf.hyperbridge.models.widget.ButtonIconPosition
+import com.d4viddf.hyperbridge.models.widget.ButtonNode
+import com.d4viddf.hyperbridge.models.widget.ContainerBackgroundType
+import com.d4viddf.hyperbridge.models.widget.ContainerLayout
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
+import com.d4viddf.hyperbridge.models.widget.ImageNode
+import com.d4viddf.hyperbridge.models.widget.ImageScaleType
+import com.d4viddf.hyperbridge.models.widget.ImageSource
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.NodeConditionEvaluator
+import com.d4viddf.hyperbridge.models.widget.ProgressColorMode
+import com.d4viddf.hyperbridge.models.widget.ProgressIndicatorMode
+import com.d4viddf.hyperbridge.models.widget.ProgressIndicatorThumb
+import com.d4viddf.hyperbridge.models.widget.ProgressNode
+import com.d4viddf.hyperbridge.models.widget.ProgressStyle
+import com.d4viddf.hyperbridge.models.widget.ShapeNode
+import com.d4viddf.hyperbridge.models.widget.TextFilterMode
+import com.d4viddf.hyperbridge.models.widget.TextFontFamily
+import com.d4viddf.hyperbridge.models.widget.TextGravity
+import com.d4viddf.hyperbridge.models.widget.TextNode
+import com.d4viddf.hyperbridge.models.widget.TextSizingType
+import com.d4viddf.hyperbridge.models.widget.adaptedContentHeight
+import com.d4viddf.hyperbridge.models.widget.adaptedContentWidth
 import com.d4viddf.hyperbridge.receiver.WidgetActionReceiver
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
+import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 /**
  * Compiles a [CustomWidgetDocument] AST into a [RemoteViews] tree. HyperOS's structured island
@@ -125,21 +158,25 @@ class CustomWidgetRenderer(
         } else {
             resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp ?: defaultHeight, ctx)
         }
-        val effectiveHeightDp = when {
-            node is TextNode && node.maxLines > 1 && heightDp != null -> {
+        val effectiveHeightDp = when (node) {
+            is TextNode if node.maxLines > 1 && heightDp != null -> {
                 val minNeeded = (node.fontSizeSp * 1.35f * node.maxLines).toInt()
                 maxOf(heightDp, minNeeded)
             }
-            node is ProgressNode && (node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE) -> {
+
+            is ProgressNode if (node.style == ProgressStyle.RING || node.mode == ProgressIndicatorMode.CIRCLE) -> {
                 val base = maxOf(widthDp ?: 36, heightDp ?: 36, 36)
                 if (node.thumbType != ProgressIndicatorThumb.NONE) maxOf(base, node.thumbSizeDp + 4) else base
             }
-            node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE -> {
+
+            is ProgressNode if node.thumbType != ProgressIndicatorThumb.NONE -> {
                 maxOf(heightDp ?: 8, node.thumbSizeDp + 4)
             }
-            node is ProgressNode && node.mode == ProgressIndicatorMode.WAVE -> {
+
+            is ProgressNode if node.mode == ProgressIndicatorMode.WAVE -> {
                 if (heightDp == null || heightDp < 16) 16 else heightDp
             }
+
             else -> heightDp
         }
         val effectiveWidthDp = when {
@@ -297,14 +334,13 @@ class CustomWidgetRenderer(
     }
 
     private fun renderText(doc: CustomWidgetDocument, node: TextNode, ctx: VariableContext, scaleX: Float = 1f): RemoteViews {
-        val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_text)
         val template = resolveString(node, BindableProperty.TEXT_TEMPLATE, node.template, ctx).orEmpty()
         val resolved = engine.resolve(template, ctx)
 
         val hasStyle = node.bold || node.italic
         val effectiveCustomFontUri = node.customFontUri
             ?: if (node.fontFamily == TextFontFamily.DEFAULT) doc.globals.customFontUri else null
-        val customTypeface = if ( android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P && !effectiveCustomFontUri.isNullOrBlank()) {
+        val customTypeface = if (!effectiveCustomFontUri.isNullOrBlank()) {
             com.d4viddf.hyperbridge.models.widget.CustomFontRepository.resolveTypefaceCached(context, effectiveCustomFontUri)
         } else null
 
@@ -319,14 +355,147 @@ class CustomWidgetRenderer(
             TextFontFamily.CONDENSED -> "sans-serif-condensed"
         }
 
-        val textToSet: CharSequence = if (hasStyle || customTypeface != null || familyName != null) {
+        val fontSize = resolveInt(node, BindableProperty.TEXT_FONT_SIZE, node.fontSizeSp, ctx) ?: node.fontSizeSp
+        val textColor = resolveColor(node, BindableProperty.TEXT_COLOR, node.colorHex, ctx) ?: Color.WHITE
+
+        // If a custom typeface is used, RemoteViews cannot parcel TypefaceSpan across processes to SystemUI.
+        // We render the text onto a Bitmap with the exact typeface and display it via an ImageView.
+        if (customTypeface != null) {
+            if (resolved.isEmpty()) {
+                val emptyRv = RemoteViews(context.packageName, R.layout.layout_widget_node_text_bitmap)
+                val emptyBmp = createBitmapWithDensity(1, 1)
+                emptyRv.setImageViewBitmap(R.id.node_text, emptyBmp)
+                return emptyRv
+            }
+
+            val fontStyle = when {
+                node.bold && node.italic -> Typeface.BOLD_ITALIC
+                node.bold -> Typeface.BOLD
+                node.italic -> Typeface.ITALIC
+                else -> Typeface.NORMAL
+            }
+            val typefaceToUse = if (hasStyle) {
+                Typeface.create(customTypeface, fontStyle)
+            } else {
+                customTypeface
+            }
+
+            val textSizePx = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP,
+                fontSize.toFloat(),
+                context.resources.displayMetrics
+            )
+
+            val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = textColor
+                this.textSize = textSizePx
+                typeface = typefaceToUse
+            }
+
+            val hasShadow = node.efx.shadow.enabled
+            val shadowRadius = if (hasShadow) node.efx.shadow.blurRadius.toFloat().coerceAtLeast(0.1f) else 0f
+            val shadowDx = if (hasShadow) {
+                val rad = Math.toRadians(node.efx.shadow.direction.toDouble())
+                (node.efx.shadow.distance * cos(rad)).toFloat()
+            } else 0f
+            val shadowDy = if (hasShadow) {
+                val rad = Math.toRadians(node.efx.shadow.direction.toDouble())
+                (node.efx.shadow.distance * sin(rad)).toFloat()
+            } else 0f
+            if (hasShadow) {
+                val shadowColor = try {
+                    node.efx.shadow.colorHex.toColorInt()
+                } catch (_: Exception) {
+                    Color.BLACK
+                }
+                textPaint.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor)
+            }
+
+            val rawBoxWidthDp = if ((node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
+                node.boxWidthDp
+            } else if (node.bounds.widthDp != null && node.bounds.widthDp > 0) {
+                node.bounds.widthDp
+            } else null
+
+            val boxWidthPx = rawBoxWidthDp?.let { dpToPx((it * scaleX).roundToInt()) }
+
+            if (node.sizingType == TextSizingType.FIT_WIDTH && boxWidthPx != null && boxWidthPx > 0) {
+                var curSize = textSizePx
+                while (textPaint.measureText(resolved) > boxWidthPx && curSize > dpToPx(6)) {
+                    curSize -= 1f
+                    textPaint.textSize = curSize
+                }
+            }
+
+            val targetLayoutWidth = boxWidthPx
+                ?: kotlin.math.ceil(StaticLayout.getDesiredWidth(resolved, textPaint)).toInt().coerceAtLeast(1)
+
+            val alignment = when (node.gravity) {
+                TextGravity.START -> Layout.Alignment.ALIGN_NORMAL
+                TextGravity.CENTER -> Layout.Alignment.ALIGN_CENTER
+                TextGravity.END -> Layout.Alignment.ALIGN_OPPOSITE
+            }
+
+            val layout =
+                StaticLayout.Builder.obtain(resolved, 0, resolved.length, textPaint, targetLayoutWidth)
+                    .setAlignment(alignment)
+                    .setMaxLines(node.maxLines)
+                    .setEllipsize(TextUtils.TruncateAt.END)
+                    .setIncludePad(false)
+                    .build()
+
+            val rawHeightDp = resolveInt(node, BindableProperty.BOUNDS_HEIGHT, node.bounds.heightDp, ctx)
+            val heightDp = rawHeightDp?.let { (it * scaleX).roundToInt() }
+            val boxHeightPx = heightDp?.let { dpToPx(it).coerceAtLeast(1) }
+
+            val padX = if (hasShadow) (shadowRadius + kotlin.math.abs(shadowDx)).toInt() + 2 else 0
+            val padY = if (hasShadow) (shadowRadius + kotlin.math.abs(shadowDy)).toInt() + 2 else 0
+
+            val textActualWidth = if (boxWidthPx != null) {
+                boxWidthPx
+            } else {
+                var maxW = 0f
+                for (i in 0 until layout.lineCount) {
+                    maxW = maxOf(maxW, layout.getLineWidth(i))
+                }
+                kotlin.math.ceil(maxW).toInt().coerceAtLeast(1)
+            }
+            val textActualHeight = layout.height.coerceAtLeast(1)
+
+            val finalWidthPx = (textActualWidth + padX * 2).coerceAtLeast(1)
+            val finalHeightPx = ((boxHeightPx ?: textActualHeight) + padY * 2).coerceAtLeast(1)
+
+            val offsetY = if (boxHeightPx != null && boxHeightPx > textActualHeight) {
+                (boxHeightPx - textActualHeight) / 2f + padY
+            } else {
+                padY.toFloat()
+            }
+
+            val bitmap = createBitmapWithDensity(finalWidthPx, finalHeightPx)
+            val canvas = Canvas(bitmap)
+            if (padX > 0 || offsetY != 0f) {
+                canvas.withTranslation(padX.toFloat(), offsetY) {
+                    layout.draw(this)
+                }
+            } else {
+                layout.draw(canvas)
+            }
+
+            val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_text_bitmap)
+            rv.setImageViewBitmap(R.id.node_text, bitmap)
+            return rv
+        }
+
+        // Standard system font TextView fallback
+        val rv = RemoteViews(context.packageName, R.layout.layout_widget_node_text)
+        val textToSet: CharSequence = if (hasStyle || familyName != null) {
             android.text.SpannableString(resolved).apply {
                 if (hasStyle) {
                     val style = when {
-                        node.bold && node.italic -> android.graphics.Typeface.BOLD_ITALIC
-                        node.bold -> android.graphics.Typeface.BOLD
-                        node.italic -> android.graphics.Typeface.ITALIC
-                        else -> android.graphics.Typeface.NORMAL
+                        node.bold && node.italic -> Typeface.BOLD_ITALIC
+                        node.bold -> Typeface.BOLD
+                        node.italic -> Typeface.ITALIC
+                        else -> Typeface.NORMAL
                     }
                     setSpan(
                         android.text.style.StyleSpan(style),
@@ -335,14 +504,7 @@ class CustomWidgetRenderer(
                         android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                 }
-                if (customTypeface != null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                    setSpan(
-                        android.text.style.TypefaceSpan(customTypeface),
-                        0,
-                        length,
-                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
-                } else if (familyName != null) {
+                if (familyName != null) {
                     setSpan(
                         android.text.style.TypefaceSpan(familyName),
                         0,
@@ -355,14 +517,8 @@ class CustomWidgetRenderer(
             resolved
         }
         rv.setTextViewText(R.id.node_text, textToSet)
-
-        val fontSize = resolveInt(node, BindableProperty.TEXT_FONT_SIZE, node.fontSizeSp, ctx) ?: node.fontSizeSp
         rv.setTextViewTextSize(R.id.node_text, TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat())
-
-        val textColor = resolveColor(node, BindableProperty.TEXT_COLOR, node.colorHex, ctx)
-        if (textColor != null) {
-            rv.setTextColor(R.id.node_text, textColor)
-        }
+        rv.setTextColor(R.id.node_text, textColor)
 
         val gravityFlag = when (node.gravity) {
             TextGravity.START -> android.view.Gravity.START
@@ -637,19 +793,18 @@ class CustomWidgetRenderer(
             imgPaint.xfermode = PorterDuffXfermode(mode)
         }
 
-        canvas.save()
-        canvas.clipPath(shapePath)
-        canvas.drawBitmap(source, null, destRect, imgPaint)
+        canvas.withClip(shapePath) {
+            drawBitmap(source, null, destRect, imgPaint)
 
-        if (attenuation > 0) {
-            val attAlpha = ((attenuation / 100f).coerceIn(0f, 1f) * 255).roundToInt()
-            val attPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.FILL
-                color = Color.argb(attAlpha, 0, 0, 0)
+            if (attenuation > 0) {
+                val attAlpha = ((attenuation / 100f).coerceIn(0f, 1f) * 255).roundToInt()
+                val attPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    style = Paint.Style.FILL
+                    color = Color.argb(attAlpha, 0, 0, 0)
+                }
+                drawRect(rect, attPaint)
             }
-            canvas.drawRect(rect, attPaint)
         }
-        canvas.restore()
 
         if (drawContainerDecorations) {
             val strokeWidthPx = dpToPx(1).toFloat().coerceAtLeast(1f)
@@ -721,7 +876,7 @@ class CustomWidgetRenderer(
             ProgressColorMode.MULTICOLOR -> {
                 if (node.multiColorsHex.isNotEmpty()) {
                     val parsed = node.multiColorsHex.mapNotNull { try { it.toColorInt() } catch (_: Exception) { null } }
-                    if (parsed.isNotEmpty()) parsed else listOf(0xFF4CAF50.toInt(), 0xFFFFEB3B.toInt(), 0xFFFF9800.toInt(), 0xFFF44336.toInt())
+                    parsed.ifEmpty { listOf(0xFF4CAF50.toInt(), 0xFFFFEB3B.toInt(), 0xFFFF9800.toInt(), 0xFFF44336.toInt()) }
                 } else {
                     listOf(0xFF4CAF50.toInt(), 0xFFFFEB3B.toInt(), 0xFFFF9800.toInt(), 0xFFF44336.toInt())
                 }
@@ -782,8 +937,8 @@ class CustomWidgetRenderer(
                     val currentAngleDeg = -90f + fraction * 360f
                     val arcRadius = (size - inset * 2f) / 2f
                     val angleRad = Math.toRadians(currentAngleDeg.toDouble())
-                    val cx = (widthPx / 2f) + arcRadius * kotlin.math.cos(angleRad).toFloat()
-                    val cy = (heightPx / 2f) + arcRadius * kotlin.math.sin(angleRad).toFloat()
+                    val cx = (widthPx / 2f) + arcRadius * cos(angleRad).toFloat()
+                    val cy = (heightPx / 2f) + arcRadius * sin(angleRad).toFloat()
                     drawProgressThumb(canvas, doc, node, ctx, cx, cy, thumbSizePx, thumbColor)
                 }
             }
@@ -848,7 +1003,7 @@ class CustomWidgetRenderer(
                 var x = 0f
                 trackPath.moveTo(0f, midY)
                 while (x <= w) {
-                    val y = midY + kotlin.math.sin(x / w * numCycles * 2 * Math.PI).toFloat() * amplitude
+                    val y = midY + sin(x / w * numCycles * 2 * Math.PI).toFloat() * amplitude
                     trackPath.lineTo(x, y)
                     x += step
                 }
@@ -871,7 +1026,7 @@ class CustomWidgetRenderer(
                     activePath.moveTo(0f, midY)
                     x = 0f
                     while (x <= activeWidth) {
-                        val y = midY + kotlin.math.sin(x / w * numCycles * 2 * Math.PI).toFloat() * amplitude
+                        val y = midY + sin(x / w * numCycles * 2 * Math.PI).toFloat() * amplitude
                         activePath.lineTo(x, y)
                         x += step
                     }
@@ -880,7 +1035,7 @@ class CustomWidgetRenderer(
 
                 if (node.thumbType != ProgressIndicatorThumb.NONE) {
                     val cx = (w * fraction).coerceIn(0f, w)
-                    val cy = midY + kotlin.math.sin(cx / w * numCycles * 2 * Math.PI).toFloat() * amplitude
+                    val cy = midY + sin(cx / w * numCycles * 2 * Math.PI).toFloat() * amplitude
                     drawProgressThumb(canvas, doc, node, ctx, cx, cy, thumbSizePx, thumbColor)
                 }
             }
@@ -1017,7 +1172,7 @@ class CustomWidgetRenderer(
         val srcPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         }
-        val scaled = Bitmap.createScaledBitmap(raw, sizePx, sizePx, true).apply {
+        val scaled = raw.scale(sizePx, sizePx).apply {
             density = context.resources.displayMetrics.densityDpi
         }
         canvas.drawBitmap(scaled, 0f, 0f, srcPaint)
@@ -1044,7 +1199,7 @@ class CustomWidgetRenderer(
                 val bmp = if (glyphName.startsWith("/")) {
                     android.graphics.BitmapFactory.decodeFile(glyphName)
                 } else {
-                    val uri = Uri.parse(glyphName)
+                    val uri = glyphName.toUri()
                     context.contentResolver.openInputStream(uri)?.use { stream ->
                         android.graphics.BitmapFactory.decodeStream(stream)
                     }
@@ -1173,8 +1328,8 @@ class CustomWidgetRenderer(
                 for (i in 0 until 10) {
                     val angle = (i * 36 - 90) * Math.PI / 180.0
                     val r = if (i % 2 == 0) outerR else innerR
-                    val x = cx + (r * Math.cos(angle)).toFloat()
-                    val y = cy + (r * Math.sin(angle)).toFloat()
+                    val x = cx + (r * cos(angle)).toFloat()
+                    val y = cy + (r * sin(angle)).toFloat()
                     if (i == 0) starPath.moveTo(x, y) else starPath.lineTo(x, y)
                 }
                 starPath.close()
@@ -1328,11 +1483,26 @@ class CustomWidgetRenderer(
         val hasIcon = !resolvedIcon.isNullOrBlank()
         val hasText = resolvedLabel.isNotBlank() && node.iconPosition != ButtonIconPosition.ICON_ONLY
 
+        val effectiveCustomFontUri = doc.globals.customFontUri
+        val customTypeface = if (!effectiveCustomFontUri.isNullOrBlank()) {
+            com.d4viddf.hyperbridge.models.widget.CustomFontRepository.resolveTypefaceCached(context, effectiveCustomFontUri)
+        } else null
+        val effectiveTypeface = if (customTypeface != null) {
+            Typeface.create(customTypeface, Typeface.BOLD)
+        } else when (doc.globals.fontFamily) {
+            TextFontFamily.DEFAULT -> Typeface.DEFAULT_BOLD
+            TextFontFamily.SANS_SERIF -> Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            TextFontFamily.SERIF -> Typeface.create(Typeface.SERIF, Typeface.BOLD)
+            TextFontFamily.MONOSPACE -> Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            TextFontFamily.CURSIVE -> Typeface.create("cursive", Typeface.BOLD)
+            TextFontFamily.CASUAL -> Typeface.create("casual", Typeface.BOLD)
+            TextFontFamily.CONDENSED -> Typeface.create("sans-serif-condensed", Typeface.BOLD)
+        }
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
             textSize = dpToPx(13).toFloat()
             textAlign = Paint.Align.CENTER
-            typeface = Typeface.DEFAULT_BOLD
+            typeface = effectiveTypeface
         }
         val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
@@ -1345,11 +1515,11 @@ class CustomWidgetRenderer(
                 (widthPx + iconSizePx) / 2f,
                 (heightPx + iconSizePx) / 2f
             )
-            drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+            drawGlyph(canvas, resolvedIcon, iconRect, iconPaint)
         } else if (hasText && !hasIcon) {
             val textY = (heightPx / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
             canvas.drawText(resolvedLabel, widthPx / 2f, textY, textPaint)
-        } else if (hasIcon && hasText) {
+        } else if (hasIcon) {
             val gapPx = dpToPx(4)
             val textWidth = textPaint.measureText(resolvedLabel)
             val textY = (heightPx / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
@@ -1359,7 +1529,7 @@ class CustomWidgetRenderer(
                     val totalContentW = iconSizePx + gapPx + textWidth
                     val startX = ((widthPx - totalContentW) / 2f).coerceAtLeast(4f)
                     val iconRect = RectF(startX, (heightPx - iconSizePx) / 2f, startX + iconSizePx, (heightPx + iconSizePx) / 2f)
-                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                    drawGlyph(canvas, resolvedIcon, iconRect, iconPaint)
                     val textCenterX = startX + iconSizePx + gapPx + (textWidth / 2f)
                     canvas.drawText(resolvedLabel, textCenterX, textY, textPaint)
                 }
@@ -1369,20 +1539,20 @@ class CustomWidgetRenderer(
                     val textCenterX = startX + (textWidth / 2f)
                     canvas.drawText(resolvedLabel, textCenterX, textY, textPaint)
                     val iconRect = RectF(startX + textWidth + gapPx, (heightPx - iconSizePx) / 2f, startX + textWidth + gapPx + iconSizePx, (heightPx + iconSizePx) / 2f)
-                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                    drawGlyph(canvas, resolvedIcon, iconRect, iconPaint)
                 }
                 ButtonIconPosition.TOP -> {
                     val smallIconSize = (iconSizePx * 0.75f).toInt()
                     val totalContentH = smallIconSize + gapPx + dpToPx(12)
                     val startY = ((heightPx - totalContentH) / 2f).coerceAtLeast(2f)
                     val iconRect = RectF((widthPx - smallIconSize) / 2f, startY, (widthPx + smallIconSize) / 2f, startY + smallIconSize)
-                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                    drawGlyph(canvas, resolvedIcon, iconRect, iconPaint)
                     val labelY = startY + smallIconSize + gapPx + dpToPx(10)
                     canvas.drawText(resolvedLabel, widthPx / 2f, labelY, textPaint)
                 }
                 ButtonIconPosition.ICON_ONLY -> {
                     val iconRect = RectF((widthPx - iconSizePx) / 2f, (heightPx - iconSizePx) / 2f, (widthPx + iconSizePx) / 2f, (heightPx + iconSizePx) / 2f)
-                    drawGlyph(canvas, resolvedIcon!!, iconRect, iconPaint)
+                    drawGlyph(canvas, resolvedIcon, iconRect, iconPaint)
                 }
             }
         }
@@ -1429,7 +1599,7 @@ class CustomWidgetRenderer(
         }
 
         is ButtonAction.DeepLink -> {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(action.uri))
+            val intent = Intent(Intent.ACTION_VIEW, action.uri.toUri())
             PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
@@ -1511,14 +1681,12 @@ class CustomWidgetRenderer(
             val baseSizePx = minOf(widthPx, heightPx)
             val (targetW, targetH) = when (scaleType) {
                 ImageScaleType.FIT_WIDTH -> {
-                    val w = widthPx
                     val h = if (isGlyph) (widthPx * 0.75f).coerceAtLeast(minGlyphSize) else (srcH * (widthPx / srcW.coerceAtLeast(1f)))
-                    Pair(w, h)
+                    Pair(widthPx, h)
                 }
                 ImageScaleType.FIT_HEIGHT -> {
-                    val h = heightPx
                     val w = if (isGlyph) (heightPx * 0.75f).coerceAtLeast(minGlyphSize) else (srcW * (heightPx / srcH.coerceAtLeast(1f)))
-                    Pair(w, h)
+                    Pair(w, heightPx)
                 }
                 ImageScaleType.FIT_CENTER -> {
                     if (isGlyph) {
