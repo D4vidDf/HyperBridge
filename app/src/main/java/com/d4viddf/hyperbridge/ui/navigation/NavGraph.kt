@@ -38,7 +38,6 @@ fun mainNavGraph(
     preferences: AppPreferences,
     navigator: Navigator<Screen>,
     backupManager: BackupManager,
-    currentVersionCode: Int,
     onExit: () -> Unit
 ) = entryProvider {
     entry<Screen.Onboarding> {
@@ -52,7 +51,6 @@ fun mainNavGraph(
     entry<Screen.Home> {
         HomeScreen(
             onSettingsClick = { navigator.navigate(Screen.Info) },
-            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
             onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) },
             onSystemUpdateConfigClick = { navigator.navigate(Screen.SystemUpdateCustomization) },
             onChargingConfigClick = { navigator.navigate(Screen.ChargingCustomization) },

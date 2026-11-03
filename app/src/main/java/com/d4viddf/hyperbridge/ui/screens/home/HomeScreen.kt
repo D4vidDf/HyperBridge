@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.ToggleOn
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.ToggleOff
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -66,20 +65,15 @@ private enum class DesignRoute {
     STUDIO_EDITOR
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: AppListViewModel = viewModel(),
     onSettingsClick: () -> Unit,
-    onNavConfigClick: (String) -> Unit,
     onScreenRecordingConfigClick: () -> Unit = {},
     onSystemUpdateConfigClick: () -> Unit = {},
     onChargingConfigClick: () -> Unit = {},
     onVpnConfigClick: () -> Unit = {},
-    onAppConfigClick: (String) -> Unit = {},
-    onNavigateToTranslators: () -> Unit = {},
-    onCreateTranslator: (String?) -> Unit = {},
-    onEditTranslator: (String) -> Unit = {}
+    onAppConfigClick: (String) -> Unit = {}
 ) {
 
     var selectedTab by rememberSaveable { mutableIntStateOf(1) }
@@ -89,6 +83,7 @@ fun HomeScreen(
     var editingCustomWidgetId by rememberSaveable { mutableStateOf<String?>(null) }
     var newTranslatorPackageName by rememberSaveable { mutableStateOf<String?>(null) }
     var previousTranslatorManagerRoute by rememberSaveable { mutableStateOf(DesignRoute.TRANSLATOR_MANAGER) }
+    var previousStudioRoute by rememberSaveable { mutableStateOf(DesignRoute.DESIGN_MANAGER) }
 
     var showWidgetPicker by rememberSaveable { mutableStateOf(false) }
     var editingWidgetId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -112,7 +107,7 @@ fun HomeScreen(
                 }
                 DesignRoute.STUDIO_EDITOR -> {
                     editingCustomWidgetId = null
-                    DesignRoute.DESIGN_MANAGER
+                    previousStudioRoute
                 }
                 DesignRoute.TRANSLATOR_EDITOR -> {
                     editingTranslatorId = null
@@ -203,6 +198,11 @@ fun HomeScreen(
                                                 previousTranslatorManagerRoute = DesignRoute.TRANSLATOR_MANAGER
                                                 designRoute = DesignRoute.TRANSLATOR_EDITOR
                                             },
+                                            onCreateCustomDesign = {
+                                                editingCustomWidgetId = null
+                                                previousStudioRoute = DesignRoute.DASHBOARD
+                                                designRoute = DesignRoute.STUDIO_EDITOR
+                                            },
                                             onLaunchPicker = { showWidgetPicker = true },
                                             onSettingsClick = onSettingsClick
                                         )
@@ -213,7 +213,7 @@ fun HomeScreen(
                                             widgetId = editingCustomWidgetId,
                                             onBack = {
                                                 editingCustomWidgetId = null
-                                                designRoute = DesignRoute.DESIGN_MANAGER
+                                                designRoute = previousStudioRoute
                                             }
                                         )
                                     }
@@ -278,6 +278,7 @@ fun HomeScreen(
                                             onAddDesign = {
                                                 // Create a new custom design in Studio
                                                 editingCustomWidgetId = null
+                                                previousStudioRoute = DesignRoute.DESIGN_MANAGER
                                                 designRoute = DesignRoute.STUDIO_EDITOR
                                             },
                                             onEditDesign = { id ->
@@ -288,6 +289,7 @@ fun HomeScreen(
                                             },
                                             onOpenStudio = { widgetId ->
                                                 editingCustomWidgetId = widgetId
+                                                previousStudioRoute = DesignRoute.DESIGN_MANAGER
                                                 designRoute = DesignRoute.STUDIO_EDITOR
                                             }
                                         )

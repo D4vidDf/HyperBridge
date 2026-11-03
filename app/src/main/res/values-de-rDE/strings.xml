@@ -1088,7 +1088,7 @@
     <string name="design_add_from_template">From a template</string>
     <string name="design_add_from_template_desc">Pick one of the ten official island templates</string>
     <string name="design_add_custom">Custom design</string>
-    <string name="design_add_custom_desc">Build an island element by element (coming with the Widget Studio)</string>
+    <string name="design_add_custom_desc">Build an island element by element in the Widget Studio</string>
     <string name="design_template_gallery_title">Choose a template</string>
     <string name="design_template_type_title">When should it show?</string>
     <string name="design_template_type_desc">Select the notification type to style with this design.</string>

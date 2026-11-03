@@ -1134,7 +1134,7 @@
     <string name="design_add_from_template">Şablondan</string>
     <string name="design_add_from_template_desc">On resmi ada şablonundan birini seçin</string>
     <string name="design_add_custom">Özel tasarım</string>
-    <string name="design_add_custom_desc">Adayı öge öge oluşturun (Widget Studio ile birlikte gelecek)</string>
+    <string name="design_add_custom_desc">Widget Studio ile adayı öge öge oluşturun</string>
     <string name="design_template_gallery_title">Bir şablon seçin</string>
     <string name="design_template_type_title">Ne zaman gösterilmeli?</string>
     <string name="design_template_type_desc">Bu tasarımla stillendirilecek bildirim türünü seçin.</string>
