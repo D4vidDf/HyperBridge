@@ -171,4 +171,11 @@ class CustomWidgetRendererTest {
         assertEquals(100f, bounds.width, 0.01f)
         assertEquals(200f, bounds.height, 0.01f)
     }
+
+    @Test
+    fun customFontDisplayNameFormatting() {
+        assertEquals("My Custom Font", com.d4viddf.hyperbridge.models.widget.CustomFontRepository.formatDisplayName("my_custom_font.ttf"))
+        assertEquals("Cool Header", com.d4viddf.hyperbridge.models.widget.CustomFontRepository.formatDisplayName("Cool-Header.otf"))
+    }
 }
+
