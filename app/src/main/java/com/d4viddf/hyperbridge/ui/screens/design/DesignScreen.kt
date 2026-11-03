@@ -46,12 +46,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -98,6 +100,7 @@ fun DesignScreen(
     onNavigateToDesigns: () -> Unit = {},
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
+    onCreateCustomDesign: () -> Unit = {},
     onLaunchPicker: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -193,6 +196,10 @@ fun DesignScreen(
                 showAddDesign = false
                 translatorViewModel.saveTranslator(design)
                 Toast.makeText(context, R.string.design_design_created, Toast.LENGTH_SHORT).show()
+            },
+            onCustomDesign = {
+                showAddDesign = false
+                onCreateCustomDesign()
             }
         )
     }
@@ -376,7 +383,6 @@ private fun AddIslandOptionCard(
 }
 
 // --- 2. STATELESS COMPOSABLE (UI Layer - Previewable) ---
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DesignScreenContent(
     activeThemeId: String?,
@@ -462,7 +468,6 @@ fun DesignScreenContent(
 
 // --- SECTIONS ---
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeroSection() {
     val uriHandler = LocalUriHandler.current
@@ -602,7 +607,6 @@ data class FeaturedCarouselItem(
     val onClick: () -> Unit
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FeaturedSection(
     modifier: Modifier = Modifier

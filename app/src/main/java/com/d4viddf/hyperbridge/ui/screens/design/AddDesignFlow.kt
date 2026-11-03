@@ -58,7 +58,7 @@ import com.d4viddf.hyperbridge.ui.components.island.IslandTemplateGallery
 import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
 
 /**
- * Adding a design: pick a template (or, once the Widget Studio lands, build a custom one), then
+ * Adding a design: pick a template or build a custom one in the Widget Studio, then
  * say when it should show. Nothing else -- a design starts as "this template, for this kind of
  * notification", and the translator editor is where match conditions and per-element bindings live.
  */

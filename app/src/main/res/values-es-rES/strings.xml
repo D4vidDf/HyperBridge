@@ -1323,7 +1323,7 @@
     <string name="design_add_from_template">Desde una plantilla</string>
     <string name="design_add_from_template_desc">Elige una de las diez plantillas de isla oficiales</string>
     <string name="design_add_custom">Diseño personalizado</string>
-    <string name="design_add_custom_desc">Crea una isla elemento por elemento (próximamente con Widget Studio)</string>
+    <string name="design_add_custom_desc">Crea una isla elemento por elemento en Widget Studio</string>
     <string name="design_template_gallery_title">Elige una plantilla</string>
     <string name="design_template_type_title">¿Cuándo debería mostrarse?</string>
     <string name="design_template_type_desc">Selecciona el tipo de notificación a personalizar con este diseño.</string>
