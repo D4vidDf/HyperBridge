@@ -306,11 +306,28 @@ class CustomWidgetRenderer(
             ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> R.layout.layout_widget_container_box
         }
         val rv = RemoteViews(context.packageName, layoutRes)
-        val bgColor = resolveColor(node, BindableProperty.CONTAINER_BACKGROUND, node.backgroundHex, ctx)
-        if (bgColor != null && node.backgroundType != ContainerBackgroundType.PICTURE) {
-            try {
-                rv.setInt(R.id.widget_container_root, "setBackgroundColor", bgColor)
-            } catch (_: Exception) { /* ignore invalid color */ }
+        if (node.backgroundType == ContainerBackgroundType.SOLID) {
+            val containerCtx = if (node.backgroundColorSchemeConfig != null || !node.backgroundEmbeddedColorSchemeYaml.isNullOrBlank()) {
+                val overrideScheme = com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = node.backgroundColorSchemeConfig ?: doc.globals.colorSchemeConfig,
+                    embeddedYaml = node.backgroundEmbeddedColorSchemeYaml,
+                    appIconBitmap = ctx.notifSmallIconBitmap,
+                    mediaBitmaps = mapOf(
+                        "album_art" to (ctx.notifPictureBitmap ?: ctx.notifAvatarBitmap),
+                        "picture" to ctx.notifPictureBitmap,
+                        "avatar" to ctx.notifAvatarBitmap
+                    ),
+                    isDark = true
+                )
+                ctx.copy(colorScheme = overrideScheme)
+            } else ctx
+            val bgColor = resolveColor(node, BindableProperty.CONTAINER_BACKGROUND, node.backgroundHex, containerCtx)
+            if (bgColor != null) {
+                try {
+                    rv.setInt(R.id.widget_container_root, "setBackgroundColor", bgColor)
+                } catch (_: Exception) { /* ignore invalid color */ }
+            }
         }
         rv.setViewPadding(
             R.id.widget_container_root,
