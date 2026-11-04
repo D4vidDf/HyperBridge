@@ -2,12 +2,9 @@ package com.d4viddf.hyperbridge.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,30 +12,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.rounded.ColorLens
-import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,12 +46,11 @@ import androidx.core.graphics.ColorUtils
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition
 import com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole
-import com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType
 import com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetGlobals
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SchemeOrCustomColorBottomSheet(
     initialColor: Color,
@@ -69,30 +60,29 @@ fun SchemeOrCustomColorBottomSheet(
     onSelectToken: (token: String) -> Unit,
     onColorAdded: (Color) -> Unit,
     globals: CustomWidgetGlobals? = null,
-    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null
+    onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null,
+    isSchemeMode: Boolean = currentColorTokenOrHex.trim().startsWith("@scheme:")
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val effectiveScheme = remember(colorScheme, globals?.colorSchemeConfig, globals?.embeddedColorSchemeYaml) {
-        if (globals != null) {
-            DynamicColorSchemeResolver.resolve(
-                context = context,
-                config = globals.colorSchemeConfig,
-                embeddedYaml = globals.embeddedColorSchemeYaml,
-                isDark = true
-            )
-        } else {
-            colorScheme ?: DynamicColorSchemeResolver.resolve(
-                context = context,
-                config = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
-                isDark = true
-            )
-        }
+        colorScheme
+            ?: if (globals != null) {
+                DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = globals.colorSchemeConfig,
+                    embeddedYaml = globals.embeddedColorSchemeYaml,
+                    isDark = true
+                )
+            } else {
+                DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
+                    isDark = true
+                )
+            }
     }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var selectedTab by remember {
-        mutableIntStateOf(if (currentColorTokenOrHex.trim().startsWith("@scheme:")) 0 else 1)
-    }
 
     // Extract initial HSL for custom picker
     val hsl = FloatArray(3)
@@ -108,12 +98,12 @@ fun SchemeOrCustomColorBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             // Header
@@ -133,176 +123,79 @@ fun SchemeOrCustomColorBottomSheet(
                 }
 
                 Text(
-                    text = stringResource(R.string.colors_dialog_title),
-                    style = MaterialTheme.typography.titleLarge,
+                    text = if (isSchemeMode) {
+                        stringResource(R.string.studio_color_scheme_quick_tokens)
+                    } else {
+                        stringResource(R.string.colors_dialog_title)
+                    },
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
 
-            // Tab Row: Palette Tokens vs Custom Color
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text(stringResource(R.string.studio_color_scheme_tab_tokens)) },
-                    icon = { Icon(Icons.Rounded.ColorLens, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text(stringResource(R.string.studio_color_scheme_tab_custom)) },
-                    icon = { Icon(Icons.Rounded.Palette, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                )
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            if (selectedTab == 0) {
-                if (globals != null && onUpdateGlobals != null) {
-                    Text(
-                        text = stringResource(R.string.studio_color_scheme_source),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val sources = listOf(
-                            ColorSchemeSourceType.PHONE_DYNAMIC to R.string.studio_color_scheme_phone_dynamic,
-                            ColorSchemeSourceType.PHONE_EXPRESSIVE to R.string.studio_color_scheme_phone_expressive,
-                            ColorSchemeSourceType.APP_ICON_EXPRESSIVE to R.string.studio_color_scheme_app_icon,
-                            ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE to R.string.studio_color_scheme_notif_media,
-                            ColorSchemeSourceType.CUSTOM_PRESET to R.string.studio_color_scheme_custom_preset
-                        )
-
-                        sources.forEach { (sourceType, labelRes) ->
-                            FilterChip(
-                                selected = globals.colorSchemeConfig.sourceType == sourceType,
-                                onClick = {
-                                    val newCfg = globals.colorSchemeConfig.copy(sourceType = sourceType)
-                                    onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg))
-                                },
-                                label = { Text(stringResource(labelRes)) }
-                            )
-                        }
-                    }
-
-                    if (globals.colorSchemeConfig.sourceType == ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE) {
-                        Spacer(Modifier.height(6.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val mediaKeys = listOf(
-                                "album_art" to R.string.studio_color_scheme_media_album_art,
-                                "picture" to R.string.studio_color_scheme_media_picture,
-                                "avatar" to R.string.studio_color_scheme_media_avatar
-                            )
-                            mediaKeys.forEach { (key, labelRes) ->
-                                FilterChip(
-                                    selected = globals.colorSchemeConfig.mediaSourceKey == key,
-                                    onClick = {
-                                        val newCfg = globals.colorSchemeConfig.copy(mediaSourceKey = key)
-                                        onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg))
-                                    },
-                                    label = { Text(stringResource(labelRes)) }
-                                )
-                            }
-                        }
-                    }
-
-                    if (globals.colorSchemeConfig.sourceType == ColorSchemeSourceType.CUSTOM_PRESET) {
-                        Spacer(Modifier.height(6.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            DynamicColorSchemeResolver.BUILT_IN_PRESETS.forEach { preset ->
-                                val isSelected = (globals.colorSchemeConfig.customSchemeId == preset.id) ||
-                                    (globals.colorSchemeConfig.customSchemeId == null && preset.id == "default")
-                                FilterChip(
-                                    selected = isSelected && globals.embeddedColorSchemeYaml == null,
-                                    onClick = {
-                                        val newCfg = globals.colorSchemeConfig.copy(customSchemeId = preset.id)
-                                        onUpdateGlobals(globals.copy(colorSchemeConfig = newCfg, embeddedColorSchemeYaml = null))
-                                    },
-                                    label = { Text(preset.name) }
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(Modifier.height(14.dp))
-                }
-
-                // Tokens Grid
-                val currentRoleKey = if (currentColorTokenOrHex.startsWith("@scheme:")) {
-                    currentColorTokenOrHex.removePrefix("@scheme:")
+            if (isSchemeMode) {
+                val currentRoleKey = if (currentColorTokenOrHex.trim().startsWith("@scheme:")) {
+                    currentColorTokenOrHex.trim().removePrefix("@scheme:").lowercase()
                 } else null
 
-                FlowRow(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     ColorSchemeRole.entries.forEach { role ->
                         val hex = effectiveScheme.getHex(role) ?: "#888888"
                         val parsed = safeParseColor(hex, effectiveScheme)
-                        val isSelected = currentRoleKey == role.tokenKey
+                        val isSelected = currentRoleKey.equals(role.tokenKey, ignoreCase = true)
 
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
-                                )
-                                .border(
-                                    width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .clickable {
-                                    onSelectToken("@scheme:${role.tokenKey}")
-                                    onDismiss()
-                                }
-                                .padding(horizontal = 10.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Surface(
+                            onClick = {
+                                onSelectToken("@scheme:${role.tokenKey}")
+                                onDismiss()
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Box(
+                            Row(
                                 modifier = Modifier
-                                    .size(24.dp)
-                                    .clip(CircleShape)
-                                    .background(parsed)
-                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                            )
-                            Column {
-                                Text(
-                                    text = role.label,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = hex,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(CircleShape)
+                                            .background(parsed)
+                                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = role.label,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                            else MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "@scheme:${role.tokenKey} ($hex)",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                            else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = null
                                 )
                             }
                         }

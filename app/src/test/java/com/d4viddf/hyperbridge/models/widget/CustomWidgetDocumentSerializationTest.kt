@@ -523,4 +523,36 @@ class CustomWidgetDocumentSerializationTest {
             assertEquals(shapeId, decodedBtn.conditionalShapeId)
         }
     }
+
+    @Test
+    fun roundTripsTransparentContainerAndBackgroundColorSchemeConfig() {
+        val schemeCfg = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(
+            sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
+            customSchemeId = "emerald"
+        )
+        val childContainer = LayoutContainer(
+            id = "child-container",
+            backgroundType = ContainerBackgroundType.SOLID,
+            backgroundHex = "@scheme:primaryContainer",
+            backgroundColorSchemeConfig = schemeCfg
+        )
+        val doc = CustomWidgetDocument(
+            id = "test-transparent-bg",
+            meta = CustomWidgetMetadata(name = "Transparent Root Test"),
+            root = LayoutContainer(
+                id = "root",
+                backgroundType = ContainerBackgroundType.TRANSPARENT,
+                children = listOf(childContainer)
+            )
+        )
+
+        val encoded = json.encodeToString(CustomWidgetDocument.serializer(), doc)
+        val decoded = json.decodeFromString(CustomWidgetDocument.serializer(), encoded)
+
+        assertEquals(ContainerBackgroundType.TRANSPARENT, decoded.root.backgroundType)
+        val decodedChild = decoded.root.children.first() as LayoutContainer
+        assertEquals(ContainerBackgroundType.SOLID, decodedChild.backgroundType)
+        assertEquals("@scheme:primaryContainer", decodedChild.backgroundHex)
+        assertEquals(schemeCfg, decodedChild.backgroundColorSchemeConfig)
+    }
 }

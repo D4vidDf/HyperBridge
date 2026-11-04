@@ -49,6 +49,7 @@ import androidx.core.graphics.ColorUtils
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
+import androidx.core.graphics.toColorInt
 
 private val QUICK_COLORS = listOf(
     "#FFFFFF", "#000000", "#FF453A", "#FF9F0A", "#FFD60A",
@@ -84,20 +85,21 @@ fun StudioColorField(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val effectiveColorScheme = remember(colorScheme, globals?.colorSchemeConfig, globals?.embeddedColorSchemeYaml) {
-        if (globals != null) {
-            com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
-                context = context,
-                config = globals.colorSchemeConfig,
-                embeddedYaml = globals.embeddedColorSchemeYaml,
-                isDark = true
-            )
-        } else {
-            colorScheme ?: com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
-                context = context,
-                config = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
-                isDark = true
-            )
-        }
+        colorScheme
+            ?: if (globals != null) {
+                com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = globals.colorSchemeConfig,
+                    embeddedYaml = globals.embeddedColorSchemeYaml,
+                    isDark = true
+                )
+            } else {
+                com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
+                    isDark = true
+                )
+            }
     }
 
     val parsedColor = remember(colorHex, effectiveColorScheme) {
@@ -108,7 +110,7 @@ fun StudioColorField(
             runCatching {
                 val clean = trimmed.removePrefix("#")
                 when (clean.length) {
-                    6, 8 -> Color(android.graphics.Color.parseColor("#$clean"))
+                    6, 8 -> Color("#$clean".toColorInt())
                     else -> Color.Gray
                 }
             }.getOrDefault(Color.Gray)
@@ -377,7 +379,7 @@ fun StudioColorField(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     QUICK_COLORS.forEach { hex ->
-                        val color = Color(android.graphics.Color.parseColor(hex))
+                        val color = Color(hex.toColorInt())
                         Box(
                             modifier = Modifier
                                 .size(26.dp)
@@ -420,7 +422,8 @@ fun StudioColorField(
                 showColorPicker = false
             },
             globals = globals,
-            onUpdateGlobals = onUpdateGlobals
+            onUpdateGlobals = onUpdateGlobals,
+            isSchemeMode = isSchemeMode
         )
     }
 }

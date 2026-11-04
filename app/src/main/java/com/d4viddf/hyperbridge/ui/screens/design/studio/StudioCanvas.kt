@@ -1,7 +1,7 @@
 package com.d4viddf.hyperbridge.ui.screens.design.studio
 
+import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Alarm
 import androidx.compose.material.icons.rounded.Android
@@ -64,8 +66,6 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material.icons.rounded.Upload
-import androidx.compose.material.icons.rounded.VolumeOff
-import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material.icons.rounded.Wifi
@@ -105,6 +105,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
 import com.d4viddf.hyperbridge.models.widget.BindableProperty
@@ -150,6 +151,7 @@ val StudioCanvasBackground = Color(0xFF141414)
 
 private val previewEngine = WidgetVariableEngine()
 
+@SuppressLint("UseKtx")
 @Composable
 fun StudioCanvas(
     root: LayoutContainer,
@@ -193,16 +195,43 @@ fun StudioCanvas(
         }
     }
 
+    val rootColorScheme = remember(
+        effectiveColorScheme,
+        root.backgroundColorSchemeConfig,
+        root.backgroundEmbeddedColorSchemeYaml
+    ) {
+        if (root.backgroundColorSchemeConfig != null || !root.backgroundEmbeddedColorSchemeYaml.isNullOrBlank()) {
+            com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                context = contextLocal,
+                config = root.backgroundColorSchemeConfig ?: globals.colorSchemeConfig,
+                embeddedYaml = root.backgroundEmbeddedColorSchemeYaml,
+                appIconBitmap = context.notifSmallIconBitmap,
+                mediaBitmaps = mapOf(
+                    "album_art" to context.notifPictureBitmap,
+                    "picture" to context.notifPictureBitmap,
+                    "avatar" to context.notifAvatarBitmap
+                ),
+                isDark = true
+            )
+        } else {
+            effectiveColorScheme
+        }
+    }
+
     val rootBgFormula = root.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
     val resolvedRootBg = if (!isWireframeMode && !rootBgFormula.isNullOrBlank()) {
-        previewEngine.resolve(rootBgFormula, effectiveContext).ifBlank { root.backgroundHex }
+        previewEngine.resolve(rootBgFormula, effectiveContext.copy(colorScheme = rootColorScheme)).ifBlank { root.backgroundHex }
     } else root.backgroundHex
-    val canvasBg = resolvedRootBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it, effectiveColorScheme) } ?: StudioCanvasBackground
+    val canvasBg = if (root.backgroundType == ContainerBackgroundType.SOLID) {
+        resolvedRootBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it, rootColorScheme) } ?: StudioCanvasBackground
+    } else {
+        StudioCanvasBackground
+    }
 
     val rootPictureBitmap: ImageBitmap? = remember(root.backgroundImageUri, root.backgroundType) {
         if (!isWireframeMode && root.backgroundType == ContainerBackgroundType.PICTURE && !root.backgroundImageUri.isNullOrBlank()) {
             try {
-                val uri = Uri.parse(root.backgroundImageUri)
+                val uri = root.backgroundImageUri.toUri()
                 contextLocal.contentResolver.openInputStream(uri)?.use { stream ->
                     BitmapFactory.decodeStream(stream)?.asImageBitmap()
                 }
@@ -342,12 +371,18 @@ private fun CanvasNode(
         (node.fontSizeSp * 1.4f * node.maxLines).roundToInt().coerceAtLeast(24)
     } else defaultHeightOf(node)
 
-    val rawWidth = if (node is TextNode && (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null) {
-        node.boxWidthDp
-    } else if (node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE) {
-        maxOf(node.bounds.widthDp ?: defaultW, node.thumbSizeDp + 4)
-    } else {
-        node.bounds.widthDp ?: defaultW
+    val rawWidth = when (node) {
+        is TextNode if (node.sizingType == TextSizingType.FIXED_WIDTH || node.sizingType == TextSizingType.FIT_BOX) && node.boxWidthDp != null -> {
+            node.boxWidthDp
+        }
+
+        is ProgressNode if node.thumbType != ProgressIndicatorThumb.NONE -> {
+            maxOf(node.bounds.widthDp ?: defaultW, node.thumbSizeDp + 4)
+        }
+
+        else -> {
+            node.bounds.widthDp ?: defaultW
+        }
     }
     val nodeWidth = (rawWidth * scaleX).roundToInt()
     val baseNodeHeight = if (node is ProgressNode && node.thumbType != ProgressIndicatorThumb.NONE) {
@@ -449,7 +484,7 @@ private fun CanvasNode(
                     val dy = (node.efx.shadow.distance * kotlin.math.sin(rad)).toFloat()
                     androidx.compose.ui.graphics.Shadow(
                         color = safeParseColor(node.efx.shadow.colorHex, colorScheme),
-                        offset = androidx.compose.ui.geometry.Offset(dx, dy),
+                        offset = Offset(dx, dy),
                         blurRadius = node.efx.shadow.blurRadius.toFloat()
                     )
                 } else null
@@ -505,14 +540,14 @@ private fun CanvasNode(
                     TextTextureType.RADIAL_GRADIENT -> {
                         androidx.compose.ui.graphics.Brush.radialGradient(
                             colors = gradientColors,
-                            center = androidx.compose.ui.geometry.Offset(textureW / 2f, textureH / 2f),
+                            center = Offset(textureW / 2f, textureH / 2f),
                             radius = maxOf(textureW, textureH) / 2f
                         )
                     }
                     TextTextureType.SWEEP_GRADIENT -> {
                         androidx.compose.ui.graphics.Brush.sweepGradient(
                             colors = listOf(gradientColors[0], gradientColors[1], gradientColors[0]),
-                            center = androidx.compose.ui.geometry.Offset(textureW / 2f, textureH / 2f)
+                            center = Offset(textureW / 2f, textureH / 2f)
                         )
                     }
                     TextTextureType.BITMAP -> {
@@ -522,7 +557,7 @@ private fun CanvasNode(
                             try {
                                 val file = java.io.File(uriStr)
                                 if (file.exists()) {
-                                    val bitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath)
+                                    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                                     if (bitmap != null) {
                                         val shader = android.graphics.BitmapShader(
                                             bitmap,
@@ -540,7 +575,7 @@ private fun CanvasNode(
 
                 Text(
                     text = if (isWireframeMode) node.template else previewEngine.resolve(node.template, context).ifBlank { node.template },
-                    color = if (textureBrush != null) androidx.compose.ui.graphics.Color.Unspecified else safeParseColor(resolvedColor, colorScheme),
+                    color = if (textureBrush != null) Color.Unspecified else safeParseColor(resolvedColor, colorScheme),
                     fontSize = TextUnit(node.fontSizeSp.toFloat(), TextUnitType.Sp),
                     fontWeight = if (node.bold) FontWeight.Bold else FontWeight.Normal,
                     fontStyle = if (node.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
@@ -1028,7 +1063,7 @@ private fun CanvasNode(
 
                     if (hasIcon && !hasText) {
                         StudioButtonIcon(
-                            iconStr = resolvedIcon!!,
+                            iconStr = resolvedIcon,
                             tint = buttonTextColor,
                             modifier = Modifier.size(iconSize)
                         )
@@ -1047,7 +1082,7 @@ private fun CanvasNode(
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     StudioButtonIcon(
-                                        iconStr = resolvedIcon!!,
+                                        iconStr = resolvedIcon,
                                         tint = buttonTextColor,
                                         modifier = Modifier.size(iconSize)
                                     )
@@ -1071,7 +1106,7 @@ private fun CanvasNode(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     StudioButtonIcon(
-                                        iconStr = resolvedIcon!!,
+                                        iconStr = resolvedIcon,
                                         tint = buttonTextColor,
                                         modifier = Modifier.size(iconSize)
                                     )
@@ -1083,7 +1118,7 @@ private fun CanvasNode(
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
                                     StudioButtonIcon(
-                                        iconStr = resolvedIcon!!,
+                                        iconStr = resolvedIcon,
                                         tint = buttonTextColor,
                                         modifier = Modifier.size((resolvedIconSizeDp * 0.8f).roundToInt().dp)
                                     )
@@ -1097,7 +1132,7 @@ private fun CanvasNode(
                             }
                             ButtonIconPosition.ICON_ONLY -> {
                                 StudioButtonIcon(
-                                    iconStr = resolvedIcon!!,
+                                    iconStr = resolvedIcon,
                                     tint = buttonTextColor,
                                     modifier = Modifier.size(iconSize)
                                 )
@@ -1189,11 +1224,37 @@ private fun CanvasContainer(
     globals: CustomWidgetGlobals = CustomWidgetGlobals(),
     scaleX: Float = 1f
 ) {
+    val contextLocal = LocalContext.current
+    val containerColorScheme = remember(
+        context.colorScheme,
+        node.backgroundColorSchemeConfig,
+        node.backgroundEmbeddedColorSchemeYaml
+    ) {
+        if (node.backgroundColorSchemeConfig != null || !node.backgroundEmbeddedColorSchemeYaml.isNullOrBlank()) {
+            com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                context = contextLocal,
+                config = node.backgroundColorSchemeConfig ?: globals.colorSchemeConfig,
+                embeddedYaml = node.backgroundEmbeddedColorSchemeYaml,
+                appIconBitmap = context.notifSmallIconBitmap,
+                mediaBitmaps = mapOf(
+                    "album_art" to context.notifPictureBitmap,
+                    "picture" to context.notifPictureBitmap,
+                    "avatar" to context.notifAvatarBitmap
+                ),
+                isDark = true
+            )
+        } else {
+            context.colorScheme
+        }
+    }
+
     val bgFormula = node.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
     val resolvedBg = if (!isWireframeMode && !bgFormula.isNullOrBlank()) {
-        previewEngine.resolve(bgFormula, context).ifBlank { node.backgroundHex }
+        previewEngine.resolve(bgFormula, context.copy(colorScheme = containerColorScheme)).ifBlank { node.backgroundHex }
     } else node.backgroundHex
-    val backgroundColor = resolvedBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it, context.colorScheme) }
+    val backgroundColor = if (node.backgroundType == ContainerBackgroundType.SOLID) {
+        resolvedBg?.takeIf { it.isNotBlank() }?.let { safeParseColor(it, containerColorScheme) }
+    } else null
 
     val freePositioning = node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX
     val containerModifier = (if (node.bounds.widthDp == null) modifier.fillMaxSize() else modifier)
@@ -1255,9 +1316,7 @@ private fun CanvasContainer(
 
         ContainerLayout.BOX, ContainerLayout.ABSOLUTE -> Box(modifier = containerModifier) {
             node.children.forEach { child ->
-                val childModifier = if (node.layout == ContainerLayout.ABSOLUTE || node.layout == ContainerLayout.BOX) {
-                    Modifier.absoluteOffset((child.bounds.x * scaleX).dp, child.bounds.y.dp)
-                } else Modifier
+                val childModifier = Modifier.absoluteOffset((child.bounds.x * scaleX).dp, child.bounds.y.dp)
 
                 Box(modifier = childModifier) {
                     CanvasNode(
@@ -1321,7 +1380,7 @@ fun StudioButtonIcon(
                 if (iconStr.startsWith("/")) {
                     BitmapFactory.decodeFile(iconStr)
                 } else {
-                    val uri = Uri.parse(iconStr)
+                    val uri = iconStr.toUri()
                     context.contentResolver.openInputStream(uri)?.use { stream ->
                         BitmapFactory.decodeStream(stream)
                     }
@@ -1364,8 +1423,8 @@ internal fun studioGlyphIcon(glyphName: String): androidx.compose.ui.graphics.ve
     "stop" -> Icons.Rounded.Stop
     "fast_forward" -> Icons.Rounded.FastForward
     "fast_rewind", "rewind" -> Icons.Rounded.FastRewind
-    "volume_up", "volume" -> Icons.Rounded.VolumeUp
-    "volume_off", "mute" -> Icons.Rounded.VolumeOff
+    "volume_up", "volume" -> Icons.AutoMirrored.Rounded.VolumeUp
+    "volume_off", "mute" -> Icons.AutoMirrored.Rounded.VolumeOff
     "favorite", "heart", "like" -> Icons.Rounded.Favorite
     "thumb_up" -> Icons.Rounded.ThumbUp
     "share" -> Icons.Rounded.Share

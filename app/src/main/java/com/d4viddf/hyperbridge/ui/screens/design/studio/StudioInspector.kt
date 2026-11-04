@@ -45,6 +45,7 @@ import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Folder
@@ -55,6 +56,7 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Title
@@ -99,6 +101,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -155,6 +158,7 @@ import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 import com.d4viddf.hyperbridge.ui.screens.translators.TRANSLATOR_OUTLINED_ICONS
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import androidx.core.graphics.toColorInt
 
 /**
  * Tab-oriented KWGT-style Inspector for CustomWidgetNode elements.
@@ -2095,7 +2099,7 @@ private fun ProgressStyleTabContent(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                val picPresets = listOf<Pair<ImageSource, String>>(
+                val picPresets = listOf(
                     ImageSource.NotifMedia("album_art") to stringResource(R.string.studio_image_notif_media_album_art),
                     ImageSource.NotifMedia("avatar") to stringResource(R.string.studio_image_notif_media_avatar),
                     ImageSource.NotifMedia("picture") to stringResource(R.string.studio_image_notif_media_picture),
@@ -2431,7 +2435,7 @@ private fun ButtonTabContent(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 StudioButtonIcon(
-                                    iconStr = dispIcon!!,
+                                    iconStr = dispIcon,
                                     tint = btnTextColor,
                                     modifier = Modifier.size(iconSize)
                                 )
@@ -2443,7 +2447,7 @@ private fun ButtonTabContent(
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
                                 StudioButtonIcon(
-                                    iconStr = dispIcon!!,
+                                    iconStr = dispIcon,
                                     tint = btnTextColor,
                                     modifier = Modifier.size((node.iconSizeDp * 0.8f).roundToInt().dp)
                                 )
@@ -2517,7 +2521,7 @@ private fun ButtonTabContent(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     StudioButtonIcon(
-                        iconStr = node.icon!!,
+                        iconStr = node.icon,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(36.dp)
                     )
@@ -2917,7 +2921,6 @@ private fun ButtonTabContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ButtonIconPickerContent(
     currentIcon: String?,
@@ -4567,9 +4570,9 @@ private fun EfxTabContent(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                val imageLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-                    androidx.activity.result.contract.ActivityResultContracts.GetContent()
-                ) { uri: android.net.Uri? ->
+                val imageLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.GetContent()
+                ) { uri: Uri? ->
                     if (uri != null) {
                         onChange(node.copy(efx = node.efx.copy(textureBitmapUri = uri.toString())))
                     }
@@ -4613,18 +4616,18 @@ private fun EfxTabContent(
                             .clip(RoundedCornerShape(8.dp))
                             .background(
                                 when (node.efx.texture) {
-                                    TextTextureType.HORIZONTAL_GRADIENT -> androidx.compose.ui.graphics.Brush.horizontalGradient(previewColors)
-                                    TextTextureType.VERTICAL_GRADIENT -> androidx.compose.ui.graphics.Brush.verticalGradient(previewColors)
-                                    TextTextureType.RADIAL_GRADIENT -> androidx.compose.ui.graphics.Brush.radialGradient(previewColors)
-                                    TextTextureType.SWEEP_GRADIENT -> androidx.compose.ui.graphics.Brush.sweepGradient(listOf(previewColors[0], previewColors[1], previewColors[0]))
-                                    else -> androidx.compose.ui.graphics.Brush.linearGradient(previewColors)
+                                    TextTextureType.HORIZONTAL_GRADIENT -> Brush.horizontalGradient(previewColors)
+                                    TextTextureType.VERTICAL_GRADIENT -> Brush.verticalGradient(previewColors)
+                                    TextTextureType.RADIAL_GRADIENT -> Brush.radialGradient(previewColors)
+                                    TextTextureType.SWEEP_GRADIENT -> Brush.sweepGradient(listOf(previewColors[0], previewColors[1], previewColors[0]))
+                                    else -> Brush.linearGradient(previewColors)
                                 }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if (node.template.isNotBlank()) node.template else stringResource(textureTypeLabel(node.efx.texture)),
-                            color = androidx.compose.ui.graphics.Color.White,
+                            text = node.template.ifBlank { stringResource(textureTypeLabel(node.efx.texture)) },
+                            color = Color.White,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.labelMedium
                         )
@@ -4785,14 +4788,14 @@ private fun textureTypeLabel(type: TextTextureType): Int = when (type) {
     TextTextureType.BITMAP -> R.string.studio_efx_texture_bitmap
 }
 
-private fun previewComposeFontFamily(family: TextFontFamily): androidx.compose.ui.text.font.FontFamily = when (family) {
-    TextFontFamily.DEFAULT -> androidx.compose.ui.text.font.FontFamily.Default
-    TextFontFamily.SANS_SERIF -> androidx.compose.ui.text.font.FontFamily.SansSerif
-    TextFontFamily.SERIF -> androidx.compose.ui.text.font.FontFamily.Serif
-    TextFontFamily.MONOSPACE -> androidx.compose.ui.text.font.FontFamily.Monospace
-    TextFontFamily.CURSIVE -> androidx.compose.ui.text.font.FontFamily.Cursive
-    TextFontFamily.CASUAL -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("casual", android.graphics.Typeface.NORMAL))
-    TextFontFamily.CONDENSED -> androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL))
+private fun previewComposeFontFamily(family: TextFontFamily): FontFamily = when (family) {
+    TextFontFamily.DEFAULT -> FontFamily.Default
+    TextFontFamily.SANS_SERIF -> FontFamily.SansSerif
+    TextFontFamily.SERIF -> FontFamily.Serif
+    TextFontFamily.MONOSPACE -> FontFamily.Monospace
+    TextFontFamily.CURSIVE -> FontFamily.Cursive
+    TextFontFamily.CASUAL -> FontFamily(android.graphics.Typeface.create("casual", android.graphics.Typeface.NORMAL))
+    TextFontFamily.CONDENSED -> FontFamily(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL))
 }
 
 private fun fontFamilyLabel(family: TextFontFamily): Int = when (family) {
@@ -4905,6 +4908,7 @@ private fun ContainerTabContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BackgroundTabContent(
     container: LayoutContainer,
@@ -4914,6 +4918,9 @@ private fun BackgroundTabContent(
     document: CustomWidgetDocument? = null,
     onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null
 ) {
+    val context = LocalContext.current
+    val schemeRepo = remember { com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRepository(context.applicationContext) }
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -4928,111 +4935,986 @@ private fun BackgroundTabContent(
         }
     }
 
-    if (document != null && onUpdateGlobals != null && colorScheme != null) {
-        StudioColorSchemeSelectorCard(
-            globals = document.globals,
-            onUpdateGlobals = onUpdateGlobals,
-            activeColorScheme = colorScheme
-        )
-        Spacer(Modifier.height(12.dp))
+    var showBackgroundTypeBottomSheet by remember { mutableStateOf(false) }
+    var showSchemeSourceBottomSheet by remember { mutableStateOf(false) }
+    var showPresetPickerBottomSheet by remember { mutableStateOf(false) }
+    var showColorPickerBottomSheet by remember { mutableStateOf(false) }
+    var showPictureSourceBottomSheet by remember { mutableStateOf(false) }
+    var showNotifSubtypeBottomSheet by remember { mutableStateOf(false) }
+    var installedSchemes by remember { mutableStateOf<List<com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition>>(emptyList()) }
+
+    androidx.compose.runtime.LaunchedEffect(showPresetPickerBottomSheet) {
+        if (showPresetPickerBottomSheet) {
+            installedSchemes = schemeRepo.getInstalledSchemes()
+        }
     }
 
+    val backgroundTypes = remember {
+        listOf(
+            ContainerBackgroundType.TRANSPARENT to R.string.studio_background_type_transparent,
+            ContainerBackgroundType.SOLID to R.string.studio_background_type_solid,
+            ContainerBackgroundType.PICTURE to R.string.studio_background_type_picture
+        )
+    }
+
+    val currentBgTypeLabelRes = backgroundTypes.firstOrNull { it.first == container.backgroundType }?.second
+        ?: R.string.studio_background_type_solid
+
+    // Section 1: Background Type Selector
     StudioSection(stringResource(R.string.studio_tab_background)) {
         Text(
             text = stringResource(R.string.studio_background_type),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+        Surface(
+            onClick = { showBackgroundTypeBottomSheet = true },
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            FilterChip(
-                selected = container.backgroundType == ContainerBackgroundType.SOLID,
-                onClick = {
-                    onChange(container.copy(backgroundType = ContainerBackgroundType.SOLID))
-                },
-                leadingIcon = {
-                    if (container.backgroundType == ContainerBackgroundType.SOLID) {
-                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
-                    }
-                },
-                label = { Text(stringResource(R.string.studio_background_type_solid)) }
-            )
-            FilterChip(
-                selected = container.backgroundType == ContainerBackgroundType.PICTURE,
-                onClick = {
-                    onChange(
-                        container.copy(
-                            backgroundType = ContainerBackgroundType.PICTURE,
-                            backgroundImageSource = container.backgroundImageSource ?: ImageSource.NotifMedia("picture")
-                        )
-                    )
-                },
-                leadingIcon = {
-                    if (container.backgroundType == ContainerBackgroundType.PICTURE) {
-                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
-                    }
-                },
-                label = { Text(stringResource(R.string.studio_background_type_picture)) }
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(currentBgTypeLabelRes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+
+    // Section 2A: Solid Color Configuration
+    if (container.backgroundType == ContainerBackgroundType.SOLID) {
+        Spacer(Modifier.height(12.dp))
+
+        val effectiveContainerScheme = remember(
+            colorScheme,
+            document?.globals?.colorSchemeConfig,
+            document?.globals?.embeddedColorSchemeYaml,
+            container.backgroundColorSchemeConfig,
+            container.backgroundEmbeddedColorSchemeYaml
+        ) {
+            if (container.backgroundColorSchemeConfig != null || !container.backgroundEmbeddedColorSchemeYaml.isNullOrBlank()) {
+                com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = container.backgroundColorSchemeConfig ?: document?.globals?.colorSchemeConfig ?: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
+                    embeddedYaml = container.backgroundEmbeddedColorSchemeYaml,
+                    isDark = true
+                )
+            } else {
+                colorScheme ?: com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
+                    context = context,
+                    config = document?.globals?.colorSchemeConfig ?: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
+                    embeddedYaml = document?.globals?.embeddedColorSchemeYaml,
+                    isDark = true
+                )
+            }
         }
 
-        Spacer(Modifier.height(8.dp))
+        val colorHex = container.backgroundHex.orEmpty().ifBlank { if (container.id == "root") "#141414" else "#00000000" }
+        val isSchemeMode = colorHex.trim().startsWith("@scheme:")
+        val boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key]
 
-        if (container.backgroundType == ContainerBackgroundType.SOLID) {
-            StudioColorField(
-                label = stringResource(R.string.studio_property_background),
-                colorHex = container.backgroundHex.orEmpty().ifBlank { if (container.id == "root") "#141414" else "#00000000" },
-                onColorHexChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
-                boundFormula = container.bindings[BindableProperty.CONTAINER_BACKGROUND.key],
-                onFormulaChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
-                onRequestFormulaEditor = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) },
-                colorScheme = colorScheme,
-                globals = document?.globals,
-                onUpdateGlobals = onUpdateGlobals
+        val parsedColor = remember(colorHex, effectiveContainerScheme) {
+            val trimmed = colorHex.trim()
+            if (trimmed.startsWith("@scheme:")) {
+                safeParseColor(trimmed, effectiveContainerScheme)
+            } else {
+                runCatching {
+                    val clean = trimmed.removePrefix("#")
+                    when (clean.length) {
+                        6, 8 -> Color("#$clean".toColorInt())
+                        else -> Color.Gray
+                    }
+                }.getOrDefault(Color.Gray)
+            }
+        }
+
+        StudioSection(stringResource(R.string.studio_background_solid_section)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_background_color_mode),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Calculate,
+                        contentDescription = stringResource(R.string.studio_bind_formula),
+                        tint = if (boundFormula != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "fx",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = if (boundFormula != null) FontWeight.Bold else FontWeight.Normal,
+                        color = if (boundFormula != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            if (boundFormula != null) {
+                OutlinedTextField(
+                    value = boundFormula,
+                    onValueChange = { onChange(container.withBinding(BindableProperty.CONTAINER_BACKGROUND.key, it)) },
+                    placeholder = { Text("{theme.accent}") },
+                    textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { onRequestFormulaEditor(BindableProperty.CONTAINER_BACKGROUND.key) }) {
+                            Icon(
+                                imageVector = Icons.Rounded.Calculate,
+                                contentDescription = "Edit formula",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                // Mode Selector: Color Scheme vs Custom Color
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = isSchemeMode,
+                        onClick = {
+                            if (!isSchemeMode) {
+                                onChange(container.copy(backgroundHex = "@scheme:surface"))
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Rounded.ColorLens, null, modifier = Modifier.size(14.dp))
+                        },
+                        label = { Text(stringResource(R.string.studio_color_mode_scheme), style = MaterialTheme.typography.labelSmall) }
+                    )
+
+                    FilterChip(
+                        selected = !isSchemeMode,
+                        onClick = {
+                            if (isSchemeMode) {
+                                val hex = String.format("#%06X", 0xFFFFFF and parsedColor.toArgb())
+                                onChange(container.copy(backgroundHex = hex))
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Rounded.Palette, null, modifier = Modifier.size(14.dp))
+                        },
+                        label = { Text(stringResource(R.string.studio_color_mode_custom), style = MaterialTheme.typography.labelSmall) }
+                    )
+                }
+
+                Spacer(Modifier.height(4.dp))
+
+                if (isSchemeMode) {
+                    // 1. Color Scheme Source Selector (Global vs specific scheme source)
+                    val schemeSources = remember {
+                        listOf(
+                            null to R.string.studio_color_scheme_use_global,
+                            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_DYNAMIC to R.string.studio_color_scheme_phone_dynamic,
+                            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_EXPRESSIVE to R.string.studio_color_scheme_phone_expressive,
+                            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.APP_ICON_EXPRESSIVE to R.string.studio_color_scheme_app_icon,
+                            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE to R.string.studio_color_scheme_notif_media,
+                            com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET to R.string.studio_color_scheme_custom_preset
+                        )
+                    }
+                    val currentOverrideSource = container.backgroundColorSchemeConfig?.sourceType
+                    val currentSchemeSourceLabelRes = schemeSources.firstOrNull { it.first == currentOverrideSource }?.second
+                        ?: R.string.studio_color_scheme_use_global
+
+                    Text(
+                        text = stringResource(R.string.studio_color_scheme_title),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Surface(
+                        onClick = { showSchemeSourceBottomSheet = true },
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(currentSchemeSourceLabelRes),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    if (currentOverrideSource == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.studio_color_scheme_media_source),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val mediaKeys = listOf(
+                                "album_art" to R.string.studio_color_scheme_media_album_art,
+                                "picture" to R.string.studio_color_scheme_media_picture,
+                                "avatar" to R.string.studio_color_scheme_media_avatar
+                            )
+                            val activeMediaKey = container.backgroundColorSchemeConfig.mediaSourceKey
+                            mediaKeys.forEach { (key, labelRes) ->
+                                FilterChip(
+                                    selected = activeMediaKey == key,
+                                    onClick = {
+                                        val currentCfg = container.backgroundColorSchemeConfig
+                                        onChange(
+                                            container.copy(
+                                                backgroundColorSchemeConfig = currentCfg.copy(mediaSourceKey = key),
+                                                backgroundEmbeddedColorSchemeYaml = null
+                                            )
+                                        )
+                                    },
+                                    label = { Text(stringResource(labelRes)) }
+                                )
+                            }
+                        }
+                    }
+
+                    if (currentOverrideSource == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.studio_color_scheme_select_scheme),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Surface(
+                            onClick = { showPresetPickerBottomSheet = true },
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    val primaryHex = effectiveContainerScheme.getHex(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.PRIMARY) ?: "#0A84FF"
+                                    Box(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clip(CircleShape)
+                                            .background(safeParseColor(primaryHex, effectiveContainerScheme))
+                                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                    )
+                                    Text(
+                                        text = effectiveContainerScheme.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    // 2. Selected Color Role Selector -> Opens Bottom Sheet with rows of available colors
+                    val currentTokenKey = colorHex.trim().removePrefix("@scheme:").lowercase()
+                    val currentRole = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.fromKey(currentTokenKey)
+                    val currentRoleLabel = currentRole?.label ?: currentTokenKey.replaceFirstChar { it.uppercase() }
+                    val currentRoleHex = currentRole?.let { effectiveContainerScheme.getHex(it) }
+                        ?: effectiveContainerScheme.roles[currentTokenKey]
+                        ?: "#888888"
+
+                    Text(
+                        text = stringResource(R.string.studio_property_background),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Surface(
+                        onClick = { showColorPickerBottomSheet = true },
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(parsedColor)
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = currentRoleLabel,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "@scheme:$currentTokenKey ($currentRoleHex)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    // Custom Color Mode
+                    Text(
+                        text = stringResource(R.string.studio_property_background),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(parsedColor)
+                                .border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                .clickable { showColorPickerBottomSheet = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val luminance = runCatching {
+                                androidx.core.graphics.ColorUtils.calculateLuminance(parsedColor.toArgb())
+                            }.getOrDefault(0.5)
+                            Icon(
+                                imageVector = Icons.Rounded.Palette,
+                                contentDescription = stringResource(R.string.colors_dialog_title),
+                                tint = if (luminance > 0.5) Color.Black.copy(alpha = 0.65f) else Color.White.copy(alpha = 0.85f),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = colorHex,
+                            onValueChange = { onChange(container.copy(backgroundHex = it.ifBlank { null })) },
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                            trailingIcon = {
+                                IconButton(onClick = { showColorPickerBottomSheet = true }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Palette,
+                                        contentDescription = stringResource(R.string.colors_dialog_title),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Bottom Sheet: Color Scheme Source (Global vs other schemes)
+        if (showSchemeSourceBottomSheet) {
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val schemeSources = listOf(
+                null to R.string.studio_color_scheme_use_global,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_DYNAMIC to R.string.studio_color_scheme_phone_dynamic,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.PHONE_EXPRESSIVE to R.string.studio_color_scheme_phone_expressive,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.APP_ICON_EXPRESSIVE to R.string.studio_color_scheme_app_icon,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.NOTIFICATION_MEDIA_EXPRESSIVE to R.string.studio_color_scheme_notif_media,
+                com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET to R.string.studio_color_scheme_custom_preset
             )
-        } else {
+            ModalBottomSheet(
+                onDismissRequest = { showSchemeSourceBottomSheet = false },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.studio_color_scheme_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    schemeSources.forEach { (sourceType, labelRes) ->
+                        val isSelected = container.backgroundColorSchemeConfig?.sourceType == sourceType
+                        Surface(
+                            onClick = {
+                                if (sourceType == null) {
+                                    onChange(
+                                        container.copy(
+                                            backgroundColorSchemeConfig = null,
+                                            backgroundEmbeddedColorSchemeYaml = null
+                                        )
+                                    )
+                                } else {
+                                    val newCfg = (container.backgroundColorSchemeConfig
+                                        ?: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig()).copy(sourceType = sourceType)
+                                    val updatedYaml = if (sourceType == com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET) {
+                                        container.backgroundEmbeddedColorSchemeYaml
+                                    } else null
+                                    onChange(
+                                        container.copy(
+                                            backgroundColorSchemeConfig = newCfg,
+                                            backgroundEmbeddedColorSchemeYaml = updatedYaml
+                                        )
+                                    )
+                                }
+                                showSchemeSourceBottomSheet = false
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = stringResource(labelRes),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurface
+                                )
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = null
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom Sheet: .hscheme Preset Picker for Container Background
+        if (showPresetPickerBottomSheet) {
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            var searchQuery by remember { mutableStateOf("") }
+
+            val builtInPresets = remember {
+                com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.BUILT_IN_PRESETS.map { preset ->
+                    com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver
+                        .synthesizeExpressiveScheme(preset.seedColor, preset.name, isDark = true)
+                        .copy(id = preset.id, author = "HyperBridge")
+                }
+            }
+
+            val filteredBuiltIn = remember(builtInPresets, searchQuery) {
+                if (searchQuery.isBlank()) builtInPresets
+                else builtInPresets.filter {
+                    it.name.contains(searchQuery, ignoreCase = true) ||
+                        it.id.contains(searchQuery, ignoreCase = true)
+                }
+            }
+
+            val filteredImported = remember(installedSchemes, searchQuery) {
+                if (searchQuery.isBlank()) installedSchemes
+                else installedSchemes.filter {
+                    it.name.contains(searchQuery, ignoreCase = true) ||
+                        it.author.contains(searchQuery, ignoreCase = true) ||
+                        it.id.contains(searchQuery, ignoreCase = true)
+                }
+            }
+
+            ModalBottomSheet(
+                onDismissRequest = { showPresetPickerBottomSheet = false },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 32.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.studio_color_scheme_select_scheme),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text(stringResource(R.string.studio_color_scheme_search_placeholder)) },
+                        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Rounded.Clear, contentDescription = null)
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    if (filteredBuiltIn.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.studio_color_scheme_built_in_header),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        filteredBuiltIn.forEach { scheme ->
+                            val isSelected = container.backgroundEmbeddedColorSchemeYaml == null &&
+                                ((container.backgroundColorSchemeConfig?.customSchemeId == scheme.id) ||
+                                    (container.backgroundColorSchemeConfig?.customSchemeId == null && scheme.id == "default"))
+                            SchemeOptionSurfaceItem(
+                                scheme = scheme,
+                                isSelected = isSelected,
+                                onClick = {
+                                    val newCfg = (container.backgroundColorSchemeConfig
+                                        ?: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig()).copy(
+                                        sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
+                                        customSchemeId = scheme.id
+                                    )
+                                    onChange(
+                                        container.copy(
+                                            backgroundColorSchemeConfig = newCfg,
+                                            backgroundEmbeddedColorSchemeYaml = null
+                                        )
+                                    )
+                                    showPresetPickerBottomSheet = false
+                                }
+                            )
+                        }
+                    }
+
+                    if (filteredImported.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.studio_color_scheme_imported_header),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                        filteredImported.forEach { scheme ->
+                            val isSelected = container.backgroundColorSchemeConfig?.customSchemeId == scheme.id ||
+                                effectiveContainerScheme.id == scheme.id
+                            SchemeOptionSurfaceItem(
+                                scheme = scheme,
+                                isSelected = isSelected,
+                                onClick = {
+                                    val rawYaml = schemeRepo.getSchemeRawYamlByIdSync(scheme.id)
+                                        ?: com.d4viddf.hyperbridge.models.colorscheme.YamlColorSchemeParser.serialize(scheme)
+                                    val newCfg = (container.backgroundColorSchemeConfig
+                                        ?: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig()).copy(
+                                        sourceType = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeSourceType.CUSTOM_PRESET,
+                                        customSchemeId = scheme.id
+                                    )
+                                    onChange(
+                                        container.copy(
+                                            backgroundColorSchemeConfig = newCfg,
+                                            backgroundEmbeddedColorSchemeYaml = rawYaml
+                                        )
+                                    )
+                                    showPresetPickerBottomSheet = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom Sheet: Color Role Rows or Custom Color Picker
+        if (showColorPickerBottomSheet) {
+            com.d4viddf.hyperbridge.ui.components.SchemeOrCustomColorBottomSheet(
+                initialColor = if (parsedColor.alpha == 0f) Color.DarkGray else parsedColor,
+                currentColorTokenOrHex = colorHex,
+                colorScheme = effectiveContainerScheme,
+                onDismiss = { showColorPickerBottomSheet = false },
+                onSelectToken = { token ->
+                    onChange(container.copy(backgroundHex = token))
+                    showColorPickerBottomSheet = false
+                },
+                onColorAdded = { newColor ->
+                    val clean = colorHex.removePrefix("#")
+                    val hex = if (clean.length == 8) {
+                        val alpha = clean.take(2)
+                        val effectiveAlpha = if (alpha.equals("00", ignoreCase = true)) "FF" else alpha
+                        val rgb = String.format("%06X", 0xFFFFFF and newColor.toArgb())
+                        "#$effectiveAlpha$rgb"
+                    } else {
+                        String.format("#%06X", 0xFFFFFF and newColor.toArgb())
+                    }
+                    onChange(container.copy(backgroundHex = hex))
+                    showColorPickerBottomSheet = false
+                },
+                isSchemeMode = isSchemeMode
+            )
+        }
+    }
+
+    // Section 2B: Picture Background Configuration
+    if (container.backgroundType == ContainerBackgroundType.PICTURE) {
+        Spacer(Modifier.height(12.dp))
+
+        val isCustomPicture = !container.backgroundImageUri.isNullOrBlank()
+        val currentMediaKey = (container.backgroundImageSource as? ImageSource.NotifMedia)?.mediaType ?: "picture"
+        val currentSubtype = NOTIF_MEDIA_SUBTYPES.firstOrNull { it.key == currentMediaKey } ?: NOTIF_MEDIA_SUBTYPES.first()
+
+        StudioSection(stringResource(R.string.studio_background_picture_section)) {
             Text(
                 text = stringResource(R.string.studio_background_picture_source),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            val isCustomPicture = !container.backgroundImageUri.isNullOrBlank()
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Picture Source Dropdown Surface -> Opens Bottom Sheet
+            Surface(
+                onClick = { showPictureSourceBottomSheet = true },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                FilterChip(
-                    selected = !isCustomPicture,
-                    onClick = {
-                        onChange(
-                            container.copy(
-                                backgroundImageUri = null,
-                                backgroundImageSource = container.backgroundImageSource ?: ImageSource.NotifMedia("picture")
-                            )
-                        )
-                    },
-                    label = { Text(stringResource(R.string.studio_background_notif_media)) }
-                )
-                FilterChip(
-                    selected = isCustomPicture,
-                    onClick = {
-                        if (container.backgroundImageUri.isNullOrBlank()) {
-                            photoPickerLauncher.launch("image/*")
-                        }
-                    },
-                    label = { Text(stringResource(R.string.studio_background_custom_picture)) }
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (isCustomPicture) R.string.studio_background_custom_picture
+                            else R.string.studio_background_notif_media
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             if (!isCustomPicture) {
-                val currentMediaKey = (container.backgroundImageSource as? ImageSource.NotifMedia)?.mediaType ?: "picture"
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.studio_background_notif_subtype),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                // Notification Image Subtype Selector Surface -> Opens Bottom Sheet instead of inline list
+                Surface(
+                    onClick = { showNotifSubtypeBottomSheet = true },
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = currentSubtype.icon,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(currentSubtype.titleRes),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(currentSubtype.descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Rounded.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                Spacer(Modifier.height(4.dp))
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.studio_background_custom_picture),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = container.backgroundImageUri,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilledTonalButton(
+                                onClick = { photoPickerLauncher.launch("image/*") },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(stringResource(R.string.studio_background_select_picture))
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    onChange(
+                                        container.copy(
+                                            backgroundImageUri = null,
+                                            backgroundImageSource = ImageSource.NotifMedia("picture")
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.studio_background_remove_picture))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom Sheet: Picture Source (Notification Resource vs Custom Picture)
+        if (showPictureSourceBottomSheet) {
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(
+                onDismissRequest = { showPictureSourceBottomSheet = false },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.studio_background_picture_source),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Surface(
+                        onClick = {
+                            onChange(
+                                container.copy(
+                                    backgroundImageUri = null,
+                                    backgroundImageSource = container.backgroundImageSource ?: ImageSource.NotifMedia("picture")
+                                )
+                            )
+                            showPictureSourceBottomSheet = false
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (!isCustomPicture) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(R.string.studio_background_notif_media),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (!isCustomPicture) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (!isCustomPicture) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                            RadioButton(
+                                selected = !isCustomPicture,
+                                onClick = null
+                            )
+                        }
+                    }
+
+                    Surface(
+                        onClick = {
+                            showPictureSourceBottomSheet = false
+                            if (container.backgroundImageUri.isNullOrBlank()) {
+                                photoPickerLauncher.launch("image/*")
+                            }
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isCustomPicture) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(R.string.studio_background_custom_picture),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isCustomPicture) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isCustomPicture) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                            RadioButton(
+                                selected = isCustomPicture,
+                                onClick = null
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom Sheet: Notification Media Subtype Selector
+        if (showNotifSubtypeBottomSheet) {
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(
+                onDismissRequest = { showNotifSubtypeBottomSheet = false },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.studio_background_notif_subtype),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
                     NOTIF_MEDIA_SUBTYPES.forEach { subtype ->
                         val isSelected = currentMediaKey == subtype.key
-                        Card(
+                        Surface(
                             onClick = {
                                 onChange(
                                     container.copy(
@@ -5040,12 +5922,11 @@ private fun BackgroundTabContent(
                                         backgroundImageUri = null
                                     )
                                 )
+                                showNotifSubtypeBottomSheet = false
                             },
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surfaceContainerHigh
-                            ),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -5074,74 +5955,97 @@ private fun BackgroundTabContent(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = stringResource(subtype.titleRes),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = stringResource(subtype.descRes),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 RadioButton(
                                     selected = isSelected,
-                                    onClick = {
-                                        onChange(
-                                            container.copy(
-                                                backgroundImageSource = ImageSource.NotifMedia(subtype.key),
-                                                backgroundImageUri = null
-                                            )
-                                        )
-                                    }
+                                    onClick = null
                                 )
                             }
                         }
                     }
                 }
-            } else {
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.studio_background_custom_picture),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = container.backgroundImageUri.orEmpty(),
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilledTonalButton(
-                                onClick = { photoPickerLauncher.launch("image/*") }
-                            ) {
-                                Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text(stringResource(R.string.studio_background_select_picture))
-                            }
-                            OutlinedButton(
-                                onClick = {
+            }
+        }
+    }
+
+    // Bottom Sheet: Background Type Selector (Transparent / Solid / Picture)
+    if (showBackgroundTypeBottomSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showBackgroundTypeBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.studio_background_type),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                backgroundTypes.forEach { (bgType, labelRes) ->
+                    val isSelected = container.backgroundType == bgType
+                    Surface(
+                        onClick = {
+                            when (bgType) {
+                                ContainerBackgroundType.TRANSPARENT -> {
+                                    onChange(container.copy(backgroundType = ContainerBackgroundType.TRANSPARENT))
+                                }
+                                ContainerBackgroundType.SOLID -> {
+                                    onChange(container.copy(backgroundType = ContainerBackgroundType.SOLID))
+                                }
+                                ContainerBackgroundType.PICTURE -> {
                                     onChange(
                                         container.copy(
-                                            backgroundImageUri = null,
-                                            backgroundImageSource = ImageSource.NotifMedia("picture")
+                                            backgroundType = ContainerBackgroundType.PICTURE,
+                                            backgroundImageSource = container.backgroundImageSource ?: ImageSource.NotifMedia("picture")
                                         )
                                     )
                                 }
-                            ) {
-                                Text(stringResource(R.string.studio_background_remove_picture))
                             }
+                            showBackgroundTypeBottomSheet = false
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(labelRes),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = null
+                            )
                         }
                     }
                 }
@@ -6548,7 +7452,6 @@ private fun ConditionEditor(
                     val first = when (condition) {
                         is NodeCondition.All -> condition.conditions.firstOrNull() ?: NodeCondition.Always
                         is NodeCondition.Any -> condition.conditions.firstOrNull() ?: NodeCondition.Always
-                        else -> condition
                     }
                     onChange(first)
                 }
@@ -6627,7 +7530,6 @@ private fun ConditionEditor(
         val subConditions = when (condition) {
             is NodeCondition.All -> condition.conditions
             is NodeCondition.Any -> condition.conditions
-            else -> emptyList()
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -7033,10 +7935,10 @@ private fun VariableTokenRow(onTokenSelected: (String) -> Unit) {
 }
 
 private fun defaultNodeTitle(node: CustomWidgetNode): String = when (node) {
-    is TextNode -> if (node.template.isNotBlank()) node.template else "Text"
+    is TextNode -> node.template.ifBlank { "Text" }
     is ImageNode -> "Image"
     is ProgressNode -> "Progress"
-    is ButtonNode -> if (node.label.isNotBlank()) node.label else "Button"
+    is ButtonNode -> node.label.ifBlank { "Button" }
     is ShapeNode -> "Shape"
     is LayoutContainer -> "Group"
 }

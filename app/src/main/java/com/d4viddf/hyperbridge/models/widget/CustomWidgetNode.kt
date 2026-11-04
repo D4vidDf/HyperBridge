@@ -455,7 +455,7 @@ data class ButtonNode(
     val conditionalStrokeWidthDp: Int? = null,
     val conditionalAction: ButtonAction? = null
 ) : CustomWidgetNode {
-    override val onClick: ButtonAction? get() = action
+    override val onClick: ButtonAction get() = action
 }
 
 @Serializable
@@ -480,6 +480,8 @@ enum class ContainerLayout { ROW, COLUMN, BOX, ABSOLUTE }
 
 @Serializable
 enum class ContainerBackgroundType {
+    @SerialName("transparent")
+    TRANSPARENT,
     @SerialName("solid")
     SOLID,
     @SerialName("picture")
@@ -503,6 +505,8 @@ data class LayoutContainer(
     val backgroundType: ContainerBackgroundType = ContainerBackgroundType.SOLID,
     val backgroundImageSource: ImageSource? = null,
     val backgroundImageUri: String? = null,
+    val backgroundColorSchemeConfig: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig? = null,
+    val backgroundEmbeddedColorSchemeYaml: String? = null,
     override val showIf: NodeCondition = NodeCondition.Always,
     override val onClick: ButtonAction? = null
 ) : CustomWidgetNode
