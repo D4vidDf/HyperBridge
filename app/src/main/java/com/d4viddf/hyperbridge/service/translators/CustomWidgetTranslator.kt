@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
-import androidx.core.graphics.drawable.toBitmap
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.data.widget.DeviceVariables
@@ -19,25 +18,24 @@ import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
-import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
-import com.d4viddf.hyperbridge.service.smartactions.SmartActionNotificationText
-import com.d4viddf.hyperbridge.service.smartactions.SmartActionsExtractor
-import com.d4viddf.hyperbridge.service.widget.CustomWidgetRenderer
-import com.d4viddf.hyperbridge.service.widget.WidgetActionIntents
-import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
-import io.github.d4viddf.hyperisland_kit.HyperPicture
-import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
-import io.github.d4viddf.hyperisland_kit.models.PicInfo
-import kotlinx.coroutines.runBlocking
-
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
 import com.d4viddf.hyperbridge.models.translator.PillMediaItem
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionNotificationText
+import com.d4viddf.hyperbridge.service.smartactions.SmartActionsExtractor
 import com.d4viddf.hyperbridge.service.visual.NotificationVisualSource
+import com.d4viddf.hyperbridge.service.widget.CustomWidgetRenderer
+import com.d4viddf.hyperbridge.service.widget.WidgetActionIntents
+import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
+import io.github.d4viddf.hyperisland_kit.HyperPicture
+import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoLeft
 import io.github.d4viddf.hyperisland_kit.models.ImageTextInfoRight
+import io.github.d4viddf.hyperisland_kit.models.PicInfo
 import io.github.d4viddf.hyperisland_kit.models.TextInfo
+import kotlinx.coroutines.runBlocking
 
 /**
  * Renders a custom design (Phase 5, #273): a translator whose presentation mode is WIDGET carries
@@ -90,30 +88,34 @@ class CustomWidgetTranslator(
             resolveColor(effectiveTheme, sbn.packageName, "#00E676")
         }
         val themePrimary = effectiveTheme?.global?.highlightColor ?: highlightColor
-        val themeAccent = highlightColor
         val themeSurface = effectiveTheme?.global?.backgroundColor ?: "#1E1E1E"
 
         val notif = sbn.notification
         val extras = notif.extras
 
-        val notifAvatarBitmap: Bitmap? = try {
+        val resolvedVisual = resolveNotificationVisual(sbn)
+        val contentVisualBitmap = if (
+            resolvedVisual.source == NotificationVisualSource.PERSON ||
+            resolvedVisual.source == NotificationVisualSource.PICTURE ||
+            resolvedVisual.source == NotificationVisualSource.LARGE_ICON
+        ) {
+            resolvedVisual.bitmap
+        } else null
+
+        val rawAvatarBitmap: Bitmap? = try {
             notif.getLargeIcon()?.let { loadIconBitmap(it, sbn.packageName) }
-                ?: (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    extras.getParcelable(Notification.EXTRA_LARGE_ICON, Bitmap::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    extras.getParcelable(Notification.EXTRA_LARGE_ICON) as? Bitmap
-                })
+                ?: (
+                        extras.getParcelable(Notification.EXTRA_LARGE_ICON, Bitmap::class.java)
+                        )
+                ?: if (resolvedVisual.source == NotificationVisualSource.PERSON || resolvedVisual.source == NotificationVisualSource.LARGE_ICON) contentVisualBitmap else null
         } catch (_: Exception) { null }
 
-        val notifPictureBitmap: Bitmap? = try {
-            (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                extras.getParcelable(Notification.EXTRA_PICTURE, Bitmap::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                extras.getParcelable(Notification.EXTRA_PICTURE) as? Bitmap
-            }) ?: (extras.getParcelable<android.graphics.drawable.Icon>("android.pictureIcon")?.let { loadIconBitmap(it, sbn.packageName) })
-               ?: (extras.getParcelable<android.graphics.drawable.Icon>(Notification.EXTRA_PICTURE_ICON)?.let { loadIconBitmap(it, sbn.packageName) })
+        val rawPictureBitmap: Bitmap? = try {
+            (
+                    extras.getParcelable(Notification.EXTRA_PICTURE, Bitmap::class.java)
+                    ) ?: (extras.getParcelable<Icon>("android.pictureIcon")?.let { loadIconBitmap(it, sbn.packageName) })
+               ?: (extras.getParcelable<Icon>(Notification.EXTRA_PICTURE_ICON)?.let { loadIconBitmap(it, sbn.packageName) })
+               ?: if (resolvedVisual.source == NotificationVisualSource.PICTURE) contentVisualBitmap else null
         } catch (_: Exception) { null }
 
         val notifSmallIconBitmap: Bitmap? = try {
@@ -121,12 +123,8 @@ class CustomWidgetTranslator(
         } catch (_: Exception) { null }
 
         val mediaSessionBmp = try {
-            val token = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val token =
                 extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, android.media.session.MediaSession.Token::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) as? android.media.session.MediaSession.Token
-            }
             if (token != null) {
                 val controller = android.media.session.MediaController(context, token)
                 controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART)
@@ -137,12 +135,9 @@ class CustomWidgetTranslator(
             null
         }
 
-        val mediaArtworkBmp = mediaSessionBmp ?: notifAvatarBitmap ?: notifPictureBitmap ?: run {
-            val resolved = resolveNotificationVisual(sbn)
-            if (resolved.source == NotificationVisualSource.PICTURE || resolved.source == NotificationVisualSource.LARGE_ICON) {
-                resolved.bitmap
-            } else null
-        }
+        val mediaArtworkBmp = mediaSessionBmp ?: rawAvatarBitmap ?: rawPictureBitmap ?: contentVisualBitmap
+        val notifAvatarBitmap = rawAvatarBitmap ?: mediaArtworkBmp
+        val notifPictureBitmap = rawPictureBitmap ?: mediaArtworkBmp ?: rawAvatarBitmap
 
         val iconBitmap = try {
             context.packageManager.getApplicationIcon(sbn.packageName).toBitmap()
@@ -175,7 +170,7 @@ class CustomWidgetTranslator(
             smartActionTypes = smartActions.keys,
             sourceLookup = { id, field -> runBlocking { sourceRepo.lookup(id, field) } },
             themePrimary = themePrimary,
-            themeAccent = themeAccent,
+            themeAccent = highlightColor,
             themeSurface = themeSurface,
             notifAvatarBitmap = notifAvatarBitmap,
             notifPictureBitmap = notifPictureBitmap,
@@ -247,12 +242,11 @@ class CustomWidgetTranslator(
         val isTimer = (progressConfig?.type == ProgressSlotType.TIMER || rightDesign == PillRightDesign.TIMER) &&
                 notif.`when` > System.currentTimeMillis()
 
-        val mediaTrack = effectiveTitle
         val mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.ifBlank { null } ?: effectiveText
 
         val mediaPillText = when (mediaOrder.firstOrNull { it != PillMediaItem.ALBUM_COVER }) {
-            PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
-            PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            PillMediaItem.ARTIST -> mediaArtist.ifBlank { effectiveTitle }
+            PillMediaItem.TRACK -> effectiveTitle.ifBlank { mediaArtist }
             else -> ""
         }
 

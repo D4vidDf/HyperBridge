@@ -228,16 +228,33 @@ fun StudioCanvas(
         StudioCanvasBackground
     }
 
-    val rootPictureBitmap: ImageBitmap? = remember(root.backgroundImageUri, root.backgroundType) {
-        if (!isWireframeMode && root.backgroundType == ContainerBackgroundType.PICTURE && !root.backgroundImageUri.isNullOrBlank()) {
-            try {
-                val uri = root.backgroundImageUri.toUri()
-                contextLocal.contentResolver.openInputStream(uri)?.use { stream ->
-                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
+    val rootPictureBitmap: ImageBitmap? = remember(root.backgroundImageUri, root.backgroundImageSource, root.backgroundType, effectiveContext) {
+        if (!isWireframeMode && root.backgroundType == ContainerBackgroundType.PICTURE) {
+            if (!root.backgroundImageUri.isNullOrBlank()) {
+                try {
+                    val uri = root.backgroundImageUri.toUri()
+                    contextLocal.contentResolver.openInputStream(uri)?.use { stream ->
+                        BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                    }
+                } catch (_: Exception) {
+                    null
                 }
-            } catch (_: Exception) {
-                null
-            }
+            } else if (root.backgroundImageSource != null) {
+                when (val src = root.backgroundImageSource) {
+                    is ImageSource.NotifMedia -> {
+                        val bmp = when (src.mediaType) {
+                            "avatar" -> effectiveContext.notifAvatarBitmap ?: effectiveContext.notifPictureBitmap ?: effectiveContext.notifSmallIconBitmap
+                            "picture" -> effectiveContext.notifPictureBitmap ?: effectiveContext.notifAvatarBitmap
+                            "album_art" -> effectiveContext.notifAvatarBitmap ?: effectiveContext.notifPictureBitmap
+                            "small_icon" -> effectiveContext.notifSmallIconBitmap ?: effectiveContext.notifAvatarBitmap
+                            else -> effectiveContext.notifAvatarBitmap ?: effectiveContext.notifPictureBitmap ?: effectiveContext.notifSmallIconBitmap
+                        }
+                        bmp?.asImageBitmap()
+                    }
+                    is ImageSource.ContactAvatarOf -> effectiveContext.notifAvatarBitmap?.asImageBitmap()
+                    else -> null
+                }
+            } else null
         } else null
     }
 

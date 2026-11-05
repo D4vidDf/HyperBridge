@@ -22,6 +22,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -101,6 +102,39 @@ class CustomWidgetRenderer(
             ?: LayoutContainer(id = doc.root.id, layout = doc.root.layout)
         val islandWidthDp = targetIslandWidthDp ?: getIslandWidthDp(context)
         val scaleX = islandWidthDp / BASE_CANVAS_WIDTH_DP.toFloat()
+
+        if (visibleRoot.backgroundType == ContainerBackgroundType.PICTURE) {
+            val widthPx = dpToPx(islandWidthDp.roundToInt()).coerceAtLeast(1)
+            val heightPx = dpToPx(doc.canvas.heightDp).coerceAtLeast(1)
+            val rawBmp = resolveImageSourceBitmap(
+                doc = doc,
+                source = visibleRoot.backgroundImageSource,
+                uri = visibleRoot.backgroundImageUri,
+                ctx = ctx,
+                widthPx = widthPx,
+                heightPx = heightPx
+            )
+            if (rawBmp != null) {
+                val shapedBmp = applyShape(
+                    source = rawBmp,
+                    shapeId = "rounded",
+                    cornerRadiusDp = 24,
+                    widthPx = widthPx,
+                    heightPx = heightPx,
+                    scaleType = ImageScaleType.CENTER_CROP,
+                    isGlyph = false,
+                    drawContainerDecorations = false
+                )
+                root.setViewVisibility(R.id.widget_canvas_bg_image, View.VISIBLE)
+                root.setImageViewBitmap(R.id.widget_canvas_bg_image, shapedBmp)
+                root.setViewLayoutWidth(R.id.widget_canvas_bg_image, islandWidthDp, TypedValue.COMPLEX_UNIT_DIP)
+                root.setViewLayoutHeight(R.id.widget_canvas_bg_image, doc.canvas.heightDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+            } else {
+                root.setViewVisibility(R.id.widget_canvas_bg_image, View.GONE)
+            }
+        } else {
+            root.setViewVisibility(R.id.widget_canvas_bg_image, View.GONE)
+        }
 
         val built = renderNode(doc, visibleRoot, ctx, bridgeId, intents, scaleX, islandWidthDp)
         root.removeAllViews(R.id.widget_canvas_insertion_point)
@@ -669,17 +703,30 @@ class CustomWidgetRenderer(
         return rv
     }
 
-    private fun resolveImageBitmap(
+    private fun resolveImageSourceBitmap(
         doc: CustomWidgetDocument,
-        node: ImageNode,
+        source: ImageSource?,
+        uri: String? = null,
         ctx: VariableContext,
         widthPx: Int = 96,
         heightPx: Int = 96
     ): Bitmap? {
+        if (!uri.isNullOrBlank()) {
+            try {
+                val parsed = uri.toUri()
+                context.contentResolver.openInputStream(parsed)?.use { stream ->
+                    val bmp = android.graphics.BitmapFactory.decodeStream(stream)
+                    if (bmp != null) return bmp
+                }
+            } catch (_: Exception) {
+                // fall through
+            }
+        }
+        val effectiveSource = source ?: return null
         return try {
-            when (val source = node.source) {
+            when (effectiveSource) {
                 is ImageSource.NotifMedia -> {
-                    when (source.mediaType) {
+                    when (effectiveSource.mediaType) {
                         "avatar" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap ?: ctx.notifSmallIconBitmap
                         "picture" -> ctx.notifPictureBitmap ?: ctx.notifAvatarBitmap
                         "album_art" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap
@@ -688,17 +735,17 @@ class CustomWidgetRenderer(
                     }
                 }
                 is ImageSource.AppIconOf -> {
-                    val pkg = engine.resolve(source.packageTemplate, ctx)
+                    val pkg = engine.resolve(effectiveSource.packageTemplate, ctx)
                     if (pkg.isBlank()) null else drawableToBitmap(context.packageManager.getApplicationIcon(pkg), widthPx, heightPx)
                 }
                 is ImageSource.ContactAvatarOf -> ctx.notifAvatarBitmap
                 is ImageSource.CustomAsset -> {
-                    val file = widgetRepository.assetFile(doc.id, source.fileName)
+                    val file = widgetRepository.assetFile(doc.id, effectiveSource.fileName)
                     if (file.exists()) android.graphics.BitmapFactory.decodeFile(file.absolutePath) else null
                 }
-                is ImageSource.SystemGlyph -> systemGlyphBitmap(source.glyphName, widthPx, heightPx)
+                is ImageSource.SystemGlyph -> systemGlyphBitmap(effectiveSource.glyphName, widthPx, heightPx)
                 is ImageSource.SourceIcon -> {
-                    val path = engine.resolve("{source.${source.sourceId}.icon}", ctx)
+                    val path = engine.resolve("{source.${effectiveSource.sourceId}.icon}", ctx)
                     if (path.isBlank()) null else android.graphics.BitmapFactory.decodeFile(path)
                 }
             }
@@ -706,6 +753,14 @@ class CustomWidgetRenderer(
             null
         }
     }
+
+    private fun resolveImageBitmap(
+        doc: CustomWidgetDocument,
+        node: ImageNode,
+        ctx: VariableContext,
+        widthPx: Int = 96,
+        heightPx: Int = 96
+    ): Bitmap? = resolveImageSourceBitmap(doc, node.source, null, ctx, widthPx, heightPx)
 
     private fun systemGlyphBitmap(glyphName: String, widthPx: Int = 96, heightPx: Int = 96): Bitmap? {
         return try {
@@ -1149,36 +1204,14 @@ class CustomWidgetRenderer(
         ctx: VariableContext,
         sizePx: Int
     ): Bitmap? {
-        val source = node.thumbImageSource ?: ImageSource.NotifMedia("album_art")
-        val raw = try {
-            when (source) {
-                is ImageSource.NotifMedia -> {
-                    when (source.mediaType) {
-                        "avatar" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap ?: ctx.notifSmallIconBitmap
-                        "picture" -> ctx.notifPictureBitmap ?: ctx.notifAvatarBitmap
-                        "album_art" -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap
-                        "small_icon" -> ctx.notifSmallIconBitmap ?: ctx.notifAvatarBitmap
-                        else -> ctx.notifAvatarBitmap ?: ctx.notifPictureBitmap ?: ctx.notifSmallIconBitmap
-                    }
-                }
-                is ImageSource.AppIconOf -> {
-                    val pkg = engine.resolve(source.packageTemplate, ctx)
-                    if (pkg.isBlank()) null else drawableToBitmap(context.packageManager.getApplicationIcon(pkg))
-                }
-                is ImageSource.ContactAvatarOf -> ctx.notifAvatarBitmap
-                is ImageSource.CustomAsset -> {
-                    val file = widgetRepository.assetFile(doc.id, source.fileName)
-                    if (file.exists()) android.graphics.BitmapFactory.decodeFile(file.absolutePath) else null
-                }
-                is ImageSource.SystemGlyph -> systemGlyphBitmap(source.glyphName)
-                is ImageSource.SourceIcon -> {
-                    val path = engine.resolve("{source.${source.sourceId}.icon}", ctx)
-                    if (path.isBlank()) null else android.graphics.BitmapFactory.decodeFile(path)
-                }
-            }
-        } catch (_: Exception) {
-            null
-        } ?: return null
+        val raw = resolveImageSourceBitmap(
+            doc = doc,
+            source = node.thumbImageSource ?: ImageSource.NotifMedia("album_art"),
+            uri = null,
+            ctx = ctx,
+            widthPx = sizePx,
+            heightPx = sizePx
+        ) ?: return null
 
         val output = createBitmapWithDensity(sizePx, sizePx)
         val canvas = Canvas(output)
