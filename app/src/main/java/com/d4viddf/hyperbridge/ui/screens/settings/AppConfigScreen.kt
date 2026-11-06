@@ -173,7 +173,6 @@ enum class AppConfigSubscreen {
     CUSTOM_TRANSLATORS
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppConfigScreen(
     packageName: String,
@@ -182,7 +181,8 @@ fun AppConfigScreen(
     onBack: () -> Unit,
     onNavConfigClick: (String) -> Unit,
     onCreateTranslator: (String) -> Unit = {},
-    onEditTranslator: (String) -> Unit = {}
+    onEditTranslator: (String) -> Unit = {},
+    isDetailPane: Boolean = false
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -314,7 +314,8 @@ fun AppConfigScreen(
             onCreateTranslator = { onCreateTranslator(packageName) },
             onEditTranslator = onEditTranslator,
             onToggleDesign = { designId, enabled -> translatorViewModel.toggleDesignForApp(designId, packageName, enabled) },
-            onCreateDesign = { showAddDesign = true }
+            onCreateDesign = { showAddDesign = true },
+            isDetailPane = isDetailPane
         )
 
         if (showAddDesign) {
@@ -387,7 +388,6 @@ fun AppConfigScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppConfigContent(
     appName: String,
@@ -424,7 +424,8 @@ fun AppConfigContent(
     onCreateTranslator: () -> Unit = {},
     onEditTranslator: (String) -> Unit = {},
     onToggleDesign: (String, Boolean) -> Unit = { _, _ -> },
-    onCreateDesign: () -> Unit = {}
+    onCreateDesign: () -> Unit = {},
+    isDetailPane: Boolean = false
 ) {
     val activeDesc = stringResource(R.string.status_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
@@ -487,40 +488,62 @@ fun AppConfigContent(
             // MAIN OVERVIEW SCREEN
             // =========================================================================
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+            val containerColor = if (isDetailPane) Color.Transparent else MaterialTheme.colorScheme.background
 
             Scaffold(
-                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                modifier = if (isDetailPane) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                containerColor = containerColor,
+                contentWindowInsets = if (isDetailPane) androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0) else androidx.compose.material3.ScaffoldDefaults.contentWindowInsets,
                 topBar = {
-                    LargeTopAppBar(
-                        title = {
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.app_config_title),
-                                    maxLines = 1,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = stringResource(R.string.app_config_subtitle),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        },
-                        navigationIcon = {
-                            FilledTonalIconButton(
-                                onClick = onBack,
-                                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                                )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(R.string.back)
-                                )
-                            }
-                        },
-                        scrollBehavior = scrollBehavior
-                    )
+                    val titleContent: @Composable () -> Unit = {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.app_config_title),
+                                style = if (isDetailPane) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                                maxLines = 1,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.app_config_subtitle),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    val navIconContent: @Composable () -> Unit = {
+                        FilledTonalIconButton(
+                            onClick = onBack,
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.back)
+                            )
+                        }
+                    }
+                    if (isDetailPane) {
+                        TopAppBar(
+                            windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = containerColor,
+                                scrolledContainerColor = containerColor
+                            ),
+                            title = titleContent,
+                            navigationIcon = navIconContent
+                        )
+                    } else {
+                        LargeTopAppBar(
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = containerColor,
+                                scrolledContainerColor = containerColor
+                            ),
+                            title = titleContent,
+                            navigationIcon = navIconContent,
+                            scrollBehavior = scrollBehavior
+                        )
+                    }
                 }
             ) { padding ->
                 LazyColumn(
@@ -837,7 +860,6 @@ fun AppConfigContent(
 // REUSABLE SUBSCREEN CONTAINER
 // ------------------------------------------------------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscreenScaffold(
     title: String,
@@ -848,8 +870,11 @@ fun SubscreenScaffold(
     content: @Composable () -> Unit
 ) {
     Scaffold(
+        containerColor = Color.Transparent,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
+                windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
                 title = {
                     Column {
                         Text(
@@ -879,7 +904,8 @@ fun SubscreenScaffold(
                 },
                 actions = { actions() },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 )
             )
         },
@@ -1901,7 +1927,7 @@ private data class AppDesignFilterState(
                 selectedIcons.isNotEmpty()
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppDesignFilterSheet(
     filterState: AppDesignFilterState,

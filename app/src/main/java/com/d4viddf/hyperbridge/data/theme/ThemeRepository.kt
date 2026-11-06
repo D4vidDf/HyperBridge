@@ -31,6 +31,9 @@ class ThemeRepository(private val context: Context) {
 
     private val themesDir = File(context.filesDir, "themes")
 
+    @Volatile
+    private var cachedThemes: List<HyperTheme>? = null
+
     init {
         if (!themesDir.exists()) themesDir.mkdirs()
     }
@@ -166,6 +169,7 @@ class ThemeRepository(private val context: Context) {
                     tempDir.deleteRecursively()
                 }
 
+                cachedThemes = null
                 Log.i(tag, "Theme Installed Successfully: $finalId")
                 return@withContext finalId
 
@@ -243,7 +247,11 @@ class ThemeRepository(private val context: Context) {
     /**
      * Scans the internal themes folder and returns metadata for all installed themes.
      */
-    suspend fun getAvailableThemes(): List<HyperTheme> {
+    suspend fun getAvailableThemes(forceRefresh: Boolean = false): List<HyperTheme> {
+        val current = cachedThemes
+        if (!forceRefresh && current != null) {
+            return current
+        }
         return withContext(Dispatchers.IO) {
             val list = mutableListOf<HyperTheme>()
 
@@ -261,6 +269,7 @@ class ThemeRepository(private val context: Context) {
                     }
                 }
             }
+            cachedThemes = list
             return@withContext list
         }
     }
@@ -270,6 +279,7 @@ class ThemeRepository(private val context: Context) {
      */
     suspend fun deleteTheme(themeId: String) {
         withContext(Dispatchers.IO) {
+            cachedThemes = null
             val themeFolder = File(themesDir, themeId)
             if (themeFolder.exists()) {
                 themeFolder.deleteRecursively()
@@ -286,6 +296,7 @@ class ThemeRepository(private val context: Context) {
      */
     suspend fun saveTheme(theme: HyperTheme) {
         withContext(Dispatchers.IO) {
+            cachedThemes = null
             // Ensure folder exists
             val themeFolder = File(themesDir, theme.id)
             if (!themeFolder.exists()) themeFolder.mkdirs()
