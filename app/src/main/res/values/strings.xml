@@ -1977,4 +1977,14 @@
     <!-- Adaptive Theme Creator Empty Split Pane -->
     <string name="creator_nothing_selected_title">Nothing is selected</string>
     <string name="creator_nothing_selected_desc">Please select an option from the list on the left to start customizing your theme.</string>
+
+    <!-- Adaptive 3-Column Studio Design Screen -->
+    <string name="studio_element_tree_title">Element Tree</string>
+    <string name="studio_element_tree_count_fmt">%d elements</string>
+    <string name="studio_element_tree_show_fmt">Show Tree (%d)</string>
+    <string name="studio_element_tree_hide_cd">Hide Element Tree</string>
+    <string name="studio_element_tree_toggle_cd">Toggle Element Tree</string>
+    <string name="studio_root_canvas_title">Root (Canvas)</string>
+    <string name="studio_root_canvas_subtitle">Global &amp; Canvas Properties</string>
+    <string name="studio_ruler_height_fmt">Height: %1$d dp (%2$s) · Proportional %3$.2f×</string>
 </resources>

@@ -136,6 +136,7 @@ import com.d4viddf.hyperbridge.models.widget.TextSizingType
 import com.d4viddf.hyperbridge.models.widget.TextTextureType
 import com.d4viddf.hyperbridge.models.widget.adaptedContentHeight
 import com.d4viddf.hyperbridge.models.widget.adaptedContentWidth
+import com.d4viddf.hyperbridge.models.widget.findNode
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
 import kotlin.math.roundToInt
 
@@ -321,9 +322,50 @@ fun StudioCanvas(
 
         // Enforce LTR Cartesian layout coordinate space so RTL system locales never mirror element coordinates
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            val density = LocalDensity.current
+            val selectedTargetNode = remember(root, selectedId) {
+                selectedId?.takeIf { it != root.id }?.let { root.findNode(it) }
+            }
+            // Whenever any unlocked element is selected, dragging anywhere on the canvas moves that element!
+            val canDragSelectedAnywhere = selectedTargetNode != null && !selectedTargetNode.locked
+            val currentSelectedId by rememberUpdatedState(selectedId)
+            val currentOnMove by rememberUpdatedState(onMove)
+
+            var canvasDragAccX by remember(selectedId) { mutableFloatStateOf(0f) }
+            var canvasDragAccY by remember(selectedId) { mutableFloatStateOf(0f) }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .then(
+                        if (canDragSelectedAnywhere) {
+                            Modifier.pointerInput(selectedId, zoom, canvasScaleX) {
+                                detectDragGestures(
+                                    onDragStart = {
+                                        canvasDragAccX = 0f
+                                        canvasDragAccY = 0f
+                                    }
+                                ) { change, dragAmount ->
+                                    val activeId = currentSelectedId ?: return@detectDragGestures
+                                    change.consume()
+                                    with(density) {
+                                        val effectiveZoom = zoom.coerceAtLeast(0.1f)
+                                        canvasDragAccX += (dragAmount.x / effectiveZoom / canvasScaleX).toDp().value
+                                        canvasDragAccY += (dragAmount.y / effectiveZoom).toDp().value
+                                    }
+                                    val dx = canvasDragAccX.toInt()
+                                    val dy = canvasDragAccY.toInt()
+                                    if (dx != 0 || dy != 0) {
+                                        canvasDragAccX -= dx
+                                        canvasDragAccY -= dy
+                                        currentOnMove(activeId, dx, dy)
+                                    }
+                                }
+                            }
+                        } else {
+                            Modifier
+                        }
+                    )
                     .graphicsLayer {
                         scaleX = zoom
                         scaleY = zoom

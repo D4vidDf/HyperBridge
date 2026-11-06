@@ -1853,4 +1853,14 @@
     <!-- Adaptive Theme Creator Empty Split Pane -->
     <string name="creator_nothing_selected_title">Nada seleccionado</string>
     <string name="creator_nothing_selected_desc">Selecciona una opción de la lista de la izquierda para empezar a personalizar tu tema.</string>
+
+    <!-- Adaptive 3-Column Studio Design Screen -->
+    <string name="studio_element_tree_title">Árbol de elementos</string>
+    <string name="studio_element_tree_count_fmt">%d elementos</string>
+    <string name="studio_element_tree_show_fmt">Mostrar árbol (%d)</string>
+    <string name="studio_element_tree_hide_cd">Ocultar árbol de elementos</string>
+    <string name="studio_element_tree_toggle_cd">Mostrar/ocultar árbol de elementos</string>
+    <string name="studio_root_canvas_title">Raíz (Lienzo)</string>
+    <string name="studio_root_canvas_subtitle">Propiedades globales y del lienzo</string>
+    <string name="studio_ruler_height_fmt">Altura: %1$d dp (%2$s) · Proporcional %3$.2f×</string>
 </resources>
