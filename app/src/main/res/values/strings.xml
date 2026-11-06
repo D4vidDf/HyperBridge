@@ -436,6 +436,10 @@
     <string name="theme_sheet_title">Add New Theme</string>
 
     <string name="theme_sheet_action_create">Create New Theme</string>
+    <string name="theme_empty_title">No Custom Themes Yet</string>
+    <string name="theme_empty_desc">Create your own unique theme or import one from the community.</string>
+    <string name="theme_section_system">System</string>
+    <string name="theme_section_installed">Installed Themes</string>
 
     <string name="creator_title_new">Create Theme</string>
     <string name="creator_title_edit">Edit Theme</string>

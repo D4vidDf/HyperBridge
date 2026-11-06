@@ -311,7 +311,7 @@ class ThemeRepository(private val context: Context) {
     /**
      * Zips the theme folder into a .htheme file for sharing.
      */
-    suspend fun exportTheme(themeId: String): File? {
+    suspend fun exportTheme(themeId: String, themeName: String? = null): File? {
         return withContext(Dispatchers.IO) {
             val sourceFolder = File(themesDir, themeId)
             if (!sourceFolder.exists()) return@withContext null
@@ -319,7 +319,18 @@ class ThemeRepository(private val context: Context) {
             val exportDir = File(context.cacheDir, "exports")
             if (!exportDir.exists()) exportDir.mkdirs()
 
-            val zipFile = File(exportDir, "${themeId}_v1.htheme")
+            val resolvedName = themeName?.takeIf { it.isNotBlank() } ?: runCatching {
+                val configFile = File(sourceFolder, "theme_config.json")
+                if (configFile.exists()) {
+                    json.decodeFromString<HyperTheme>(configFile.readText()).meta.name
+                } else null
+            }.getOrNull()?.takeIf { it.isNotBlank() } ?: themeId
+
+            val sanitizedName = sanitizeThemeFileName(resolvedName)
+            val zipFile = File(exportDir, "$sanitizedName.htheme")
+            if (zipFile.exists()) {
+                zipFile.delete()
+            }
             try {
                 java.util.zip.ZipOutputStream(java.io.FileOutputStream(zipFile)).use { zos ->
                     sourceFolder.walkTopDown().forEach { file ->
@@ -337,5 +348,19 @@ class ThemeRepository(private val context: Context) {
                 return@withContext null
             }
         }
+    }
+
+    suspend fun exportTheme(theme: HyperTheme): File? = exportTheme(theme.id, theme.meta.name)
+
+    private fun sanitizeThemeFileName(name: String): String {
+        return name
+            .removeSuffix(".htheme")
+            .removeSuffix(".hbr")
+            .trim()
+            .replace(Regex("[/\\\\?%*:|\"<>]"), "_")
+            .replace(Regex("\\s+"), "_")
+            .replace(Regex("_+"), "_")
+            .trim('_', '.')
+            .ifBlank { "hyperbridge_theme" }
     }
 }

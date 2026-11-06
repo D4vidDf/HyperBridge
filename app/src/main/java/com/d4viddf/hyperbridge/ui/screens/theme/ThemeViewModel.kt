@@ -192,12 +192,17 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun exportAndShareTheme(theme: HyperTheme) {
         viewModelScope.launch {
-            val zipFile = repo.exportTheme(theme.id)
+            val zipFile = repo.exportTheme(theme)
             if (zipFile != null) {
-                val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", zipFile)
+                val uri =
+                    FileProvider.getUriForFile(context, "${context.packageName}.provider", zipFile)
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "application/octet-stream"
                     putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_SUBJECT, theme.meta.name)
+                    if (theme.meta.description.isNotBlank()) {
+                        putExtra(Intent.EXTRA_TEXT, "${theme.meta.name}\n${theme.meta.description}")
+                    }
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 val chooser = Intent.createChooser(intent, shareTheme)
