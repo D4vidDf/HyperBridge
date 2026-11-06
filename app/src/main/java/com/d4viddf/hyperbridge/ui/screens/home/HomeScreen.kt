@@ -15,16 +15,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Brush
@@ -180,61 +178,58 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxHeight(),
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .verticalScroll(rememberScrollState())
-                                .padding(top = 12.dp, bottom = 48.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            NavigationRailItem(
-                                selected = selectedTab == 0,
-                                onClick = { selectedTab = 0 },
-                                icon = {
-                                    Icon(
-                                        if (selectedTab == 0) Icons.Filled.Brush else Icons.Outlined.Brush,
-                                        contentDescription = null
-                                    )
-                                },
-                                label = { Text(stringResource(R.string.design)) }
-                            )
+                        Spacer(modifier = Modifier.weight(1f))
 
-                            NavigationRailItem(
-                                selected = selectedTab == 1,
-                                onClick = { selectedTab = 1 },
-                                icon = {
-                                    Icon(
-                                        if (selectedTab == 1) Icons.Filled.ToggleOn else Icons.Outlined.ToggleOff,
-                                        contentDescription = null
-                                    )
-                                },
-                                label = { Text(stringResource(R.string.tab_active)) }
-                            )
+                        NavigationRailItem(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            icon = {
+                                Icon(
+                                    if (selectedTab == 0) Icons.Filled.Brush else Icons.Outlined.Brush,
+                                    contentDescription = null
+                                )
+                            },
+                            label = { Text(stringResource(R.string.design)) }
+                        )
 
-                            NavigationRailItem(
-                                selected = selectedTab == 2,
-                                onClick = { selectedTab = 2 },
-                                icon = {
-                                    Icon(
-                                        if (selectedTab == 2) Icons.Filled.Apps else Icons.Outlined.Apps,
-                                        contentDescription = null
-                                    )
-                                },
-                                label = { Text(stringResource(R.string.tab_library)) }
-                            )
+                        NavigationRailItem(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            icon = {
+                                Icon(
+                                    if (selectedTab == 1) Icons.Filled.ToggleOn else Icons.Outlined.ToggleOff,
+                                    contentDescription = null
+                                )
+                            },
+                            label = { Text(stringResource(R.string.tab_active)) }
+                        )
 
-                            // Settings is permanently visible in the rail on bigger screens
-                            NavigationRailItem(
-                                selected = selectedTab == 3,
-                                onClick = { selectedTab = 3 },
-                                icon = {
-                                    Icon(
-                                        if (selectedTab == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
-                                        contentDescription = stringResource(R.string.settings)
-                                    )
-                                },
-                                label = { Text(stringResource(R.string.settings)) }
-                            )
-                        }
+                        NavigationRailItem(
+                            selected = selectedTab == 2,
+                            onClick = { selectedTab = 2 },
+                            icon = {
+                                Icon(
+                                    if (selectedTab == 2) Icons.Filled.Apps else Icons.Outlined.Apps,
+                                    contentDescription = null
+                                )
+                            },
+                            label = { Text(stringResource(R.string.tab_library)) }
+                        )
+
+                        // Settings is permanently visible in the rail on bigger screens
+                        NavigationRailItem(
+                            selected = selectedTab == 3,
+                            onClick = { selectedTab = 3 },
+                            icon = {
+                                Icon(
+                                    if (selectedTab == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
+                                    contentDescription = stringResource(R.string.settings)
+                                )
+                            },
+                            label = { Text(stringResource(R.string.settings)) }
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
 

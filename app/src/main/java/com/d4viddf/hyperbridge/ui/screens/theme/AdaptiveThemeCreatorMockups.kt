@@ -114,38 +114,32 @@ private fun CreatorRailShellMockup(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             modifier = Modifier.fillMaxHeight()
         ) {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(top = 12.dp, bottom = 48.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                NavigationRailItem(
-                    selected = true,
-                    onClick = {},
-                    icon = { Icon(Icons.Filled.Brush, null) },
-                    label = { Text("Design") }
-                )
-                NavigationRailItem(
-                    selected = false,
-                    onClick = {},
-                    icon = { Icon(Icons.Outlined.NotificationsActive, null) },
-                    label = { Text("Active") }
-                )
-                NavigationRailItem(
-                    selected = false,
-                    onClick = {},
-                    icon = { Icon(Icons.Outlined.Apps, null) },
-                    label = { Text("Library") }
-                )
-                NavigationRailItem(
-                    selected = false,
-                    onClick = {},
-                    icon = { Icon(Icons.Outlined.Settings, null) },
-                    label = { Text("Settings") }
-                )
-            }
+            Spacer(modifier = Modifier.weight(1f))
+            NavigationRailItem(
+                selected = true,
+                onClick = {},
+                icon = { Icon(Icons.Filled.Brush, null) },
+                label = { Text("Design") }
+            )
+            NavigationRailItem(
+                selected = false,
+                onClick = {},
+                icon = { Icon(Icons.Outlined.NotificationsActive, null) },
+                label = { Text("Active") }
+            )
+            NavigationRailItem(
+                selected = false,
+                onClick = {},
+                icon = { Icon(Icons.Outlined.Apps, null) },
+                label = { Text("Library") }
+            )
+            NavigationRailItem(
+                selected = false,
+                onClick = {},
+                icon = { Icon(Icons.Outlined.Settings, null) },
+                label = { Text("Settings") }
+            )
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         Surface(
