@@ -12,20 +12,23 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,6 +41,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ColorLens
@@ -46,6 +50,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
@@ -74,8 +79,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,6 +96,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
@@ -102,17 +111,85 @@ import com.d4viddf.hyperbridge.ui.screens.theme.content.ColorsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.EngineThemeContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.IconsDetailContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.NotificationTypesContent
+import com.d4viddf.hyperbridge.ui.screens.theme.content.ReplyStyleSheetContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.ThemeBehaviourContent
 import com.d4viddf.hyperbridge.ui.screens.theme.content.safeParseColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// [NEW] Sub-menu routing added
+private val CREATOR_SPLIT_MIN_WIDTH = 560.dp
+
 enum class CreatorRoute {
-    MAIN_MENU, BEHAVIOR_MENU, BEHAVIOR_ENGINE, BEHAVIOR_ISLAND, BEHAVIOR_TYPES, COLORS, ICONS, CALLS, NAVIGATION, REPLY, ACTIONS, APPS
+    MAIN_MENU,
+    BEHAVIOR_MENU,
+    BEHAVIOR_ENGINE,
+    BEHAVIOR_ISLAND,
+    BEHAVIOR_TYPES,
+    COLORS,
+    ICONS,
+    CALLS,
+    NAVIGATION,
+    REPLY,
+    ACTIONS,
+    APPS,
+    // Cascaded Per-App Override Routes
+    APP_MENU,
+    APP_BEHAVIOR_MENU,
+    APP_BEHAVIOR_ENGINE,
+    APP_BEHAVIOR_ISLAND,
+    APP_BEHAVIOR_TYPES,
+    APP_COLORS,
+    APP_ICONS,
+    APP_CALLS,
+    APP_NAVIGATION,
+    APP_REPLY,
+    APP_ACTIONS
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private fun CreatorRoute.isAppRoute(): Boolean = when (this) {
+    CreatorRoute.APP_MENU,
+    CreatorRoute.APP_BEHAVIOR_MENU,
+    CreatorRoute.APP_BEHAVIOR_ENGINE,
+    CreatorRoute.APP_BEHAVIOR_ISLAND,
+    CreatorRoute.APP_BEHAVIOR_TYPES,
+    CreatorRoute.APP_COLORS,
+    CreatorRoute.APP_ICONS,
+    CreatorRoute.APP_CALLS,
+    CreatorRoute.APP_NAVIGATION,
+    CreatorRoute.APP_REPLY,
+    CreatorRoute.APP_ACTIONS -> true
+    else -> false
+}
+
+private fun CreatorRoute.toAppEditorRouteOrNull(): AppEditorRoute? = when (this) {
+    CreatorRoute.APP_MENU -> AppEditorRoute.MENU
+    CreatorRoute.APP_BEHAVIOR_MENU -> AppEditorRoute.BEHAVIOR_MENU
+    CreatorRoute.APP_BEHAVIOR_ENGINE -> AppEditorRoute.BEHAVIOR_ENGINE
+    CreatorRoute.APP_BEHAVIOR_ISLAND -> AppEditorRoute.BEHAVIOR_ISLAND
+    CreatorRoute.APP_BEHAVIOR_TYPES -> AppEditorRoute.BEHAVIOR_TYPES
+    CreatorRoute.APP_COLORS -> AppEditorRoute.COLORS
+    CreatorRoute.APP_ICONS -> AppEditorRoute.ICONS
+    CreatorRoute.APP_CALLS -> AppEditorRoute.CALLS
+    CreatorRoute.APP_NAVIGATION -> AppEditorRoute.NAVIGATION
+    CreatorRoute.APP_REPLY -> AppEditorRoute.REPLY
+    CreatorRoute.APP_ACTIONS -> AppEditorRoute.ACTIONS
+    else -> null
+}
+
+private fun AppEditorRoute.toCreatorRoute(): CreatorRoute = when (this) {
+    AppEditorRoute.MENU -> CreatorRoute.APP_MENU
+    AppEditorRoute.BEHAVIOR_MENU -> CreatorRoute.APP_BEHAVIOR_MENU
+    AppEditorRoute.BEHAVIOR_ENGINE -> CreatorRoute.APP_BEHAVIOR_ENGINE
+    AppEditorRoute.BEHAVIOR_ISLAND -> CreatorRoute.APP_BEHAVIOR_ISLAND
+    AppEditorRoute.BEHAVIOR_TYPES -> CreatorRoute.APP_BEHAVIOR_TYPES
+    AppEditorRoute.COLORS -> CreatorRoute.APP_COLORS
+    AppEditorRoute.ICONS -> CreatorRoute.APP_ICONS
+    AppEditorRoute.CALLS -> CreatorRoute.APP_CALLS
+    AppEditorRoute.NAVIGATION -> CreatorRoute.APP_NAVIGATION
+    AppEditorRoute.REPLY -> CreatorRoute.APP_REPLY
+    AppEditorRoute.ACTIONS -> CreatorRoute.APP_ACTIONS
+}
+
 @Composable
 fun ThemeCreatorScreen(
     editThemeId: String? = null,
@@ -123,237 +200,755 @@ fun ThemeCreatorScreen(
     val activeThemeId by viewModel.activeThemeId.collectAsState()
     val isNative by viewModel.useNativeLiveUpdates.collectAsState()
 
-    if (viewModel.editingAppPackage != null) {
-        AppThemeEditor(
-            viewModel = viewModel
-        )
-    } else {
-        var currentRoute by remember { mutableStateOf(CreatorRoute.MAIN_MENU) }
-        var showSettingsSheet by remember { mutableStateOf(false) }
-        var showSaveDialog by remember { mutableStateOf(false) }
+    var stackNames by rememberSaveable {
+        mutableStateOf(listOf(CreatorRoute.MAIN_MENU.name))
+    }
+    var previousStackSize by rememberSaveable { mutableIntStateOf(1) }
+    var showSettingsSheet by remember { mutableStateOf(false) }
+    var showSaveDialog by remember { mutableStateOf(false) }
+    var showAppUnsavedDialog by remember { mutableStateOf(false) }
 
-        LaunchedEffect(editThemeId) {
-            if (editThemeId != null) {
-                if (viewModel.currentEditingThemeId != editThemeId) {
-                    viewModel.loadThemeForEditing(editThemeId)
+    val stack = remember(stackNames) {
+        stackNames.mapNotNull { name ->
+            runCatching { CreatorRoute.valueOf(name) }.getOrNull()
+        }.ifEmpty { listOf(CreatorRoute.MAIN_MENU) }
+    }
+
+    LaunchedEffect(editThemeId) {
+        if (editThemeId != null) {
+            if (viewModel.currentEditingThemeId != editThemeId) {
+                viewModel.loadThemeForEditing(editThemeId)
+            }
+        } else {
+            if (viewModel.currentEditingThemeId == null) {
+                viewModel.clearCreatorState()
+            }
+        }
+    }
+
+    // Keep stack synchronized if editingAppPackage was cleared externally
+    LaunchedEffect(viewModel.editingAppPackage, stack) {
+        if (viewModel.editingAppPackage == null && stack.any { it.isAppRoute() }) {
+            val trimmed = stack.takeWhile { !it.isAppRoute() }.ifEmpty { listOf(CreatorRoute.MAIN_MENU) }
+            previousStackSize = stack.size
+            stackNames = trimmed.map { it.name }
+        }
+    }
+
+    fun navigateFrom(source: CreatorRoute, target: CreatorRoute) {
+        // If navigating from a non-app route while an app is open, close app editing cleanly
+        if (!source.isAppRoute() && !target.isAppRoute() && viewModel.editingAppPackage != null) {
+            viewModel.cancelAppEditing()
+        }
+        val sourceIndex = stack.lastIndexOf(source)
+        previousStackSize = stack.size
+        stackNames = if (sourceIndex != -1) {
+            if (stack.getOrNull(sourceIndex + 1) == target && stack.size == sourceIndex + 2) {
+                // Tapping the already-open option in the left pane deselects it and returns to source
+                if (target == CreatorRoute.APP_MENU) {
+                    showAppUnsavedDialog = true
+                    stackNames
+                } else {
+                    stack.take(sourceIndex + 1).map { it.name }
                 }
             } else {
-                if (viewModel.currentEditingThemeId == null) {
-                    viewModel.clearCreatorState()
-                }
+                (stack.take(sourceIndex + 1) + target).map { it.name }
             }
+        } else {
+            (stack + target).map { it.name }
         }
+    }
 
-        // --- Shared Back Logic ---
-        val handleBackNavigation = {
-            when (currentRoute) {
-                CreatorRoute.BEHAVIOR_ENGINE,
-                CreatorRoute.BEHAVIOR_ISLAND,
-                CreatorRoute.BEHAVIOR_TYPES -> currentRoute = CreatorRoute.BEHAVIOR_MENU // Return to sub-menu
-                CreatorRoute.MAIN_MENU -> {
-                    viewModel.currentEditingThemeId = null
-                    onBack() // Exit entirely
-                }
-                else -> currentRoute = CreatorRoute.MAIN_MENU // Return to main menu
-            }
-        }
-
-        BackHandler(enabled = true) {
-            handleBackNavigation()
-        }
-
-        BackHandler(enabled = currentRoute == CreatorRoute.MAIN_MENU) {
+    fun popFrom(route: CreatorRoute) {
+        if (route == CreatorRoute.MAIN_MENU) {
             viewModel.currentEditingThemeId = null
             onBack()
+            return
         }
+        if (route == CreatorRoute.APP_MENU) {
+            showAppUnsavedDialog = true
+            return
+        }
+        val idx = stack.lastIndexOf(route)
+        previousStackSize = stack.size
+        if (idx > 0) {
+            val newStack = stack.take(idx)
+            if (newStack.none { it.isAppRoute() } && viewModel.editingAppPackage != null) {
+                viewModel.cancelAppEditing()
+            }
+            stackNames = newStack.map { it.name }
+        } else if (stack.size > 1) {
+            stackNames = stack.dropLast(1).map { it.name }
+        }
+    }
 
-        BackHandler(enabled = currentRoute == CreatorRoute.MAIN_MENU) {
+    val handleSaveTheme = {
+        if (editThemeId != null && editThemeId == activeThemeId) {
+            viewModel.saveTheme(existingId = editThemeId, apply = true)
             viewModel.currentEditingThemeId = null
-            onBack()
+            onThemeCreated()
+        } else {
+            showSaveDialog = true
         }
+    }
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = when (currentRoute) {
-                                CreatorRoute.MAIN_MENU -> if (editThemeId == null) stringResource(R.string.creator_title_new) else stringResource(R.string.creator_title_edit)
-                                CreatorRoute.BEHAVIOR_MENU -> stringResource(R.string.behaviour_triggers)
-                                CreatorRoute.BEHAVIOR_ENGINE -> stringResource(R.string.engine)
-                                CreatorRoute.BEHAVIOR_ISLAND -> stringResource(R.string.island_behavior_title)
-                                CreatorRoute.BEHAVIOR_TYPES -> stringResource(R.string.active_notifications_title)
-                                CreatorRoute.COLORS -> stringResource(R.string.creator_nav_colors)
-                                CreatorRoute.ICONS -> stringResource(R.string.creator_nav_icons)
-                                CreatorRoute.CALLS -> stringResource(R.string.creator_nav_calls)
-                                CreatorRoute.NAVIGATION -> stringResource(R.string.nav_layout_title)
-                                CreatorRoute.REPLY -> stringResource(R.string.inline_reply_title)
-                                CreatorRoute.ACTIONS -> stringResource(R.string.creator_nav_actions)
-                                CreatorRoute.APPS -> stringResource(R.string.creator_nav_apps)
-                            },
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    navigationIcon = {
-                        FilledTonalIconButton(
-                            onClick = handleBackNavigation,
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                        }
-                    },
-                    actions = {
-                        if (currentRoute == CreatorRoute.MAIN_MENU) {
-                            Button(
-                                onClick = {
-                                    if (editThemeId != null && editThemeId == activeThemeId) {
-                                        viewModel.saveTheme(existingId = editThemeId, apply = true)
-                                        viewModel.currentEditingThemeId = null
-                                        onThemeCreated()
-                                    } else {
-                                        showSaveDialog = true
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
-                                modifier = Modifier.padding(end = 8.dp)
-                            ) { Text(stringResource(R.string.save), fontWeight = FontWeight.Bold) }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.surface
-        ) { padding ->
-            Box(modifier = Modifier
-                .padding(top = padding.calculateTopPadding())
-                .fillMaxSize()) {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        if (targetState == CreatorRoute.MAIN_MENU || targetState == CreatorRoute.BEHAVIOR_MENU && initialState != CreatorRoute.MAIN_MENU)
-                            slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
-                        else
-                            slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
-                    },
-                    label = "CreatorNav"
-                ) { route ->
-                    when (route) {
-                        CreatorRoute.MAIN_MENU -> CreatorMainList(
-                            viewModel = viewModel,
-                            onNavigate = { currentRoute = it },
-                            onEditSettings = { showSettingsSheet = true }
-                        )
-                        CreatorRoute.BEHAVIOR_MENU -> Box(Modifier.fillMaxSize()) {
-                            BehaviourMenuContent(onNavigate = { currentRoute = it })
-                        }
-                        CreatorRoute.BEHAVIOR_ENGINE -> {
-                            EngineThemeContent(
-                                isNative = isNative,
-                                showDefaultOption = false,
-                                onEngineChange = { viewModel.setUseNativeLiveUpdates(it ?: false) }
-                            )
-                        }
-                        CreatorRoute.BEHAVIOR_ISLAND -> Box(Modifier.fillMaxSize()) {
-                            ThemeBehaviourContent()
-                        }
-                        CreatorRoute.BEHAVIOR_TYPES -> Box(Modifier.fillMaxSize()) {
-                            NotificationTypesContent()
-                        }
-                        CreatorRoute.NAVIGATION -> Box(Modifier.fillMaxSize()) {
-                            NavCustomizationScreen(onBack = { currentRoute = CreatorRoute.MAIN_MENU },null, false)
-                        }
-                        CreatorRoute.REPLY -> Box(Modifier.fillMaxSize()) {
-                            com.d4viddf.hyperbridge.ui.screens.theme.content.ReplyStyleSheetContent(viewModel = viewModel)
-                        }
-                        CreatorRoute.COLORS -> DetailScreenShell(
-                            previewContent = {
-                                SharedThemePreview(
-                                    highlightColorHex = viewModel.selectedColorHex,
-                                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
-                                    shapeId = viewModel.selectedShapeId,
-                                    paddingPercent = viewModel.iconPaddingPercent,
-                                    answerColorHex = viewModel.callAnswerColor,
-                                    declineColorHex = viewModel.callDeclineColor,
-                                    answerShapeId = viewModel.callAnswerShapeId,
-                                    declineShapeId = viewModel.callDeclineShapeId
-                                )
-                            },
-                            content = {
-                                ColorsDetailContent(
-                                    selectedColorHex = viewModel.selectedColorHex,
-                                    colorMode = viewModel.colorMode,
-                                    onColorSelected = { viewModel.selectedColorHex = it },
-                                    onColorModeChanged = { viewModel.colorMode = it }
+    val handleSaveAppChanges = {
+        viewModel.saveAppChanges()
+        val trimmed = stack.takeWhile { !it.isAppRoute() }.ifEmpty { listOf(CreatorRoute.MAIN_MENU) }
+        previousStackSize = stack.size
+        stackNames = trimmed.map { it.name }
+    }
+
+    BackHandler(enabled = true) {
+        popFrom(stack.last())
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        val isSplitMode = maxWidth >= CREATOR_SPLIT_MIN_WIDTH
+
+        if (isSplitMode) {
+            val leftRoute = if (stack.size >= 2) stack[stack.size - 2] else CreatorRoute.MAIN_MENU
+            val rightRoute: CreatorRoute? = if (stack.size >= 2) stack.last() else null
+            val isForward = stack.size >= previousStackSize
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // LEFT PANE: Always shows MAIN_MENU at depth 1 & 2, cascades to parent route at depth 3+
+                Box(
+                    modifier = Modifier
+                        .weight(0.44f)
+                        .fillMaxHeight()
+                ) {
+                    AnimatedContent(
+                        targetState = leftRoute,
+                        transitionSpec = {
+                            if (isForward) {
+                                slideInHorizontally { it / 2 } + fadeIn() togetherWith
+                                    slideOutHorizontally { -it / 2 } + fadeOut()
+                            } else {
+                                slideInHorizontally { -it / 2 } + fadeIn() togetherWith
+                                    slideOutHorizontally { it / 2 } + fadeOut()
+                            }
+                        },
+                        label = "CreatorLeftCascade"
+                    ) { route ->
+                        val selectedInLeft = if (stack.size >= 2 && route == leftRoute) rightRoute else null
+                        if (route == CreatorRoute.MAIN_MENU) {
+                            CreatorPaneScaffold(
+                                route = route,
+                                editThemeId = editThemeId,
+                                editingAppLabel = viewModel.editingAppLabel,
+                                isLeftPane = true,
+                                onBackClick = { popFrom(route) },
+                                onSaveTheme = handleSaveTheme,
+                                onDoneApp = handleSaveAppChanges
+                            ) {
+                                CreatorNodeBody(
+                                    route = route,
+                                    selectedChild = selectedInLeft,
+                                    viewModel = viewModel,
+                                    isNative = isNative,
+                                    onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                                    onPopRoute = { popFrom(it) },
+                                    onEditSettings = { showSettingsSheet = true }
                                 )
                             }
-                        )
-                        CreatorRoute.ICONS -> DetailScreenShell(
-                            previewContent = {
-                                SharedThemePreview(
-                                    highlightColorHex = viewModel.selectedColorHex,
-                                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
-                                    shapeId = viewModel.selectedShapeId,
-                                    paddingPercent = viewModel.iconPaddingPercent,
-                                    answerColorHex = viewModel.callAnswerColor,
-                                    declineColorHex = viewModel.callDeclineColor,
-                                    answerShapeId = viewModel.callAnswerShapeId,
-                                    declineShapeId = viewModel.callDeclineShapeId
-                                )
-                            },
-                            content = {
-                                IconsDetailContent(
-                                    iconPaddingPercent = viewModel.iconPaddingPercent,
-                                    selectedShapeId = viewModel.selectedShapeId,
-                                    onPaddingChange = { viewModel.iconPaddingPercent = it },
-                                    onShapeChange = { viewModel.selectedShapeId = it },
-                                    onStageAsset = { key, uri -> viewModel.stageAsset(key, uri) }
-                                )
+                        } else {
+                            CreatorDetailPaneSurface {
+                                CreatorPaneScaffold(
+                                    route = route,
+                                    editThemeId = editThemeId,
+                                    editingAppLabel = viewModel.editingAppLabel,
+                                    isLeftPane = true,
+                                    onBackClick = { popFrom(route) },
+                                    onSaveTheme = handleSaveTheme,
+                                    onDoneApp = handleSaveAppChanges
+                                ) {
+                                    CreatorNodeBody(
+                                        route = route,
+                                        selectedChild = selectedInLeft,
+                                        viewModel = viewModel,
+                                        isNative = isNative,
+                                        onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                                        onPopRoute = { popFrom(it) },
+                                        onEditSettings = { showSettingsSheet = true }
+                                    )
+                                }
                             }
-                        )
-                        CreatorRoute.CALLS -> DetailScreenShell(
-                            previewContent = {
-                                SharedThemePreview(
-                                    highlightColorHex = viewModel.selectedColorHex,
-                                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
-                                    shapeId = viewModel.selectedShapeId,
-                                    paddingPercent = viewModel.iconPaddingPercent,
-                                    answerColorHex = viewModel.callAnswerColor,
-                                    declineColorHex = viewModel.callDeclineColor,
-                                    answerShapeId = viewModel.callAnswerShapeId,
-                                    declineShapeId = viewModel.callDeclineShapeId
-                                )
-                            },
-                            content = {
-                                CallStyleSheetContent(
-                                    answerColor = viewModel.callAnswerColor,
-                                    declineColor = viewModel.callDeclineColor,
-                                    answerShapeId = viewModel.callAnswerShapeId,
-                                    declineShapeId = viewModel.callDeclineShapeId,
-                                    onAnswerColorChange = { viewModel.callAnswerColor = it },
-                                    onDeclineColorChange = { viewModel.callDeclineColor = it },
-                                    onAnswerShapeChange = { viewModel.callAnswerShapeId = it },
-                                    onDeclineShapeChange = { viewModel.callDeclineShapeId = it },
-                                    onAnswerIconSelected = { viewModel.callAnswerUri = it; viewModel.stageAsset("call_answer", it) },
-                                    onDeclineIconSelected = { viewModel.callDeclineUri = it; viewModel.stageAsset("call_decline", it) }
-                                )
-                            }
-                        )
-                        CreatorRoute.ACTIONS -> Box(Modifier.fillMaxSize()) {
-                            ActionsDetailContent(
-                                actions = viewModel.themeDefaultActions,
-                                onUpdateAction = { k, v -> viewModel.updateDefaultAction(k, v) },
-                                onRemoveAction = { k -> viewModel.removeDefaultAction(k) }
-                            )
                         }
-                        CreatorRoute.APPS -> Box(Modifier.fillMaxSize()) {
-                            AppsDetailContent(viewModel)
+                    }
+                }
+
+                // RIGHT PANE: Shows "Nothing is selected" at depth 1, or active detail/sub-menu at depth 2+
+                Box(
+                    modifier = Modifier
+                        .weight(0.56f)
+                        .fillMaxHeight()
+                ) {
+                    CreatorDetailPaneSurface {
+                        AnimatedContent(
+                            targetState = rightRoute,
+                            transitionSpec = {
+                                if (targetState == null) {
+                                    fadeIn() togetherWith slideOutHorizontally { it / 3 } + fadeOut()
+                                } else if (initialState == null || isForward) {
+                                    slideInHorizontally { it / 2 } + fadeIn() togetherWith
+                                        slideOutHorizontally { -it / 3 } + fadeOut()
+                                } else {
+                                    slideInHorizontally { -it / 3 } + fadeIn() togetherWith
+                                        slideOutHorizontally { it / 2 } + fadeOut()
+                                }
+                            },
+                            label = "CreatorRightDetail"
+                        ) { route ->
+                            if (route == null) {
+                                CreatorNothingSelectedPane()
+                            } else {
+                                CreatorPaneScaffold(
+                                    route = route,
+                                    editThemeId = editThemeId,
+                                    editingAppLabel = viewModel.editingAppLabel,
+                                    isLeftPane = false,
+                                    onBackClick = { popFrom(route) },
+                                    onSaveTheme = handleSaveTheme,
+                                    onDoneApp = handleSaveAppChanges
+                                ) {
+                                    CreatorNodeBody(
+                                        route = route,
+                                        selectedChild = null,
+                                        viewModel = viewModel,
+                                        isNative = isNative,
+                                        onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                                        onPopRoute = { popFrom(it) },
+                                        onEditSettings = { showSettingsSheet = true }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
+        } else {
+            // COMPACT / PHONE MODE: Single full-screen pane showing stack.last()
+            val currentRoute = stack.last()
+            val isForward = stack.size >= previousStackSize
+            AnimatedContent(
+                targetState = currentRoute,
+                transitionSpec = {
+                    if (isForward && targetState != CreatorRoute.MAIN_MENU) {
+                        slideInHorizontally { it } + fadeIn() togetherWith
+                            slideOutHorizontally { -it } + fadeOut()
+                    } else {
+                        slideInHorizontally { -it } + fadeIn() togetherWith
+                            slideOutHorizontally { it } + fadeOut()
+                    }
+                },
+                label = "CreatorCompactNav"
+            ) { route ->
+                CreatorPaneScaffold(
+                    route = route,
+                    editThemeId = editThemeId,
+                    editingAppLabel = viewModel.editingAppLabel,
+                    isLeftPane = true,
+                    onBackClick = { popFrom(route) },
+                    onSaveTheme = handleSaveTheme,
+                    onDoneApp = handleSaveAppChanges
+                ) {
+                    CreatorNodeBody(
+                        route = route,
+                        selectedChild = null,
+                        viewModel = viewModel,
+                        isNative = isNative,
+                        onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                        onPopRoute = { popFrom(it) },
+                        onEditSettings = { showSettingsSheet = true }
+                    )
+                }
+            }
+        }
 
-            if (showSettingsSheet) ThemeMetadataSheet(viewModel) { showSettingsSheet = false }
-            if (showSaveDialog) SaveDialog(viewModel, editThemeId, activeThemeId, onThemeCreated) { showSaveDialog = false }
+        if (showSettingsSheet) {
+            ThemeMetadataSheet(viewModel) { showSettingsSheet = false }
+        }
+        if (showSaveDialog) {
+            SaveDialog(viewModel, editThemeId, activeThemeId, onThemeCreated) { showSaveDialog = false }
+        }
+        if (showAppUnsavedDialog) {
+            AlertDialog(
+                onDismissRequest = { showAppUnsavedDialog = false },
+                title = { Text(stringResource(R.string.unsaved_changes)) },
+                text = { Text(stringResource(R.string.unsaved_changes_desc)) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showAppUnsavedDialog = false
+                            handleSaveAppChanges()
+                        }
+                    ) {
+                        Text(stringResource(R.string.save))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showAppUnsavedDialog = false
+                            viewModel.cancelAppEditing()
+                            val trimmed = stack.takeWhile { !it.isAppRoute() }.ifEmpty { listOf(CreatorRoute.MAIN_MENU) }
+                            previousStackSize = stack.size
+                            stackNames = trimmed.map { it.name }
+                        }
+                    ) {
+                        Text(stringResource(R.string.discard))
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun CreatorDetailPaneSurface(
+    content: @Composable () -> Unit
+) {
+    val baseScheme = MaterialTheme.colorScheme
+    val detailScheme = remember(baseScheme) {
+        baseScheme.copy(
+            background = baseScheme.surfaceContainerLow,
+            surface = baseScheme.surfaceContainerLow,
+            surfaceContainerLow = baseScheme.surfaceContainer
+        )
+    }
+    MaterialTheme(colorScheme = detailScheme) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(28.dp)),
+            shape = RoundedCornerShape(28.dp),
+            color = baseScheme.surfaceContainerLow
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun CreatorNothingSelectedPane() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.width(340.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(88.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Tune,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = stringResource(R.string.creator_nothing_selected_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.creator_nothing_selected_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CreatorPaneScaffold(
+    route: CreatorRoute,
+    editThemeId: String?,
+    editingAppLabel: String,
+    isLeftPane: Boolean,
+    onBackClick: () -> Unit,
+    onSaveTheme: () -> Unit,
+    onDoneApp: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val titleText = when (route) {
+        CreatorRoute.MAIN_MENU -> if (editThemeId == null) stringResource(R.string.creator_title_new) else stringResource(R.string.creator_title_edit)
+        CreatorRoute.BEHAVIOR_MENU, CreatorRoute.APP_BEHAVIOR_MENU -> stringResource(R.string.behaviour_triggers)
+        CreatorRoute.BEHAVIOR_ENGINE, CreatorRoute.APP_BEHAVIOR_ENGINE -> stringResource(R.string.engine)
+        CreatorRoute.BEHAVIOR_ISLAND, CreatorRoute.APP_BEHAVIOR_ISLAND -> stringResource(R.string.island_behavior_title)
+        CreatorRoute.BEHAVIOR_TYPES, CreatorRoute.APP_BEHAVIOR_TYPES -> stringResource(R.string.active_notifications_title)
+        CreatorRoute.COLORS, CreatorRoute.APP_COLORS -> stringResource(R.string.creator_nav_colors)
+        CreatorRoute.ICONS, CreatorRoute.APP_ICONS -> stringResource(R.string.creator_nav_icons)
+        CreatorRoute.CALLS, CreatorRoute.APP_CALLS -> stringResource(R.string.creator_nav_calls)
+        CreatorRoute.NAVIGATION, CreatorRoute.APP_NAVIGATION -> stringResource(R.string.nav_layout_title)
+        CreatorRoute.REPLY, CreatorRoute.APP_REPLY -> stringResource(R.string.inline_reply_title)
+        CreatorRoute.ACTIONS, CreatorRoute.APP_ACTIONS -> stringResource(R.string.creator_nav_actions)
+        CreatorRoute.APPS -> stringResource(R.string.creator_nav_apps)
+        CreatorRoute.APP_MENU -> stringResource(R.string.edit_app)
+    }
+
+    val subtitleText: String? = when {
+        route.isAppRoute() && editingAppLabel.isNotBlank() -> editingAppLabel
+        else -> null
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = titleText,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (subtitleText != null) {
+                            Text(
+                                text = subtitleText,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                },
+                navigationIcon = {
+                    FilledTonalIconButton(
+                        onClick = onBackClick,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (isLeftPane) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
+                },
+                actions = {
+                    if (route == CreatorRoute.MAIN_MENU) {
+                        Button(
+                            onClick = onSaveTheme,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(stringResource(R.string.save), fontWeight = FontWeight.Bold)
+                        }
+                    } else if (route == CreatorRoute.APP_MENU) {
+                        Button(
+                            onClick = onDoneApp,
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(stringResource(R.string.done), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.surface
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .padding(top = padding.calculateTopPadding())
+                .fillMaxSize()
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun CreatorNodeBody(
+    route: CreatorRoute,
+    selectedChild: CreatorRoute?,
+    viewModel: ThemeViewModel,
+    isNative: Boolean,
+    onNavigateFrom: (source: CreatorRoute, target: CreatorRoute) -> Unit,
+    onPopRoute: (CreatorRoute) -> Unit,
+    onEditSettings: () -> Unit
+) {
+    val effHighlight = viewModel.appHighlightColor ?: viewModel.selectedColorHex
+    val effShape = viewModel.appShapeId ?: viewModel.selectedShapeId
+    val effPadding = viewModel.appPaddingPercent ?: viewModel.iconPaddingPercent
+    val effAnswerColor = viewModel.appCallAnswerColor ?: viewModel.callAnswerColor
+    val effDeclineColor = viewModel.appCallDeclineColor ?: viewModel.callDeclineColor
+    val effAnswerShape = viewModel.appCallAnswerShapeId ?: viewModel.callAnswerShapeId
+    val effDeclineShape = viewModel.appCallDeclineShapeId ?: viewModel.callDeclineShapeId
+
+    when (route) {
+        CreatorRoute.MAIN_MENU -> CreatorMainList(
+            viewModel = viewModel,
+            selectedRoute = selectedChild,
+            onNavigate = { target -> onNavigateFrom(CreatorRoute.MAIN_MENU, target) },
+            onEditSettings = onEditSettings
+        )
+        CreatorRoute.BEHAVIOR_MENU -> Box(Modifier.fillMaxSize()) {
+            BehaviourMenuContent(
+                selectedRoute = selectedChild,
+                onNavigate = { target -> onNavigateFrom(CreatorRoute.BEHAVIOR_MENU, target) }
+            )
+        }
+        CreatorRoute.BEHAVIOR_ENGINE -> {
+            EngineThemeContent(
+                isNative = isNative,
+                showDefaultOption = false,
+                onEngineChange = { viewModel.setUseNativeLiveUpdates(it ?: false) }
+            )
+        }
+        CreatorRoute.BEHAVIOR_ISLAND -> Box(Modifier.fillMaxSize()) {
+            ThemeBehaviourContent()
+        }
+        CreatorRoute.BEHAVIOR_TYPES -> Box(Modifier.fillMaxSize()) {
+            NotificationTypesContent()
+        }
+        CreatorRoute.NAVIGATION -> Box(Modifier.fillMaxSize()) {
+            NavCustomizationScreen(
+                onBack = { onPopRoute(CreatorRoute.NAVIGATION) },
+                packageName = null,
+                showTopBar = false
+            )
+        }
+        CreatorRoute.REPLY -> Box(Modifier.fillMaxSize()) {
+            ReplyStyleSheetContent(viewModel = viewModel)
+        }
+        CreatorRoute.COLORS -> DetailScreenShell(
+            previewContent = {
+                SharedThemePreview(
+                    highlightColorHex = viewModel.selectedColorHex,
+                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
+                    shapeId = viewModel.selectedShapeId,
+                    paddingPercent = viewModel.iconPaddingPercent,
+                    answerColorHex = viewModel.callAnswerColor,
+                    declineColorHex = viewModel.callDeclineColor,
+                    answerShapeId = viewModel.callAnswerShapeId,
+                    declineShapeId = viewModel.callDeclineShapeId
+                )
+            },
+            content = {
+                ColorsDetailContent(
+                    selectedColorHex = viewModel.selectedColorHex,
+                    colorMode = viewModel.colorMode,
+                    onColorSelected = { viewModel.selectedColorHex = it },
+                    onColorModeChanged = { viewModel.colorMode = it }
+                )
+            }
+        )
+        CreatorRoute.ICONS -> DetailScreenShell(
+            previewContent = {
+                SharedThemePreview(
+                    highlightColorHex = viewModel.selectedColorHex,
+                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
+                    shapeId = viewModel.selectedShapeId,
+                    paddingPercent = viewModel.iconPaddingPercent,
+                    answerColorHex = viewModel.callAnswerColor,
+                    declineColorHex = viewModel.callDeclineColor,
+                    answerShapeId = viewModel.callAnswerShapeId,
+                    declineShapeId = viewModel.callDeclineShapeId
+                )
+            },
+            content = {
+                IconsDetailContent(
+                    iconPaddingPercent = viewModel.iconPaddingPercent,
+                    selectedShapeId = viewModel.selectedShapeId,
+                    onPaddingChange = { viewModel.iconPaddingPercent = it },
+                    onShapeChange = { viewModel.selectedShapeId = it },
+                    onStageAsset = { key, uri -> viewModel.stageAsset(key, uri) }
+                )
+            }
+        )
+        CreatorRoute.CALLS -> DetailScreenShell(
+            previewContent = {
+                SharedThemePreview(
+                    highlightColorHex = viewModel.selectedColorHex,
+                    useAppColors = (viewModel.colorMode == ColorMode.APP_ICON),
+                    shapeId = viewModel.selectedShapeId,
+                    paddingPercent = viewModel.iconPaddingPercent,
+                    answerColorHex = viewModel.callAnswerColor,
+                    declineColorHex = viewModel.callDeclineColor,
+                    answerShapeId = viewModel.callAnswerShapeId,
+                    declineShapeId = viewModel.callDeclineShapeId
+                )
+            },
+            content = {
+                CallStyleSheetContent(
+                    answerColor = viewModel.callAnswerColor,
+                    declineColor = viewModel.callDeclineColor,
+                    answerShapeId = viewModel.callAnswerShapeId,
+                    declineShapeId = viewModel.callDeclineShapeId,
+                    onAnswerColorChange = { viewModel.callAnswerColor = it },
+                    onDeclineColorChange = { viewModel.callDeclineColor = it },
+                    onAnswerShapeChange = { viewModel.callAnswerShapeId = it },
+                    onDeclineShapeChange = { viewModel.callDeclineShapeId = it },
+                    onAnswerIconSelected = { viewModel.callAnswerUri = it; viewModel.stageAsset("call_answer", it) },
+                    onDeclineIconSelected = { viewModel.callDeclineUri = it; viewModel.stageAsset("call_decline", it) }
+                )
+            }
+        )
+        CreatorRoute.ACTIONS -> Box(Modifier.fillMaxSize()) {
+            ActionsDetailContent(
+                actions = viewModel.themeDefaultActions,
+                onUpdateAction = { k, v -> viewModel.updateDefaultAction(k, v) },
+                onRemoveAction = { k -> viewModel.removeDefaultAction(k) }
+            )
+        }
+        CreatorRoute.APPS -> Box(Modifier.fillMaxSize()) {
+            AppsDetailContent(
+                viewModel = viewModel,
+                selectedPackageName = if (selectedChild == CreatorRoute.APP_MENU) viewModel.editingAppPackage else null,
+                onAppSelected = { pkg, label ->
+                    val alreadyEditingSameApp =
+                        viewModel.editingAppPackage == pkg && selectedChild == CreatorRoute.APP_MENU
+                    if (alreadyEditingSameApp) {
+                        onNavigateFrom(CreatorRoute.APPS, CreatorRoute.APP_MENU)
+                    } else {
+                        viewModel.loadAppForEditing(pkg, label)
+                        onNavigateFrom(CreatorRoute.APPS, CreatorRoute.APP_MENU)
+                    }
+                },
+                onAppDeleted = { pkg ->
+                    if (viewModel.editingAppPackage == pkg) {
+                        viewModel.cancelAppEditing()
+                    }
+                    viewModel.removeAppOverride(pkg)
+                }
+            )
+        }
+        // --- CASCADED PER-APP ROUTES ---
+        CreatorRoute.APP_MENU -> AppEditorMenu(
+            viewModel = viewModel,
+            selectedRoute = selectedChild?.toAppEditorRouteOrNull(),
+            onNavigate = { appRoute ->
+                onNavigateFrom(CreatorRoute.APP_MENU, appRoute.toCreatorRoute())
+            }
+        )
+        CreatorRoute.APP_BEHAVIOR_MENU -> Box(Modifier.fillMaxSize()) {
+            BehaviourMenuContent(
+                selectedRoute = selectedChild,
+                onNavigate = { target ->
+                    val mapped = when (target) {
+                        CreatorRoute.BEHAVIOR_ENGINE -> CreatorRoute.APP_BEHAVIOR_ENGINE
+                        CreatorRoute.BEHAVIOR_ISLAND -> CreatorRoute.APP_BEHAVIOR_ISLAND
+                        CreatorRoute.BEHAVIOR_TYPES -> CreatorRoute.APP_BEHAVIOR_TYPES
+                        else -> CreatorRoute.APP_BEHAVIOR_MENU
+                    }
+                    onNavigateFrom(CreatorRoute.APP_BEHAVIOR_MENU, mapped)
+                }
+            )
+        }
+        CreatorRoute.APP_BEHAVIOR_ENGINE -> Box(Modifier.fillMaxSize()) {
+            EngineThemeContent(
+                isNative = viewModel.appUseNativeLiveUpdates,
+                onEngineChange = { viewModel.appUseNativeLiveUpdates = it }
+            )
+        }
+        CreatorRoute.APP_BEHAVIOR_ISLAND -> Box(Modifier.fillMaxSize()) {
+            ThemeBehaviourContent()
+        }
+        CreatorRoute.APP_BEHAVIOR_TYPES -> Box(Modifier.fillMaxSize()) {
+            AppNotificationTypesEditor(viewModel = viewModel)
+        }
+        CreatorRoute.APP_COLORS -> DetailScreenShell(
+            previewContent = {
+                SharedThemePreview(
+                    effHighlight,
+                    false,
+                    effShape,
+                    effPadding,
+                    effAnswerColor,
+                    effDeclineColor,
+                    effAnswerShape,
+                    effDeclineShape
+                )
+            },
+            content = {
+                AppColorEditor(viewModel)
+            }
+        )
+        CreatorRoute.APP_ICONS -> DetailScreenShell(
+            previewContent = {
+                SharedThemePreview(
+                    effHighlight,
+                    false,
+                    effShape,
+                    effPadding,
+                    effAnswerColor,
+                    effDeclineColor,
+                    effAnswerShape,
+                    effDeclineShape
+                )
+            },
+            content = {
+                AppIconEditor(viewModel)
+            }
+        )
+        CreatorRoute.APP_CALLS -> DetailScreenShell(
+            previewContent = {
+                SharedThemePreview(
+                    effHighlight,
+                    false,
+                    effShape,
+                    effPadding,
+                    effAnswerColor,
+                    effDeclineColor,
+                    effAnswerShape,
+                    effDeclineShape
+                )
+            },
+            content = {
+                AppCallEditor(viewModel)
+            }
+        )
+        CreatorRoute.APP_NAVIGATION -> Box(Modifier.fillMaxSize()) {
+            NavCustomizationScreen(
+                onBack = { onPopRoute(CreatorRoute.APP_NAVIGATION) },
+                packageName = viewModel.editingAppPackage,
+                showTopBar = false
+            )
+        }
+        CreatorRoute.APP_REPLY -> Box(Modifier.fillMaxSize()) {
+            ReplyStyleSheetContent(viewModel = viewModel)
+        }
+        CreatorRoute.APP_ACTIONS -> Box(Modifier.fillMaxSize()) {
+            AppActionEditor(viewModel)
         }
     }
 }
@@ -382,8 +977,14 @@ fun SaveDialog(viewModel: ThemeViewModel, editThemeId: String?, activeThemeId: S
         }
     )
 }
+
 @Composable
-fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Unit, onEditSettings: () -> Unit) {
+fun CreatorMainList(
+    viewModel: ThemeViewModel,
+    selectedRoute: CreatorRoute? = null,
+    onNavigate: (CreatorRoute) -> Unit,
+    onEditSettings: () -> Unit
+) {
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())) {
@@ -430,7 +1031,12 @@ fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Uni
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 menuItems.forEachIndexed { index, route ->
-                    val shape = getExpressiveShape(menuItems.size, index, ShapeStyle.Large)
+                    val isSelected = selectedRoute == route
+                    val shape = if (isSelected) {
+                        RoundedCornerShape(20.dp)
+                    } else {
+                        getExpressiveShape(menuItems.size, index, ShapeStyle.Large)
+                    }
 
                     val icon = when(route) {
                         CreatorRoute.BEHAVIOR_MENU -> Icons.Outlined.DisplaySettings
@@ -491,7 +1097,15 @@ fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Uni
                         else -> null
                     }
 
-                    CreatorOptionCard(title, sub, icon, shape, { onNavigate(route) }, trailing)
+                    CreatorOptionCard(
+                        title = title,
+                        subtitle = sub,
+                        icon = icon,
+                        shape = shape,
+                        onClick = { onNavigate(route) },
+                        trailingContent = trailing,
+                        selected = isSelected
+                    )
                 }
             }
             Spacer(Modifier.height(48.dp))
@@ -500,20 +1114,65 @@ fun CreatorMainList(viewModel: ThemeViewModel, onNavigate: (CreatorRoute) -> Uni
 }
 
 @Composable
-fun CreatorOptionCard(title: String, subtitle: String, icon: ImageVector, shape: Shape, onClick: () -> Unit, trailingContent: (@Composable () -> Unit)? = null) {
-    Card(onClick = onClick, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer), shape = shape, modifier = Modifier
-        .fillMaxWidth()
-        .defaultMinSize(minHeight = 88.dp)) {
-        Row(modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+fun CreatorOptionCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    shape: Shape,
+    onClick: () -> Unit,
+    trailingContent: (@Composable () -> Unit)? = null,
+    selected: Boolean = false
+) {
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+        shape = shape,
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 76.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 76.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            if (trailingContent != null) trailingContent() else Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+            if (trailingContent != null) {
+                trailingContent()
+            } else {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                    null,
+                    modifier = Modifier.size(16.dp),
+                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }
