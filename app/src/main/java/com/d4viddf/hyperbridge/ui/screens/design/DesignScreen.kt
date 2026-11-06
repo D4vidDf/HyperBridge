@@ -4,19 +4,27 @@ import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
@@ -25,6 +33,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.lerp
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.filled.Extension
@@ -46,14 +56,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,6 +98,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
+enum class DesignSection {
+    THEMES,
+    WIDGETS,
+    DESIGNS,
+    TRANSLATORS
+}
+
+private val SIDE_BY_SIDE_DETAIL_MIN_WIDTH = 720.dp
+
 // --- 1. STATEFUL COMPOSABLE (Logic Layer) ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,12 +119,16 @@ fun DesignScreen(
     onCreateTranslator: () -> Unit = {},
     onCreateCustomDesign: () -> Unit = {},
     onLaunchPicker: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    showSettingsButton: Boolean = true,
+    selectedSection: DesignSection? = null,
+    detailContent: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences(context.applicationContext) }
     val themeRepo = remember { ThemeRepository(context.applicationContext) }
-    val translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val translatorViewModel: com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
 
     val activeThemeId by preferences.activeThemeIdFlow.collectAsState(initial = null)
     val savedWidgetIds by preferences.savedWidgetIdsFlow.collectAsState(initial = emptyList())
@@ -115,14 +136,12 @@ fun DesignScreen(
 
     var availableThemes by remember { mutableStateOf<List<HyperTheme>>(emptyList()) }
     var widgetIcons by remember { mutableStateOf<List<Drawable>>(emptyList()) }
-    // [NEW] State for cached theme icons
     var themeIcons by remember { mutableStateOf<Map<String, ImageBitmap?>>(emptyMap()) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var showAddDesign by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
-    // A design is a translator that renders through a template (or, later, a custom widget island).
     val designs = allTranslators.filter {
         it.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.TEMPLATE ||
             it.presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.WIDGET
@@ -132,7 +151,6 @@ fun DesignScreen(
         val themes = themeRepo.getAvailableThemes()
         availableThemes = themes
 
-        // [NEW] Load custom icons for themes
         withContext(Dispatchers.IO) {
             val iconMap = mutableMapOf<String, ImageBitmap?>()
             themes.forEach { theme ->
@@ -146,7 +164,9 @@ fun DesignScreen(
                                 iconMap[theme.id] = bitmap.asImageBitmap()
                             }
                         }
-                    } catch (e: Exception) { e.printStackTrace() }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
             themeIcons = iconMap
@@ -161,7 +181,9 @@ fun DesignScreen(
                     try {
                         val pkg = info?.provider?.packageName
                         if (pkg != null) context.packageManager.getApplicationIcon(pkg) else null
-                    } catch (_: Exception) { null }
+                    } catch (_: Exception) {
+                        null
+                    }
                 }
                 widgetIcons = icons
             }
@@ -170,11 +192,9 @@ fun DesignScreen(
         }
     }
 
-    // Call the stateless composable with loaded data
     DesignScreenContent(
         activeThemeId = activeThemeId,
         availableThemes = availableThemes,
-        // [NEW] Pass icons down
         savedWidgetCount = savedWidgetIds.size,
         translators = allTranslators,
         designs = designs,
@@ -186,7 +206,10 @@ fun DesignScreen(
         onNavigateToTranslators = onNavigateToTranslators,
         onCreateTranslator = onCreateTranslator,
         onFabClick = { showBottomSheet = true },
-        onSettingsClick = onSettingsClick
+        onSettingsClick = onSettingsClick,
+        showSettingsButton = showSettingsButton,
+        selectedSection = selectedSection,
+        detailContent = detailContent
     )
 
     if (showAddDesign) {
@@ -218,7 +241,6 @@ fun DesignScreen(
                     .padding(top = 8.dp, bottom = 40.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Fixed Header with Expressive styling
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -255,12 +277,10 @@ fun DesignScreen(
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                // Expressive Options List
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // 1. Custom Design
                     AddIslandOptionCard(
                         title = stringResource(R.string.custom_design_title),
                         description = stringResource(R.string.design_add_opt_design_desc),
@@ -273,7 +293,6 @@ fun DesignScreen(
                         }
                     )
 
-                    // 2. System Widget
                     AddIslandOptionCard(
                         title = stringResource(R.string.design_add_opt_widget_title),
                         description = stringResource(R.string.design_add_opt_widget_desc),
@@ -286,7 +305,6 @@ fun DesignScreen(
                         }
                     )
 
-                    // 3. Theme & Styles
                     AddIslandOptionCard(
                         title = stringResource(R.string.design_add_opt_theme_title),
                         description = stringResource(R.string.design_add_opt_theme_desc),
@@ -299,7 +317,6 @@ fun DesignScreen(
                         }
                     )
 
-                    // 4. Smart Translator
                     AddIslandOptionCard(
                         title = stringResource(R.string.design_add_opt_translator_title),
                         description = stringResource(R.string.design_add_opt_translator_desc),
@@ -398,70 +415,269 @@ fun DesignScreenContent(
     onNavigateToTranslators: () -> Unit = {},
     onCreateTranslator: () -> Unit = {},
     onFabClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    showSettingsButton: Boolean = true,
+    selectedSection: DesignSection? = null,
+    detailContent: (@Composable () -> Unit)? = null
 ) {
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets.statusBars,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                },
-                actions = {
-                    Surface(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .padding(end = 8.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        onClick = onSettingsClick
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isExpanded = maxWidth >= 600.dp
+        val canShowSideBySideDetail = maxWidth >= SIDE_BY_SIDE_DETAIL_MIN_WIDTH
+        val useMultiColumnHero = maxWidth >= 840.dp
+        val hasDetailPane = selectedSection != null && detailContent != null
+
+        if (isExpanded) {
+            val detailProgress by animateFloatAsState(
+                targetValue = if (hasDetailPane) 1f else 0f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
+                label = "DesignDetailProgress"
+            )
+
+            val horizPad = lerp(0.dp, 20.dp, detailProgress)
+            val vertPad = lerp(0.dp, 12.dp, detailProgress)
+            val innerAvailableWidth = (maxWidth - horizPad * 2).coerceAtLeast(320.dp)
+            val splitGap = 20.dp
+            val targetLeftSplitWidth = (innerAvailableWidth - splitGap) * 0.46f
+            val targetRightSplitWidth = (innerAvailableWidth - splitGap) * 0.54f
+
+            val currentLeftWidth = if (canShowSideBySideDetail) {
+                lerp(innerAvailableWidth, targetLeftSplitWidth, detailProgress)
+            } else {
+                innerAvailableWidth
+            }
+            val currentGapWidth = if (canShowSideBySideDetail) {
+                lerp(0.dp, splitGap, detailProgress)
+            } else {
+                0.dp
+            }
+            val currentRightBoxWidth = if (canShowSideBySideDetail) {
+                (innerAvailableWidth - currentLeftWidth - currentGapWidth).coerceAtLeast(0.dp)
+            } else {
+                innerAvailableWidth
+            }
+
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.background,
+                contentWindowInsets = WindowInsets.statusBars,
+                floatingActionButton = {
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = !hasDetailPane,
+                        enter = androidx.compose.animation.scaleIn(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        ) + androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180)),
+                        exit = androidx.compose.animation.scaleOut(
+                            animationSpec = androidx.compose.animation.core.tween(150)
+                        ) + androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(150))
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Rounded.Settings, null, modifier = Modifier.size(20.dp))
+                        FloatingActionButton(
+                            onClick = onFabClick,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.design_add_design))
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onFabClick,
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.design_add_design))
+                }
+            ) { padding ->
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                        .padding(horizontal = horizPad, vertical = vertPad)
+                ) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        // Persistent Left / Main Overview Pane
+                        if (canShowSideBySideDetail || detailProgress < 0.999f) {
+                            Column(
+                                modifier = Modifier
+                                    .width(currentLeftWidth)
+                                    .fillMaxHeight()
+                                    .graphicsLayer {
+                                        if (!canShowSideBySideDetail) {
+                                            alpha = 1f - detailProgress
+                                            translationX = -detailProgress * size.width * 0.15f
+                                        }
+                                    }
+                                    .verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(
+                                            horizontal = if (hasDetailPane) 4.dp else 16.dp,
+                                            vertical = if (hasDetailPane) 0.dp else 12.dp
+                                        ),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.app_name),
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    if (showSettingsButton) {
+                                        Surface(
+                                            modifier = Modifier.size(40.dp),
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                            onClick = onSettingsClick
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(Icons.Rounded.Settings, null, modifier = Modifier.size(20.dp))
+                                            }
+                                        }
+                                    }
+                                }
+
+                                HeroSection(useMultiColumnRow = useMultiColumnHero && !hasDetailPane)
+
+                                DesignVariantBento(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    availableThemes = availableThemes,
+                                    activeThemeId = activeThemeId,
+                                    savedWidgetCount = savedWidgetCount,
+                                    designs = designs,
+                                    translators = translators,
+                                    useSingleRowBento = canShowSideBySideDetail && !hasDetailPane,
+                                    useSplitBottomSection = !hasDetailPane,
+                                    selectedSection = selectedSection,
+                                    onNavigateToThemes = onNavigateToThemes,
+                                    onCreateTheme = { onEditTheme("") },
+                                    onNavigateToWidgets = onNavigateToWidgets,
+                                    onAddWidget = onFabClick,
+                                    onNavigateToDesigns = onNavigateToDesigns,
+                                    onAddDesign = onAddDesign,
+                                    onNavigateToTranslators = onNavigateToTranslators,
+                                    onCreateTranslator = onCreateTranslator
+                                )
+                            }
+                        }
+
+                        if (canShowSideBySideDetail && detailProgress > 0.001f) {
+                            Spacer(modifier = Modifier.width(currentGapWidth))
+
+                            // Synchronized Single-Stage Detail Panel (Right side on >= 720.dp)
+                            Box(
+                                modifier = Modifier
+                                    .width(currentRightBoxWidth)
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(28.dp)),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Surface(
+                                    modifier = Modifier
+                                        .requiredWidth(targetRightSplitWidth)
+                                        .fillMaxHeight()
+                                        .graphicsLayer {
+                                            alpha = detailProgress
+                                            translationX = (1f - detailProgress) * 48.dp.toPx()
+                                        },
+                                    shape = RoundedCornerShape(28.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                                ) {
+                                    detailContent?.invoke()
+                                }
+                            }
+                        }
+                    }
+
+                    // Full-width Detail Panel overlay for narrower screens (< 720.dp)
+                    if (!canShowSideBySideDetail && detailProgress > 0.001f) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    alpha = detailProgress
+                                    translationX = (1f - detailProgress) * size.width * 0.2f
+                                }
+                                .clip(RoundedCornerShape(28.dp)),
+                            shape = RoundedCornerShape(28.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerLow
+                        ) {
+                            detailContent?.invoke()
+                        }
+                    }
+                }
             }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Top HeroSection carousel
-            HeroSection()
+        } else {
+            // PHONE COMPACT LAYOUT
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.background,
+                contentWindowInsets = WindowInsets.statusBars,
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                stringResource(R.string.app_name),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        actions = {
+                            if (showSettingsButton) {
+                                Surface(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .padding(end = 8.dp),
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    onClick = onSettingsClick
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Rounded.Settings, null, modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                    )
+                },
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = onFabClick,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.design_add_design))
+                    }
+                }
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    HeroSection(useMultiColumnRow = false)
 
-            Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
-            // Bento Grid on common background surface with rounded top corners covering remaining height
-            DesignVariantBento(
-                modifier = Modifier.fillMaxWidth(),
-                availableThemes = availableThemes,
-                activeThemeId = activeThemeId,
-                savedWidgetCount = savedWidgetCount,
-                designs = designs,
-                translators = translators,
-                onNavigateToThemes = onNavigateToThemes,
-                onCreateTheme = { onEditTheme("") },
-                onNavigateToWidgets = onNavigateToWidgets,
-                onAddWidget = onFabClick,
-                onNavigateToDesigns = onNavigateToDesigns,
-                onAddDesign = onAddDesign,
-                onNavigateToTranslators = onNavigateToTranslators,
-                onCreateTranslator = onCreateTranslator
-            )
+                    DesignVariantBento(
+                        modifier = Modifier.fillMaxWidth(),
+                        availableThemes = availableThemes,
+                        activeThemeId = activeThemeId,
+                        savedWidgetCount = savedWidgetCount,
+                        designs = designs,
+                        translators = translators,
+                        useSingleRowBento = false,
+                        useSplitBottomSection = false,
+                        selectedSection = selectedSection,
+                        onNavigateToThemes = onNavigateToThemes,
+                        onCreateTheme = { onEditTheme("") },
+                        onNavigateToWidgets = onNavigateToWidgets,
+                        onAddWidget = onFabClick,
+                        onNavigateToDesigns = onNavigateToDesigns,
+                        onAddDesign = onAddDesign,
+                        onNavigateToTranslators = onNavigateToTranslators,
+                        onCreateTranslator = onCreateTranslator
+                    )
+                }
+            }
         }
     }
 }
@@ -469,32 +685,63 @@ fun DesignScreenContent(
 // --- SECTIONS ---
 
 @Composable
-fun HeroSection() {
+fun HeroSection(useMultiColumnRow: Boolean = false) {
     val uriHandler = LocalUriHandler.current
     val items = listOf(
-        HeroItem(stringResource(R.string.design_hero_customization_title), stringResource(R.string.design_hero_customization_subtitle), Color(0xFF4CAF50)) {
+        HeroItem(
+            stringResource(R.string.design_hero_customization_title),
+            stringResource(R.string.design_hero_customization_subtitle),
+            Color(0xFF4CAF50)
+        ) {
             uriHandler.openUri(DocumentationUrls.CUSTOMIZATION_DOCS)
         },
-        HeroItem(stringResource(R.string.design_hero_pro_title), stringResource(R.string.design_hero_pro_subtitle), Color(0xFF2196F3)) {
+        HeroItem(
+            stringResource(R.string.design_hero_pro_title),
+            stringResource(R.string.design_hero_pro_subtitle),
+            Color(0xFF2196F3)
+        ) {
             uriHandler.openUri(DocumentationUrls.THEME_CREATOR_DOCS)
         },
-        HeroItem(stringResource(R.string.design_hero_community_title), stringResource(R.string.design_hero_community_subtitle), Color(0xFF9C27B0)
-        ) { uriHandler.openUri("https://github.com/D4vidDf/HyperBridge/discussions") }
+        HeroItem(
+            stringResource(R.string.design_hero_community_title),
+            stringResource(R.string.design_hero_community_subtitle),
+            Color(0xFF9C27B0)
+        ) {
+            uriHandler.openUri("https://github.com/D4vidDf/HyperBridge/discussions")
+        }
     )
 
-    val state = rememberCarouselState { items.size }
+    if (useMultiColumnRow) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            items.forEach { item ->
+                HeroCard(
+                    item = item,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                )
+            }
+        }
+    } else {
+        val state = rememberCarouselState { items.size }
 
-    HorizontalCenteredHeroCarousel(
-        modifier = Modifier.fillMaxWidth(),
-        state = state,
-        itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 8.dp)
-    ) { i ->
-        val item = items[i]
-        HeroCard(
-            item,
-            Modifier.maskClip(MaterialTheme.shapes.extraLarge)
-        )
+        HorizontalCenteredHeroCarousel(
+            modifier = Modifier.fillMaxWidth(),
+            state = state,
+            itemSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 8.dp)
+        ) { i ->
+            val item = items[i]
+            HeroCard(
+                item,
+                Modifier.maskClip(MaterialTheme.shapes.extraLarge)
+            )
+        }
     }
 }
 
@@ -509,6 +756,9 @@ fun DesignVariantBento(
     savedWidgetCount: Int,
     designs: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
     translators: List<com.d4viddf.hyperbridge.models.translator.CustomTranslator>,
+    useSingleRowBento: Boolean = false,
+    useSplitBottomSection: Boolean = false,
+    selectedSection: DesignSection? = null,
     onNavigateToThemes: () -> Unit,
     onCreateTheme: () -> Unit,
     onNavigateToWidgets: () -> Unit,
@@ -530,70 +780,143 @@ fun DesignVariantBento(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
                 .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 48.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Row 1: Themes & Widgets
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                BentoCell(
-                    modifier = Modifier.weight(1f),
-                    title = stringResource(R.string.design_section_themes),
-                    status = activeThemeName ?: stringResource(R.string.design_card_themes_active_default),
-                    icon = Icons.Rounded.Palette,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
-                    iconColor = MaterialTheme.colorScheme.primary,
-                    onCardClick = onNavigateToThemes,
-                    onActionClick = onCreateTheme
-                )
+            if (useSingleRowBento) {
+                // 1x4 Horizontal Bento Strip for Wide Unselected Overview (Mockup 2)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_themes),
+                        status = activeThemeName ?: stringResource(R.string.design_card_themes_active_default),
+                        icon = Icons.Rounded.Palette,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                        iconColor = MaterialTheme.colorScheme.primary,
+                        isSelected = selectedSection == DesignSection.THEMES,
+                        onCardClick = onNavigateToThemes,
+                        onActionClick = onCreateTheme
+                    )
 
-                BentoCell(
-                    modifier = Modifier.weight(1f),
-                    title = stringResource(R.string.design_section_widgets),
-                    status = if (savedWidgetCount > 0) stringResource(R.string.design_card_widgets_saved, savedWidgetCount) else stringResource(R.string.design_card_widgets_empty),
-                    icon = Icons.Rounded.Widgets,
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
-                    iconColor = MaterialTheme.colorScheme.secondary,
-                    onCardClick = onNavigateToWidgets,
-                    onActionClick = onAddWidget
-                )
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_widgets),
+                        status = if (savedWidgetCount > 0) stringResource(R.string.design_card_widgets_saved, savedWidgetCount) else stringResource(R.string.design_card_widgets_empty),
+                        icon = Icons.Rounded.Widgets,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+                        iconColor = MaterialTheme.colorScheme.secondary,
+                        isSelected = selectedSection == DesignSection.WIDGETS,
+                        onCardClick = onNavigateToWidgets,
+                        onActionClick = onAddWidget
+                    )
+
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_designs),
+                        status = stringResource(R.string.design_status_active, activeDesignsCount),
+                        icon = Icons.Outlined.DashboardCustomize,
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f),
+                        iconColor = MaterialTheme.colorScheme.tertiary,
+                        isSelected = selectedSection == DesignSection.DESIGNS,
+                        onCardClick = onNavigateToDesigns,
+                        onActionClick = onAddDesign
+                    )
+
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_translators),
+                        status = stringResource(R.string.design_status_active, activeTranslatorsCount),
+                        icon = Icons.Default.Extension,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        iconColor = MaterialTheme.colorScheme.onSurface,
+                        isSelected = selectedSection == DesignSection.TRANSLATORS,
+                        onCardClick = onNavigateToTranslators,
+                        onActionClick = onCreateTranslator
+                    )
+                }
+            } else {
+                // 2x2 Bento Grid (Phone or Left Selector Pane when Detail Panel is open)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_themes),
+                        status = activeThemeName ?: stringResource(R.string.design_card_themes_active_default),
+                        icon = Icons.Rounded.Palette,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                        iconColor = MaterialTheme.colorScheme.primary,
+                        isSelected = selectedSection == DesignSection.THEMES,
+                        onCardClick = onNavigateToThemes,
+                        onActionClick = onCreateTheme
+                    )
+
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_widgets),
+                        status = if (savedWidgetCount > 0) stringResource(R.string.design_card_widgets_saved, savedWidgetCount) else stringResource(R.string.design_card_widgets_empty),
+                        icon = Icons.Rounded.Widgets,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+                        iconColor = MaterialTheme.colorScheme.secondary,
+                        isSelected = selectedSection == DesignSection.WIDGETS,
+                        onCardClick = onNavigateToWidgets,
+                        onActionClick = onAddWidget
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_designs),
+                        status = stringResource(R.string.design_status_active, activeDesignsCount),
+                        icon = Icons.Outlined.DashboardCustomize,
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f),
+                        iconColor = MaterialTheme.colorScheme.tertiary,
+                        isSelected = selectedSection == DesignSection.DESIGNS,
+                        onCardClick = onNavigateToDesigns,
+                        onActionClick = onAddDesign
+                    )
+
+                    BentoCell(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.design_section_translators),
+                        status = stringResource(R.string.design_status_active, activeTranslatorsCount),
+                        icon = Icons.Default.Extension,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        iconColor = MaterialTheme.colorScheme.onSurface,
+                        isSelected = selectedSection == DesignSection.TRANSLATORS,
+                        onCardClick = onNavigateToTranslators,
+                        onActionClick = onCreateTranslator
+                    )
+                }
             }
 
-            // Row 2: Designs & Translators
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                BentoCell(
-                    modifier = Modifier.weight(1f),
-                    title = stringResource(R.string.design_section_designs),
-                    status = stringResource(R.string.design_status_active, activeDesignsCount),
-                    icon = Icons.Outlined.DashboardCustomize,
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f),
-                    iconColor = MaterialTheme.colorScheme.tertiary,
-                    onCardClick = onNavigateToDesigns,
-                    onActionClick = onAddDesign
-                )
-
-                BentoCell(
-                    modifier = Modifier.weight(1f),
-                    title = stringResource(R.string.design_section_translators),
-                    status = stringResource(R.string.design_status_active, activeTranslatorsCount),
-                    icon = Icons.Default.Extension,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    iconColor = MaterialTheme.colorScheme.onSurface,
-                    onCardClick = onNavigateToTranslators,
-                    onActionClick = onCreateTranslator
-                )
+            if (useSplitBottomSection) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    FeaturedSection(modifier = Modifier.weight(1f))
+                    GuidesSection(modifier = Modifier.weight(1f))
+                }
+            } else {
+                FeaturedSection()
+                GuidesSection()
             }
-
-            // --- FEATURED SECTION ---
-            FeaturedSection()
-
-            // --- GUIDES & DOCUMENTATION SECTION ---
-            GuidesSection()
         }
     }
 }
@@ -689,7 +1012,6 @@ private fun FeaturedSection(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Decorative icon watermark in background
                     Icon(
                         imageVector = item.icon,
                         contentDescription = null,
@@ -701,8 +1023,7 @@ private fun FeaturedSection(
                     )
 
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(
@@ -889,13 +1210,21 @@ private fun BentoCell(
     icon: ImageVector,
     containerColor: Color,
     iconColor: Color,
+    isSelected: Boolean = false,
     onCardClick: () -> Unit,
     onActionClick: () -> Unit
 ) {
     Card(
         onClick = onCardClick,
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+            } else {
+                containerColor
+            }
+        ),
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         modifier = modifier.height(170.dp)
     ) {
         Column(
@@ -1057,8 +1386,6 @@ private fun DesignScreenEmptyPreview() {
         )
     }
 }
-
-
 
 @Preview(name = "Bento Grid", showBackground = true)
 @Composable

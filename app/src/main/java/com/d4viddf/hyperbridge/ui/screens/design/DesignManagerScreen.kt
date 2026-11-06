@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -62,6 +63,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -113,6 +115,7 @@ fun DesignManagerScreen(
     onAddDesign: () -> Unit,
     onEditDesign: (id: String) -> Unit,
     onOpenStudio: (widgetId: String) -> Unit = {},
+    isDetailPane: Boolean = false,
     viewModel: TranslatorViewModel = viewModel()
 ) {
     val allTranslators by viewModel.allTranslators.collectAsState()
@@ -128,6 +131,7 @@ fun DesignManagerScreen(
         onBack = onBack,
         onAddDesign = onAddDesign,
         openDesign = openDesign,
+        isDetailPane = isDetailPane,
         viewModel = viewModel
     )
 }
@@ -138,6 +142,7 @@ fun DesignManagerContent(
     onBack: () -> Unit,
     onAddDesign: () -> Unit,
     openDesign: (CustomTranslator) -> Unit,
+    isDetailPane: Boolean = false,
     viewModel: TranslatorViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -203,86 +208,114 @@ fun DesignManagerContent(
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val containerColor = if (isDetailPane) {
+        androidx.compose.ui.graphics.Color.Transparent
+    } else {
+        MaterialTheme.colorScheme.background
+    }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = if (isDetailPane) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = containerColor,
+        contentWindowInsets = if (isDetailPane) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.design_section_designs),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = stringResource(R.string.design_manager_subtitle),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
-                actions = {
-                    // Toggle between Island Preview and Icon view
-                    FilledTonalIconButton(
-                        onClick = { showPreviewView = !showPreviewView },
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (showPreviewView) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
-                        Icon(
-                            imageVector = if (showPreviewView) Icons.Outlined.Preview else Icons.Outlined.Widgets,
-                            contentDescription = stringResource(R.string.design_toggle_preview_cd),
-                            tint = if (showPreviewView) MaterialTheme.colorScheme.onPrimaryContainer
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            val titleContent: @Composable () -> Unit = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.design_section_designs),
+                        style = if (isDetailPane) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.design_manager_subtitle),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            val navIconContent: @Composable () -> Unit = {
+                FilledTonalIconButton(
+                    onClick = onBack,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back)
+                    )
+                }
+            }
+            val actionsContent: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
+                // Toggle between Island Preview and Icon view
+                FilledTonalIconButton(
+                    onClick = { showPreviewView = !showPreviewView },
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = if (showPreviewView) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                ) {
+                    Icon(
+                        imageVector = if (showPreviewView) Icons.Outlined.Preview else Icons.Outlined.Widgets,
+                        contentDescription = stringResource(R.string.design_toggle_preview_cd),
+                        tint = if (showPreviewView) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-                    // Help Bottom Sheet
-                    FilledTonalIconButton(
-                        onClick = { showHelpSheet = true },
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = stringResource(R.string.design_manager_help_title)
-                        )
-                    }
+                // Help Bottom Sheet
+                FilledTonalIconButton(
+                    onClick = { showHelpSheet = true },
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = stringResource(R.string.design_manager_help_title)
+                    )
+                }
 
-                    // Import SAF
-                    FilledTonalIconButton(
-                        onClick = {
-                            importLauncher.launch(arrayOf("*/*", "application/zip", "application/octet-stream", "application/json"))
-                        },
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FileUpload,
-                            contentDescription = stringResource(R.string.translators_import_button)
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
+                // Import SAF
+                FilledTonalIconButton(
+                    onClick = {
+                        importLauncher.launch(arrayOf("*/*", "application/zip", "application/octet-stream", "application/json"))
+                    },
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FileUpload,
+                        contentDescription = stringResource(R.string.translators_import_button)
+                    )
+                }
+            }
+
+            if (isDetailPane) {
+                androidx.compose.material3.TopAppBar(
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = containerColor,
+                        scrolledContainerColor = containerColor
+                    ),
+                    title = titleContent,
+                    navigationIcon = navIconContent,
+                    actions = actionsContent
+                )
+            } else {
+                LargeTopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = containerColor,
+                        scrolledContainerColor = containerColor
+                    ),
+                    title = titleContent,
+                    navigationIcon = navIconContent,
+                    actions = actionsContent,
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(

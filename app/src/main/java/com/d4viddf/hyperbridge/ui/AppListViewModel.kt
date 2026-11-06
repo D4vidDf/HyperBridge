@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,7 +41,8 @@ data class AppInfo(
     val icon: Bitmap?,
     val isBridged: Boolean = false,
     val isInstalled: Boolean = true,
-    val category: AppCategory = AppCategory.OTHER
+    val category: AppCategory = AppCategory.OTHER,
+    val iconBitmap: ImageBitmap? = icon?.asImageBitmap()
 )
 
 /** [hasSettings]: false for integrations that are just an on/off switch. */
@@ -52,7 +55,8 @@ data class SystemIntegrationInfo(
     val enabled: Boolean,
     val available: Boolean,
     val icon: Bitmap? = null,
-    val configurationApp: AppInfo? = null
+    val configurationApp: AppInfo? = null,
+    val iconBitmap: ImageBitmap? = icon?.asImageBitmap()
 )
 
 enum class AppCategory(val label: String) {
@@ -93,7 +97,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     private val baseAppsFlow = combine(_installedApps, preferences.allowedPackagesFlow) { installed, allowedSet ->
         if (installed == null) {
-            return@combine emptyList<AppInfo>()
+            return@combine emptyList()
         }
 
         // 1. Process Installed Apps
@@ -487,7 +491,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 }
 
                 AppInfo(name, pkg, icon, category = cat, isInstalled = true)
-            } catch (e: Exception) { null }
+            } catch (_: Exception) { null }
         }.distinctBy { it.packageName }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
     }
 
@@ -513,9 +517,16 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun Drawable.toBitmap(): Bitmap {
-        if (this is BitmapDrawable) return this.bitmap
-        val width = if (intrinsicWidth > 0) intrinsicWidth else 1
-        val height = if (intrinsicHeight > 0) intrinsicHeight else 1
+        val maxIconSize = 144
+        if (this is BitmapDrawable && bitmap != null) {
+            val bmp = bitmap
+            if (bmp.width <= maxIconSize && bmp.height <= maxIconSize) return bmp
+            return Bitmap.createScaledBitmap(bmp, maxIconSize, maxIconSize, true)
+        }
+        val rawWidth = if (intrinsicWidth > 0) intrinsicWidth else maxIconSize
+        val rawHeight = if (intrinsicHeight > 0) intrinsicHeight else maxIconSize
+        val width = rawWidth.coerceAtMost(maxIconSize)
+        val height = rawHeight.coerceAtMost(maxIconSize)
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
         setBounds(0, 0, canvas.width, canvas.height)

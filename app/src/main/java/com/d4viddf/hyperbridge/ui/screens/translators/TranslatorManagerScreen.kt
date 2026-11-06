@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,6 +61,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -92,12 +94,12 @@ import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorManagerScreen(
     onBack: () -> Unit,
     onCreateTranslator: (initialPackage: String?) -> Unit,
     onEditTranslator: (id: String) -> Unit,
+    isDetailPane: Boolean = false,
     viewModel: TranslatorViewModel = viewModel()
 ) {
     val allTranslators by viewModel.allTranslators.collectAsState()
@@ -168,7 +170,8 @@ fun TranslatorManagerScreen(
         },
         onShareTranslator = { translator ->
             sharingTranslator = translator
-        }
+        },
+        isDetailPane = isDetailPane
     )
 
     sharingTranslator?.let { translatorToShare ->
@@ -189,7 +192,6 @@ fun TranslatorManagerScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorManagerContent(
     translators: List<CustomTranslator>,
@@ -209,10 +211,16 @@ fun TranslatorManagerContent(
     onDeleteTranslator: (String) -> Unit,
     onImportClick: (() -> Unit)? = null,
     onExportTranslator: ((CustomTranslator) -> Unit)? = null,
-    onShareTranslator: ((CustomTranslator) -> Unit)? = null
+    onShareTranslator: ((CustomTranslator) -> Unit)? = null,
+    isDetailPane: Boolean = false
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var showFilterSheet by remember { mutableStateOf(false) }
+    val containerColor = if (isDetailPane) {
+        androidx.compose.ui.graphics.Color.Transparent
+    } else {
+        MaterialTheme.colorScheme.background
+    }
 
     val effectiveFilterState = remember(filterState, selectedFilter) {
         if (filterState.statusScope != selectedFilter && selectedFilter != TranslatorFilterScope.ALL && filterState.statusScope == TranslatorFilterScope.ALL) {
@@ -258,54 +266,77 @@ fun TranslatorManagerContent(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = if (isDetailPane) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = containerColor,
+        contentWindowInsets = if (isDetailPane) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.design_section_translators),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = stringResource(R.string.translators_manager_subtitle),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                navigationIcon = {
+            val titleContent: @Composable () -> Unit = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.design_section_translators),
+                        style = if (isDetailPane) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.translators_manager_subtitle),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            val navIconContent: @Composable () -> Unit = {
+                FilledTonalIconButton(
+                    onClick = onBack,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back)
+                    )
+                }
+            }
+            val actionsContent: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
+                if (onImportClick != null) {
                     FilledTonalIconButton(
-                        onClick = onBack,
+                        onClick = onImportClick,
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
+                            imageVector = Icons.Default.FileUpload,
+                            contentDescription = stringResource(R.string.translators_import_button)
                         )
                     }
-                },
-                actions = {
-                    if (onImportClick != null) {
-                        FilledTonalIconButton(
-                            onClick = onImportClick,
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.FileUpload,
-                                contentDescription = stringResource(R.string.translators_import_button)
-                            )
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
+                }
+            }
+
+            if (isDetailPane) {
+                androidx.compose.material3.TopAppBar(
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = containerColor,
+                        scrolledContainerColor = containerColor
+                    ),
+                    title = titleContent,
+                    navigationIcon = navIconContent,
+                    actions = actionsContent
+                )
+            } else {
+                LargeTopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = containerColor,
+                        scrolledContainerColor = containerColor
+                    ),
+                    title = titleContent,
+                    navigationIcon = navIconContent,
+                    actions = actionsContent,
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(

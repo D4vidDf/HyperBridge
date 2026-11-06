@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,8 +50,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -91,7 +94,8 @@ fun ThemeManagerScreen(
     onBack: () -> Unit,
     onFindThemes: () -> Unit,
     onCreateTheme: () -> Unit,
-    onEditTheme: (String) -> Unit
+    onEditTheme: (String) -> Unit,
+    isDetailPane: Boolean = false
 ) {
     val viewModel: ThemeViewModel = viewModel()
     val installedThemes by viewModel.installedThemes.collectAsState()
@@ -153,10 +157,19 @@ fun ThemeManagerScreen(
         }
     }
 
+    val containerColor = if (isDetailPane) {
+        Color.Transparent
+    } else {
+        MaterialTheme.colorScheme.background
+    }
+
     Scaffold(
+        containerColor = containerColor,
+        contentWindowInsets = if (isDetailPane) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.theme_manager_title)) },
+                windowInsets = if (isDetailPane) WindowInsets(0, 0, 0, 0) else TopAppBarDefaults.windowInsets,
+                title = { Text(stringResource(R.string.theme_manager_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = onBack,
@@ -166,7 +179,11 @@ fun ThemeManagerScreen(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = containerColor,
+                    scrolledContainerColor = containerColor
+                )
             )
         },
         floatingActionButton = {

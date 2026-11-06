@@ -46,7 +46,6 @@ import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GlobalSettingsScreen(
     onBack: () -> Unit,
@@ -57,7 +56,8 @@ fun GlobalSettingsScreen(
     onDndSettingsClick: () -> Unit,
     onPermanentIslandClick: () -> Unit,
     onSmartActionsClick: () -> Unit,
-    onDiscountKeywordsClick: () -> Unit = {}
+    onDiscountKeywordsClick: () -> Unit = {},
+    selectedItemKey: String? = null
 ) {
 
     Scaffold(
@@ -83,6 +83,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.engine_desc),
                 icon = Icons.Outlined.Memory,
                 shape = getExpressiveShape(3, 0, ShapeStyle.Large),
+                isSelected = selectedItemKey == "ENGINE_SETTINGS",
                 onClick = onEngineSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -91,6 +92,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.island_behavior_desc),
                 icon = Icons.Outlined.DisplaySettings,
                 shape = getExpressiveShape(3, 1, ShapeStyle.Large),
+                isSelected = selectedItemKey == "ISLAND_SETTINGS",
                 onClick = onIslandSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -99,6 +101,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.dnd_mode_desc),
                 icon = Icons.Outlined.DoNotDisturbOn,
                 shape = getExpressiveShape(3, 2, ShapeStyle.Large),
+                isSelected = selectedItemKey == "DND_SETTINGS",
                 onClick = onDndSettingsClick
             )
             Spacer(Modifier.height(16.dp))
@@ -109,6 +112,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.permanent_island_desc),
                 icon = Icons.Outlined.PushPin,
                 shape = getExpressiveShape(3, 0, ShapeStyle.Large),
+                isSelected = selectedItemKey == "PERMANENT_ISLAND",
                 onClick = onPermanentIslandClick
             )
             Spacer(Modifier.height(2.dp))
@@ -117,6 +121,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.smart_actions_desc),
                 icon = Icons.Outlined.AutoAwesome,
                 shape = getExpressiveShape(3, 1, ShapeStyle.Large),
+                isSelected = selectedItemKey == "SMART_ACTIONS",
                 onClick = onSmartActionsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -125,6 +130,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.discount_keywords_desc),
                 icon = Icons.Outlined.Sell,
                 shape = getExpressiveShape(3, 2, ShapeStyle.Large),
+                isSelected = selectedItemKey == "DISCOUNT_KEYWORDS",
                 onClick = onDiscountKeywordsClick
             )
             Spacer(Modifier.height(16.dp))
@@ -135,6 +141,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.nav_layout_desc),
                 icon = Icons.Outlined.Navigation,
                 shape = getExpressiveShape(2, 0, ShapeStyle.Large),
+                isSelected = selectedItemKey == "NAV_CUSTOMIZATION",
                 onClick = onNavSettingsClick
             )
             Spacer(Modifier.height(2.dp))
@@ -143,6 +150,7 @@ fun GlobalSettingsScreen(
                 subtitle = stringResource(R.string.customize_inline_reply),
                 icon = Icons.Outlined.Edit,
                 shape = getExpressiveShape(2, 1, ShapeStyle.Large),
+                isSelected = selectedItemKey == "REPLY_CUSTOMIZATION",
                 onClick = onInlineReplyClick
             )
             Spacer(Modifier.height(16.dp))

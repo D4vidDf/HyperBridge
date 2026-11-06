@@ -21,7 +21,6 @@ import com.d4viddf.hyperbridge.ui.screens.settings.FloatingNotificationSetupScre
 import com.d4viddf.hyperbridge.ui.screens.settings.GlobalBlocklistScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.GlobalSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.ImportPreviewScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.InfoScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.IslandSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.LicensesScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.NavCustomizationScreen
@@ -55,23 +54,17 @@ fun mainNavGraph(
             onSystemUpdateConfigClick = { navigator.navigate(Screen.SystemUpdateCustomization) },
             onChargingConfigClick = { navigator.navigate(Screen.ChargingCustomization) },
             onVpnConfigClick = { navigator.navigate(Screen.VpnCustomization) },
-            onAppConfigClick = { pkg -> navigator.navigate(Screen.AppConfig(pkg)) }
+            onAppConfigClick = { pkg -> navigator.navigate(Screen.AppConfig(pkg)) },
+            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
+            onCreateTranslatorForApp = { pkg -> navigator.navigate(Screen.TranslatorEditor(null, pkg)) },
+            onEditTranslatorFromApp = { id -> navigator.navigate(Screen.TranslatorEditor(id, null)) }
         )
     }
 
     entry<Screen.Info> {
-        InfoScreen(
-            onBack = { if (!navigator.goBack()) onExit() },
-            onSetupClick = { navigator.navigate(Screen.Setup) },
-            onLicensesClick = { navigator.navigate(Screen.Licenses) },
-            onBehaviorClick = { navigator.navigate(Screen.Behavior) },
-            onGlobalSettingsClick = { navigator.navigate(Screen.GlobalSettings) },
-            onHistoryClick = { navigator.navigate(Screen.History) },
-            onBlocklistClick = { navigator.navigate(Screen.GlobalBlocklist) },
-            onBackupClick = { navigator.navigate(Screen.Backup) },
-            onBugReportClick = { navigator.navigate(Screen.BugReport) },
-            onFloatingSetupClick = { navigator.navigate(Screen.FloatingSetup) },
-            onDiagnosticsClick = { navigator.navigate(Screen.Diagnostics) }
+        com.d4viddf.hyperbridge.ui.screens.settings.AdaptiveSettingsScreen(
+            showRootBackButton = true,
+            onExit = { if (!navigator.goBack()) onExit() }
         )
     }
     entry<Screen.GlobalSettings> {
