@@ -3,11 +3,9 @@ package com.d4viddf.hyperbridge.ui.screens.design.studio
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -153,7 +151,6 @@ fun PreviewStudioScreenDark() {
             onResetZoom = {},
             onToggleGrid = {},
             onToggleWireframe = {},
-            onScenarioSelected = {},
             onTabSelected = {},
             onUpdateNode = {},
             onMoveLayer = { _, _ -> },
@@ -210,7 +207,6 @@ fun PreviewStudioScreenLight() {
             onResetZoom = {},
             onToggleGrid = {},
             onToggleWireframe = {},
-            onScenarioSelected = {},
             onTabSelected = {},
             onUpdateNode = {},
             onMoveLayer = { _, _ -> },
@@ -267,7 +263,6 @@ fun PreviewStudioScreenOtpScenario() {
             onResetZoom = {},
             onToggleGrid = {},
             onToggleWireframe = {},
-            onScenarioSelected = {},
             onTabSelected = {},
             onUpdateNode = {},
             onMoveLayer = { _, _ -> },
@@ -463,7 +458,7 @@ fun PreviewStudioToolbarAndBreadcrumb() {
     }
 }
 
-@Preview(name = "11. Formula Editor Dialog (\$fx\$)", showBackground = true)
+@Preview(name = $$"11. Formula Editor Dialog ($fx$)", showBackground = true)
 @Composable
 fun PreviewStudioFormulaDialog() {
     StudioExpressiveTheme(darkTheme = true) {
