@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -12,8 +14,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,14 +35,13 @@ import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ToggleOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.WideNavigationRail
-import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -165,11 +164,10 @@ fun HomeScreen(
         }
 
         if (useRail) {
-            // TABLET & FOLDABLE LAYOUT: Material 3 Expressive WideNavigationRail + Adaptive Content
+            // TABLET & FOLDABLE LAYOUT: Material 3 NavigationRail + Adaptive Content
             Row(modifier = Modifier.fillMaxSize()) {
                 val isFullScreenStudioRoute = selectedTab == 0 && (
                     designRoute == DesignRoute.STUDIO_EDITOR ||
-                        designRoute == DesignRoute.THEME_CREATOR ||
                         designRoute == DesignRoute.TRANSLATOR_EDITOR
                     )
 
@@ -178,8 +176,9 @@ fun HomeScreen(
                     enter = slideInHorizontally { -it } + fadeIn(),
                     exit = slideOutHorizontally { -it } + fadeOut()
                 ) {
-                    WideNavigationRail(
-                        modifier = Modifier.fillMaxHeight()
+                    NavigationRail(
+                        modifier = Modifier.fillMaxHeight(),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ) {
                         Column(
                             modifier = Modifier
@@ -187,8 +186,7 @@ fun HomeScreen(
                                 .padding(top = 12.dp, bottom = 48.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            WideNavigationRailItem(
-                                railExpanded = false,
+                            NavigationRailItem(
                                 selected = selectedTab == 0,
                                 onClick = { selectedTab = 0 },
                                 icon = {
@@ -200,8 +198,7 @@ fun HomeScreen(
                                 label = { Text(stringResource(R.string.design)) }
                             )
 
-                            WideNavigationRailItem(
-                                railExpanded = false,
+                            NavigationRailItem(
                                 selected = selectedTab == 1,
                                 onClick = { selectedTab = 1 },
                                 icon = {
@@ -213,8 +210,7 @@ fun HomeScreen(
                                 label = { Text(stringResource(R.string.tab_active)) }
                             )
 
-                            WideNavigationRailItem(
-                                railExpanded = false,
+                            NavigationRailItem(
                                 selected = selectedTab == 2,
                                 onClick = { selectedTab = 2 },
                                 icon = {
@@ -227,8 +223,7 @@ fun HomeScreen(
                             )
 
                             // Settings is permanently visible in the rail on bigger screens
-                            WideNavigationRailItem(
-                                railExpanded = false,
+                            NavigationRailItem(
                                 selected = selectedTab == 3,
                                 onClick = { selectedTab = 3 },
                                 icon = {

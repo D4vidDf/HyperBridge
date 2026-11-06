@@ -59,34 +59,43 @@ import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import kotlinx.coroutines.launch
 
 @Composable
-fun BehaviourMenuContent(onNavigate: (CreatorRoute) -> Unit) {
+fun BehaviourMenuContent(
+    selectedRoute: CreatorRoute? = null,
+    onNavigate: (CreatorRoute) -> Unit
+) {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        val engineSelected = selectedRoute == CreatorRoute.BEHAVIOR_ENGINE || selectedRoute == CreatorRoute.APP_BEHAVIOR_ENGINE
         CreatorOptionCard(
             title = stringResource(R.string.engine),
             subtitle = stringResource(R.string.engine_desc),
             icon = Icons.Outlined.Memory,
-            shape = getExpressiveShape(3, 0, ShapeStyle.Large),
+            shape = if (engineSelected) RoundedCornerShape(20.dp) else getExpressiveShape(3, 0, ShapeStyle.Large),
+            selected = engineSelected,
             onClick = { onNavigate(CreatorRoute.BEHAVIOR_ENGINE) }
         )
         Spacer(Modifier.height(2.dp))
+        val islandSelected = selectedRoute == CreatorRoute.BEHAVIOR_ISLAND || selectedRoute == CreatorRoute.APP_BEHAVIOR_ISLAND
         CreatorOptionCard(
             title = stringResource(R.string.island_behavior_title),
             subtitle = stringResource(R.string.island_behavior_desc),
             icon = Icons.Outlined.DisplaySettings,
-            shape = getExpressiveShape(3, 1, ShapeStyle.Large),
+            shape = if (islandSelected) RoundedCornerShape(20.dp) else getExpressiveShape(3, 1, ShapeStyle.Large),
+            selected = islandSelected,
             onClick = { onNavigate(CreatorRoute.BEHAVIOR_ISLAND) }
         )
         Spacer(Modifier.height(2.dp))
+        val typesSelected = selectedRoute == CreatorRoute.BEHAVIOR_TYPES || selectedRoute == CreatorRoute.APP_BEHAVIOR_TYPES
         CreatorOptionCard(
             title = stringResource(R.string.active_notifications_title),
             subtitle = stringResource(R.string.select_triggered_events),
             icon = Icons.Outlined.NotificationsActive,
-            shape = getExpressiveShape(3, 2, ShapeStyle.Large),
+            shape = if (typesSelected) RoundedCornerShape(20.dp) else getExpressiveShape(3, 2, ShapeStyle.Large),
+            selected = typesSelected,
             onClick = { onNavigate(CreatorRoute.BEHAVIOR_TYPES) }
         )
     }

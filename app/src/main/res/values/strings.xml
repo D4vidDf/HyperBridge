@@ -1973,4 +1973,8 @@
     <string name="design_share_showcase_hint">Optimized for HyperBridge Showcase &amp; social sharing</string>
     <string name="design_share_include_translator_title">Include linked translator</string>
     <string name="design_share_include_translator_desc">Export the rules and triggers alongside the visual design</string>
+
+    <!-- Adaptive Theme Creator Empty Split Pane -->
+    <string name="creator_nothing_selected_title">Nothing is selected</string>
+    <string name="creator_nothing_selected_desc">Please select an option from the list on the left to start customizing your theme.</string>
 </resources>

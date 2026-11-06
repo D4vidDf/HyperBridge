@@ -355,6 +355,10 @@
     <string name="theme_system_default_desc">Apariencia estándar</string>
     <string name="theme_sheet_title">Añadir nuevo tema</string>
     <string name="theme_sheet_action_create">Crear nuevo tema</string>
+    <string name="theme_empty_title">Aún no hay temas personalizados</string>
+    <string name="theme_empty_desc">Crea tu propio tema único o importa uno de la comunidad.</string>
+    <string name="theme_section_system">Sistema</string>
+    <string name="theme_section_installed">Temas instalados</string>
     <string name="creator_title_new">Crear tema</string>
     <string name="creator_title_edit">Editar tema</string>
     <string name="creator_nav_colors">Colores</string>
@@ -1845,4 +1849,8 @@
     <string name="design_share_showcase_hint">Optimizado para HyperBridge Showcase y redes sociales</string>
     <string name="design_share_include_translator_title">Incluir traductor vinculado</string>
     <string name="design_share_include_translator_desc">Exporta las reglas y activadores junto con el diseño visual</string>
+
+    <!-- Adaptive Theme Creator Empty Split Pane -->
+    <string name="creator_nothing_selected_title">Nada seleccionado</string>
+    <string name="creator_nothing_selected_desc">Selecciona una opción de la lista de la izquierda para empezar a personalizar tu tema.</string>
 </resources>

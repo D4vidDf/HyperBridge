@@ -80,7 +80,6 @@ enum class AppEditorRoute {
     MENU, BEHAVIOR_MENU, BEHAVIOR_ENGINE, BEHAVIOR_ISLAND, BEHAVIOR_TYPES, COLORS, ICONS, CALLS, NAVIGATION, REPLY, ACTIONS
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppThemeEditor(viewModel: ThemeViewModel) {
     var currentRoute by remember { mutableStateOf(AppEditorRoute.MENU) }
@@ -283,6 +282,7 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
 @Composable
 fun AppEditorMenu(
     viewModel: ThemeViewModel,
+    selectedRoute: AppEditorRoute? = null,
     onNavigate: (AppEditorRoute) -> Unit
 ) {
     val effHighlight = viewModel.appHighlightColor ?: viewModel.selectedColorHex
@@ -334,13 +334,19 @@ fun AppEditorMenu(
             )
 
             items.forEachIndexed { index, route ->
-                val shape = getExpressiveShape(items.size, index, ShapeStyle.Large)
+                val isSelected = selectedRoute == route
+                val shape = if (isSelected) {
+                    RoundedCornerShape(20.dp)
+                } else {
+                    getExpressiveShape(items.size, index, ShapeStyle.Large)
+                }
                 when(route) {
                     AppEditorRoute.BEHAVIOR_MENU -> CreatorOptionCard(
                         title = stringResource(R.string.engine),
                         subtitle = stringResource(R.string.engine_timeouts_triggers),
                         icon = Icons.Outlined.DisplaySettings,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.COLORS -> CreatorOptionCard(
@@ -348,6 +354,7 @@ fun AppEditorMenu(
                         subtitle = if (viewModel.appHighlightColor != null) stringResource(R.string.creator_sub_colors_custom) else stringResource(R.string.creator_sub_colors_default),
                         icon = Icons.Outlined.ColorLens,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) },
                         trailingContent = {
                             Box(modifier = Modifier
@@ -362,6 +369,7 @@ fun AppEditorMenu(
                         subtitle = if (viewModel.appShapeId != null || viewModel.appPaddingPercent != null) stringResource(R.string.creator_sub_icons_custom) else stringResource(R.string.creator_sub_icons_default),
                         icon = Icons.Outlined.Widgets,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.CALLS -> CreatorOptionCard(
@@ -369,6 +377,7 @@ fun AppEditorMenu(
                         subtitle = stringResource(R.string.creator_sub_calls),
                         icon = Icons.Outlined.Call,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.NAVIGATION -> CreatorOptionCard(
@@ -376,13 +385,15 @@ fun AppEditorMenu(
                         subtitle = stringResource(R.string.nav_layout_desc),
                         icon = Icons.Outlined.Map,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.REPLY -> CreatorOptionCard(
                         title = stringResource(R.string.inline_reply_title),
                         subtitle = stringResource(R.string.customize_inline_reply),
-                        icon = Icons.Outlined.Call, // Just use a call or generic icon for now
+                        icon = Icons.Outlined.Call,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.ACTIONS -> CreatorOptionCard(
@@ -394,6 +405,7 @@ fun AppEditorMenu(
                         ),
                         icon = Icons.Outlined.TouchApp,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     else -> {}
