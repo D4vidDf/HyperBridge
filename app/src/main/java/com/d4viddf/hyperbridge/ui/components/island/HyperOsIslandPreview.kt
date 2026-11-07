@@ -56,6 +56,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -301,56 +302,70 @@ fun HyperOsIslandPreview(
         ) {
             // Mode Selector: Connected Button Group Acting as Tabs. Hidden when the preview is
             // used as a thumbnail (template gallery, design cards), where there is nothing to switch.
-            if (showChrome) Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (showChrome) BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val isCompactChrome = maxWidth < 340.dp
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val modes = listOf(
-                        IslandPreviewMode.EXPANDED to stringResource(R.string.translator_preview_mode_expanded),
-                        IslandPreviewMode.COMPACT_PILL to stringResource(R.string.translator_preview_mode_pill)
-                    )
-                    modes.forEachIndexed { index, (mode, label) ->
-                        val isSelected = previewMode == mode
-                        val shape = when (index) {
-                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    Row(
+                        modifier = if (isCompactChrome) Modifier.fillMaxWidth() else Modifier,
+                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                    ) {
+                        val modes = listOf(
+                            IslandPreviewMode.EXPANDED to stringResource(R.string.translator_preview_mode_expanded),
+                            IslandPreviewMode.COMPACT_PILL to stringResource(R.string.translator_preview_mode_pill)
+                        )
+                        modes.forEachIndexed { index, (modeItem, label) ->
+                            val isSelected = previewMode == modeItem
+                            val shape = when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            }
+                            ToggleButton(
+                                checked = isSelected,
+                                onCheckedChange = {
+                                    internalMode = modeItem
+                                    onModeChange?.invoke(modeItem)
+                                },
+                                modifier = if (isCompactChrome) Modifier.weight(1f) else Modifier,
+                                shapes = shape,
+                                colors = ToggleButtonDefaults.colors(),
+                                contentPadding = PaddingValues(
+                                    horizontal = if (isCompactChrome) 10.dp else 14.dp,
+                                    vertical = 8.dp
+                                )
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
-                        ToggleButton(
-                            checked = isSelected,
-                            onCheckedChange = {
-                                internalMode = mode
-                                onModeChange?.invoke(mode)
-                            },
-                            shapes = shape,
-                            colors = ToggleButtonDefaults.colors(),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                    }
+
+                    // HyperOS 3 Badge (hidden on narrow split panes so mode toggles fit on one line)
+                    if (!isCompactChrome) {
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
                         ) {
                             Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                text = "HyperOS 3",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
                     }
-                }
-
-                // HyperOS 3 Badge
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-                ) {
-                    Text(
-                        text = "HyperOS 3",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
                 }
             }
 

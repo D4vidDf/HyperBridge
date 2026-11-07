@@ -1974,9 +1974,10 @@
     <string name="design_share_include_translator_title">Include linked translator</string>
     <string name="design_share_include_translator_desc">Export the rules and triggers alongside the visual design</string>
 
-    <!-- Adaptive Theme Creator Empty Split Pane -->
+    <!-- Adaptive Theme Creator & Translator Editor Empty Split Pane -->
     <string name="creator_nothing_selected_title">Nothing is selected</string>
     <string name="creator_nothing_selected_desc">Please select an option from the list on the left to start customizing your theme.</string>
+    <string name="translator_nothing_selected_desc">Please select a section from the list on the left to start configuring your translator.</string>
 
     <!-- Adaptive 3-Column Studio Design Screen -->
     <string name="studio_element_tree_title">Element Tree</string>
