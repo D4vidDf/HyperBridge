@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
 
 /**
@@ -110,6 +111,7 @@ fun StudioFormulaDialog(
     propertyName: String,
     initialFormula: String,
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
+    previewContext: VariableContext? = null,
     onDismiss: () -> Unit,
     onApply: (String?) -> Unit
 ) {
@@ -124,10 +126,11 @@ fun StudioFormulaDialog(
 
     var selectedCategory by remember { mutableStateOf(FormulaTokenCategory.NOTIFICATION) }
     val engine = remember { WidgetVariableEngine() }
+    val effectiveContext = previewContext ?: scenario.toVariableContext()
 
-    val resolvedValue = remember(textFieldValue.text, scenario) {
+    val resolvedValue = remember(textFieldValue.text, effectiveContext) {
         if (textFieldValue.text.isBlank()) ""
-        else engine.resolve(textFieldValue.text, scenario.toVariableContext())
+        else engine.resolve(textFieldValue.text, effectiveContext)
     }
 
     fun insertToken(token: String) {

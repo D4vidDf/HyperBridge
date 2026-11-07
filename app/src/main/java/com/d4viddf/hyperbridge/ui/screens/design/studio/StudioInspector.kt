@@ -87,11 +87,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.d4viddf.hyperbridge.data.widget.VariableContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -160,6 +163,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import androidx.core.graphics.toColorInt
 
+private val LocalStudioPreviewContext = compositionLocalOf<VariableContext?> { null }
+
 /**
  * Tab-oriented KWGT-style Inspector for CustomWidgetNode elements.
  */
@@ -205,6 +210,7 @@ fun StudioInspector(
     onToggleNodeLock: (String) -> Unit = {},
     // Stage 4 additions
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
+    previewContext: VariableContext? = null,
     // Stage 5 additions
     onMoveInto: (String, String) -> Unit = { _, _ -> },
     onCreateTranslator: (() -> Unit)? = null,
@@ -214,6 +220,7 @@ fun StudioInspector(
     var editingFormulaPropKey by remember { mutableStateOf<String?>(null) }
     var isAppChooserOpen by remember { mutableStateOf(false) }
     var appChooserCallback by remember { mutableStateOf<((String) -> Unit)?>(null) }
+    val effectivePreviewContext = previewContext ?: scenario.toVariableContext()
 
     val context = LocalContext.current
     val inspectorColorScheme = remember(document?.globals?.colorSchemeConfig, document?.globals?.embeddedColorSchemeYaml) {
@@ -226,6 +233,7 @@ fun StudioInspector(
         )
     }
 
+    CompositionLocalProvider(LocalStudioPreviewContext provides effectivePreviewContext) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -482,12 +490,14 @@ fun StudioInspector(
             }
         }
     }
+    }
 
     editingFormulaPropKey?.let { propKey ->
         StudioFormulaDialog(
             propertyName = propKey,
             initialFormula = node.bindings[propKey].orEmpty(),
             scenario = scenario,
+            previewContext = effectivePreviewContext,
             onDismiss = { editingFormulaPropKey = null },
             onApply = { newFormula ->
                 onChange(node.withBinding(propKey, newFormula))
@@ -1298,7 +1308,8 @@ private fun ProgressTabContent(
 
         // Live Resolved Value Preview Card
         val previewEngine = remember { WidgetVariableEngine() }
-        val resolvedString = previewEngine.resolve(node.valueTemplate, scenario.toVariableContext())
+        val activePreviewCtx = LocalStudioPreviewContext.current ?: scenario.toVariableContext()
+        val resolvedString = previewEngine.resolve(node.valueTemplate, activePreviewCtx)
         val resolvedValue = resolvedString.toFloatOrNull() ?: 0f
         val fraction = (resolvedValue / node.maxValue.coerceAtLeast(1)).coerceIn(0f, 1f)
 
@@ -7409,7 +7420,8 @@ private fun ConditionEditor(
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
     onChange: (NodeCondition) -> Unit
 ) {
-    val isConditionMet = NodeConditionEvaluator.isVisible(condition, scenario.toVariableContext())
+    val activePreviewCtx = LocalStudioPreviewContext.current ?: scenario.toVariableContext()
+    val isConditionMet = NodeConditionEvaluator.isVisible(condition, activePreviewCtx)
     val isCompound = condition is NodeCondition.All || condition is NodeCondition.Any
 
     // Live Scenario Evaluation Status Badge

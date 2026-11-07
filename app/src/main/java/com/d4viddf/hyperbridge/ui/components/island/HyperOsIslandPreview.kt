@@ -26,11 +26,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.ui.platform.LocalContext
+import android.graphics.Bitmap
 import androidx.compose.runtime.produceState
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioCanvas
+import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioPreviewScenario
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -86,7 +89,11 @@ data class IslandPreviewSample(
     val artist: String = "Rick Astley",
     val progressPercent: Int = 65,
     val timerText: String = "04:25",
-    val countdownText: String = "00:05"
+    val countdownText: String = "00:05",
+    val clockText: String = "12:00",
+    val pictureBitmap: Bitmap? = null,
+    val avatarBitmap: Bitmap? = null,
+    val smallIconBitmap: Bitmap? = null
 )
 
 private fun String.withSample(sample: IslandPreviewSample): String = this
@@ -115,6 +122,8 @@ fun HyperOsIslandPreview(
     installedThemes: List<HyperTheme> = emptyList(),
     initialMode: IslandPreviewMode = IslandPreviewMode.EXPANDED,
     sample: IslandPreviewSample = IslandPreviewSample(),
+    variableContext: VariableContext? = null,
+    widgetDocument: CustomWidgetDocument? = null,
     showChrome: Boolean = true,
     mode: IslandPreviewMode? = null,
     onModeChange: ((IslandPreviewMode) -> Unit)? = null,
@@ -127,7 +136,7 @@ fun HyperOsIslandPreview(
     // A TEMPLATE translator may carry nothing but its templateId, so resolve the preset first and
     // render from that: the gallery, the design cards and the editor all see the same island.
     val presentation = IslandTemplateCatalog.effectivePresentation(translator.presentation)
-    val template = if (presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.TEMPLATE) {
+    val template = if (presentation.mode == PresentationMode.TEMPLATE) {
         IslandTemplateCatalog.find(presentation.templateId)
     } else {
         null
@@ -139,8 +148,16 @@ fun HyperOsIslandPreview(
     val widgetRepository = remember(context) { CustomWidgetRepository(context) }
     val isCustomWidget = presentation.mode == PresentationMode.WIDGET
     var isWidgetLoading by remember { mutableStateOf(false) }
-    val widgetDoc by produceState<CustomWidgetDocument?>(initialValue = null, presentation.widgetId, isCustomWidget) {
-        if (isCustomWidget && !presentation.widgetId.isNullOrBlank()) {
+    val loadedWidgetDoc by produceState(
+        initialValue = widgetDocument,
+        presentation.widgetId,
+        isCustomWidget,
+        widgetDocument
+    ) {
+        if (widgetDocument != null) {
+            value = widgetDocument
+            isWidgetLoading = false
+        } else if (isCustomWidget && !presentation.widgetId.isNullOrBlank()) {
             isWidgetLoading = true
             value = widgetRepository.getWidget(presentation.widgetId)
             isWidgetLoading = false
@@ -149,6 +166,7 @@ fun HyperOsIslandPreview(
             isWidgetLoading = false
         }
     }
+    val effectiveWidgetDoc = widgetDocument ?: loadedWidgetDoc
 
     // 1. Resolve Effective Theme Styling
     val linkedTheme = if (translator.themeBinding.themeId.isNotBlank() && translator.themeBinding.themeId != "active") {
@@ -200,7 +218,7 @@ fun HyperOsIslandPreview(
     }
 
     // 2. Interpolate Dynamic Values (Supporting both Visual Slots and RAW_PARAM_V2)
-    val isRawMode = presentation.mode == com.d4viddf.hyperbridge.models.translator.PresentationMode.RAW_PARAM_V2
+    val isRawMode = presentation.mode == PresentationMode.RAW_PARAM_V2
     val rawJson = presentation.rawParamV2?.jsonTemplate ?: ""
 
     var titleText = presentation.textSlot.titleTemplate
@@ -337,13 +355,20 @@ fun HyperOsIslandPreview(
             }
 
             val minBoxHeight = when {
-                isCustomWidget && widgetDoc != null -> widgetDoc!!.canvas.heightDp.dp + 62.dp
+                isCustomWidget && effectiveWidgetDoc != null -> {
+                    if (showChrome || previewMode == IslandPreviewMode.BOTH) {
+                        effectiveWidgetDoc.canvas.heightDp.dp + 62.dp
+                    } else {
+                        effectiveWidgetDoc.canvas.heightDp.dp
+                    }
+                }
                 showChrome -> 175.dp
                 else -> 190.dp
             }
 
             @Composable
             fun StatusBarContent(showPill: Boolean = true) {
+                val statusColor = if (showChrome) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -354,8 +379,8 @@ fun HyperOsIslandPreview(
                 ) {
                     // Left: Status Bar Clock
                     Text(
-                        text = "12:00",
-                        color = Color.White.copy(alpha = 0.85f),
+                        text = sample.clockText.ifBlank { "12:00" },
+                        color = statusColor,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.CenterStart)
@@ -377,7 +402,14 @@ fun HyperOsIslandPreview(
                                 progressPercent = progressPercent,
                                 hasProgress = hasProgress,
                                 highlightColor = parsedHighlightColor,
-                                iconShape = iconShape
+                                iconShape = iconShape,
+                                mediaOrder = presentation.pill.mediaOrder,
+                                mediaTrack = sample.track,
+                                mediaArtist = sample.artist,
+                                senderName = sample.sender,
+                                pictureBitmap = sample.pictureBitmap,
+                                avatarBitmap = sample.avatarBitmap,
+                                smallIconBitmap = sample.smallIconBitmap
                             )
                         }
                     } else if (showPill) {
@@ -390,6 +422,13 @@ fun HyperOsIslandPreview(
                             hasProgress = hasProgress,
                             highlightColor = parsedHighlightColor,
                             iconShape = iconShape,
+                            mediaOrder = presentation.pill.mediaOrder,
+                            mediaTrack = sample.track,
+                            mediaArtist = sample.artist,
+                            senderName = sample.sender,
+                            pictureBitmap = sample.pictureBitmap,
+                            avatarBitmap = sample.avatarBitmap,
+                            smallIconBitmap = sample.smallIconBitmap,
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
@@ -400,8 +439,8 @@ fun HyperOsIslandPreview(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
-                        Icon(Icons.Default.SignalCellular4Bar, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
-                        Icon(Icons.Default.BatteryFull, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
+                        Icon(Icons.Default.SignalCellular4Bar, null, tint = statusColor, modifier = Modifier.size(12.dp))
+                        Icon(Icons.Default.BatteryFull, null, tint = statusColor, modifier = Modifier.size(12.dp))
                     }
                 }
             }
@@ -410,7 +449,7 @@ fun HyperOsIslandPreview(
             fun ExpandedIslandContent() {
                 Box(modifier = Modifier.then(expandedModifier)) {
                     if (isCustomWidget) {
-                        if (widgetDoc != null) {
+                        if (effectiveWidgetDoc != null) {
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -418,10 +457,12 @@ fun HyperOsIslandPreview(
                                 contentAlignment = Alignment.Center
                             ) {
                                 val availableWidthDp = maxWidth.value
+                                val effectiveWidgetCtx = variableContext
+                                    ?: StudioPreviewScenario.STANDARD.toVariableContext()
                                 StudioCanvas(
-                                    root = widgetDoc!!.root,
+                                    root = effectiveWidgetDoc.root,
                                     canvasWidthDp = availableWidthDp,
-                                    canvasHeightDp = widgetDoc!!.canvas.heightDp,
+                                    canvasHeightDp = effectiveWidgetDoc.canvas.heightDp,
                                     selectedId = null,
                                     onSelect = {},
                                     onMove = { _, _, _ -> },
@@ -429,7 +470,9 @@ fun HyperOsIslandPreview(
                                     zoom = 1f,
                                     isGridVisible = false,
                                     isWireframeMode = false,
-                                    globals = widgetDoc!!.globals
+                                    context = effectiveWidgetCtx,
+                                    globals = effectiveWidgetDoc.globals,
+                                    widgetId = effectiveWidgetDoc.id
                                 )
                             }
                         } else if (isWidgetLoading) {
@@ -511,7 +554,10 @@ fun HyperOsIslandPreview(
                             HyperOsLeftGraphic(
                                 source = presentation.leftSlot.source,
                                 highlightColor = parsedHighlightColor,
-                                iconShape = iconShape
+                                iconShape = iconShape,
+                                avatarBitmap = sample.avatarBitmap,
+                                smallIconBitmap = sample.smallIconBitmap,
+                                pictureBitmap = sample.pictureBitmap
                             )
 
                             HyperOsTextGroup(
@@ -554,17 +600,18 @@ fun HyperOsIslandPreview(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = minBoxHeight)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0xFF141414))
                     .then(
                         if (showChrome) {
-                            Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
-                        } else {
                             Modifier
+                                .heightIn(min = minBoxHeight)
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Color(0xFF141414))
+                                .animateContentSize(animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                        } else {
+                            Modifier.heightIn(min = minBoxHeight)
                         }
-                    )
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 if (showChrome) {

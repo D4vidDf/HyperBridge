@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.d4viddf.hyperbridge.data.db.AppDatabase
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -130,6 +130,13 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
             entities.mapNotNull { it.toCustomTranslator().getOrNull() }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _designsRevision = MutableStateFlow(0L)
+    val designsRevision: StateFlow<Long> = _designsRevision.asStateFlow()
+
+    fun notifyDesignsChanged() {
+        _designsRevision.update { System.currentTimeMillis() }
+    }
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -290,6 +297,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                     CustomWidgetRepository(getApplication()).saveTranslatorForWidget(translator.presentation.widgetId, translator)
                 } catch (_: Exception) {}
             }
+            notifyDesignsChanged()
             withContext(Dispatchers.Main) {
                 onDone()
             }
@@ -329,6 +337,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                 val entity = TranslatorEntity.fromCustomTranslator(duplicated)
                 translatorDao.insertTranslator(entity)
             }
+            notifyDesignsChanged()
             withContext(Dispatchers.Main) {
                 onDone()
             }
@@ -353,6 +362,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                     }
                 }
             }
+            notifyDesignsChanged()
             withContext(Dispatchers.Main) {
                 onDone()
             }
@@ -362,6 +372,9 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     fun importTranslator(uri: Uri, onResult: (Result<CustomTranslator>) -> Unit) {
         viewModelScope.launch {
             val result = translatorRepo.importTranslatorFromUri(uri)
+            if (result.isSuccess) {
+                notifyDesignsChanged()
+            }
             withContext(Dispatchers.Main) {
                 onResult(result)
             }
@@ -385,10 +398,16 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         context: Context,
         translator: CustomTranslator,
         includeTranslator: Boolean = true,
+        includePlaceholders: Boolean = false,
         onResult: (Result<Unit>) -> Unit = {}
     ) {
         viewModelScope.launch {
-            val result = translatorRepo.shareTranslator(context, translator, includeTranslator)
+            val result = translatorRepo.shareTranslator(
+                context = context,
+                translator = translator,
+                includeTranslator = includeTranslator,
+                includePlaceholders = includePlaceholders
+            )
             withContext(Dispatchers.Main) {
                 onResult(result)
             }
@@ -400,9 +419,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         val userHandle = android.os.Process.myUserHandle()
         val result = mutableListOf<NotificationChannelInfo>()
 
-        val packagesToQuery = if (targetPackages.isNotEmpty()) {
-            targetPackages
-        } else {
+        val packagesToQuery = targetPackages.ifEmpty {
             installedApps.value.map { it.packageName }
         }
 

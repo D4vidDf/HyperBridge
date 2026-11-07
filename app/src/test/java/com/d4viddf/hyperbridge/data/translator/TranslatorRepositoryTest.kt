@@ -22,10 +22,12 @@ import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.translator.TypeSpecificConditions
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.PreviewPlaceholderConfig
 import com.d4viddf.hyperbridge.models.widget.TextNode
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
@@ -503,7 +505,7 @@ class TranslatorRepositoryTest {
         assertNotNull(retrievedDuplicate)
         assertEquals("Modified Original", retrievedOriginal!!.meta.name)
         assertEquals("Original Design (Copy)", retrievedDuplicate!!.meta.name)
-        val dupRoot = retrievedDuplicate.root as LayoutContainer
+        val dupRoot = retrievedDuplicate.root
         assertEquals("Original Text", (dupRoot.children.first() as TextNode).template)
 
         // 4. Edit the duplicated widget document and verify the original remains unaffected
@@ -570,4 +572,83 @@ class TranslatorRepositoryTest {
         assertTrue("ZIP must contain widget.json", entryNames.contains("widget.json"))
         assertFalse("ZIP must NOT contain translator.json when includeTranslator is false", entryNames.contains("translator.json"))
     }
+
+    @Test
+    fun testExportAndImportPlaceholdersOptInRoundTrip(): Unit = runBlocking {
+        val placeholderRepo = PreviewPlaceholderRepository(fakeContext)
+        val translator = CustomTranslator(
+            id = "placeholder_share_test",
+            meta = TranslatorMetadata(name = "Showcase Translator"),
+            targetScope = TargetScope.GLOBAL
+        )
+
+        val savedConfig = PreviewPlaceholderConfig(
+            isCustomized = true,
+            notifTitle = "Bundled Showcase Title",
+            mediaTrack = "Bundled Track",
+            mediaArtist = "Bundled Artist"
+        )
+        placeholderRepo.saveConfig(translator.id, savedConfig)
+
+        // 1. Export WITHOUT placeholders (default)
+        val zipWithoutBaos = ByteArrayOutputStream()
+        assertTrue(
+            repository.exportTranslatorToZip(
+                translator = translator,
+                outputStream = zipWithoutBaos,
+                includeTranslator = true,
+                includePlaceholders = false
+            ).isSuccess
+        )
+        val entriesWithout = mutableListOf<String>()
+        ZipInputStream(ByteArrayInputStream(zipWithoutBaos.toByteArray())).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                entriesWithout.add(entry.name)
+                entry = zis.nextEntry
+            }
+        }
+        assertFalse(
+            "Default export must NOT bundle preview_placeholders/",
+            entriesWithout.any { it.startsWith("preview_placeholders/") }
+        )
+
+        // 2. Export WITH placeholders (opt-in)
+        val zipWithBaos = ByteArrayOutputStream()
+        assertTrue(
+            repository.exportTranslatorToZip(
+                translator = translator,
+                outputStream = zipWithBaos,
+                includeTranslator = true,
+                includePlaceholders = true
+            ).isSuccess
+        )
+        val entriesWith = mutableListOf<String>()
+        ZipInputStream(ByteArrayInputStream(zipWithBaos.toByteArray())).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                entriesWith.add(entry.name)
+                entry = zis.nextEntry
+            }
+        }
+        assertTrue(
+            "Opt-in export must bundle preview_placeholders/placeholders.json",
+            entriesWith.contains("preview_placeholders/placeholders.json")
+        )
+
+        // 3. Clear local placeholders, import the ZIP, and verify sidecar extraction
+        placeholderRepo.clearPlaceholders(translator.id)
+        assertEquals(null, placeholderRepo.loadConfig(translator.id))
+
+        val importedResult = repository.importTranslatorFromStream(ByteArrayInputStream(zipWithBaos.toByteArray()))
+        assertTrue("Import from bundled ZIP should succeed", importedResult.isSuccess)
+        val importedTranslator = importedResult.getOrThrow()
+
+        val extractedConfig = placeholderRepo.loadConfig(importedTranslator.id)
+        assertNotNull("Bundled placeholders should be extracted on import", extractedConfig)
+        assertEquals("Bundled Showcase Title", extractedConfig!!.notifTitle)
+        assertEquals("Bundled Track", extractedConfig.mediaTrack)
+        assertEquals("Bundled Artist", extractedConfig.mediaArtist)
+    }
 }
+

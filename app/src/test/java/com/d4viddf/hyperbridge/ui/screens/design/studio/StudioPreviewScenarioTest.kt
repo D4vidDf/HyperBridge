@@ -64,4 +64,18 @@ class StudioPreviewScenarioTest {
         assertTrue(NodeConditionEvaluator.isVisible(NodeCondition.HasNotificationAction(2), ctx, engine))
         assertFalse(NodeConditionEvaluator.isVisible(NodeCondition.HasNotificationAction(3), ctx, engine))
     }
+
+    @Test
+    fun customScenarioStartsWithEmptyFields() {
+        val ctx = StudioPreviewScenario.CUSTOM.toVariableContext()
+        assertEquals("", ctx.notifTitle)
+        assertEquals("", ctx.notifText)
+        assertEquals(null, ctx.notifProgress)
+        assertEquals(null, ctx.notifPackage)
+        assertEquals("", ctx.mediaTrack)
+        assertEquals("", ctx.mediaArtist)
+        assertTrue(ctx.notificationActionTitles.isEmpty())
+        assertFalse(ctx.hasInlineReply)
+        assertTrue(ctx.smartActionTypes.isEmpty())
+    }
 }

@@ -1,5 +1,7 @@
 package com.d4viddf.hyperbridge.ui.components.island
 
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,8 +47,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -132,7 +136,10 @@ fun HyperOsLeftGraphic(
     source: String,
     highlightColor: Color,
     iconShape: Shape,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    avatarBitmap: Bitmap? = null,
+    smallIconBitmap: Bitmap? = null,
+    pictureBitmap: Bitmap? = null
 ) {
     when (source.uppercase()) {
         "AVATAR" -> {
@@ -145,12 +152,21 @@ fun HyperOsLeftGraphic(
                         .background(Color(0xFF333333)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
+                    if (avatarBitmap != null) {
+                        Image(
+                            bitmap = avatarBitmap.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    } else {
+                        Icon(
+                            Icons.Outlined.Person,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
                 }
                 // Mini App Badge at Bottom-Right
                 Box(
@@ -168,13 +184,48 @@ fun HyperOsLeftGraphic(
                             .background(highlightColor),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            Icons.Outlined.AutoAwesome,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(9.dp)
-                        )
+                        if (smallIconBitmap != null) {
+                            Image(
+                                bitmap = smallIconBitmap.asImageBitmap(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(15.dp)
+                            )
+                        } else {
+                            Icon(
+                                Icons.Outlined.AutoAwesome,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(9.dp)
+                            )
+                        }
                     }
+                }
+            }
+        }
+        "ALBUM_ART", "PICTURE", "COVER", "MEDIA" -> {
+            val coverBmp = pictureBitmap ?: avatarBitmap ?: smallIconBitmap
+            Box(
+                modifier = modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(highlightColor),
+                contentAlignment = Alignment.Center
+            ) {
+                if (coverBmp != null) {
+                    Image(
+                        bitmap = coverBmp.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(48.dp)
+                    )
+                } else {
+                    Icon(
+                        Icons.Outlined.Album,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
                 }
             }
         }
@@ -190,12 +241,21 @@ fun HyperOsLeftGraphic(
                     .background(highlightColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Outlined.AutoAwesome,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(26.dp)
-                )
+                if (smallIconBitmap != null) {
+                    Image(
+                        bitmap = smallIconBitmap.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(44.dp)
+                    )
+                } else {
+                    Icon(
+                        Icons.Outlined.AutoAwesome,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
             }
         }
     }
@@ -625,6 +685,10 @@ fun HyperOsCompactPill(
     ),
     mediaTrack: String = "Track Title",
     mediaArtist: String = "Artist Name",
+    senderName: String = "Alice",
+    pictureBitmap: Bitmap? = null,
+    avatarBitmap: Bitmap? = null,
+    smallIconBitmap: Bitmap? = null,
     modifier: Modifier = Modifier
 ) {
     val horizontalPaddingPx = with(LocalDensity.current) { 10.dp.roundToPx() }
@@ -639,6 +703,10 @@ fun HyperOsCompactPill(
         else -> false
     }
 
+    val iconImage = remember(smallIconBitmap) { smallIconBitmap?.asImageBitmap() }
+    val avatarImage = remember(avatarBitmap, pictureBitmap) { (avatarBitmap ?: pictureBitmap)?.asImageBitmap() }
+    val coverImage = remember(pictureBitmap, avatarBitmap) { (pictureBitmap ?: avatarBitmap)?.asImageBitmap() }
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
@@ -651,26 +719,16 @@ fun HyperOsCompactPill(
                 Box(contentAlignment = Alignment.CenterStart) {
                     when (leftDesign) {
                         PillLeftDesign.ICON_ONLY -> {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clip(iconShape)
-                                    .background(highlightColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Outlined.AutoAwesome,
+                            if (iconImage != null) {
+                                Image(
+                                    bitmap = iconImage,
                                     contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(10.dp)
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(iconShape)
                                 )
-                            }
-                        }
-                        PillLeftDesign.ICON_AND_TEXT -> {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.widthIn(max = 52.dp)
-                            ) {
+                            } else {
                                 Box(
                                     modifier = Modifier
                                         .size(16.dp)
@@ -684,6 +742,38 @@ fun HyperOsCompactPill(
                                         tint = Color.White,
                                         modifier = Modifier.size(10.dp)
                                     )
+                                }
+                            }
+                        }
+                        PillLeftDesign.ICON_AND_TEXT -> {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.widthIn(max = 52.dp)
+                            ) {
+                                if (iconImage != null) {
+                                    Image(
+                                        bitmap = iconImage,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(iconShape)
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(iconShape)
+                                            .background(highlightColor),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.AutoAwesome,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                    }
                                 }
                                 Spacer(Modifier.width(4.dp))
                                 HyperOsPillFadingText(
@@ -711,23 +801,34 @@ fun HyperOsCompactPill(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.widthIn(max = 52.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .clip(CircleShape)
-                                        .background(highlightColor.copy(alpha = 0.8f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.Person,
+                                if (avatarImage != null) {
+                                    Image(
+                                        bitmap = avatarImage,
                                         contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(10.dp)
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(CircleShape)
                                     )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(CircleShape)
+                                            .background(highlightColor.copy(alpha = 0.8f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Person,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                    }
                                 }
                                 Spacer(Modifier.width(4.dp))
                                 HyperOsPillFadingText(
-                                    text = "Alice",
+                                    text = senderName.ifBlank { title },
                                     color = Color.White,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium,
@@ -756,19 +857,30 @@ fun HyperOsCompactPill(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.widthIn(max = 52.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(16.dp)
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(highlightColor),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            Icons.Outlined.Album,
+                                    if (coverImage != null) {
+                                        Image(
+                                            bitmap = coverImage,
                                             contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(10.dp)
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .clip(RoundedCornerShape(4.dp))
                                         )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .background(highlightColor),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.Album,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                        }
                                     }
                                     Spacer(Modifier.width(4.dp))
                                     HyperOsPillFadingText(
@@ -781,19 +893,30 @@ fun HyperOsCompactPill(
                                     )
                                 }
                             } else if (hasAlbumCover) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(highlightColor),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.Album,
+                                if (coverImage != null) {
+                                    Image(
+                                        bitmap = coverImage,
                                         contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(10.dp)
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(RoundedCornerShape(4.dp))
                                     )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(highlightColor),
+                                            contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Album,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                    }
                                 }
                             } else if (mediaPillText.isNotBlank()) {
                                 HyperOsPillFadingText(

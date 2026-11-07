@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.LinearScale
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SmartButton
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -26,12 +27,41 @@ import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 
-enum class StudioPreviewScenario(val labelRes: Int, val icon: ImageVector) {
-    STANDARD(R.string.studio_scenario_standard, Icons.Rounded.Notifications),
-    MESSAGE(R.string.studio_scenario_message, Icons.Rounded.Email),
-    PROGRESS(R.string.studio_scenario_progress, Icons.Rounded.LinearScale),
-    OTP(R.string.studio_scenario_otp, Icons.Rounded.SmartButton),
-    MEDIA(R.string.studio_scenario_media, Icons.Rounded.PlayArrow);
+enum class StudioPreviewScenario(
+    val labelRes: Int,
+    val descRes: Int,
+    val icon: ImageVector
+) {
+    STANDARD(
+        R.string.studio_scenario_standard,
+        R.string.studio_scenario_standard_desc,
+        Icons.Rounded.Notifications
+    ),
+    MESSAGE(
+        R.string.studio_scenario_message,
+        R.string.studio_scenario_message_desc,
+        Icons.Rounded.Email
+    ),
+    PROGRESS(
+        R.string.studio_scenario_progress,
+        R.string.studio_scenario_progress_desc,
+        Icons.Rounded.LinearScale
+    ),
+    OTP(
+        R.string.studio_scenario_otp,
+        R.string.studio_scenario_otp_desc,
+        Icons.Rounded.SmartButton
+    ),
+    MEDIA(
+        R.string.studio_scenario_media,
+        R.string.studio_scenario_media_desc,
+        Icons.Rounded.PlayArrow
+    ),
+    CUSTOM(
+        R.string.studio_scenario_custom,
+        R.string.studio_scenario_custom_desc,
+        Icons.Rounded.Tune
+    );
 
     fun toVariableContext(): VariableContext = when (this) {
         STANDARD -> VariableContext(
@@ -91,6 +121,22 @@ enum class StudioPreviewScenario(val labelRes: Int, val icon: ImageVector) {
             deviceBatteryPercent = 65,
             timeNowFormatted = "21:30",
             notificationActionTitles = listOf("Previous", "Play", "Next"),
+            hasInlineReply = false,
+            smartActionTypes = emptySet()
+        )
+        CUSTOM -> VariableContext(
+            notifTitle = "",
+            notifText = "",
+            notifProgress = null,
+            notifPackage = null,
+            deviceBatteryPercent = 0,
+            timeNowFormatted = "",
+            mediaProgress = 0,
+            mediaTrack = "",
+            mediaArtist = "",
+            mediaDuration = "",
+            mediaPosition = "",
+            notificationActionTitles = emptyList(),
             hasInlineReply = false,
             smartActionTypes = emptySet()
         )

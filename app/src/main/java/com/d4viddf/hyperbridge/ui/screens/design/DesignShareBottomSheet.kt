@@ -10,7 +10,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -32,7 +31,6 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,15 +41,16 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -64,6 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.translator.TranslatorRepository
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
+import com.d4viddf.hyperbridge.data.widget.ResolvedPlaceholderBitmaps
+import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.models.translator.CompactPillConfig
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
@@ -74,8 +77,12 @@ import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
 import com.d4viddf.hyperbridge.models.translator.TextSlotConfig
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.PreviewPlaceholderConfig
 import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
 import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
+import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewSample
+import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioPreviewScenario
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -96,7 +103,7 @@ fun DesignShareBottomSheet(
     title: String = stringResource(R.string.design_share_sheet_title),
     isTranslator: Boolean = (design.presentation.mode != PresentationMode.WIDGET),
     onDismiss: () -> Unit,
-    onSharePackage: (includeTranslator: Boolean) -> Unit
+    onSharePackage: (includeTranslator: Boolean, includePlaceholders: Boolean) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
@@ -104,8 +111,53 @@ fun DesignShareBottomSheet(
 
     var exportType by remember { mutableStateOf(ShareExportType.ALL) }
     var includeTranslator by remember { mutableStateOf(false) }
+    var includePlaceholders by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
     var isSharing by remember { mutableStateOf(false) }
+
+    val placeholderRepo = remember(context) { PreviewPlaceholderRepository(context) }
+    val widgetRepo = remember(context) { CustomWidgetRepository(context) }
+    val designKey = design.presentation.widgetId?.takeIf { it.isNotBlank() } ?: design.id
+
+    var placeholderConfig by remember(designKey) {
+        mutableStateOf(PreviewPlaceholderConfig.fromScenario(StudioPreviewScenario.STANDARD))
+    }
+    var resolvedBitmaps by remember(designKey) { mutableStateOf(ResolvedPlaceholderBitmaps()) }
+
+    val widgetDoc by produceState<CustomWidgetDocument?>(initialValue = null, design.presentation.widgetId) {
+        val wId = design.presentation.widgetId
+        value = if (design.presentation.mode == PresentationMode.WIDGET && !wId.isNullOrBlank()) {
+            widgetRepo.getWidget(wId)
+        } else null
+    }
+
+    LaunchedEffect(designKey) {
+        val loaded = placeholderRepo.loadConfig(designKey)
+        if (loaded != null) {
+            placeholderConfig = loaded
+        }
+    }
+
+    LaunchedEffect(designKey, placeholderConfig) {
+        resolvedBitmaps = placeholderRepo.resolveBitmaps(designKey, placeholderConfig)
+    }
+
+    val previewSample = remember(placeholderConfig, resolvedBitmaps) {
+        placeholderConfig.toIslandPreviewSample(
+            pictureBitmap = resolvedBitmaps.pictureBitmap,
+            avatarBitmap = resolvedBitmaps.avatarBitmap,
+            smallIconBitmap = resolvedBitmaps.smallIconBitmap
+        )
+    }
+
+    val previewVariableContext = remember(placeholderConfig, resolvedBitmaps, designKey) {
+        placeholderConfig.toVariableContext(
+            pictureBitmap = resolvedBitmaps.pictureBitmap,
+            avatarBitmap = resolvedBitmaps.avatarBitmap,
+            smallIconBitmap = resolvedBitmaps.smallIconBitmap,
+            placeholderDir = placeholderRepo.dirFor(designKey)
+        )
+    }
 
     val pillGraphicsLayer = rememberGraphicsLayer()
     val expandedGraphicsLayer = rememberGraphicsLayer()
@@ -125,6 +177,9 @@ fun DesignShareBottomSheet(
 
                 // 1. If ALL or FILE: save package file (.hwidget or .htrans)
                 if (exportType == ShareExportType.ALL || exportType == ShareExportType.FILE) {
+                    if (includePlaceholders) {
+                        placeholderRepo.saveConfig(designKey, placeholderConfig)
+                    }
                     val extension = if (!isTranslator && !includeTranslator) "hwidget" else "htrans"
                     val packageUri = saveFileToTreeUri(
                         context = context,
@@ -133,7 +188,12 @@ fun DesignShareBottomSheet(
                         mimeType = "application/octet-stream"
                     ) { outputStream ->
                         val repo = TranslatorRepository(context)
-                        repo.exportTranslatorToZip(design, outputStream, shouldIncludeTranslator).getOrThrow()
+                        repo.exportTranslatorToZip(
+                            translator = design,
+                            outputStream = outputStream,
+                            includeTranslator = shouldIncludeTranslator,
+                            includePlaceholders = includePlaceholders
+                        ).getOrThrow()
                     }
                     if (packageUri != null) savedCount++
                 }
@@ -170,7 +230,7 @@ fun DesignShareBottomSheet(
                 } else {
                     Toast.makeText(context, R.string.design_share_save_failed, Toast.LENGTH_SHORT).show()
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Toast.makeText(context, R.string.design_share_save_failed, Toast.LENGTH_SHORT).show()
             } finally {
                 isSaving = false
@@ -185,9 +245,12 @@ fun DesignShareBottomSheet(
                 try {
                     val fileName = sanitizeFileName(design.meta.name.ifBlank { design.id })
                     val shouldIncludeTranslator = isTranslator || includeTranslator
+                    if (includePlaceholders && exportType != ShareExportType.IMAGES) {
+                        placeholderRepo.saveConfig(designKey, placeholderConfig)
+                    }
                     when (exportType) {
                         ShareExportType.FILE -> {
-                            onSharePackage(shouldIncludeTranslator)
+                            onSharePackage(shouldIncludeTranslator, includePlaceholders)
                         }
                         ShareExportType.IMAGES -> {
                             val bannerBitmap = expandedGraphicsLayer.toImageBitmap().asAndroidBitmap()
@@ -229,7 +292,11 @@ fun DesignShareBottomSheet(
                         }
                         ShareExportType.ALL -> {
                             val repo = TranslatorRepository(context)
-                            val packageFileResult = repo.exportTranslatorToFile(design, shouldIncludeTranslator)
+                            val packageFileResult = repo.exportTranslatorToFile(
+                                translator = design,
+                                includeTranslator = shouldIncludeTranslator,
+                                includePlaceholders = includePlaceholders
+                            )
                             val packageFile = packageFileResult.getOrNull()
                             val packageUri = packageFile?.let {
                                 FileProvider.getUriForFile(context, "${context.packageName}.provider", it)
@@ -264,7 +331,7 @@ fun DesignShareBottomSheet(
                             }
                         }
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Toast.makeText(context, R.string.design_share_save_failed, Toast.LENGTH_SHORT).show()
                 } finally {
                     isSharing = false
@@ -285,8 +352,13 @@ fun DesignShareBottomSheet(
             isTranslator = isTranslator,
             includeTranslator = includeTranslator,
             onIncludeTranslatorChange = { includeTranslator = it },
+            includePlaceholders = includePlaceholders,
+            onIncludePlaceholdersChange = { includePlaceholders = it },
             exportType = exportType,
             onExportTypeChange = { exportType = it },
+            previewSample = previewSample,
+            previewVariableContext = previewVariableContext,
+            widgetDoc = widgetDoc,
             isSaving = isSaving,
             isSharing = isSharing,
             onSave = { folderPickerLauncher.launch(null) },
@@ -307,7 +379,6 @@ fun DesignShareBottomSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DesignShareSheetContent(
     design: CustomTranslator,
@@ -315,8 +386,13 @@ fun DesignShareSheetContent(
     isTranslator: Boolean = (design.presentation.mode != PresentationMode.WIDGET),
     includeTranslator: Boolean = false,
     onIncludeTranslatorChange: (Boolean) -> Unit = {},
+    includePlaceholders: Boolean = false,
+    onIncludePlaceholdersChange: (Boolean) -> Unit = {},
     exportType: ShareExportType = ShareExportType.ALL,
     onExportTypeChange: (ShareExportType) -> Unit = {},
+    previewSample: IslandPreviewSample = IslandPreviewSample(),
+    previewVariableContext: VariableContext? = null,
+    widgetDoc: CustomWidgetDocument? = null,
     isSaving: Boolean = false,
     isSharing: Boolean = false,
     onSave: () -> Unit = {},
@@ -392,27 +468,16 @@ fun DesignShareSheetContent(
         }
 
         // Preview Capture Container (captured to Bitmap via graphicsLayer)
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            color = Color(0xFF141414),
-            shadowElevation = 4.dp
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                HyperOsIslandPreview(
-                    translator = design,
-                    showChrome = false,
-                    mode = previewMode,
-                    statusBarModifier = statusBarModifier,
-                    expandedModifier = expandedModifier
-                )
-            }
-        }
+        HyperOsIslandPreview(
+            translator = design,
+            sample = previewSample,
+            variableContext = previewVariableContext,
+            widgetDocument = widgetDoc,
+            showChrome = false,
+            mode = previewMode,
+            statusBarModifier = statusBarModifier,
+            expandedModifier = expandedModifier
+        )
 
         // Include linked translator option (only when sharing from Design Manager)
         if (!isTranslator) {
@@ -443,6 +508,43 @@ fun DesignShareSheetContent(
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = stringResource(R.string.design_share_include_translator_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        // Include preview placeholders option in .htrans / .hwidget (when exporting file or all)
+        if (exportType != ShareExportType.IMAGES) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onIncludePlaceholdersChange(!includePlaceholders) }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = includePlaceholders,
+                        onCheckedChange = onIncludePlaceholdersChange
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.design_share_include_placeholders_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.design_share_include_placeholders_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

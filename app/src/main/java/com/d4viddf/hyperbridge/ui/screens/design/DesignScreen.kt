@@ -728,7 +728,8 @@ fun HeroSection(useMultiColumnRow: Boolean = false) {
             }
         }
     } else {
-        val state = rememberCarouselState { items.size }
+        val itemCount = items.size
+        val state = rememberCarouselState(itemCount = remember(itemCount) { { itemCount } })
 
         HorizontalCenteredHeroCarousel(
             modifier = Modifier.fillMaxWidth(),
@@ -978,7 +979,8 @@ private fun FeaturedSection(
         )
     )
 
-    val carouselState = rememberCarouselState { featuredItems.size }
+    val featuredCount = featuredItems.size
+    val carouselState = rememberCarouselState(itemCount = remember(featuredCount) { { featuredCount } })
 
     Column(
         modifier = modifier.fillMaxWidth(),

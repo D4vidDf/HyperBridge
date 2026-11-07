@@ -8,6 +8,7 @@ import androidx.core.content.FileProvider
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.db.TranslatorDao
 import com.d4viddf.hyperbridge.data.db.TranslatorEntity
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.DataExtractionConfig
@@ -23,7 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -61,7 +61,8 @@ class TranslatorRepository(
     suspend fun exportTranslatorToZip(
         translator: CustomTranslator,
         outputStream: OutputStream,
-        includeTranslator: Boolean = true
+        includeTranslator: Boolean = true,
+        includePlaceholders: Boolean = false
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             ZipOutputStream(outputStream).use { zos ->
@@ -125,6 +126,14 @@ class TranslatorRepository(
                         }
                     }
                 }
+
+                // 4. Optional preview placeholders (texts, media, icons, artwork) when opted in
+                if (includePlaceholders) {
+                    val placeholderRepo = PreviewPlaceholderRepository(context)
+                    val designKey = translator.presentation.widgetId?.takeIf { it.isNotBlank() }
+                        ?: translator.id
+                    placeholderRepo.writePlaceholdersToZip(designKey, zos)
+                }
             }
         }
     }
@@ -134,7 +143,8 @@ class TranslatorRepository(
      */
     suspend fun exportTranslatorToFile(
         translator: CustomTranslator,
-        includeTranslator: Boolean = true
+        includeTranslator: Boolean = true,
+        includePlaceholders: Boolean = false
     ): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
             val exportDir = File(context.cacheDir, "exports")
@@ -145,7 +155,12 @@ class TranslatorRepository(
             val targetFile = File(exportDir, "$sanitizedName.$extension")
 
             targetFile.outputStream().use { fos ->
-                val exportResult = exportTranslatorToZip(translator, fos, includeTranslator)
+                val exportResult = exportTranslatorToZip(
+                    translator = translator,
+                    outputStream = fos,
+                    includeTranslator = includeTranslator,
+                    includePlaceholders = includePlaceholders
+                )
                 if (exportResult.isFailure) {
                     throw exportResult.exceptionOrNull() ?: Exception("Export failed")
                 }
@@ -300,6 +315,8 @@ class TranslatorRepository(
                 val entity = TranslatorEntity.fromCustomTranslator(translator)
                 translatorDao.insertTranslator(entity)
 
+                PreviewPlaceholderRepository(context).extractBundledPlaceholders(tempDir, finalWidgetId)
+
                 try {
                     Log.i(tag, "Custom widget design imported successfully: ${translator.meta.name} (widgetId=$finalWidgetId)")
                 } catch (_: Throwable) {}
@@ -330,6 +347,8 @@ class TranslatorRepository(
             val entity = TranslatorEntity.fromCustomTranslator(translator)
             translatorDao.insertTranslator(entity)
 
+            PreviewPlaceholderRepository(context).extractBundledPlaceholders(tempDir, translator.id)
+
             try {
                 Log.i(tag, "CustomTranslator imported successfully: ${translator.meta.name} (${translator.id})")
             } catch (_: Throwable) {}
@@ -356,10 +375,15 @@ class TranslatorRepository(
     suspend fun shareTranslator(
         context: Context,
         translator: CustomTranslator,
-        includeTranslator: Boolean = true
+        includeTranslator: Boolean = true,
+        includePlaceholders: Boolean = false
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val file = exportTranslatorToFile(translator, includeTranslator).getOrThrow()
+            val file = exportTranslatorToFile(
+                translator = translator,
+                includeTranslator = includeTranslator,
+                includePlaceholders = includePlaceholders
+            ).getOrThrow()
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",

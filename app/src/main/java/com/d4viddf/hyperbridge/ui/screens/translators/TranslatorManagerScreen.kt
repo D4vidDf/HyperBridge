@@ -180,8 +180,13 @@ fun TranslatorManagerScreen(
             title = stringResource(R.string.translators_share_sheet_title),
             isTranslator = true,
             onDismiss = { sharingTranslator = null },
-            onSharePackage = { _ ->
-                viewModel.shareTranslator(context, translatorToShare) { result ->
+            onSharePackage = { _, includePlaceholders ->
+                viewModel.shareTranslator(
+                    context = context,
+                    translator = translatorToShare,
+                    includeTranslator = true,
+                    includePlaceholders = includePlaceholders
+                ) { result ->
                     if (result.isFailure) {
                         val msg = context.getString(R.string.translators_share_failed)
                         scope.launch { snackbarHostState.showSnackbar(msg) }

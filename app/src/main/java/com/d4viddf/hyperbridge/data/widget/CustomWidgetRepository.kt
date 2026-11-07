@@ -356,6 +356,9 @@ class CustomWidgetRepository(
 
             translatorFile.writeText(CustomTranslator.toJson(translatorToSave))
 
+            // Extract optional bundled preview placeholders into sidecar storage before moving tempDir
+            PreviewPlaceholderRepository(context).extractBundledPlaceholders(tempDir, finalId)
+
             val targetDir = File(widgetsDir, finalId)
             if (targetDir.exists()) targetDir.deleteRecursively()
 
