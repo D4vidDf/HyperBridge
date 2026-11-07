@@ -89,6 +89,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -106,9 +107,12 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
 import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.data.widget.WidgetVariableEngine
 import com.d4viddf.hyperbridge.models.widget.BindableProperty
+import com.d4viddf.hyperbridge.models.widget.ButtonAction
 import com.d4viddf.hyperbridge.models.widget.ButtonIconPosition
 import com.d4viddf.hyperbridge.models.widget.ButtonNode
 import com.d4viddf.hyperbridge.models.widget.ContainerBackgroundType
@@ -169,11 +173,18 @@ fun StudioCanvas(
     hiddenNodeIds: Set<String> = emptySet(),
     scenario: StudioPreviewScenario = StudioPreviewScenario.STANDARD,
     context: VariableContext = scenario.toVariableContext(),
-    globals: CustomWidgetGlobals = CustomWidgetGlobals()
+    globals: CustomWidgetGlobals = CustomWidgetGlobals(),
+    widgetId: String? = null
 ) {
     val canvasScaleX = (canvasWidthDp / CANVAS_WIDTH_DP.toFloat()).coerceAtLeast(0.1f)
     val contextLocal = LocalContext.current
-    val effectiveColorScheme = remember(globals.colorSchemeConfig, globals.embeddedColorSchemeYaml) {
+    val effectiveColorScheme = remember(
+        globals.colorSchemeConfig,
+        globals.embeddedColorSchemeYaml,
+        context.notifSmallIconBitmap,
+        context.notifPictureBitmap,
+        context.notifAvatarBitmap
+    ) {
         com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
             context = contextLocal,
             config = globals.colorSchemeConfig,
@@ -199,7 +210,10 @@ fun StudioCanvas(
     val rootColorScheme = remember(
         effectiveColorScheme,
         root.backgroundColorSchemeConfig,
-        root.backgroundEmbeddedColorSchemeYaml
+        root.backgroundEmbeddedColorSchemeYaml,
+        context.notifSmallIconBitmap,
+        context.notifPictureBitmap,
+        context.notifAvatarBitmap
     ) {
         if (root.backgroundColorSchemeConfig != null || !root.backgroundEmbeddedColorSchemeYaml.isNullOrBlank()) {
             com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
@@ -246,13 +260,35 @@ fun StudioCanvas(
                         val bmp = when (src.mediaType) {
                             "avatar" -> effectiveContext.notifAvatarBitmap ?: effectiveContext.notifPictureBitmap ?: effectiveContext.notifSmallIconBitmap
                             "picture" -> effectiveContext.notifPictureBitmap ?: effectiveContext.notifAvatarBitmap
-                            "album_art" -> effectiveContext.notifAvatarBitmap ?: effectiveContext.notifPictureBitmap
+                            "album_art" -> effectiveContext.notifPictureBitmap ?: effectiveContext.notifAvatarBitmap
                             "small_icon" -> effectiveContext.notifSmallIconBitmap ?: effectiveContext.notifAvatarBitmap
                             else -> effectiveContext.notifAvatarBitmap ?: effectiveContext.notifPictureBitmap ?: effectiveContext.notifSmallIconBitmap
                         }
                         bmp?.asImageBitmap()
                     }
                     is ImageSource.ContactAvatarOf -> effectiveContext.notifAvatarBitmap?.asImageBitmap()
+                    is ImageSource.AppIconOf -> {
+                        val pkg = previewEngine.resolve(src.packageTemplate, effectiveContext)
+                        val iconBmp = if (pkg.isNotBlank()) {
+                            runCatching {
+                                PreviewPlaceholderRepository.drawableToBitmap(
+                                    contextLocal.packageManager.getApplicationIcon(pkg),
+                                    128
+                                )
+                            }.getOrNull()
+                        } else null
+                        (iconBmp ?: effectiveContext.notifSmallIconBitmap)?.asImageBitmap()
+                    }
+                    is ImageSource.CustomAsset -> {
+                        if (!widgetId.isNullOrBlank()) {
+                            val assetFile = CustomWidgetRepository(contextLocal).assetFile(widgetId, src.fileName)
+                            if (assetFile.exists()) BitmapFactory.decodeFile(assetFile.absolutePath)?.asImageBitmap() else null
+                        } else null
+                    }
+                    is ImageSource.SourceIcon -> {
+                        val path = previewEngine.resolve("{source.${src.sourceId}.icon}", effectiveContext)
+                        if (path.isNotBlank()) BitmapFactory.decodeFile(path)?.asImageBitmap() else null
+                    }
                     else -> null
                 }
             } else null
@@ -382,7 +418,8 @@ fun StudioCanvas(
                     context = effectiveContext,
                     zoom = zoom,
                     globals = globals,
-                    scaleX = canvasScaleX
+                    scaleX = canvasScaleX,
+                    widgetId = widgetId
                 )
             }
         }
@@ -403,7 +440,8 @@ private fun CanvasNode(
     context: VariableContext = VariableContext(),
     zoom: Float = 1f,
     globals: CustomWidgetGlobals = CustomWidgetGlobals(),
-    scaleX: Float = 1f
+    scaleX: Float = 1f,
+    widgetId: String? = null
 ) {
     if (hiddenNodeIds.contains(node.id)) return
 
@@ -523,7 +561,8 @@ private fun CanvasNode(
                 context = context,
                 zoom = zoom,
                 globals = globals,
-                scaleX = scaleX
+                scaleX = scaleX,
+                widgetId = widgetId
             )
             is TextNode -> {
                 val colorFormula = node.bindings[BindableProperty.TEXT_COLOR.key]
@@ -715,16 +754,71 @@ private fun CanvasNode(
                     TextFilterMode.MULTIPLY -> androidx.compose.ui.graphics.BlendMode.Multiply
                 }
 
+                val appCtx = LocalContext.current
+                val resolvedImageBitmap: ImageBitmap? = remember(
+                    node.source,
+                    isWireframeMode,
+                    context,
+                    widgetId
+                ) {
+                    if (isWireframeMode) return@remember null
+                    when (val src = node.source) {
+                        is ImageSource.SystemGlyph -> null
+                        is ImageSource.NotifMedia -> {
+                            val bmp = when (src.mediaType) {
+                                "avatar" -> context.notifAvatarBitmap ?: context.notifPictureBitmap ?: context.notifSmallIconBitmap
+                                "picture" -> context.notifPictureBitmap ?: context.notifAvatarBitmap
+                                "album_art" -> context.notifPictureBitmap ?: context.notifAvatarBitmap
+                                "small_icon" -> context.notifSmallIconBitmap ?: context.notifAvatarBitmap
+                                else -> context.notifAvatarBitmap ?: context.notifPictureBitmap ?: context.notifSmallIconBitmap
+                            }
+                            bmp?.asImageBitmap()
+                        }
+                        is ImageSource.ContactAvatarOf -> context.notifAvatarBitmap?.asImageBitmap()
+                        is ImageSource.AppIconOf -> {
+                            val pkg = previewEngine.resolve(src.packageTemplate, context)
+                            val pkgBmp = if (pkg.isNotBlank()) {
+                                runCatching {
+                                    PreviewPlaceholderRepository.drawableToBitmap(
+                                        appCtx.packageManager.getApplicationIcon(pkg),
+                                        128
+                                    )
+                                }.getOrNull()
+                            } else null
+                            (pkgBmp ?: context.notifSmallIconBitmap)?.asImageBitmap()
+                        }
+                        is ImageSource.CustomAsset -> {
+                            if (!widgetId.isNullOrBlank()) {
+                                runCatching {
+                                    val assetFile = CustomWidgetRepository(appCtx).assetFile(widgetId, src.fileName)
+                                    if (assetFile.exists()) BitmapFactory.decodeFile(assetFile.absolutePath)?.asImageBitmap() else null
+                                }.getOrNull()
+                            } else null
+                        }
+                        is ImageSource.SourceIcon -> {
+                            val path = previewEngine.resolve("{source.${src.sourceId}.icon}", context)
+                            if (path.isNotBlank()) {
+                                runCatching { BitmapFactory.decodeFile(path)?.asImageBitmap() }.getOrNull()
+                            } else null
+                        }
+                    }
+                }
+
                 val imageModifier = contentModifier
                     .then(if (node.blurRadius > 0) Modifier.blur(node.blurRadius.dp) else Modifier)
-                    .background(
-                        tintColor?.copy(alpha = 0.25f) ?: Color.White.copy(alpha = 0.08f),
-                        shape
-                    )
-                    .border(
-                        1.dp,
-                        tintColor?.copy(alpha = 0.5f) ?: Color.White.copy(alpha = 0.2f),
-                        shape
+                    .then(
+                        if (resolvedImageBitmap == null) {
+                            Modifier
+                                .background(
+                                    tintColor?.copy(alpha = 0.25f) ?: Color.White.copy(alpha = 0.08f),
+                                    shape
+                                )
+                                .border(
+                                    1.dp,
+                                    tintColor?.copy(alpha = 0.5f) ?: Color.White.copy(alpha = 0.2f),
+                                    shape
+                                )
+                        } else Modifier
                     )
                     .clip(shape)
 
@@ -732,47 +826,73 @@ private fun CanvasNode(
                     modifier = imageModifier,
                     contentAlignment = Alignment.Center
                 ) {
-                    val iconVector = when (val src = node.source) {
-                        is ImageSource.SystemGlyph -> studioGlyphIcon(src.glyphName)
-                        is ImageSource.AppIconOf -> Icons.Rounded.Android
-                        is ImageSource.NotifMedia -> when (src.mediaType) {
-                            "album_art" -> Icons.Rounded.MusicNote
-                            "small_icon" -> Icons.Rounded.Notifications
-                            "picture" -> Icons.Rounded.Image
-                            else -> Icons.Rounded.Notifications
+                    if (resolvedImageBitmap != null) {
+                        val contentScale = when (node.scaleType) {
+                            ImageScaleType.FIT_WIDTH -> ContentScale.FillWidth
+                            ImageScaleType.FIT_HEIGHT -> ContentScale.FillHeight
+                            ImageScaleType.FIT_CENTER -> ContentScale.Fit
+                            ImageScaleType.CENTER_CROP -> ContentScale.Crop
                         }
-                        is ImageSource.ContactAvatarOf -> Icons.Rounded.Call
-                        is ImageSource.SourceIcon -> Icons.Rounded.Widgets
-                        is ImageSource.CustomAsset -> Icons.Rounded.Image
-                    }
-                    val baseSize = minOf(nodeWidth, nodeHeight)
-                    val iconWidth = when (node.scaleType) {
-                        ImageScaleType.FIT_WIDTH -> nodeWidth.dp
-                        ImageScaleType.FIT_HEIGHT -> (nodeHeight * 0.75f).coerceAtLeast(12f).dp
-                        ImageScaleType.FIT_CENTER -> (baseSize * 0.65f).coerceAtLeast(12f).dp
-                        ImageScaleType.CENTER_CROP -> maxOf(nodeWidth, nodeHeight).dp
-                    }
-                    val iconHeight = when (node.scaleType) {
-                        ImageScaleType.FIT_WIDTH -> (nodeWidth * 0.75f).coerceAtLeast(12f).dp
-                        ImageScaleType.FIT_HEIGHT -> nodeHeight.dp
-                        ImageScaleType.FIT_CENTER -> (baseSize * 0.65f).coerceAtLeast(12f).dp
-                        ImageScaleType.CENTER_CROP -> maxOf(nodeWidth, nodeHeight).dp
-                    }
+                        Image(
+                            bitmap = resolvedImageBitmap,
+                            contentDescription = null,
+                            contentScale = contentScale,
+                            colorFilter = if (node.tintEnabled && tintColor != null) {
+                                ColorFilter.tint(tintColor)
+                            } else null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .then(
+                                    if (node.filterMode != TextFilterMode.NORMAL) {
+                                        Modifier.graphicsLayer {
+                                            blendMode = imageBlendMode
+                                        }
+                                    } else Modifier
+                                )
+                        )
+                    } else {
+                        val iconVector = when (val src = node.source) {
+                            is ImageSource.SystemGlyph -> studioGlyphIcon(src.glyphName)
+                            is ImageSource.AppIconOf -> Icons.Rounded.Android
+                            is ImageSource.NotifMedia -> when (src.mediaType) {
+                                "album_art" -> Icons.Rounded.MusicNote
+                                "small_icon" -> Icons.Rounded.Notifications
+                                "picture" -> Icons.Rounded.Image
+                                else -> Icons.Rounded.Notifications
+                            }
+                            is ImageSource.ContactAvatarOf -> Icons.Rounded.Call
+                            is ImageSource.SourceIcon -> Icons.Rounded.Widgets
+                            is ImageSource.CustomAsset -> Icons.Rounded.Image
+                        }
+                        val baseSize = minOf(nodeWidth, nodeHeight)
+                        val iconWidth = when (node.scaleType) {
+                            ImageScaleType.FIT_WIDTH -> nodeWidth.dp
+                            ImageScaleType.FIT_HEIGHT -> (nodeHeight * 0.75f).coerceAtLeast(12f).dp
+                            ImageScaleType.FIT_CENTER -> (baseSize * 0.65f).coerceAtLeast(12f).dp
+                            ImageScaleType.CENTER_CROP -> maxOf(nodeWidth, nodeHeight).dp
+                        }
+                        val iconHeight = when (node.scaleType) {
+                            ImageScaleType.FIT_WIDTH -> (nodeWidth * 0.75f).coerceAtLeast(12f).dp
+                            ImageScaleType.FIT_HEIGHT -> nodeHeight.dp
+                            ImageScaleType.FIT_CENTER -> (baseSize * 0.65f).coerceAtLeast(12f).dp
+                            ImageScaleType.CENTER_CROP -> maxOf(nodeWidth, nodeHeight).dp
+                        }
 
-                    Icon(
-                        imageVector = iconVector,
-                        contentDescription = null,
-                        tint = tintColor ?: Color.White,
-                        modifier = Modifier
-                            .size(width = iconWidth, height = iconHeight)
-                            .then(
-                                if (node.filterMode != TextFilterMode.NORMAL) {
-                                    Modifier.graphicsLayer {
-                                        blendMode = imageBlendMode
-                                    }
-                                } else Modifier
-                            )
-                    )
+                        Icon(
+                            imageVector = iconVector,
+                            contentDescription = null,
+                            tint = tintColor ?: Color.White,
+                            modifier = Modifier
+                                .size(width = iconWidth, height = iconHeight)
+                                .then(
+                                    if (node.filterMode != TextFilterMode.NORMAL) {
+                                        Modifier.graphicsLayer {
+                                            blendMode = imageBlendMode
+                                        }
+                                    } else Modifier
+                                )
+                        )
+                    }
 
                     if (node.attenuation > 0) {
                         Box(
@@ -1034,11 +1154,23 @@ private fun CanvasNode(
                 val isConditionalActive = !isWireframeMode && node.conditionalEnabled &&
                     NodeConditionEvaluator.isVisible(node.condition, context, previewEngine)
 
-                val effectiveLabel = if (isConditionalActive) (node.conditionalLabel ?: node.label) else node.label
+                val fallbackActionTitle = if (!isWireframeMode && node.action is ButtonAction.NotificationAction) {
+                    context.notificationActionTitles.getOrNull(node.action.index)
+                } else null
+
+                val effectiveLabel = if (isConditionalActive) {
+                    node.conditionalLabel ?: node.label.ifBlank { fallbackActionTitle.orEmpty() }
+                } else {
+                    node.label.ifBlank { fallbackActionTitle.orEmpty() }
+                }
                 val labelFormula = node.bindings[BindableProperty.BUTTON_LABEL.key]
                 val resolvedLabel = if (!isWireframeMode && !labelFormula.isNullOrBlank()) {
                     previewEngine.resolve(labelFormula, context).ifBlank { effectiveLabel }
-                } else effectiveLabel
+                } else {
+                    if (!isWireframeMode && effectiveLabel.contains('{')) {
+                        previewEngine.resolve(effectiveLabel, context).ifBlank { effectiveLabel }
+                    } else effectiveLabel
+                }
 
                 val effectiveIcon = if (isConditionalActive) (node.conditionalIcon ?: node.icon) else node.icon
                 val iconFormula = node.bindings[BindableProperty.BUTTON_ICON.key]
@@ -1281,13 +1413,17 @@ private fun CanvasContainer(
     context: VariableContext,
     zoom: Float = 1f,
     globals: CustomWidgetGlobals = CustomWidgetGlobals(),
-    scaleX: Float = 1f
+    scaleX: Float = 1f,
+    widgetId: String? = null
 ) {
     val contextLocal = LocalContext.current
     val containerColorScheme = remember(
         context.colorScheme,
         node.backgroundColorSchemeConfig,
-        node.backgroundEmbeddedColorSchemeYaml
+        node.backgroundEmbeddedColorSchemeYaml,
+        context.notifSmallIconBitmap,
+        context.notifPictureBitmap,
+        context.notifAvatarBitmap
     ) {
         if (node.backgroundColorSchemeConfig != null || !node.backgroundEmbeddedColorSchemeYaml.isNullOrBlank()) {
             com.d4viddf.hyperbridge.models.colorscheme.DynamicColorSchemeResolver.resolve(
@@ -1346,7 +1482,8 @@ private fun CanvasContainer(
                     context = context,
                     zoom = zoom,
                     globals = globals,
-                    scaleX = scaleX
+                    scaleX = scaleX,
+                    widgetId = widgetId
                 )
             }
         }
@@ -1368,7 +1505,8 @@ private fun CanvasContainer(
                     context = context,
                     zoom = zoom,
                     globals = globals,
-                    scaleX = scaleX
+                    scaleX = scaleX,
+                    widgetId = widgetId
                 )
             }
         }
@@ -1390,7 +1528,8 @@ private fun CanvasContainer(
                         context = context,
                         zoom = zoom,
                         globals = globals,
-                        scaleX = scaleX
+                        scaleX = scaleX,
+                        widgetId = widgetId
                     )
                 }
             }

@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -76,7 +77,8 @@ private val MOCK_STUDIO_APPS = listOf(
 @Composable
 fun StudioAppChooserDialog(
     onDismiss: () -> Unit,
-    onAppSelected: (String) -> Unit
+    onAppSelected: (String) -> Unit,
+    onAppItemSelected: ((StudioAppItem) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
@@ -100,11 +102,12 @@ fun StudioAppChooserDialog(
                         val pkg = ri.activityInfo.packageName
                         val iconDrawable = ri.loadIcon(pm)
                         val iconBmp = (iconDrawable as? BitmapDrawable)?.bitmap
+                            ?: runCatching { PreviewPlaceholderRepository.drawableToBitmap(iconDrawable, 96) }.getOrNull()
                         StudioAppItem(name = name, packageName = pkg, icon = iconBmp)
                     }.sortedBy { it.name.lowercase() }
 
                     withContext(Dispatchers.Main) {
-                        apps = if (loaded.isNotEmpty()) loaded else MOCK_STUDIO_APPS
+                        apps = loaded.ifEmpty { MOCK_STUDIO_APPS }
                         isLoading = false
                     }
                 } catch (_: Exception) {
@@ -205,7 +208,10 @@ fun StudioAppChooserDialog(
                                 ),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { onAppSelected(app.packageName) }
+                                    .clickable {
+                                        onAppItemSelected?.invoke(app)
+                                        onAppSelected(app.packageName)
+                                    }
                             ) {
                                 Row(
                                     modifier = Modifier

@@ -58,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -75,6 +76,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
+import com.d4viddf.hyperbridge.data.widget.ResolvedPlaceholderBitmaps
+import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.TargetScope
@@ -83,6 +87,7 @@ import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetGlobals
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetNode
 import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.PreviewPlaceholderConfig
 import com.d4viddf.hyperbridge.models.widget.TextFontFamily
 import com.d4viddf.hyperbridge.models.widget.adaptedContentHeight
 import com.d4viddf.hyperbridge.models.widget.adaptedContentWidth
@@ -91,6 +96,7 @@ import com.d4viddf.hyperbridge.models.widget.parentOf
 import com.d4viddf.hyperbridge.models.widget.replaceNode
 import com.d4viddf.hyperbridge.models.widget.withBounds
 import com.d4viddf.hyperbridge.ui.screens.translators.getTranslatorOutlinedIcon
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -147,11 +153,43 @@ fun StudioDesignScreen(
         var isWireframeMode by remember { mutableStateOf(false) }
         var selectedScenario by remember { mutableStateOf(StudioPreviewScenario.STANDARD) }
 
+        val scope = rememberCoroutineScope()
+        val placeholderRepo = remember(context) { PreviewPlaceholderRepository(context) }
+        val designKey = doc.id.ifBlank { widgetId ?: "draft_studio_widget" }
+        var placeholderConfig by remember {
+            mutableStateOf(PreviewPlaceholderConfig.fromScenario(StudioPreviewScenario.STANDARD))
+        }
+        var resolvedPlaceholderBitmaps by remember { mutableStateOf(ResolvedPlaceholderBitmaps()) }
+        var showPlaceholderSheet by remember { mutableStateOf(false) }
+
         // Category Tab State
         var selectedTab by remember { mutableStateOf(StudioTab.ITEMS) }
 
         LaunchedEffect(widgetId, allTranslators) {
             studioViewModel.loadWidget(widgetId, allTranslators)
+        }
+
+        LaunchedEffect(designKey) {
+            val loaded = placeholderRepo.loadConfig(designKey)
+            if (loaded != null) {
+                placeholderConfig = loaded
+                loaded.matchingScenarioOrNull()?.let { selectedScenario = it }
+            } else {
+                placeholderConfig = PreviewPlaceholderConfig.fromScenario(selectedScenario)
+            }
+        }
+
+        LaunchedEffect(designKey, placeholderConfig) {
+            resolvedPlaceholderBitmaps = placeholderRepo.resolveBitmaps(designKey, placeholderConfig)
+        }
+
+        val activePreviewContext = remember(placeholderConfig, resolvedPlaceholderBitmaps, designKey) {
+            placeholderConfig.toVariableContext(
+                pictureBitmap = resolvedPlaceholderBitmaps.pictureBitmap,
+                avatarBitmap = resolvedPlaceholderBitmaps.avatarBitmap,
+                smallIconBitmap = resolvedPlaceholderBitmaps.smallIconBitmap,
+                placeholderDir = placeholderRepo.dirFor(designKey)
+            )
         }
 
         val isDirty = doc != savedDoc
@@ -352,7 +390,34 @@ fun StudioDesignScreen(
             onMoveInto = { fromId, targetId -> studioViewModel.moveInto(fromId, targetId) },
             onCreateTranslator = { studioViewModel.createTranslatorForDesign() },
             onUpdateGlobals = { studioViewModel.updateGlobals(it) },
-            onApplyFontToAll = { studioViewModel.applyFontToAllTextNodes(it) }
+            onApplyFontToAll = { studioViewModel.applyFontToAllTextNodes(it) },
+            previewContext = activePreviewContext,
+            widgetId = doc.id,
+            isCustomPlaceholdersActive = placeholderConfig.isCustomized,
+            onOpenPlaceholderSheet = { showPlaceholderSheet = true },
+            isPlaceholderEditorOpen = showPlaceholderSheet,
+            onClosePlaceholderEditor = { showPlaceholderSheet = false },
+            placeholderConfig = placeholderConfig,
+            resolvedPlaceholderBitmaps = resolvedPlaceholderBitmaps,
+            onPlaceholderConfigChange = { updated ->
+                placeholderConfig = updated
+                updated.matchingScenarioOrNull()?.let { selectedScenario = it }
+                scope.launch { placeholderRepo.saveConfig(designKey, updated) }
+            },
+            onPickPlaceholderGalleryImage = { slotFileName, uri, onSaved ->
+                scope.launch {
+                    val savedName = placeholderRepo.saveImageFromUri(designKey, slotFileName, uri)
+                    if (savedName != null) {
+                        onSaved(savedName)
+                    }
+                }
+            },
+            onResetPlaceholderToPreset = { scenario ->
+                val fresh = PreviewPlaceholderConfig.fromScenario(scenario)
+                selectedScenario = scenario
+                placeholderConfig = fresh
+                scope.launch { placeholderRepo.saveConfig(designKey, fresh) }
+            }
         )
     }
 }
@@ -416,9 +481,37 @@ fun StudioDesignContent(
     onMoveInto: (String, String) -> Unit = { _, _ -> },
     onCreateTranslator: (() -> Unit)? = null,
     onUpdateGlobals: ((CustomWidgetGlobals) -> Unit)? = null,
-    onApplyFontToAll: ((TextFontFamily) -> Unit)? = null
+    onApplyFontToAll: ((TextFontFamily) -> Unit)? = null,
+    previewContext: VariableContext? = null,
+    widgetId: String? = null,
+    isCustomPlaceholdersActive: Boolean = false,
+    onOpenPlaceholderSheet: (() -> Unit)? = null,
+    isPlaceholderEditorOpen: Boolean = false,
+    onClosePlaceholderEditor: () -> Unit = {},
+    placeholderConfig: PreviewPlaceholderConfig = PreviewPlaceholderConfig.fromScenario(StudioPreviewScenario.STANDARD),
+    resolvedPlaceholderBitmaps: ResolvedPlaceholderBitmaps = ResolvedPlaceholderBitmaps(),
+    onPlaceholderConfigChange: (PreviewPlaceholderConfig) -> Unit = {},
+    onPickPlaceholderGalleryImage: (String, android.net.Uri, (String) -> Unit) -> Unit = { _, _, _ -> },
+    onResetPlaceholderToPreset: (StudioPreviewScenario) -> Unit = {}
 ) {
-    var isTreeVisible by rememberSaveable { mutableStateOf(true) }
+    var isTreeVisible by rememberSaveable { mutableStateOf(!isPlaceholderEditorOpen) }
+    var prevPlaceholderOpen by rememberSaveable { mutableStateOf(isPlaceholderEditorOpen) }
+    var wasTreeHiddenForPlaceholders by rememberSaveable { mutableStateOf(isPlaceholderEditorOpen) }
+
+    // Synchronously auto-hide the Left Element Tree when opening the Placeholder Side Panel (zero 1-frame flash)
+    if (prevPlaceholderOpen != isPlaceholderEditorOpen) {
+        prevPlaceholderOpen = isPlaceholderEditorOpen
+        if (isPlaceholderEditorOpen) {
+            if (isTreeVisible) {
+                wasTreeHiddenForPlaceholders = true
+                isTreeVisible = false
+            }
+        } else if (wasTreeHiddenForPlaceholders) {
+            isTreeVisible = true
+            wasTreeHiddenForPlaceholders = false
+        }
+    }
+
     // Default 1/4 width for Left Tree (0.25f), 2/4 for Center Canvas (0.50f), 1/4 for Right Inspector (0.25f)
     var leftFraction by rememberSaveable { mutableFloatStateOf(0.25f) }
     var rightFraction by rememberSaveable { mutableFloatStateOf(0.25f) }
@@ -429,6 +522,67 @@ fun StudioDesignContent(
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isExpandedScreen = maxWidth >= 600.dp
+
+        if (!isExpandedScreen && isPlaceholderEditorOpen) {
+            StudioPlaceholderFullScreen(
+                config = placeholderConfig,
+                resolvedBitmaps = resolvedPlaceholderBitmaps,
+                document = doc,
+                onConfigChange = onPlaceholderConfigChange,
+                onPickGalleryImage = onPickPlaceholderGalleryImage,
+                onResetToPreset = onResetPlaceholderToPreset,
+                onDismiss = onClosePlaceholderEditor,
+                livePreviewContent = {
+                    BoxWithConstraints(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val logicalW = CANVAS_WIDTH_DP.toFloat()
+                        val logicalH = doc.canvas.heightDp.toFloat()
+                        val fitScale = ((maxWidth.value - 8f) / logicalW).coerceIn(0.55f, 1.0f)
+                        Box(
+                            modifier = Modifier
+                                .width((logicalW * fitScale).dp)
+                                .height((logicalH * fitScale).dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(logicalW.dp)
+                                    .height(logicalH.dp)
+                                    .graphicsLayer {
+                                        scaleX = fitScale
+                                        scaleY = fitScale
+                                    }
+                            ) {
+                                StudioCanvas(
+                                    root = doc.root,
+                                    canvasWidthDp = logicalW,
+                                    canvasHeightDp = doc.canvas.heightDp,
+                                    selectedId = null,
+                                    onSelect = {},
+                                    onMove = { _, _, _ -> },
+                                    onResize = { _, _, _ -> },
+                                    zoom = 1f,
+                                    isGridVisible = false,
+                                    isWireframeMode = false,
+                                    hiddenNodeIds = hiddenNodeIds,
+                                    scenario = selectedScenario,
+                                    context = previewContext ?: selectedScenario.toVariableContext(),
+                                    globals = doc.globals,
+                                    widgetId = widgetId
+                                )
+                            }
+                        }
+                    }
+                }
+            )
+            return@BoxWithConstraints
+        }
+
+        if (isExpandedScreen && isPlaceholderEditorOpen) {
+            BackHandler(onBack = onClosePlaceholderEditor)
+        }
 
         Scaffold(
             containerColor = if (isExpandedScreen) {
@@ -576,7 +730,8 @@ fun StudioDesignContent(
                     } else {
                         0f
                     }
-                    val effectiveRightDp = (totalWidthDp * rightFraction).coerceIn(220f, totalWidthDp * 0.45f)
+                    val minRightDp = if (isPlaceholderEditorOpen) 310f else 220f
+                    val effectiveRightDp = (totalWidthDp * rightFraction).coerceIn(minRightDp, totalWidthDp * 0.46f)
                     val centerStageWidthDp = (totalWidthDp - effectiveLeftDp - effectiveRightDp).coerceAtLeast(200f)
 
                     val usableWidthDp = (centerStageWidthDp - 48f).coerceAtLeast(160f)
@@ -672,7 +827,9 @@ fun StudioDesignContent(
                                         isWireframeMode = isWireframeMode,
                                         hiddenNodeIds = hiddenNodeIds,
                                         scenario = selectedScenario,
-                                        globals = doc.globals
+                                        context = previewContext ?: selectedScenario.toVariableContext(),
+                                        globals = doc.globals,
+                                        widgetId = widgetId
                                     )
                                 }
                             }
@@ -858,6 +1015,21 @@ fun StudioDesignContent(
                                             }
                                         }
                                     }
+
+                                    if (onOpenPlaceholderSheet != null) {
+                                        StudioPreviewDataPill(
+                                            scenario = selectedScenario,
+                                            isCustomized = isCustomPlaceholdersActive,
+                                            isActive = isPlaceholderEditorOpen,
+                                            onClick = {
+                                                if (isPlaceholderEditorOpen) {
+                                                    onClosePlaceholderEditor()
+                                                } else {
+                                                    onOpenPlaceholderSheet()
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
 
                                 validationMessage?.let { message ->
@@ -905,12 +1077,12 @@ fun StudioDesignContent(
                         // Draggable Column Resize Handle (Center Stage <-> Right Inspector)
                         StudioColumnResizeHandle(
                             onDragDeltaDp = { deltaDp ->
-                                rightFraction = (rightFraction - deltaDp / totalWidthDp).coerceIn(0.18f, 0.44f)
+                                rightFraction = (rightFraction - deltaDp / totalWidthDp).coerceIn(0.18f, 0.46f)
                             },
                             onDoubleTapReset = { rightFraction = 0.25f }
                         )
 
-                        // 3. RIGHT FLOATING PANEL: Resizable Inspector Tabs & Options (Default 1/4 width)
+                        // 3. RIGHT FLOATING PANEL: Swaps between Placeholder Side Panel and Node Inspector
                         Surface(
                             modifier = Modifier
                                 .width(effectiveRightDp.dp)
@@ -921,9 +1093,24 @@ fun StudioDesignContent(
                             shadowElevation = 6.dp,
                             border = BorderStroke(
                                 1.dp,
-                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+                                if (isPlaceholderEditorOpen) {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+                                } else {
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+                                }
                             )
                         ) {
+                            if (isPlaceholderEditorOpen) {
+                                StudioPlaceholderSidePanel(
+                                    config = placeholderConfig,
+                                    resolvedBitmaps = resolvedPlaceholderBitmaps,
+                                    document = doc,
+                                    onConfigChange = onPlaceholderConfigChange,
+                                    onPickGalleryImage = onPickPlaceholderGalleryImage,
+                                    onResetToPreset = onResetPlaceholderToPreset,
+                                    onClose = onClosePlaceholderEditor
+                                )
+                            } else {
                             Column(modifier = Modifier.fillMaxSize()) {
                                 // Sticky Inspector Node Header
                                 Row(
@@ -1070,6 +1257,7 @@ fun StudioDesignContent(
                                         onDeleteNode = onDeleteNode,
                                         onToggleNodeLock = onToggleLock,
                                         scenario = selectedScenario,
+                                        previewContext = previewContext,
                                         onMoveInto = onMoveInto,
                                         onCreateTranslator = onCreateTranslator,
                                         onUpdateGlobals = onUpdateGlobals,
@@ -1078,6 +1266,7 @@ fun StudioDesignContent(
 
                                     Spacer(Modifier.height(24.dp))
                                 }
+                            }
                             }
                         }
                     }
@@ -1149,7 +1338,9 @@ fun StudioDesignContent(
                                         isWireframeMode = isWireframeMode,
                                         hiddenNodeIds = hiddenNodeIds,
                                         scenario = selectedScenario,
-                                        globals = doc.globals
+                                        context = previewContext ?: selectedScenario.toVariableContext(),
+                                        globals = doc.globals,
+                                        widgetId = widgetId
                                     )
                                 }
                             }
@@ -1164,13 +1355,28 @@ fun StudioDesignContent(
                             )
                         }
 
-                        // KWGT Breadcrumb Navigation
-                        StudioBreadcrumb(
-                            document = doc,
-                            selectedNodeId = selectedNodeId,
-                            onSelectNode = onSelectNode,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
+                        // KWGT Breadcrumb Navigation + Preview Data Pill
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            StudioBreadcrumb(
+                                document = doc,
+                                selectedNodeId = selectedNodeId,
+                                onSelectNode = onSelectNode,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (onOpenPlaceholderSheet != null) {
+                                StudioPreviewDataPill(
+                                    scenario = selectedScenario,
+                                    isCustomized = isCustomPlaceholdersActive,
+                                    onClick = onOpenPlaceholderSheet
+                                )
+                            }
+                        }
 
                         // Category Tabs (Items, Layer, Item, Container, Actions, Formulas)
                         StudioTabsRow(
@@ -1228,6 +1434,7 @@ fun StudioDesignContent(
                                 onDeleteNode = onDeleteNode,
                                 onToggleNodeLock = onToggleLock,
                                 scenario = selectedScenario,
+                                previewContext = previewContext,
                                 onMoveInto = onMoveInto,
                                 onCreateTranslator = onCreateTranslator,
                                 onUpdateGlobals = onUpdateGlobals,
@@ -1279,4 +1486,71 @@ private fun StudioColumnResizeHandle(
         )
     }
 }
+
+@Composable
+private fun StudioPreviewDataPill(
+    modifier: Modifier = Modifier,
+    scenario: StudioPreviewScenario,
+    isCustomized: Boolean,
+    isActive: Boolean = false,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = when {
+            isActive -> MaterialTheme.colorScheme.primaryContainer
+            isCustomized -> MaterialTheme.colorScheme.tertiaryContainer
+            else -> MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        border = if (isActive) {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        } else null,
+        tonalElevation = 2.dp,
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Tune,
+                contentDescription = stringResource(R.string.studio_placeholder_btn_label),
+                modifier = Modifier.size(14.dp),
+                tint = when {
+                    isActive -> MaterialTheme.colorScheme.onPrimaryContainer
+                    isCustomized -> MaterialTheme.colorScheme.onTertiaryContainer
+                    else -> MaterialTheme.colorScheme.primary
+                }
+            )
+            Text(
+                text = "${stringResource(R.string.studio_placeholder_btn_label)}: ${stringResource(scenario.labelRes)}",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = when {
+                    isActive -> MaterialTheme.colorScheme.onPrimaryContainer
+                    isCustomized -> MaterialTheme.colorScheme.onTertiaryContainer
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
+            )
+            if (isCustomized && scenario != StudioPreviewScenario.CUSTOM) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.tertiary
+                ) {
+                    Text(
+                        text = stringResource(R.string.studio_placeholder_modified_badge),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 

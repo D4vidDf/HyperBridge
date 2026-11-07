@@ -9,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -73,10 +74,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -91,17 +94,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
+import com.d4viddf.hyperbridge.data.widget.ResolvedPlaceholderBitmaps
+import com.d4viddf.hyperbridge.data.widget.VariableContext
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.PreviewPlaceholderConfig
 import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
+import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
+import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewSample
 import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioCanvas
 import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioCanvasBackground
+import com.d4viddf.hyperbridge.ui.screens.design.studio.StudioPreviewScenario
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import com.d4viddf.hyperbridge.ui.screens.translators.TranslatorViewModel
@@ -119,6 +132,7 @@ fun DesignManagerScreen(
     viewModel: TranslatorViewModel = viewModel()
 ) {
     val allTranslators by viewModel.allTranslators.collectAsState()
+    val designsRevision by viewModel.designsRevision.collectAsState()
     // Studio designs (#273) are WIDGET presentations: they open in the Studio, not the translator editor.
     val openDesign: (CustomTranslator) -> Unit = { design ->
         val widgetId = design.presentation.widgetId
@@ -128,6 +142,7 @@ fun DesignManagerScreen(
 
     DesignManagerContent(
         allTranslators = allTranslators,
+        designsRevision = designsRevision,
         onBack = onBack,
         onAddDesign = onAddDesign,
         openDesign = openDesign,
@@ -139,6 +154,7 @@ fun DesignManagerScreen(
 @Composable
 fun DesignManagerContent(
     allTranslators: List<CustomTranslator>,
+    designsRevision: Long = 0L,
     onBack: () -> Unit,
     onAddDesign: () -> Unit,
     openDesign: (CustomTranslator) -> Unit,
@@ -148,6 +164,24 @@ fun DesignManagerContent(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    var resumeTimestamp by remember { mutableLongStateOf(0L) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                resumeTimestamp = System.currentTimeMillis()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    val refreshTrigger = remember(designsRevision, resumeTimestamp) {
+        designsRevision + resumeTimestamp
+    }
 
     var searchQuery by remember { mutableStateOf("") }
     var showPreviewView by remember { mutableStateOf(true) }
@@ -449,6 +483,7 @@ fun DesignManagerContent(
                             design = design,
                             shape = shape,
                             showPreview = showPreviewView,
+                            refreshTrigger = refreshTrigger,
                             onToggle = { isEnabled -> viewModel.toggleTranslator(design.id, isEnabled) },
                             onClick = { openDesign(design) },
                             onDuplicate = { viewModel.duplicateTranslator(design) },
@@ -492,9 +527,17 @@ fun DesignManagerContent(
         DesignShareBottomSheet(
             design = designToShare,
             isTranslator = false,
-            onDismiss = { sharingDesign = null },
-            onSharePackage = { includeTranslator ->
-                viewModel.shareTranslator(context, designToShare, includeTranslator) { result ->
+            onDismiss = {
+                sharingDesign = null
+                resumeTimestamp = System.currentTimeMillis()
+            },
+            onSharePackage = { includeTranslator, includePlaceholders ->
+                viewModel.shareTranslator(
+                    context = context,
+                    translator = designToShare,
+                    includeTranslator = includeTranslator,
+                    includePlaceholders = includePlaceholders
+                ) { result ->
                     if (result.isFailure) {
                         val msg = context.getString(R.string.translators_share_failed)
                         scope.launch { snackbarHostState.showSnackbar(msg) }
@@ -636,6 +679,7 @@ fun DesignPreviewCardItem(
     shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp),
     isChecked: Boolean = design.isEnabled,
     showPreview: Boolean = true,
+    refreshTrigger: Long = 0L,
     onToggle: (Boolean) -> Unit,
     onClick: () -> Unit = {},
     onDuplicate: () -> Unit = {},
@@ -646,11 +690,44 @@ fun DesignPreviewCardItem(
     val template = IslandTemplateCatalog.find(design.presentation.templateId)
     val isCustomWidget = design.presentation.mode == PresentationMode.WIDGET
     val context = LocalContext.current
-    val repository = remember { CustomWidgetRepository(context) }
-    val widgetDoc by produceState<CustomWidgetDocument?>(initialValue = null, design.presentation.widgetId) {
-        value = if (isCustomWidget && !design.presentation.widgetId.isNullOrBlank()) {
-            repository.getWidget(design.presentation.widgetId)
+    val widgetRepo = remember(context) { CustomWidgetRepository(context) }
+    val placeholderRepo = remember(context) { PreviewPlaceholderRepository(context) }
+    val designKey = design.presentation.widgetId?.takeIf { it.isNotBlank() } ?: design.id
+
+    var widgetDoc by remember(designKey) { mutableStateOf<CustomWidgetDocument?>(null) }
+    var placeholderConfig by remember(designKey) {
+        mutableStateOf(PreviewPlaceholderConfig.fromScenario(StudioPreviewScenario.STANDARD))
+    }
+    var resolvedBitmaps by remember(designKey) { mutableStateOf(ResolvedPlaceholderBitmaps()) }
+
+    LaunchedEffect(designKey, design.presentation.widgetId, design, refreshTrigger) {
+        widgetDoc = if (isCustomWidget && !design.presentation.widgetId.isNullOrBlank()) {
+            widgetRepo.getWidget(design.presentation.widgetId)
         } else null
+
+        val loaded = placeholderRepo.loadConfig(designKey)
+        placeholderConfig = loaded ?: PreviewPlaceholderConfig.fromScenario(StudioPreviewScenario.STANDARD)
+    }
+
+    LaunchedEffect(designKey, placeholderConfig) {
+        resolvedBitmaps = placeholderRepo.resolveBitmaps(designKey, placeholderConfig)
+    }
+
+    val previewSample = remember(placeholderConfig, resolvedBitmaps) {
+        placeholderConfig.toIslandPreviewSample(
+            pictureBitmap = resolvedBitmaps.pictureBitmap,
+            avatarBitmap = resolvedBitmaps.avatarBitmap,
+            smallIconBitmap = resolvedBitmaps.smallIconBitmap
+        )
+    }
+
+    val previewVariableContext = remember(placeholderConfig, resolvedBitmaps, designKey) {
+        placeholderConfig.toVariableContext(
+            pictureBitmap = resolvedBitmaps.pictureBitmap,
+            avatarBitmap = resolvedBitmaps.avatarBitmap,
+            smallIconBitmap = resolvedBitmaps.smallIconBitmap,
+            placeholderDir = placeholderRepo.dirFor(designKey)
+        )
     }
 
     val subtitleText = if (isCustomWidget) {
@@ -773,7 +850,9 @@ fun DesignPreviewCardItem(
                 DesignLivePreviewBox(
                     design = design,
                     isCustomWidget = isCustomWidget,
-                    widgetDoc = widgetDoc
+                    widgetDoc = widgetDoc,
+                    previewSample = previewSample,
+                    previewVariableContext = previewVariableContext
                 )
             }
 
@@ -1026,17 +1105,24 @@ private fun DesignScopeChip(design: CustomTranslator) {
 private fun DesignLivePreviewBox(
     design: CustomTranslator,
     isCustomWidget: Boolean,
-    widgetDoc: CustomWidgetDocument?
+    widgetDoc: CustomWidgetDocument?,
+    previewSample: IslandPreviewSample = IslandPreviewSample(),
+    previewVariableContext: VariableContext? = null
 ) {
     if (isCustomWidget) {
         if (widgetDoc != null) {
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(18.dp)),
+                contentAlignment = Alignment.Center
             ) {
+                val availableWidthDp = maxWidth.value
+                val effectiveWidgetCtx = previewVariableContext
+                    ?: StudioPreviewScenario.STANDARD.toVariableContext()
                 StudioCanvas(
                     root = widgetDoc.root,
+                    canvasWidthDp = availableWidthDp,
                     canvasHeightDp = widgetDoc.canvas.heightDp,
                     selectedId = null,
                     onSelect = {},
@@ -1044,7 +1130,10 @@ private fun DesignLivePreviewBox(
                     onResize = { _, _, _ -> },
                     zoom = 1f,
                     isGridVisible = false,
-                    isWireframeMode = false
+                    isWireframeMode = false,
+                    context = effectiveWidgetCtx,
+                    globals = widgetDoc.globals,
+                    widgetId = widgetDoc.id
                 )
             }
         } else {
@@ -1066,7 +1155,11 @@ private fun DesignLivePreviewBox(
     } else {
         HyperOsIslandPreview(
             translator = design,
-            showChrome = false
+            sample = previewSample,
+            variableContext = previewVariableContext,
+            widgetDocument = widgetDoc,
+            showChrome = false,
+            mode = IslandPreviewMode.EXPANDED
         )
     }
 }
