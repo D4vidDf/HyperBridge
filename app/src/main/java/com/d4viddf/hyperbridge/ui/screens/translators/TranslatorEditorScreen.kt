@@ -13,13 +13,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -121,6 +122,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Slider
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
@@ -128,15 +131,19 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -146,9 +153,11 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -156,6 +165,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
 import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.translator.ActionDisplayMode
 import com.d4viddf.hyperbridge.models.translator.ActionMatchBy
@@ -168,6 +178,7 @@ import com.d4viddf.hyperbridge.models.translator.CallTypeCondition
 import com.d4viddf.hyperbridge.models.translator.CustomTranslator
 import com.d4viddf.hyperbridge.models.translator.DataExtractionConfig
 import com.d4viddf.hyperbridge.models.translator.EngineMode
+import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
 import com.d4viddf.hyperbridge.models.translator.MediaConditions
 import com.d4viddf.hyperbridge.models.translator.MessagingConditions
 import com.d4viddf.hyperbridge.models.translator.NavigationConditions
@@ -175,24 +186,25 @@ import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
 import com.d4viddf.hyperbridge.models.translator.PillMediaItem
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
-import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
-import com.d4viddf.hyperbridge.models.translator.withResolvedTemplate
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.ProgressConditions
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
 import com.d4viddf.hyperbridge.models.translator.SmartActionType
-import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
-import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.models.translator.TargetScope
 import com.d4viddf.hyperbridge.models.translator.TextSlotConfig
 import com.d4viddf.hyperbridge.models.translator.ThemeBinding
 import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
 import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
 import com.d4viddf.hyperbridge.models.translator.TypeSpecificConditions
+import com.d4viddf.hyperbridge.models.translator.withResolvedTemplate
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
 import com.d4viddf.hyperbridge.ui.components.EmptyState
-import com.d4viddf.hyperbridge.ui.components.island.IslandTemplateGallery
+import com.d4viddf.hyperbridge.ui.components.EnginePreview
 import com.d4viddf.hyperbridge.ui.components.island.HyperOsIslandPreview
+import com.d4viddf.hyperbridge.ui.components.island.IslandPreviewMode
+import com.d4viddf.hyperbridge.ui.components.island.IslandTemplateGallery
+import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerHelpSheet
 import com.d4viddf.hyperbridge.ui.screens.theme.AppItem
 import com.d4viddf.hyperbridge.ui.screens.theme.ShapeStyle
 import com.d4viddf.hyperbridge.ui.screens.theme.content.AppIcon
@@ -200,16 +212,35 @@ import com.d4viddf.hyperbridge.ui.screens.theme.content.AppSelectionSheet
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import com.d4viddf.hyperbridge.ui.screens.theme.getShapeFromId
 import com.d4viddf.hyperbridge.ui.screens.theme.safeParseColor
-import com.d4viddf.hyperbridge.ui.screens.design.DesignManagerHelpSheet
 import com.d4viddf.hyperbridge.util.DocumentationUrls
-import androidx.compose.ui.platform.LocalUriHandler
 import java.util.UUID
+import kotlin.math.roundToInt
+
+private val TRANSLATOR_SPLIT_MIN_WIDTH = 560.dp
 
 enum class TranslatorRoute {
-    MAIN_MENU, CONDITIONS, PRESENTATION, PILL, PROGRESS, ACTIONS, BEHAVIOR, APPS
+    MAIN_MENU,
+    CONDITIONS,
+    CONDITIONS_ADD,
+    PRESENTATION,
+    PRESENTATION_MODE,
+    PRESENTATION_TEMPLATES,
+    PRESENTATION_WIDGETS,
+    PRESENTATION_THEMES,
+    PRESENTATION_LEFT_ICON,
+    PILL,
+    PILL_LEFT,
+    PILL_RIGHT,
+    PILL_MEDIA_ORDER,
+    PROGRESS,
+    PROGRESS_TYPE,
+    ACTIONS,
+    BEHAVIOR,
+    BEHAVIOR_ENGINE,
+    APPS,
+    APPS_SCOPE
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorEditorScreen(
     translatorId: String? = null,
@@ -262,7 +293,6 @@ fun TranslatorEditorScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorEditorContent(
     translator: CustomTranslator,
@@ -274,51 +304,455 @@ fun TranslatorEditorContent(
     onSave: () -> Unit,
     onBack: () -> Unit
 ) {
-    var currentRoute by remember { mutableStateOf(TranslatorRoute.MAIN_MENU) }
+    var stackNames by rememberSaveable {
+        mutableStateOf(listOf(TranslatorRoute.MAIN_MENU.name))
+    }
+    var previousStackSize by rememberSaveable { mutableIntStateOf(1) }
     var showMetaSheet by remember { mutableStateOf(false) }
 
-    val handleBackNavigation = {
-        if (currentRoute == TranslatorRoute.MAIN_MENU) {
-            onBack()
+    val stack = remember(stackNames) {
+        stackNames.mapNotNull { name ->
+            runCatching { TranslatorRoute.valueOf(name) }.getOrNull()
+        }.ifEmpty { listOf(TranslatorRoute.MAIN_MENU) }
+    }
+
+    // Keep the stack consistent when presentation mode or pill design hides child routes
+    LaunchedEffect(
+        translator.presentation.mode,
+        translator.presentation.templateId,
+        translator.presentation.pill.leftDesign
+    ) {
+        val mode = translator.presentation.mode
+        val validStack = stack.takeWhile { route ->
+            when (route) {
+                TranslatorRoute.MAIN_MENU,
+                TranslatorRoute.APPS,
+                TranslatorRoute.APPS_SCOPE,
+                TranslatorRoute.CONDITIONS,
+                TranslatorRoute.CONDITIONS_ADD,
+                TranslatorRoute.BEHAVIOR,
+                TranslatorRoute.BEHAVIOR_ENGINE -> true
+
+                TranslatorRoute.PRESENTATION,
+                TranslatorRoute.PRESENTATION_MODE -> mode != PresentationMode.RAW_PARAM_V2
+
+                TranslatorRoute.PRESENTATION_TEMPLATES -> mode == PresentationMode.TEMPLATE
+                TranslatorRoute.PRESENTATION_WIDGETS -> mode == PresentationMode.WIDGET
+                TranslatorRoute.PRESENTATION_THEMES -> mode == PresentationMode.STANDARD || mode == PresentationMode.TEMPLATE
+                TranslatorRoute.PRESENTATION_LEFT_ICON -> mode == PresentationMode.STANDARD ||
+                    (mode == PresentationMode.TEMPLATE && !translator.presentation.templateId.isNullOrBlank())
+
+                TranslatorRoute.PILL,
+                TranslatorRoute.PILL_LEFT,
+                TranslatorRoute.PILL_RIGHT -> mode != PresentationMode.RAW_PARAM_V2
+
+                TranslatorRoute.PILL_MEDIA_ORDER -> mode != PresentationMode.RAW_PARAM_V2 &&
+                    translator.presentation.pill.leftDesign == PillLeftDesign.MEDIA
+
+                TranslatorRoute.PROGRESS,
+                TranslatorRoute.PROGRESS_TYPE,
+                TranslatorRoute.ACTIONS -> mode == PresentationMode.STANDARD || mode == PresentationMode.TEMPLATE
+            }
+        }.ifEmpty { listOf(TranslatorRoute.MAIN_MENU) }
+
+        if (validStack.size != stack.size) {
+            previousStackSize = stack.size
+            stackNames = validStack.map { it.name }
+        }
+    }
+
+    fun navigateFrom(source: TranslatorRoute, target: TranslatorRoute) {
+        val sourceIndex = stack.lastIndexOf(source)
+        previousStackSize = stack.size
+        stackNames = if (sourceIndex != -1) {
+            if (stack.getOrNull(sourceIndex + 1) == target && stack.size == sourceIndex + 2) {
+                // Tapping the already-open option in the left pane deselects it and returns to source
+                stack.take(sourceIndex + 1).map { it.name }
+            } else {
+                (stack.take(sourceIndex + 1) + target).map { it.name }
+            }
         } else {
-            currentRoute = TranslatorRoute.MAIN_MENU
+            (stack + target).map { it.name }
+        }
+    }
+
+    fun popFrom(route: TranslatorRoute) {
+        if (route == TranslatorRoute.MAIN_MENU) {
+            onBack()
+            return
+        }
+        val idx = stack.lastIndexOf(route)
+        previousStackSize = stack.size
+        if (idx > 0) {
+            stackNames = stack.take(idx).map { it.name }
+        } else if (stack.size > 1) {
+            stackNames = stack.dropLast(1).map { it.name }
         }
     }
 
     BackHandler(enabled = true) {
-        handleBackNavigation()
+        popFrom(stack.last())
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        val isSplitMode = maxWidth >= TRANSLATOR_SPLIT_MIN_WIDTH
+
+        if (isSplitMode) {
+            val leftRoute = if (stack.size >= 2) stack[stack.size - 2] else TranslatorRoute.MAIN_MENU
+            val rightRoute: TranslatorRoute? = if (stack.size >= 2) stack.last() else null
+            val isForward = stack.size >= previousStackSize
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // LEFT PANE: Always shows MAIN_MENU at depth 1 & 2, cascades to parent route at depth 3+
+                Box(
+                    modifier = Modifier
+                        .weight(0.44f)
+                        .fillMaxHeight()
+                ) {
+                    AnimatedContent(
+                        targetState = leftRoute,
+                        transitionSpec = {
+                            if (isForward) {
+                                slideInHorizontally { it / 2 } + fadeIn() togetherWith
+                                    slideOutHorizontally { -it / 2 } + fadeOut()
+                            } else {
+                                slideInHorizontally { -it / 2 } + fadeIn() togetherWith
+                                    slideOutHorizontally { it / 2 } + fadeOut()
+                            }
+                        },
+                        label = "TranslatorLeftCascade"
+                    ) { route ->
+                        val selectedInLeft = if (stack.size >= 2 && route == leftRoute) rightRoute else null
+                        if (route == TranslatorRoute.MAIN_MENU) {
+                            TranslatorPaneScaffold(
+                                route = route,
+                                translatorName = translator.meta.name,
+                                isLeftPane = true,
+                                onBackClick = { popFrom(route) },
+                                onSave = onSave
+                            ) {
+                                TranslatorNodeBody(
+                                    route = route,
+                                    selectedChild = selectedInLeft,
+                                    isSplitMode = true,
+                                    isLeftPane = true,
+                                    translator = translator,
+                                    onTranslatorChange = onTranslatorChange,
+                                    installedApps = installedApps,
+                                    systemApps = systemApps,
+                                    installedThemes = installedThemes,
+                                    onFetchChannels = onFetchChannels,
+                                    onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                                    onPopRoute = { popFrom(it) },
+                                    onEditMetadata = { showMetaSheet = true }
+                                )
+                            }
+                        } else {
+                            TranslatorDetailPaneSurface {
+                                TranslatorPaneScaffold(
+                                    route = route,
+                                    translatorName = translator.meta.name,
+                                    isLeftPane = true,
+                                    onBackClick = { popFrom(route) },
+                                    onSave = onSave
+                                ) {
+                                    TranslatorNodeBody(
+                                        route = route,
+                                        selectedChild = selectedInLeft,
+                                        isSplitMode = true,
+                                        isLeftPane = true,
+                                        translator = translator,
+                                        onTranslatorChange = onTranslatorChange,
+                                        installedApps = installedApps,
+                                        systemApps = systemApps,
+                                        installedThemes = installedThemes,
+                                        onFetchChannels = onFetchChannels,
+                                        onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                                        onPopRoute = { popFrom(it) },
+                                        onEditMetadata = { showMetaSheet = true }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // RIGHT PANE: Shows "Nothing is selected" at depth 1, or active detail/sub-pane at depth 2+
+                Box(
+                    modifier = Modifier
+                        .weight(0.56f)
+                        .fillMaxHeight()
+                ) {
+                    TranslatorDetailPaneSurface {
+                        AnimatedContent(
+                            targetState = rightRoute,
+                            transitionSpec = {
+                                if (targetState == null) {
+                                    fadeIn() togetherWith slideOutHorizontally { it / 3 } + fadeOut()
+                                } else if (initialState == null || isForward) {
+                                    slideInHorizontally { it / 2 } + fadeIn() togetherWith
+                                        slideOutHorizontally { -it / 3 } + fadeOut()
+                                } else {
+                                    slideInHorizontally { -it / 3 } + fadeIn() togetherWith
+                                        slideOutHorizontally { it / 2 } + fadeOut()
+                                }
+                            },
+                            label = "TranslatorRightDetail"
+                        ) { route ->
+                            if (route == null) {
+                                TranslatorNothingSelectedPane()
+                            } else {
+                                TranslatorPaneScaffold(
+                                    route = route,
+                                    translatorName = translator.meta.name,
+                                    isLeftPane = false,
+                                    onBackClick = { popFrom(route) },
+                                    onSave = onSave
+                                ) {
+                                    TranslatorNodeBody(
+                                        route = route,
+                                        selectedChild = null,
+                                        isSplitMode = true,
+                                        isLeftPane = false,
+                                        translator = translator,
+                                        onTranslatorChange = onTranslatorChange,
+                                        installedApps = installedApps,
+                                        systemApps = systemApps,
+                                        installedThemes = installedThemes,
+                                        onFetchChannels = onFetchChannels,
+                                        onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                                        onPopRoute = { popFrom(it) },
+                                        onEditMetadata = { showMetaSheet = true }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // COMPACT / PHONE MODE: Single full-screen pane showing stack.last()
+            val currentRoute = stack.last()
+            val isForward = stack.size >= previousStackSize
+            AnimatedContent(
+                targetState = currentRoute,
+                transitionSpec = {
+                    if (isForward && targetState != TranslatorRoute.MAIN_MENU) {
+                        slideInHorizontally { it } + fadeIn() togetherWith
+                            slideOutHorizontally { -it } + fadeOut()
+                    } else {
+                        slideInHorizontally { -it } + fadeIn() togetherWith
+                            slideOutHorizontally { it } + fadeOut()
+                    }
+                },
+                label = "TranslatorCompactNav"
+            ) { route ->
+                TranslatorPaneScaffold(
+                    route = route,
+                    translatorName = translator.meta.name,
+                    isLeftPane = true,
+                    onBackClick = { popFrom(route) },
+                    onSave = onSave
+                ) {
+                    TranslatorNodeBody(
+                        route = route,
+                        selectedChild = null,
+                        isSplitMode = false,
+                        isLeftPane = true,
+                        translator = translator,
+                        onTranslatorChange = onTranslatorChange,
+                        installedApps = installedApps,
+                        systemApps = systemApps,
+                        installedThemes = installedThemes,
+                        onFetchChannels = onFetchChannels,
+                        onNavigateFrom = { src, dst -> navigateFrom(src, dst) },
+                        onPopRoute = { popFrom(it) },
+                        onEditMetadata = { showMetaSheet = true }
+                    )
+                }
+            }
+        }
+
+        if (showMetaSheet) {
+            TranslatorMetadataSheet(
+                translator = translator,
+                onTranslatorChange = onTranslatorChange,
+                onDismiss = { showMetaSheet = false }
+            )
+        }
+    }
+}
+
+@Composable
+private fun TranslatorDetailPaneSurface(
+    content: @Composable () -> Unit
+) {
+    val baseScheme = MaterialTheme.colorScheme
+    val detailScheme = remember(baseScheme) {
+        baseScheme.copy(
+            background = baseScheme.surfaceContainerLow,
+            surface = baseScheme.surfaceContainerLow,
+            surfaceContainerLow = baseScheme.surfaceContainer
+        )
+    }
+    MaterialTheme(colorScheme = detailScheme) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(28.dp)),
+            shape = RoundedCornerShape(28.dp),
+            color = baseScheme.surfaceContainerLow
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun TranslatorNothingSelectedPane() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.width(340.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(88.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Tune,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = stringResource(R.string.creator_nothing_selected_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.translator_nothing_selected_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun TranslatorPaneScaffold(
+    route: TranslatorRoute,
+    translatorName: String,
+    isLeftPane: Boolean,
+    onBackClick: () -> Unit,
+    onSave: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val titleText = when (route) {
+        TranslatorRoute.MAIN_MENU -> translatorName.ifBlank { stringResource(R.string.translator_editor_title_edit) }
+        TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_conditions_title)
+        TranslatorRoute.CONDITIONS_ADD -> stringResource(R.string.translator_cond_sheet_title)
+        TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation)
+        TranslatorRoute.PRESENTATION_MODE -> stringResource(R.string.translator_pres_mode_sheet_title)
+        TranslatorRoute.PRESENTATION_TEMPLATES -> stringResource(R.string.translator_pres_template_sheet_title)
+        TranslatorRoute.PRESENTATION_WIDGETS -> stringResource(R.string.select_app_widget)
+        TranslatorRoute.PRESENTATION_THEMES -> stringResource(R.string.translator_pres_theme_sheet_title)
+        TranslatorRoute.PRESENTATION_LEFT_ICON -> stringResource(R.string.translator_pres_icon_sheet_title)
+        TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill)
+        TranslatorRoute.PILL_LEFT -> stringResource(R.string.translator_pill_left_sheet_title)
+        TranslatorRoute.PILL_RIGHT -> stringResource(R.string.translator_pill_right_sheet_title)
+        TranslatorRoute.PILL_MEDIA_ORDER -> stringResource(R.string.translator_pill_media_order_title)
+        TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress)
+        TranslatorRoute.PROGRESS_TYPE -> stringResource(R.string.translator_prog_type_sheet_title)
+        TranslatorRoute.ACTIONS -> stringResource(R.string.translator_actions_title)
+        TranslatorRoute.BEHAVIOR -> stringResource(R.string.translator_menu_behavior)
+        TranslatorRoute.BEHAVIOR_ENGINE -> stringResource(R.string.translator_behavior_engine_mode_sheet_title)
+        TranslatorRoute.APPS -> stringResource(R.string.translator_select_apps)
+        TranslatorRoute.APPS_SCOPE -> stringResource(R.string.translator_scope_sheet_title)
+    }
+
+    val subtitleText: String? = when (route) {
+        TranslatorRoute.CONDITIONS_ADD -> stringResource(R.string.translator_conditions_title)
+        TranslatorRoute.PRESENTATION_MODE,
+        TranslatorRoute.PRESENTATION_TEMPLATES,
+        TranslatorRoute.PRESENTATION_WIDGETS,
+        TranslatorRoute.PRESENTATION_THEMES,
+        TranslatorRoute.PRESENTATION_LEFT_ICON -> stringResource(R.string.translator_menu_presentation)
+        TranslatorRoute.PILL_LEFT,
+        TranslatorRoute.PILL_RIGHT,
+        TranslatorRoute.PILL_MEDIA_ORDER -> stringResource(R.string.translator_menu_pill)
+        TranslatorRoute.PROGRESS_TYPE -> stringResource(R.string.translator_menu_progress)
+        TranslatorRoute.BEHAVIOR_ENGINE -> stringResource(R.string.translator_menu_behavior)
+        TranslatorRoute.APPS_SCOPE -> stringResource(R.string.translator_select_apps)
+        else -> null
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = when (currentRoute) {
-                            TranslatorRoute.MAIN_MENU -> if (translator.meta.name.isBlank()) stringResource(R.string.translator_editor_title_edit) else translator.meta.name
-                            TranslatorRoute.CONDITIONS -> stringResource(R.string.translator_conditions_title)
-                            TranslatorRoute.PRESENTATION -> stringResource(R.string.translator_menu_presentation)
-                            TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill)
-                            TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress)
-                            TranslatorRoute.ACTIONS -> stringResource(R.string.translator_actions_title)
-                            TranslatorRoute.BEHAVIOR -> stringResource(R.string.translator_menu_behavior)
-                            TranslatorRoute.APPS -> stringResource(R.string.translator_select_apps)
-                        },
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = titleText,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (subtitleText != null) {
+                            Text(
+                                text = subtitleText,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     FilledTonalIconButton(
-                        onClick = handleBackNavigation,
+                        onClick = onBackClick,
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(
+                            imageVector = if (isLeftPane) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 actions = {
-                    if (currentRoute == TranslatorRoute.MAIN_MENU) {
+                    if (route == TranslatorRoute.MAIN_MENU) {
                         Button(
                             onClick = onSave,
                             colors = ButtonDefaults.buttonColors(
@@ -341,115 +775,346 @@ fun TranslatorEditorContent(
                 .padding(top = padding.calculateTopPadding())
                 .fillMaxSize()
         ) {
-            AnimatedContent(
-                targetState = currentRoute,
-                transitionSpec = {
-                    if (targetState == TranslatorRoute.MAIN_MENU) {
-                        slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
-                    } else {
-                        slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
-                    }
-                },
-                label = "TranslatorNav"
-            ) { route ->
-                when (route) {
-                    TranslatorRoute.MAIN_MENU -> TranslatorMainList(
+            content()
+        }
+    }
+}
+
+@Composable
+private fun TranslatorNodeBody(
+    route: TranslatorRoute,
+    selectedChild: TranslatorRoute?,
+    isSplitMode: Boolean,
+    isLeftPane: Boolean,
+    translator: CustomTranslator,
+    onTranslatorChange: (CustomTranslator) -> Unit,
+    installedApps: List<AppItem>,
+    systemApps: List<AppItem>,
+    installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme>,
+    onFetchChannels: suspend (List<String>) -> List<NotificationChannelInfo>,
+    onNavigateFrom: (source: TranslatorRoute, target: TranslatorRoute) -> Unit,
+    onPopRoute: (TranslatorRoute) -> Unit,
+    onEditMetadata: () -> Unit
+) {
+    // In split mode at Depth 2 (!isLeftPane), MAIN_MENU on the left already displays the live preview.
+    // On phones (!isSplitMode) or when cascaded into the left pane at Depth 3+ (isLeftPane), keep the sticky preview.
+    val showDetailShellPreview = !isSplitMode || isLeftPane
+    val subRouteCallback: ((TranslatorRoute) -> Unit)? = if (isSplitMode) {
+        { subRoute -> onNavigateFrom(route, subRoute) }
+    } else {
+        null
+    }
+
+    @Composable
+    fun MaybeDetailShell(body: @Composable () -> Unit) {
+        if (showDetailShellPreview) {
+            TranslatorDetailShell(
+                previewContent = {
+                    HyperOsIslandPreview(
                         translator = translator,
                         installedThemes = installedThemes,
-                        onNavigate = { currentRoute = it },
-                        onEditMetadata = { showMetaSheet = true }
+                        showChrome = !isSplitMode
                     )
-                    TranslatorRoute.CONDITIONS -> Box(Modifier.fillMaxSize()) {
-                        TranslatorConditionsContent(
-                            conditions = translator.conditions,
-                            targetPackages = translator.targetPackages,
-                            targetNotificationTypes = translator.targetNotificationTypes,
-                            onFetchChannels = onFetchChannels,
-                            onChange = { onTranslatorChange(translator.copy(conditions = it)) }
-                        )
-                    }
-                    TranslatorRoute.PRESENTATION -> TranslatorDetailShell(
-                        previewContent = {
-                            HyperOsIslandPreview(
-                                translator = translator,
-                                installedThemes = installedThemes
-                            )
-                        }
-                    ) {
-                        TranslatorPresentationContent(
-                            presentation = translator.presentation,
-                            themeBinding = translator.themeBinding,
-                            installedThemes = installedThemes,
-                            onPresentationChange = { onTranslatorChange(translator.copy(presentation = it)) },
-                            onThemeBindingChange = { onTranslatorChange(translator.copy(themeBinding = it)) }
-                        )
-                    }
-                    TranslatorRoute.PILL -> Box(Modifier.fillMaxSize()) {
-                        TranslatorPillContent(
-                            pillConfig = translator.presentation.pill,
-                            installedThemes = installedThemes,
-                            themeBinding = translator.themeBinding,
-                            onPillConfigChange = { onTranslatorChange(translator.copy(presentation = translator.presentation.copy(pill = it))) }
-                        )
-                    }
-                    TranslatorRoute.PROGRESS -> TranslatorDetailShell(
-                        previewContent = {
-                            HyperOsIslandPreview(
-                                translator = translator,
-                                installedThemes = installedThemes
-                            )
-                        }
-                    ) {
-                        TranslatorProgressContent(
-                            progressSlot = translator.presentation.progressSlot,
-                            dataExtraction = translator.dataExtraction,
-                            onProgressSlotChange = { onTranslatorChange(translator.copy(presentation = translator.presentation.copy(progressSlot = it))) },
-                            onDataExtractionChange = { onTranslatorChange(translator.copy(dataExtraction = it)) }
-                        )
-                    }
-                    TranslatorRoute.ACTIONS -> TranslatorDetailShell(
-                        previewContent = {
-                            HyperOsIslandPreview(
-                                translator = translator,
-                                installedThemes = installedThemes
-                            )
-                        }
-                    ) {
-                        TranslatorActionsContent(
-                            actionSlots = translator.presentation.actionSlots,
-                            onChange = { onTranslatorChange(translator.copy(presentation = translator.presentation.copy(actionSlots = it))) }
-                        )
-                    }
-                    TranslatorRoute.BEHAVIOR -> Box(Modifier.fillMaxSize()) {
-                        TranslatorBehaviorContent(
-                            behavior = translator.behaviorOverride,
-                            engineMode = translator.engineMode,
-                            onBehaviorChange = { onTranslatorChange(translator.copy(behaviorOverride = it)) },
-                            onEngineModeChange = { onTranslatorChange(translator.copy(engineMode = it)) }
-                        )
-                    }
-                    TranslatorRoute.APPS -> Box(Modifier.fillMaxSize()) {
-                        TranslatorAppsContent(
-                            translator = translator,
-                            installedApps = installedApps,
-                            systemApps = systemApps,
-                            onTargetScopeChange = { scope, packages ->
-                                onTranslatorChange(translator.copy(targetScope = scope, targetPackages = packages))
-                            },
-                            onTargetNotificationTypesChange = { types ->
-                                onTranslatorChange(translator.copy(targetNotificationTypes = types))
-                            }
-                        )
-                    }
                 }
+            ) {
+                body()
+            }
+        } else {
+            Box(Modifier.fillMaxSize()) {
+                body()
             }
         }
+    }
 
-        if (showMetaSheet) {
-            TranslatorMetadataSheet(
+    when (route) {
+        TranslatorRoute.MAIN_MENU -> TranslatorMainList(
+            translator = translator,
+            installedThemes = installedThemes,
+            selectedRoute = selectedChild,
+            onNavigate = { target -> onNavigateFrom(TranslatorRoute.MAIN_MENU, target) },
+            onEditMetadata = onEditMetadata
+        )
+
+        TranslatorRoute.CONDITIONS -> Box(Modifier.fillMaxSize()) {
+            TranslatorConditionsContent(
+                conditions = translator.conditions,
+                targetPackages = translator.targetPackages,
+                targetNotificationTypes = translator.targetNotificationTypes,
+                selectedSubRoute = selectedChild,
+                onOpenSubRoute = subRouteCallback,
+                onFetchChannels = onFetchChannels,
+                onChange = { onTranslatorChange(translator.copy(conditions = it)) }
+            )
+        }
+        TranslatorRoute.CONDITIONS_ADD -> Box(Modifier.fillMaxSize()) {
+            AddConditionFieldContent(
+                conditions = translator.conditions,
+                targetNotificationTypes = translator.targetNotificationTypes,
+                showHeader = false,
+                onConditionFieldAdded = { updated ->
+                    onTranslatorChange(translator.copy(conditions = updated))
+                }
+            )
+        }
+
+        TranslatorRoute.PRESENTATION -> MaybeDetailShell {
+            TranslatorPresentationContent(
+                presentation = translator.presentation,
+                themeBinding = translator.themeBinding,
+                installedThemes = installedThemes,
+                selectedSubRoute = selectedChild,
+                onOpenSubRoute = subRouteCallback,
+                onPresentationChange = { onTranslatorChange(translator.copy(presentation = it)) },
+                onThemeBindingChange = { onTranslatorChange(translator.copy(themeBinding = it)) }
+            )
+        }
+        TranslatorRoute.PRESENTATION_MODE -> Box(Modifier.fillMaxSize()) {
+            PresentationModeSelectionContent(
+                currentMode = translator.presentation.mode,
+                showHeader = false,
+                onModeSelected = { newMode ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = IslandTemplateCatalog.effectivePresentation(
+                                translator.presentation.copy(mode = newMode)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PRESENTATION_TEMPLATES -> Box(Modifier.fillMaxSize()) {
+            TemplateSelectionContent(
+                currentTemplateId = translator.presentation.templateId,
+                showHeader = false,
+                onTemplateSelected = { newTemplateId ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = IslandTemplateCatalog.applyTemplate(
+                                translator.presentation,
+                                newTemplateId
+                            )
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PRESENTATION_WIDGETS -> Box(Modifier.fillMaxSize()) {
+            WidgetSelectionContent(
+                currentWidgetId = translator.presentation.widgetId,
+                showHeader = false,
+                onWidgetSelected = { newWidgetId ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(widgetId = newWidgetId)
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PRESENTATION_THEMES -> Box(Modifier.fillMaxSize()) {
+            ThemeSelectionContent(
+                currentThemeId = translator.themeBinding.themeId,
+                installedThemes = installedThemes,
+                showHeader = false,
+                onThemeSelected = { newThemeId ->
+                    onTranslatorChange(
+                        translator.copy(
+                            themeBinding = translator.themeBinding.copy(themeId = newThemeId)
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PRESENTATION_LEFT_ICON -> Box(Modifier.fillMaxSize()) {
+            LeftIconSelectionContent(
+                currentSource = translator.presentation.leftSlot.source,
+                showHeader = false,
+                onSourceSelected = { newSource ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(
+                                leftSlot = translator.presentation.leftSlot.copy(source = newSource)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+
+        TranslatorRoute.PILL -> Box(Modifier.fillMaxSize()) {
+            TranslatorPillContent(
+                pillConfig = translator.presentation.pill,
+                installedThemes = installedThemes,
+                themeBinding = translator.themeBinding,
+                showInlinePreview = showDetailShellPreview,
+                selectedSubRoute = selectedChild,
+                onOpenSubRoute = subRouteCallback,
+                onPillConfigChange = {
+                    onTranslatorChange(
+                        translator.copy(presentation = translator.presentation.copy(pill = it))
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PILL_LEFT -> Box(Modifier.fillMaxSize()) {
+            TranslatorPillLeftSelectionContent(
+                selected = translator.presentation.pill.leftDesign,
+                showHeader = false,
+                onSelect = { newLeft ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(
+                                pill = translator.presentation.pill.copy(leftDesign = newLeft)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PILL_RIGHT -> Box(Modifier.fillMaxSize()) {
+            TranslatorPillRightSelectionContent(
+                selected = translator.presentation.pill.rightDesign,
+                showHeader = false,
+                onSelect = { newRight ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(
+                                pill = translator.presentation.pill.copy(rightDesign = newRight)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PILL_MEDIA_ORDER -> Box(Modifier.fillMaxSize()) {
+            TranslatorPillMediaOrderContent(
+                mediaOrder = translator.presentation.pill.mediaOrder,
+                showHeader = false,
+                onUpdateOrder = { newOrder ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(
+                                pill = translator.presentation.pill.copy(mediaOrder = newOrder)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+
+        TranslatorRoute.PROGRESS -> MaybeDetailShell {
+            TranslatorProgressContent(
+                progressSlot = translator.presentation.progressSlot,
+                dataExtraction = translator.dataExtraction,
+                selectedSubRoute = selectedChild,
+                onOpenSubRoute = subRouteCallback,
+                onProgressSlotChange = {
+                    onTranslatorChange(
+                        translator.copy(presentation = translator.presentation.copy(progressSlot = it))
+                    )
+                },
+                onDataExtractionChange = { onTranslatorChange(translator.copy(dataExtraction = it)) }
+            )
+        }
+        TranslatorRoute.PROGRESS_TYPE -> Box(Modifier.fillMaxSize()) {
+            ProgressSlotTypeSelectionContent(
+                currentType = translator.presentation.progressSlot.type,
+                showHeader = false,
+                onTypeSelected = { newType ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(
+                                progressSlot = translator.presentation.progressSlot.copy(type = newType)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+
+        TranslatorRoute.ACTIONS -> MaybeDetailShell {
+            TranslatorActionsContent(
+                actionSlots = translator.presentation.actionSlots,
+                onChange = {
+                    onTranslatorChange(
+                        translator.copy(presentation = translator.presentation.copy(actionSlots = it))
+                    )
+                }
+            )
+        }
+
+        TranslatorRoute.BEHAVIOR -> Box(Modifier.fillMaxSize()) {
+            TranslatorBehaviorContent(
+                behavior = translator.behaviorOverride,
+                engineMode = translator.engineMode,
+                selectedSubRoute = selectedChild,
+                onOpenSubRoute = subRouteCallback,
+                onBehaviorChange = { onTranslatorChange(translator.copy(behaviorOverride = it)) },
+                onEngineModeChange = { onTranslatorChange(translator.copy(engineMode = it)) }
+            )
+        }
+        TranslatorRoute.BEHAVIOR_ENGINE -> Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 8.dp)
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Text(
+                    text = stringResource(R.string.preview),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(10.dp))
+                EnginePreview(isNative = translator.engineMode == EngineMode.NATIVE_LIVE_UPDATE)
+                Spacer(Modifier.height(12.dp))
+            }
+            TranslatorEngineSelectionContent(
+                currentMode = translator.engineMode,
+                showHeader = false,
+                onModeSelected = { newEngine ->
+                    onTranslatorChange(translator.copy(engineMode = newEngine))
+                }
+            )
+        }
+
+        TranslatorRoute.APPS -> Box(Modifier.fillMaxSize()) {
+            TranslatorAppsContent(
                 translator = translator,
-                onTranslatorChange = onTranslatorChange,
-                onDismiss = { showMetaSheet = false }
+                installedApps = installedApps,
+                systemApps = systemApps,
+                selectedSubRoute = selectedChild,
+                onOpenSubRoute = subRouteCallback,
+                onTargetScopeChange = { scope, packages ->
+                    onTranslatorChange(translator.copy(targetScope = scope, targetPackages = packages))
+                },
+                onTargetNotificationTypesChange = { types ->
+                    onTranslatorChange(translator.copy(targetNotificationTypes = types))
+                }
+            )
+        }
+        TranslatorRoute.APPS_SCOPE -> Box(Modifier.fillMaxSize()) {
+            TranslatorScopeSelectionContent(
+                currentScope = translator.targetScope,
+                showHeader = false,
+                onScopeSelected = { newScope ->
+                    val updatedPackages = if (newScope == TargetScope.GLOBAL || newScope == TargetScope.NOTIFICATION_TYPE) {
+                        emptyList()
+                    } else if (newScope != translator.targetScope) {
+                        emptyList()
+                    } else {
+                        translator.targetPackages
+                    }
+                    onTranslatorChange(
+                        translator.copy(
+                            targetScope = newScope,
+                            targetPackages = updatedPackages
+                        )
+                    )
+                    if (!isSplitMode) {
+                        onPopRoute(TranslatorRoute.APPS_SCOPE)
+                    }
+                }
             )
         }
     }
@@ -459,9 +1124,22 @@ fun TranslatorEditorContent(
 fun TranslatorMainList(
     translator: CustomTranslator,
     installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme> = emptyList(),
+    selectedRoute: TranslatorRoute? = null,
     onNavigate: (TranslatorRoute) -> Unit,
     onEditMetadata: () -> Unit
 ) {
+    var previewMode by remember { mutableStateOf(IslandPreviewMode.EXPANDED) }
+
+    LaunchedEffect(selectedRoute) {
+        when (selectedRoute) {
+            TranslatorRoute.PILL -> previewMode = IslandPreviewMode.COMPACT_PILL
+            TranslatorRoute.PRESENTATION,
+            TranslatorRoute.PROGRESS,
+            TranslatorRoute.ACTIONS -> previewMode = IslandPreviewMode.EXPANDED
+            else -> {}
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -475,7 +1153,9 @@ fun TranslatorMainList(
         ) {
             HyperOsIslandPreview(
                 translator = translator,
-                installedThemes = installedThemes
+                installedThemes = installedThemes,
+                mode = previewMode,
+                onModeChange = { previewMode = it }
             )
         }
 
@@ -584,7 +1264,12 @@ fun TranslatorMainList(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 menuItems.forEachIndexed { index, route ->
-                    val shape = getExpressiveShape(menuItems.size, index, ShapeStyle.Large)
+                    val isSelected = selectedRoute == route
+                    val shape = if (isSelected) {
+                        RoundedCornerShape(20.dp)
+                    } else {
+                        getExpressiveShape(menuItems.size, index, ShapeStyle.Large)
+                    }
 
                     val icon = when (route) {
                         TranslatorRoute.APPS -> Icons.Outlined.Apps
@@ -629,7 +1314,8 @@ fun TranslatorMainList(
                         subtitle = subtitle,
                         icon = icon,
                         shape = shape,
-                        onClick = { onNavigate(route) }
+                        onClick = { onNavigate(route) },
+                        selected = isSelected
                     )
                 }
             }
@@ -646,27 +1332,48 @@ fun TranslatorOptionCard(
     icon: ImageVector,
     shape: Shape,
     onClick: () -> Unit,
-    trailingContent: (@Composable () -> Unit)? = null
+    trailingContent: (@Composable () -> Unit)? = null,
+    selected: Boolean = false
 ) {
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
     Card(
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         shape = shape,
         modifier = Modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 88.dp)
+            .defaultMinSize(minHeight = 76.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 76.dp)
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             if (trailingContent != null) {
                 trailingContent()
@@ -675,7 +1382,7 @@ fun TranslatorOptionCard(
                     Icons.AutoMirrored.Rounded.ArrowForwardIos,
                     null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
             }
         }
@@ -841,6 +1548,8 @@ fun TranslatorConditionsContent(
     conditions: TranslatorConditions,
     targetPackages: List<String> = emptyList(),
     targetNotificationTypes: List<String> = emptyList(),
+    selectedSubRoute: TranslatorRoute? = null,
+    onOpenSubRoute: ((TranslatorRoute) -> Unit)? = null,
     onFetchChannels: suspend (List<String>) -> List<NotificationChannelInfo> = { emptyList() },
     onChange: (TranslatorConditions) -> Unit
 ) {
@@ -902,13 +1611,29 @@ fun TranslatorConditionsContent(
         }
 
         // Add Pattern Action Button
+        val isAddPatternSelected = selectedSubRoute == TranslatorRoute.CONDITIONS_ADD
         Button(
-            onClick = { showAddPatternSheet = true },
+            onClick = {
+                if (onOpenSubRoute != null) {
+                    onOpenSubRoute(TranslatorRoute.CONDITIONS_ADD)
+                } else {
+                    showAddPatternSheet = true
+                }
+            },
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth(),
+            border = if (isAddPatternSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                containerColor = if (isAddPatternSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.primaryContainer
+                },
+                contentColor = if (isAddPatternSelected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                }
             )
         ) {
             Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -1017,7 +1742,7 @@ fun TranslatorConditionsContent(
                         Icon(Icons.Outlined.Tune, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = if (conditions.channelId.isNotBlank()) conditions.channelId else stringResource(R.string.translator_cond_channel_select_btn),
+                            text = conditions.channelId.ifBlank { stringResource(R.string.translator_cond_channel_select_btn) },
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -1118,7 +1843,7 @@ fun TranslatorConditionsContent(
                         modifier = Modifier.weight(1f)
                     )
                     Switch(
-                        checked = conditions.hasProgress == true,
+                        checked = conditions.hasProgress,
                         onCheckedChange = { onChange(conditions.copy(hasProgress = it)) }
                     )
                 }
@@ -1143,7 +1868,7 @@ fun TranslatorConditionsContent(
                         modifier = Modifier.weight(1f)
                     )
                     Switch(
-                        checked = conditions.hasActions == true,
+                        checked = conditions.hasActions,
                         onCheckedChange = { onChange(conditions.copy(hasActions = it)) }
                     )
                 }
@@ -1216,7 +1941,7 @@ fun TranslatorConditionsContent(
                         modifier = Modifier.weight(1f)
                     )
                     Switch(
-                        checked = messaging.isGroupConversation == true,
+                        checked = messaging.isGroupConversation,
                         onCheckedChange = {
                             val updated = messaging.copy(isGroupConversation = it)
                             onChange(conditions.copy(typeSpecificConditions = typeConds.copy(messaging = updated)))
@@ -1292,7 +2017,7 @@ fun TranslatorConditionsContent(
                         modifier = Modifier.weight(1f)
                     )
                     Switch(
-                        checked = media.isPlaying == true,
+                        checked = media.isPlaying,
                         onCheckedChange = {
                             val updated = media.copy(isPlaying = it)
                             onChange(conditions.copy(typeSpecificConditions = typeConds.copy(media = updated)))
@@ -1571,7 +2296,10 @@ fun AddConditionFieldSheet(
     onDismiss: () -> Unit,
     onConditionFieldAdded: (TranslatorConditions) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -1589,6 +2317,7 @@ fun AddConditionFieldSheet(
 fun AddConditionFieldContent(
     conditions: TranslatorConditions,
     targetNotificationTypes: List<String>,
+    showHeader: Boolean = true,
     onConditionFieldAdded: (TranslatorConditions) -> Unit
 ) {
     val typeConds = conditions.typeSpecificConditions ?: TypeSpecificConditions()
@@ -1673,20 +2402,21 @@ fun AddConditionFieldContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp)
-            .navigationBarsPadding()
+            .then(if (showHeader) Modifier.padding(24.dp).navigationBarsPadding() else Modifier.fillMaxSize().padding(16.dp))
     ) {
-        Text(
-            text = stringResource(R.string.translator_cond_sheet_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(Modifier.height(16.dp))
+        if (showHeader) {
+            Text(
+                text = stringResource(R.string.translator_cond_sheet_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(16.dp))
+        }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             grouped.forEach { (groupRes, options) ->
@@ -1815,12 +2545,13 @@ fun AddConditionFieldContent(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TranslatorPresentationContent(
     presentation: PresentationConfig,
     themeBinding: ThemeBinding = ThemeBinding(),
     installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme> = emptyList(),
+    selectedSubRoute: TranslatorRoute? = null,
+    onOpenSubRoute: ((TranslatorRoute) -> Unit)? = null,
     onPresentationChange: (PresentationConfig) -> Unit,
     onThemeBindingChange: (ThemeBinding) -> Unit
 ) {
@@ -1901,10 +2632,25 @@ fun TranslatorPresentationContent(
                     }
                 }
 
+                val isModeSelected = selectedSubRoute == TranslatorRoute.PRESENTATION_MODE
+                val openModePicker = {
+                    if (onOpenSubRoute != null) {
+                        onOpenSubRoute(TranslatorRoute.PRESENTATION_MODE)
+                    } else {
+                        showModeSheet = true
+                    }
+                }
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
-                    onClick = { showModeSheet = true },
+                    border = if (isModeSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isModeSelected) {
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHighest
+                        }
+                    ),
+                    onClick = openModePicker,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -1933,7 +2679,7 @@ fun TranslatorPresentationContent(
                             )
                         }
                         FilledTonalButton(
-                            onClick = { showModeSheet = true },
+                            onClick = openModePicker,
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                         ) {
@@ -1946,9 +2692,17 @@ fun TranslatorPresentationContent(
 
         // --- 2. WIP / SELECTOR CARDS FOR TEMPLATE & WIDGET ---
         if (presentation.mode == PresentationMode.TEMPLATE) {
+            val isTemplateSelected = selectedSubRoute == TranslatorRoute.PRESENTATION_TEMPLATES
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)),
+                border = if (isTemplateSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isTemplateSelected) {
+                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                    } else {
+                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)
+                    }
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -1986,11 +2740,17 @@ fun TranslatorPresentationContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Button(
-                        onClick = { showTemplateSheet = true },
+                        onClick = {
+                            if (onOpenSubRoute != null) {
+                                onOpenSubRoute(TranslatorRoute.PRESENTATION_TEMPLATES)
+                            } else {
+                                showTemplateSheet = true
+                            }
+                        },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary,
-                            contentColor = MaterialTheme.colorScheme.onTertiary
+                            containerColor = if (isTemplateSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                            contentColor = if (isTemplateSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiary
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -2019,9 +2779,17 @@ fun TranslatorPresentationContent(
                 } else null
             }
 
+            val isWidgetSelected = selectedSubRoute == TranslatorRoute.PRESENTATION_WIDGETS
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)),
+                border = if (isWidgetSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isWidgetSelected) {
+                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                    } else {
+                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)
+                    }
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -2059,11 +2827,17 @@ fun TranslatorPresentationContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Button(
-                        onClick = { showWidgetSheet = true },
+                        onClick = {
+                            if (onOpenSubRoute != null) {
+                                onOpenSubRoute(TranslatorRoute.PRESENTATION_WIDGETS)
+                            } else {
+                                showWidgetSheet = true
+                            }
+                        },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary,
-                            contentColor = MaterialTheme.colorScheme.onTertiary
+                            containerColor = if (isWidgetSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                            contentColor = if (isWidgetSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiary
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -2130,10 +2904,25 @@ fun TranslatorPresentationContent(
                         }
                     }
 
+                    val isThemeSelected = selectedSubRoute == TranslatorRoute.PRESENTATION_THEMES
+                    val openThemePicker = {
+                        if (onOpenSubRoute != null) {
+                            onOpenSubRoute(TranslatorRoute.PRESENTATION_THEMES)
+                        } else {
+                            showThemeSheet = true
+                        }
+                    }
                     Card(
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
-                        onClick = { showThemeSheet = true },
+                        border = if (isThemeSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isThemeSelected) {
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHighest
+                            }
+                        ),
+                        onClick = openThemePicker,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -2158,7 +2947,7 @@ fun TranslatorPresentationContent(
 
                             }
                             FilledTonalButton(
-                                onClick = { showThemeSheet = true },
+                                onClick = openThemePicker,
                                 shape = RoundedCornerShape(12.dp),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                             ) {
@@ -2232,10 +3021,25 @@ fun TranslatorPresentationContent(
                         }
                     }
 
+                    val isLeftIconSelected = selectedSubRoute == TranslatorRoute.PRESENTATION_LEFT_ICON
+                    val openLeftIconPicker = {
+                        if (onOpenSubRoute != null) {
+                            onOpenSubRoute(TranslatorRoute.PRESENTATION_LEFT_ICON)
+                        } else {
+                            showLeftIconSheet = true
+                        }
+                    }
                     Card(
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
-                        onClick = { showLeftIconSheet = true },
+                        border = if (isLeftIconSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isLeftIconSelected) {
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHighest
+                            }
+                        ),
+                        onClick = openLeftIconPicker,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -2264,7 +3068,7 @@ fun TranslatorPresentationContent(
                                 )
                             }
                             FilledTonalButton(
-                                onClick = { showLeftIconSheet = true },
+                                onClick = openLeftIconPicker,
                                 shape = RoundedCornerShape(12.dp),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                             ) {
@@ -2426,7 +3230,6 @@ fun TranslatorPresentationContent(
 }
 
 // --- TEMPLATE FIELD WITH DISMISSABLE VARIABLE CHIPS & SCROLLABLE INSERT ROW ---
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TranslatorTemplateFieldWithChips(
     value: String,
@@ -2518,7 +3321,10 @@ fun PresentationModeSelectionSheet(
     onDismiss: () -> Unit,
     onModeSelected: (PresentationMode) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2534,6 +3340,7 @@ fun PresentationModeSelectionSheet(
 @Composable
 fun PresentationModeSelectionContent(
     currentMode: PresentationMode,
+    showHeader: Boolean = true,
     onModeSelected: (PresentationMode) -> Unit
 ) {
     val modes = listOf(
@@ -2557,26 +3364,27 @@ fun PresentationModeSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.AutoMirrored.Outlined.ViewQuilt,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_pres_mode_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.ViewQuilt,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pres_mode_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         Text(
@@ -2588,7 +3396,7 @@ fun PresentationModeSelectionContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(modes) { (mode, textResPair, icon) ->
@@ -2659,7 +3467,10 @@ fun ThemeSelectionSheet(
     onDismiss: () -> Unit,
     onThemeSelected: (String) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2677,37 +3488,39 @@ fun ThemeSelectionSheet(
 fun ThemeSelectionContent(
     currentThemeId: String,
     installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme>,
+    showHeader: Boolean = true,
     onThemeSelected: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.Palette,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_pres_theme_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.Palette,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pres_theme_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Option 1: Active Theme Default
@@ -2832,7 +3645,10 @@ fun TemplateSelectionSheet(
     onDismiss: () -> Unit,
     onTemplateSelected: (String) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2848,31 +3664,33 @@ fun TemplateSelectionSheet(
 @Composable
 fun TemplateSelectionContent(
     currentTemplateId: String?,
+    showHeader: Boolean = true,
     onTemplateSelected: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.DashboardCustomize,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_pres_template_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.DashboardCustomize,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pres_template_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         Text(
@@ -2884,7 +3702,7 @@ fun TemplateSelectionContent(
         IslandTemplateGallery(
             currentTemplateId = currentTemplateId,
             onTemplateSelected = onTemplateSelected,
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = Modifier.weight(1f, fill = !showHeader)
         )
     }
 }
@@ -2897,7 +3715,10 @@ fun WidgetSelectionSheet(
     onDismiss: () -> Unit,
     onWidgetSelected: (String) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2913,12 +3734,13 @@ fun WidgetSelectionSheet(
 @Composable
 fun WidgetSelectionContent(
     currentWidgetId: String?,
+    showHeader: Boolean = true,
     onWidgetSelected: (String) -> Unit,
     widgets: List<CustomWidgetDocument>? = null
 ) {
     val context = LocalContext.current
     val repository = remember(context) { CustomWidgetRepository(context) }
-    var loadedWidgets by remember { mutableStateOf<List<CustomWidgetDocument>?>(widgets) }
+    var loadedWidgets by remember { mutableStateOf(widgets) }
 
     LaunchedEffect(widgets) {
         if (widgets == null) {
@@ -2929,26 +3751,27 @@ fun WidgetSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.Widgets,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.select_app_widget),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.Widgets,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.select_app_widget),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         val widgetList = loadedWidgets
@@ -3068,7 +3891,10 @@ fun LeftIconSelectionSheet(
     onDismiss: () -> Unit,
     onSourceSelected: (String) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -3084,6 +3910,7 @@ fun LeftIconSelectionSheet(
 @Composable
 fun LeftIconSelectionContent(
     currentSource: String,
+    showHeader: Boolean = true,
     onSourceSelected: (String) -> Unit
 ) {
     val options = listOf(
@@ -3095,26 +3922,27 @@ fun LeftIconSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.Image,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_pres_icon_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.Image,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pres_icon_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         Text(
@@ -3126,7 +3954,7 @@ fun LeftIconSelectionContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(options) { (sourceKey, nameRes, icon) ->
@@ -3191,6 +4019,8 @@ fun LeftIconSelectionContent(
 fun TranslatorProgressContent(
     progressSlot: ProgressSlotConfig,
     dataExtraction: DataExtractionConfig,
+    selectedSubRoute: TranslatorRoute? = null,
+    onOpenSubRoute: ((TranslatorRoute) -> Unit)? = null,
     onProgressSlotChange: (ProgressSlotConfig) -> Unit,
     onDataExtractionChange: (DataExtractionConfig) -> Unit
 ) {
@@ -3313,9 +4143,25 @@ fun TranslatorProgressContent(
                     }
                 }
 
+                val isProgressTypeSelected = selectedSubRoute == TranslatorRoute.PROGRESS_TYPE
+                val openProgressTypePicker = {
+                    if (onOpenSubRoute != null) {
+                        onOpenSubRoute(TranslatorRoute.PROGRESS_TYPE)
+                    } else {
+                        showTypeSheet = true
+                    }
+                }
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    border = if (isProgressTypeSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isProgressTypeSelected) {
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        }
+                    ),
+                    onClick = openProgressTypePicker,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -3349,7 +4195,7 @@ fun TranslatorProgressContent(
                         Spacer(Modifier.width(12.dp))
 
                         FilledTonalButton(
-                            onClick = { showTypeSheet = true },
+                            onClick = openProgressTypePicker,
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(stringResource(R.string.translator_prog_type_select_btn))
@@ -3567,7 +4413,10 @@ fun ProgressSlotTypeSelectionSheet(
     onDismiss: () -> Unit,
     onTypeSelected: (ProgressSlotType) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -3583,6 +4432,7 @@ fun ProgressSlotTypeSelectionSheet(
 @Composable
 fun ProgressSlotTypeSelectionContent(
     currentType: ProgressSlotType,
+    showHeader: Boolean = true,
     onTypeSelected: (ProgressSlotType) -> Unit
 ) {
     val types = listOf(
@@ -3611,26 +4461,27 @@ fun ProgressSlotTypeSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.Speed,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_prog_type_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.Speed,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_prog_type_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         Text(
@@ -3642,7 +4493,7 @@ fun ProgressSlotTypeSelectionContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(types) { (type, textResPair, icon) ->
@@ -4333,7 +5184,10 @@ fun ActionSourceSelectionSheet(
     onDismiss: () -> Unit,
     onSourceSelected: (ActionSource) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -4472,7 +5326,10 @@ fun SmartActionTypeSelectionSheet(
     onDismiss: () -> Unit,
     onTypeSelected: (SmartActionType) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -4611,7 +5468,10 @@ fun ActionDisplayModeSelectionSheet(
     onDismiss: () -> Unit,
     onModeSelected: (ActionDisplayMode) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -4731,11 +5591,12 @@ fun ActionDisplayModeSelectionContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorBehaviorContent(
     behavior: BehaviorOverride,
     engineMode: EngineMode,
+    selectedSubRoute: TranslatorRoute? = null,
+    onOpenSubRoute: ((TranslatorRoute) -> Unit)? = null,
     onBehaviorChange: (BehaviorOverride) -> Unit,
     onEngineModeChange: (EngineMode) -> Unit
 ) {
@@ -4830,6 +5691,7 @@ fun TranslatorBehaviorContent(
         }
 
         // --- SECTION 1: ENGINE CONFIGURATION ---
+        val isEngineSelected = selectedSubRoute == TranslatorRoute.BEHAVIOR_ENGINE
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = stringResource(R.string.engine_config_title),
@@ -4840,7 +5702,14 @@ fun TranslatorBehaviorContent(
 
             Card(
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                border = if (isEngineSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isEngineSelected) {
+                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainer
+                    }
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -4888,7 +5757,13 @@ fun TranslatorBehaviorContent(
                     }
 
                     Button(
-                        onClick = { showEngineSheet = true },
+                        onClick = {
+                            if (onOpenSubRoute != null) {
+                                onOpenSubRoute(TranslatorRoute.BEHAVIOR_ENGINE)
+                            } else {
+                                showEngineSheet = true
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -4964,15 +5839,24 @@ fun TranslatorBehaviorContent(
                             )
 
                             val currentIndex = timeoutSteps.indexOf(currentTimeout).coerceAtLeast(0).toFloat()
-
-                            androidx.compose.material3.Slider(
+                            val timeoutSliderState = rememberSliderState(
                                 value = currentIndex,
+                                steps = timeoutSteps.size - 2,
+                                trackRange = 0f..(timeoutSteps.size - 1).toFloat()
+                            )
+                            SideEffect {
+                                if (!timeoutSliderState.isDragging && timeoutSliderState.value != currentIndex) {
+                                    timeoutSliderState.value = currentIndex
+                                }
+                            }
+
+                            Slider(
+                                state = timeoutSliderState,
                                 onValueChange = { index ->
-                                    val selectedSeconds = timeoutSteps[index.toInt()]
+                                    timeoutSliderState.value = index
+                                    val selectedSeconds = timeoutSteps[index.roundToInt().coerceIn(0, timeoutSteps.lastIndex)]
                                     onBehaviorChange(behavior.copy(timeoutSeconds = selectedSeconds))
-                                },
-                                valueRange = 0f..(timeoutSteps.size - 1).toFloat(),
-                                steps = timeoutSteps.size - 2
+                                }
                             )
 
                             Text(
@@ -5044,15 +5928,24 @@ fun TranslatorBehaviorContent(
                             )
 
                             val currentIndexPop = timePopUpSteps.indexOf(currentFloatTimeout).coerceAtLeast(1).toFloat()
-
-                            androidx.compose.material3.Slider(
+                            val floatTimeoutSliderState = rememberSliderState(
                                 value = currentIndexPop,
+                                steps = timePopUpSteps.size - 2,
+                                trackRange = 0f..(timePopUpSteps.size - 1).toFloat()
+                            )
+                            SideEffect {
+                                if (!floatTimeoutSliderState.isDragging && floatTimeoutSliderState.value != currentIndexPop) {
+                                    floatTimeoutSliderState.value = currentIndexPop
+                                }
+                            }
+
+                            Slider(
+                                state = floatTimeoutSliderState,
                                 onValueChange = { index ->
-                                    val selectedSeconds = timePopUpSteps[index.toInt()]
+                                    floatTimeoutSliderState.value = index
+                                    val selectedSeconds = timePopUpSteps[index.roundToInt().coerceIn(0, timePopUpSteps.lastIndex)]
                                     onBehaviorChange(behavior.copy(floatTimeoutSeconds = selectedSeconds))
-                                },
-                                valueRange = 0f..(timePopUpSteps.size - 1).toFloat(),
-                                steps = timePopUpSteps.size - 2
+                                }
                             )
                             Text(
                                 text = stringResource(R.string.setting_float_timeout_desc),
@@ -5335,7 +6228,10 @@ fun TranslatorEngineSelectionSheet(
     onDismiss: () -> Unit,
     onModeSelected: (EngineMode) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -5351,6 +6247,7 @@ fun TranslatorEngineSelectionSheet(
 @Composable
 fun TranslatorEngineSelectionContent(
     currentMode: EngineMode,
+    showHeader: Boolean = true,
     onModeSelected: (EngineMode) -> Unit
 ) {
     val options = listOf(
@@ -5374,32 +6271,33 @@ fun TranslatorEngineSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 8.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.Tune,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_behavior_engine_mode_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.Tune,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_behavior_engine_mode_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(options) { (mode, titleRes, descRes) ->
@@ -5479,12 +6377,13 @@ fun TranslatorBehaviorGuideSheet(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TranslatorAppsContent(
     translator: CustomTranslator,
     installedApps: List<AppItem>,
     systemApps: List<AppItem> = emptyList(),
+    selectedSubRoute: TranslatorRoute? = null,
+    onOpenSubRoute: ((TranslatorRoute) -> Unit)? = null,
     onTargetScopeChange: (TargetScope, List<String>) -> Unit,
     onTargetNotificationTypesChange: (List<String>) -> Unit
 ) {
@@ -5547,12 +6446,28 @@ fun TranslatorAppsContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    val isScopeSelected = selectedSubRoute == TranslatorRoute.APPS_SCOPE
                     Button(
-                        onClick = { showScopeSheet = true },
+                        onClick = {
+                            if (onOpenSubRoute != null) {
+                                onOpenSubRoute(TranslatorRoute.APPS_SCOPE)
+                            } else {
+                                showScopeSheet = true
+                            }
+                        },
                         shape = RoundedCornerShape(12.dp),
+                        border = if (isScopeSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            containerColor = if (isScopeSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            },
+                            contentColor = if (isScopeSelected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            }
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -5809,7 +6724,10 @@ fun TranslatorScopeSelectionSheet(
     onDismiss: () -> Unit,
     onScopeSelected: (TargetScope) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -5825,20 +6743,22 @@ fun TranslatorScopeSelectionSheet(
 @Composable
 fun TranslatorScopeSelectionContent(
     currentScope: TargetScope,
+    showHeader: Boolean = true,
     onScopeSelected: (TargetScope) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp)
-            .navigationBarsPadding(),
+            .then(if (showHeader) Modifier.padding(24.dp).navigationBarsPadding() else Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = stringResource(R.string.translator_scope_sheet_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
+        if (showHeader) {
+            Text(
+                text = stringResource(R.string.translator_scope_sheet_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
         Card(
             shape = RoundedCornerShape(16.dp),
@@ -5951,7 +6871,10 @@ fun NotificationTypeSelectionSheet(
     onDismiss: () -> Unit,
     onTypesSelected: (List<String>) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -6057,7 +6980,10 @@ fun NotificationChannelSelectionSheet(
     onChannelSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -6232,7 +7158,10 @@ fun TranslatorMetadataSheet(
     onDismiss: () -> Unit
 ) {
     val fm = LocalFocusManager.current
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
     var showIconSheet by remember { mutableStateOf(false) }
     var showPrioritySheet by remember { mutableStateOf(false) }
 
@@ -6455,7 +7384,10 @@ fun TranslatorIconSelectionSheet(
     onIconSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -6542,7 +7474,10 @@ fun TranslatorPrioritySheet(
     onPriorityChange: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
     var textValue by remember(priority) { mutableStateOf(priority.toString()) }
 
     ModalBottomSheet(
@@ -6615,7 +7550,7 @@ fun TranslatorPrioritySheet(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             textStyle = MaterialTheme.typography.titleLarge.copy(
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Bold
                             ),
                             shape = RoundedCornerShape(12.dp),
@@ -7160,12 +8095,15 @@ fun ActionDisplayModeSelectionSheetPreview() {
 // PILL CUSTOMIZATION CONTENT, PREVIEW & BOTTOM SHEETS
 // =========================================================================
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TranslatorPillContent(
     pillConfig: com.d4viddf.hyperbridge.models.translator.CompactPillConfig,
     installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme> = emptyList(),
     themeBinding: ThemeBinding = ThemeBinding(),
+    showInlinePreview: Boolean = true,
+    selectedSubRoute: TranslatorRoute? = null,
+    onOpenSubRoute: ((TranslatorRoute) -> Unit)? = null,
     onPillConfigChange: (com.d4viddf.hyperbridge.models.translator.CompactPillConfig) -> Unit
 ) {
     var showLeftSheet by remember { mutableStateOf(false) }
@@ -7188,7 +8126,6 @@ fun TranslatorPillContent(
         MaterialTheme.colorScheme.primary
     }
 
-    val context = LocalContext.current
     val iconShapeId = linkedTheme?.global?.iconShapeId ?: "circle"
     val iconShape = getShapeFromId(iconShapeId).toShape()
 
@@ -7200,19 +8137,21 @@ fun TranslatorPillContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // --- PREVIEW CARD ---
-        Text(
-            stringResource(R.string.preview),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+        if (showInlinePreview) {
+            Text(
+                stringResource(R.string.preview),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-        TranslatorPillIslandPreview(
-            left = leftDesign,
-            right = rightDesign,
-            highlightColor = highlightColor,
-            iconShape = iconShape,
-            mediaOrder = pillConfig.mediaOrder
-        )
+            TranslatorPillIslandPreview(
+                left = leftDesign,
+                right = rightDesign,
+                highlightColor = highlightColor,
+                iconShape = iconShape,
+                mediaOrder = pillConfig.mediaOrder
+            )
+        }
 
         // --- LEARN HOW COMPACT PILL WORKS BUTTON ---
         Button(
@@ -7250,11 +8189,22 @@ fun TranslatorPillContent(
         ) {
             Column(Modifier.padding(vertical = 4.dp)) {
                 // Left Content Row
+                val isLeftSelected = selectedSubRoute == TranslatorRoute.PILL_LEFT
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .clickable { showLeftSheet = true }
+                        .background(
+                            if (isLeftSelected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                            else Color.Transparent
+                        )
+                        .clickable {
+                            if (onOpenSubRoute != null) {
+                                onOpenSubRoute(TranslatorRoute.PILL_LEFT)
+                            } else {
+                                showLeftSheet = true
+                            }
+                        }
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -7313,11 +8263,22 @@ fun TranslatorPillContent(
                 )
 
                 // Right Content Row
+                val isRightSelected = selectedSubRoute == TranslatorRoute.PILL_RIGHT
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                        .clickable { showRightSheet = true }
+                        .background(
+                            if (isRightSelected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                            else Color.Transparent
+                        )
+                        .clickable {
+                            if (onOpenSubRoute != null) {
+                                onOpenSubRoute(TranslatorRoute.PILL_RIGHT)
+                            } else {
+                                showRightSheet = true
+                            }
+                        }
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -7378,8 +8339,16 @@ fun TranslatorPillContent(
                 fontWeight = FontWeight.Bold
             )
 
+            val isMediaOrderSelected = selectedSubRoute == TranslatorRoute.PILL_MEDIA_ORDER
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                border = if (isMediaOrderSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isMediaOrderSelected) {
+                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainer
+                    }
+                ),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -7387,7 +8356,13 @@ fun TranslatorPillContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                        .clickable { showMediaOrderSheet = true }
+                        .clickable {
+                            if (onOpenSubRoute != null) {
+                                onOpenSubRoute(TranslatorRoute.PILL_MEDIA_ORDER)
+                            } else {
+                                showMediaOrderSheet = true
+                            }
+                        }
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -7413,18 +8388,22 @@ fun TranslatorPillContent(
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = if (pillConfig.mediaOrder.isEmpty()) {
-                                stringResource(R.string.nav_content_none)
-                            } else {
-                                pillConfig.mediaOrder.joinToString(" • ") { item ->
-                                    when (item) {
-                                        PillMediaItem.ALBUM_COVER -> context.getString(R.string.translator_pill_media_item_album_cover)
-                                        PillMediaItem.TRACK -> context.getString(R.string.translator_pill_media_item_track)
-                                        PillMediaItem.ARTIST -> context.getString(R.string.translator_pill_media_item_artist)
-                                    }
+                        val mediaOrderSummary = if (pillConfig.mediaOrder.isEmpty()) {
+                            stringResource(R.string.nav_content_none)
+                        } else {
+                            val albumCoverLabel = stringResource(R.string.translator_pill_media_item_album_cover)
+                            val trackLabel = stringResource(R.string.translator_pill_media_item_track)
+                            val artistLabel = stringResource(R.string.translator_pill_media_item_artist)
+                            pillConfig.mediaOrder.joinToString(" • ") { item ->
+                                when (item) {
+                                    PillMediaItem.ALBUM_COVER -> albumCoverLabel
+                                    PillMediaItem.TRACK -> trackLabel
+                                    PillMediaItem.ARTIST -> artistLabel
                                 }
-                            },
+                            }
+                        }
+                        Text(
+                            text = mediaOrderSummary,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -7532,7 +8511,10 @@ fun TranslatorPillLeftSelectionSheet(
     onSelect: (PillLeftDesign) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -7548,6 +8530,7 @@ fun TranslatorPillLeftSelectionSheet(
 @Composable
 fun TranslatorPillLeftSelectionContent(
     selected: PillLeftDesign,
+    showHeader: Boolean = true,
     onSelect: (PillLeftDesign) -> Unit
 ) {
     val options = listOf(
@@ -7562,32 +8545,33 @@ fun TranslatorPillLeftSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.DashboardCustomize,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_pill_left_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.DashboardCustomize,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pill_left_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(options) { (option, textResPair, icon) ->
@@ -7657,7 +8641,10 @@ fun TranslatorPillRightSelectionSheet(
     onSelect: (PillRightDesign) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -7673,6 +8660,7 @@ fun TranslatorPillRightSelectionSheet(
 @Composable
 fun TranslatorPillRightSelectionContent(
     selected: PillRightDesign,
+    showHeader: Boolean = true,
     onSelect: (PillRightDesign) -> Unit
 ) {
     val options = listOf(
@@ -7686,32 +8674,33 @@ fun TranslatorPillRightSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.Tune,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.translator_pill_right_sheet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.Tune,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pill_right_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(options) { (option, textResPair, icon) ->
@@ -7796,7 +8785,10 @@ fun TranslatorPillMediaOrderSheet(
     onUpdateOrder: (List<PillMediaItem>) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -7812,6 +8804,7 @@ fun TranslatorPillMediaOrderSheet(
 @Composable
 fun TranslatorPillMediaOrderContent(
     mediaOrder: List<PillMediaItem>,
+    showHeader: Boolean = true,
     onUpdateOrder: (List<PillMediaItem>) -> Unit
 ) {
     val allPossibleItems = remember { PillMediaItem.entries }
@@ -7822,39 +8815,46 @@ fun TranslatorPillMediaOrderContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .padding(bottom = 32.dp),
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Outlined.MusicNote,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = stringResource(R.string.translator_pill_media_order_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.MusicNote,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
-                Text(
-                    text = stringResource(R.string.translator_pill_media_order_subtitle),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = stringResource(R.string.translator_pill_media_order_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.translator_pill_media_order_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
+        } else {
+            Text(
+                text = stringResource(R.string.translator_pill_media_order_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false),
+                .weight(1f, fill = !showHeader),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             itemsIndexed(itemOrder) { index, item ->
