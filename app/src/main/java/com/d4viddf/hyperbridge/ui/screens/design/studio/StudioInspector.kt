@@ -2414,7 +2414,7 @@ private fun ButtonTabContent(
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold
                     )
-                } else if (hasIcon && hasText) {
+                } else if (hasIcon) {
                     when (node.iconPosition) {
                         ButtonIconPosition.LEADING -> {
                             Row(
@@ -3222,6 +3222,104 @@ private fun ButtonValueEditor(
     }
 }
 
+@Composable
+private fun ImageConfigSelectorCard(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    buttonText: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    iconContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    iconTint: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    isPrimaryAction: Boolean = true,
+    isMonospaceTitle: Boolean = false
+) {
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    color = iconContainerColor,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.size(38.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = if (isMonospaceTitle) FontFamily.Monospace else null,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            if (isPrimaryAction) {
+                FilledTonalButton(
+                    onClick = onClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Tune,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(buttonText)
+                }
+            } else {
+                OutlinedButton(
+                    onClick = onClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Tune,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(buttonText)
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ImageNodeEditor(
@@ -3245,55 +3343,17 @@ private fun ImageNodeEditor(
             color = MaterialTheme.colorScheme.primary
         )
 
-        Card(
+        ImageConfigSelectorCard(
+            title = stringResource(selectedKind.labelRes),
+            description = stringResource(selectedKind.descRes),
+            icon = selectedKind.icon,
+            buttonText = stringResource(R.string.studio_image_change_source),
             onClick = { showSourceSheet = true },
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            shape = RoundedCornerShape(14.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = selectedKind.icon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                }
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(selectedKind.labelRes),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = stringResource(selectedKind.descRes),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                FilledTonalButton(
-                    onClick = { showSourceSheet = true },
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(stringResource(R.string.studio_image_change_source))
-                }
-            }
-        }
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            iconContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+            isPrimaryAction = true
+        )
 
         // 2. Subtype Card (if current source kind supports subtypes)
         when (currentSource) {
@@ -3308,55 +3368,17 @@ private fun ImageNodeEditor(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Card(
+                ImageConfigSelectorCard(
+                    title = stringResource(currentSubtype.titleRes),
+                    description = stringResource(currentSubtype.descRes),
+                    icon = currentSubtype.icon,
+                    buttonText = stringResource(R.string.studio_image_change_subtype),
                     onClick = { showSubtypeSheet = true },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = currentSubtype.icon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(currentSubtype.titleRes),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = stringResource(currentSubtype.descRes),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = { showSubtypeSheet = true },
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(stringResource(R.string.studio_image_change_subtype))
-                        }
-                    }
-                }
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    isPrimaryAction = false
+                )
             }
 
             is ImageSource.SystemGlyph -> {
@@ -3367,56 +3389,18 @@ private fun ImageNodeEditor(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Card(
+                ImageConfigSelectorCard(
+                    title = currentSource.glyphName,
+                    description = stringResource(R.string.studio_image_source_glyph_desc),
+                    icon = studioGlyphIcon(currentSource.glyphName),
+                    buttonText = stringResource(R.string.studio_image_change_subtype),
                     onClick = { showSubtypeSheet = true },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = studioGlyphIcon(currentSource.glyphName),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = currentSource.glyphName,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                fontFamily = FontFamily.Monospace
-                            )
-                            Text(
-                                text = stringResource(R.string.studio_image_source_glyph_desc),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = { showSubtypeSheet = true },
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(stringResource(R.string.studio_image_change_subtype))
-                        }
-                    }
-                }
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    isPrimaryAction = false,
+                    isMonospaceTitle = true
+                )
 
                 OutlinedTextField(
                     value = currentSource.glyphName,
@@ -3450,65 +3434,25 @@ private fun ImageNodeEditor(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Card(
+                ImageConfigSelectorCard(
+                    title = if (isDynamic) {
+                        stringResource(R.string.studio_image_app_dynamic)
+                    } else {
+                        currentSource.packageTemplate
+                    },
+                    description = if (isDynamic) {
+                        stringResource(R.string.studio_image_app_dynamic_desc)
+                    } else {
+                        stringResource(R.string.studio_image_app_specific_desc)
+                    },
+                    icon = Icons.Rounded.Android,
+                    buttonText = stringResource(R.string.studio_image_change_subtype),
                     onClick = { showSubtypeSheet = true },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Android,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = if (isDynamic) {
-                                    stringResource(R.string.studio_image_app_dynamic)
-                                } else {
-                                    currentSource.packageTemplate
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = if (isDynamic) {
-                                    stringResource(R.string.studio_image_app_dynamic_desc)
-                                } else {
-                                    stringResource(R.string.studio_image_app_specific_desc)
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = { showSubtypeSheet = true },
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(stringResource(R.string.studio_image_change_subtype))
-                        }
-                    }
-                }
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    isPrimaryAction = false
+                )
 
                 OutlinedTextField(
                     value = currentSource.packageTemplate,
@@ -3545,55 +3489,17 @@ private fun ImageNodeEditor(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Card(
+                ImageConfigSelectorCard(
+                    title = currentSource.sourceId,
+                    description = stringResource(R.string.studio_image_source_source_desc),
+                    icon = Icons.Rounded.Widgets,
+                    buttonText = stringResource(R.string.studio_image_change_subtype),
                     onClick = { showSubtypeSheet = true },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Widgets,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = currentSource.sourceId,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = stringResource(R.string.studio_image_source_source_desc),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = { showSubtypeSheet = true },
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(stringResource(R.string.studio_image_change_subtype))
-                        }
-                    }
-                }
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    isPrimaryAction = false
+                )
 
                 OutlinedTextField(
                     value = currentSource.sourceId,
