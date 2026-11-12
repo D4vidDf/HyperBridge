@@ -182,9 +182,12 @@ import com.d4viddf.hyperbridge.models.translator.IslandTemplateCatalog
 import com.d4viddf.hyperbridge.models.translator.MediaConditions
 import com.d4viddf.hyperbridge.models.translator.MessagingConditions
 import com.d4viddf.hyperbridge.models.translator.NavigationConditions
+import com.d4viddf.hyperbridge.models.translator.MediaCounterMode
+import com.d4viddf.hyperbridge.models.translator.PillIconSource
 import com.d4viddf.hyperbridge.models.translator.PillLeftDesign
 import com.d4viddf.hyperbridge.models.translator.PillMediaItem
 import com.d4viddf.hyperbridge.models.translator.PillRightDesign
+import com.d4viddf.hyperbridge.models.translator.PillTextSource
 import com.d4viddf.hyperbridge.models.translator.PresentationConfig
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.ProgressConditions
@@ -230,6 +233,8 @@ enum class TranslatorRoute {
     PRESENTATION_LEFT_ICON,
     PILL,
     PILL_LEFT,
+    PILL_LEFT_ICON,
+    PILL_LEFT_TEXT,
     PILL_RIGHT,
     PILL_MEDIA_ORDER,
     PROGRESS,
@@ -344,6 +349,8 @@ fun TranslatorEditorContent(
 
                 TranslatorRoute.PILL,
                 TranslatorRoute.PILL_LEFT,
+                TranslatorRoute.PILL_LEFT_ICON,
+                TranslatorRoute.PILL_LEFT_TEXT,
                 TranslatorRoute.PILL_RIGHT -> mode != PresentationMode.RAW_PARAM_V2
 
                 TranslatorRoute.PILL_MEDIA_ORDER -> mode != PresentationMode.RAW_PARAM_V2 &&
@@ -689,6 +696,8 @@ private fun TranslatorPaneScaffold(
         TranslatorRoute.PRESENTATION_LEFT_ICON -> stringResource(R.string.translator_pres_icon_sheet_title)
         TranslatorRoute.PILL -> stringResource(R.string.translator_menu_pill)
         TranslatorRoute.PILL_LEFT -> stringResource(R.string.translator_pill_left_sheet_title)
+        TranslatorRoute.PILL_LEFT_ICON -> stringResource(R.string.translator_pill_left_icon_title)
+        TranslatorRoute.PILL_LEFT_TEXT -> stringResource(R.string.translator_pill_left_text_title)
         TranslatorRoute.PILL_RIGHT -> stringResource(R.string.translator_pill_right_sheet_title)
         TranslatorRoute.PILL_MEDIA_ORDER -> stringResource(R.string.translator_pill_media_order_title)
         TranslatorRoute.PROGRESS -> stringResource(R.string.translator_menu_progress)
@@ -708,6 +717,8 @@ private fun TranslatorPaneScaffold(
         TranslatorRoute.PRESENTATION_THEMES,
         TranslatorRoute.PRESENTATION_LEFT_ICON -> stringResource(R.string.translator_menu_presentation)
         TranslatorRoute.PILL_LEFT,
+        TranslatorRoute.PILL_LEFT_ICON,
+        TranslatorRoute.PILL_LEFT_TEXT,
         TranslatorRoute.PILL_RIGHT,
         TranslatorRoute.PILL_MEDIA_ORDER -> stringResource(R.string.translator_menu_pill)
         TranslatorRoute.PROGRESS_TYPE -> stringResource(R.string.translator_menu_progress)
@@ -966,6 +977,36 @@ private fun TranslatorNodeBody(
                         translator.copy(
                             presentation = translator.presentation.copy(
                                 pill = translator.presentation.pill.copy(leftDesign = newLeft)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PILL_LEFT_ICON -> Box(Modifier.fillMaxSize()) {
+            TranslatorPillLeftIconSelectionContent(
+                selected = translator.presentation.pill.leftIconSource,
+                showHeader = false,
+                onSelect = { newIconSource ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(
+                                pill = translator.presentation.pill.copy(leftIconSource = newIconSource)
+                            )
+                        )
+                    )
+                }
+            )
+        }
+        TranslatorRoute.PILL_LEFT_TEXT -> Box(Modifier.fillMaxSize()) {
+            TranslatorPillLeftTextSelectionContent(
+                selected = translator.presentation.pill.leftTextSource,
+                showHeader = false,
+                onSelect = { newTextSource ->
+                    onTranslatorChange(
+                        translator.copy(
+                            presentation = translator.presentation.copy(
+                                pill = translator.presentation.pill.copy(leftTextSource = newTextSource)
                             )
                         )
                     )
@@ -8107,6 +8148,8 @@ fun TranslatorPillContent(
     onPillConfigChange: (com.d4viddf.hyperbridge.models.translator.CompactPillConfig) -> Unit
 ) {
     var showLeftSheet by remember { mutableStateOf(false) }
+    var showLeftIconSheet by remember { mutableStateOf(false) }
+    var showLeftTextSheet by remember { mutableStateOf(false) }
     var showRightSheet by remember { mutableStateOf(false) }
     var showMediaOrderSheet by remember { mutableStateOf(false) }
     var showLearnSheet by remember { mutableStateOf(false) }
@@ -8149,7 +8192,10 @@ fun TranslatorPillContent(
                 right = rightDesign,
                 highlightColor = highlightColor,
                 iconShape = iconShape,
-                mediaOrder = pillConfig.mediaOrder
+                mediaOrder = pillConfig.mediaOrder,
+                leftIconSource = pillConfig.leftIconSource,
+                leftTextSource = pillConfig.leftTextSource,
+                mediaCounterMode = pillConfig.mediaCounterMode
             )
         }
 
@@ -8291,8 +8337,17 @@ fun TranslatorPillContent(
                             Icon(
                                 when (rightDesign) {
                                     PillRightDesign.AUTO -> Icons.Outlined.Tune
+                                    PillRightDesign.OTP_CODE -> Icons.Outlined.Lock
+                                    PillRightDesign.BOARDING_PASS -> Icons.Outlined.Navigation
                                     PillRightDesign.PROGRESS_PERCENT -> Icons.Outlined.Speed
                                     PillRightDesign.TIMER -> Icons.Outlined.Timer
+                                    PillRightDesign.NOTIF_TITLE -> Icons.Outlined.Title
+                                    PillRightDesign.MESSAGE -> Icons.Outlined.TextFields
+                                    PillRightDesign.SENDER_NAME -> Icons.Outlined.Person
+                                    PillRightDesign.MEDIA_TRACK -> Icons.Outlined.MusicNote
+                                    PillRightDesign.MEDIA_ARTIST -> Icons.Outlined.Person
+                                    PillRightDesign.MEDIA_COUNTER -> Icons.Outlined.PlayCircle
+                                    PillRightDesign.CHAT_COUNTER -> Icons.Outlined.Forum
                                     PillRightDesign.HIGHLIGHT_TEXT -> Icons.Outlined.Subtitles
                                     PillRightDesign.NONE -> Icons.Outlined.VisibilityOff
                                 },
@@ -8313,8 +8368,17 @@ fun TranslatorPillContent(
                         Text(
                             text = when (rightDesign) {
                                 PillRightDesign.AUTO -> stringResource(R.string.translator_pill_right_auto)
+                                PillRightDesign.OTP_CODE -> stringResource(R.string.translator_pill_right_otp)
+                                PillRightDesign.BOARDING_PASS -> stringResource(R.string.translator_pill_right_boarding)
                                 PillRightDesign.PROGRESS_PERCENT -> stringResource(R.string.translator_pill_right_progress)
                                 PillRightDesign.TIMER -> stringResource(R.string.fallback_timer)
+                                PillRightDesign.NOTIF_TITLE -> stringResource(R.string.translator_pill_right_title)
+                                PillRightDesign.MESSAGE -> stringResource(R.string.translator_pill_right_message)
+                                PillRightDesign.SENDER_NAME -> stringResource(R.string.translator_pill_right_sender)
+                                PillRightDesign.MEDIA_TRACK -> stringResource(R.string.translator_pill_right_media_track)
+                                PillRightDesign.MEDIA_ARTIST -> stringResource(R.string.translator_pill_right_media_artist)
+                                PillRightDesign.MEDIA_COUNTER -> stringResource(R.string.translator_pill_right_media_counter)
+                                PillRightDesign.CHAT_COUNTER -> stringResource(R.string.translator_pill_right_chat_counter)
                                 PillRightDesign.HIGHLIGHT_TEXT -> stringResource(R.string.translator_pill_right_highlight)
                                 PillRightDesign.NONE -> stringResource(R.string.nav_content_none)
                             },
@@ -8327,6 +8391,237 @@ fun TranslatorPillContent(
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+        }
+
+        // --- MEDIA COUNTER CONFIGURATION CARD ---
+        if (rightDesign == PillRightDesign.MEDIA_COUNTER || (leftDesign == PillLeftDesign.MEDIA && rightDesign == PillRightDesign.AUTO)) {
+            Text(
+                stringResource(R.string.translator_pill_media_counter_mode_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.translator_pill_media_counter_mode_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = pillConfig.mediaCounterMode == MediaCounterMode.ELAPSED,
+                            onClick = {
+                                onPillConfigChange(pillConfig.copy(mediaCounterMode = MediaCounterMode.ELAPSED))
+                            },
+                            label = { Text(stringResource(R.string.translator_pill_media_counter_elapsed)) },
+                            leadingIcon = if (pillConfig.mediaCounterMode == MediaCounterMode.ELAPSED) {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null
+                        )
+                        FilterChip(
+                            selected = pillConfig.mediaCounterMode == MediaCounterMode.REMAINING,
+                            onClick = {
+                                onPillConfigChange(pillConfig.copy(mediaCounterMode = MediaCounterMode.REMAINING))
+                            },
+                            label = { Text(stringResource(R.string.translator_pill_media_counter_remaining)) },
+                            leadingIcon = if (pillConfig.mediaCounterMode == MediaCounterMode.REMAINING) {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null
+                        )
+                    }
+                }
+            }
+        }
+
+        // --- LEFT SLOT DETAILS CARD (VISIBLE WHEN LEFT IS ICON_AND_TEXT, ICON_ONLY, OR TEXT_ONLY) ---
+        if (leftDesign == PillLeftDesign.ICON_AND_TEXT || leftDesign == PillLeftDesign.ICON_ONLY || leftDesign == PillLeftDesign.TEXT_ONLY) {
+            Text(
+                stringResource(R.string.left_content),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(vertical = 4.dp)) {
+                    if (leftDesign == PillLeftDesign.ICON_AND_TEXT || leftDesign == PillLeftDesign.ICON_ONLY) {
+                        val isLeftIconSelected = selectedSubRoute == TranslatorRoute.PILL_LEFT_ICON
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(
+                                    if (leftDesign == PillLeftDesign.ICON_AND_TEXT) RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                                    else RoundedCornerShape(24.dp)
+                                )
+                                .background(
+                                    if (isLeftIconSelected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                                    else Color.Transparent
+                                )
+                                .clickable {
+                                    if (onOpenSubRoute != null) {
+                                        onOpenSubRoute(TranslatorRoute.PILL_LEFT_ICON)
+                                    } else {
+                                        showLeftIconSheet = true
+                                    }
+                                }
+                                .padding(horizontal = 20.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        when (pillConfig.leftIconSource) {
+                                            PillIconSource.DEFAULT -> Icons.Outlined.AutoAwesome
+                                            PillIconSource.APP_ICON -> Icons.Outlined.Apps
+                                            PillIconSource.NOTIFICATION_ICON -> Icons.Outlined.Notifications
+                                            PillIconSource.AVATAR -> Icons.Outlined.Person
+                                            PillIconSource.MEDIA_ALBUM_ART -> Icons.Outlined.MusicNote
+                                            PillIconSource.CUSTOM_ICON -> Icons.Outlined.Palette
+                                            PillIconSource.HIDDEN -> Icons.Outlined.VisibilityOff
+                                        },
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.translator_pill_left_icon_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = when (pillConfig.leftIconSource) {
+                                        PillIconSource.DEFAULT -> stringResource(R.string.translator_pill_icon_default)
+                                        PillIconSource.APP_ICON -> stringResource(R.string.translator_pill_icon_app)
+                                        PillIconSource.NOTIFICATION_ICON -> stringResource(R.string.translator_pill_icon_notification)
+                                        PillIconSource.AVATAR -> stringResource(R.string.translator_pill_icon_avatar)
+                                        PillIconSource.MEDIA_ALBUM_ART -> stringResource(R.string.translator_pill_icon_media)
+                                        PillIconSource.CUSTOM_ICON -> stringResource(R.string.translator_pill_icon_custom)
+                                        PillIconSource.HIDDEN -> stringResource(R.string.translator_pill_icon_hidden)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    if (leftDesign == PillLeftDesign.ICON_AND_TEXT) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                    }
+
+                    if (leftDesign == PillLeftDesign.ICON_AND_TEXT || leftDesign == PillLeftDesign.TEXT_ONLY) {
+                        val isLeftTextSelected = selectedSubRoute == TranslatorRoute.PILL_LEFT_TEXT
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(
+                                    if (leftDesign == PillLeftDesign.ICON_AND_TEXT) RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+                                    else RoundedCornerShape(24.dp)
+                                )
+                                .background(
+                                    if (isLeftTextSelected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                                    else Color.Transparent
+                                )
+                                .clickable {
+                                    if (onOpenSubRoute != null) {
+                                        onOpenSubRoute(TranslatorRoute.PILL_LEFT_TEXT)
+                                    } else {
+                                        showLeftTextSheet = true
+                                    }
+                                }
+                                .padding(horizontal = 20.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        when (pillConfig.leftTextSource) {
+                                            PillTextSource.DEFAULT -> Icons.Outlined.AutoAwesome
+                                            PillTextSource.TITLE -> Icons.Outlined.Title
+                                            PillTextSource.MESSAGE -> Icons.Outlined.TextFields
+                                            PillTextSource.SENDER_NAME -> Icons.Outlined.Person
+                                            PillTextSource.APP_NAME -> Icons.Outlined.Apps
+                                            PillTextSource.MEDIA_TRACK -> Icons.Outlined.MusicNote
+                                            PillTextSource.MEDIA_ARTIST -> Icons.Outlined.Person
+                                            PillTextSource.CUSTOM_TEMPLATE -> Icons.Outlined.Tune
+                                            PillTextSource.NONE -> Icons.Outlined.VisibilityOff
+                                        },
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.translator_pill_left_text_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = when (pillConfig.leftTextSource) {
+                                        PillTextSource.DEFAULT -> stringResource(R.string.translator_pill_text_default)
+                                        PillTextSource.TITLE -> stringResource(R.string.translator_pill_text_title)
+                                        PillTextSource.MESSAGE -> stringResource(R.string.translator_pill_text_message)
+                                        PillTextSource.SENDER_NAME -> stringResource(R.string.translator_pill_text_sender)
+                                        PillTextSource.APP_NAME -> stringResource(R.string.translator_pill_text_app_name)
+                                        PillTextSource.MEDIA_TRACK -> stringResource(R.string.translator_pill_text_media_track)
+                                        PillTextSource.MEDIA_ARTIST -> stringResource(R.string.translator_pill_text_media_artist)
+                                        PillTextSource.CUSTOM_TEMPLATE -> stringResource(R.string.translator_pill_right_highlight)
+                                        PillTextSource.NONE -> stringResource(R.string.translator_pill_text_none)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -8432,6 +8727,30 @@ fun TranslatorPillContent(
         )
     }
 
+    // Left Icon Source Bottom Sheet
+    if (showLeftIconSheet) {
+        TranslatorPillLeftIconSelectionSheet(
+            selected = pillConfig.leftIconSource,
+            onSelect = {
+                onPillConfigChange(pillConfig.copy(leftIconSource = it))
+                showLeftIconSheet = false
+            },
+            onDismiss = { showLeftIconSheet = false }
+        )
+    }
+
+    // Left Text Source Bottom Sheet
+    if (showLeftTextSheet) {
+        TranslatorPillLeftTextSelectionSheet(
+            selected = pillConfig.leftTextSource,
+            onSelect = {
+                onPillConfigChange(pillConfig.copy(leftTextSource = it))
+                showLeftTextSheet = false
+            },
+            onDismiss = { showLeftTextSheet = false }
+        )
+    }
+
     // Right Design Bottom Sheet
     if (showRightSheet) {
         TranslatorPillRightSelectionSheet(
@@ -8474,8 +8793,40 @@ private fun TranslatorPillIslandPreview(
         PillMediaItem.ALBUM_COVER,
         PillMediaItem.TRACK,
         PillMediaItem.ARTIST
-    )
+    ),
+    leftIconSource: PillIconSource = PillIconSource.DEFAULT,
+    leftTextSource: PillTextSource = PillTextSource.DEFAULT,
+    mediaCounterMode: MediaCounterMode = MediaCounterMode.ELAPSED
 ) {
+    val sampleTitle = when (leftTextSource) {
+        PillTextSource.TITLE -> "App Alert"
+        PillTextSource.MESSAGE -> "Hey, how are you doing?"
+        PillTextSource.SENDER_NAME -> "Alice"
+        PillTextSource.APP_NAME -> "Telegram"
+        PillTextSource.MEDIA_TRACK -> "Starboy"
+        PillTextSource.MEDIA_ARTIST -> "The Weeknd"
+        PillTextSource.NONE -> ""
+        else -> "App Alert"
+    }
+    val sampleRightText = when (right) {
+        PillRightDesign.TIMER -> "00:05"
+        PillRightDesign.OTP_CODE -> "8392"
+        PillRightDesign.BOARDING_PASS -> "Gate B12"
+        PillRightDesign.NOTIF_TITLE -> "New Message"
+        PillRightDesign.MESSAGE -> "Hey there!"
+        PillRightDesign.SENDER_NAME -> "Alice"
+        PillRightDesign.MEDIA_TRACK -> "Starboy"
+        PillRightDesign.MEDIA_ARTIST -> "The Weeknd"
+        PillRightDesign.MEDIA_COUNTER -> if (mediaCounterMode == MediaCounterMode.REMAINING) "-01:15" else "02:45"
+        PillRightDesign.CHAT_COUNTER -> "+3"
+        PillRightDesign.HIGHLIGHT_TEXT -> "Active"
+        PillRightDesign.PROGRESS_PERCENT -> "65%"
+        PillRightDesign.AUTO -> if (left == PillLeftDesign.MEDIA) {
+            if (mediaCounterMode == MediaCounterMode.REMAINING) "-01:15" else "02:45"
+        } else "00:05"
+        PillRightDesign.NONE -> ""
+    }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
         shape = RoundedCornerShape(24.dp),
@@ -8490,8 +8841,8 @@ private fun TranslatorPillIslandPreview(
             com.d4viddf.hyperbridge.ui.components.island.HyperOsCompactPill(
                 leftDesign = left,
                 rightDesign = right,
-                title = "App Alert",
-                rightText = if (right == PillRightDesign.TIMER) "00:05" else "00:05",
+                title = sampleTitle,
+                rightText = sampleRightText,
                 progressPercent = 65,
                 highlightColor = highlightColor,
                 iconShape = iconShape,
@@ -8633,12 +8984,12 @@ fun TranslatorPillLeftSelectionContent(
     }
 }
 
-// --- RIGHT PILL SELECTION BOTTOM SHEET ---
+// --- LEFT ICON PILL SELECTION BOTTOM SHEET ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TranslatorPillRightSelectionSheet(
-    selected: PillRightDesign,
-    onSelect: (PillRightDesign) -> Unit,
+fun TranslatorPillLeftIconSelectionSheet(
+    selected: PillIconSource,
+    onSelect: (PillIconSource) -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberBottomSheetState(
@@ -8650,7 +9001,7 @@ fun TranslatorPillRightSelectionSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState
     ) {
-        TranslatorPillRightSelectionContent(
+        TranslatorPillLeftIconSelectionContent(
             selected = selected,
             onSelect = onSelect
         )
@@ -8658,17 +9009,19 @@ fun TranslatorPillRightSelectionSheet(
 }
 
 @Composable
-fun TranslatorPillRightSelectionContent(
-    selected: PillRightDesign,
+fun TranslatorPillLeftIconSelectionContent(
+    selected: PillIconSource,
     showHeader: Boolean = true,
-    onSelect: (PillRightDesign) -> Unit
+    onSelect: (PillIconSource) -> Unit
 ) {
     val options = listOf(
-        Triple(PillRightDesign.AUTO, Pair(R.string.translator_pill_right_auto, R.string.translator_pill_right_auto_desc), Icons.Outlined.Tune),
-        Triple(PillRightDesign.PROGRESS_PERCENT, Pair(R.string.translator_pill_right_progress, R.string.translator_pill_right_progress_desc), Icons.Outlined.Speed),
-        Triple(PillRightDesign.TIMER, Pair(R.string.fallback_timer, R.string.translator_pill_right_timer_desc), Icons.Outlined.Timer),
-        Triple(PillRightDesign.HIGHLIGHT_TEXT, Pair(R.string.translator_pill_right_highlight, R.string.translator_pill_right_highlight_desc), Icons.Outlined.Subtitles),
-        Triple(PillRightDesign.NONE, Pair(R.string.nav_content_none, R.string.translator_pill_right_none_desc), Icons.Outlined.VisibilityOff)
+        Triple(PillIconSource.DEFAULT, Pair(R.string.translator_pill_icon_default, R.string.translator_pill_icon_default_desc), Icons.Outlined.AutoAwesome),
+        Triple(PillIconSource.APP_ICON, Pair(R.string.translator_pill_icon_app, R.string.translator_pill_icon_app_desc), Icons.Outlined.Apps),
+        Triple(PillIconSource.NOTIFICATION_ICON, Pair(R.string.translator_pill_icon_notification, R.string.translator_pill_icon_notification_desc), Icons.Outlined.Notifications),
+        Triple(PillIconSource.AVATAR, Pair(R.string.translator_pill_icon_avatar, R.string.translator_pill_icon_avatar_desc), Icons.Outlined.Person),
+        Triple(PillIconSource.MEDIA_ALBUM_ART, Pair(R.string.translator_pill_icon_media, R.string.translator_pill_icon_media_desc), Icons.Outlined.MusicNote),
+        Triple(PillIconSource.CUSTOM_ICON, Pair(R.string.translator_pill_icon_custom, R.string.translator_pill_icon_custom_desc), Icons.Outlined.Palette),
+        Triple(PillIconSource.HIDDEN, Pair(R.string.translator_pill_icon_hidden, R.string.translator_pill_icon_hidden_desc), Icons.Outlined.VisibilityOff)
     )
 
     Column(
@@ -8683,14 +9036,14 @@ fun TranslatorPillRightSelectionContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    Icons.Outlined.Tune,
+                    Icons.Outlined.AutoAwesome,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    text = stringResource(R.string.translator_pill_right_sheet_title),
+                    text = stringResource(R.string.translator_pill_left_icon_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -8754,6 +9107,312 @@ fun TranslatorPillRightSelectionContent(
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- LEFT TEXT PILL SELECTION BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorPillLeftTextSelectionSheet(
+    selected: PillTextSource,
+    onSelect: (PillTextSource) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorPillLeftTextSelectionContent(
+            selected = selected,
+            onSelect = onSelect
+        )
+    }
+}
+
+@Composable
+fun TranslatorPillLeftTextSelectionContent(
+    selected: PillTextSource,
+    showHeader: Boolean = true,
+    onSelect: (PillTextSource) -> Unit
+) {
+    val options = listOf(
+        Triple(PillTextSource.DEFAULT, Pair(R.string.translator_pill_text_default, R.string.translator_pill_text_default_desc), Icons.Outlined.AutoAwesome),
+        Triple(PillTextSource.TITLE, Pair(R.string.translator_pill_text_title, R.string.translator_pill_text_title_desc), Icons.Outlined.Title),
+        Triple(PillTextSource.MESSAGE, Pair(R.string.translator_pill_text_message, R.string.translator_pill_text_message_desc), Icons.Outlined.TextFields),
+        Triple(PillTextSource.SENDER_NAME, Pair(R.string.translator_pill_text_sender, R.string.translator_pill_text_sender_desc), Icons.Outlined.Person),
+        Triple(PillTextSource.APP_NAME, Pair(R.string.translator_pill_text_app_name, R.string.translator_pill_text_app_name_desc), Icons.Outlined.Apps),
+        Triple(PillTextSource.MEDIA_TRACK, Pair(R.string.translator_pill_text_media_track, R.string.translator_pill_text_media_track_desc), Icons.Outlined.MusicNote),
+        Triple(PillTextSource.MEDIA_ARTIST, Pair(R.string.translator_pill_text_media_artist, R.string.translator_pill_text_media_artist_desc), Icons.Outlined.Person),
+        Triple(PillTextSource.NONE, Pair(R.string.translator_pill_text_none, R.string.translator_pill_text_none_desc), Icons.Outlined.VisibilityOff)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.TextFields,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pill_left_text_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = !showHeader),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(options) { (option, textResPair, icon) ->
+                val (titleRes, descRes) = textResPair
+                val isSelected = selected == option
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    onClick = { onSelect(option) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(titleRes),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isSelected) {
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- RIGHT PILL SELECTION BOTTOM SHEET ---
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslatorPillRightSelectionSheet(
+    selected: PillRightDesign,
+    onSelect: (PillRightDesign) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        TranslatorPillRightSelectionContent(
+            selected = selected,
+            onSelect = onSelect
+        )
+    }
+}
+
+private data class PillRightCategoryItem(
+    val titleRes: Int,
+    val items: List<Triple<PillRightDesign, Pair<Int, Int>, ImageVector>>
+)
+
+@Composable
+fun TranslatorPillRightSelectionContent(
+    selected: PillRightDesign,
+    showHeader: Boolean = true,
+    onSelect: (PillRightDesign) -> Unit
+) {
+    val categories = listOf(
+        PillRightCategoryItem(
+            titleRes = R.string.translator_pill_category_smart,
+            items = listOf(
+                Triple(PillRightDesign.AUTO, Pair(R.string.translator_pill_right_auto, R.string.translator_pill_right_auto_desc), Icons.Outlined.Tune),
+                Triple(PillRightDesign.OTP_CODE, Pair(R.string.translator_pill_right_otp, R.string.translator_pill_right_otp_desc), Icons.Outlined.Lock),
+                Triple(PillRightDesign.BOARDING_PASS, Pair(R.string.translator_pill_right_boarding, R.string.translator_pill_right_boarding_desc), Icons.Outlined.Navigation),
+                Triple(PillRightDesign.PROGRESS_PERCENT, Pair(R.string.translator_pill_right_progress, R.string.translator_pill_right_progress_desc), Icons.Outlined.Speed),
+                Triple(PillRightDesign.TIMER, Pair(R.string.fallback_timer, R.string.translator_pill_right_timer_desc), Icons.Outlined.Timer)
+            )
+        ),
+        PillRightCategoryItem(
+            titleRes = R.string.translator_pill_category_notification,
+            items = listOf(
+                Triple(PillRightDesign.NOTIF_TITLE, Pair(R.string.translator_pill_right_title, R.string.translator_pill_right_title_desc), Icons.Outlined.Title),
+                Triple(PillRightDesign.MESSAGE, Pair(R.string.translator_pill_right_message, R.string.translator_pill_right_message_desc), Icons.Outlined.TextFields),
+                Triple(PillRightDesign.SENDER_NAME, Pair(R.string.translator_pill_right_sender, R.string.translator_pill_right_sender_desc), Icons.Outlined.Person),
+                Triple(PillRightDesign.CHAT_COUNTER, Pair(R.string.translator_pill_right_chat_counter, R.string.translator_pill_right_chat_counter_desc), Icons.Outlined.Forum)
+            )
+        ),
+        PillRightCategoryItem(
+            titleRes = R.string.translator_pill_category_media,
+            items = listOf(
+                Triple(PillRightDesign.MEDIA_TRACK, Pair(R.string.translator_pill_right_media_track, R.string.translator_pill_right_media_track_desc), Icons.Outlined.MusicNote),
+                Triple(PillRightDesign.MEDIA_ARTIST, Pair(R.string.translator_pill_right_media_artist, R.string.translator_pill_right_media_artist_desc), Icons.Outlined.Person),
+                Triple(PillRightDesign.MEDIA_COUNTER, Pair(R.string.translator_pill_right_media_counter, R.string.translator_pill_right_media_counter_desc), Icons.Outlined.PlayCircle)
+            )
+        ),
+        PillRightCategoryItem(
+            titleRes = R.string.translator_pill_category_custom,
+            items = listOf(
+                Triple(PillRightDesign.HIGHLIGHT_TEXT, Pair(R.string.translator_pill_right_highlight, R.string.translator_pill_right_highlight_desc), Icons.Outlined.Subtitles),
+                Triple(PillRightDesign.NONE, Pair(R.string.nav_content_none, R.string.translator_pill_right_none_desc), Icons.Outlined.VisibilityOff)
+            )
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (showHeader) Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 32.dp) else Modifier.fillMaxSize().padding(16.dp)),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (showHeader) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Outlined.Tune,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.translator_pill_right_sheet_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = !showHeader),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            categories.forEach { category ->
+                item(key = "header_${category.titleRes}") {
+                    Text(
+                        text = stringResource(category.titleRes),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 2.dp)
+                    )
+                }
+                items(category.items, key = { it.first.name }) { (option, textResPair, icon) ->
+                    val (titleRes, descRes) = textResPair
+                    val isSelected = selected == option
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        onClick = { onSelect(option) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        icon,
+                                        contentDescription = null,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(titleRes),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = stringResource(descRes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (isSelected) {
+                                Spacer(Modifier.width(12.dp))
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }

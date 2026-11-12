@@ -94,7 +94,7 @@ object IslandTemplateCatalog {
                     subtitleTemplate = "{notif.text}",
                     highlightTextTemplate = "{notif.subtext}"
                 ),
-                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.OTP_CODE)
             )
         ),
         IslandTemplate(
@@ -122,7 +122,7 @@ object IslandTemplateCatalog {
                         displayMode = ActionDisplayMode.ICON_AND_TEXT
                     )
                 ),
-                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.OTP_CODE)
             )
         ),
         IslandTemplate(
@@ -172,7 +172,7 @@ object IslandTemplateCatalog {
                     highlightTextTemplate = "{notif.subtext}"
                 ),
                 progressSlot = ProgressSlotConfig(type = ProgressSlotType.WAYPOINT, showPercentage = false),
-                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.OTP_CODE)
             )
         ),
         IslandTemplate(
@@ -192,7 +192,7 @@ object IslandTemplateCatalog {
                     highlightTextTemplate = "{notif.subtext}"
                 ),
                 progressSlot = ProgressSlotConfig(type = ProgressSlotType.WAYPOINT, showPercentage = false),
-                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.OTP_CODE)
             )
         ),
         IslandTemplate(
@@ -256,7 +256,7 @@ object IslandTemplateCatalog {
                         displayMode = ActionDisplayMode.ICON_AND_TEXT
                     )
                 ),
-                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.OTP_CODE)
             )
         ),
         IslandTemplate(
@@ -282,7 +282,7 @@ object IslandTemplateCatalog {
                         displayMode = ActionDisplayMode.ICON_AND_TEXT
                     )
                 ),
-                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.BOARDING_PASS)
             )
         ),
         IslandTemplate(
@@ -311,7 +311,7 @@ object IslandTemplateCatalog {
                         displayMode = ActionDisplayMode.ICON_AND_TEXT
                     )
                 ),
-                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.HIGHLIGHT_TEXT)
+                pill = CompactPillConfig(PillLeftDesign.ICON_AND_TEXT, PillRightDesign.OTP_CODE)
             )
         ),
         IslandTemplate(

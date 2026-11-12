@@ -295,6 +295,12 @@ data class RawParamV2Config(
 )
 
 @Serializable
+enum class MediaCounterMode {
+    @SerialName("ELAPSED") ELAPSED,
+    @SerialName("REMAINING") REMAINING
+}
+
+@Serializable
 data class CompactPillConfig(
     @SerialName("left_design") val leftDesign: PillLeftDesign = PillLeftDesign.ICON_AND_TEXT,
     @SerialName("right_design") val rightDesign: PillRightDesign = PillRightDesign.AUTO,
@@ -302,7 +308,11 @@ data class CompactPillConfig(
         PillMediaItem.ALBUM_COVER,
         PillMediaItem.TRACK,
         PillMediaItem.ARTIST
-    )
+    ),
+    @SerialName("left_icon_source") val leftIconSource: PillIconSource = PillIconSource.DEFAULT,
+    @SerialName("left_text_source") val leftTextSource: PillTextSource = PillTextSource.DEFAULT,
+    @SerialName("right_custom_template") val rightCustomTemplate: String? = null,
+    @SerialName("media_counter_mode") val mediaCounterMode: MediaCounterMode = MediaCounterMode.ELAPSED
 )
 
 @Serializable
@@ -323,12 +333,45 @@ enum class PillLeftDesign {
 }
 
 @Serializable
+enum class PillIconSource {
+    @SerialName("DEFAULT") DEFAULT,
+    @SerialName("APP_ICON") APP_ICON,
+    @SerialName("NOTIFICATION_ICON") NOTIFICATION_ICON,
+    @SerialName("AVATAR") AVATAR,
+    @SerialName("MEDIA_ALBUM_ART") MEDIA_ALBUM_ART,
+    @SerialName("CUSTOM_ICON") CUSTOM_ICON,
+    @SerialName("HIDDEN") HIDDEN
+}
+
+@Serializable
+enum class PillTextSource {
+    @SerialName("DEFAULT") DEFAULT,
+    @SerialName("TITLE") TITLE,
+    @SerialName("MESSAGE") MESSAGE,
+    @SerialName("SENDER_NAME") SENDER_NAME,
+    @SerialName("APP_NAME") APP_NAME,
+    @SerialName("MEDIA_TRACK") MEDIA_TRACK,
+    @SerialName("MEDIA_ARTIST") MEDIA_ARTIST,
+    @SerialName("CUSTOM_TEMPLATE") CUSTOM_TEMPLATE,
+    @SerialName("NONE") NONE
+}
+
+@Serializable
 enum class PillRightDesign {
     @SerialName("AUTO") AUTO,
     @SerialName("PROGRESS_PERCENT") PROGRESS_PERCENT,
     @SerialName("TIMER") TIMER,
     @SerialName("HIGHLIGHT_TEXT") HIGHLIGHT_TEXT,
-    @SerialName("NONE") NONE
+    @SerialName("NONE") NONE,
+    @SerialName("OTP_CODE") OTP_CODE,
+    @SerialName("BOARDING_PASS") BOARDING_PASS,
+    @SerialName("NOTIF_TITLE") NOTIF_TITLE,
+    @SerialName("MESSAGE") MESSAGE,
+    @SerialName("SENDER_NAME") SENDER_NAME,
+    @SerialName("MEDIA_TRACK") MEDIA_TRACK,
+    @SerialName("MEDIA_ARTIST") MEDIA_ARTIST,
+    @SerialName("MEDIA_COUNTER") MEDIA_COUNTER,
+    @SerialName("CHAT_COUNTER") CHAT_COUNTER
 }
 
 @Serializable

@@ -180,6 +180,7 @@ class CustomWidgetTranslator(
             mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: effectiveText,
             mediaDuration = mediaResult.durationFormatted,
             mediaPosition = mediaResult.currentFormatted,
+            mediaRemaining = mediaResult.remainingFormatted,
             isMediaPlaying = mediaResult.isPlaying ?: false,
             mediaState = mediaResult.playbackStateStr,
             colorScheme = resolvedColorScheme
@@ -271,12 +272,61 @@ class CustomWidgetTranslator(
         }
 
         val pillRightText = when (rightDesign) {
+            PillRightDesign.OTP_CODE -> {
+                DynamicTranslator.extractOtpFromText(effectiveText)
+                    ?: DynamicTranslator.extractOtpFromText(effectiveTitle)
+                    ?: ""
+            }
+            PillRightDesign.BOARDING_PASS -> {
+                DynamicTranslator.extractBoardingPassFromText(effectiveText)
+                    ?: DynamicTranslator.extractBoardingPassFromText(effectiveTitle)
+                    ?: ""
+            }
+            PillRightDesign.NOTIF_TITLE -> effectiveTitle
+            PillRightDesign.MESSAGE -> effectiveText
+            PillRightDesign.SENDER_NAME -> extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString() ?: effectiveTitle
+            PillRightDesign.MEDIA_TRACK -> effectiveTitle
+            PillRightDesign.MEDIA_ARTIST -> mediaArtist
+            PillRightDesign.MEDIA_COUNTER -> {
+                val isRemaining = pillConfig?.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+                val counter = if (isRemaining) {
+                    mediaResult.remainingFormatted ?: mediaResult.currentFormatted
+                } else {
+                    mediaResult.currentFormatted ?: mediaResult.remainingFormatted
+                }
+                counter ?: mediaResult.durationFormatted ?: ""
+            }
+            PillRightDesign.CHAT_COUNTER -> {
+                val count =
+                    notif.number.takeIf { it > 0 }
+                val lines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+                if (count != null) "+$count"
+                else if (!lines.isNullOrEmpty()) "+${lines.size}"
+                else ""
+            }
+            PillRightDesign.PROGRESS_PERCENT -> {
+                if (progressPercent > 0) "$progressPercent%" else ""
+            }
+            PillRightDesign.TIMER -> ""
             PillRightDesign.HIGHLIGHT_TEXT -> {
                 val highlightTpl = customTranslator?.presentation?.textSlot?.highlightTextTemplate
                 if (!highlightTpl.isNullOrBlank()) highlightTpl.replace("{notif.title}", effectiveTitle).replace("{notif.text}", effectiveText) else effectiveText
             }
+            PillRightDesign.AUTO -> {
+                val isMediaNotif = leftDesign == PillLeftDesign.MEDIA || extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true
+                if (isMediaNotif) {
+                    val isRemaining = pillConfig?.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+                    val counter = if (isRemaining) {
+                        mediaResult.remainingFormatted ?: mediaResult.currentFormatted
+                    } else {
+                        mediaResult.currentFormatted ?: mediaResult.remainingFormatted
+                    }
+                    counter ?: mediaResult.durationFormatted ?: effectiveText
+                } else {
+                    effectiveText
+                }
+            }
             PillRightDesign.NONE -> ""
-            else -> effectiveText
         }
 
         val showBigIslandPic = leftDesign != PillLeftDesign.TEXT_ONLY &&
@@ -306,14 +356,12 @@ class CustomWidgetTranslator(
             else -> {
                 val leftBigIslandText = pillLeftText
                 val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
-                val rightBigIslandTitle = if (leftBigIslandText.isNotBlank()) "" else effectiveTitle
+                val rightInfo = if (rightDesign != PillRightDesign.NONE && pillRightText.isNotBlank()) {
+                    ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = pillRightText, content = ""))
+                } else null
                 builder.setBigIslandInfo(
                     left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
-                    right = if (rightDesign != PillRightDesign.NONE) {
-                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(rightBigIslandTitle, pillRightText))
-                    } else {
-                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo("", ""))
-                    }
+                    right = rightInfo
                 )
                 builder.setSmallIsland(if (hasAlbumCover && themedMediaPillBmp != null) "album_art" else (if (showBigIslandPic) pillLeftPicKey else primaryPicKey))
             }

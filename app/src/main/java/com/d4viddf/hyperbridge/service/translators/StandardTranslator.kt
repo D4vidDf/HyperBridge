@@ -79,11 +79,22 @@ class StandardTranslator(
 
         // Island Layout
         if (isMedia) {
-            builder.setBigIslandInfo(left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")))
-        } else {
+            val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, context)
+            val mediaCounter = mediaResult.currentFormatted
+                ?: (if (mediaResult.progressPercent != null && mediaResult.progressPercent > 0) "${mediaResult.progressPercent}%" else null)
+                ?: subText.takeIf { it.isNotBlank() }
+            val rightItem = if (!mediaCounter.isNullOrBlank()) {
+                ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = mediaCounter, content = ""))
+            } else null
             builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
-                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, displayContent))
+                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo(title = title, content = "")),
+                right = rightItem
+            )
+        } else {
+            val rightText = displayContent.ifBlank { title }
+            builder.setBigIslandInfo(
+                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo(title = title, content = "")),
+                right = if (rightText.isNotBlank()) ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = rightText, content = "")) else null
             )
         }
 

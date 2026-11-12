@@ -3,6 +3,7 @@ package com.d4viddf.hyperbridge.service.translators
 import android.app.Notification
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.graphics.toColorInt
@@ -87,16 +88,16 @@ class DynamicTranslator(
 
         val notifTitle = if (!resolvedTitle.isNullOrBlank()) {
             resolvedTitle
-        } else if (rawTitle.isNotBlank()) {
-            rawTitle
-        } else {
+        } else rawTitle.ifBlank {
             appLabel
         }
         val notifText = if (!resolvedText.isNullOrBlank()) resolvedText else rawText
 
         val isCall = callSession != null ||
                 notif.category == Notification.CATEGORY_CALL ||
-                customTranslator.presentation.templateId == "tpl_call_kit"
+                notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("CallStyle") == true ||
+                (customTranslator.targetNotificationTypes.contains("CALL") &&
+                        (notif.category == Notification.CATEGORY_CALL || notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("CallStyle") == true))
 
         val callStateText = when (callSession?.state) {
             com.d4viddf.hyperbridge.service.call.CallState.INCOMING_RINGING -> context.getString(R.string.call_incoming)
@@ -176,7 +177,7 @@ class DynamicTranslator(
         // 1. Resolve pictures from Notification
         val notifLargeIcon = sbn.notification.getLargeIcon()
         val notifPictureBmp = try {
-            extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_PICTURE)
+            extras.getParcelable(Notification.EXTRA_PICTURE)
                 ?: (extras.getParcelable<android.graphics.drawable.Icon>("android.pictureIcon")?.let { loadIconBitmap(it, sbn.packageName) })
                 ?: (extras.getParcelable<android.graphics.drawable.Icon>(Notification.EXTRA_PICTURE_ICON)?.let { loadIconBitmap(it, sbn.packageName) })
         } catch (_: Exception) {
@@ -187,7 +188,7 @@ class DynamicTranslator(
             loadIconBitmap(notifLargeIcon, sbn.packageName)
         } else {
             try {
-                extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
+                extras.getParcelable(Notification.EXTRA_LARGE_ICON)
                     ?: notifPictureBmp
             } catch (_: Exception) {
                 null
@@ -195,12 +196,8 @@ class DynamicTranslator(
         } ?: notifPictureBmp
 
         val mediaSessionBmp = try {
-            val token = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val token =
                 extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, android.media.session.MediaSession.Token::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) as? android.media.session.MediaSession.Token
-            }
             if (token != null) {
                 val controller = android.media.session.MediaController(context, token)
                 controller.metadata?.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART)
@@ -229,6 +226,10 @@ class DynamicTranslator(
             builder.addPicture(HyperPicture("album_art", themedMediaPillBmp))
             builder.addPicture(HyperPicture("miui.focus.pic_imageText", mediaArtworkBmp))
             builder.addPicture(HyperPicture(mediaPillArtKey, themedMediaPillBmp))
+        }
+        if (mediaArtworkBmp == null && largeBmp != null) {
+            builder.addPicture(HyperPicture("miui.focus.pic_large_icon", largeBmp))
+            builder.addPicture(HyperPicture("miui.focus.pic_sender_avatar", largeBmp))
         }
         if (posterBmp != null) {
             builder.addPicture(HyperPicture("poster", posterBmp))
@@ -430,7 +431,7 @@ class DynamicTranslator(
                 notif.`when` > System.currentTimeMillis()
         val hasProgress = (progressConfig.type == ProgressSlotType.PROGRESS_BAR || rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT) && progressValue != null
 
-        val progressPercent = if (hasProgress && progressValue != null) {
+        val progressPercent = if (hasProgress) {
             if (maxProgressValue > 0) {
                 ((progressValue.toFloat() / maxProgressValue.toFloat()) * 100).toInt().coerceIn(0, 100)
             } else {
@@ -469,23 +470,122 @@ class DynamicTranslator(
                     if (mediaArtworkBmp != null) "album_art" else primaryPicKey
                 } else hiddenKey
             }
-            else -> primaryPicKey
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.AVATAR -> {
+                if (largeBmp != null) "miui.focus.pic_sender_avatar" else primaryPicKey
+            }
+            else -> {
+                when (pillConfig.leftIconSource) {
+                    com.d4viddf.hyperbridge.models.translator.PillIconSource.APP_ICON -> "miui.focus.pic_app_icon"
+                    com.d4viddf.hyperbridge.models.translator.PillIconSource.NOTIFICATION_ICON -> if (largeBmp != null) "miui.focus.pic_large_icon" else primaryPicKey
+                    com.d4viddf.hyperbridge.models.translator.PillIconSource.AVATAR -> if (largeBmp != null) "miui.focus.pic_sender_avatar" else primaryPicKey
+                    com.d4viddf.hyperbridge.models.translator.PillIconSource.MEDIA_ALBUM_ART -> if (mediaArtworkBmp != null) "album_art" else primaryPicKey
+                    com.d4viddf.hyperbridge.models.translator.PillIconSource.CUSTOM_ICON -> primaryPicKey
+                    com.d4viddf.hyperbridge.models.translator.PillIconSource.HIDDEN -> hiddenKey
+                    com.d4viddf.hyperbridge.models.translator.PillIconSource.DEFAULT -> primaryPicKey
+                }
+            }
         }
 
         val pillLeftText = when (leftDesign) {
-            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.ICON_AND_TEXT,
-            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY -> finalTitle
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.ICON_ONLY,
+            com.d4viddf.hyperbridge.models.translator.PillLeftDesign.HIDDEN -> ""
             com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA -> mediaPillText
-            else -> ""
+            else -> {
+                when (pillConfig.leftTextSource) {
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.TITLE -> finalTitle
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.MESSAGE -> finalText
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.SENDER_NAME -> extractedSenderName ?: finalTitle
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.APP_NAME -> appLabel
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.MEDIA_TRACK -> mediaTrack
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.MEDIA_ARTIST -> mediaArtist
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.CUSTOM_TEMPLATE -> {
+                        val tpl = pillConfig.rightCustomTemplate
+                        if (!tpl.isNullOrBlank()) interpolate(tpl, variableMap) else finalTitle
+                    }
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.NONE -> ""
+                    com.d4viddf.hyperbridge.models.translator.PillTextSource.DEFAULT -> {
+                        if (isMedia) mediaPillText.ifBlank { finalTitle } else finalTitle
+                    }
+                }
+            }
         }
 
         val pillRightText = when (rightDesign) {
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.OTP_CODE -> {
+                extractOtpFromText(rawText)
+                    ?: extractOtpFromText(rawTitle)
+                    ?: variableMap["smart_action.OTP.code"]
+                    ?: ""
+            }
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.BOARDING_PASS -> {
+                extractBoardingPassFromText(rawText)
+                    ?: extractBoardingPassFromText(rawTitle)
+                    ?: rawSubtext
+                    ?: ""
+            }
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.NOTIF_TITLE -> finalTitle
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.MESSAGE -> finalText
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.SENDER_NAME -> extractedSenderName ?: finalTitle
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.MEDIA_TRACK -> mediaTrack
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.MEDIA_ARTIST -> mediaArtist
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.MEDIA_COUNTER -> {
+                val isRemaining = pillConfig.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+                val preferredCounter = if (isRemaining) {
+                    variableMap["media.remaining"]?.ifBlank { null }
+                        ?: variableMap["media.position"]?.ifBlank { null }
+                } else {
+                    variableMap["media.position"]?.ifBlank { null }
+                        ?: variableMap["media.remaining"]?.ifBlank { null }
+                }
+
+                preferredCounter
+                    ?: variableMap["media.duration"]?.ifBlank { null }
+                    ?: run {
+                        val textCandidate = rawSubtext ?: rawText
+                        val singleTimeMatch = Regex("""-?\b\d{1,2}:\d{2}(?::\d{2})?\b""").find(textCandidate)
+                        singleTimeMatch?.value
+                    }
+                    ?: run {
+                        if (notif.`when` > 0L) {
+                            val elapsed = System.currentTimeMillis() - notif.`when`
+                            if (elapsed in 0..(24 * 3600 * 1000L)) {
+                                com.d4viddf.hyperbridge.util.MediaProgressResolver.formatMillisToTime(elapsed)
+                            } else null
+                        } else null
+                    }
+                    ?: ""
+            }
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.CHAT_COUNTER -> {
+                extractChatCounter(notif, extras)
+            }
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT -> {
+                if (progressPercent > 0) "$progressPercent%" else ""
+            }
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.TIMER -> {
+                "" // Handled via TimerInfo
+            }
             com.d4viddf.hyperbridge.models.translator.PillRightDesign.HIGHLIGHT_TEXT -> {
                 val highlightTpl = customTranslator.presentation.textSlot.highlightTextTemplate
                 if (!highlightTpl.isNullOrBlank()) interpolate(highlightTpl, variableMap) else finalText
             }
+            com.d4viddf.hyperbridge.models.translator.PillRightDesign.AUTO -> {
+                val isRemaining = pillConfig.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+                val autoMediaCounter = if (isRemaining) {
+                    variableMap["media.remaining"]?.ifBlank { null }
+                        ?: variableMap["media.position"]?.ifBlank { null }
+                } else {
+                    variableMap["media.position"]?.ifBlank { null }
+                        ?: variableMap["media.remaining"]?.ifBlank { null }
+                }
+
+                extractOtpFromText(rawText)
+                    ?: extractBoardingPassFromText(rawText)
+                    ?: (if (hasProgress && progressPercent > 0) "$progressPercent%" else null)
+                    ?: (if (isMedia) (autoMediaCounter ?: variableMap["media.duration"]?.ifBlank { null }) else null)
+                    ?: rawSubtext
+                    ?: finalText
+            }
             com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE -> ""
-            else -> finalText
         }
 
         val showBigIslandPic = leftDesign != com.d4viddf.hyperbridge.models.translator.PillLeftDesign.TEXT_ONLY &&
@@ -594,12 +694,12 @@ class DynamicTranslator(
 
                 val leftBigIslandText = pillLeftText
                 val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
-                val rightBigIslandTitle = if (leftBigIslandText.isNotBlank()) "" else finalTitle
+                val rightInfo = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE && pillRightText.isNotBlank()) {
+                    ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = pillRightText, content = ""))
+                } else null
                 builder.setBigIslandInfo(
                     left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
-                    right = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) {
-                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(rightBigIslandTitle, pillRightText))
-                    } else null
+                    right = rightInfo
                 )
                 builder.setSmallIsland(if (hasAlbumCover && mediaArtworkBmp != null) "album_art" else (if (showBigIslandPic) pillLeftPicKey else primaryPicKey))
                 builder.setHideDeco(true).setReopen(true).setShowSmallIcon(true)
@@ -641,9 +741,14 @@ class DynamicTranslator(
                     val timerPicKey = if (showBigIslandPic) pillLeftPicKey else ""
                     builder.setBigIslandCountUp(connectedAtForTimer, timerPicKey)
                 } else {
+                    val rightCallText = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE && pillRightText.isNotBlank()) {
+                        pillRightText
+                    } else {
+                        callStateText
+                    }
                     builder.setBigIslandInfo(
                         left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
-                        right = ImageTextInfoRight(2, null, TextInfo(callStateText, ""))
+                        right = if (rightCallText.isNotBlank()) ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = rightCallText, content = "")) else null
                     )
                 }
 
@@ -686,14 +791,12 @@ class DynamicTranslator(
 
                 val leftBigIslandText = pillLeftText
                 val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
-                val rightBigIslandTitle = if (leftBigIslandText.isNotBlank()) "" else finalTitle
+                val rightInfo = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE && pillRightText.isNotBlank()) {
+                    ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = pillRightText, content = ""))
+                } else null
                 builder.setBigIslandInfo(
                     left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(leftBigIslandText, "")),
-                    right = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE) {
-                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(rightBigIslandTitle, pillRightText))
-                    } else {
-                        ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo("", ""))
-                    }
+                    right = rightInfo
                 )
                 builder.setSmallIsland(if (hasAlbumCover && mediaArtworkBmp != null) "album_art" else (if (showBigIslandPic) pillLeftPicKey else primaryPicKey))
 
@@ -846,6 +949,9 @@ class DynamicTranslator(
         if (mediaResult.durationFormatted != null) {
             map["media.duration"] = mediaResult.durationFormatted
         }
+        if (mediaResult.remainingFormatted != null) {
+            map["media.remaining"] = mediaResult.remainingFormatted
+        }
 
         // App & System metadata
         map["app.name"] = try {
@@ -903,7 +1009,7 @@ class DynamicTranslator(
     private fun extractCustomVariables(
         customTranslator: CustomTranslator,
         sbn: StatusBarNotification,
-        extras: android.os.Bundle,
+        extras: Bundle,
         variableMap: MutableMap<String, String>,
         builder: HyperIslandNotification,
         effectiveTheme: HyperTheme?,
@@ -1001,7 +1107,7 @@ class DynamicTranslator(
     private fun resolveVariableImage(
         v: CustomVariableDefinition,
         sbn: StatusBarNotification,
-        extras: android.os.Bundle,
+        extras: Bundle,
         effectiveTheme: HyperTheme?
     ): android.graphics.Bitmap? {
         val notif = sbn.notification
@@ -1026,8 +1132,8 @@ class DynamicTranslator(
                     loadIconBitmap(largeIcon, sbn.packageName)
                 } else {
                     try {
-                        extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_LARGE_ICON)
-                            ?: extras.getParcelable<android.graphics.Bitmap>(Notification.EXTRA_PICTURE)
+                        extras.getParcelable(Notification.EXTRA_LARGE_ICON)
+                            ?: extras.getParcelable(Notification.EXTRA_PICTURE)
                     } catch (_: Exception) {
                         null
                     }
@@ -1060,7 +1166,7 @@ class DynamicTranslator(
         source: VariableSource,
         extraKey: String?,
         sbn: StatusBarNotification,
-        extras: android.os.Bundle
+        extras: Bundle
     ): String? {
         return when (source) {
             VariableSource.NOTIFICATION_TITLE -> extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
@@ -1082,7 +1188,7 @@ class DynamicTranslator(
     private fun extractCustomActions(
         customTranslator: CustomTranslator,
         sbn: StatusBarNotification,
-        extras: android.os.Bundle,
+        extras: Bundle,
         rawText: String,
         variableMap: MutableMap<String, String>,
         builder: HyperIslandNotification,
@@ -1374,6 +1480,45 @@ class DynamicTranslator(
                 null
             }
         }
+
+        internal fun extractOtpFromText(text: String): String? {
+            val regex = Regex("(?i)(?:code|código|otp|passcode|verification|security|seguridad|pin|验证码)(?:[\\w\\s]{0,25}?(?:is|es|:))?\\s*([0-9]{4,8})\\b")
+            return regex.find(text)?.groupValues?.getOrNull(1)
+        }
+
+        internal fun extractBoardingPassFromText(text: String): String? {
+            if (text.isBlank()) return null
+            val gateRegex = Regex("(?i)\\b(?:gate|puerta|porte|tor|cancello)\\s*([A-Z]?\\d+[A-Z]?)\\b")
+            val gateMatch = gateRegex.find(text)
+            if (gateMatch != null) {
+                val gateNumber = gateMatch.groupValues.getOrNull(1)
+                if (!gateNumber.isNullOrBlank()) return "Gate $gateNumber"
+            }
+
+            val boardingRegex = Regex("(?i)\\b(?:boarding|embarque|einsteigen|imbarco)\\s*(?:at\\s*)?(\\d{1,2}:\\d{2})\\b")
+            val boardingMatch = boardingRegex.find(text)
+            if (boardingMatch != null) {
+                val time = boardingMatch.groupValues.getOrNull(1)
+                if (!time.isNullOrBlank()) return "Boarding $time"
+            }
+
+            val flightRegex = Regex("(?i)\\b([A-Z]{2}|[A-Z]\\d|\\d[A-Z])\\s?(\\d{2,4})\\b")
+            val flightMatch = flightRegex.find(text)
+            if (flightMatch != null) {
+                val airline = flightMatch.groupValues.getOrNull(1)
+                val num = flightMatch.groupValues.getOrNull(2)
+                if (!airline.isNullOrBlank() && !num.isNullOrBlank()) return "$airline $num"
+            }
+
+            val seatRegex = Regex("(?i)\\b(?:seat|asiento|siège|platz|posto)\\s*(\\d{1,3}[A-F])\\b")
+            val seatMatch = seatRegex.find(text)
+            if (seatMatch != null) {
+                val seat = seatMatch.groupValues.getOrNull(1)
+                if (!seat.isNullOrBlank()) return "Seat $seat"
+            }
+
+            return null
+        }
     }
 
     private fun interpolate(
@@ -1612,11 +1757,6 @@ class DynamicTranslator(
         return com.d4viddf.hyperbridge.models.BridgeAction(hyperAction, hyperPic)
     }
 
-    private fun extractOtpFromText(text: String): String? {
-        val regex = Regex("(?i)(?:code|código|otp|passcode|verification|验证码)(?:\\s+(?:is|es))?[:\\s]*([0-9]{4,8})")
-        return regex.find(text)?.groupValues?.getOrNull(1)
-    }
-
     private fun extractUrlFromText(text: String): String? {
         val regex = Regex("https?://[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]+")
         return regex.find(text)?.value
@@ -1625,6 +1765,18 @@ class DynamicTranslator(
     private fun extractPhoneFromText(text: String): String? {
         val regex = Regex("(?:\\+?\\d{1,3}[- ]?)?\\(?\\d{3}\\)?[- ]?\\d{3}[- ]?\\d{4}")
         return regex.find(text)?.value
+    }
+
+    private fun extractChatCounter(notif: Notification, extras: Bundle): String {
+        val count =
+            notif.number.takeIf { it > 0 }
+        if (count != null) return "+$count"
+        val lines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+        if (!lines.isNullOrEmpty()) return "+${lines.size}"
+        @Suppress("DEPRECATION")
+        val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+        if (messages != null && messages.isNotEmpty()) return "+${messages.size}"
+        return ""
     }
 }
 

@@ -673,7 +673,74 @@ class CustomTranslatorSerializationTest {
             listOf(PillMediaItem.ALBUM_COVER, PillMediaItem.TRACK, PillMediaItem.ARTIST),
             legacyDecoded.presentation.pill.mediaOrder
         )
+        assertEquals(PillIconSource.DEFAULT, legacyDecoded.presentation.pill.leftIconSource)
+        assertEquals(PillTextSource.DEFAULT, legacyDecoded.presentation.pill.leftTextSource)
+    }
+
+    @Test
+    fun testPillExpandedOptionsSerialization() {
+        val translator = CustomTranslator(
+            id = "pill_expanded_test",
+            meta = TranslatorMetadata(name = "Expanded Pill Test", author = "Test"),
+            presentation = PresentationConfig(
+                pill = CompactPillConfig(
+                    leftDesign = PillLeftDesign.AVATAR,
+                    rightDesign = PillRightDesign.OTP_CODE,
+                    leftIconSource = PillIconSource.AVATAR,
+                    leftTextSource = PillTextSource.SENDER_NAME,
+                    rightCustomTemplate = "{otp}"
+                )
+            )
+        )
+
+        val json = CustomTranslator.toJson(translator)
+        assertTrue(json.contains("\"right_design\": \"OTP_CODE\""))
+        assertTrue(json.contains("\"left_icon_source\": \"AVATAR\""))
+        assertTrue(json.contains("\"left_text_source\": \"SENDER_NAME\""))
+
+        val decoded = CustomTranslator.fromJson(json).getOrThrow()
+        assertEquals(PillRightDesign.OTP_CODE, decoded.presentation.pill.rightDesign)
+        assertEquals(PillIconSource.AVATAR, decoded.presentation.pill.leftIconSource)
+        assertEquals(PillTextSource.SENDER_NAME, decoded.presentation.pill.leftTextSource)
+        assertEquals("{otp}", decoded.presentation.pill.rightCustomTemplate)
+
+        // Test Boarding Pass right design
+        val boardingTranslator = translator.copy(
+            presentation = translator.presentation.copy(
+                pill = translator.presentation.pill.copy(rightDesign = PillRightDesign.BOARDING_PASS)
+            )
+        )
+        val boardingJson = CustomTranslator.toJson(boardingTranslator)
+        assertTrue(boardingJson.contains("\"right_design\": \"BOARDING_PASS\""))
+        val boardingDecoded = CustomTranslator.fromJson(boardingJson).getOrThrow()
+        assertEquals(PillRightDesign.BOARDING_PASS, boardingDecoded.presentation.pill.rightDesign)
+    }
+
+    @Test
+    fun testMediaCounterModeSerialization() {
+        val translator = CustomTranslator(
+            id = "media_counter_mode_test",
+            meta = TranslatorMetadata(name = "Media Counter Test", author = "Test"),
+            presentation = PresentationConfig(
+                pill = CompactPillConfig(
+                    rightDesign = PillRightDesign.MEDIA_COUNTER,
+                    mediaCounterMode = com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+                )
+            )
+        )
+
+        val json = CustomTranslator.toJson(translator)
+        assertTrue(json.contains("\"media_counter_mode\": \"REMAINING\""))
+
+        val decoded = CustomTranslator.fromJson(json).getOrThrow()
+        assertEquals(com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING, decoded.presentation.pill.mediaCounterMode)
+
+        // Backwards compatibility: when media_counter_mode is missing, defaults to ELAPSED
+        val legacyJson = """{"id":"legacy_pill","meta":{"name":"Legacy","author":"Test"}}"""
+        val legacyDecoded = CustomTranslator.fromJson(legacyJson).getOrThrow()
+        assertEquals(com.d4viddf.hyperbridge.models.translator.MediaCounterMode.ELAPSED, legacyDecoded.presentation.pill.mediaCounterMode)
     }
 }
+
 
 

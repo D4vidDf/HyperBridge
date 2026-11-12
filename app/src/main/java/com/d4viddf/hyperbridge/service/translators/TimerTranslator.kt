@@ -57,9 +57,10 @@ class TimerTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(
         if (isCountdown) {
             builder.setBigIslandCountdown(baseTime, picKey)
         } else {
+            val timerText = context.getString(R.string.status_active)
             builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
-                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, context.getString(R.string.status_active)))
+                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo(title = title, content = "")),
+                right = ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = timerText, content = ""))
             )
         }
 
