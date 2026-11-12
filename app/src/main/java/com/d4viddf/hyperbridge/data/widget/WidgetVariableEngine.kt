@@ -33,6 +33,7 @@ data class VariableContext(
     val mediaArtist: String? = null,
     val mediaDuration: String? = null,
     val mediaPosition: String? = null,
+    val mediaRemaining: String? = null,
     val isMediaPlaying: Boolean = false,
     val mediaState: String? = null,
     val colorScheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null
@@ -64,6 +65,7 @@ class WidgetVariableEngine {
             token == "media.artist" -> ctx.mediaArtist ?: ctx.notifText
             token == "media.duration" -> ctx.mediaDuration
             token == "media.position" -> ctx.mediaPosition
+            token == "media.remaining" -> ctx.mediaRemaining
             token == "media.is_playing" -> ctx.isMediaPlaying.toString()
             token == "media.state" -> ctx.mediaState
             token == "theme.primary" -> ctx.colorScheme?.getHex(com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.PRIMARY) ?: ctx.themePrimary

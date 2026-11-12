@@ -1206,8 +1206,73 @@
     <string name="translator_pill_right_timer_desc">Muestra temporizador o contador en vivo</string>
     <string name="translator_pill_right_highlight">Texto destacado</string>
     <string name="translator_pill_right_highlight_desc">Muestra texto destacado o estado breve</string>
+    <string name="translator_pill_right_otp">Código de verificación (OTP)</string>
+    <string name="translator_pill_right_otp_desc">Extrae y muestra códigos de verificación de 4 a 8 dígitos</string>
+    <string name="translator_pill_right_boarding">Tarjeta de embarque</string>
+    <string name="translator_pill_right_boarding_desc">Muestra número de vuelo, puerta, asiento u hora de embarque</string>
+    <string name="translator_pill_right_title">Título de notificación</string>
+    <string name="translator_pill_right_title_desc">Muestra el título principal de la notificación</string>
+    <string name="translator_pill_right_message">Texto del mensaje</string>
+    <string name="translator_pill_right_message_desc">Muestra el cuerpo del mensaje o contenido</string>
+    <string name="translator_pill_right_sender">Nombre del remitente</string>
+    <string name="translator_pill_right_sender_desc">Muestra el nombre de la persona o chat</string>
+    <string name="translator_pill_right_media_track">Título de pista</string>
+    <string name="translator_pill_right_media_track_desc">Muestra el título de la canción en reproducción</string>
+    <string name="translator_pill_right_media_artist">Nombre del artista</string>
+    <string name="translator_pill_right_media_artist_desc">Muestra el artista o creador de la música</string>
+    <string name="translator_pill_right_media_counter">Contador multimedia</string>
+    <string name="translator_pill_right_media_counter_desc">Muestra tiempo transcurrido o duración multimedia</string>
+    <string name="translator_pill_media_counter_mode_title">Modo de contador multimedia</string>
+    <string name="translator_pill_media_counter_mode_desc">Elige si el contador multimedia muestra el tiempo transcurrido o el tiempo restante.</string>
+    <string name="translator_pill_media_counter_elapsed">Tiempo transcurrido (02:45)</string>
+    <string name="translator_pill_media_counter_remaining">Tiempo restante (-01:15)</string>
+    <string name="translator_pill_right_chat_counter">Contador de no leídos</string>
+    <string name="translator_pill_right_chat_counter_desc">Muestra la cantidad de mensajes entrantes o no leídos</string>
     <string name="translator_pill_right_none">Vacío</string>
     <string name="translator_pill_right_none_desc">Deja vacía la ranura derecha de la píldora</string>
+
+    <!-- Pill Right Slot Categories -->
+    <string name="translator_pill_category_smart">Inteligente y contextual</string>
+    <string name="translator_pill_category_notification">Contenido de notificación</string>
+    <string name="translator_pill_category_media">Multimedia y reproducción</string>
+    <string name="translator_pill_category_custom">Personalizado y mínimo</string>
+
+    <!-- Pill Left Slot Options -->
+    <string name="translator_pill_left_icon_title">Origen de icono izquierdo</string>
+    <string name="translator_pill_left_icon_desc">Elige qué icono se muestra en el lado izquierdo de la píldora</string>
+    <string name="translator_pill_icon_default">Predeterminado</string>
+    <string name="translator_pill_icon_default_desc">Usa el icono predeterminado según la plantilla y notificación</string>
+    <string name="translator_pill_icon_app">Icono de la aplicación</string>
+    <string name="translator_pill_icon_app_desc">Muestra el icono de la aplicación instalada</string>
+    <string name="translator_pill_icon_notification">Icono de notificación</string>
+    <string name="translator_pill_icon_notification_desc">Muestra el icono grande o imagen de la notificación</string>
+    <string name="translator_pill_icon_avatar">Avatar del remitente</string>
+    <string name="translator_pill_icon_avatar_desc">Muestra el avatar del remitente o contacto</string>
+    <string name="translator_pill_icon_media">Portada multimedia</string>
+    <string name="translator_pill_icon_media_desc">Muestra la carátula del álbum o miniatura de audio</string>
+    <string name="translator_pill_icon_custom">Icono personalizado</string>
+    <string name="translator_pill_icon_custom_desc">Muestra un recurso de icono de tema personalizado</string>
+    <string name="translator_pill_icon_hidden">Oculto</string>
+    <string name="translator_pill_icon_hidden_desc">Oculta el icono en el lado izquierdo</string>
+
+    <string name="translator_pill_left_text_title">Contenido de texto izquierdo</string>
+    <string name="translator_pill_left_text_desc">Elige qué texto se muestra en el lado izquierdo de la píldora</string>
+    <string name="translator_pill_text_default">Predeterminado</string>
+    <string name="translator_pill_text_default_desc">Muestra el título de la notificación</string>
+    <string name="translator_pill_text_title">Título de notificación</string>
+    <string name="translator_pill_text_title_desc">Muestra el título principal de la notificación</string>
+    <string name="translator_pill_text_message">Cuerpo del mensaje</string>
+    <string name="translator_pill_text_message_desc">Muestra el contenido o texto del mensaje</string>
+    <string name="translator_pill_text_sender">Nombre del remitente</string>
+    <string name="translator_pill_text_sender_desc">Muestra el nombre de la persona o contacto</string>
+    <string name="translator_pill_text_app_name">Nombre de aplicación</string>
+    <string name="translator_pill_text_app_name_desc">Muestra el nombre de la aplicación</string>
+    <string name="translator_pill_text_media_track">Título de pista</string>
+    <string name="translator_pill_text_media_track_desc">Muestra el título de la pista multimedia</string>
+    <string name="translator_pill_text_media_artist">Nombre del artista</string>
+    <string name="translator_pill_text_media_artist_desc">Muestra el nombre del artista</string>
+    <string name="translator_pill_text_none">Ninguno</string>
+    <string name="translator_pill_text_none_desc">Sin texto en el lado izquierdo</string>
 
     <!-- Preview Mode Strings -->
     <string name="translator_preview_mode_expanded">Isla Expandida</string>

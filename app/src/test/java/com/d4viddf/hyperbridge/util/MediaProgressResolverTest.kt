@@ -31,6 +31,7 @@ class MediaProgressResolverTest {
         assertEquals(36, res?.progressPercent)
         assertEquals("01:23", res?.currentFormatted)
         assertEquals("03:45", res?.durationFormatted)
+        assertEquals("-02:22", res?.remainingFormatted)
     }
 
     @Test
@@ -41,6 +42,7 @@ class MediaProgressResolverTest {
         assertEquals(50, res?.progressPercent)
         assertEquals("02:30", res?.currentFormatted)
         assertEquals("05:00", res?.durationFormatted)
+        assertEquals("-02:30", res?.remainingFormatted)
     }
 
     @Test
@@ -49,6 +51,7 @@ class MediaProgressResolverTest {
         // 45 / 90 = 50%
         assertNotNull(res)
         assertEquals(50, res?.progressPercent)
+        assertEquals("-00:45", res?.remainingFormatted)
     }
 
     @Test
@@ -58,11 +61,37 @@ class MediaProgressResolverTest {
         assertEquals(50, res?.progressPercent)
         assertEquals("01:30", res?.currentFormatted)
         assertEquals("03:00", res?.durationFormatted)
+        assertEquals("-01:30", res?.remainingFormatted)
     }
 
     @Test
     fun handlesZeroDurationGracefully() {
         val res = MediaProgressResolver.calculateProgress(0L, 0L)
         assertNull(res)
+    }
+
+    @Test
+    fun extractsProgressFromSingleTimestamp() {
+        val res = MediaProgressResolver.extractProgressFromText("02:45")
+        assertNotNull(res)
+        assertEquals(null, res?.progressPercent)
+        assertEquals("02:45", res?.currentFormatted)
+        assertEquals(null, res?.durationFormatted)
+        assertEquals(165_000L, res?.currentMs)
+    }
+
+    @Test
+    fun extractsProgressFromTextWithSingleTimestamp() {
+        val res = MediaProgressResolver.extractProgressFromText("Episode 42 • 12:34")
+        assertNotNull(res)
+        assertEquals("12:34", res?.currentFormatted)
+        assertEquals(754_000L, res?.currentMs)
+    }
+
+    @Test
+    fun extractsProgressFromRemainingTimestamp() {
+        val res = MediaProgressResolver.extractProgressFromText("-01:15")
+        assertNotNull(res)
+        assertEquals("-01:15", res?.remainingFormatted)
     }
 }

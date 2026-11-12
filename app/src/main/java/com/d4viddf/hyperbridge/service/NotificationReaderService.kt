@@ -960,7 +960,7 @@ class NotificationReaderService : NotificationListenerService() {
 
                     val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(latestSbn, this@NotificationReaderService)
                     val currentPercent = mediaResult.progressPercent
-                    val currentPos = mediaResult.currentFormatted
+                    val currentPos = mediaResult.currentFormatted ?: mediaResult.remainingFormatted
                     if (currentPercent != lastReportedPercent || currentPos != lastReportedPos) {
                         lastReportedPercent = currentPercent
                         lastReportedPos = currentPos
@@ -1815,7 +1815,8 @@ class NotificationReaderService : NotificationListenerService() {
                         effectiveText.hashCode() + actualProgress + actualMax +
                         isIndeterminate.hashCode() + actionState.hashCode() +
                         (mediaResult.progressPercent ?: 0) * 17 +
-                        (mediaResult.currentFormatted?.hashCode() ?: 0)
+                        (mediaResult.currentFormatted?.hashCode() ?: 0) +
+                        (mediaResult.remainingFormatted?.hashCode() ?: 0)
 
                 if (shouldSuppressExpiredSource(sbn, type, effectiveKey, newContentHash, recovery, messageEventFingerprint)) {
                     return
@@ -2017,8 +2018,9 @@ class NotificationReaderService : NotificationListenerService() {
                         (actualMax * 17) xor
                         (isIndeterminate.hashCode()) xor
                         ((mediaResult.progressPercent ?: -1) * 37) xor
-                        (mediaResult.currentFormatted?.hashCode() ?: 0) xor
-                        (mediaResult.durationFormatted?.hashCode() ?: 0)
+                        mediaResult.currentFormatted.hashCode() xor
+                        mediaResult.durationFormatted.hashCode() xor
+                        mediaResult.remainingFormatted.hashCode()
 
                 val textHash = effectiveTitle.hashCode() * 31 + effectiveText.hashCode() + actionState.hashCode()
                 baseHash xor progressHash xor textHash

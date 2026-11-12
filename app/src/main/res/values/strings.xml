@@ -1325,8 +1325,73 @@
     <string name="translator_pill_right_timer_desc">Displays live counting timer</string>
     <string name="translator_pill_right_highlight">Highlight text</string>
     <string name="translator_pill_right_highlight_desc">Shows custom highlight text or status snippet</string>
+    <string name="translator_pill_right_otp">Verification Code (OTP)</string>
+    <string name="translator_pill_right_otp_desc">Extracts and displays 4-8 digit verification codes</string>
+    <string name="translator_pill_right_boarding">Boarding Pass</string>
+    <string name="translator_pill_right_boarding_desc">Displays flight number, gate, seat, or boarding time</string>
+    <string name="translator_pill_right_title">Notification Title</string>
+    <string name="translator_pill_right_title_desc">Displays the main title of the notification</string>
+    <string name="translator_pill_right_message">Message Text</string>
+    <string name="translator_pill_right_message_desc">Displays the message body or content text</string>
+    <string name="translator_pill_right_sender">Sender Name</string>
+    <string name="translator_pill_right_sender_desc">Displays the person or chat sender name</string>
+    <string name="translator_pill_right_media_track">Track Title</string>
+    <string name="translator_pill_right_media_track_desc">Displays the playing song title</string>
+    <string name="translator_pill_right_media_artist">Artist Name</string>
+    <string name="translator_pill_right_media_artist_desc">Displays the music artist or creator</string>
+    <string name="translator_pill_right_media_counter">Media Counter</string>
+    <string name="translator_pill_right_media_counter_desc">Displays media playback time or elapsed counter</string>
+    <string name="translator_pill_media_counter_mode_title">Media Counter Mode</string>
+    <string name="translator_pill_media_counter_mode_desc">Choose whether the media counter displays elapsed playback time or remaining time.</string>
+    <string name="translator_pill_media_counter_elapsed">Time elapsed (02:45)</string>
+    <string name="translator_pill_media_counter_remaining">Time remaining (-01:15)</string>
+    <string name="translator_pill_right_chat_counter">Unread Counter</string>
+    <string name="translator_pill_right_chat_counter_desc">Displays unread or incoming message count</string>
     <string name="translator_pill_right_none">Empty</string>
     <string name="translator_pill_right_none_desc">Leaves the right pill slot empty</string>
+
+    <!-- Pill Right Slot Categories -->
+    <string name="translator_pill_category_smart">Smart &amp; Contextual</string>
+    <string name="translator_pill_category_notification">Notification Content</string>
+    <string name="translator_pill_category_media">Media &amp; Playback</string>
+    <string name="translator_pill_category_custom">Custom &amp; Minimal</string>
+
+    <!-- Pill Left Slot Options -->
+    <string name="translator_pill_left_icon_title">Left Icon Source</string>
+    <string name="translator_pill_left_icon_desc">Choose what icon is displayed on the left side of the pill</string>
+    <string name="translator_pill_icon_default">Default</string>
+    <string name="translator_pill_icon_default_desc">Uses the default icon based on template and notification</string>
+    <string name="translator_pill_icon_app">App Icon</string>
+    <string name="translator_pill_icon_app_desc">Displays the installed application icon</string>
+    <string name="translator_pill_icon_notification">Notification Icon</string>
+    <string name="translator_pill_icon_notification_desc">Displays the notification large icon or picture</string>
+    <string name="translator_pill_icon_avatar">Sender Avatar</string>
+    <string name="translator_pill_icon_avatar_desc">Displays the sender or contact profile avatar</string>
+    <string name="translator_pill_icon_media">Media Artwork</string>
+    <string name="translator_pill_icon_media_desc">Displays album artwork or audio thumbnail</string>
+    <string name="translator_pill_icon_custom">Custom Icon</string>
+    <string name="translator_pill_icon_custom_desc">Displays a custom theme icon resource</string>
+    <string name="translator_pill_icon_hidden">Hidden</string>
+    <string name="translator_pill_icon_hidden_desc">Hides the icon on the left side</string>
+
+    <string name="translator_pill_left_text_title">Left Text Content</string>
+    <string name="translator_pill_left_text_desc">Choose what text is displayed on the left side of the pill</string>
+    <string name="translator_pill_text_default">Default</string>
+    <string name="translator_pill_text_default_desc">Displays the notification title</string>
+    <string name="translator_pill_text_title">Notification Title</string>
+    <string name="translator_pill_text_title_desc">Displays the main title of the notification</string>
+    <string name="translator_pill_text_message">Message Body</string>
+    <string name="translator_pill_text_message_desc">Displays the message content or body text</string>
+    <string name="translator_pill_text_sender">Sender Name</string>
+    <string name="translator_pill_text_sender_desc">Displays the sender or person name</string>
+    <string name="translator_pill_text_app_name">App Name</string>
+    <string name="translator_pill_text_app_name_desc">Displays the application label name</string>
+    <string name="translator_pill_text_media_track">Track Title</string>
+    <string name="translator_pill_text_media_track_desc">Displays the media track title</string>
+    <string name="translator_pill_text_media_artist">Artist Name</string>
+    <string name="translator_pill_text_media_artist_desc">Displays the artist name</string>
+    <string name="translator_pill_text_none">None</string>
+    <string name="translator_pill_text_none_desc">No text on the left side</string>
 
     <!-- Preview Mode Strings -->
     <string name="translator_preview_mode_expanded">Expanded Island</string>

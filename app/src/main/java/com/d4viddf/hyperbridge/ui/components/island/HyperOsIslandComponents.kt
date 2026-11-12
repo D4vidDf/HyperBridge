@@ -972,7 +972,11 @@ fun HyperOsCompactPill(
                         }
                     } else {
                         when (rightDesign) {
-                            PillRightDesign.AUTO, PillRightDesign.TIMER -> {
+                            PillRightDesign.AUTO, PillRightDesign.TIMER,
+                            PillRightDesign.NOTIF_TITLE, PillRightDesign.MESSAGE,
+                            PillRightDesign.SENDER_NAME, PillRightDesign.MEDIA_TRACK,
+                            PillRightDesign.MEDIA_ARTIST, PillRightDesign.MEDIA_COUNTER,
+                            PillRightDesign.CHAT_COUNTER -> {
                                 HyperOsPillFadingText(
                                     text = rightText,
                                     color = Color.White,
@@ -982,9 +986,11 @@ fun HyperOsCompactPill(
                                     maxTextWidth = 46.dp
                                 )
                             }
-                            PillRightDesign.HIGHLIGHT_TEXT -> {
+                            PillRightDesign.HIGHLIGHT_TEXT,
+                            PillRightDesign.OTP_CODE,
+                            PillRightDesign.BOARDING_PASS -> {
                                 HyperOsPillFadingText(
-                                    text = "Done",
+                                    text = rightText.ifBlank { "Done" },
                                     color = highlightColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.SemiBold,
