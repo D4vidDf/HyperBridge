@@ -36,7 +36,9 @@ fun <T : NavKey> rememberNavigationState(
 
     @Suppress("UNCHECKED_CAST")
     val backStacks = topLevelRoutes.associateWith { key ->
-        rememberNavBackStack(key) as NavBackStack<T>
+        androidx.compose.runtime.key(key) {
+            rememberNavBackStack(key) as NavBackStack<T>
+        }
     }
 
     return remember(startRoute, topLevelRoutes) {

@@ -64,7 +64,7 @@ fun IslandSettingsControl(
         ) {
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                 // Header with Switch
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.Top) {
                     Icon(Icons.Default.AccessTime, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(20.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -77,6 +77,7 @@ fun IslandSettingsControl(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    Spacer(Modifier.width(20.dp))
                     Switch(
                         checked = isTimeoutEnabled,
                         onCheckedChange = { enabled ->
@@ -158,6 +159,7 @@ fun IslandSettingsControl(
                         Text(stringResource(R.string.setting_float), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                         Text(stringResource(R.string.setting_float_desc), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                    Spacer(Modifier.width(20.dp))
                     Switch(
                         checked = isFloatEnabled,
                         onCheckedChange = { onUpdate(config.copy(isFloat = it)) }
@@ -239,46 +241,46 @@ fun IslandSettingsControl(
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
         )
 
-        Column {
-                SettingsToggleCard(
-                    title = stringResource(R.string.dismiss_with_original),
-                    subtitle = stringResource(R.string.dismiss_with_original_desc),
-                    icon = Icons.Default.DeleteSweep, 
-                    checked = displayConfig.dismissWithOriginal ?: false,
-                    enabled = !removeOriginalOn,
-                    onCheckedChange = { 
-                        val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
-                        onUpdate(config.copy(dismissWithOriginal = it, isFloat = currentIsFloat)) 
-                    },
-                    shape = RoundedCornerShape(4.dp)
-                )
-                
-                SettingsToggleCard(
-                    title = stringResource(R.string.enable_inline_reply),
-                    subtitle = stringResource(R.string.enable_inline_reply_desc),
-                    icon = Icons.AutoMirrored.Filled.Reply,
-                    checked = displayConfig.enableInlineReply ?: true,
-                    enabled = !removeOriginalOn,
-                    onCheckedChange = { 
-                        val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
-                        onUpdate(config.copy(enableInlineReply = it, isFloat = currentIsFloat)) 
-                    },
-                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = if (removeOriginalOn) 4.dp else 24.dp, bottomEnd = if (removeOriginalOn) 4.dp else 24.dp)
-                )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            SettingsToggleCard(
+                title = stringResource(R.string.dismiss_with_original),
+                subtitle = stringResource(R.string.dismiss_with_original_desc),
+                icon = Icons.Default.DeleteSweep, 
+                checked = displayConfig.dismissWithOriginal ?: false,
+                enabled = !removeOriginalOn,
+                onCheckedChange = { 
+                    val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
+                    onUpdate(config.copy(dismissWithOriginal = it, isFloat = currentIsFloat)) 
+                },
+                shape = RoundedCornerShape(4.dp)
+            )
+            
+            SettingsToggleCard(
+                title = stringResource(R.string.enable_inline_reply),
+                subtitle = stringResource(R.string.enable_inline_reply_desc),
+                icon = Icons.AutoMirrored.Filled.Reply,
+                checked = displayConfig.enableInlineReply ?: true,
+                enabled = !removeOriginalOn,
+                onCheckedChange = { 
+                    val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
+                    onUpdate(config.copy(enableInlineReply = it, isFloat = currentIsFloat)) 
+                },
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = if (removeOriginalOn) 4.dp else 24.dp, bottomEnd = if (removeOriginalOn) 4.dp else 24.dp)
+            )
 
-                AnimatedVisibility(
-                    visible = removeOriginalOn,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
-                ) {
-                    Text(
-                        text = stringResource(R.string.remove_original_notification_hidden_warning),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)
-                    )
-                }
+            AnimatedVisibility(
+                visible = removeOriginalOn,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Text(
+                    text = stringResource(R.string.remove_original_notification_hidden_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)
+                )
             }
+        }
     }
 }
 
@@ -315,6 +317,7 @@ fun SettingsToggleCard(
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            Spacer(Modifier.width(20.dp))
             Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
         }
     }

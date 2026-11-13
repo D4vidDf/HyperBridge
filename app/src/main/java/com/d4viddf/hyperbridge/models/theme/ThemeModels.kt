@@ -14,7 +14,9 @@ data class HyperTheme(
     @SerialName("default_navigation") val defaultNavigation: NavigationModule = NavigationModule(),
     @SerialName("default_reply") val defaultReply: ReplyModule = ReplyModule(),
     val apps: Map<String, AppThemeOverride> = emptyMap(),
-    val rules: List<ThemeRule> = emptyList()
+    val rules: List<ThemeRule> = emptyList(),
+    @SerialName("color_scheme_config") val colorSchemeConfig: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeConfig(),
+    @SerialName("embedded_color_scheme_yaml") val embeddedColorSchemeYaml: String? = null
 )
 
 @Serializable

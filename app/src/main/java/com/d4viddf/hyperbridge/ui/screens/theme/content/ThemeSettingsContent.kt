@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -58,34 +59,43 @@ import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 import kotlinx.coroutines.launch
 
 @Composable
-fun BehaviourMenuContent(onNavigate: (CreatorRoute) -> Unit) {
+fun BehaviourMenuContent(
+    selectedRoute: CreatorRoute? = null,
+    onNavigate: (CreatorRoute) -> Unit
+) {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        val engineSelected = selectedRoute == CreatorRoute.BEHAVIOR_ENGINE || selectedRoute == CreatorRoute.APP_BEHAVIOR_ENGINE
         CreatorOptionCard(
             title = stringResource(R.string.engine),
             subtitle = stringResource(R.string.engine_desc),
             icon = Icons.Outlined.Memory,
-            shape = getExpressiveShape(3, 0, ShapeStyle.Large),
+            shape = if (engineSelected) RoundedCornerShape(20.dp) else getExpressiveShape(3, 0, ShapeStyle.Large),
+            selected = engineSelected,
             onClick = { onNavigate(CreatorRoute.BEHAVIOR_ENGINE) }
         )
         Spacer(Modifier.height(2.dp))
+        val islandSelected = selectedRoute == CreatorRoute.BEHAVIOR_ISLAND || selectedRoute == CreatorRoute.APP_BEHAVIOR_ISLAND
         CreatorOptionCard(
-            title = stringResource(R.string.island_behavior),
+            title = stringResource(R.string.island_behavior_title),
             subtitle = stringResource(R.string.island_behavior_desc),
             icon = Icons.Outlined.DisplaySettings,
-            shape = getExpressiveShape(3, 1, ShapeStyle.Large),
+            shape = if (islandSelected) RoundedCornerShape(20.dp) else getExpressiveShape(3, 1, ShapeStyle.Large),
+            selected = islandSelected,
             onClick = { onNavigate(CreatorRoute.BEHAVIOR_ISLAND) }
         )
         Spacer(Modifier.height(2.dp))
+        val typesSelected = selectedRoute == CreatorRoute.BEHAVIOR_TYPES || selectedRoute == CreatorRoute.APP_BEHAVIOR_TYPES
         CreatorOptionCard(
             title = stringResource(R.string.active_notifications_title),
             subtitle = stringResource(R.string.select_triggered_events),
             icon = Icons.Outlined.NotificationsActive,
-            shape = getExpressiveShape(3, 2, ShapeStyle.Large),
+            shape = if (typesSelected) RoundedCornerShape(20.dp) else getExpressiveShape(3, 2, ShapeStyle.Large),
+            selected = typesSelected,
             onClick = { onNavigate(CreatorRoute.BEHAVIOR_TYPES) }
         )
     }
@@ -125,7 +135,10 @@ fun NotificationTypesContent() {
 
     // Read global states, defaulting to everything enabled
     val enabledTypesStr by preferences.globalNotificationTypesFlow.collectAsState(
-        initial = NotificationType.entries.map { it.name }.toSet()
+        initial = NotificationType.configurableEntries.map { it.name }.toSet()
+    )
+    val enabledCallStages by preferences.globalCallStagesFlow.collectAsState(
+        initial = com.d4viddf.hyperbridge.models.CallStage.entries.toSet()
     )
 
     Column(
@@ -139,7 +152,8 @@ fun NotificationTypesContent() {
         Spacer(Modifier.height(16.dp))
 
         // We map and render each category
-        NotificationType.entries.forEachIndexed { index, type ->
+        val configurableTypes = NotificationType.configurableEntries
+        configurableTypes.forEachIndexed { index, type ->
             val (icon, subtitle) = when (type) {
                 NotificationType.STANDARD -> Icons.AutoMirrored.Outlined.Message to stringResource(R.string.type_standard_desc)
                 NotificationType.PROGRESS -> Icons.Outlined.HourglassEmpty to stringResource(R.string.type_progress_desc)
@@ -149,13 +163,14 @@ fun NotificationTypesContent() {
                 NotificationType.CALL -> Icons.Outlined.Call to stringResource(R.string.type_call_desc)
                 NotificationType.TIMER -> Icons.Outlined.Timer to stringResource(R.string.type_timer_desc)
                 NotificationType.MESSAGE -> Icons.AutoMirrored.Outlined.Message to stringResource(R.string.type_message_desc)
+                else -> Icons.Outlined.Videocam to ""
             }
 
             // Calculate expressive rounded corners to group them beautifully
             val shape = when {
-                NotificationType.entries.size == 1 -> RoundedCornerShape(24.dp)
+                configurableTypes.size == 1 -> RoundedCornerShape(24.dp)
                 index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                index == NotificationType.entries.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                index == configurableTypes.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                 else -> RoundedCornerShape(4.dp)
             }
 
@@ -172,8 +187,60 @@ fun NotificationTypesContent() {
                 shape = shape
             )
 
+            if (type == NotificationType.CALL && enabledTypesStr.contains(type.name)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, top = 8.dp, bottom = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.call_stage_settings),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.call_stage_settings_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    com.d4viddf.hyperbridge.models.CallStage.entries.forEach { stage ->
+                        val checked = stage in enabledCallStages
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    scope.launch { preferences.updateGlobalCallStage(stage, !checked) }
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(stage.labelRes),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = stringResource(stage.descriptionRes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Switch(
+                                checked = checked,
+                                onCheckedChange = { enabled ->
+                                    scope.launch { preferences.updateGlobalCallStage(stage, enabled) }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
             // Add a small spacer between cards to make the 4dp corners distinct
-            if (index < NotificationType.entries.size - 1) {
+            if (index < configurableTypes.size - 1) {
                 Spacer(modifier = Modifier.height(2.dp))
             }
         }
@@ -202,7 +269,7 @@ fun SettingsToggleCard(
                 .fillMaxWidth()
                 .clickable { onCheckedChange(!checked) }
                 .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Box(
                 modifier = Modifier
@@ -232,7 +299,7 @@ fun SettingsToggleCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange

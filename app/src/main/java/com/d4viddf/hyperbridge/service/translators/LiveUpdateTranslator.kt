@@ -108,6 +108,32 @@ class LiveUpdateTranslator(
             builder.addAction(NotificationCompat.Action.Builder(iconCompat, action.title, finalIntent).build())
         }
 
+        // --- SMART ACTIONS (issue #270) ---
+        // Same buttons the island translators add, so the native Live Update path is not left out.
+        val smartConfig = config?.smartActions
+        if (sbn != null && smartConfig != null && smartConfig.isActiveFor(sbn.packageName)) {
+            val room = 3 - rawActions.size // Android shows at most three actions in the shade
+            if (room > 0) {
+                val smartText = com.d4viddf.hyperbridge.service.smartactions.SmartActionNotificationText.collect(sbn.notification)
+                val smartActions = com.d4viddf.hyperbridge.service.smartactions.SmartActionsExtractor.extract(
+                    smartText,
+                    smartConfig,
+                    maxActions = minOf(room, com.d4viddf.hyperbridge.service.smartactions.SmartActionsExtractor.DEFAULT_MAX_ACTIONS)
+                )
+                smartActions.forEach { smart ->
+                    val intents = com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
+                    val key = intents.actionKey(sbn.key, smart)
+                    builder.addAction(
+                        NotificationCompat.Action.Builder(
+                            IconCompat.createWithResource(context, intents.iconRes(smart.type)),
+                            intents.label(context, smart, smartConfig.hideOtpCode),
+                            intents.pendingIntent(context, smart, key)
+                        ).build()
+                    )
+                }
+            }
+        }
+
         // --- APPLY STYLES ---
         // BigTextStyle ensures text isn't completely hidden by the progress bar
         builder.setStyle(NotificationCompat.BigTextStyle().bigText(text).setBigContentTitle(title))

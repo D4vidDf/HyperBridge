@@ -80,7 +80,6 @@ enum class AppEditorRoute {
     MENU, BEHAVIOR_MENU, BEHAVIOR_ENGINE, BEHAVIOR_ISLAND, BEHAVIOR_TYPES, COLORS, ICONS, CALLS, NAVIGATION, REPLY, ACTIONS
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppThemeEditor(viewModel: ThemeViewModel) {
     var currentRoute by remember { mutableStateOf(AppEditorRoute.MENU) }
@@ -112,7 +111,7 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
                                 when (currentRoute) {
                                     AppEditorRoute.BEHAVIOR_MENU -> R.string.behaviour_triggers
                                     AppEditorRoute.BEHAVIOR_ENGINE -> R.string.engine
-                                    AppEditorRoute.BEHAVIOR_ISLAND -> R.string.island_behavior
+                                    AppEditorRoute.BEHAVIOR_ISLAND -> R.string.island_behavior_title
                                     AppEditorRoute.BEHAVIOR_TYPES -> R.string.active_notifications_title
                                     AppEditorRoute.COLORS -> R.string.creator_nav_colors
                                     AppEditorRoute.ICONS -> R.string.creator_nav_icons
@@ -283,6 +282,7 @@ fun AppThemeEditor(viewModel: ThemeViewModel) {
 @Composable
 fun AppEditorMenu(
     viewModel: ThemeViewModel,
+    selectedRoute: AppEditorRoute? = null,
     onNavigate: (AppEditorRoute) -> Unit
 ) {
     val effHighlight = viewModel.appHighlightColor ?: viewModel.selectedColorHex
@@ -334,13 +334,19 @@ fun AppEditorMenu(
             )
 
             items.forEachIndexed { index, route ->
-                val shape = getExpressiveShape(items.size, index, ShapeStyle.Large)
+                val isSelected = selectedRoute == route
+                val shape = if (isSelected) {
+                    RoundedCornerShape(20.dp)
+                } else {
+                    getExpressiveShape(items.size, index, ShapeStyle.Large)
+                }
                 when(route) {
                     AppEditorRoute.BEHAVIOR_MENU -> CreatorOptionCard(
                         title = stringResource(R.string.engine),
                         subtitle = stringResource(R.string.engine_timeouts_triggers),
                         icon = Icons.Outlined.DisplaySettings,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.COLORS -> CreatorOptionCard(
@@ -348,6 +354,7 @@ fun AppEditorMenu(
                         subtitle = if (viewModel.appHighlightColor != null) stringResource(R.string.creator_sub_colors_custom) else stringResource(R.string.creator_sub_colors_default),
                         icon = Icons.Outlined.ColorLens,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) },
                         trailingContent = {
                             Box(modifier = Modifier
@@ -362,6 +369,7 @@ fun AppEditorMenu(
                         subtitle = if (viewModel.appShapeId != null || viewModel.appPaddingPercent != null) stringResource(R.string.creator_sub_icons_custom) else stringResource(R.string.creator_sub_icons_default),
                         icon = Icons.Outlined.Widgets,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.CALLS -> CreatorOptionCard(
@@ -369,6 +377,7 @@ fun AppEditorMenu(
                         subtitle = stringResource(R.string.creator_sub_calls),
                         icon = Icons.Outlined.Call,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.NAVIGATION -> CreatorOptionCard(
@@ -376,13 +385,15 @@ fun AppEditorMenu(
                         subtitle = stringResource(R.string.nav_layout_desc),
                         icon = Icons.Outlined.Map,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.REPLY -> CreatorOptionCard(
                         title = stringResource(R.string.inline_reply_title),
                         subtitle = stringResource(R.string.customize_inline_reply),
-                        icon = Icons.Outlined.Call, // Just use a call or generic icon for now
+                        icon = Icons.Outlined.Call,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     AppEditorRoute.ACTIONS -> CreatorOptionCard(
@@ -394,6 +405,7 @@ fun AppEditorMenu(
                         ),
                         icon = Icons.Outlined.TouchApp,
                         shape = shape,
+                        selected = isSelected,
                         onClick = { onNavigate(route) }
                     )
                     else -> {}
@@ -498,7 +510,7 @@ fun AppNotificationTypesEditor(viewModel: ThemeViewModel) {
             onCheckedChange = { checked ->
                 isOverride = checked
                 // If turning on, default to everything enabled for this app
-                viewModel.appEnabledNotificationTypes = if (checked) NotificationType.entries.map { it.name }.toSet() else null
+                viewModel.appEnabledNotificationTypes = if (checked) NotificationType.configurableEntries.map { it.name }.toSet() else null
             },
             shape = RoundedCornerShape(24.dp)
         )
@@ -509,11 +521,12 @@ fun AppNotificationTypesEditor(viewModel: ThemeViewModel) {
             exit = shrinkVertically() + fadeOut()
         ) {
             Column(Modifier.padding(top = 16.dp)) {
-                NotificationType.entries.forEachIndexed { index, type ->
+                val configurableTypes = NotificationType.configurableEntries
+                configurableTypes.forEachIndexed { index, type ->
                     val shape = when {
-                        NotificationType.entries.size == 1 -> RoundedCornerShape(24.dp)
+                        configurableTypes.size == 1 -> RoundedCornerShape(24.dp)
                         index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                        index == NotificationType.entries.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                        index == configurableTypes.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                         else -> RoundedCornerShape(4.dp)
                     }
 
@@ -530,7 +543,7 @@ fun AppNotificationTypesEditor(viewModel: ThemeViewModel) {
                         shape = shape
                     )
 
-                    if (index < NotificationType.entries.size - 1) {
+                    if (index < configurableTypes.size - 1) {
                         Spacer(modifier = Modifier.height(2.dp))
                     }
                 }

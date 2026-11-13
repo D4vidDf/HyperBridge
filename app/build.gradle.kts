@@ -7,16 +7,14 @@ plugins {
 
 android {
     namespace = "com.d4viddf.hyperbridge"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.d4viddf.hyperbridge"
         minSdk = 35
         targetSdk = 37
-        versionCode = 33
-        versionName = "0.5.7"
+        versionCode = 45
+        versionName = "0.6.0-rc3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -56,6 +54,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.appcompat)
+    implementation(libs.material)
     implementation(libs.androidx.palette.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime)
@@ -70,6 +69,7 @@ dependencies {
 
     implementation(libs.hyperisland.kit)
     implementation(libs.haze)
+    implementation(libs.haze.materials)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
@@ -89,3 +89,15 @@ dependencies {
 configurations.all {
     exclude(group = "com.intellij", module = "annotations")
 }
+
+afterEvaluate {
+    tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileDebugUnitTestKotlin").configure {
+        dependsOn("compileDebugKotlin")
+        libraries.from(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+        friendPaths.from(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+    }
+    tasks.named<Test>("testDebugUnitTest").configure {
+        classpath += files(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+    }
+}
+

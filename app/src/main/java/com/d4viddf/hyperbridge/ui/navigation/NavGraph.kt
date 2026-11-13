@@ -9,15 +9,18 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.ui.screens.home.HomeScreen
 import com.d4viddf.hyperbridge.ui.screens.onboarding.OnboardingScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.AppConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.AppPriorityScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.BackupSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.BlocklistAppListScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.BugReportScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.ChangelogHistoryScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.DiagnosticsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.EngineSettingsScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.FloatingNotificationSetupScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.GlobalBlocklistScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.GlobalSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.ImportPreviewScreen
-import com.d4viddf.hyperbridge.ui.screens.settings.InfoScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.IslandSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.LicensesScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.NavCustomizationScreen
@@ -34,7 +37,6 @@ fun mainNavGraph(
     preferences: AppPreferences,
     navigator: Navigator<Screen>,
     backupManager: BackupManager,
-    currentVersionCode: Int,
     onExit: () -> Unit
 ) = entryProvider {
     entry<Screen.Onboarding> {
@@ -48,19 +50,21 @@ fun mainNavGraph(
     entry<Screen.Home> {
         HomeScreen(
             onSettingsClick = { navigator.navigate(Screen.Info) },
-            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) }
+            onScreenRecordingConfigClick = { navigator.navigate(Screen.ScreenRecordingCustomization) },
+            onSystemUpdateConfigClick = { navigator.navigate(Screen.SystemUpdateCustomization) },
+            onChargingConfigClick = { navigator.navigate(Screen.ChargingCustomization) },
+            onVpnConfigClick = { navigator.navigate(Screen.VpnCustomization) },
+            onAppConfigClick = { pkg -> navigator.navigate(Screen.AppConfig(pkg)) },
+            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
+            onCreateTranslatorForApp = { pkg -> navigator.navigate(Screen.TranslatorEditor(null, pkg)) },
+            onEditTranslatorFromApp = { id -> navigator.navigate(Screen.TranslatorEditor(id, null)) }
         )
     }
+
     entry<Screen.Info> {
-        InfoScreen(
-            onBack = { if (!navigator.goBack()) onExit() },
-            onSetupClick = { navigator.navigate(Screen.Setup) },
-            onLicensesClick = { navigator.navigate(Screen.Licenses) },
-            onBehaviorClick = { navigator.navigate(Screen.Behavior) },
-            onGlobalSettingsClick = { navigator.navigate(Screen.GlobalSettings) },
-            onHistoryClick = { navigator.navigate(Screen.History) },
-            onBlocklistClick = { navigator.navigate(Screen.GlobalBlocklist) },
-            onBackupClick = { navigator.navigate(Screen.Backup) }
+        com.d4viddf.hyperbridge.ui.screens.settings.AdaptiveSettingsScreen(
+            showRootBackButton = true,
+            onExit = { if (!navigator.goBack()) onExit() }
         )
     }
     entry<Screen.GlobalSettings> {
@@ -71,14 +75,27 @@ fun mainNavGraph(
             onIslandSettingsClick = { navigator.navigate(Screen.IslandSettings) },
             onEngineSettingsClick = { navigator.navigate(Screen.EngineSettings) },
             onDndSettingsClick = { navigator.navigate(Screen.DndSettings) },
-            onPermanentIslandClick = { navigator.navigate(Screen.PermanentIslandConfig) }
+            onPermanentIslandClick = { navigator.navigate(Screen.PermanentIslandConfig) },
+            onSmartActionsClick = { navigator.navigate(Screen.SmartActions) },
+            onDiscountKeywordsClick = { navigator.navigate(Screen.ProgressDiscountKeywords) }
         )
+    }
+    entry<Screen.SmartActions> {
+        com.d4viddf.hyperbridge.ui.screens.settings.SmartActionsSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.ProgressDiscountKeywords> {
+        com.d4viddf.hyperbridge.ui.screens.settings.ProgressDiscountKeywordsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.DndSettings> {
         com.d4viddf.hyperbridge.ui.screens.settings.DndSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.PermanentIslandConfig> {
-        com.d4viddf.hyperbridge.ui.screens.settings.PermanentIslandConfigScreen(onBack = { navigator.goBack() })
+        com.d4viddf.hyperbridge.ui.screens.settings.PermanentIslandConfigScreen(
+            onBack = { navigator.goBack() }
+        )
+    }
+    entry<Screen.WidgetSourceApps> {
+        com.d4viddf.hyperbridge.ui.screens.settings.SourceAppsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.ReplyCustomization> {
         com.d4viddf.hyperbridge.ui.screens.theme.GlobalReplyCustomizationScreen(onBack = { navigator.goBack() })
@@ -93,7 +110,20 @@ fun mainNavGraph(
         EngineSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.Setup> {
-        SetupHealthScreen(onBack = { navigator.goBack() })
+        SetupHealthScreen(
+            onBack = { navigator.goBack() },
+            onNavigateToBugReport = { navigator.navigate(Screen.BugReport) }
+        )
+    }
+    entry<Screen.FloatingSetup> {
+        FloatingNotificationSetupScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.Diagnostics> {
+        DiagnosticsScreen(
+            onBack = { navigator.goBack() },
+            onReportError = { navigator.navigate(Screen.BugReport) },
+            onNavigateToHealth = { navigator.navigate(Screen.Setup) }
+        )
     }
     entry<Screen.Licenses> {
         LicensesScreen(onBack = { navigator.goBack() })
@@ -151,4 +181,46 @@ fun mainNavGraph(
     entry<Screen.IslandSettings> {
         IslandSettingsScreen(onBack = { navigator.goBack() })
     }
+    entry<Screen.BugReport> {
+        BugReportScreen(
+            onBack = { navigator.goBack() },
+            onNavigateToDiagnostics = { navigator.navigate(Screen.Diagnostics) }
+        )
+    }
+    entry<Screen.ScreenRecordingCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.settings.ScreenRecordingSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.SystemUpdateCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.settings.SystemUpdateSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.ChargingCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.settings.ChargingSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.VpnCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.settings.VpnSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.AppConfig> { key ->
+        AppConfigScreen(
+            packageName = key.packageName,
+            onBack = { navigator.goBack() },
+            onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
+            onCreateTranslator = { pkg -> navigator.navigate(Screen.TranslatorEditor(null, pkg)) },
+            onEditTranslator = { id -> navigator.navigate(Screen.TranslatorEditor(id, null)) }
+        )
+    }
+    entry<Screen.TranslatorManager> {
+        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorManagerScreen(
+            onBack = { navigator.goBack() },
+            onCreateTranslator = { pkg -> navigator.navigate(Screen.TranslatorEditor(null, pkg)) },
+            onEditTranslator = { id -> navigator.navigate(Screen.TranslatorEditor(id, null)) }
+        )
+    }
+    entry<Screen.TranslatorEditor> { key ->
+        com.d4viddf.hyperbridge.ui.screens.translators.TranslatorEditorScreen(
+            translatorId = key.translatorId,
+            initialPackageName = key.initialPackageName,
+            onBack = { navigator.goBack() }
+        )
+    }
 }
+

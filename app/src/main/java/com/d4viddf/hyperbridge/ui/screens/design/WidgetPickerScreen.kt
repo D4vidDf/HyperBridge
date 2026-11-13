@@ -103,6 +103,7 @@ data class WidgetAppGroup(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WidgetPickerScreen(
+    targetPackageName: String? = null,
     onBack: () -> Unit,
     onWidgetSelected: (Int) -> Unit
 ) {
@@ -129,17 +130,28 @@ fun WidgetPickerScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(targetPackageName) {
         withContext(Dispatchers.IO) {
             val manager = AppWidgetManager.getInstance(context)
             val providers = manager.installedProviders
-            val grouped = providers.groupBy { it.provider.packageName }
+            val filteredByPkg = if (targetPackageName != null) {
+                providers.filter { it.provider.packageName == targetPackageName }
+            } else {
+                providers
+            }
+            val grouped = filteredByPkg.groupBy { it.provider.packageName }
 
             val uiGroups = grouped.mapNotNull { (pkg, list) ->
                 try {
                     val appName = context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(pkg, 0)).toString()
                     val icon = context.packageManager.getApplicationIcon(pkg)
-                    WidgetAppGroup(pkg, appName, icon, list)
+                    WidgetAppGroup(
+                        packageName = pkg,
+                        appName = appName,
+                        appIcon = icon,
+                        widgets = list,
+                        isExpanded = targetPackageName != null
+                    )
                 } catch (_: Exception) { null }
             }.sortedBy { it.appName }
 
@@ -170,7 +182,12 @@ fun WidgetPickerScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.widget_picker_title), fontWeight = FontWeight.Bold)
+                        val titleText = if (targetPackageName != null) {
+                            stringResource(R.string.select_app_widget)
+                        } else {
+                            stringResource(R.string.widget_picker_title)
+                        }
+                        Text(titleText, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.width(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.tertiaryContainer,
@@ -231,27 +248,29 @@ fun WidgetPickerScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                TextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text(stringResource(R.string.search_apps_placeholder)) },
-                    leadingIcon = { Icon(Icons.Default.Search, stringResource(R.string.search)) },
-                    trailingIcon = if (searchQuery.isNotEmpty()) {
-                        { IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, stringResource(R.string.close)) } }
-                    } else null,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            if (targetPackageName == null) {
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text(stringResource(R.string.search_apps_placeholder)) },
+                        leadingIcon = { Icon(Icons.Default.Search, stringResource(R.string.search)) },
+                        trailingIcon = if (searchQuery.isNotEmpty()) {
+                            { IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, stringResource(R.string.close)) } }
+                        } else null,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(28.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
                     )
-                )
+                }
             }
 
             LazyColumn(

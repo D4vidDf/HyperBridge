@@ -1,5 +1,6 @@
 package com.d4viddf.hyperbridge.ui.screens.theme.content
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +73,16 @@ import com.d4viddf.hyperbridge.ui.screens.theme.ThemeViewModel
 import com.d4viddf.hyperbridge.ui.screens.theme.getExpressiveShape
 
 @Composable
-fun AppsDetailContent(viewModel: ThemeViewModel) {
+fun AppsDetailContent(
+    viewModel: ThemeViewModel,
+    selectedPackageName: String? = viewModel.editingAppPackage,
+    onAppSelected: (packageName: String, label: String) -> Unit = { pkg, label ->
+        viewModel.loadAppForEditing(pkg, label)
+    },
+    onAppDeleted: (packageName: String) -> Unit = { pkg ->
+        viewModel.removeAppOverride(pkg)
+    }
+) {
     val overrides by viewModel.appOverrides.collectAsState()
     val apps by viewModel.installedApps.collectAsState()
     var showAppPicker by remember { mutableStateOf(false) }
@@ -164,17 +174,23 @@ fun AppsDetailContent(viewModel: ThemeViewModel) {
                         items(filteredOverrides.size) { index ->
                             val (pkg, ov) = filteredOverrides[index]
                             val label = apps.find { it.packageName == pkg }?.label ?: pkg
+                            val isSelected = selectedPackageName == pkg
 
                             // Use expressive shape logic
-                            val shape = getExpressiveShape(filteredOverrides.size, index, ShapeStyle.Large)
+                            val shape = if (isSelected) {
+                                RoundedCornerShape(20.dp)
+                            } else {
+                                getExpressiveShape(filteredOverrides.size, index, ShapeStyle.Large)
+                            }
 
                             AppOverrideCard(
                                 label = label,
                                 packageName = pkg,
                                 override = ov,
                                 shape = shape,
-                                onClick = { viewModel.loadAppForEditing(pkg, label) },
-                                onDelete = { viewModel.removeAppOverride(pkg) }
+                                selected = isSelected,
+                                onClick = { onAppSelected(pkg, label) },
+                                onDelete = { onAppDeleted(pkg) }
                             )
                         }
                     }
@@ -190,7 +206,7 @@ fun AppsDetailContent(viewModel: ThemeViewModel) {
             onDismiss = { showAppPicker = false },
             onAppSelected = { app ->
                 showAppPicker = false
-                viewModel.loadAppForEditing(app.packageName, app.label)
+                onAppSelected(app.packageName, app.label)
             }
         )
     }
@@ -204,12 +220,19 @@ fun AppOverrideCard(
     packageName: String,
     override: AppThemeOverride,
     shape: Shape,
+    selected: Boolean = false,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
     Card(
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         shape = shape,
         modifier = Modifier
             .fillMaxWidth()
@@ -217,7 +240,8 @@ fun AppOverrideCard(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 88.dp)
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -227,7 +251,12 @@ fun AppOverrideCard(
             Spacer(Modifier.width(20.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
 
                 // Summary of active overrides
                 val details = mutableListOf<String>()
@@ -258,7 +287,7 @@ fun AppOverrideCard(
                 Icons.AutoMirrored.Rounded.ArrowForwardIos,
                 null,
                 modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
         }
     }
@@ -268,6 +297,7 @@ fun AppOverrideCard(
 @Composable
 fun AppSelectionSheet(
     apps: List<AppItem>,
+    title: String = stringResource(R.string.apps_sheet_select_title),
     onDismiss: () -> Unit,
     onAppSelected: (AppItem) -> Unit
 ) {
@@ -288,7 +318,7 @@ fun AppSelectionSheet(
         ) {
             // Sheet Header
             Text(
-                stringResource(R.string.apps_sheet_select_title),
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )

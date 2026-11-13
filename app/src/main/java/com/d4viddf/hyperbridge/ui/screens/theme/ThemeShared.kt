@@ -47,8 +47,20 @@ fun getShapeFromId(id: String): RoundedPolygon {
 }
 
 // --- COLORS ---
-fun safeParseColor(hex: String): Color {
-    return try { Color(hex.toColorInt()) } catch (_: Exception) { Color.White }
+fun safeParseColor(
+    hex: String,
+    scheme: com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeDefinition? = null
+): Color {
+    val trimmed = hex.trim()
+    if (trimmed.startsWith("@scheme:")) {
+        val roleKey = trimmed.removePrefix("@scheme:")
+        val role = com.d4viddf.hyperbridge.models.colorscheme.ColorSchemeRole.fromKey(roleKey)
+        val resolvedHex = if (role != null) scheme?.getHex(role) else scheme?.roles?.get(roleKey)
+        if (!resolvedHex.isNullOrBlank()) {
+            return try { Color(resolvedHex.toColorInt()) } catch (_: Exception) { Color.White }
+        }
+    }
+    return try { Color(trimmed.toColorInt()) } catch (_: Exception) { Color.White }
 }
 
 // --- COMPONENTS ---

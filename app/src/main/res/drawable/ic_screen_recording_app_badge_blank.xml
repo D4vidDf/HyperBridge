@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!--
+        This ROM always renders ChatInfo's focus_app_icon. Supplying a transparent
+        bundled icon through appIconPkg prevents its posting-package fallback while
+        leaving the visible red picProfile avatar untouched.
+    -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,0H24V24H0Z" />
+</vector>

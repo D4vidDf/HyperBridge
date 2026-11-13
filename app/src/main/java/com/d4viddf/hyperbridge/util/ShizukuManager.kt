@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -91,36 +92,30 @@ object ShizukuManager {
 
     private var restoreNetworkJob: Job? = null
     private val notifyMutex = Mutex()
+    private val notificationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @androidx.annotation.RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS)
     fun notify(context: Context, id: Int, notification: Notification) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val prefs = AppPreferences(context)
-            val workaroundEnabled = prefs.isShizukuWorkaroundEnabled.first()
-            
-            if (_isPermissionGranted.value && workaroundEnabled) {
-                notifyMutex.withLock  {
-                    // Cancel any pending restore job so we don't enable the network too early 
-                    // if another notification comes in before the 1 second delay is up.
-                    restoreNetworkJob?.cancel()
+        notificationScope.launch { notifyInPlace(context, id, notification) }
+    }
 
-                    // Briefly disable XMSF network to bypass MIUI/HyperOS interception
-                    XmsfNetworkHelper.setXmsfNetworkingEnabled(context, false)
-                    
-                    // Wait briefly to ensure the network command takes effect
-                    delay(50)
-                    
-                    // Dispatch notification
-                    NotificationManagerCompat.from(context).notify(id, notification)
-                    
-                    // Schedule network restore after 1 second
-                    restoreNetworkJob = launch {
-                        delay(1000)
-                        XmsfNetworkHelper.setXmsfNetworkingEnabled(context, true)
-                    }
+    /** Ordered, same-ID dispatch used by the stateful island update pipeline. */
+    @androidx.annotation.RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+    suspend fun notifyInPlace(context: Context, id: Int, notification: Notification) {
+        val prefs = AppPreferences(context)
+        val workaroundEnabled = prefs.isShizukuWorkaroundEnabled.first()
+
+        notifyMutex.withLock {
+            if (_isPermissionGranted.value && workaroundEnabled) {
+                restoreNetworkJob?.cancel()
+                XmsfNetworkHelper.setXmsfNetworkingEnabled(context, false)
+                delay(50)
+                NotificationManagerCompat.from(context).notify(id, notification)
+                restoreNetworkJob = notificationScope.launch {
+                    delay(1000)
+                    XmsfNetworkHelper.setXmsfNetworkingEnabled(context, true)
                 }
             } else {
-                // Fallback to standard NotificationManagerCompat
                 NotificationManagerCompat.from(context).notify(id, notification)
             }
         }

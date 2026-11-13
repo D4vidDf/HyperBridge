@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,8 +18,10 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.NavContent
 import com.d4viddf.hyperbridge.models.NotificationType
+import com.d4viddf.hyperbridge.models.SmartActionType
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.models.theme.NavigationModule
+import com.d4viddf.hyperbridge.service.recording.ScreenRecordingClassifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +41,22 @@ data class AppInfo(
     val icon: Bitmap?,
     val isBridged: Boolean = false,
     val isInstalled: Boolean = true,
-    val category: AppCategory = AppCategory.OTHER
+    val category: AppCategory = AppCategory.OTHER,
+    val iconBitmap: ImageBitmap? = icon?.asImageBitmap()
+)
+
+/** [hasSettings]: false for integrations that are just an on/off switch. */
+enum class SystemIntegrationId(val hasSettings: Boolean) {
+    SCREEN_RECORDER(true), VPN(true), SYSTEM_UPDATER(true), CHARGING(true), DEBUGGING(false)
+}
+
+data class SystemIntegrationInfo(
+    val id: SystemIntegrationId,
+    val enabled: Boolean,
+    val available: Boolean,
+    val icon: Bitmap? = null,
+    val configurationApp: AppInfo? = null,
+    val iconBitmap: ImageBitmap? = icon?.asImageBitmap()
 )
 
 enum class AppCategory(val label: String) {
@@ -64,9 +83,11 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     // Filters
     val activeSearch = MutableStateFlow("")
     val activeCategory = MutableStateFlow(AppCategory.ALL)
+    val activeSystemSelected = MutableStateFlow(false)
     val activeSort = MutableStateFlow(SortOption.NAME_AZ)
     val librarySearch = MutableStateFlow("")
     val libraryCategory = MutableStateFlow(AppCategory.ALL)
+    val librarySystemSelected = MutableStateFlow(false)
     val librarySort = MutableStateFlow(SortOption.NAME_AZ)
 
     // Helpers (Keyword Fallback)
@@ -76,7 +97,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     private val baseAppsFlow = combine(_installedApps, preferences.allowedPackagesFlow) { installed, allowedSet ->
         if (installed == null) {
-            return@combine emptyList<AppInfo>()
+            return@combine emptyList()
         }
 
         // 1. Process Installed Apps
@@ -89,7 +110,11 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
         // 2. Identify Missing (Uninstalled) Apps
         val installedPkgSet = installed.map { it.packageName }.toSet()
-        val uninstalledPkgs = allowedSet.filter { !installedPkgSet.contains(it) }
+        val uninstalledPkgs = allowedSet.filter {
+            !installedPkgSet.contains(it) &&
+                it != ScreenRecordingClassifier.PACKAGE_NAME &&
+                it != com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME
+        }
 
         // 3. Reconstruct Uninstalled Apps from Cache
         uninstalledPkgs.forEach { pkg ->
@@ -111,15 +136,70 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     }
 
     val activeAppsState: StateFlow<List<AppInfo>> = combine(
-        baseAppsFlow, activeSearch, activeCategory, activeSort
-    ) { apps, query, category, sort ->
-        applyFilters(apps.filter { it.isBridged }, query, category, sort)
+        baseAppsFlow, activeSearch, activeCategory, activeSort, activeSystemSelected
+    ) { apps, query, category, sort, systemSelected ->
+        if (systemSelected) emptyList() else applyFilters(apps.filter { it.isBridged }, query, category, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val libraryAppsState: StateFlow<List<AppInfo>> = combine(
-        baseAppsFlow, librarySearch, libraryCategory, librarySort
-    ) { apps, query, category, sort ->
-        applyFilters(apps, query, category, sort)
+        baseAppsFlow, librarySearch, libraryCategory, librarySort, librarySystemSelected
+    ) { apps, query, category, sort, systemSelected ->
+        if (systemSelected) emptyList() else applyFilters(apps, query, category, sort)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _screenRecorderIntegrationApp = MutableStateFlow<AppInfo?>(null)
+    private val _systemUpdaterIntegrationApp = MutableStateFlow<AppInfo?>(null)
+
+    /** Controller-owned islands (VPN, charging, debugging): just on/off switches in preferences. */
+    private val controllerIslandsEnabled = combine(
+        preferences.vpnIslandEnabledFlow,
+        preferences.chargingIslandEnabledFlow,
+        preferences.debuggingIslandEnabledFlow
+    ) { vpn, charging, debugging -> Triple(vpn, charging, debugging) }
+
+    val systemIntegrationsState: StateFlow<List<SystemIntegrationInfo>> = combine(
+        preferences.allowedPackagesFlow,
+        controllerIslandsEnabled,
+        _screenRecorderIntegrationApp,
+        _systemUpdaterIntegrationApp
+    ) { allowedPackages, (vpnEnabled, chargingEnabled, debuggingEnabled), recorderApp, updaterApp ->
+        listOf(
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.SCREEN_RECORDER,
+                enabled = ScreenRecordingClassifier.PACKAGE_NAME in allowedPackages,
+                available = recorderApp != null,
+                icon = recorderApp?.icon,
+                configurationApp = recorderApp
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.SYSTEM_UPDATER,
+                enabled = com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME in allowedPackages,
+                available = updaterApp != null,
+                icon = updaterApp?.icon,
+                configurationApp = updaterApp
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.VPN,
+                enabled = vpnEnabled,
+                available = true,
+                icon = null,
+                configurationApp = null
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.CHARGING,
+                enabled = chargingEnabled,
+                available = true,
+                icon = null,
+                configurationApp = null
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.DEBUGGING,
+                enabled = debuggingEnabled,
+                available = true,
+                icon = null,
+                configurationApp = null
+            )
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private fun applyFilters(list: List<AppInfo>, query: String, category: AppCategory, sort: SortOption): List<AppInfo> {
@@ -146,6 +226,12 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             _isLoading.value = true
             val apps = getLaunchableApps()
             _installedApps.value = apps
+            _screenRecorderIntegrationApp.value = loadPackageAppInfo(
+                ScreenRecordingClassifier.PACKAGE_NAME
+            )
+            _systemUpdaterIntegrationApp.value = loadPackageAppInfo(
+                com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME
+            )
             _isLoading.value = false
         }
     }
@@ -157,6 +243,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     data class EffectiveAppConfig(
         val isManagedByTheme: Boolean,
         val activeTypes: Set<String>,
+        val activeCallStages: Set<com.d4viddf.hyperbridge.models.CallStage>,
         val useNativeEngine: Boolean,
         val navigationOverride: NavigationModule?,
         val localNavContent: Pair<NavContent, NavContent> // Added for the bottom sheet
@@ -167,12 +254,17 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
      * Active Theme > Local App Preferences > Global Fallbacks
      */
     fun getEffectiveAppConfigFlow(packageName: String): Flow<EffectiveAppConfig> {
+        val effectiveCallStagesFlow = combine(
+            preferences.getAppCallStagesFlow(packageName),
+            preferences.globalCallStagesFlow
+        ) { appStages, globalStages -> appStages ?: globalStages }
         return combine(
             preferences.getAppConfigFlow(packageName),
             preferences.globalNotificationTypesFlow,
+            effectiveCallStagesFlow,
             preferences.getEffectiveNavLayout(packageName), // Gets the fallback-resolved NavContent
             activeTheme
-        ) { appPrefTypes, globalTypes, effectiveNavContent, theme ->
+        ) { appPrefTypes, globalTypes, effectiveCallStages, effectiveNavContent, theme ->
 
             val themeOverride = theme?.apps?.get(packageName)
             val isManaged = themeOverride != null
@@ -196,6 +288,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             EffectiveAppConfig(
                 isManagedByTheme = isManaged,
                 activeTypes = effectiveTypes,
+                activeCallStages = effectiveCallStages,
                 useNativeEngine = effectiveEngine,
                 navigationOverride = effectiveNavVisuals,
                 localNavContent = effectiveNavContent
@@ -205,9 +298,79 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     // --- PREFERENCE ACTIONS ---
 
+    val isBridgeAllAppsEnabled: StateFlow<Boolean> = preferences.bridgeAllAppsEnabledFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val autoAddNewApps: StateFlow<Boolean> = preferences.autoAddNewAppsFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val areAllLibraryAppsBridged: StateFlow<Boolean> = combine(
+        _installedApps, preferences.allowedPackagesFlow
+    ) { installed, allowedSet ->
+        !installed.isNullOrEmpty() && installed.all { allowedSet.contains(it.packageName) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun toggleApp(packageName: String, isEnabled: Boolean) {
         viewModelScope.launch {
             preferences.toggleApp(packageName, isEnabled)
+        }
+    }
+
+    fun toggleAllApps(packageNames: Collection<String>, isEnabled: Boolean) {
+        viewModelScope.launch {
+            preferences.toggleApps(packageNames, isEnabled)
+        }
+    }
+
+    fun toggleAllLibraryApps(isEnabled: Boolean) {
+        viewModelScope.launch {
+            val installed = _installedApps.value ?: emptyList()
+            val pkgNames = installed.map { it.packageName }
+            preferences.toggleApps(pkgNames, isEnabled)
+        }
+    }
+
+    fun setAutoAddNewApps(enabled: Boolean) {
+        viewModelScope.launch {
+            preferences.setAutoAddNewApps(enabled)
+        }
+    }
+
+    fun selectLibrarySystem(selected: Boolean) {
+        librarySystemSelected.value = selected
+        if (selected) libraryCategory.value = AppCategory.ALL
+    }
+
+    fun selectLibraryAppCategory(category: AppCategory) {
+        librarySystemSelected.value = false
+        libraryCategory.value = category
+    }
+
+    fun selectActiveSystem(selected: Boolean) {
+        activeSystemSelected.value = selected
+        if (selected) activeCategory.value = AppCategory.ALL
+    }
+
+    fun selectActiveAppCategory(category: AppCategory) {
+        activeSystemSelected.value = false
+        activeCategory.value = category
+    }
+
+    fun toggleSystemIntegration(id: SystemIntegrationId, enabled: Boolean) {
+        viewModelScope.launch {
+            when (id) {
+                SystemIntegrationId.SCREEN_RECORDER -> preferences.toggleApp(
+                    ScreenRecordingClassifier.PACKAGE_NAME,
+                    enabled
+                )
+                SystemIntegrationId.SYSTEM_UPDATER -> preferences.toggleApp(
+                    com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME,
+                    enabled
+                )
+                SystemIntegrationId.VPN -> preferences.setVpnIslandEnabled(enabled)
+                SystemIntegrationId.CHARGING -> preferences.setChargingIslandEnabled(enabled)
+                SystemIntegrationId.DEBUGGING -> preferences.setDebuggingIslandEnabled(enabled)
+            }
         }
     }
 
@@ -242,6 +405,12 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun updateAppCallStage(pkg: String, stage: com.d4viddf.hyperbridge.models.CallStage, enabled: Boolean) {
+        viewModelScope.launch {
+            preferences.updateAppCallStage(pkg, stage, enabled)
+        }
+    }
+
     /**
      * Updates the per-app navigation content layout (Distance vs ETA, etc.)
      */
@@ -271,6 +440,19 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch { preferences.setAppBlockedTerms(packageName, terms) }
     }
 
+    // --- SMART ACTIONS ---
+    val smartActionsConfigFlow = preferences.smartActionsConfigFlow
+    fun getAppSmartActionsOverride(packageName: String) = preferences.getAppSmartActionsOverride(packageName)
+    fun setSmartActionExcluded(packageName: String, excluded: Boolean) {
+        viewModelScope.launch { preferences.setSmartActionExcluded(packageName, excluded) }
+    }
+    fun setAppSmartActionTypeOverride(packageName: String, type: SmartActionType, enabled: Boolean?) {
+        viewModelScope.launch { preferences.setAppSmartActionTypeOverride(packageName, type, enabled) }
+    }
+    fun clearAppSmartActionsOverride(packageName: String) {
+        viewModelScope.launch { preferences.clearAppSmartActionsOverride(packageName) }
+    }
+
     // App Loader
     private suspend fun getLaunchableApps(): List<AppInfo> = withContext(Dispatchers.IO) {
         val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
@@ -280,6 +462,8 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             try {
                 val pkg = resolveInfo.activityInfo.packageName
                 if (pkg == getApplication<Application>().packageName) return@mapNotNull null
+                if (pkg == ScreenRecordingClassifier.PACKAGE_NAME) return@mapNotNull null
+                if (pkg == com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier.PACKAGE_NAME) return@mapNotNull null
 
                 val name = resolveInfo.loadLabel(packageManager).toString()
                 val icon = resolveInfo.loadIcon(packageManager).toBitmap()
@@ -307,14 +491,42 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 }
 
                 AppInfo(name, pkg, icon, category = cat, isInstalled = true)
-            } catch (e: Exception) { null }
+            } catch (_: Exception) { null }
         }.distinctBy { it.packageName }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
     }
 
+    private suspend fun loadPackageAppInfo(packageName: String): AppInfo? = withContext(Dispatchers.IO) {
+        try {
+            val appInfo =
+                packageManager.getApplicationInfo(
+                    packageName,
+                    android.content.pm.PackageManager.ApplicationInfoFlags.of(0)
+                )
+            AppInfo(
+                name = packageManager.getApplicationLabel(appInfo).toString(),
+                packageName = packageName,
+                icon = packageManager.getApplicationIcon(appInfo).toBitmap(),
+                category = AppCategory.OTHER,
+                isInstalled = true
+            )
+        } catch (_: android.content.pm.PackageManager.NameNotFoundException) {
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun Drawable.toBitmap(): Bitmap {
-        if (this is BitmapDrawable) return this.bitmap
-        val width = if (intrinsicWidth > 0) intrinsicWidth else 1
-        val height = if (intrinsicHeight > 0) intrinsicHeight else 1
+        val maxIconSize = 144
+        if (this is BitmapDrawable && bitmap != null) {
+            val bmp = bitmap
+            if (bmp.width <= maxIconSize && bmp.height <= maxIconSize) return bmp
+            return Bitmap.createScaledBitmap(bmp, maxIconSize, maxIconSize, true)
+        }
+        val rawWidth = if (intrinsicWidth > 0) intrinsicWidth else maxIconSize
+        val rawHeight = if (intrinsicHeight > 0) intrinsicHeight else maxIconSize
+        val width = rawWidth.coerceAtMost(maxIconSize)
+        val height = rawHeight.coerceAtMost(maxIconSize)
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
         setBounds(0, 0, canvas.width, canvas.height)

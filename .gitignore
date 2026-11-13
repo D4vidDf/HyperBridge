@@ -62,3 +62,4 @@ gradle/gradle-daemon-jvm.properties
 .idea/deploymentTargetSelector.xml
 .idea/deploymentTargetSelector.xml
 .idea/misc.xml
+/REMOVED_STRINGS_DOCUMENTATION.md

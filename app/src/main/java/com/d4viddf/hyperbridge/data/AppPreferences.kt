@@ -7,7 +7,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.d4viddf.hyperbridge.data.db.AppDatabase
 import com.d4viddf.hyperbridge.data.db.AppSetting
+import com.d4viddf.hyperbridge.data.db.SettingsDao
 import com.d4viddf.hyperbridge.data.db.SettingsKeys
+import com.d4viddf.hyperbridge.models.CallStage
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.IslandLimitMode
 import com.d4viddf.hyperbridge.models.NavContent
@@ -15,6 +17,9 @@ import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.models.WidgetSize
+import com.d4viddf.hyperbridge.models.SmartActionType
+import com.d4viddf.hyperbridge.models.SmartActionsConfig
+import com.d4viddf.hyperbridge.models.AppSmartActionsOverride
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -26,16 +31,24 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val Context.legacyDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-class AppPreferences(context: Context) {
+class AppPreferences internal constructor(
+    private val dao: SettingsDao,
+    private val legacyDataStore: DataStore<Preferences>?,
+    context: Context?,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+) {
 
-    private val dao = AppDatabase.getDatabase(context).settingsDao()
-    private val legacyDataStore = context.applicationContext.legacyDataStore
+    constructor(context: Context) : this(
+        dao = AppDatabase.getDatabase(context).settingsDao(),
+        legacyDataStore = context.applicationContext.legacyDataStore,
+        context = context
+    )
 
     private val memoryCache = ConcurrentHashMap<String, String>()
 
     init {
         // --- MEMORY CACHE LOGIC ---
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             dao.getAllFlow().collect { list ->
                 val newCache = ConcurrentHashMap<String, String>()
                 list.forEach { newCache[it.key] = it.value }
@@ -45,13 +58,14 @@ class AppPreferences(context: Context) {
         }
 
         // --- MIGRATION LOGIC ---
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // Wait for user unlock before attempting to migrate from legacy DataStore (CE storage)
-                val userManager = context.getSystemService(Context.USER_SERVICE) as android.os.UserManager
-                if (!userManager.isUserUnlocked) {
-                    return@launch 
-                }
+        if (context != null && legacyDataStore != null) {
+            scope.launch {
+                try {
+                    // Wait for user unlock before attempting to migrate from legacy DataStore (CE storage)
+                    val userManager = context.getSystemService(Context.USER_SERVICE) as? android.os.UserManager
+                    if (userManager != null && !userManager.isUserUnlocked) {
+                        return@launch 
+                    }
 
                 // Force Onboarding reset for new permissions
                 val lastResetVersion = dao.getSetting("onboarding_reset_version")?.toIntOrNull() ?: 0
@@ -76,6 +90,17 @@ class AppPreferences(context: Context) {
                     dao.insert(AppSetting(SettingsKeys.MIGRATION_COMPLETE, "true"))
                 }
 
+                if (dao.getSetting(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING) == null) {
+                    val setupComplete = dao.getSetting(SettingsKeys.SETUP_COMPLETE).toBoolean(false)
+                    val hasSelectedApps = !dao.getSetting(SettingsKeys.ALLOWED_PACKAGES).isNullOrBlank()
+                    dao.insert(
+                        AppSetting(
+                            SettingsKeys.FLOATING_SETUP_NOTICE_PENDING,
+                            (setupComplete && hasSelectedApps).toString()
+                        )
+                    )
+                }
+
                 // Grant DOWNLOAD notification type if PROGRESS was previously enabled
                 val isDownloadMigrated = dao.getSetting("download_type_migration_complete") == "true"
                 if (!isDownloadMigrated) {
@@ -90,7 +115,7 @@ class AppPreferences(context: Context) {
                     }
 
                     // 2. App-specific notification types migration
-                    val suffixes = listOf("_float", "_shade", "_timeout", "_float_timeout", "_remove_notif", "_blocked", "_nav_left", "_nav_right", "_use_native")
+                    val suffixes = listOf("_float", "_shade", "_timeout", "_float_timeout", "_remove_notif", "_blocked", "_nav_left", "_nav_right", "_use_native", "_smart_otp", "_smart_url", "_smart_phone", "_smart_tracking", "_smart_navigation")
                     val allSettings = dao.getAllSync()
                     allSettings.forEach { setting ->
                         val key = setting.key
@@ -138,41 +163,109 @@ class AppPreferences(context: Context) {
             }
         }
     }
+}
 
     // --- HELPERS ---
     private fun String?.toBoolean(default: Boolean = false): Boolean = this?.toBooleanStrictOrNull() ?: default
     private fun String?.toInt(default: Int = 0): Int = this?.toIntOrNull() ?: default
-    private fun String?.toLong(default: Long = 0L): Long = this?.toLongOrNull() ?: default
 
     private fun Set<String>.serialize(): String = this.joinToString(",")
     private fun String?.deserializeSet(): Set<String> = this?.split(",")?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
     private fun String?.deserializeList(): List<String> = this?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+    private fun String?.deserializeCallStages(default: Set<CallStage>): Set<CallStage> {
+        if (this == null) return default
+        return deserializeSet().mapNotNull { value ->
+            try { CallStage.valueOf(value) } catch (_: IllegalArgumentException) { null }
+        }.toSet()
+    }
 
     private suspend fun save(key: String, value: String) {
+        memoryCache[key] = value
         dao.insert(AppSetting(key, value))
     }
 
     private suspend fun remove(key: String) {
+        memoryCache.remove(key)
         dao.delete(key)
     }
 
     // --- CORE SETTINGS ---
     val allowedPackagesFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.ALLOWED_PACKAGES).map { it.deserializeSet() }
+    val vpnIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("vpn_island_enabled").map { it.toBoolean(true) }
+    val chargingIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("charging_island_enabled").map { it.toBoolean(false) }
+    val chargingIslandLockscreenFlow: Flow<Boolean> = dao.getSettingFlow("charging_island_lockscreen").map { it.toBoolean(false) }
+    val debuggingIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("debugging_island_enabled").map { it.toBoolean(false) }
     val isSetupComplete: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.SETUP_COMPLETE).map { it.toBoolean(false) }
     val lastSeenVersion: Flow<Int> = dao.getSettingFlow(SettingsKeys.LAST_VERSION).map { it.toInt(0) }
 
     suspend fun setSetupComplete(isComplete: Boolean) = save(SettingsKeys.SETUP_COMPLETE, isComplete.toString())
     suspend fun setLastSeenVersion(versionCode: Int) = save(SettingsKeys.LAST_VERSION, versionCode.toString())
+    suspend fun setVpnIslandEnabled(enabled: Boolean) = save("vpn_island_enabled", enabled.toString())
+    suspend fun setChargingIslandEnabled(enabled: Boolean) = save("charging_island_enabled", enabled.toString())
+    suspend fun setChargingIslandLockscreen(enabled: Boolean) = save("charging_island_lockscreen", enabled.toString())
+    suspend fun setDebuggingIslandEnabled(enabled: Boolean) = save("debugging_island_enabled", enabled.toString())
     suspend fun setPriorityEduShown(shown: Boolean) = save(SettingsKeys.PRIORITY_EDU, shown.toString())
 
     val featuredPermissionWarningFlow: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.FEATURED_PERMISSION_WARNING).map { it.toBoolean(false) }
     suspend fun setFeaturedPermissionWarning(show: Boolean) = save(SettingsKeys.FEATURED_PERMISSION_WARNING, show.toString())
+
+    val floatingSetupConfirmedPackagesFlow: Flow<Set<String>> =
+        dao.getSettingFlow(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).map { it.deserializeSet() }
+
+    suspend fun setFloatingSetupNoticePending(show: Boolean) =
+        save(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING, show.toString())
+
+    suspend fun setFloatingSetupConfirmed(packageName: String, confirmed: Boolean) {
+        val current = dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()
+        val updated = if (confirmed) current + packageName else current - packageName
+        save(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES, updated.serialize())
+    }
+
+    suspend fun setAllFloatingSetupConfirmed(packageNames: Collection<String>, confirmed: Boolean) {
+        if (packageNames.isEmpty()) return
+        val current = dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()
+        val updated = if (confirmed) current + packageNames else current - packageNames.toSet()
+        save(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES, updated.serialize())
+    }
+
+    val bridgeAllAppsEnabledFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.BRIDGE_ALL_APPS_ENABLED).map { it.toBoolean(false) }
+
+    val autoAddNewAppsFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.AUTO_ADD_NEW_APPS).map { it.toBoolean(true) }
+
+    suspend fun setBridgeAllAppsEnabled(enabled: Boolean) =
+        save(SettingsKeys.BRIDGE_ALL_APPS_ENABLED, enabled.toString())
+
+    suspend fun setAutoAddNewApps(enabled: Boolean) =
+        save(SettingsKeys.AUTO_ADD_NEW_APPS, enabled.toString())
+
+    suspend fun toggleApps(packageNames: Collection<String>, isEnabled: Boolean) {
+        if (packageNames.isEmpty()) return
+        val currentString = dao.getSetting(SettingsKeys.ALLOWED_PACKAGES)
+        val currentSet = currentString.deserializeSet()
+        val newSet = if (isEnabled) currentSet + packageNames else currentSet - packageNames.toSet()
+        save(SettingsKeys.ALLOWED_PACKAGES, newSet.serialize())
+        save(SettingsKeys.BRIDGE_ALL_APPS_ENABLED, isEnabled.toString())
+        if (isEnabled) {
+            val confirmed = dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()
+            if (packageNames.any { it !in confirmed }) {
+                save(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING, "true")
+            }
+        }
+    }
 
     suspend fun toggleApp(packageName: String, isEnabled: Boolean) {
         val currentString = dao.getSetting(SettingsKeys.ALLOWED_PACKAGES)
         val currentSet = currentString.deserializeSet()
         val newSet = if (isEnabled) currentSet + packageName else currentSet - packageName
         save(SettingsKeys.ALLOWED_PACKAGES, newSet.serialize())
+        if (!isEnabled) {
+            save(SettingsKeys.BRIDGE_ALL_APPS_ENABLED, "false")
+        }
+        if (isEnabled && packageName !in dao.getSetting(SettingsKeys.FLOATING_SETUP_CONFIRMED_PACKAGES).deserializeSet()) {
+            save(SettingsKeys.FLOATING_SETUP_NOTICE_PENDING, "true")
+        }
     }
 
     // ========================================================================
@@ -202,7 +295,7 @@ class AppPreferences(context: Context) {
     fun getAppConfig(packageName: String): Flow<Set<String>> {
         val legacyKey = "config_$packageName"
         return dao.getSettingFlow(legacyKey).map { str ->
-            str?.deserializeSet() ?: NotificationType.entries.map { t -> t.name }.toSet()
+            str?.deserializeSet() ?: NotificationType.configurableEntries.map { t -> t.name }.toSet()
         }
     }
 
@@ -243,7 +336,7 @@ class AppPreferences(context: Context) {
     }
 
     fun getAppIslandConfig(packageName: String): Flow<IslandConfig> {
-        return combine(
+        val baseFlow = combine(
             dao.getSettingFlow("config_${packageName}_float"),
             dao.getSettingFlow("config_${packageName}_shade"),
             dao.getSettingFlow("config_${packageName}_timeout"),
@@ -261,6 +354,9 @@ class AppPreferences(context: Context) {
                 args[5]?.toBooleanStrictOrNull(),
                 args[6]?.toBooleanStrictOrNull()
             )
+        }
+        return combine(baseFlow, getAppSmartActionsOverride(packageName)) { base, override ->
+            base.copy(smartActionsOverride = override)
         }
     }
 
@@ -282,9 +378,260 @@ class AppPreferences(context: Context) {
         if (config.enableInlineReply != null) save(eirKey, config.enableInlineReply.toString()) else remove(eirKey)
     }
 
+    // --- SYSTEM ISLAND: SCREEN RECORDING ---
+    val screenRecordingTimeoutFlow: Flow<Int> =
+        dao.getSettingFlow(SettingsKeys.SCREEN_RECORDING_TIMEOUT).map { it.toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT) }
+
+    suspend fun setScreenRecordingTimeout(seconds: Int) =
+        save(SettingsKeys.SCREEN_RECORDING_TIMEOUT, seconds.toString())
+
+    val screenRecordingLeftDesignFlow: Flow<com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign> =
+        dao.getSettingFlow(SettingsKeys.SCREEN_RECORDING_LEFT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.ICON_AND_TEXT
+        }
+
+    val screenRecordingRightDesignFlow: Flow<com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign> =
+        dao.getSettingFlow(SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.TIMER
+        }
+
+    val screenRecordingDesignFlow: Flow<com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig> =
+        combine(screenRecordingLeftDesignFlow, screenRecordingRightDesignFlow) { left, right ->
+            com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(left = left, right = right)
+        }
+
+    suspend fun setScreenRecordingLeftDesign(design: com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign) =
+        save(SettingsKeys.SCREEN_RECORDING_LEFT_DESIGN, design.name)
+
+    suspend fun setScreenRecordingRightDesign(design: com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign) =
+        save(SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN, design.name)
+
+    val systemUpdateTimeoutFlow: Flow<Int> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_TIMEOUT).map { it.toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT) }
+
+    suspend fun setSystemUpdateTimeout(seconds: Int) =
+        save(SettingsKeys.SYSTEM_UPDATE_TIMEOUT, seconds.toString())
+
+    val systemUpdateLeftDesignFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_LEFT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.ICON_AND_TEXT
+        }
+
+    val systemUpdateRightDesignFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateRightDesign> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_RIGHT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.PERCENTAGE
+        }
+
+    val systemUpdateIconSourceFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateIconSource> =
+        dao.getSettingFlow(SettingsKeys.SYSTEM_UPDATE_ICON_SOURCE).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.SystemUpdateIconSource.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.SystemUpdateIconSource.NOTIFICATION_ICON
+        }
+
+    val systemUpdateDesignFlow: Flow<com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig> =
+        combine(systemUpdateLeftDesignFlow, systemUpdateRightDesignFlow, systemUpdateIconSourceFlow) { left, right, iconSource ->
+            com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig(left = left, right = right, iconSource = iconSource)
+        }
+
+    suspend fun setSystemUpdateLeftDesign(design: com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign) =
+        save(SettingsKeys.SYSTEM_UPDATE_LEFT_DESIGN, design.name)
+
+    suspend fun setSystemUpdateRightDesign(design: com.d4viddf.hyperbridge.models.SystemUpdateRightDesign) =
+        save(SettingsKeys.SYSTEM_UPDATE_RIGHT_DESIGN, design.name)
+
+    suspend fun setSystemUpdateIconSource(iconSource: com.d4viddf.hyperbridge.models.SystemUpdateIconSource) =
+        save(SettingsKeys.SYSTEM_UPDATE_ICON_SOURCE, iconSource.name)
+
+    // --- SYSTEM ISLAND: CHARGING ---
+    val chargingLeftDesignFlow: Flow<com.d4viddf.hyperbridge.models.ChargingLeftDesign> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_LEFT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ChargingLeftDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ChargingLeftDesign.CHARGING_SPEED
+        }
+
+    val chargingRightDesignFlow: Flow<com.d4viddf.hyperbridge.models.ChargingRightDesign> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_RIGHT_DESIGN).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ChargingRightDesign.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ChargingRightDesign.BATTERY_PERCENTAGE
+        }
+
+    val chargingExpandedProgressBarFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR).map { it.toBoolean(true) }
+
+    val chargingSpeedModeFlow: Flow<com.d4viddf.hyperbridge.models.ChargingSpeedMode> =
+        dao.getSettingFlow(SettingsKeys.CHARGING_SPEED_MODE).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.ChargingSpeedMode.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.ChargingSpeedMode.REAL_TIME
+        }
+
+    val chargingDesignFlow: Flow<com.d4viddf.hyperbridge.models.ChargingDesignConfig> =
+        combine(
+            chargingLeftDesignFlow,
+            chargingRightDesignFlow,
+            chargingExpandedProgressBarFlow,
+            chargingSpeedModeFlow
+        ) { left, right, showExpandedProgressBar, speedMode ->
+            com.d4viddf.hyperbridge.models.ChargingDesignConfig(
+                left = left,
+                right = right,
+                showExpandedProgressBar = showExpandedProgressBar,
+                speedMode = speedMode
+            )
+        }
+
+    suspend fun setChargingLeftDesign(design: com.d4viddf.hyperbridge.models.ChargingLeftDesign) =
+        save(SettingsKeys.CHARGING_LEFT_DESIGN, design.name)
+
+    suspend fun setChargingRightDesign(design: com.d4viddf.hyperbridge.models.ChargingRightDesign) =
+        save(SettingsKeys.CHARGING_RIGHT_DESIGN, design.name)
+
+    suspend fun setChargingExpandedProgressBar(show: Boolean) =
+        save(SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR, show.toString())
+
+    suspend fun setChargingSpeedMode(mode: com.d4viddf.hyperbridge.models.ChargingSpeedMode) =
+        save(SettingsKeys.CHARGING_SPEED_MODE, mode.name)
+
+    // --- SYSTEM ISLAND: VPN ---
+    val vpnDetectionModeFlow: Flow<com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode> =
+        dao.getSettingFlow(SettingsKeys.VPN_DETECTION_MODE).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.AUTO
+        }
+
+    val vpnDisabledProvidersFlow: Flow<Set<String>> =
+        dao.getSettingFlow(SettingsKeys.VPN_DISABLED_PROVIDERS).map { it.deserializeSet() }
+
+    val vpnProviderPriorityFlow: Flow<List<String>> =
+        dao.getSettingFlow(SettingsKeys.VPN_PROVIDER_PRIORITY).map { it.deserializeList() }
+
+    suspend fun setVpnDetectionMode(mode: com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode) =
+        save(SettingsKeys.VPN_DETECTION_MODE, mode.name)
+
+    suspend fun setVpnProviderEnabled(packageName: String, enabled: Boolean) {
+        val current = dao.getSetting(SettingsKeys.VPN_DISABLED_PROVIDERS).deserializeSet()
+        val updated = if (enabled) current - packageName else current + packageName
+        save(SettingsKeys.VPN_DISABLED_PROVIDERS, updated.serialize())
+    }
+
+    suspend fun setVpnProviderPriority(order: List<String>) =
+        save(SettingsKeys.VPN_PROVIDER_PRIORITY, order.joinToString(","))
+
+
+    // --- SMART ACTIONS (issue #270) ---
+    val smartActionsConfigFlow: Flow<SmartActionsConfig> = combine(
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_ENABLED),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_OTP),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_URL),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_PHONE),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_TRACKING),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_NAVIGATION),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES),
+        dao.getSettingFlow(SettingsKeys.SMART_ACTIONS_HIDE_OTP)
+    ) { args: Array<String?> ->
+        buildSmartActionsConfig(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
+    }
+
+    suspend fun setSmartActionsEnabled(enabled: Boolean) =
+        save(SettingsKeys.SMART_ACTIONS_ENABLED, enabled.toString())
+
+    suspend fun setSmartActionTypeEnabled(type: SmartActionType, enabled: Boolean) =
+        save(smartActionTypeKey(type), enabled.toString())
+
+    suspend fun setSmartActionsExcludedPackages(packages: Set<String>) =
+        save(SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES, packages.serialize())
+
+    suspend fun setSmartActionsHideOtpCode(hide: Boolean) =
+        save(SettingsKeys.SMART_ACTIONS_HIDE_OTP, hide.toString())
+
+    suspend fun setSmartActionExcluded(packageName: String, excluded: Boolean) {
+        val current = dao.getSetting(SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES).deserializeSet()
+        val updated = if (excluded) current + packageName else current - packageName
+        save(SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES, updated.serialize())
+    }
+
+    private fun smartActionTypeKey(type: SmartActionType): String = when (type) {
+        SmartActionType.OTP -> SettingsKeys.SMART_ACTIONS_OTP
+        SmartActionType.URL -> SettingsKeys.SMART_ACTIONS_URL
+        SmartActionType.PHONE -> SettingsKeys.SMART_ACTIONS_PHONE
+        SmartActionType.TRACKING -> SettingsKeys.SMART_ACTIONS_TRACKING
+        SmartActionType.NAVIGATION -> SettingsKeys.SMART_ACTIONS_NAVIGATION
+    }
+
+    private fun buildSmartActionsConfig(
+        enabled: String?, otp: String?, url: String?, phone: String?, tracking: String?, navigation: String?,
+        excluded: String?, hideOtp: String?
+    ) = SmartActionsConfig(
+        enabled = enabled.toBoolean(false),
+        otp = otp.toBoolean(true),
+        url = url.toBoolean(true),
+        phone = phone.toBoolean(true),
+        tracking = tracking.toBoolean(true),
+        navigation = navigation.toBoolean(true),
+        excludedPackages = excluded.deserializeSet(),
+        hideOtpCode = hideOtp.toBoolean(false)
+    )
+
+    // --- PER-APP SMART ACTIONS OVERRIDES ---
+
+    private fun appSmartActionTypeKey(packageName: String, type: SmartActionType): String {
+        val suffix = when (type) {
+            SmartActionType.OTP -> "otp"
+            SmartActionType.URL -> "url"
+            SmartActionType.PHONE -> "phone"
+            SmartActionType.TRACKING -> "tracking"
+            SmartActionType.NAVIGATION -> "navigation"
+        }
+        return "config_${packageName}_smart_$suffix"
+    }
+
+    fun getAppSmartActionsOverride(packageName: String): Flow<AppSmartActionsOverride> {
+        return combine(
+            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.OTP)),
+            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.URL)),
+            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.PHONE)),
+            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.TRACKING)),
+            dao.getSettingFlow(appSmartActionTypeKey(packageName, SmartActionType.NAVIGATION))
+        ) { otp, url, phone, tracking, navigation ->
+            AppSmartActionsOverride(
+                otp = otp?.toBooleanStrictOrNull(),
+                url = url?.toBooleanStrictOrNull(),
+                phone = phone?.toBooleanStrictOrNull(),
+                tracking = tracking?.toBooleanStrictOrNull(),
+                navigation = navigation?.toBooleanStrictOrNull()
+            )
+        }
+    }
+
+    fun getAppSmartActionsOverrideSync(packageName: String): AppSmartActionsOverride {
+        return AppSmartActionsOverride(
+            otp = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.OTP)]?.toBooleanStrictOrNull(),
+            url = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.URL)]?.toBooleanStrictOrNull(),
+            phone = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.PHONE)]?.toBooleanStrictOrNull(),
+            tracking = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.TRACKING)]?.toBooleanStrictOrNull(),
+            navigation = memoryCache[appSmartActionTypeKey(packageName, SmartActionType.NAVIGATION)]?.toBooleanStrictOrNull()
+        )
+    }
+
+    suspend fun setAppSmartActionTypeOverride(packageName: String, type: SmartActionType, enabled: Boolean?) {
+        val key = appSmartActionTypeKey(packageName, type)
+        if (enabled != null) save(key, enabled.toString()) else remove(key)
+    }
+
+    suspend fun clearAppSmartActionsOverride(packageName: String) {
+        SmartActionType.entries.forEach { type -> remove(appSmartActionTypeKey(packageName, type)) }
+    }
+
     // --- NAVIGATION ---
     val globalBlockedTermsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.GLOBAL_BLOCKED_TERMS).map { it.deserializeSet() }
     suspend fun setGlobalBlockedTerms(terms: Set<String>) = save(SettingsKeys.GLOBAL_BLOCKED_TERMS, terms.serialize())
+
+    /** Extra words that mark a "NN%" as a discount, not progress (on top of the built-in ones). */
+    val progressDiscountKeywordsFlow: Flow<Set<String>> = dao.getSettingFlow(SettingsKeys.PROGRESS_DISCOUNT_KEYWORDS).map { it.deserializeSet() }
+    suspend fun setProgressDiscountKeywords(terms: Set<String>) = save(SettingsKeys.PROGRESS_DISCOUNT_KEYWORDS, terms.serialize())
 
     fun getAppBlockedTerms(packageName: String): Flow<Set<String>> {
         return dao.getSettingFlow("config_${packageName}_blocked").map { it.deserializeSet() }
@@ -428,12 +775,12 @@ class AppPreferences(context: Context) {
     val GLOBAL_NOTIFICATION_TYPES_KEY = "global_notification_types"
 
     val globalNotificationTypesFlow: Flow<Set<String>> = dao.getSettingFlow(GLOBAL_NOTIFICATION_TYPES_KEY).map { str ->
-        str?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        str?.deserializeSet() ?: NotificationType.configurableEntries.map { it.name }.toSet()
     }
 
     suspend fun updateGlobalNotificationType(type: NotificationType, isEnabled: Boolean) {
         val currentStr = dao.getSetting(GLOBAL_NOTIFICATION_TYPES_KEY)
-        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        val currentSet = currentStr?.deserializeSet() ?: NotificationType.configurableEntries.map { it.name }.toSet()
         val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
         save(GLOBAL_NOTIFICATION_TYPES_KEY, newSet.serialize())
     }
@@ -450,9 +797,42 @@ class AppPreferences(context: Context) {
     suspend fun updateAppConfig(packageName: String, type: NotificationType, isEnabled: Boolean) {
         val key = "config_$packageName"
         val currentStr = dao.getSetting(key)
-        val currentSet = currentStr?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        val currentSet = currentStr?.deserializeSet() ?: NotificationType.configurableEntries.map { it.name }.toSet()
         val newSet = if (isEnabled) currentSet + type.name else currentSet - type.name
         save(key, newSet.serialize())
+    }
+
+    // ========================================================================
+    //                        Call Stages Configuration
+    // ========================================================================
+
+    val GLOBAL_CALL_STAGES_KEY = "global_call_stages"
+
+    val globalCallStagesFlow: Flow<Set<CallStage>> = dao.getSettingFlow(GLOBAL_CALL_STAGES_KEY).map { raw ->
+        raw.deserializeCallStages(CallStage.entries.toSet())
+    }
+
+    suspend fun updateGlobalCallStage(stage: CallStage, isEnabled: Boolean) {
+        val current = dao.getSetting(GLOBAL_CALL_STAGES_KEY)
+            .deserializeCallStages(CallStage.entries.toSet())
+        val updated = if (isEnabled) current + stage else current - stage
+        save(GLOBAL_CALL_STAGES_KEY, updated.map { it.name }.toSet().serialize())
+    }
+
+    fun getAppCallStagesFlow(packageName: String): Flow<Set<CallStage>?> {
+        return dao.getSettingFlow("config_${packageName}_call_stages").map { raw ->
+            raw?.deserializeCallStages(emptySet())
+        }
+    }
+
+    suspend fun updateAppCallStage(packageName: String, stage: CallStage, isEnabled: Boolean) {
+        val key = "config_${packageName}_call_stages"
+        val appValue = dao.getSetting(key)
+        val inherited = dao.getSetting(GLOBAL_CALL_STAGES_KEY)
+            .deserializeCallStages(CallStage.entries.toSet())
+        val current = appValue.deserializeCallStages(inherited)
+        val updated = if (isEnabled) current + stage else current - stage
+        save(key, updated.map { it.name }.toSet().serialize())
     }
 
     // ========================================================================
@@ -551,7 +931,8 @@ class AppPreferences(context: Context) {
             memoryCache["config_${packageName}_float_timeout"]?.toIntOrNull(),
             memoryCache["config_${packageName}_remove_notif"]?.toBooleanStrictOrNull(),
             memoryCache["config_${packageName}_dismiss_with_original"]?.toBooleanStrictOrNull(),
-            memoryCache["config_${packageName}_enable_inline_reply"]?.toBooleanStrictOrNull()
+            memoryCache["config_${packageName}_enable_inline_reply"]?.toBooleanStrictOrNull(),
+            smartActionsOverride = getAppSmartActionsOverrideSync(packageName)
         )
     }
 
@@ -563,9 +944,21 @@ class AppPreferences(context: Context) {
             memoryCache[SettingsKeys.GLOBAL_FLOAT_TIMEOUT]?.toIntOrNull(),
             memoryCache[SettingsKeys.GLOBAL_REMOVE_NOTIF]?.toBooleanStrictOrNull(),
             memoryCache[SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL]?.toBooleanStrictOrNull() ?: true,
-            memoryCache[SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY]?.toBooleanStrictOrNull()
+            memoryCache[SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY]?.toBooleanStrictOrNull(),
+            smartActions = getSmartActionsConfigSync()
         )
     }
+
+    fun getSmartActionsConfigSync(): SmartActionsConfig = buildSmartActionsConfig(
+        memoryCache[SettingsKeys.SMART_ACTIONS_ENABLED],
+        memoryCache[SettingsKeys.SMART_ACTIONS_OTP],
+        memoryCache[SettingsKeys.SMART_ACTIONS_URL],
+        memoryCache[SettingsKeys.SMART_ACTIONS_PHONE],
+        memoryCache[SettingsKeys.SMART_ACTIONS_TRACKING],
+        memoryCache[SettingsKeys.SMART_ACTIONS_NAVIGATION],
+        memoryCache[SettingsKeys.SMART_ACTIONS_EXCLUDED_PACKAGES],
+        memoryCache[SettingsKeys.SMART_ACTIONS_HIDE_OTP]
+    )
 
     fun getGlobalNavLayoutSync(): Pair<NavContent, NavContent> {
         val l = memoryCache[SettingsKeys.NAV_LEFT]
@@ -586,12 +979,20 @@ class AppPreferences(context: Context) {
 
     fun getGlobalNotificationTypesSync(): Set<String> {
         val str = memoryCache[GLOBAL_NOTIFICATION_TYPES_KEY]
-        return str?.deserializeSet() ?: NotificationType.entries.map { it.name }.toSet()
+        return str?.deserializeSet() ?: NotificationType.configurableEntries.map { it.name }.toSet()
     }
 
     fun getAppConfigSync(packageName: String): Set<String>? {
         val str = memoryCache["config_$packageName"]
         return str?.deserializeSet()
+    }
+
+    fun getEffectiveCallStagesSync(packageName: String): Set<CallStage> {
+        val appValue = memoryCache["config_${packageName}_call_stages"]
+        val globalValue = memoryCache[GLOBAL_CALL_STAGES_KEY]
+        return appValue.deserializeCallStages(
+            globalValue.deserializeCallStages(CallStage.entries.toSet())
+        )
     }
 
     fun getAppEnginePreferenceSync(packageName: String): Boolean? {
@@ -600,5 +1001,168 @@ class AppPreferences(context: Context) {
 
     fun useNativeLiveUpdatesSync(): Boolean {
         return memoryCache[USE_NATIVE_ENGINE]?.toBoolean() ?: false
+    }
+
+    fun isBridgeAllAppsEnabledSync(): Boolean {
+        return memoryCache[SettingsKeys.BRIDGE_ALL_APPS_ENABLED]?.toBoolean() ?: false
+    }
+
+    fun isAutoAddNewAppsEnabledSync(): Boolean {
+        return memoryCache[SettingsKeys.AUTO_ADD_NEW_APPS]?.toBoolean() ?: true
+    }
+
+    fun isAppAllowedSync(packageName: String): Boolean {
+        val raw = memoryCache[SettingsKeys.ALLOWED_PACKAGES] ?: return false
+        return raw.deserializeSet().contains(packageName)
+    }
+
+    fun getAppPriorityOrderSync(): List<String> {
+        val raw = memoryCache[SettingsKeys.PRIORITY_ORDER]
+        return raw.deserializeList()
+    }
+
+    fun getAppPriorityFast(packageName: String): Int {
+        val priorityList = getAppPriorityOrderSync()
+        val index = priorityList.indexOf(packageName)
+        return if (index == -1) Int.MAX_VALUE else index
+    }
+
+    fun getLimitModeSync(): IslandLimitMode {
+        val raw = memoryCache["limit_mode"]
+        return try {
+            IslandLimitMode.valueOf(raw ?: IslandLimitMode.MOST_RECENT.name)
+        } catch (_: Exception) {
+            IslandLimitMode.MOST_RECENT
+        }
+    }
+
+    fun getGlobalBlockedTermsSync(): Set<String> {
+        return memoryCache[SettingsKeys.GLOBAL_BLOCKED_TERMS].deserializeSet()
+    }
+
+    fun isBlockedTermFast(packageName: String, title: String, text: String): Boolean {
+        val appBlocked = getAppBlockedTermsSync(packageName)
+        val globalBlocked = getGlobalBlockedTermsSync()
+        if (appBlocked.isEmpty() && globalBlocked.isEmpty()) return false
+
+        val combinedContent = "$title $text"
+        if (appBlocked.isNotEmpty() && appBlocked.any { combinedContent.contains(it, ignoreCase = true) }) {
+            return true
+        }
+        if (globalBlocked.isNotEmpty() && globalBlocked.any { combinedContent.contains(it, ignoreCase = true) }) {
+            return true
+        }
+        return false
+    }
+
+    fun isDndModeEnabledSync(): Boolean {
+        return memoryCache["dnd_mode_enabled"]?.toBoolean() ?: false
+    }
+
+    fun autoDetectDndSync(): Boolean {
+        return memoryCache["auto_detect_dnd"]?.toBoolean() ?: false
+    }
+
+    fun getScreenRecordingTimeoutSync(): Int =
+        memoryCache[SettingsKeys.SCREEN_RECORDING_TIMEOUT].toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT)
+
+    fun getScreenRecordingLeftDesignSync(): com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign =
+        memoryCache[SettingsKeys.SCREEN_RECORDING_LEFT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ScreenRecordingLeftDesign.ICON_AND_TEXT
+
+    fun getScreenRecordingRightDesignSync(): com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign =
+        memoryCache[SettingsKeys.SCREEN_RECORDING_RIGHT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ScreenRecordingRightDesign.TIMER
+
+    fun getScreenRecordingDesignSync(): com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig =
+        com.d4viddf.hyperbridge.models.ScreenRecordingDesignConfig(
+            left = getScreenRecordingLeftDesignSync(),
+            right = getScreenRecordingRightDesignSync()
+        )
+
+    fun getSystemUpdateTimeoutSync(): Int =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_TIMEOUT].toInt(SYSTEM_ISLAND_DEFAULT_TIMEOUT)
+
+    fun getSystemUpdateLeftDesignSync(): com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_LEFT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.SystemUpdateLeftDesign.ICON_AND_TEXT
+
+    fun getSystemUpdateRightDesignSync(): com.d4viddf.hyperbridge.models.SystemUpdateRightDesign =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_RIGHT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.SystemUpdateRightDesign.PERCENTAGE
+
+    fun getSystemUpdateIconSourceSync(): com.d4viddf.hyperbridge.models.SystemUpdateIconSource =
+        memoryCache[SettingsKeys.SYSTEM_UPDATE_ICON_SOURCE]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.SystemUpdateIconSource.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.SystemUpdateIconSource.NOTIFICATION_ICON
+
+    fun getSystemUpdateDesignSync(): com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig =
+        com.d4viddf.hyperbridge.models.SystemUpdateDesignConfig(
+            left = getSystemUpdateLeftDesignSync(),
+            right = getSystemUpdateRightDesignSync(),
+            iconSource = getSystemUpdateIconSourceSync()
+        )
+
+    fun getChargingLeftDesignSync(): com.d4viddf.hyperbridge.models.ChargingLeftDesign =
+        memoryCache[SettingsKeys.CHARGING_LEFT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ChargingLeftDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ChargingLeftDesign.CHARGING_SPEED
+
+    fun getChargingRightDesignSync(): com.d4viddf.hyperbridge.models.ChargingRightDesign =
+        memoryCache[SettingsKeys.CHARGING_RIGHT_DESIGN]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ChargingRightDesign.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ChargingRightDesign.BATTERY_PERCENTAGE
+
+    fun getChargingExpandedProgressBarSync(): Boolean =
+        memoryCache[SettingsKeys.CHARGING_EXPANDED_PROGRESS_BAR].toBoolean(true)
+
+    fun getChargingSpeedModeSync(): com.d4viddf.hyperbridge.models.ChargingSpeedMode =
+        memoryCache[SettingsKeys.CHARGING_SPEED_MODE]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.ChargingSpeedMode.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.ChargingSpeedMode.REAL_TIME
+
+    fun getChargingDesignSync(): com.d4viddf.hyperbridge.models.ChargingDesignConfig =
+        com.d4viddf.hyperbridge.models.ChargingDesignConfig(
+            left = getChargingLeftDesignSync(),
+            right = getChargingRightDesignSync(),
+            showExpandedProgressBar = getChargingExpandedProgressBarSync(),
+            speedMode = getChargingSpeedModeSync()
+        )
+
+    fun isVpnIslandEnabledSync(): Boolean = memoryCache["vpn_island_enabled"]?.toBoolean(true) ?: true
+
+    fun getVpnDetectionModeSync(): com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode =
+        memoryCache[SettingsKeys.VPN_DETECTION_MODE]?.let {
+            runCatching { com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.service.vpn.VpnDetectionMode.AUTO
+
+    fun getVpnDisabledProvidersSync(): Set<String> =
+        memoryCache[SettingsKeys.VPN_DISABLED_PROVIDERS].deserializeSet()
+
+    fun getVpnProviderPrioritySync(): List<String> =
+        memoryCache[SettingsKeys.VPN_PROVIDER_PRIORITY].deserializeList()
+
+
+    companion object {
+        const val SYSTEM_ISLAND_DEFAULT_TIMEOUT = 4
+    }
+
+    @androidx.annotation.VisibleForTesting
+    internal fun putInCacheForTesting(key: String, value: String) {
+        memoryCache[key] = value
+    }
+
+    @androidx.annotation.VisibleForTesting
+    internal fun removeFromCacheForTesting(key: String) {
+        memoryCache.remove(key)
+    }
+
+    @androidx.annotation.VisibleForTesting
+    internal fun clearCacheForTesting() {
+        memoryCache.clear()
     }
 }

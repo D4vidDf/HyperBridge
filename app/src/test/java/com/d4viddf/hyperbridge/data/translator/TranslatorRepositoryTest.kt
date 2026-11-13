@@ -1,0 +1,654 @@
+package com.d4viddf.hyperbridge.data.translator
+
+import android.content.Context
+import android.content.ContextWrapper
+import com.d4viddf.hyperbridge.data.db.TranslatorDao
+import com.d4viddf.hyperbridge.data.db.TranslatorEntity
+import com.d4viddf.hyperbridge.models.translator.ActionDisplayMode
+import com.d4viddf.hyperbridge.models.translator.ActionMatchBy
+import com.d4viddf.hyperbridge.models.translator.ActionMatcher
+import com.d4viddf.hyperbridge.models.translator.ActionSlotConfig
+import com.d4viddf.hyperbridge.models.translator.ActionSource
+import com.d4viddf.hyperbridge.models.translator.BehaviorOverride
+import com.d4viddf.hyperbridge.models.translator.CustomTranslator
+import com.d4viddf.hyperbridge.models.translator.EngineMode
+import com.d4viddf.hyperbridge.models.translator.MediaConditions
+import com.d4viddf.hyperbridge.models.translator.PresentationConfig
+import com.d4viddf.hyperbridge.models.translator.ProgressSlotConfig
+import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
+import com.d4viddf.hyperbridge.models.translator.SmartActionType
+import com.d4viddf.hyperbridge.models.translator.TargetScope
+import com.d4viddf.hyperbridge.models.translator.TranslatorConditions
+import com.d4viddf.hyperbridge.models.translator.TranslatorMetadata
+import com.d4viddf.hyperbridge.models.translator.TypeSpecificConditions
+import com.d4viddf.hyperbridge.data.widget.CustomWidgetRepository
+import com.d4viddf.hyperbridge.data.widget.PreviewPlaceholderRepository
+import com.d4viddf.hyperbridge.models.translator.PresentationMode
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetDocument
+import com.d4viddf.hyperbridge.models.widget.CustomWidgetMetadata
+import com.d4viddf.hyperbridge.models.widget.LayoutContainer
+import com.d4viddf.hyperbridge.models.widget.PreviewPlaceholderConfig
+import com.d4viddf.hyperbridge.models.widget.TextNode
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
+
+class TranslatorRepositoryTest {
+
+    @get:Rule
+    val tempFolder = TemporaryFolder()
+
+    private lateinit var fakeContext: FakeTestContext
+    private lateinit var fakeDao: FakeTranslatorDao
+    private lateinit var repository: TranslatorRepository
+    private lateinit var filesDir: File
+    private lateinit var cacheDir: File
+
+    class FakeTestContext(
+        private val files: File,
+        private val cache: File
+    ) : ContextWrapper(null) {
+        override fun getFilesDir(): File = files
+        override fun getCacheDir(): File = cache
+        override fun getPackageName(): String = "com.d4viddf.hyperbridge"
+        override fun getApplicationContext(): Context = this
+    }
+
+    class FakeTranslatorDao : TranslatorDao {
+        val insertedTranslators = mutableListOf<TranslatorEntity>()
+
+        override fun getAllTranslatorsFlow() = emptyFlow<List<TranslatorEntity>>()
+        override suspend fun getAllTranslators() = insertedTranslators.toList()
+        override fun getActiveTranslatorsFlow() = emptyFlow<List<TranslatorEntity>>()
+        override suspend fun getActiveTranslators() = insertedTranslators.filter { it.isEnabled }
+        override suspend fun getTranslatorById(id: String) = insertedTranslators.find { it.id == id }
+        override fun getTranslatorByIdFlow(id: String) = emptyFlow<TranslatorEntity?>()
+
+        override suspend fun insertTranslator(translator: TranslatorEntity) {
+            insertedTranslators.removeAll { it.id == translator.id }
+            insertedTranslators.add(translator)
+        }
+
+        override suspend fun insertAll(translators: List<TranslatorEntity>) {
+            translators.forEach { insertTranslator(it) }
+        }
+
+        override suspend fun updateTranslator(translator: TranslatorEntity) {
+            insertTranslator(translator)
+        }
+
+        override suspend fun setTranslatorEnabled(id: String, isEnabled: Boolean, timestamp: Long) {
+            val existing = insertedTranslators.find { it.id == id }
+            if (existing != null) {
+                insertTranslator(existing.copy(isEnabled = isEnabled, updatedAt = timestamp))
+            }
+        }
+
+        override suspend fun updatePriority(id: String, priority: Int, timestamp: Long) {
+            val existing = insertedTranslators.find { it.id == id }
+            if (existing != null) {
+                insertTranslator(existing.copy(priority = priority, updatedAt = timestamp))
+            }
+        }
+
+        override suspend fun deleteTranslatorById(id: String) {
+            insertedTranslators.removeAll { it.id == id }
+        }
+
+        override suspend fun deleteAll() {
+            insertedTranslators.clear()
+        }
+    }
+
+    @Before
+    fun setup() {
+        filesDir = tempFolder.newFolder("files")
+        cacheDir = tempFolder.newFolder("cache")
+
+        fakeContext = FakeTestContext(filesDir, cacheDir)
+        fakeDao = FakeTranslatorDao()
+
+        repository = TranslatorRepository(fakeContext, fakeDao)
+    }
+
+    @Test
+    fun testExportTranslatorToZipAndImportRoundtrip() = runBlocking {
+        val originalTranslator = CustomTranslator(
+            id = "com.spotify.enhanced_test",
+            meta = TranslatorMetadata(
+                name = "Spotify Enhanced Test",
+                author = "CommunityTester",
+                version = 2,
+                description = "Enhanced Spotify Island with lyrics and quick skip."
+            ),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.spotify.music", "com.spotify.lite"),
+            targetNotificationTypes = listOf("MEDIA"),
+            priority = 250,
+            isEnabled = true,
+            conditions = TranslatorConditions(
+                titleRegex = ".*",
+                textRegex = ".*",
+                category = "transport",
+                typeSpecificConditions = TypeSpecificConditions(
+                    media = MediaConditions(
+                        artistRegex = "(?i)Daft Punk",
+                        isPlaying = true
+                    )
+                )
+            ),
+            engineMode = EngineMode.CUSTOM_ISLAND,
+            behaviorOverride = BehaviorOverride(
+                engineMode = EngineMode.CUSTOM_ISLAND,
+                isFloat = true,
+                floatTimeoutSeconds = 6
+            ),
+            presentation = PresentationConfig(
+                progressSlot = ProgressSlotConfig(
+                    type = ProgressSlotType.PROGRESS_BAR,
+                    showPercentage = true
+                ),
+                actionSlots = listOf(
+                    ActionSlotConfig(
+                        slotPosition = 0,
+                        isVisible = true,
+                        source = ActionSource.NOTIFICATION_ACTION,
+                        actionMatcher = ActionMatcher(matchBy = ActionMatchBy.INDEX, actionIndex = 0),
+                        displayMode = ActionDisplayMode.ICON_ONLY
+                    ),
+                    ActionSlotConfig(
+                        slotPosition = 1,
+                        isVisible = true,
+                        source = ActionSource.SMART_ACTION,
+                        smartActionType = SmartActionType.OTP_COPY,
+                        displayMode = ActionDisplayMode.ICON_AND_TEXT
+                    )
+                )
+            )
+        )
+
+        // 1. Export to Zip OutputStream
+        val zipBaos = ByteArrayOutputStream()
+        val exportResult = repository.exportTranslatorToZip(originalTranslator, zipBaos)
+        assertTrue("Export should succeed", exportResult.isSuccess)
+        val zipBytes = zipBaos.toByteArray()
+        assertTrue("Zip bytes should not be empty", zipBytes.isNotEmpty())
+
+        // 2. Import from Zip Stream
+        val importStream = ByteArrayInputStream(zipBytes)
+        val importResult = repository.importTranslatorFromStream(importStream)
+        assertTrue("Import should succeed", importResult.isSuccess)
+
+        val imported = importResult.getOrThrow()
+        assertEquals(originalTranslator.id, imported.id)
+        assertEquals(originalTranslator.meta.name, imported.meta.name)
+        assertEquals(originalTranslator.meta.author, imported.meta.author)
+        assertEquals(originalTranslator.targetScope, imported.targetScope)
+        assertEquals(originalTranslator.targetPackages, imported.targetPackages)
+        assertEquals(originalTranslator.priority, imported.priority)
+        assertEquals(originalTranslator.presentation.actionSlots.size, imported.presentation.actionSlots.size)
+        assertEquals(SmartActionType.OTP_COPY, imported.presentation.actionSlots[1].smartActionType)
+
+        // 3. Verify entity inserted to DAO
+        assertEquals(1, fakeDao.insertedTranslators.size)
+        val inserted = fakeDao.insertedTranslators[0]
+        assertEquals(originalTranslator.id, inserted.id)
+        assertEquals(originalTranslator.meta.name, inserted.name)
+    }
+
+    @Test
+    fun testZipSlipSecurityRejection() = runBlocking {
+        // Construct malicious zip with directory traversal entry
+        val maliciousBaos = ByteArrayOutputStream()
+        ZipOutputStream(maliciousBaos).use { zos ->
+            zos.putNextEntry(ZipEntry("../../evil_file.txt"))
+            zos.write("malicious payload".toByteArray(Charsets.UTF_8))
+            zos.closeEntry()
+        }
+
+        val stream = ByteArrayInputStream(maliciousBaos.toByteArray())
+        val result = repository.importTranslatorFromStream(stream)
+        assertTrue("ZipSlip should be rejected and fail", result.isFailure)
+        val ex = result.exceptionOrNull()
+        assertNotNull(ex)
+        assertTrue("Exception should indicate security failure", ex is SecurityException || ex?.message?.contains("Invalid zip") == true)
+    }
+
+    @Test
+    fun testFallbackPlainJsonStreamImport() = runBlocking {
+        val translator = CustomTranslator(
+            id = "simple.json.rule",
+            meta = TranslatorMetadata(name = "Direct JSON Rule"),
+            targetScope = TargetScope.GLOBAL,
+            priority = 100
+        )
+        val jsonString = CustomTranslator.toJson(translator)
+        val stream = ByteArrayInputStream(jsonString.toByteArray(Charsets.UTF_8))
+
+        val result = repository.importTranslatorFromStream(stream)
+        assertTrue("Importing plain JSON should succeed", result.isSuccess)
+        assertEquals("simple.json.rule", result.getOrThrow().id)
+        assertEquals(1, fakeDao.insertedTranslators.size)
+        assertEquals("simple.json.rule", fakeDao.insertedTranslators[0].id)
+    }
+
+    @Test
+    fun testExportTranslatorToFile() = runBlocking {
+        val translator = CustomTranslator(
+            id = "file.export.rule",
+            meta = TranslatorMetadata(name = "File Export Test"),
+            targetScope = TargetScope.GLOBAL
+        )
+
+        val result = repository.exportTranslatorToFile(translator)
+        assertTrue("File export should succeed", result.isSuccess)
+        val file = result.getOrThrow()
+        assertTrue("Exported file should exist", file.exists())
+        assertEquals("File_Export_Test.htrans", file.name)
+        assertTrue("File size should be greater than 0", file.length() > 0)
+    }
+
+    @Test
+    fun testExportAndImportWithIcons() = runBlocking {
+        val translatorId = "icon.translator.test"
+        val translator = CustomTranslator(
+            id = translatorId,
+            meta = TranslatorMetadata(name = "Icon Test Translator"),
+            targetScope = TargetScope.GLOBAL
+        )
+
+        // 1. Create a dummy icon file in translator storage directory
+        val iconStorageDir = File(filesDir, "translators/$translatorId/icons")
+        iconStorageDir.mkdirs()
+        val customIcon = File(iconStorageDir, "action_icon.png")
+        customIcon.writeBytes(byteArrayOf(1, 2, 3, 4, 5))
+
+        // 2. Export to zip
+        val zipBaos = ByteArrayOutputStream()
+        val exportResult = repository.exportTranslatorToZip(translator, zipBaos)
+        assertTrue(exportResult.isSuccess)
+
+        // 3. Clear storage to verify re-extraction
+        iconStorageDir.deleteRecursively()
+
+        // 4. Import from zip
+        val importStream = ByteArrayInputStream(zipBaos.toByteArray())
+        val importResult = repository.importTranslatorFromStream(importStream)
+        assertTrue(importResult.isSuccess)
+
+        // 5. Verify icon file was extracted back to storage
+        val reExtractedIcon = File(filesDir, "translators/$translatorId/icons/action_icon.png")
+        assertTrue("Icon file should be re-extracted", reExtractedIcon.exists())
+        assertEquals(5, reExtractedIcon.length())
+    }
+
+    @Test
+    fun testThemeBundledTranslatorsExtraction() = runBlocking {
+        val bundledTranslator1 = CustomTranslator(
+            id = "bundled.rule.1",
+            meta = TranslatorMetadata(name = "Bundled Rule 1"),
+            targetScope = TargetScope.GLOBAL
+        )
+        val bundledTranslator2 = CustomTranslator(
+            id = "bundled.rule.2",
+            meta = TranslatorMetadata(name = "Bundled Rule 2"),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.whatsapp")
+        )
+
+        // Simulate a theme directory with a translators/ folder
+        val themeTempDir = tempFolder.newFolder("theme_temp")
+        val translatorsDir = File(themeTempDir, "translators")
+        translatorsDir.mkdirs()
+
+        // Export bundledTranslator1 as .htrans
+        val trans1File = File(translatorsDir, "trans1.htrans")
+        trans1File.outputStream().use {
+            repository.exportTranslatorToZip(bundledTranslator1, it)
+        }
+
+        // Write bundledTranslator2 as plain .json
+        val trans2File = File(translatorsDir, "trans2.json")
+        trans2File.writeText(CustomTranslator.toJson(bundledTranslator2))
+
+        // Run extraction loop
+        translatorsDir.walkTopDown().filter { it.isFile }.forEach { file ->
+            if (file.extension.equals("htrans", ignoreCase = true) || file.extension.equals("json", ignoreCase = true)) {
+                file.inputStream().use { stream ->
+                    val result = repository.importTranslatorFromStream(stream)
+                    assertTrue("Bundled translator ${file.name} should import", result.isSuccess)
+                }
+            }
+        }
+
+        assertEquals(2, fakeDao.insertedTranslators.size)
+        val ids = fakeDao.insertedTranslators.map { it.id }.toSet()
+        assertTrue(ids.contains("bundled.rule.1"))
+        assertTrue(ids.contains("bundled.rule.2"))
+    }
+
+    @Test
+    fun testExportAndImportHwidgetPackageWithConfiguredTranslator() = runBlocking {
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+        val widgetDoc = CustomWidgetDocument(
+            id = "custom_test_widget",
+            meta = CustomWidgetMetadata(name = "Custom Island Design"),
+            root = LayoutContainer(
+                id = "root",
+                children = listOf(TextNode(id = "title", template = "{notif.title}"))
+            )
+        )
+        widgetRepo.saveWidget(widgetDoc)
+
+        val configuredTranslator = CustomTranslator(
+            id = "trans_custom_test",
+            meta = TranslatorMetadata(name = "Custom Island Design"),
+            targetScope = TargetScope.SPECIFIC_APPS,
+            targetPackages = listOf("com.whatsapp"),
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = "custom_test_widget"
+            )
+        )
+        widgetRepo.saveTranslatorForWidget("custom_test_widget", configuredTranslator)
+
+        val exportedFile = widgetRepo.exportWidget("custom_test_widget", configuredTranslator)
+        assertNotNull(exportedFile)
+        assertTrue(exportedFile!!.exists())
+
+        // In a fresh context/repository (simulating importing on another device or design screen)
+        val freshFilesDir = tempFolder.newFolder("fresh_files")
+        val freshCacheDir = tempFolder.newFolder("fresh_cache")
+        val freshContext = FakeTestContext(freshFilesDir, freshCacheDir)
+        val freshDao = FakeTranslatorDao()
+        val freshTransRepo = TranslatorRepository(freshContext, freshDao)
+        val freshWidgetRepo = CustomWidgetRepository(freshContext, freshDao)
+
+        val importResult = exportedFile.inputStream().use {
+            freshTransRepo.importTranslatorFromStream(it)
+        }
+
+        assertTrue("Importing .hwidget with configured translator should succeed", importResult.isSuccess)
+        val imported = importResult.getOrNull()
+        assertNotNull(imported)
+        assertEquals("Custom Island Design", imported!!.meta.name)
+        assertEquals(TargetScope.SPECIFIC_APPS, imported.targetScope)
+        assertEquals(listOf("com.whatsapp"), imported.targetPackages)
+        assertEquals(PresentationMode.WIDGET, imported.presentation.mode)
+        assertEquals("custom_test_widget", imported.presentation.widgetId)
+
+        // Verify widget document was installed and loads cleanly
+        val loadedDoc = freshWidgetRepo.getWidget("custom_test_widget")
+        assertNotNull("Widget document should be installed in custom_widgets/", loadedDoc)
+        assertEquals("custom_test_widget", loadedDoc!!.id)
+
+        // Verify translator was also persisted with widget and in DAO
+        val loadedTrans = freshWidgetRepo.getTranslatorForWidget("custom_test_widget")
+        assertNotNull("Translator should be persisted in widget folder", loadedTrans)
+        assertEquals(1, freshDao.insertedTranslators.size)
+        assertEquals("custom_test_widget", freshDao.insertedTranslators.first().toCustomTranslator().getOrNull()?.presentation?.widgetId)
+    }
+
+    @Test
+    fun testImportHwidgetWithoutTranslatorGeneratesDefaultTranslatorAndInstallsWidget() = runBlocking {
+        // Create a raw .hwidget zip containing ONLY widget.json
+        val widgetDoc = CustomWidgetDocument(
+            id = "bare_widget",
+            meta = CustomWidgetMetadata(name = "Bare Widget Design"),
+            root = LayoutContainer(id = "root", children = emptyList())
+        )
+        val json = kotlinx.serialization.json.Json { prettyPrint = true }
+        val zipBytes = ByteArrayOutputStream().use { bos ->
+            ZipOutputStream(bos).use { zos ->
+                zos.putNextEntry(ZipEntry("widget.json"))
+                zos.write(json.encodeToString(CustomWidgetDocument.serializer(), widgetDoc).toByteArray())
+                zos.closeEntry()
+            }
+            bos.toByteArray()
+        }
+
+        val importResult = repository.importTranslatorFromStream(ByteArrayInputStream(zipBytes))
+        assertTrue("Importing bare widget should succeed and create default translator", importResult.isSuccess)
+        val imported = importResult.getOrNull()
+        assertNotNull(imported)
+        assertEquals("Bare Widget Design", imported!!.meta.name)
+        assertEquals(PresentationMode.WIDGET, imported.presentation.mode)
+        assertEquals("bare_widget", imported.presentation.widgetId)
+
+        // Verify widget was saved
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+        val loadedDoc = widgetRepo.getWidget("bare_widget")
+        assertNotNull("Widget document should be installed", loadedDoc)
+    }
+
+    @Test
+    fun testDuplicateWidgetDecouplesWidgetIdAndTranslator() = runBlocking {
+        val widgetRepo = CustomWidgetRepository(fakeContext, fakeDao)
+
+        // 1. Setup original widget and translator
+        val originalWidgetId = "orig_widget_123"
+        val originalDoc = CustomWidgetDocument(
+            id = originalWidgetId,
+            meta = CustomWidgetMetadata(name = "Original Design"),
+            root = LayoutContainer(id = "root", children = listOf(TextNode(id = "text_1", template = "Original Text")))
+        )
+        val originalTranslatorId = "orig_trans_123"
+        val originalTranslator = CustomTranslator(
+            id = originalTranslatorId,
+            meta = TranslatorMetadata(name = "Original Design"),
+            priority = 100,
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = originalWidgetId
+            )
+        )
+
+        widgetRepo.saveWidget(originalDoc, originalTranslator)
+        fakeDao.insertTranslator(TranslatorEntity.fromCustomTranslator(originalTranslator))
+
+        // Create a dummy asset file in the original widget's folder
+        val assetDir = File(File(fakeContext.filesDir, "custom_widgets/$originalWidgetId"), "assets")
+        assetDir.mkdirs()
+        File(assetDir, "test_icon.png").writeText("fake image bytes")
+
+        // 2. Duplicate the widget
+        val newTranslatorId = "copy_trans_456"
+        val duplicationResult = widgetRepo.duplicateWidget(
+            sourceWidgetId = originalWidgetId,
+            newName = "Original Design (Copy)",
+            sourceTranslator = originalTranslator,
+            newTranslatorId = newTranslatorId
+        )
+
+        assertNotNull("Duplication should succeed", duplicationResult)
+        val (duplicatedDoc, duplicatedTranslator) = duplicationResult!!
+
+        // Assert widget IDs are distinct
+        assertTrue("Duplicated widgetId must not equal original", duplicatedDoc.id != originalWidgetId)
+        assertEquals("Original Design (Copy)", duplicatedDoc.meta.name)
+
+        // Assert translator IDs and bound widgetIds are distinct
+        assertEquals(newTranslatorId, duplicatedTranslator.id)
+        assertEquals("Original Design (Copy)", duplicatedTranslator.meta.name)
+        assertEquals(duplicatedDoc.id, duplicatedTranslator.presentation.widgetId)
+        assertEquals(99, duplicatedTranslator.priority) // priority was decremented by 1
+
+        // Verify the asset was copied to the new widget's folder
+        val duplicatedAsset = File(File(fakeContext.filesDir, "custom_widgets/${duplicatedDoc.id}"), "assets/test_icon.png")
+        assertTrue("Assets should be copied to duplicate widget folder", duplicatedAsset.exists())
+        assertEquals("fake image bytes", duplicatedAsset.readText())
+
+        // 3. Edit the original widget document and verify the duplicated widget remains unaffected
+        val modifiedOriginalDoc = originalDoc.copy(
+            meta = originalDoc.meta.copy(name = "Modified Original"),
+            root = LayoutContainer(id = "root", children = listOf(TextNode(id = "text_1", template = "Changed Text")))
+        )
+        widgetRepo.saveWidget(modifiedOriginalDoc)
+
+        val retrievedOriginal = widgetRepo.getWidget(originalWidgetId)
+        val retrievedDuplicate = widgetRepo.getWidget(duplicatedDoc.id)
+
+        assertNotNull(retrievedOriginal)
+        assertNotNull(retrievedDuplicate)
+        assertEquals("Modified Original", retrievedOriginal!!.meta.name)
+        assertEquals("Original Design (Copy)", retrievedDuplicate!!.meta.name)
+        val dupRoot = retrievedDuplicate.root
+        assertEquals("Original Text", (dupRoot.children.first() as TextNode).template)
+
+        // 4. Edit the duplicated widget document and verify the original remains unaffected
+        val modifiedDuplicateDoc = duplicatedDoc.copy(
+            meta = duplicatedDoc.meta.copy(name = "Edited Duplicate Design")
+        )
+        widgetRepo.saveWidget(modifiedDuplicateDoc)
+
+        val reloadedOriginal = widgetRepo.getWidget(originalWidgetId)
+        val reloadedDuplicate = widgetRepo.getWidget(duplicatedDoc.id)
+
+        assertEquals("Modified Original", reloadedOriginal!!.meta.name)
+        assertEquals("Edited Duplicate Design", reloadedDuplicate!!.meta.name)
+    }
+
+    @Test
+    fun testExportDesignOnlyToFileHasHwidgetExtension(): Unit = runBlocking {
+        val translator = CustomTranslator(
+            id = "design.export.rule",
+            meta = TranslatorMetadata(name = "Design Only Export"),
+            targetScope = TargetScope.GLOBAL
+        )
+
+        val result = repository.exportTranslatorToFile(translator, includeTranslator = false)
+        assertTrue("Export should succeed", result.isSuccess)
+        val file = result.getOrThrow()
+        assertTrue("Exported file should exist", file.exists())
+        assertEquals("Design_Only_Export.hwidget", file.name)
+        assertTrue("File size should be greater than 0", file.length() > 0)
+    }
+
+    @Test
+    fun testExportDesignOnlyExcludesTranslatorJsonForCustomWidget(): Unit = runBlocking {
+        val widgetId = "widget_only_export_test"
+        val widgetDir = File(filesDir, "custom_widgets/$widgetId")
+        widgetDir.mkdirs()
+        File(widgetDir, "widget.json").writeText("{\"id\":\"$widgetId\",\"version\":1}")
+
+        val translator = CustomTranslator(
+            id = "trans_bound_to_widget",
+            meta = TranslatorMetadata(name = "Custom Widget Design"),
+            targetScope = TargetScope.GLOBAL,
+            presentation = PresentationConfig(
+                mode = PresentationMode.WIDGET,
+                widgetId = widgetId
+            )
+        )
+
+        val zipBaos = ByteArrayOutputStream()
+        val exportResult = repository.exportTranslatorToZip(translator, zipBaos, includeTranslator = false)
+        assertTrue("Export to ZIP should succeed", exportResult.isSuccess)
+
+        // Read entries from the resulting ZIP
+        val zipBytes = zipBaos.toByteArray()
+        val entryNames = mutableListOf<String>()
+        ZipInputStream(ByteArrayInputStream(zipBytes)).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                entryNames.add(entry.name)
+                entry = zis.nextEntry
+            }
+        }
+
+        assertTrue("ZIP must contain widget.json", entryNames.contains("widget.json"))
+        assertFalse("ZIP must NOT contain translator.json when includeTranslator is false", entryNames.contains("translator.json"))
+    }
+
+    @Test
+    fun testExportAndImportPlaceholdersOptInRoundTrip(): Unit = runBlocking {
+        val placeholderRepo = PreviewPlaceholderRepository(fakeContext)
+        val translator = CustomTranslator(
+            id = "placeholder_share_test",
+            meta = TranslatorMetadata(name = "Showcase Translator"),
+            targetScope = TargetScope.GLOBAL
+        )
+
+        val savedConfig = PreviewPlaceholderConfig(
+            isCustomized = true,
+            notifTitle = "Bundled Showcase Title",
+            mediaTrack = "Bundled Track",
+            mediaArtist = "Bundled Artist"
+        )
+        placeholderRepo.saveConfig(translator.id, savedConfig)
+
+        // 1. Export WITHOUT placeholders (default)
+        val zipWithoutBaos = ByteArrayOutputStream()
+        assertTrue(
+            repository.exportTranslatorToZip(
+                translator = translator,
+                outputStream = zipWithoutBaos,
+                includeTranslator = true,
+                includePlaceholders = false
+            ).isSuccess
+        )
+        val entriesWithout = mutableListOf<String>()
+        ZipInputStream(ByteArrayInputStream(zipWithoutBaos.toByteArray())).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                entriesWithout.add(entry.name)
+                entry = zis.nextEntry
+            }
+        }
+        assertFalse(
+            "Default export must NOT bundle preview_placeholders/",
+            entriesWithout.any { it.startsWith("preview_placeholders/") }
+        )
+
+        // 2. Export WITH placeholders (opt-in)
+        val zipWithBaos = ByteArrayOutputStream()
+        assertTrue(
+            repository.exportTranslatorToZip(
+                translator = translator,
+                outputStream = zipWithBaos,
+                includeTranslator = true,
+                includePlaceholders = true
+            ).isSuccess
+        )
+        val entriesWith = mutableListOf<String>()
+        ZipInputStream(ByteArrayInputStream(zipWithBaos.toByteArray())).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                entriesWith.add(entry.name)
+                entry = zis.nextEntry
+            }
+        }
+        assertTrue(
+            "Opt-in export must bundle preview_placeholders/placeholders.json",
+            entriesWith.contains("preview_placeholders/placeholders.json")
+        )
+
+        // 3. Clear local placeholders, import the ZIP, and verify sidecar extraction
+        placeholderRepo.clearPlaceholders(translator.id)
+        assertEquals(null, placeholderRepo.loadConfig(translator.id))
+
+        val importedResult = repository.importTranslatorFromStream(ByteArrayInputStream(zipWithBaos.toByteArray()))
+        assertTrue("Import from bundled ZIP should succeed", importedResult.isSuccess)
+        val importedTranslator = importedResult.getOrThrow()
+
+        val extractedConfig = placeholderRepo.loadConfig(importedTranslator.id)
+        assertNotNull("Bundled placeholders should be extracted on import", extractedConfig)
+        assertEquals("Bundled Showcase Title", extractedConfig!!.notifTitle)
+        assertEquals("Bundled Track", extractedConfig.mediaTrack)
+        assertEquals("Bundled Artist", extractedConfig.mediaArtist)
+    }
+}
+

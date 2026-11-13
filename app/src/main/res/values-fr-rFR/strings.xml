@@ -14,19 +14,19 @@
     <string name="welcome_subtitle">Intégrez parfaitement HyperIsland à votre expérience HyperOS.</string>
     <string name="get_started">Démarrer</string>
     <string name="how_it_works">Comment cela fonctionne</string>
-    <string name="how_it_works_desc">Choisissez vos applications favorites (Spotify, Maps, Horloge), HyperBridge transforme leurs notifications en bulle HyperIsland.</string>
-    <string name="beta_warning">Note : Cette version est une bêta. Vous pourriez rencontrer des bugs ou des problèmes d\'affichage.</string>
+    <string name="how_it_works_desc">Transforms your favorite apps\' notifications into interactive HyperOS islands.</string>
+    <string name="beta_warning">Beta release. You may encounter occasional bugs or visual issues.</string>
     <string name="device_compatible">Appareil compatible</string>
     <string name="unsupported_device">Appareil non supporté</string>
-    <string name="compatible_msg">Votre appareil semble exécuter HyperOS/MIUI. Vous êtes prêt !</string>
+    <string name="compatible_msg">HyperOS/MIUI detected. Device is supported.</string>
     <string name="show_island">Affichage des notifications</string>
-    <string name="perm_post_desc">Nous avons besoin de la permission pour publier les notifications \"HyperIsland\" sur votre écran.</string>
+    <string name="perm_post_desc">Required to display Island notifications on your screen.</string>
     <string name="perm_granted">Permission accordée</string>
     <string name="allow_notifications">Autoriser les notifications</string>
     <string name="read_data">Lire les données</string>
-    <string name="perm_listener_desc">Pour connecter vos applications, nous devons lire leurs notifications (Musique, Maps, Horloge).</string>
+    <string name="perm_listener_desc">Required to read notification events from bridged apps.</string>
     <string name="open_settings">Ouvrir les paramètres</string>
-    <string name="optimization_desc">HyperOS tue les applications en arrière-plan. Activez le démarrage automatique et sans restrictions pour garder l\'application active.</string>
+    <string name="optimization_desc">Enable Autostart and set Battery Saver to No Restrictions.</string>
     <string name="enable_autostart">Activer le démarrage automatique en arrière-plan</string>
     <string name="set_battery_no_restrictions">Définir le mode de batterie sur \'Pas de restriction\'</string>
     <string name="tab_active">Actif</string>
@@ -36,16 +36,17 @@
     <string name="no_active_bridges_desc">Allez dans la bibliothèque pour activer les applications.</string>
     <string name="no_apps_found">Aucune application trouvée</string>
     <string name="version_template">Version %s</string>
-    <string name="developer_credit">par D4vidDf</string>
     <string name="group_configuration">Configuration</string>
     <string name="system_setup">Configuration du système</string>
     <string name="system_setup_subtitle">Corriger les permissions &amp; batterie</string>
     <!-- Permanent Island -->
     <string name="permanent_island_title">Notification permanente</string>
-    <string name="permanent_island_desc">Gardez la zone de notification visible en permanence à l\'écran lorsqu\'il n\'y a pas de notification active.</string>
-    <string name="permanent_island_screen_desc">Lorsque cette option est activée, une zone de notification vide sera affichée de façon permanente sur votre écran. Elle se masquera automatiquement lorsque des notifications réelles arriveront et réapparaîtra lorsque toutes les notifications seront effacées. Elle ne sera pas visibles dans votre zone de notification.</string>
+    <string name="permanent_island_desc">Show a persistent capsule when no notifications are active.</string>
+    <string name="permanent_island_screen_desc">Shows an empty Dynamic Island capsule permanently when no active notifications are present.</string>
     <string name="permanent_island_width">Largeur de la zone</string>
+    <string name="permanent_island_hide_landscape">Masquer en mode paysage</string>
     <string name="group_about">A propos</string>
+    <string name="special_thanks">Remerciements particuliers</string>
     <string name="developer">Développeur</string>
     <string name="developer_subtitle">Visiter d4viddf.com</string>
     <string name="source_code">Code source</string>
@@ -53,7 +54,6 @@
     <string name="licenses">Licences Open Source</string>
     <string name="licenses_subtitle">Logiciel tiers</string>
     <string name="footer_made_with_love">Fabriqué avec ❤️ en Espagne</string>
-    <string name="app_health_desc">Assurez-vous que toutes les vérifications soient en vert pour que l\'application fonctionne correctement en arrière-plan.</string>
     <string name="req_permissions">Autorisations Requises</string>
     <string name="notif_access">Accès aux notifications</string>
     <string name="notif_access_desc">Requis pour lire les événements des applications</string>
@@ -63,12 +63,12 @@
     <string name="battery_desc">Empêcher le système de tuer l\'application</string>
     <string name="recents_note">Note : Verrouille également l\'application dans le menu \'Récents\'.</string>
     <string name="status_active">Actif</string>
-    <string name="cat_all">Toutes</string>
     <string name="cat_music">Musique</string>
     <string name="cat_nav">Navigation</string>
     <string name="cat_timer">Productivité</string>
     <string name="cat_other">Autre</string>
     <string name="type_standard">Messages &amp; Général</string>
+    <string name="type_message">Messages &amp; Chats</string>
     <string name="type_progress">Avancements &amp; Tâches</string>
     <string name="type_download">Téléchargements</string>
     <string name="type_media">Musique &amp; Média</string>
@@ -104,12 +104,15 @@
     <string name="priority_order_desc">La priorité élevée (haut) remplace la priorité basse (bas).</string>
     <string name="configure_order">Configurer l\'ordre des applications</string>
     <string name="global_settings">Paramètres généraux</string>
+    <string name="global_settings_desc">Behavior, motor, inline reply, and smart actions</string>
     <string name="island_appearance">Apparence des bulles de notifications</string>
     <string name="setting_float">Popup de notification flottante</string>
     <string name="setting_float_desc">Afficher brièvement la bannière de notification complète avant de minimiser la bulle.</string>
     <string name="setting_float_timeout_desc">Pendant combien de temps la fenêtre flottante reste visible.</string>
+    <string name="setting_float_only_on_first">Pop-up only on initial alert</string>
+    <string name="setting_float_only_on_first_desc">Show heads-up popup only on the first alert and prevent repeated pop-ups on background updates or progress changes.</string>
     <string name="setting_shade">Panneau des notifications</string>
-    <string name="setting_shade_desc">Garder la notification visible dans le panneau de notification. Si désactivé, elle n\'apparaît que dans une bulle.</string>
+    <string name="setting_shade_desc">Keep notification visible in the notification shade alongside the island.</string>
     <string name="seconds_suffix">%ds</string>
     <string name="use_global_default">Utiliser les valeurs par défaut</string>
     <string-array name="nav_arrival_keywords">
@@ -121,22 +124,9 @@
     </string-array>
     <string name="version_history">Historique des versions</string>
     <string name="title_0_2_0">La version de l\'information</string>
-    <string name="changelog_0_2_0">        • &lt;b&gt;Progression avancée:&lt;/b&gt; Ajout d\'étapes de progressions (par ex. 1 sur 3) et de barres de progression avec icônes dans la bulle de notification.\n
-        • &lt;b&gt;Système de priorité :&lt;/b&gt; Nouveaux paramètres « Comportement des bulles de notification. Choisissez entre \"Les plus récents\", \"Premier arrivé\" ou une liste personnalisée \"Priorité des applications\".\n
-        • &lt;b&gt; Filtrage intelligent :&lt;/b&gt; Détection améliorée des notifications en double et des téléchargements groupés.\n
-        • &lt;b&gt;Améliorations visuelles :&lt;/b&gt; Correction de problèmes de mise en page avec les instructions de navigation.\n
-        • &lt;b&gt;Configuration par application :&lt;/b&gt; Personnalisez le comportement du délai d\'attente et du flottement par application.
-    </string>
     <string name="title_0_1_0">La version expressive</string>
-    <string name="changelog_0_1_0">        • &lt;b&gt;Révision majeure de l\'interface utilisateur :&lt;/b&gt; Nouveau design \"Material 3 expressive\" avec des animations plus fluides.\n
-        • &lt;b&gt; Meilleure bulle:&lt;/b&gt; Le texte apparaît maintenant sur le côté droit. Ajout d\'une coche verte pour les téléchargements terminés.\n
-        • &lt;b&gt;Configuration par application :&lt;/b&gt; Sélectionnez les types de notifications spécifiques (Musique, Plans, Appels) par application.\n
-        • &lt;b&gt;Filtres intelligents :&lt;/b&gt; Bloque les notifications en double et économise la batterie.\n
-        • &lt;b&gt;Nouvelle bibliothèque :&lt;/b&gt; Filtrer les applications par catégorie et ordre de tri.\n
-        • &lt;b&gt;Localisation :&lt;/b&gt; Ajout de la langue espagnole
-    </string>
     <string name="priority_edu_title">Nouveau : Contrôler la bulle de notification</string>
-    <string name="priority_edu_desc">Choisissez comment l\'île devrait se comporter lorsque plusieurs notifications sont actives en même temps.</string>
+    <string name="priority_edu_desc">Set island behavior when multiple notifications arrive simultaneously.</string>
     <string name="badge_new">NOUVEAU</string>
     <string name="nav_layout_title">Disposition de la navigation</string>
     <string name="nav_layout_desc">Choisir où les informations apparaissent</string>
@@ -151,15 +141,12 @@
     <string name="cd_enable_type">Activer les %s notifications</string>
     <string name="cd_disable_type">Désactiver les %s notifications</string>
     <string name="cd_nav_edit">Modifier la disposition de navigation</string>
-    <string name="cd_app_state_active">Actif</string>
     <string name="cd_app_state_inactive">Inactif</string>
     <string name="cd_move_up">Déplacer l\'élément vers le haut</string>
     <string name="cd_move_down">Déplacer l\'élément vers le bas</string>
     <string name="cd_drag_handle">Glissez l\'interrupteur. Double-appui et maintien pour réorganiser, ou utilisez les actions pour déplacer.</string>
     <string name="cd_app_icon">Icône d\'application pour %s</string>
     <string name="cd_nav_preview">Aperçu de la navigation : %1$s à gauche, %2$s à droite</string>
-    <string name="cd_expand_changelog">Développer les détails de la version</string>
-    <string name="cd_collapse_changelog">Réduire les détails de la version</string>
     <string name="nav_preview_instruction">Tournez à droite</string>
     <string name="nav_preview_distance">200m</string>
     <string name="nav_preview_time">10:30</string>
@@ -177,23 +164,38 @@
     <string name="app_specific_rules">Règles spécifiques à l\'application</string>
     <string name="manage_app_rules_desc">Personnaliser les filtres pour certaines applications</string>
     <string name="blocked_terms_count">%d termes bloqués</string>
+    <string name="discount_keywords_title">Discount keywords</string>
+    <string name="discount_keywords_desc">Words that mean a percentage is a discount, not progress</string>
+    <string name="discount_keywords_editor_desc">A percentage next to one of these words (e.g. \"Clearance 30 %\") won\'t show a progress bar. Built-in words like sale, off, discount or promo already apply; add your own here.</string>
+    <string name="add_discount_keyword">Add word (e.g. Clearance)</string>
     <string name="no_active_rules">Aucune règle active</string>
     <string name="setup_health_title">Compatibilité du système</string>
     <string name="req_hyperos">Nécessite HyperOS 3.0+ (Android 15+)</string>
     <string name="req_xiaomi">Appareil Xiaomi/Redmi/Poco requis</string>
     <string name="warning_cn_rom_title">Rom chinoise détectée</string>
-    <string name="warning_cn_rom_desc">Votre appareil semble exécuter un firmware chinois. Xiaomi modifie considérablement le système de notification interne sur les ROMs CN. Les fonctionnalités peuvent être instables ou ne pas fonctionner du tout.</string>
+    <string name="warning_cn_rom_desc">Chinese firmware detected. Notification handling differs significantly and may be unstable.</string>
     <string name="shizuku_workaround_title">Activer la solution Shizuku</string>
     <string name="shizuku_enable_workaround">Activer le contournement</string>
-    <string name="shizuku_workaround_desc">Si vous êtes sur une ROM CN, vous devez activer la fonction Shizuku pour que les notifications soient activées correctement.</string>
+    <string name="shizuku_workaround_desc">Required on CN ROMs for notifications to bridge reliably.</string>
     <string name="shizuku_status_running">Shizuku en cours d\'exécution</string>
-    <string name="shizuku_permission_granted">Permission accordée</string>
     <string name="shizuku_permission_denied">Permission refusée</string>
     <string name="shizuku_request_permission">Accorder la permission à Shizuku</string>
     <string name="shizuku_not_installed">L\'application Shizuku n\'est pas installée ou en cours d\'exécution. Veuillez installer et démarrer Shizuku en premier.</string>
     <string name="system_version">Version système</string>
     <string name="call_incoming">Appel entrant</string>
     <string name="call_ongoing">Appel en cours</string>
+    <string name="call_calling">Appel…</string>
+    <string name="call_ringing">Sonnerie…</string>
+    <string name="call_connecting">Connexion…</string>
+    <string name="call_ended">Appel terminé</string>
+    <string name="call_stage_settings">Étapes d\'appel</string>
+    <string name="call_stage_settings_desc">Choisir quelles parties d\'un appel vocal peuvent afficher une île</string>
+    <string name="call_stage_incoming">Appels entrants</string>
+    <string name="call_stage_incoming_desc">Appels qui sonnent et en attente de réponse</string>
+    <string name="call_stage_outgoing">Appels sortants</string>
+    <string name="call_stage_outgoing_desc">Appeler, sonner et se connecter avant de répondre à l\'appel</string>
+    <string name="call_stage_active">Appels actifs</string>
+    <string name="call_stage_active_desc">Appels connectés avec un affichage de temps écoulé</string>
     <string-array name="call_keywords_hangup">
         <item>prendre</item>
         <item>fin</item>
@@ -204,33 +206,23 @@
         <item>répondre</item>
         <item>accepter</item>
     </string-array>
+    <string-array name="call_keywords_mute">
+        <item>muet</item>
+        <item>micro désactivé</item>
+        <item>microphone désactivé</item>
+    </string-array>
+    <string-array name="call_keywords_unmute">
+        <item>rétablir le son</item>
+        <item>micro désactivé</item>
+        <item>microphone activé</item>
+    </string-array>
     <string-array name="call_keywords_speaker">
         <item>appelant</item>
         <item>audio</item>
     </string-array>
     <string name="title_0_3_0">La version \"Globale\"</string>
-    <string name="changelog_0_3_0">        <b>Notification masquée 👻</b>\n
-        Nouvelle option pour masquer les notifications du panneau système tout en gardant les bulles active. Vérifiez les paramètres généraux!\n\n
-        <b>Nouvelles langues 🌍</b>\n
-        Un merci spécial à notre communauté pour ces traductions :\n
-        • 🇧🇷 portugais (Brésil)\n
-        • 🇵🇱 polonais\n
-        • 🇰🇷 coréen\n\n
-        • 🇺🇦 ukrainien\n\n
-        <b>Personnalisation de la navigation 🧭</b>\n
-        Vous pouvez maintenant choisir les informations qui apparaissent sur les côtés gauche et droit de la bulle de navigation (distance, ETA, instruction).\n\n
-        <b>Protection contre les spoilers 🛡️</b>\n
-        Nouvelle fonctionnalité « termes bloqués ». Définissez des mots globalement ou par application pour empêcher l\'affichage de notifications spécifiques.\n\n
-        <b>Améliorations des appels 📞</b>\n
-        Logique de détection améliorée pour prendre en charge une plus grande gamme d\'applications VoIP et de clavier.\n\n
-        <b>Corrections et &amp; améliorations 🛠️</b>\n
-        • Correction d\'un bug critique qui empêchait le chargement de l\'application après un redémarrage.\n
-        • Correction des notifications affichant parfois les noms bruts des packages (par exemple, \"com.google...\") au lieu du contenu.\n
-        • Feuille de configuration de l\'application repensée pour une meilleure convivialité.\n
-        • Écran de vérification de compatibilité amélioré avec des informations détaillées sur l\'appareil
-    </string>
     <string name="privacy_title">100% hors ligne &amp; sécurisé</string>
-    <string name="privacy_desc">Hyper Bridge traite tout directement via le processeur de votre téléphone.\n\nIl ne nécessite PAS d\'accès à Internet, ce qui signifie que vos notifications et vos données personnelles ne quittent jamais votre appareil.</string>
+    <string name="privacy_desc">Processed entirely on-device without internet access. Your personal data never leaves your device.</string>
     <string name="language">Langue</string>
     <string name="language_desc">Changer la langue de l\'application</string>
     <string name="system_default">Par défaut (Système)</string>
@@ -244,13 +236,19 @@
     <string name="option_blocklist_desc">Votre liste de mot-clés et d\'applications bloquées</string>
     <string name="option_priorities">Règles de Priorité</string>
     <string name="option_priorities_desc">Configurations personnalisées de priorité des notifications</string>
+    <string name="option_translators">Custom Translators</string>
+    <string name="option_translators_desc">Notification translators and custom rules</string>
+    <string name="option_translators_count_suffix">items</string>
+    <string name="option_custom_widgets">Custom Widgets &amp; Designs</string>
+    <string name="option_custom_widgets_desc">Custom micro-widgets, layout designs, and assets</string>
+    <string name="option_custom_widgets_count_suffix">items</string>
     <string name="action_export">Créer une sauvegarde</string>
     <string name="action_import">Restaurer une sauvegarde</string>
     <string name="export_success">Sauvegarde créée avec succès</string>
     <string name="export_failed">Échec de l\'export : %s</string>
     <string name="import_success">Données restaurées avec succès</string>
     <string name="import_failed">Échec de l\'import : %s</string>
-    <string name="autostart_manual_check">Le statut ne peut pas être vérifié automatiquement.\nVeuillez le vérifier manuellement pour vous assurer que le service fonctionne correctement</string>
+    <string name="autostart_manual_check">Please verify Autostart manually in system settings.</string>
     <string name="backup_info_title">Informations de sauvegarde</string>
     <string name="backup_meta_date">Date</string>
     <string name="backup_meta_device">Appareil </string>
@@ -258,28 +256,9 @@
     <string name="backup_meta_keys">Nombre d\'éléments</string>
     <string name="backup_empty_suffix"> (Vide)</string>
     <string name="action_restore_selected">Restaurer les données sélectionnées</string>
-    <string name="optimization_title">Optimisation de l\'appareil</string>
     <string name="privacy_card_title">Approche \"sans connexion\"</string>
     <string name="privacy_card_desc">Aucune connexion internet requise.</string>
     <string name="title_0_3_1">Sauvegarde &amp; langues</string>
-    <string name="changelog_0_3_1">        &lt;b&gt;Sauvegarde &amp; Restauration 📦&lt;/b&gt;\n
-        Nouvelle fonctionnalité utilisateur ! Exportez vos paramètres, listes de blocage et priorités d\'applications en toute sécurité vers un fichier .hbr et restaurez les à tout moment.\n\n
-        &lt;b&gt;Nouvelles Langues 🌍&lt;/b&gt;\n
-        Support Ajouté pour :\n
-        • :Allemagne : Allemand\n
-        • :Russie : Russe\n
-        • 🇺🇦 Ukrainien (Imprové)\n
-        &lt;i&gt;Plus : Un nouveau sélecteur de langue a été intégré pour changer de Langue sans toucher aux paramètres  système.&lt;/i&gt;\n\n\n
-        &lt;b&gt;Mise à jour visuelle 🎨&lt;/b&gt;\n
-        L\'application a été mise à jour avec &lt;b&gt;Material 3 Expressive&lt;/b&gt; . Appréciez des en-têtes plus grands, des formes arrondies et une expérience plus agréable.\n\n
-         &lt;b&gt;Confidentialité &amp; Configuration 🛡️&lt;/b&gt;\n
-        • Amélioration de l\'intégration avec une page consacrée à la protection de la vie privée qui clarifie l\'architecture hors ligne.\n
-        • Des contrôles de compatibilité plus stricts pour assurer la meilleure expérience sur HyperOS 3.0.\n\n\n
-        &lt;b&gt;Corrections 🛠️&lt;/b&gt;\n
-        • Correction d\'un problème critique où les paramètres étaient perdus après le redémarrage de l\'appareil (migré vers la base de données).\n
-        • &lt;Correction du bouton \"Quitter\" sur les bulles de navigation s\'affichant sous la forme d\'une icône au lieu du texte.\n
-        • Correction de l\'icône de chargement dans les paramètres.\n
-    </string>
     <string name="close">Fermer</string>
     <string name="search">Rechercher</string>
     <string name="widget_updated_toast">Widget mis à jour</string>
@@ -321,7 +300,6 @@
     <string name="size_large">Grande (280dp)</string>
     <string name="size_xlarge">Très grande (380dp)</string>
     <string name="app_uninstalled_badge">Non installée</string>
-    <string name="settings_action">Paramètres</string>
     <string name="saved_widgets_title">Widgets sauvegardés</string>
     <string name="no_saved_widgets">Aucun widget enregistré trouvé.</string>
     <string name="widget_id_fmt">Widget #%d</string>
@@ -330,12 +308,32 @@
     <string name="theme_installer_success_title">Thème prêt</string>
     <string name="theme_installer_author">Créé par %s</string>
     <string name="theme_installer_version">Version %d</string>
-    <string name="theme_installer_apply_question">Souhaitez-vous appliquer ce thème à HyperBridge maintenant ?</string>
+    <string name="theme_installer_apply_question">Souhaitez-vous appliquer ce thème à Hyper Bridge maintenant ?</string>
     <string name="theme_installer_action_apply">Appliquer thème</string>
     <string name="theme_installer_action_later">Enregistrer pour plus tard</string>
     <string name="theme_installer_error_title">Échec de l\'importation</string>
     <string name="theme_installer_error_generic">Impossible de vérifier le fichier du thème.</string>
-    <string name="theme_installer_btn_close">Fermer</string>
+    <string name="package_installer_analyzing">Analyzing package...</string>
+    <string name="widget_installer_title">Design Ready</string>
+    <string name="widget_installer_dimensions">%1$d × %2$d dp</string>
+    <string name="widget_installer_linked_translator">Linked: %s</string>
+    <string name="widget_installer_apply_question">Do you want to import this custom design?</string>
+    <string name="widget_installer_action_import">Import Design</string>
+    <string name="widget_installer_success_title">Design Imported</string>
+    <string name="widget_installer_success_message">Custom design \"%s\" was imported successfully.</string>
+    <string name="translator_installer_title">Translator Ready</string>
+    <string name="translator_installer_apply_question">Do you want to import this translator?</string>
+    <string name="translator_installer_action_import">Import Translator</string>
+    <string name="translator_installer_success_title">Translator Imported</string>
+    <string name="translator_installer_success_message">Translator \"%s\" was imported successfully.</string>
+    <string name="backup_installer_title">Backup Ready</string>
+    <string name="backup_installer_apply_question">Do you want to restore this backup?</string>
+    <string name="backup_installer_action_restore">Restore Backup</string>
+    <string name="backup_installer_success_title">Backup Restored</string>
+    <string name="backup_installer_success_message">Settings and data were restored successfully.</string>
+    <string name="package_installer_action_done">Done</string>
+    <string name="package_installer_action_cancel">Cancel</string>
+    <string name="package_installer_unsupported">The selected file is not a supported HyperBridge package.</string>
     <string name="theme_manager_title">Mes thèmes</string>
     <string name="theme_manager_cd_add">Ajouter un nouveau thème</string>
     <string name="theme_card_author_format">par %s</string>
@@ -345,17 +343,12 @@
     <string name="theme_system_default_desc">Style standard</string>
     <string name="theme_sheet_title">Ajouter un nouveau thème</string>
     <string name="theme_sheet_action_create">Créer un nouveau thème</string>
-    <string name="theme_sheet_action_find">Rechercher</string>
-    <string name="theme_action_import_short">Importer</string>
-    <string name="theme_card_action_edit">Modifier</string>
-    <string name="theme_card_action_export">Exporter</string>
     <string name="creator_title_new">Création de thème</string>
     <string name="creator_title_edit">Modification du thème</string>
     <string name="creator_nav_colors">Couleurs</string>
     <string name="creator_nav_icons">Icônes &amp; formes</string>
     <string name="creator_nav_calls">Style des appels</string>
     <string name="creator_nav_apps">Configuration des applications</string>
-    <string name="creator_action_save">Enregistrer</string>
     <string name="creator_btn_edit_info">Modifier les informations du thème</string>
     <string name="creator_sub_colors">Palettes &amp; contraste</string>
     <string name="creator_sub_icons">Formes &amp; remplissage</string>
@@ -364,7 +357,6 @@
     <string name="meta_title">Informations sur le thème</string>
     <string name="meta_label_name">Nom du thème</string>
     <string name="meta_label_author">Nom de l\'auteur</string>
-    <string name="meta_action_done">Terminé</string>
     <string name="colors_tab_presets">Préréglages</string>
     <string name="colors_tab_custom">Personnalisé</string>
     <string name="colors_label_presets">Préréglages</string>
@@ -373,14 +365,12 @@
     <string name="colors_label_custom_title">Couleur personnalisée</string>
     <string name="colors_cd_add_custom">Ajouter une couleur personnalisée</string>
     <string name="colors_dialog_title">Choisissez une couleur</string>
-    <string name="colors_action_done">Fait</string>
     <string name="icons_tab_style">Style</string>
     <string name="icons_tab_assets">Icônes</string>
     <string name="icons_tab_shape">Forme</string>
     <string name="icons_label_size">Taille de l\'icône</string>
     <string name="icons_label_full">Pleine</string>
     <string name="icons_label_minimal">Minimale</string>
-    <string name="icons_group_nav">Navigation</string>
     <string name="icons_btn_start">Début</string>
     <string name="icons_btn_end">Fin</string>
     <string name="icons_group_progress">Avancement</string>
@@ -402,13 +392,7 @@
     <string name="design_hero_community_subtitle">Rejoignez notre GitHub</string>
     <string name="design_section_themes">Thèmes</string>
     <string name="design_section_widgets">Widgets</string>
-    <string name="design_browse_more">Voir plus</string>
-    <string name="design_add_new">Ajouter un nouveau</string>
     <string name="design_add_design">Ajouter un design</string>
-    <string name="design_add_to_island">Personnalisation</string>
-    <string name="design_system_widget_beta">Widget système (Bêta)</string>
-    <string name="design_get_themes">Obtenir des thèmes</string>
-    <string name="design_empty_widget_title">Ajoutez votre premier Widget</string>
     <string name="design">Apparence</string>
     <string name="creator_nav_actions">Actions globales</string>
     <string name="creator_sub_actions">Boutons de style par mot clé</string>
@@ -425,7 +409,7 @@
     <string name="action_default_preview_text">Action</string>
     <string name="actions_search_hint">Rechercher des actions...</string>
     <string name="actions_search_empty_fmt">Aucune action trouvée pour \"%1$s\"</string>
-    <string name="action_wip_warning">Cette fonctionnalité est en cours de développement. La recherche de mots clés dépend de la façon dont les applications structurent leurs notifications et peuvent ne pas fonctionner selon les applications.</string>
+    <string name="action_wip_warning">Experimental feature. Action button matching depends on incoming notification formatting.</string>
     <string name="creator_dialog_apply_title">Appliquer le thème ?</string>
     <string name="creator_dialog_apply_desc">Voulez-vous appliquer ce thème maintenant ?</string>
     <string name="creator_dialog_action_save_apply">Enregistrer &amp; appliquer</string>
@@ -442,7 +426,7 @@
     <string name="app_customization_desc">Ajouter une application pour personnaliser son apparence de manière spécifique.</string>
     <string name="discard">Abandonner</string>
     <string name="unsaved_changes">Modifications non enregistrées</string>
-    <string name="unsaved_changes_desc">Vous avez des modifications non enregistrées pour cette application. Voulez-vous les enregistrer avant de quitter ?</string>
+    <string name="unsaved_changes_desc">Save pending changes before exiting?</string>
     <string name="share_theme">Partager le thème</string>
     <string name="my_theme">Mes thèmes</string>
     <plurals name="creator_sub_actions_count">
@@ -450,35 +434,7 @@
         <item quantity="other">%1$d actions personnalisées</item>
     </plurals>
     <string name="title_0_4_0">La version de la personnalisation</string>
-    <string name="changelog_0_4_0">       <b>Système de thèmes 🎨</b>\n
-        La plus grande mise à jour ! Vous pouvez maintenant personnaliser pleinement l\'expérience visuelle des bulles de notification. \n
-        • <b>Créateur de Thèmes :</b> Concevez des thèmes directement sur votre téléphone avec un aperçu en temps réel.\n
-        • <b>Paramétrage plus fin:</b>; Choisissez exactement comment les icônes sont affichées, personnalisez les couleurs et les formes des notifications, et configurer les remplacements des applications individuelles.\n
-        • <b>Couleurs intelligentes:</b>; Extraction automatique des couleurs des icônes d\'application.\n
-        •<b>Personnalisation par action (Bêta):</b>; Ajustement de l\'apparence de certaines notifications d\'actions spécifiques.\n
-        • <b>Partage :</b> Exportez et importez des thèmes au format <i>hbr</i> .\n\n
-
-        <b>Support des widget 🧩</b>\n
-        Verrouillez les widgets standard d\'Android pour un accès rapide — même sur votre <b>écran verrouillé</b>!\n
-        • Choisissez entre les modes <b>interractifs</b> pour la vitesse ou <b>instantané</b> pour l\'efficacité de la batterie.\n\n
-
-        <b>Moteur de notification 2.0⚡</b>\n
-        Réécriture complète du moteur pour une meilleure stabilité:\n
-        • <b>Analyse intelligente : </b> Résolutions de problèmes où les notifications affichaient les noms des paquets (par ex. : com.whatsapp) au lieu du contenu du message.\n
-        • <b>Anti-scintillement :</b> La vérification de contenu empêche les notifications redondantes et les saccades.\n
-        • <b>Correction des fantômes :</b> Résolution d\'un problème où les notifications persistaient après leur suppression.\n\n
-
-        <b>Rafraîchissement visuel ✨</b>\n
-        • Onglet \"Design\" redessiné pour plus de fluidité avec des blocs dynamiques.\n
-        • Nouveaux boutons de textes pour des actions de notification plus claires.\n
-        • Ajout du support pour l\'indonésien 🇮🇩 et le turque 🇹🇷.\n\n
-
-        <i>Note : Cette version comprend des changements architecturaux importants. Veuillez signaler tout bug sur GitHub !</i>
-    </string>
     <string name="title_0_4_2">Mise à jour de corrections de bugs</string>
-    <string name="changelog_0_4_2">        •&lt;b&gt;Correction d\'un crash :&lt;/b&gt; Résolution d\'un problème critique qui faisait planter l\'application lors de l\'ouverture du menu des paramètres en chinois traditionnel.\n
-        •&lt;b&gt;Corrections diverses :&lt;/b&gt; Corrections générales de bugs pour améliorer la stabilité et la fluidité de l\'application.
-    </string>
     <string name="colors_label_hue">Teinte</string>
     <string name="colors_label_saturation">Saturation</string>
     <string name="colors_label_lightness">Clarté</string>
@@ -487,13 +443,12 @@
     <string name="colors_desc_material_you">Extrait les couleurs de votre fond d\'écran actuel.</string>
     <string name="kill_all_widgets">Tuer les widgets actifs</string>
     <string name="permission_reminder_title">Notification de mise à jour</string>
-    <string name="permission_reminder_desc">HyperBridge a été mis à jour ! Assurez-vous que vos autorisations de démarrage automatique et de fonctionnement en arrière-plan n\'ont pas été révoquées par le système pour que vos widgets continuent de fonctionner correctement.</string>
+    <string name="permission_reminder_desc">Hyper Bridge updated. Verify Autostart and Battery permissions remain granted.</string>
     <string name="got_it">J\'ai compris</string>
     <string name="recommended">Recommandé</string>
     <string name="all">Toutes</string>
     <string name="favorites">Favoris</string>
     <string name="channel_live_updates">Notifications natives en temps réel</string>
-    <string name="engine_preview_title">Aperçu</string>
     <string name="engine_design_section">Design des notifications</string>
     <string name="engine_xiaomi_title">Design standard de Xiaomi</string>
     <string name="engine_xiaomi_desc">Mise en page HyperOS moderne avec le design de Xiaomi.</string>
@@ -524,6 +479,7 @@
     <string name="active_triggers">Déclencheurs actifs</string>
     <string name="active_triggers_global_desc">Sélectionnez quels évènements déclenchent les notifications</string>
     <string name="type_standard_desc">Messages standards, emails et alertes</string>
+    <string name="type_message_desc">Messages, chats et conversations</string>
     <string name="type_progress_desc">Tâches, rendu et opérations en cours</string>
     <string name="type_download_desc">Téléchargements, envois et transferts de fichiers</string>
     <string name="type_media_desc">Contrôles de lecture de musique et de vidéo</string>
@@ -536,14 +492,13 @@
     <string name="trigger_override">Remplacement du déclencheur</string>
     <string name="trigger_app_desc">Sélectionnez quels événements déclenchent les bulles de notification pour cette application.</string>
     <string name="enable_triggers">Activer des déclencheurs spécifiques</string>
-    <string name="open_source_licenses">Licences Open Source</string>
     <string name="remove_original_notification">Supprimer la notification originale</string>
     <string name="remove_original_notification_desc">Ignorer automatiquement la notification source quand une mise à jour en direct est active.</string>
     <string name="dismiss_with_original">Rejeter avec l\'origine</string>
     <string name="dismiss_with_original_desc">La bulle de notification disparaîtra lorsque vous effacerez la notification d\'origine.</string>
     <string name="enable_inline_reply">Activer la réponse intégrée</string>
     <string name="enable_inline_reply_desc">Lancez la superposition de réponse intégrée personnalisée lorsque vous répondez depuis la bulle de notification.</string>
-    <string name="remove_original_notification_hidden_warning">Remarque : Lorsque cette option est activée, Hyper Bridge ne peut pas répondre ou marquer les messages comme lus. Répondre et Marquer comme lu les actions seront masquées.</string>
+    <string name="remove_original_notification_hidden_warning">When enabled, inline reply and mark-as-read actions cannot function and are hidden.</string>
     <string name="color_mode">Jeu de couleurs</string>
     <string name="color_mode_select">Sélectionner le mode de couleur</string>
     <string name="color_mode_change_cd">Changer le mode de couleur</string>
@@ -572,74 +527,24 @@
     <string name="onboard_design_desc">Augmentez les possibilités avec différentes options de personnalisation</string>
     <string name="behavior_desc_glob_config">Détermine le comportement de la bulle de notification.</string>
     <string name="widget_layout_snapshot">Aperçu du widget</string>
-    <string name="changelog_0_5_2">        <b>Nouvelle fonctionnalité de réponse intégrée !</b>\n
-              • <b>Réponse intégrée :</b> Vous pouvez désormais répondre aux messages directement depuis la notification sans ouvrir l\'application !\n
-              • <b>Personnalisation :</b> Personnalisez entièrement l\'apparence du nouvel éditeur de réponse intégrée, soit globalement, soit par application.\n
-              • <b>Paramètres généraux :</b> Accédez à la nouvelle section de personnalisation des réponses directement depuis Paramètres généraux -&gt; Réponse intégrée.\n
-        \n
-        <b>Correction de crash du Play Store &amp; Stabilité</b>\n
-              • <b>Créateur de thème :</b> Correction d\'un plantage lors de l\'analyse d\'un grand nombre d\'actifs personnalisés.\n
-              • <b>Performances :</b> Résolution d\'un problème d’application qui ne répond plus (ANR) sur l’écran initial de bienvenue.\n
-              • <b>Widget Picker:</b> Elimination de plantages et d\'erreurs Out-Of-Memory (OOM) causés par une prévisualisation de Widget extremement large.\n
-              • <b>Dispositions de l\'interface utilisateur :</b> Correction des exceptions sur les contraintes de mise en page de composition de Jetpack qui plantaient l\'application lors du redimensionnement de certains menus.\n
-              • <b>Sauvegardes :</b> Erreurs OOM corrigées lors de l\'importation de gros fichiers de sauvegarde en optimisant l\'analyse JSON.\n
-              • <b>Démarrage chaud :</b> Amélioration significative des vitesses de lancement des applications et élimination du blocage des piles d\'interface utilisateur sur les appareils de milieu de gamme.\n
-              • <b>Service d\'arrière-plan :</b> Révision complète de l\'architecture du traitement d\'écoute, chute de la charge en arrière-plan à 0 % et amélioration de la durée de vie de la batterie.\n
-    </string>
+    <string name="title_0_5_7">Mise à jour de performance &amp; de synchronisation</string>
+    <string name="title_0_5_6">Mode paysage &amp; corrections de stabilité</string>
+    <string name="title_0_5_5">Messagerie &amp; Correctifs de mises à jour</string>
     <string name="title_0_5_2">Réponse intégrée, performance &amp; stabilité</string>
-    <string name="changelog_0_5_1">        <b>Corrections &amp; stabilité</b>\n
-              Correction des doublons WhatsApp : résolution d\'un problème qui entraînait l\'affichage de notifications WhatsApp en double.\n
-              Correction du scintillement des notifications &amp; des plantages : correction d\'un plantage provoqué par la réception de plusieurs notifications en peu de temps. L\'application met désormais à jour les notifications normalement et en toute sécurité, ce qui élimine le scintillement des notifications et améliore la stabilité.\n
-              Restauration des intentions de notification : correction d\'un problème où cliquer sur une notification mise en avant redirigeait à tort vers l\'écran de dépannage au lieu de l\'application d\'origine.\n\n
-        <b>Fonctionnalités &amp; améliorations</b>\n
-              Suppression de l\'îlot lors de la fermeture : ajout d\'une nouvelle option permettant de supprimer automatiquement l\'îlot si la notification système d\'origine est fermée.\n
-              Diagnostic des notifications en vedette : ajout d\'un nouvel écran de vérification lors de la configuration initiale pour vérifier si votre appareil Xiaomi prend en charge les notifications en vedette et si les autorisations requises sont activées.\n
-              Intégration à l\'état de la configuration : l\'état des autorisations pour les notifications en vedette est désormais surveillé en continu et affiché dans l\'écran d\'état de la configuration.\n
-              Écran de dépannage : ajout d\'un écran de dépannage dédié qui guide les utilisateurs sur la manière d\'activer les autorisations système cachées nécessaires (ou d\'utiliser Shizuku) pour que les bulles de notifications fonctionnent sur les ROM Xiaomi strictes.\n
-              Terminologie plus claire : la section « Mises à jour en direct » du menu des paramètres a été renommée « Gestion des notifications » afin de mieux refléter\n
-            Polissage de l\'Interface utilisateur : rétablissement des coins arrondis qui manquaient dans l\'option « bulles permanentes » de la liste des paramètres généraux.\n
-              Traductions en espagnol : ajout de traductions complètes en espagnol pour toutes les nouvelles boîtes de dialogue de dépannage, les contrôles d\'intégrité de la configuration et les paramètres de gestion des notifications.
-    </string>
     <string name="title_0_5_1">Corrections &amp; Affinements</string>
-    <string name="changelog_0_5_0">        <b>Support ROM CN</b>\n
-            • Utilisez Sui &amp; Shizuku pour profiter des notifications Hyper Islands sur vos appareils exécutant des ROM HyperOS CN (chinois) sans prise en charge native.\n\n
-        <b>Améliorations du moteur de thème</b>\n
-            • Sélection du moteur : vous pouvez désormais choisir le moteur d\'animation par application ou global.\n
-            • Solution de contournement Shizuku : option ajoutée directement à l\'onglet Moteur de l\'éditeur de thème.\n
-            • Contrôles de comportement : les délais d\'attente personnalisés et la logique contextuelle sont désormais entièrement pris en charge.\n\n
-        <b>Île permanente intelligente</b>\n
-            • Toujours visible : gardez la notification à l\'écran même sans notifications actives.\n
-            • Masquer automatiquement : l\'îlot permanent se cache désormais automatiquement chaque fois qu\'un widget actif est affiché à l\'écran.\n\n
-        <b>Teinture intelligente des icônes</b>\n
-            • Le nouveau système de détection analyse automatiquement les icônes de notification extraites et les teinte intelligemment en blanc si elles sont sombres ou monochromes.\n\n
-        <b>Téléchargements &amp; progression</b>\n
-            • Nouvelle présentation de téléchargement dédiée : présentations de téléchargement et de progression séparés avec des conceptions visuelles dédiées.\n
-            • Prise en charge de la progression du texte : pourcentage sous forme de texte (par exemple \"12 %\") pour les mises à jour d\'applications, même sans barres de progression natives.\n
-            • Filtrage intelligent : vérification de la progression basée sur du texte pour stocker et télécharger le programme d\'installation afin d\'éviter de faux déclenchements sur d\'autres notifications d\'état.\n\n
-        <b>Corrections de messagerie</b>\n
-            • Correction des avatars d\'expéditeur manquants dans des applications comme Telegram (extrait désormais correctement les données \"sender_person\").\n
-            • Problèmes résolus avec les notifications groupées (résumés de discussion) ne déclenchant pas les notifications.\n
-            • Correction de bugs de disparition des notifications causés par des conditions de mise à jour des notifications.\n\n
-        <b>Système &amp; Intégration</b>\n
-            • Nouvel écran d\'intégration : tout nouveau processus de configuration plus simple pour les autorisations critiques.\n
-            • Correctif de démarrage : le service démarre désormais immédiatement et de manière fiable après le redémarrage.\n
-            • Alertes plus intelligentes : les téléchargements et les médias sont mis à jour silencieusement, tandis que les mises à jour de messagerie déclenchent de manière fiable des animations contextuelles.\n
-            • Navigation : transitions d\'applications plus rapides et plus fluides.
-    </string>
     <string name="title_0_5_0">La mise à jour \"Live Update\"</string>
-    <string name="notification_went_wrong">Si vous voyez cela, quelque chose s\'est mal passé !</string>
-    <string name="widget_went_wrong">Si vous voyez ceci, quelque chose s\'est mal passé ! Le système n\'a pas pu afficher le widget</string>
+    <string name="notification_went_wrong">Failed to display notification island. Tap for diagnostics.</string>
+    <string name="widget_went_wrong">Could not render widget. Tap to view diagnostics.</string>
     <string name="troubleshoot_featured_notification">Résolution des problèmes</string>
     <string name="featured_notifications_check">Vérification des notifications recommandées</string>
-    <string name="featured_notifications_check_desc">Vérifions si votre système est correctement configuré pour afficher les notifications HyperBridge.</string>
+    <string name="featured_notifications_check_desc">Vérifions si votre système est correctement configuré pour afficher les notifications Hyper Bridge.</string>
     <string name="featured_notifications_not_supported">Non pris en charge</string>
-    <string name="featured_notifications_enabled">Activé</string>
     <string name="featured_notifications_open_settings">Ouvrir les paramètres système</string>
     <string name="featured_notifications_troubleshoot_title">Pourquoi ce n\'est pas une bulle de notification ?</string>
-    <string name="featured_notifications_troubleshoot_desc">Votre appareil Xiaomi a intercepté la notification, mais n\'a pas réussi à l\'afficher en tant que notification recommandée car la permission est désactivée dans vos paramètres système.\n\nPour résoudre ceci:\n1. Appuyez sur \"Ouvrir les paramètres du système\"\n2. Faites défiler vers le bas jusqu\'à \"Notifications recommandées\" (ou similaires)\n3. Activez-le pour HyperBridge.</string>
+    <string name="featured_notifications_troubleshoot_desc">Featured notification permission is disabled. Tap \"Open System Settings\" and enable it for Hyper Bridge.</string>
     <string name="featured_notifications_shizuku_alternative">Alternative : remplacement par Shizuku</string>
-    <string name="featured_notifications_shizuku_desc">Si votre système n\'affiche pas le paramètre ou s\'il est restreint, vous pouvez contourner entièrement la liste blanche de Xiaomi en configurant Shizuku. HyperBridge utilisera Shizuku pour afficher directement les bulles de notifications.</string>
-    <string name="migration_title">HyperBridge Update</string>
+    <string name="featured_notifications_shizuku_desc">If restricted by your system, setup Shizuku to post islands directly and bypass system restrictions.</string>
+    <string name="migration_title">Hyper Bridge Update</string>
     <string name="migration_message">Migrating database to Device Protected storage…</string>
     <string name="migration_complete">Update Complete</string>
     <string name="notification_management">Gestion des notifications</string>
@@ -648,4 +553,1116 @@
     <string name="reply_hint">Répondre...</string>
     <string name="perm_display_title">Superposition sur d\'autres applis</string>
     <string name="perm_display_onboard_desc">Requis pour afficher le bloc de réponse intégrée.</string>
+    <!-- Setup Health Screen -->
+    <string name="restricted_permissions_title">Restricted permissions</string>
+    <string name="restricted_permissions_desc">Android 13+ restricted settings for sideloaded app</string>
+    <string name="setup_action_grant">Grant</string>
+    <string name="setup_action_check">Check</string>
+    <string name="setup_status_ready">All permissions granted</string>
+    <string name="setup_status_ready_desc">All permissions and services are properly configured</string>
+    <string name="setup_status_action_required">Action required</string>
+    <string name="setup_status_action_desc">Some permissions or services need your attention</string>
+    <string name="setup_status_progress">%1$d of %2$d configured</string>
+    <string name="setup_compatible">Compatible</string>
+    <!-- Guides & Documentation -->
+    <string name="group_guides">Guide &amp; Aide</string>
+    <string name="documentation_title">Guide &amp; Documentation</string>
+    <string name="documentation_subtitle">Apprenez comment configurer et personnaliser Hyper Bridge</string>
+    <!-- Changelog & Website -->
+    <string name="view_changelog">Voir le journal des changements</string>
+    <string name="view_full_changelog">Voir sur le site web</string>
+    <string name="changelog_notice">La liste complète des modifications est publiée sur notre site Web.</string>
+    <string name="changelog_view_website_desc">Consultez les dernières notes de mise à jour, d\'améliorations et de nouvelles fonctionnalités sur notre site Web.</string>
+    <!-- Bug Report -->
+    <string name="bug_report_title">Rapport de bug</string>
+    <string name="bug_report_subtitle">Générer des diagnostics système et signaler des problèmes</string>
+    <string name="bug_report_privacy_title">Confidentialité &amp; Divulgation</string>
+    <string name="bug_report_privacy_desc">GitHub issues are public. To send privately, email the developer at %s.</string>
+    <string name="bug_report_view_privacy">Voir la politique de confidentialité</string>
+    <string name="bug_report_details_title">Détails du problème</string>
+    <string name="bug_report_what_happened">Que s\'est-il passé ?</string>
+    <string name="bug_report_what_happened_hint">Décrivez le problème ou le comportement inattendu...</string>
+    <string name="bug_report_what_happened_error">Please describe what happened before submitting</string>
+    <string name="bug_report_steps">Étapes pour reproduire</string>
+    <string name="bug_report_steps_hint">1. Ouvrir Spotify&#8230;\n2. Verrouiller l\'écran&#8230;\n3. L\'île disparaît</string>
+    <string name="bug_report_options_title">Informations à inclure</string>
+    <string name="bug_report_include_device">Informations sur l\'appareil &amp; OS</string>
+    <string name="bug_report_include_device_desc">Modèle, version HyperOS/MIUI, version Android, région de la ROM</string>
+    <string name="bug_report_include_permissions">Autorisations système &amp; Paramètres restreints</string>
+    <string name="bug_report_include_permissions_desc">Écouteur de notifications, superposition, batterie et paramètres restreints Android 13+</string>
+    <string name="bug_report_include_theme">Configuration du thème</string>
+    <string name="bug_report_include_theme_desc">Thème actif, mode moteur, métadonnées personnalisées du thème</string>
+    <string name="bug_report_include_widgets">Configuration du Widget</string>
+    <string name="bug_report_include_widgets_desc">Widgets enregistrés, intervalles de mise à jour, tailles et visibilité des ombres</string>
+    <string name="bug_report_widget_scope_all">Tous les widgets</string>
+    <string name="bug_report_include_app_config">Paramètres d\'application &amp; Configuration</string>
+    <string name="bug_report_app_scope_none">Aucun</string>
+    <string name="bug_report_app_scope_none_desc">Ne pas inclure de configuration d\'application dans le rapport</string>
+    <string name="bug_report_app_scope_specific">Application spécifique</string>
+    <string name="bug_report_app_scope_specific_desc">Partager les paramètres et les substitutions pour une seule application</string>
+    <string name="bug_report_app_scope_all">Toutes les applications</string>
+    <string name="bug_report_app_scope_all_desc">Inclure les configurations et remplacements pour toutes les applications</string>
+    <string name="bug_report_include_logs">Journaux des applications récentes (Logcat)</string>
+    <string name="bug_report_include_logs_desc">500 dernières lignes du système et des logs Hyper Bridge</string>
+    <string name="bug_report_preview_title">Aperçu du rapport</string>
+    <string name="bug_report_preview_desc">Examiner les données exactes qui seront partagées</string>
+    <string name="bug_report_submit_github">Soumettre sur GitHub</string>
+    <string name="bug_report_send_email">Envoyer par e-mail</string>
+    <string name="bug_report_copied_github_toast">Diagnostics copiés dans le presse-papiers ! Collez-le dans la section Logs sur GitHub.</string>
+    <string name="bug_report_copied_toast">Rapport copié dans le presse-papiers.</string>
+    <string name="bug_report_email_subject">Rapport de bug Hyper Bridge</string>
+    <string name="bug_report_entry_subtitle">Dépannage et rapport des problèmes avec les journaux du système</string>
+    <string name="bug_report_need_help">Vous avez des problèmes avec les permissions ou les îles ?</string>
+    <string name="privacy_policy_title">Politique de Confidentialité</string>
+    <string name="privacy_policy_subtitle">Découvrez comment vos données sont protégées et gérées</string>
+    <string name="bug_report_screen_description">Export diagnostic logs and system details for troubleshooting.</string>
+    <string name="cancel">Annuler</string>
+    <string name="continue_action">Continuer</string>
+    <string name="type_screen_recording">Enregistrement de l\'écran</string>
+    <string name="type_screen_recording_desc">Sessions d\'enregistrement d\'écran du système Xiaomi</string>
+    <string name="screen_recording_title">Enregistrement de l\'écran</string>
+    <string name="screen_recording_active">Enregistrement de l\'écran..</string>
+    <string name="screen_recording_compact">Enregistrement..</string>
+    <string name="screen_recording_done">Enregistrement terminé.</string>
+    <string name="screen_recording_stop">Arrêter</string>
+    <string name="system_integrations">Système</string>
+    <string name="apps_section_header">Apps</string>
+    <string name="system_integration_enabled">Activé</string>
+    <string name="system_integration_disabled">Désactivé</string>
+    <string name="system_integration_unavailable">Non disponible sur cet appareil</string>
+    <string name="screen_recording_customization_title">L\'île de l\'enregistrement d\'écran</string>
+    <string name="screen_recording_left_option_icon_only">Icône uniquement</string>
+    <string name="screen_recording_left_option_icon_and_text">Icône et message</string>
+    <string name="screen_recording_left_option_text_only">Messages uniquement</string>
+    <string name="screen_recording_right_option_none">Aucune</string>
+    <string name="screen_recording_saved_auto_hide_desc">Durée pendant laquelle la coche de fin s\'affiche après l\'enregistrement terminé</string>
+    <string name="preview">Aperçu</string>
+    <string name="system_updater_title">System update</string>
+    <string name="system_updater_customization_title">System Update Island</string>
+    <string name="system_updater_left_option_icon_and_text">Icon and version</string>
+    <string name="system_updater_left_option_text_only">Version only</string>
+    <string name="system_updater_right_option_percentage">Percentage</string>
+    <string name="system_updater_right_option_progress_circle">Progress circle</string>
+    <string name="system_updater_icon_title">Icon</string>
+    <string name="system_updater_icon_option_notification">Default notification icon</string>
+    <string name="system_updater_icon_option_package">Package app icon</string>
+    <string name="system_updater_icon_option_system_update">System update icon</string>
+    <string name="system_updater_icon_option_download">Download icon</string>
+    <string name="system_updater_saved_auto_hide_desc">Duration the completion checkmark is shown after update download finishes</string>
+    <string name="vpn_title">VPN</string>
+    <string name="vpn_island_enabled">Surveillance des connexions VPN</string>
+    <string name="vpn_is_connected">VPN connecté</string>
+    <string name="vpn_connected_to">Connecté à %1$s</string>
+    <string name="vpn_connecting">Le VPN se connecte</string>
+    <string name="vpn_reconnecting">Le VPN se reconnecte</string>
+    <string name="vpn_waiting_for_network">En attente de réseau</string>
+    <string name="vpn_paused">Le VPN est en pause</string>
+    <string name="vpn_disconnecting">Déconnexion du VPN</string>
+    <string name="vpn_blocking">Internet bloqué</string>
+    <string name="vpn_error">Erreur VPN</string>
+    <string name="vpn_disconnected">Le VPN est déconnecté</string>
+    <string name="vpn_customization_title">VPN Island</string>
+    <string name="vpn_detection_mode_title">Detection Source</string>
+    <string name="vpn_detection_mode_auto">Automatic (System + Notifications)</string>
+    <string name="vpn_detection_mode_auto_desc">Resolves active VPN from Android system/Shizuku settings first, enriched by app notifications</string>
+    <string name="vpn_detection_mode_system_only">System Connection Only</string>
+    <string name="vpn_detection_mode_system_only_desc">Ignores status bar notifications; only uses system VPN state and Shizuku inspection</string>
+    <string name="vpn_detection_mode_notifications_only">Notifications Only</string>
+    <string name="vpn_detection_mode_notifications_only_desc">Attributes VPN sessions solely from active VPN app notifications</string>
+    <string name="vpn_providers_section_title">VPN Apps &amp; Priority</string>
+    <string name="vpn_providers_section_desc">Toggle which VPN apps are allowed to attribute the VPN Island, and use arrows to set their priority order when multiple apps are active.</string>
+    <string name="vpn_no_providers_installed">No apps with VPN services found on this device.</string>
+    <string name="charging_island_title">Charging</string>
+    <string name="charging_island_charging">Charging</string>
+    <string name="charging_island_wireless">Charging wirelessly</string>
+    <string name="charging_island_plugged_in">Plugged in, not charging</string>
+    <string name="charging_island_full">Fully charged</string>
+    <string name="charging_island_watts">%1$d W</string>
+    <string name="charging_island_full_in">Full in %1$s</string>
+    <string name="charging_island_minutes">%1$d min</string>
+    <string name="charging_island_hours_minutes">%1$d h %2$d min</string>
+    <string name="charging_island_lockscreen">Show on lock screen</string>
+    <string name="charging_island_lockscreen_desc">Keep the charging pill at the cutout while the phone is locked. It may not show with Always-on Display.</string>
+    <string name="translator_show_on_lockscreen_desc">Keep the island pill at the cutout while the phone is locked. It may not show with Always-on Display.</string>
+    <string name="debugging_island_title">USB &amp; wireless debugging</string>
+    <string name="debugging_island_usb_connected">USB debugging connected</string>
+    <string name="debugging_island_wireless_connected">Wireless debugging connected</string>
+    <string name="debugging_island_both_connected">USB and wireless debugging connected</string>
+    <string name="debugging_island_wireless_on">Wireless debugging is on</string>
+    <string name="debugging_island_wireless_on_at">Wireless debugging on · %1$s</string>
+    <string name="debugging_island_tap_to_manage">Tap to open developer options</string>
+    <string name="debugging_island_short_usb">USB</string>
+    <string name="debugging_island_short_wireless">Wi-Fi</string>
+    <string name="debugging_island_short_both">USB + Wi-Fi</string>
+    <string name="charging_left_option_speed">Icon and charging speed</string>
+    <string name="charging_left_option_remaining_time">Icon and remaining time</string>
+    <string name="charging_left_option_percentage">Icon and battery percentage</string>
+    <string name="charging_left_option_icon_only">Icon only</string>
+    <string name="charging_right_option_percentage">Battery percentage</string>
+    <string name="charging_right_option_progress_circle">Progress circle</string>
+    <string name="charging_right_option_speed">Charging speed</string>
+    <string name="charging_right_option_remaining_time">Remaining time</string>
+    <string name="charging_right_option_none">Nothing</string>
+    <string name="charging_island_expanded_progress">Expanded progress bar</string>
+    <string name="charging_island_expanded_progress_desc">Show a battery progress bar when the charging island is expanded.</string>
+    <string name="floating_filter_all">All (%1$d)</string>
+    <string name="floating_filter_needs_review">Needs review (%1$d)</string>
+    <string name="floating_filter_confirmed">Confirmed (%1$d)</string>
+    <string name="floating_setup_info_toggle">How it works &amp; tips</string>
+    <string name="floating_setup_search_empty">No matching apps found</string>
+    <string name="floating_setup_completed_all">All reviewed</string>
+    <string name="floating_setup_progress_summary">%1$d of %2$d reviewed</string>
+    <string name="diagnostic_permissions_granted_title">Permissions &amp; Health</string>
+    <string name="diagnostic_permissions_granted_desc">All permissions and background services are configured properly</string>
+    <string name="diagnostic_permissions_action_desc">Tap to review and configure missing permissions or services</string>
+    <!-- App Configuration Screen -->
+    <string name="app_config_title">Configuration de l\'application</string>
+    <string name="app_config_subtitle">Comportements, widgets &amp; extensions</string>
+    <string name="custom_design_title">Design personnalisé</string>
+    <string name="custom_design_desc">Active island templates and custom layouts applied to this app</string>
+    <string name="app_designs_subtitle">%1$d active</string>
+    <string name="app_designs_section_desc">Manage custom island designs and templates for this application.</string>
+    <string name="app_designs_empty_title">No designs for this app</string>
+    <string name="app_designs_empty_desc">No designs found for this app. Add a design or browse templates.</string>
+    <string name="app_designs_search_hint">Search designs…</string>
+    <string name="app_designs_filter_app_specific">App-specific</string>
+    <string name="app_designs_no_results">No designs matching your search or filter</string>
+    <string name="custom_translators_title">Traducteurs personnalisés</string>
+    <string name="custom_translators_desc">Custom rules to intercept, format, and control app notifications.</string>
+    <string name="app_widgets_section_title">Widgets de l\'île</string>
+    <string name="app_widgets_section_desc">Configurer les widgets d\'application à afficher en tant qu\'Hyper Islands.</string>
+    <string name="add_island_widget">Ajouter un Widget</string>
+    <string name="no_widgets_for_app">Aucun widget d\'île configuré pour cette application pour le moment.</string>
+    <string name="select_app_widget">Sélectionner un widget</string>
+    <string name="theme_managed_banner">Les comportements sont actuellement gérés par votre thème actif.</string>
+    <string name="app_status_bridged">Relié</string>
+    <string name="app_status_not_bridged">Non relié</string>
+    <string name="custom_behavior_desc">Utiliser un comportement personnalisé pour cette application. Activer pour utiliser les valeurs par défaut globales.</string>
+    <string name="no_blocked_terms">Aucun terme bloqué configuré</string>
+    <string name="no_blocked_terms_desc">Les notifications contenant des mots ajoutés ne déclencheront pas une île.</string>
+    <!-- Smart Actions (issue #270) -->
+    <string name="smart_actions_title">Smart Actions</string>
+    <string name="smart_actions_desc">One-tap buttons for codes, links, phone numbers and parcels</string>
+    <string name="setting_smart_actions">Enable Smart Actions</string>
+    <string name="setting_smart_actions_desc">Extract actionable buttons (OTP codes, links, addresses) from notifications.</string>
+    <string name="smart_actions_group_detect">Detect</string>
+    <string name="setting_smart_actions_otp">Verification codes</string>
+    <string name="setting_smart_actions_otp_desc">One-tap copy of OTP and 2FA codes</string>
+    <string name="setting_smart_actions_url">Links</string>
+    <string name="setting_smart_actions_url_desc">Open web links straight from the island</string>
+    <string name="setting_smart_actions_phone">Phone numbers</string>
+    <string name="setting_smart_actions_phone_desc">Open the dialer with the number filled in</string>
+    <string name="setting_smart_actions_tracking">Parcel tracking</string>
+    <string name="setting_smart_actions_tracking_desc">Track shipments from UPS, FedEx, USPS, DHL, Correos and others</string>
+    <string name="setting_smart_actions_navigation">Directions</string>
+    <string name="setting_smart_actions_navigation_desc">Open street addresses and shared map links in your maps app</string>
+    <string name="smart_actions_group_excluded">Excluded apps</string>
+    <string name="smart_actions_excluded_desc">Notifications from these apps are never scanned</string>
+    <string name="smart_actions_no_apps">Enable some apps in HyperBridge first</string>
+    <string name="smart_action_copy_code">Copy %1$s</string>
+    <string name="smart_action_open_link">Open link</string>
+    <string name="smart_action_call">Call</string>
+    <string name="smart_action_track">Track parcel</string>
+    <string name="smart_action_directions">Directions</string>
+    <string name="smart_action_copied">Code copied</string>
+    <string name="smart_action_copy_code_hidden">Copy code</string>
+    <string name="smart_actions_group_privacy">Privacy</string>
+    <string name="setting_smart_actions_hide_otp">Hide the code on the button</string>
+    <string name="setting_smart_actions_hide_otp_desc">Mask sensitive verification codes on the island and in the shade.</string>
+    <string name="smart_actions_excluded_empty">No apps excluded. Every bridged app is scanned.</string>
+    <string name="smart_actions_add_excluded_app">Add app</string>
+    <string name="smart_actions_pick_app_title">Exclude an app</string>
+    <string name="smart_actions_pick_app_search">Search apps</string>
+    <string name="smart_actions_all_apps_excluded">Every bridged app is already excluded</string>
+    <string name="cd_smart_actions_remove_excluded">Remove from excluded apps</string>
+    <string name="app_smart_actions_subtitle_on">Codes, links, phone numbers and parcels</string>
+    <string name="app_smart_actions_subtitle_off">Off for this app</string>
+    <string name="app_smart_actions_subtitle_global_off">Enable Smart Actions in Global settings first</string>
+    <string name="app_smart_actions_enable">Smart Actions for this app</string>
+    <string name="app_smart_actions_enable_desc">Turn off to never scan this app\'s notifications</string>
+    <string name="app_smart_actions_types_title">Actions for this app</string>
+    <string name="app_smart_actions_types_desc">Configure smart action buttons for this app or follow global defaults.</string>
+    <string name="app_smart_actions_global_off_banner">Smart Actions are disabled globally. Enable them in Global Settings.</string>
+    <!-- Enable All Apps -->
+    <string name="bridge_all_apps">Enable all apps</string>
+    <string name="bridge_all_apps_desc">Enable HyperIsland for all apps in the list</string>
+    <string name="bridge_all_apps_enabled_desc">HyperIsland enabled for all apps in the list</string>
+    <string name="auto_add_new_apps_title">Add new apps</string>
+    <string name="auto_add_new_apps_desc">Automatically enable bridging for newly installed applications</string>
+    <!-- Listener watchdog (#330) -->
+    <string name="channel_service_health">Service status</string>
+    <string name="listener_down_title">HyperBridge stopped receiving notifications</string>
+    <string name="listener_down_text">Notification service disconnected. Tap to inspect diagnostics.</string>
+    <string name="listener_down_action_reconnect">Reconnect</string>
+    <string name="diagnostic_reconnect_service">Reconnect service</string>
+    <string name="diagnostic_reconnecting_toast">Reconnecting service…</string>
+    <!-- Custom Translators Framework UI (#342) -->
+    <string name="design_section_translators">Translators</string>
+    <string name="design_translators_carousel_desc">%1$d active rules</string>
+    <string name="translators_manager_subtitle">Rule interception &amp; formatting</string>
+    <string name="translators_search_hint">Search translators…</string>
+    <string name="translators_filter_btn">Filters</string>
+    <string name="translators_filter_sheet_title">Filter Translators</string>
+    <string name="translators_filter_sheet_desc">Filter custom translators by status, scope, notification types, or icons</string>
+    <string name="translators_filter_status_section">Status &amp; Scope</string>
+    <string name="translators_filter_apps_section">Target Apps</string>
+    <string name="translators_filter_creators_section">Creator</string>
+    <string name="translators_filter_icons_section">Icons</string>
+    <string name="translators_filter_reset">Reset Filters</string>
+    <string name="translators_filter_apply">Apply</string>
+    <string name="translators_filter_apps">Apps</string>
+    <string name="translators_filter_system_apps">System Apps</string>
+    <string name="translators_filter_types">Types</string>
+    <string name="translators_empty_title">No Translators Found</string>
+    <string name="translators_empty_desc">Create your first custom translator rule to format and enhance notification islands.</string>
+    <string name="translators_create_button">Create Translator</string>
+    <string name="translators_action_edit">Edit</string>
+    <string name="translators_action_delete">Delete</string>
+    <string name="translators_delete_confirm_title">Delete item?</string>
+    <string name="translators_delete_confirm_message">Are you sure you want to delete \"%1$s\"? This action cannot be undone.</string>
+    <string name="translators_action_duplicate">Duplicate</string>
+    <string name="translators_priority_label">Priority %1$d</string>
+    <string name="translators_scope_global">Global Rule</string>
+    <string name="translators_scope_apps">%1$d apps targeted</string>
+    <string name="translators_scope_system_apps">%1$d system apps targeted</string>
+    <string name="translators_scope_types">%1$d types targeted</string>
+    <!-- Translator Visual Editor -->
+    <string name="translator_editor_title_edit">Edit Translator</string>
+    <string name="translator_meta_icon_title">Translator Icon</string>
+    <string name="translator_meta_icon_desc">Select an icon to easily identify this translator</string>
+    <string name="translator_priority_preset_low">50 (Low)</string>
+    <string name="translator_priority_preset_default">100 (Default)</string>
+    <string name="translator_priority_preset_high">200 (High)</string>
+    <string name="translator_priority_preset_urgent">500 (Urgent)</string>
+    <string name="translator_field_description">Description</string>
+    <string name="translator_select_apps">Target Applications</string>
+    <string name="translator_cond_title_regex">Title Pattern (Regex)</string>
+    <string name="translator_cond_title_regex_hint">e.g. ^(?&lt;sender&gt;.*?): (?&lt;msg&gt;.*)</string>
+    <string name="translator_cond_text_regex">Text / Body Pattern (Regex)</string>
+    <string name="translator_cond_text_regex_hint">e.g. OTP code is (\\d{4,8}) or .*arriving in (\\d+) mins.*</string>
+    <string name="translator_cond_subtext_regex">Subtext Pattern (Regex)</string>
+    <string name="translator_cond_subtext_regex_hint">e.g. (\\d+) new messages</string>
+    <string name="translator_cond_channel">Notification Channel ID</string>
+    <string name="translator_cond_channel_hint">e.g. urgent_alerts, messages_channel</string>
+    <string name="translator_cond_category">Category (e.g. msg, call, progress)</string>
+    <string name="translator_cond_sender_name_hint">e.g. ^(?&lt;name&gt;[A-Z][a-z]+) or Alex|Sarah</string>
+    <string name="translator_cond_conv_title_hint">e.g. Work Team|Family Group</string>
+    <string name="translator_cond_artist_hint">e.g. Queen|Daft Punk</string>
+    <string name="translator_cond_album_hint">e.g. Greatest Hits</string>
+    <string name="translator_cond_caller_name_hint">e.g. Mom|Boss|Doctor</string>
+    <string name="translator_cond_nav_instruction_hint">e.g. Turn (left|right) on .*</string>
+    <string name="translator_cond_nav_distance_hint">e.g. In (\\d+) (m|km|ft|mi)</string>
+    <string name="translator_cond_has_progress">Must Have Progress</string>
+    <string name="translator_cond_has_actions">Must Have Actions</string>
+    <string name="translator_pres_icon_source">Left Icon Source</string>
+    <string name="translator_prog_type">Progress Slot Type</string>
+    <string name="translator_prog_type_none">Disabled / None</string>
+    <string name="translator_prog_type_none_desc">Do not show progress bar or timing indicators</string>
+    <string name="translator_prog_type_bar">Progress Bar</string>
+    <string name="translator_prog_type_bar_desc">Linear bar in expanded island, circular indicator on pill</string>
+    <string name="translator_prog_type_waypoint">Waypoint / Stepper</string>
+    <string name="translator_prog_type_waypoint_desc">Step-by-step progress points for deliveries or routes</string>
+    <string name="translator_prog_type_timer">Countdown / Timer</string>
+    <string name="translator_prog_type_timer_desc">Active elapsed or remaining countdown time indicator</string>
+    <string name="translator_prog_regex">Progress Regex (e.g. (\\d+)%)</string>
+    <string name="translator_actions_source">Action Source</string>
+    <string name="translator_actions_source_notif">Original Notification Action</string>
+    <string name="translator_actions_source_smart">Smart Action</string>
+    <string name="translator_actions_smart_type">Smart Action Type</string>
+    <string name="translator_actions_add_slot">Add Button</string>
+    <string name="translator_actions_remove_slot">Remove Button</string>
+    <string name="translator_behavior_engine">Engine Mode</string>
+    <string name="translator_meta_title">Translator Info</string>
+    <string name="translator_menu_conditions">Match Conditions</string>
+    <string name="translator_menu_conditions_sub">Filter by title, text regex, category</string>
+    <string name="translator_menu_presentation">Presentation &amp; Layout</string>
+    <string name="translator_menu_presentation_sub">Title, subtitle templates, tags</string>
+    <string name="translator_menu_progress">Progress &amp; Timing</string>
+    <string name="translator_menu_progress_sub">Bar, timer, waypoints, text regex</string>
+    <string name="translator_menu_actions">Buttons</string>
+    <string name="translator_menu_actions_sub">Smart actions, intent triggers, action buttons</string>
+    <string name="translator_menu_behavior">Behavior &amp; Engine</string>
+    <string name="translator_menu_behavior_sub">Island timeouts, popup floats, engine mode</string>
+    <string name="translator_btn_edit_meta">Edit Info &amp; Priority</string>
+    <string name="translator_scope_global">Global</string>
+    <string name="translator_scope_apps">Apps</string>
+    <string name="translator_scope_apps_fmt">%1$d apps targeted</string>
+    <string name="translator_conditions_title">Match Conditions</string>
+    <string name="translator_conditions_desc">Define regular expressions and filters to match target notifications.</string>
+    <string name="translator_cond_has_progress_desc">Notification must contain progress bar/indicator</string>
+    <string name="translator_cond_has_actions_desc">Notification must have action buttons</string>
+    <string name="translator_pres_mode">Presentation Mode</string>
+    <string name="translator_pres_title_tpl">Title Template ({notif.title})</string>
+    <string name="translator_pres_sub_tpl">Subtitle Template ({notif.text})</string>
+    <string name="translator_pres_highlight_tpl">Highlight Text Template</string>
+    <string name="translator_prog_show_pct">Show Percentage</string>
+    <string name="translator_prog_regex_tpl">Progress Regex (e.g. (\\d+)%)</string>
+    <string name="translator_actions_title">Buttons</string>
+    <string name="translator_actions_empty_title">No Buttons Configured</string>
+    <string name="translator_actions_empty_desc">Add buttons to map original notification actions, smart actions, or quick replies.</string>
+    <string name="translator_action_custom_label">Custom Button Label</string>
+    <string name="translator_behavior_title">Behavior &amp; Island Lifetime</string>
+    <string name="translator_target_scope_card_title">Target Scope</string>
+    <string name="translator_target_scope_global_desc">Applies to all allowed applications in Library</string>
+    <string name="translator_target_scope_apps_title">Specific Apps</string>
+    <string name="translator_target_scope_apps_desc">Applies only to selected applications (%1$d selected)</string>
+    <string name="translator_target_scope_system_title">System Apps</string>
+    <string name="translator_target_scope_system_desc">Applies to selected system applications (%1$d selected)</string>
+    <string name="translator_select_apps_action">Select Apps</string>
+    <string name="translator_select_system_apps_action">Select System Apps</string>
+    <string name="translator_notif_types_filter_title">Filter by Notification Type</string>
+    <string name="translator_notif_types_filter_desc">Restrict rule to specific Android notification categories</string>
+    <string name="translator_notif_types_count_fmt">%1$d types selected</string>
+    <string name="translator_notif_types_sheet_title">Select Notification Types</string>
+    <string name="translator_scope_sheet_title">Select Target Scope</string>
+    <string name="app_translators_section_desc">Active translator rules applied to this application.</string>
+    <string name="app_translators_create_for_app">Create for this app</string>
+    <string name="app_translators_empty">No custom translators configured for this app yet.</string>
+    <string name="translator_cond_sheet_title">Add Condition Pattern</string>
+    <string name="translator_cond_empty_title">No Condition Patterns</string>
+    <string name="translator_cond_empty_desc">Add patterns or property filters to specify when this translator triggers.</string>
+    <string name="translator_cond_group_standard">Standard Properties</string>
+    <string name="translator_cond_group_messaging">Messaging &amp; People</string>
+    <string name="translator_cond_group_media">Media &amp; Playback</string>
+    <string name="translator_cond_group_call">Phone Calls</string>
+    <string name="translator_cond_group_progress">Progress &amp; Downloads</string>
+    <string name="translator_cond_sender_name">Person / Sender Name (Regex)</string>
+    <string name="translator_cond_conv_title">Conversation / Group Title (Regex)</string>
+    <string name="translator_cond_is_group">Group Conversation</string>
+    <string name="translator_cond_is_group_desc">Only match messages from group chats</string>
+    <string name="translator_cond_artist">Artist / Performer (Regex)</string>
+    <string name="translator_cond_album">Album Name (Regex)</string>
+    <string name="translator_cond_is_playing">Playback State</string>
+    <string name="translator_cond_is_playing_desc">Only match when media is actively playing</string>
+    <string name="translator_cond_caller_name">Caller Name (Regex)</string>
+    <string name="translator_cond_call_type">Call State Filter</string>
+    <string name="translator_cond_call_type_incoming">Incoming Calls Only</string>
+    <string name="translator_cond_call_type_ongoing">Ongoing Calls Only</string>
+    <string name="translator_cond_call_type_missed">Missed Calls Only</string>
+    <string name="translator_cond_nav_instruction">Navigation Instruction (Regex)</string>
+    <string name="translator_cond_nav_distance">Distance Text (Regex)</string>
+    <string name="translator_cond_min_progress">Minimum Progress %</string>
+    <string name="translator_cond_max_progress">Maximum Progress %</string>
+    <string name="translator_cond_category_title">Android Notification Category</string>
+    <string name="translator_cond_category_desc">Low-level Android OS system category flag (Notification.category). Unlike Target Notification Types which are HyperBridge\'s high-level classifiers, this matches raw system tags.</string>
+    <string name="translator_cond_category_custom">Custom Category String</string>
+    <string name="translator_cond_category_custom_hint">e.g. custom_cat</string>
+    <string name="translator_cond_category_msg">Message (msg)</string>
+    <string name="translator_cond_category_email">Email (email)</string>
+    <string name="translator_cond_category_call">Call (call)</string>
+    <string name="translator_cond_category_alarm">Alarm (alarm)</string>
+    <string name="translator_cond_category_progress">Progress (progress)</string>
+    <string name="translator_cond_category_transport">Media Transport (transport)</string>
+    <string name="translator_cond_category_navigation">Navigation (navigation)</string>
+    <string name="translator_cond_category_promo">Promo / Recommendation (promo)</string>
+    <string name="translator_cond_category_service">Background Service (service)</string>
+    <string name="translator_cond_category_event">Calendar Event (event)</string>
+    <string name="translator_cond_category_social">Social (social)</string>
+    <string name="translator_cond_category_reminder">Reminder (reminder)</string>
+    <string name="translator_cond_category_system">System (sys)</string>
+    <string name="translator_cond_channel_select_btn">Select Channel</string>
+    <string name="translator_cond_channel_sheet_title">Select Notification Channel</string>
+    <string name="translator_cond_channel_search_hint">Search notification channels...</string>
+    <string name="translator_cond_channel_empty">No channels found for target apps</string>
+    <string name="translator_cond_channel_custom_desc">Or enter custom / manual Channel ID:</string>
+    <!-- Presentation & Layout Strings -->
+    <string name="translator_pres_mode_title">Presentation Mode</string>
+    <string name="translator_pres_mode_desc">Choose how this notification is rendered in the island</string>
+    <string name="translator_pres_mode_standard">Standard</string>
+    <string name="translator_pres_mode_standard_desc">Dynamic island with custom title, subtitle, and icons</string>
+    <string name="translator_pres_mode_template">Template</string>
+    <string name="translator_pres_mode_template_desc">Predefined dynamic island template layouts</string>
+    <string name="translator_pres_mode_widget">Widget</string>
+    <string name="translator_pres_mode_widget_desc">Custom interactive rich widget component</string>
+    <string name="translator_pres_mode_sheet_title">Select Presentation Mode</string>
+    <string name="translator_pres_mode_select_btn">Change Mode</string>
+    <string name="translator_pres_theme_title">Linked Theme</string>
+    <string name="translator_pres_theme_active">Active Theme (Default)</string>
+    <string name="translator_pres_theme_active_desc">Follows whichever theme is currently active in HyperBridge</string>
+    <string name="translator_pres_theme_sheet_title">Select Theme</string>
+    <string name="translator_pres_theme_select_btn">Change Theme</string>
+    <string name="translator_pres_wip_title">Work in Progress</string>
+    <string name="translator_pres_widget_wip_desc">Select an app widget to display on the island.</string>
+    <string name="translator_pres_select_template_btn">Select Template</string>
+    <string name="translator_pres_template_sheet_title">Select Template Layout</string>
+    <string name="translator_pres_template_default">Template 1: Weather &amp; Navigation</string>
+    <string name="translator_pres_template_payment">Template 2: Payment &amp; Wallet</string>
+    <string name="translator_pres_template_call">Template 3: Voice Call &amp; CallKit</string>
+    <string name="translator_pres_template_delivery">Template 4: Ride-Hail &amp; Food Delivery</string>
+    <string name="translator_pres_template_queue">Template 5: Queue &amp; Waiting</string>
+    <string name="translator_pres_template_parking">Template 6: Parking &amp; Metering</string>
+    <string name="translator_pres_template_download">Template 7: File Upload &amp; Download</string>
+    <string name="translator_pres_template_promo">Template 8: Coupon &amp; Red Packet</string>
+    <string name="translator_pres_template_media">Template 12: Compact Media Player</string>
+    <string name="translator_pres_widget_default">System Status Widget</string>
+    <string name="translator_pres_widget_counter">Timer &amp; Counter Widget</string>
+    <string name="translator_pres_icon_source_title">Left Icon Slot</string>
+    <string name="translator_pres_icon_source_desc">Choose the icon displayed on the left side of the island</string>
+    <string name="translator_pres_icon_source_app">App Icon</string>
+    <string name="translator_pres_icon_source_avatar">Sender / Large Icon Avatar</string>
+    <string name="translator_pres_icon_source_hidden">Hidden / None</string>
+    <string name="translator_pres_icon_sheet_title">Select Left Icon Slot</string>
+    <string name="translator_pres_icon_select_btn">Change Icon Slot</string>
+    <string name="translator_pres_tags_hint">Quick Insert Variable:</string>
+    <string name="translator_pres_text_title">Text &amp; Templates</string>
+    <string name="translator_pres_text_desc">Define dynamic title and subtitle with variable tokens</string>
+    <!-- Progress & Timing Strings -->
+    <string name="translator_prog_info_title">How Progress Works</string>
+    <string name="translator_prog_type_card_title">Progress Slot Type</string>
+    <string name="translator_prog_type_card_desc">Choose whether and how progress is displayed</string>
+    <string name="translator_prog_type_select_btn">Change Type</string>
+    <string name="translator_prog_type_sheet_title">Select Progress Type</string>
+    <string name="translator_prog_show_pct_desc">Display numerical percentage text (e.g. 75%) alongside indicator</string>
+    <string name="translator_prog_extract_card_title">Text Extraction</string>
+    <string name="translator_prog_extract_card_desc">Parse progress percentages from notification title, text, or subtext</string>
+    <string name="translator_prog_regex_desc">Capture numerical progress with regex group (\\d+)</string>
+    <string name="translator_prog_regex_chips_title">Regex Presets:</string>
+    <string name="translator_prog_max_title">Custom Maximum Value</string>
+    <string name="translator_prog_max_desc">Denominator when calculating percentage (defaults to 100)</string>
+    <!-- Buttons Strings -->
+    <string name="translator_actions_info_title">How Buttons Work</string>
+    <string name="translator_actions_slot_badge">Button %1$d</string>
+    <string name="translator_actions_visibility_hidden">Hidden</string>
+    <string name="translator_actions_source_title">Button Source</string>
+    <string name="translator_actions_source_notif_title">Notification Button</string>
+    <string name="translator_actions_source_notif_desc">Trigger original button from notification (e.g. Mark as read, Pause)</string>
+    <string name="translator_actions_source_smart_title">Smart Action</string>
+    <string name="translator_actions_source_smart_desc">Synthesized actions like Copy OTP, Open Link, Dial, or Track</string>
+    <string name="translator_actions_source_reply_title">Inline Reply Overlay</string>
+    <string name="translator_actions_source_reply_desc">Open quick text reply dialog to answer messaging conversations</string>
+    <string name="translator_actions_source_broadcast_title">Custom Broadcast Intent</string>
+    <string name="translator_actions_source_broadcast_desc">Send custom Android broadcast to external apps or Tasker</string>
+    <string name="translator_actions_source_sheet_title">Select Action Source</string>
+    <string name="translator_actions_source_change_btn">Change Source</string>
+    <string name="translator_actions_display_mode_title">Display Style</string>
+    <string name="translator_actions_display_mode_icon">Icon Only</string>
+    <string name="translator_actions_display_mode_text">Text Only</string>
+    <string name="translator_actions_display_mode_both">Icon &amp; Text</string>
+    <string name="translator_actions_smart_type_sheet_title">Select Smart Action</string>
+    <string name="translator_actions_smart_otp">Copy 2FA / OTP Code</string>
+    <string name="translator_actions_smart_otp_desc">Extracts one-time passcodes and copies to clipboard</string>
+    <string name="translator_actions_smart_url">Open URL / Link</string>
+    <string name="translator_actions_smart_url_desc">Opens URLs detected in notification text in browser</string>
+    <string name="translator_actions_smart_dial">Dial Phone Number</string>
+    <string name="translator_actions_smart_dial_desc">Calls phone numbers detected in notification body</string>
+    <string name="translator_actions_smart_track">Track Package</string>
+    <string name="translator_actions_smart_track_desc">Opens package tracking info for delivery notifications</string>
+    <string name="translator_actions_matcher_title">Match Notification Button</string>
+    <string name="translator_actions_matcher_by_index">By Button Position / Index</string>
+    <string name="translator_actions_matcher_by_title">By Button Title Regex</string>
+    <string name="translator_actions_matcher_index_label">Button Index (0 = 1st, 1 = 2nd, etc.)</string>
+    <string name="translator_actions_matcher_regex_label">Action Title Regex (e.g. Reply|Responder)</string>
+    <!-- Behavior & Engine Strings -->
+    <string name="translator_behavior_engine_mode_sheet_title">Select Engine Mode</string>
+    <string name="translator_behavior_engine_mode_inherit">Inherit App Default</string>
+    <string name="translator_behavior_engine_mode_inherit_desc">Follows the global engine set in HyperBridge settings</string>
+    <string name="translator_behavior_engine_change_btn">Change Engine</string>
+    <!-- Pill Customization Strings -->
+    <string name="translator_menu_pill">Pill Customization</string>
+    <string name="translator_menu_pill_sub">Compact island left &amp; right slot design</string>
+    <string name="translator_pill_left_sheet_title">Select Left Pill Design</string>
+    <string name="translator_pill_right_sheet_title">Select Right Pill Design</string>
+    <string name="translator_pill_left_icon_and_text">Icon and message</string>
+    <string name="translator_pill_left_icon_and_text_desc">Shows the app icon alongside a short title</string>
+    <string name="translator_pill_left_icon_only">Icon only</string>
+    <string name="translator_pill_left_icon_only_desc">Shows only the app icon in a circular badge</string>
+    <string name="translator_pill_left_text_only">Message only</string>
+    <string name="translator_pill_left_text_only_desc">Shows the short title text without an icon</string>
+    <string name="translator_pill_left_avatar">Contact avatar</string>
+    <string name="translator_pill_left_avatar_desc">Displays the sender picture or contact avatar</string>
+    <string name="translator_pill_left_media">Media / Now Playing</string>
+    <string name="translator_pill_left_media_desc">Displays album art, track title, or artist according to your preference</string>
+    <string name="translator_pill_media_preferences_title">Media Preferences</string>
+    <string name="translator_pill_media_order_title">Media Preference Order</string>
+    <string name="translator_pill_media_order_subtitle">Choose which media elements to display and adjust priority order from top to bottom.</string>
+    <string name="translator_pill_media_item_album_cover">Album Cover</string>
+    <string name="translator_pill_media_item_album_cover_desc">Displays the album or playback cover artwork</string>
+    <string name="translator_pill_media_item_track">Track Title</string>
+    <string name="translator_pill_media_item_track_desc">Displays the song or audio title</string>
+    <string name="translator_pill_media_item_artist">Artist Name</string>
+    <string name="translator_pill_media_item_artist_desc">Displays the artist or creator name</string>
+    <string name="translator_pill_left_hidden">Hidden / Empty</string>
+    <string name="translator_pill_left_hidden_desc">Leaves the left pill slot empty</string>
+    <string name="translator_pill_right_auto">Auto-detect (Recommended)</string>
+    <string name="translator_pill_right_auto_desc">Automatically renders timer or progress percent if available</string>
+    <string name="translator_pill_right_progress">Circular progress</string>
+    <string name="translator_pill_right_progress_desc">Shows animated circular progress ring</string>
+    <string name="translator_pill_right_timer">Timer</string>
+    <string name="translator_pill_right_timer_desc">Displays live counting timer</string>
+    <string name="translator_pill_right_highlight">Highlight text</string>
+    <string name="translator_pill_right_highlight_desc">Shows custom highlight text or status snippet</string>
+    <string name="translator_pill_right_none">Empty</string>
+    <string name="translator_pill_right_none_desc">Leaves the right pill slot empty</string>
+    <!-- Preview Mode Strings -->
+    <string name="translator_preview_mode_expanded">Expanded Island</string>
+    <string name="translator_preview_mode_pill">Compact Pill</string>
+    <!-- Priority & Icon Sheet Strings -->
+    <string name="translator_icon_sheet_title">Select Translator Icon</string>
+    <string name="translator_icon_sheet_desc">Choose an outlined icon that represents the notification style</string>
+    <string name="translator_priority_sheet_title">Execution Priority</string>
+    <string name="translator_priority_card_subtitle">Determines evaluation order among translators</string>
+    <string name="translator_priority_sheet_desc">When multiple rules match a notification, the highest priority rule executes first.</string>
+    <string name="translator_priority_input_label">Priority Number (0 - 9999)</string>
+    <!-- Import / Export / Sharing Strings -->
+    <string name="translators_import_button">Import</string>
+    <string name="translators_export_button">Export</string>
+    <string name="translators_share_button">Share</string>
+    <string name="translators_import_success">Translator \"%1$s\" imported successfully</string>
+    <string name="translators_import_failed">Failed to import translator: %1$s</string>
+    <string name="translators_export_success">Translator exported successfully</string>
+    <string name="translators_export_failed">Failed to export translator</string>
+    <string name="translators_share_failed">Failed to share translator</string>
+    <!-- Raw Param V2 Strings -->
+    <!-- Island Templates (Phase 4, #272) -->
+    <string name="island_template_boarding">Template 9: Boarding Pass</string>
+    <string name="island_template_courier">Template 10: Courier Tracking</string>
+    <string name="island_template_desc_weather_nav">Turn-by-turn directions or a weather alert, with the next step highlighted.</string>
+    <string name="island_template_desc_payment">A payment or one-time code, with the code pulled out and a copy button.</string>
+    <string name="island_template_desc_call">Caller avatar with the answer and hang-up buttons from the notification.</string>
+    <string name="island_template_desc_delivery">A ride or food order moving through its waypoints.</string>
+    <string name="island_template_desc_queue">Your place in a queue and how long is left.</string>
+    <string name="island_template_desc_parking">A parking or charging session counting up as a timer.</string>
+    <string name="island_template_desc_transfer">An upload or download with a percentage bar.</string>
+    <string name="island_template_desc_promo">A coupon or offer, with a button to open it.</string>
+    <string name="island_template_desc_boarding">Gate, seat and boarding time, with the airline action kept.</string>
+    <string name="island_template_desc_courier">A parcel moving through its delivery steps, with a tracking button.</string>
+    <string name="island_template_desc_media">Compact now-playing island for media notifications.</string>
+    <string name="design_section_designs">Designs</string>
+    <string name="design_designs_empty_title">No designs yet</string>
+    <string name="design_designs_empty_subtitle">Start from one of the ten Xiaomi island templates</string>
+    <string name="design_add_design_title">Add a design</string>
+    <string name="design_add_from_template">From a template</string>
+    <string name="design_add_from_template_desc">Pick one of the ten official island templates</string>
+    <string name="design_add_custom">Custom design</string>
+    <string name="design_add_custom_desc">Build an island element by element in the Widget Studio</string>
+    <string name="design_template_gallery_title">Choose a template</string>
+    <string name="design_template_type_title">When should it show?</string>
+    <string name="design_template_type_desc">Select the notification type to style with this design.</string>
+    <string name="design_design_created">Design added</string>
+    <string name="translator_pres_template_gallery_desc">Pick a layout, then bind each element to the notification below.</string>
+    <string name="design_manager_subtitle">Manage templates and custom island designs</string>
+    <string name="design_status_active">%d active</string>
+    <string name="design_toggle_preview_cd">Toggle preview or icon view</string>
+    <string name="design_template_type_suggested">Suggested</string>
+    <string name="design_card_themes_active_default">System Default active</string>
+    <string name="design_card_widgets_saved">%d configured</string>
+    <string name="design_card_widgets_empty">No widgets</string>
+    <!-- Design Screen Layout Variant switcher -->
+    <!-- Design Screen Featured & Guides Sections -->
+    <string name="design_section_featured">Featured</string>
+    <string name="design_featured_showcase_title">Community Showcase</string>
+    <string name="design_featured_showcase_subtitle">Explore community creations and customizations</string>
+    <string name="design_featured_themes_title">Hyper Themes</string>
+    <string name="design_featured_themes_subtitle">Explore custom color palettes and island styles</string>
+    <string name="design_featured_widgets_subtitle">Control music, timers, and app shortcuts directly</string>
+    <string name="design_featured_designs_title">Interactive Designs</string>
+    <string name="design_featured_designs_subtitle">Craft custom layouts for boarding, tracking, and more</string>
+    <string name="design_featured_translators_title">Smart Translators</string>
+    <string name="design_featured_translators_subtitle">Intercept notifications with custom regex and rules</string>
+    <string name="design_featured_schemes_title">Color Schemes</string>
+    <string name="design_featured_schemes_subtitle">Discover vibrant palettes and custom presets</string>
+    <string name="design_guide_customization_desc">Design hub, theme creator, custom translators, and widgets</string>
+    <string name="design_guide_features_title">Features</string>
+    <string name="design_guide_features_desc">System apps, smart actions, inline reply, and permanent island</string>
+    <string name="design_guide_advanced_title">Advanced Configuration</string>
+    <string name="design_guide_advanced_desc">Power user settings, Shizuku integration, and troubleshooting</string>
+    <string name="island_template_hint_copy">Copy</string>
+    <string name="island_template_hint_view">View</string>
+    <string name="island_template_hint_track">Track</string>
+    <!-- App Designs Filter Sheet Strings -->
+    <string name="app_designs_filter_sheet_title">Filter Designs</string>
+    <string name="app_designs_filter_sheet_desc">Filter custom designs by status, scope, notification types, templates, or icons</string>
+    <string name="app_designs_filter_templates_section">Templates</string>
+    <!-- Design Screen Add Options Bottom Sheet -->
+    <string name="design_add_sheet_title">Add to Island</string>
+    <string name="design_add_sheet_subtitle">Select what you would like to create or add</string>
+    <string name="design_add_opt_design_desc">Build from official Xiaomi island templates or custom layout</string>
+    <string name="design_add_opt_widget_title">System Widget</string>
+    <string name="design_add_opt_widget_desc">Embed native app widgets directly inside the island</string>
+    <string name="design_add_opt_theme_title">Theme &amp; Styles</string>
+    <string name="design_add_opt_theme_desc">Explore, create, and customize colors and shapes</string>
+    <string name="design_add_opt_translator_title">Smart Translator</string>
+    <string name="design_add_opt_translator_desc">Intercept notifications with custom regex rules and actions</string>
+    <!-- Reusable Feature Help / Guides Redirect -->
+    <string name="design_manager_help_title">About Island Designs</string>
+    <string name="feature_guides_redirect_desc">View detailed guides, tutorials, and documentation on our website.</string>
+    <!-- Island content sources (issue #273 add-on) -->
+    <string name="permanent_island_widget_label">Micro-widget shown here</string>
+    <string name="permanent_island_widget_none">None</string>
+    <string name="permanent_island_manage_sources">Manage island content sources</string>
+    <string name="source_apps_title">Island content sources</string>
+    <string name="source_apps_description">Apps you allow here can drive a micro-widget on the permanent island (for example, a weather app showing current conditions). HyperBridge trusts each app\'s self-reported identity when it first reports in — this is a lighter guarantee than a cryptographically verified sender, so only allow apps you trust.</string>
+    <string name="source_apps_empty">No apps have reported in yet. An app must broadcast to HyperBridge at least once before it appears here.</string>
+    <!-- Studio Design (Phase 5, #273 / #328) -->
+    <string name="studio_title">Studio Design</string>
+    <string name="studio_new_design">New design</string>
+    <string name="studio_empty">No custom designs yet. Build one element by element for the island.</string>
+    <string name="studio_save">Save</string>
+    <string name="studio_saved">Design saved</string>
+    <string name="studio_restore">Restore last saved</string>
+    <string name="studio_undo">Undo</string>
+    <string name="studio_redo">Redo</string>
+    <string name="studio_discard_dialog_title">Discard unsaved changes?</string>
+    <string name="studio_discard_dialog_desc">You have unsaved changes in this design. If you leave now, your edits will be lost.</string>
+    <string name="studio_discard_dialog_confirm">Discard</string>
+    <string name="studio_discard_dialog_keep_editing">Keep editing</string>
+    <string name="studio_export">Export</string>
+    <string name="studio_import">Import</string>
+    <string name="studio_delete_element">Delete element</string>
+    <string name="studio_validation_errors">%1$d issue(s) fixed automatically</string>
+    <string name="studio_node_image">Design image</string>
+    <string name="studio_tab_design">Design</string>
+    <string name="studio_add_element_title">Add an element</string>
+    <string name="studio_add_text">Text</string>
+    <string name="studio_add_text_desc">A line bound to notification content or a device value</string>
+    <string name="studio_add_image">Image</string>
+    <string name="studio_add_image_desc">An app icon, an avatar or an asset of your own</string>
+    <string name="studio_add_progress">Progress</string>
+    <string name="studio_add_progress_desc">A bar driven by progress, battery or a source value</string>
+    <string name="studio_add_button">Button</string>
+    <string name="studio_add_button_desc">A tap target that fires an action</string>
+    <string name="studio_add_container">Group</string>
+    <string name="studio_add_container_desc">A row, column or free-positioned group of elements</string>
+    <string name="studio_section_content">Content</string>
+    <string name="studio_section_position">Position, size and layer</string>
+    <string name="studio_section_visibility">Show this element when</string>
+    <string name="studio_section_action">On tap</string>
+    <string name="studio_section_design">Design</string>
+    <string name="studio_property_name">Design name</string>
+    <string name="studio_property_template">Text / template</string>
+    <string name="studio_property_label">Label</string>
+    <string name="studio_property_font_size">Font size (sp)</string>
+    <string name="studio_property_max_lines">Max lines</string>
+    <string name="studio_property_color">Color (hex)</string>
+    <string name="studio_property_background">Background (hex)</string>
+    <string name="studio_property_tint">Tint (hex)</string>
+    <string name="studio_property_bold">Bold</string>
+    <string name="studio_property_max_value">Max value</string>
+    <string name="studio_property_gap">Gap (dp)</string>
+    <string name="studio_property_padding">Padding (dp)</string>
+    <string name="studio_property_x">X (dp)</string>
+    <string name="studio_property_y">Y (dp)</string>
+    <string name="studio_property_width">Width (dp)</string>
+    <string name="studio_property_height">Height (dp)</string>
+    <string name="studio_layer_hint">Drag the element on the canvas, or set it here. Elements later in the stack are drawn on top.</string>
+    <string name="studio_layer_forward">Bring forward</string>
+    <string name="studio_layer_back">Send back</string>
+    <string name="studio_condition_always">Always</string>
+    <string name="studio_condition_has_action">Has a button</string>
+    <string name="studio_condition_has_reply">Can reply</string>
+    <string name="studio_condition_has_smart_action">Has a smart action</string>
+    <string name="studio_condition_has_progress">Has progress</string>
+    <string name="studio_condition_not_blank">Value is not empty</string>
+    <string name="studio_condition_matches">Value matches</string>
+    <string name="studio_condition_action_index">Button number (0 is the first)</string>
+    <string name="studio_condition_regex">Regular expression</string>
+    <string name="studio_condition_mode_simple">Single rule</string>
+    <string name="studio_condition_mode_compound">Compound</string>
+    <string name="studio_condition_match_all">Match ALL rules (AND)</string>
+    <string name="studio_condition_match_any">Match ANY rule (OR)</string>
+    <string name="studio_condition_add_rule">Add rule</string>
+    <string name="studio_condition_delete_rule">Delete rule</string>
+    <string name="studio_condition_rule_title">Rule %1$d</string>
+    <string name="studio_condition_invert">Invert rule (NOT)</string>
+    <string name="studio_condition_status_met">Visible in current scenario</string>
+    <string name="studio_condition_status_unmet">Hidden in current scenario</string>
+    <string name="studio_condition_presets">Presets</string>
+    <string name="studio_condition_preset_otp">OTP code</string>
+    <string name="studio_condition_preset_progress">Active progress</string>
+    <string name="studio_condition_preset_reply">Quick reply</string>
+    <string name="studio_condition_preset_low_battery">Low battery</string>
+    <string name="studio_action_none">Nothing</string>
+    <string name="studio_action_dismiss">Dismiss</string>
+    <string name="studio_action_notification">The app\'s button</string>
+    <string name="studio_action_reply">Reply</string>
+    <string name="studio_action_smart">Smart action</string>
+    <string name="studio_action_open_app">Open an app</string>
+    <string name="studio_action_deep_link">Open a link</string>
+    <string name="studio_action_broadcast_kind">Send a broadcast</string>
+    <string name="studio_action_package">Package name</string>
+    <string name="studio_action_uri">Link</string>
+    <string name="studio_action_broadcast">Broadcast action</string>
+    <string name="studio_action_extra_key">Extra key</string>
+    <string name="studio_action_extra_value">Extra value</string>
+    <string name="studio_breadcrumb_root">Root</string>
+    <string name="studio_tab_items">Items</string>
+    <string name="studio_tab_layer">Layer</string>
+    <string name="studio_tab_item">Item</string>
+    <string name="studio_tab_position">Position</string>
+    <string name="studio_tab_colors">Colors</string>
+    <string name="studio_tab_value">Value</string>
+    <string name="studio_tab_actions">Actions</string>
+    <string name="studio_tab_bindings">Formulas</string>
+    <string name="studio_tab_container">Container</string>
+    <string name="studio_tab_progress">Progress</string>
+    <string name="studio_tab_style">Style</string>
+    <string name="studio_progress_linked_to">Linked Data</string>
+    <string name="studio_progress_link_battery">Battery</string>
+    <string name="studio_progress_link_notif">Notification</string>
+    <string name="studio_progress_link_media">Media</string>
+    <string name="studio_progress_link_custom">Custom</string>
+    <string name="studio_progress_sheet_title">Select Linked Data</string>
+    <string name="studio_progress_link_battery_desc">Device battery percentage (0..100)</string>
+    <string name="studio_progress_link_notif_desc">Notification progress percentage (0..100)</string>
+    <string name="studio_progress_link_media_desc">Media playback progress calculated from duration (0..100)</string>
+    <string name="studio_progress_link_custom_desc">Custom template or formula expression</string>
+    <string name="studio_progress_select_source">Select source</string>
+    <string name="studio_progress_mode">Progress Mode</string>
+    <string name="studio_progress_mode_line">Line</string>
+    <string name="studio_progress_mode_circle">Circle</string>
+    <string name="studio_progress_mode_divided">Divided</string>
+    <string name="studio_progress_mode_wave">Wave</string>
+    <string name="studio_progress_color_mode">Color Mode</string>
+    <string name="studio_progress_color_mode_flat">Flat</string>
+    <string name="studio_progress_color_mode_gradient">Gradient</string>
+    <string name="studio_progress_color_mode_current">Current</string>
+    <string name="studio_progress_color_mode_multicolor">Multicolor</string>
+    <string name="studio_progress_fg_color">FgColor</string>
+    <string name="studio_progress_fnd_color">FndColor</string>
+    <string name="studio_progress_style_lineal">Lineal</string>
+    <string name="studio_progress_style_circular">Circular</string>
+    <string name="studio_progress_stroke_size">Size</string>
+    <string name="studio_progress_color_progress">Progress Color</string>
+    <string name="studio_progress_color_track">Track Color</string>
+    <string name="studio_progress_preview_label">Preview: %1$s / %2$d (%3$d%%)</string>
+    <string name="studio_progress_color_start">Start Color</string>
+    <string name="studio_progress_color_end">End Color</string>
+    <string name="studio_progress_current_desc">Dynamically uses the accent color from the active notification, media session, or system theme.</string>
+    <string name="studio_progress_current_source">Dynamic Source</string>
+    <string name="studio_progress_current_system">System</string>
+    <string name="studio_progress_current_notif">Notification</string>
+    <string name="studio_progress_current_media">Media</string>
+    <string name="studio_progress_multicolor_palette">Color Palette</string>
+    <string name="studio_progress_add_color">Add Color</string>
+    <string name="studio_progress_remove_color">Remove</string>
+    <string name="studio_progress_preset_rainbow">Rainbow</string>
+    <string name="studio_progress_preset_traffic">Status</string>
+    <string name="studio_progress_preset_neon">Cyber</string>
+    <string name="studio_progress_preset_sunset">Sunset</string>
+    <string name="studio_layer_name">Layer Name</string>
+    <string name="studio_layer_locked">Locked</string>
+    <string name="studio_layer_unlocked">Unlocked</string>
+    <string name="studio_layer_expand">Expand group</string>
+    <string name="studio_layer_collapse">Collapse group</string>
+    <string name="studio_layer_more_options">Layer options</string>
+    <string name="studio_layer_lock_desc">Prevent canvas drag and resize</string>
+    <string name="studio_bind_formula">Formula / Binding</string>
+    <string name="studio_bind_static">Static value</string>
+    <string name="studio_toolbar_zoom_in">Zoom In</string>
+    <string name="studio_toolbar_zoom_out">Zoom Out</string>
+    <string name="studio_toolbar_zoom_reset">Reset Zoom</string>
+    <string name="studio_toolbar_grid">Toggle Grid</string>
+    <string name="studio_toolbar_wireframe">Toggle Preview Mode</string>
+    <string name="studio_toolbar_collapse">Collapse toolbar</string>
+    <string name="studio_toolbar_expand">Expand toolbar</string>
+    <string name="studio_toolbar_drag_handle">Drag toolbar</string>
+    <string name="studio_toolbar_dock_cycle">Switch toolbar dock position</string>
+    <string name="studio_toolbar_dock_left">Dock toolbar to left</string>
+    <string name="studio_toolbar_dock_right">Dock toolbar to right</string>
+    <string name="studio_toolbar_dock_bottom">Dock toolbar to bottom</string>
+    <string name="studio_bindings_empty">No formula bindings configured for this layer.</string>
+    <string name="studio_binding_property">Property</string>
+    <string name="studio_binding_formula_hint">Enter variable token or formula (e.g. {theme.accent})</string>
+    <string name="studio_items_empty">This group contains no elements. Tap Add to create one.</string>
+    <string name="studio_items_add">Add Element</string>
+    <string name="studio_layer_duplicate">Duplicate</string>
+    <string name="studio_layer_group">Group</string>
+    <string name="studio_layer_ungroup">Ungroup</string>
+    <string name="studio_layer_front">Bring to front</string>
+    <string name="studio_layer_back_stack">Send to back</string>
+    <string name="studio_layer_rename">Rename layer</string>
+    <string name="studio_layer_hide_editor">Hide in editor</string>
+    <string name="studio_layer_show_editor">Show in editor</string>
+    <string name="studio_layer_badge_action">Action</string>
+    <string name="studio_layer_badge_condition">Condition</string>
+    <string name="studio_layer_badge_formula">Formula</string>
+    <string name="studio_scenario_title">Scenario</string>
+    <string name="studio_scenario_standard">Standard</string>
+    <string name="studio_scenario_message">Message</string>
+    <string name="studio_scenario_progress">Progress</string>
+    <string name="studio_scenario_otp">OTP / Code</string>
+    <string name="studio_scenario_media">Media</string>
+    <!-- Stage 4: Formula Editor & Rich Properties -->
+    <string name="studio_formula_dialog_title">Formula / Binding ($fx$)</string>
+    <string name="studio_formula_dialog_desc">Bind this property to a dynamic variable token or expression.</string>
+    <string name="studio_formula_cat_notif">Notification</string>
+    <string name="studio_formula_cat_device">Device</string>
+    <string name="studio_formula_cat_theme">Theme</string>
+    <string name="studio_formula_cat_sources">Sources</string>
+    <string name="studio_formula_preview_label">Preview (%1$s):</string>
+    <string name="studio_formula_preview_empty">(empty / fallback)</string>
+    <string name="studio_formula_clear">Clear Formula</string>
+    <string name="studio_formula_apply">Apply</string>
+    <string name="studio_image_source">Image Source</string>
+    <string name="studio_image_source_notif_media">Notification Media</string>
+    <string name="studio_image_source_notif_media_desc">Sender avatar, attached media, album art or small icon</string>
+    <string name="studio_image_source_glyph">System Glyph</string>
+    <string name="studio_image_source_glyph_desc">Standard system icons and symbols</string>
+    <string name="studio_image_source_app">App Icon</string>
+    <string name="studio_image_source_app_desc">Application icon from notification or installed app</string>
+    <string name="studio_image_source_contact">Contact</string>
+    <string name="studio_image_source_contact_desc">Contact avatar or phone number lookup</string>
+    <string name="studio_image_source_asset">Custom Asset</string>
+    <string name="studio_image_source_asset_desc">Custom image asset bundled with widget</string>
+    <string name="studio_image_source_source">Source Icon</string>
+    <string name="studio_image_source_source_desc">Dynamic island content provider icon</string>
+    <string name="studio_image_select_source">Select Image Source</string>
+    <string name="studio_image_select_subtype">Select Subtype</string>
+    <string name="studio_image_change_source">Change source</string>
+    <string name="studio_image_change_subtype">Change subtype</string>
+    <string name="studio_image_subtype_title">Subtype</string>
+    <string name="studio_image_notif_media_avatar">Sender / Contact Avatar</string>
+    <string name="studio_image_notif_media_avatar_desc">Profile picture of message sender or person</string>
+    <string name="studio_image_notif_media_picture">Attached Media / Photo</string>
+    <string name="studio_image_notif_media_picture_desc">Attached picture, photo, screenshot or big picture</string>
+    <string name="studio_image_notif_media_album_art">Album Art / Music Media</string>
+    <string name="studio_image_notif_media_album_art_desc">Artwork from currently playing audio or music track</string>
+    <string name="studio_image_notif_media_small_icon">Notification Small Icon</string>
+    <string name="studio_image_notif_media_small_icon_desc">Monochrome status icon provided by the app</string>
+    <string name="studio_image_app_dynamic">Dynamic Notification App</string>
+    <string name="studio_image_app_dynamic_desc">Icon of whichever app posted the notification</string>
+    <string name="studio_image_app_specific">Specific Installed App</string>
+    <string name="studio_image_app_specific_desc">Pick an installed application from your device</string>
+    <string name="studio_image_source_weather">Weather</string>
+    <string name="studio_image_source_music">Music</string>
+    <string name="studio_image_source_system">System</string>
+    <string name="studio_image_source_custom">Custom Source</string>
+    <string name="studio_image_choose_app">Choose installed app…</string>
+    <string name="studio_image_shape">Shape</string>
+    <string name="studio_app_chooser_title">Choose Application</string>
+    <string name="studio_app_chooser_search">Search apps…</string>
+    <string name="studio_app_chooser_empty">No matching applications found.</string>
+    <string name="studio_action_choose_app">Choose app…</string>
+    <string name="studio_design_icon">Design icon</string>
+    <!-- Stage 7: Where It Applies / TargetScope & Package Selector -->
+    <string name="studio_scope_title">Where It Applies</string>
+    <string name="studio_tab_scope">Where It Applies</string>
+    <string name="studio_scope_desc">Choose when this design is displayed on the island</string>
+    <string name="studio_scope_translator_status">Translator status</string>
+    <string name="studio_scope_translator_active">Active in translator</string>
+    <string name="studio_scope_translator_active_desc">This design is currently linked to the \"%1$s\" translator rule.</string>
+    <string name="studio_scope_translator_inactive">Not used in any translator</string>
+    <string name="studio_scope_translator_inactive_desc">This design is standalone. When saved, it will be registered as an active island design rule.</string>
+    <string name="studio_scope_notif_type">Notification Type</string>
+    <string name="studio_scope_specific_apps">Specific Apps</string>
+    <string name="studio_scope_global">Global</string>
+    <string name="studio_scope_system_apps">System Apps</string>
+    <string name="studio_scope_add_app">Add app</string>
+    <string name="studio_scope_no_apps">No apps selected. Tap \'+\' to add an app.</string>
+    <!-- Stage 8: Renderer Parity & Shapes -->
+    <string name="studio_node_shape">Design shape</string>
+    <string name="studio_node_progress">Progress indicator</string>
+    <string name="studio_progress_round_caps">Rounded ends</string>
+    <string name="studio_progress_round_caps_desc">Make the start and end of the progress indicator rounded</string>
+    <string name="studio_progress_indicator_header">Position indicator</string>
+    <string name="studio_progress_thumb_none">None</string>
+    <string name="studio_progress_thumb_rounded">Rounded</string>
+    <string name="studio_progress_thumb_custom_pic">Custom picture</string>
+    <string name="studio_progress_thumb_size">Indicator size</string>
+    <string name="studio_progress_thumb_color">Indicator color</string>
+    <string name="studio_progress_thumb_source">Picture source</string>
+    <string name="studio_add_shape">Shape</string>
+    <string name="studio_add_shape_desc">A geometric shape, card or background plate</string>
+    <string name="studio_property_gravity">Text alignment</string>
+    <string name="studio_gravity_start">Start</string>
+    <string name="studio_gravity_center">Center</string>
+    <string name="studio_gravity_end">End</string>
+    <string name="studio_property_italic">Italic</string>
+    <string name="studio_property_opacity">Opacity</string>
+    <string name="studio_property_shape_fill">Fill color (hex)</string>
+    <string name="studio_property_shape_stroke">Stroke color (hex)</string>
+    <string name="studio_property_shape_stroke_width">Stroke width (dp)</string>
+    <string name="studio_property_shape_corner_radius">Corner radius (dp)</string>
+    <string name="studio_property_shape_geometry">Shape geometry</string>
+    <string name="studio_shape_circle">Circle</string>
+    <string name="studio_shape_rounded">Rounded rectangle</string>
+    <string name="studio_shape_rectangle">Rectangle</string>
+    <string name="studio_shape_cookie">Cookie</string>
+    <string name="studio_shape_arch">Arch</string>
+    <string name="studio_shape_clover">Clover</string>
+    <!-- Text Node Tabs & EFX Improvements -->
+    <string name="studio_tab_efx">EFX</string>
+    <string name="studio_text_sizing_type">Sizing Type</string>
+    <string name="studio_text_sizing_fixed_font_height">Fixed Font Height</string>
+    <string name="studio_text_sizing_fit_width">Fit Width</string>
+    <string name="studio_text_sizing_fixed_width">Fixed Width</string>
+    <string name="studio_text_sizing_fit_box">Fit to Box</string>
+    <string name="studio_text_box_width">Box Width</string>
+    <string name="studio_text_filter_mode">Filter / Blend Mode</string>
+    <string name="studio_filter_normal">Normal</string>
+    <string name="studio_filter_clear">Clear</string>
+    <string name="studio_filter_src">Src</string>
+    <string name="studio_filter_dst">Dst</string>
+    <string name="studio_filter_xor">Xor</string>
+    <string name="studio_filter_darken">Darken</string>
+    <string name="studio_filter_lighten">Lighten</string>
+    <string name="studio_filter_screen">Screen</string>
+    <string name="studio_filter_add">Add</string>
+    <string name="studio_filter_overlay">Overlay</string>
+    <string name="studio_filter_multiply">Multiply</string>
+    <string name="studio_efx_mask">Mask</string>
+    <string name="studio_efx_mask_none">None</string>
+    <string name="studio_efx_mask_blur_bg">Blur Background</string>
+    <string name="studio_efx_mask_blur">Blur</string>
+    <string name="studio_efx_mask_attenuation">Attenuation</string>
+    <string name="studio_efx_texture">Texture</string>
+    <string name="studio_efx_texture_none">None</string>
+    <string name="studio_efx_texture_horizontal_gradient">Horizontal Gradient</string>
+    <string name="studio_efx_texture_vertical_gradient">Vertical Gradient</string>
+    <string name="studio_efx_texture_radial_gradient">Radial Gradient</string>
+    <string name="studio_efx_texture_sweep_gradient">Sweep Gradient</string>
+    <string name="studio_efx_texture_bitmap">Bitmap</string>
+    <string name="studio_efx_texture_color">Texture Color</string>
+    <string name="studio_efx_texture_width">Texture Width</string>
+    <string name="studio_efx_texture_height">Texture Height</string>
+    <string name="studio_efx_texture_parallel">Parallel</string>
+    <string name="studio_efx_texture_bitmap_uri">Bitmap Asset / URI</string>
+    <string name="studio_efx_shadow">Shadow</string>
+    <string name="studio_efx_shadow_enable">Exterior Shadow</string>
+    <string name="studio_efx_shadow_blur">Blur</string>
+    <string name="studio_efx_shadow_direction">Direction</string>
+    <string name="studio_efx_shadow_distance">Distance</string>
+    <string name="studio_efx_shadow_color">Shadow Color</string>
+    <!-- Font Families -->
+    <string name="studio_property_font_family">Font Family</string>
+    <string name="studio_font_family_default">Default</string>
+    <string name="studio_font_family_sans_serif">Sans Serif</string>
+    <string name="studio_font_family_serif">Serif</string>
+    <string name="studio_font_family_monospace">Monospace</string>
+    <string name="studio_font_family_cursive">Cursive</string>
+    <string name="studio_font_family_casual">Casual</string>
+    <string name="studio_font_family_condensed">Condensed</string>
+    <!-- Studio Root Tabs & Background / Global Settings -->
+    <string name="studio_tab_background">Background</string>
+    <string name="studio_tab_global">Global</string>
+    <string name="studio_background_type">Background Type</string>
+    <string name="studio_background_type_solid">Solid</string>
+    <string name="studio_background_type_picture">Picture</string>
+    <string name="studio_background_picture_source">Picture Source</string>
+    <string name="studio_background_select_picture">Choose picture from storage</string>
+    <string name="studio_background_remove_picture">Remove picture</string>
+    <string name="studio_background_notif_media">Notification Resource</string>
+    <string name="studio_background_custom_picture">Custom Picture</string>
+    <string name="studio_global_primary_color">Global Color</string>
+    <string name="studio_global_accent_color">Global Accent Color</string>
+    <string name="studio_global_font_family">Global Font Family</string>
+    <string name="studio_global_apply_to_all">Apply font to all text elements</string>
+    <string name="studio_scope_create_translator">Create translator for this design</string>
+    <string name="studio_layer_move_into_group">Move into group</string>
+    <string name="studio_layer_move_out_of_group">Move out of group</string>
+    <string name="studio_layer_move_up">Move up</string>
+    <string name="studio_layer_move_down">Move down</string>
+    <!-- Studio ImageNode Enhancements & Tab Organization -->
+    <string name="studio_tab_image">Image</string>
+    <string name="studio_tab_info">Info</string>
+    <string name="studio_tab_visibility">Visibility</string>
+    <string name="studio_property_rotation">Rotation</string>
+    <string name="studio_image_mode">Mode</string>
+    <string name="studio_image_mode_bitmap">Bitmap</string>
+    <string name="studio_image_mode_svg">SVG</string>
+    <string name="studio_image_scale">Scaling</string>
+    <string name="studio_image_scale_fit_width">Fit width</string>
+    <string name="studio_image_scale_fit_height">Fit height</string>
+    <string name="studio_image_scale_fit_center">Fit center</string>
+    <string name="studio_image_scale_center_crop">Center crop</string>
+    <string name="studio_image_tint_enable">Enable tint</string>
+    <string name="studio_image_blur">Blur</string>
+    <string name="studio_image_attenuation">Attenuation</string>
+    <string name="studio_image_filter">Filter</string>
+    <string name="studio_shape_rounded_custom">Rounded</string>
+    <string name="studio_tab_button">Button</string>
+    <string name="studio_action_media_control">Media Control</string>
+    <string name="studio_condition_is_media_playing">Media Is Playing</string>
+    <string name="studio_media_cmd_play_pause">Play / Pause</string>
+    <string name="studio_media_cmd_play">Play</string>
+    <string name="studio_media_cmd_pause">Pause</string>
+    <string name="studio_media_cmd_next">Next Track</string>
+    <string name="studio_media_cmd_prev">Previous Track</string>
+    <string name="studio_media_cmd_stop">Stop</string>
+    <string name="studio_button_icon">Icon</string>
+    <string name="studio_button_sub_icon">Sub-Icon (Badge)</string>
+    <string name="studio_button_icon_position">Icon Position</string>
+    <string name="studio_button_icon_size">Icon Size (dp)</string>
+    <string name="studio_button_custom_icon">Custom Icon</string>
+    <string name="studio_button_select_custom_icon">Choose Custom Icon</string>
+    <string name="studio_button_remove_custom_icon">Remove Custom Icon</string>
+    <string name="studio_button_more_icons">More Icons</string>
+    <string name="studio_button_icon_picker_title">Select Icon</string>
+    <string name="studio_button_icon_picker_search">Search icons…</string>
+    <string name="studio_button_icon_size_label">Icon Size</string>
+    <string name="studio_button_conditional_state">Conditional State</string>
+    <string name="studio_button_conditional_desc">Change appearance or behavior when a condition is met (e.g., media playback)</string>
+    <string name="studio_button_condition">Condition</string>
+    <string name="studio_button_conditional_label">Alternate Label</string>
+    <string name="studio_button_conditional_icon">Alternate Icon</string>
+    <string name="studio_button_conditional_sub_icon">Alternate Sub-Icon</string>
+    <string name="studio_button_conditional_action">Alternate Action</string>
+    <string name="studio_button_conditional_colors">Conditional Colors</string>
+    <string name="studio_button_conditional_shape">Conditional Shape</string>
+    <string name="studio_button_shape">Shape</string>
+    <string name="studio_button_corner_radius">Corner Radius (dp)</string>
+    <string name="studio_button_stroke_width">Border Width (dp)</string>
+    <string name="studio_button_stroke_color">Border Color</string>
+    <string name="studio_button_preview_default">Default State</string>
+    <string name="studio_button_preview_conditional">Conditional State</string>
+    <string name="studio_icon_pos_leading">Leading</string>
+    <string name="studio_icon_pos_trailing">Trailing</string>
+    <string name="studio_icon_pos_icon_only">Icon Only</string>
+    <string name="studio_icon_pos_top">Top</string>
+    <string name="studio_icon_none">None</string>
+    <!-- Color Scheme & Palette Tokens -->
+    <string name="studio_color_scheme_title">Color Scheme</string>
+    <string name="studio_color_scheme_source">Palette Source</string>
+    <string name="studio_color_scheme_phone_dynamic">Phone Dynamic (Monet M3)</string>
+    <string name="studio_color_scheme_phone_expressive">Phone Expressive (Dynamic M3)</string>
+    <string name="studio_color_scheme_app_icon">App Icon Expressive</string>
+    <string name="studio_color_scheme_notif_media">Notification Media Expressive</string>
+    <string name="studio_color_scheme_custom_preset">.hscheme Palette</string>
+    <string name="studio_color_scheme_select_scheme">Selected .hscheme Palette</string>
+    <string name="studio_color_scheme_search_placeholder">Search palettes…</string>
+    <string name="studio_color_scheme_built_in_header">Built-in Palettes</string>
+    <string name="studio_color_scheme_imported_header">Imported Palettes (.hscheme)</string>
+    <string name="studio_color_scheme_empty_search">No matching palettes found</string>
+    <string name="studio_color_scheme_media_source">Media Resource</string>
+    <string name="studio_color_scheme_media_album_art">Album Art / Large Media</string>
+    <string name="studio_color_scheme_media_picture">Picture Attachment</string>
+    <string name="studio_color_scheme_media_avatar">User Avatar / Sender</string>
+    <string name="studio_color_scheme_tab_tokens">Color Scheme</string>
+    <string name="studio_color_scheme_tab_custom">Custom Color</string>
+    <string name="studio_color_scheme_token_badge">Token</string>
+    <string name="studio_color_scheme_export_yaml">Export .hscheme</string>
+    <string name="studio_color_scheme_import_yaml">Import .hscheme</string>
+    <string name="studio_color_scheme_embed_yaml">Embedded in Design</string>
+    <string name="studio_color_scheme_presets">Preset Schemes</string>
+    <string name="studio_color_scheme_quick_tokens">Scheme Colors</string>
+    <string name="studio_color_scheme_import_yaml_success">Color scheme imported successfully</string>
+    <string name="studio_color_scheme_import_yaml_error">Failed to parse color scheme YAML</string>
+    <string name="studio_color_mode_scheme">Color Scheme</string>
+    <string name="studio_color_mode_custom">Custom Color</string>
+    <string name="studio_color_scheme_all_roles">All Roles</string>
+    <string name="studio_font_family_section_title">Font Family</string>
+    <string name="studio_font_family_select_title">Select Font Family</string>
+    <string name="studio_font_family_search_placeholder">Search fonts…</string>
+    <string name="studio_font_family_system_header">System Fonts</string>
+    <string name="studio_font_family_imported_header">Imported Fonts</string>
+    <string name="studio_font_family_import_button">Import Font (.ttf / .otf)</string>
+    <string name="studio_font_family_empty_search">No matching fonts found</string>
+    <!-- Design & Translator Share Preview Bottom Sheet -->
+    <string name="design_share_sheet_title">Share Design</string>
+    <string name="translators_share_sheet_title">Share Translator</string>
+    <string name="design_share_preview_label">Preview Picture</string>
+    <string name="design_share_export_all">All</string>
+    <string name="design_share_export_images">Images</string>
+    <string name="design_share_export_file">File</string>
+    <string name="design_share_btn_save">Save</string>
+    <string name="design_share_btn_share">Share</string>
+    <string name="design_share_saved_to_folder">Saved to selected folder</string>
+    <string name="design_share_save_failed">Failed to save to folder</string>
+    <string name="design_share_image_saved">Preview picture saved to Pictures/HyperBridge</string>
+    <string name="design_share_both_saved">Big Island and Pill saved to Pictures/HyperBridge</string>
+    <string name="design_share_pill_saved">Pill picture saved to Pictures/HyperBridge</string>
+    <string name="design_share_image_failed">Failed to generate preview image</string>
+    <string name="design_share_showcase_hint">Optimized for HyperBridge Showcase &amp; social sharing</string>
+    <string name="design_share_include_translator_title">Include linked translator</string>
+    <string name="design_share_include_translator_desc">Export the rules and triggers alongside the visual design</string>
 </resources>
