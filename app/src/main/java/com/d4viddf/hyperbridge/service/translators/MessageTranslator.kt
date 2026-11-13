@@ -81,10 +81,9 @@ class MessageTranslator(
         if (isMedia) {
             builder.setBigIslandInfo(left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")))
         } else {
-            val rightText = displayContent.ifBlank { title }
             builder.setBigIslandInfo(
-                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo(title = title, content = "")),
-                right = if (rightText.isNotBlank()) ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = rightText, content = "")) else null
+                left = ImageTextInfoLeft(1, PicInfo(1, picKey), TextInfo("", "")),
+                right = ImageTextInfoRight(1, PicInfo(1, hiddenKey), TextInfo(title, displayContent))
             )
         }
 
