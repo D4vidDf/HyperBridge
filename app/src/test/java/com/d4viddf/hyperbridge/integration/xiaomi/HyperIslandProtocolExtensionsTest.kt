@@ -60,4 +60,92 @@ class HyperIslandProtocolExtensionsTest {
             .getAsJsonObject("param_v2").getAsJsonObject("param_island")
         assertEquals(1, island["islandProperty"].asInt)
     }
+
+    @Test fun patchesSameWidthDigitInfoWithTimerAndRemovesImageTextInfoRight() {
+        val original = """
+            {
+              "param_v2": {
+                "param_island": {
+                  "islandProperty": 1,
+                  "bigIslandArea": {
+                    "imageTextInfoLeft": {
+                      "type": 1,
+                      "textInfo": { "title": "Song Title", "content": "" }
+                    },
+                    "imageTextInfoRight": {
+                      "type": 2,
+                      "textInfo": { "title": "02:45", "content": "" }
+                    }
+                  }
+                }
+              }
+            }
+        """.trimIndent()
+
+        val options = HyperIslandProtocolOptions(
+            islandProperty = 1,
+            sameWidthDigitInfo = SameWidthDigitOptions(
+                timerType = 1,
+                timerWhen = 50_000L,
+                timerSystemCurrentMillis = 65_000L,
+                showHighlightColor = true
+            )
+        )
+
+        val patched = patchHyperIslandJson(original, options)
+        val bigIsland = JsonParser.parseString(patched).asJsonObject
+            .getAsJsonObject("param_v2").getAsJsonObject("param_island")
+            .getAsJsonObject("bigIslandArea")
+
+        assertFalse("imageTextInfoRight should be removed when sameWidthDigitInfo is present", bigIsland.has("imageTextInfoRight"))
+        assertEquals("Song Title", bigIsland.getAsJsonObject("imageTextInfoLeft").getAsJsonObject("textInfo")["title"].asString)
+
+        val digitInfo = bigIsland.getAsJsonObject("sameWidthDigitInfo")
+        val timer = digitInfo.getAsJsonObject("timerInfo")
+        assertEquals(1, timer["timerType"].asInt)
+        assertEquals(50_000L, timer["timerWhen"].asLong)
+        assertEquals(65_000L, timer["timerSystemCurrent"].asLong)
+        assertEquals(true, digitInfo["showHighlightColor"].asBoolean)
+    }
+
+    @Test fun patchesSameWidthDigitInfoWithStaticDigit() {
+        val original = """
+            {
+              "param_v2": {
+                "param_island": {
+                  "islandProperty": 1,
+                  "bigIslandArea": {
+                    "imageTextInfoLeft": {
+                      "type": 1,
+                      "textInfo": { "title": "Song Title", "content": "" }
+                    },
+                    "imageTextInfoRight": {
+                      "type": 2,
+                      "textInfo": { "title": "02:45", "content": "" }
+                    }
+                  }
+                }
+              }
+            }
+        """.trimIndent()
+
+        val options = HyperIslandProtocolOptions(
+            islandProperty = 1,
+            sameWidthDigitInfo = SameWidthDigitOptions(
+                digit = "-01:15",
+                showHighlightColor = true
+            )
+        )
+
+        val patched = patchHyperIslandJson(original, options)
+        val bigIsland = JsonParser.parseString(patched).asJsonObject
+            .getAsJsonObject("param_v2").getAsJsonObject("param_island")
+            .getAsJsonObject("bigIslandArea")
+
+        assertFalse("imageTextInfoRight should be removed when sameWidthDigitInfo is present", bigIsland.has("imageTextInfoRight"))
+        val digitInfo = bigIsland.getAsJsonObject("sameWidthDigitInfo")
+        assertEquals("-01:15", digitInfo["digit"].asString)
+        assertFalse("timerInfo should not exist for static digit", digitInfo.has("timerInfo"))
+        assertEquals(true, digitInfo["showHighlightColor"].asBoolean)
+    }
 }
