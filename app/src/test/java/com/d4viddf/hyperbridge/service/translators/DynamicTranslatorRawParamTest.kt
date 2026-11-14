@@ -128,4 +128,118 @@ class DynamicTranslatorRawParamTest {
         }
         assertEquals("", textAlbumCoverOnly)
     }
+
+    @Test
+    fun testMediaCounterElapsedDigitOptions() {
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResult(
+            progressPercent = 40,
+            currentFormatted = "01:20",
+            durationFormatted = "03:20",
+            remainingFormatted = "-02:00",
+            currentMs = 80_000L,
+            durationMs = 200_000L,
+            isPlaying = true
+        )
+
+        val pillConfig = com.d4viddf.hyperbridge.models.translator.CompactPillConfig(
+            mediaCounterMode = com.d4viddf.hyperbridge.models.translator.MediaCounterMode.ELAPSED
+        )
+
+        val isRemaining = pillConfig.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+        val isPlaying = mediaResult.isPlaying == true
+        val now = 1_000_000L
+
+        val options = if (isPlaying) {
+            if (isRemaining && mediaResult.durationMs != null && mediaResult.currentMs != null && mediaResult.durationMs > mediaResult.currentMs) {
+                val remainingMs = mediaResult.durationMs - mediaResult.currentMs
+                val targetTime = now + remainingMs
+                com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                    timerType = -1,
+                    timerWhen = targetTime,
+                    timerSystemCurrentMillis = now,
+                    showHighlightColor = true
+                )
+            } else if (!isRemaining && mediaResult.currentMs != null && mediaResult.currentMs >= 0L) {
+                val startTime = now - mediaResult.currentMs
+                com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                    timerType = 1,
+                    timerWhen = startTime,
+                    timerSystemCurrentMillis = now,
+                    showHighlightColor = true
+                )
+            } else null
+        } else null
+
+        assertNotNull(options)
+        assertEquals(1, options?.timerType)
+        assertEquals(now - 80_000L, options?.timerWhen)
+        assertEquals(now, options?.timerSystemCurrentMillis)
+    }
+
+    @Test
+    fun testMediaCounterRemainingDigitOptions() {
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResult(
+            progressPercent = 40,
+            currentFormatted = "01:20",
+            durationFormatted = "03:20",
+            remainingFormatted = "-02:00",
+            currentMs = 80_000L,
+            durationMs = 200_000L,
+            isPlaying = true
+        )
+
+        val pillConfig = com.d4viddf.hyperbridge.models.translator.CompactPillConfig(
+            mediaCounterMode = com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+        )
+
+        val isRemaining = pillConfig.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+        val isPlaying = mediaResult.isPlaying == true
+        val now = 1_000_000L
+
+        val options = if (isPlaying) {
+            if (isRemaining && mediaResult.durationMs != null && mediaResult.currentMs != null && mediaResult.durationMs > mediaResult.currentMs) {
+                val remainingMs = mediaResult.durationMs - mediaResult.currentMs
+                val targetTime = now + remainingMs
+                com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                    timerType = -1,
+                    timerWhen = targetTime,
+                    timerSystemCurrentMillis = now,
+                    showHighlightColor = true
+                )
+            } else null
+        } else null
+
+        assertNotNull(options)
+        assertEquals(-1, options?.timerType)
+        assertEquals(now + 120_000L, options?.timerWhen)
+        assertEquals(now, options?.timerSystemCurrentMillis)
+    }
+
+    @Test
+    fun testMediaCounterPausedStaticDigitOptions() {
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResult(
+            progressPercent = 40,
+            currentFormatted = "01:20",
+            durationFormatted = "03:20",
+            remainingFormatted = "-02:00",
+            currentMs = 80_000L,
+            durationMs = 200_000L,
+            isPlaying = false
+        )
+
+        val pillRightText = "01:20"
+        val isPlaying = mediaResult.isPlaying == true
+
+        val options = if (isPlaying) null else {
+            com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                digit = pillRightText,
+                showHighlightColor = true
+            )
+        }
+
+        assertNotNull(options)
+        assertEquals("01:20", options?.digit)
+        assertNull(options?.timerType)
+        assertNull(options?.timerWhen)
+    }
 }

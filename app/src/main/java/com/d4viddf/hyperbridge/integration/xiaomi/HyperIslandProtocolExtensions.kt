@@ -2,6 +2,7 @@ package com.d4viddf.hyperbridge.integration.xiaomi
 
 import android.os.Bundle
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 
@@ -13,10 +14,24 @@ import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
  */
 const val KEYGUARD_ISLAND_PROPERTY = 0
 
+/**
+ * Configuration for the monospaced timer / counter block (`sameWidthDigitInfo`)
+ * on the Big Island area in Xiaomi Focus Notifications.
+ */
+data class SameWidthDigitOptions(
+    val digit: String? = null,
+    val content: String? = null,
+    val timerType: Int? = null,
+    val timerWhen: Long? = null,
+    val timerSystemCurrentMillis: Long? = null,
+    val showHighlightColor: Boolean = true,
+)
+
 /** Capabilities supported by Xiaomi's protocol but not exposed by toolkit 0.4.4. */
 data class HyperIslandProtocolOptions(
     val islandProperty: Int,
-    val timerSystemCurrentMillis: Long? = null
+    val timerSystemCurrentMillis: Long? = null,
+    val sameWidthDigitInfo: SameWidthDigitOptions? = null
 ) {
     init {
         require(islandProperty >= 0)
@@ -47,6 +62,27 @@ internal fun patchHyperIslandJson(json: String, options: HyperIslandProtocolOpti
         timer?.remove("timerTotal")
         timer?.addProperty("timerSystemCurrent", it)
     }
+
+    options.sameWidthDigitInfo?.let { digitOptions ->
+        val bigIslandArea = island.getAsJsonObject("bigIslandArea") ?: JsonObject().also {
+            island.add("bigIslandArea", it)
+        }
+        bigIslandArea.remove("imageTextInfoRight")
+        val digitObj = JsonObject()
+        digitOptions.digit?.let { digitObj.addProperty("digit", it) }
+        digitOptions.content?.let { digitObj.addProperty("content", it) }
+        if (digitOptions.timerType != null && digitOptions.timerWhen != null) {
+            val timerObj = JsonObject()
+            timerObj.addProperty("timerType", digitOptions.timerType)
+            timerObj.addProperty("timerWhen", digitOptions.timerWhen)
+            val sysCurrent = digitOptions.timerSystemCurrentMillis ?: System.currentTimeMillis()
+            timerObj.addProperty("timerSystemCurrent", sysCurrent)
+            digitObj.add("timerInfo", timerObj)
+        }
+        digitObj.addProperty("showHighlightColor", digitOptions.showHighlightColor)
+        bigIslandArea.add("sameWidthDigitInfo", digitObj)
+    }
+
     return Gson().toJson(root)
 }
 
@@ -62,5 +98,26 @@ internal fun patchHyperIslandCustomJson(json: String, options: HyperIslandProtoc
         timer?.remove("timerTotal")
         timer?.addProperty("timerSystemCurrent", it)
     }
+
+    options.sameWidthDigitInfo?.let { digitOptions ->
+        val bigIslandArea = island.getAsJsonObject("bigIslandArea") ?: JsonObject().also {
+            island.add("bigIslandArea", it)
+        }
+        bigIslandArea.remove("imageTextInfoRight")
+        val digitObj = JsonObject()
+        digitOptions.digit?.let { digitObj.addProperty("digit", it) }
+        digitOptions.content?.let { digitObj.addProperty("content", it) }
+        if (digitOptions.timerType != null && digitOptions.timerWhen != null) {
+            val timerObj = JsonObject()
+            timerObj.addProperty("timerType", digitOptions.timerType)
+            timerObj.addProperty("timerWhen", digitOptions.timerWhen)
+            val sysCurrent = digitOptions.timerSystemCurrentMillis ?: System.currentTimeMillis()
+            timerObj.addProperty("timerSystemCurrent", sysCurrent)
+            digitObj.add("timerInfo", timerObj)
+        }
+        digitObj.addProperty("showHighlightColor", digitOptions.showHighlightColor)
+        bigIslandArea.add("sameWidthDigitInfo", digitObj)
+    }
+
     return Gson().toJson(root)
 }

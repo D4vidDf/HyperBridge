@@ -11,6 +11,7 @@ import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.integration.xiaomi.HyperIslandProtocolOptions
 import com.d4viddf.hyperbridge.integration.xiaomi.KEYGUARD_ISLAND_PROPERTY
+import com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions
 import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
 import com.d4viddf.hyperbridge.integration.xiaomi.patchHyperIslandJson
 import com.d4viddf.hyperbridge.models.HyperIslandData
@@ -115,6 +116,8 @@ class DynamicTranslator(
         // 2. Extract Progress & Numeric Data
         val (progressValue, maxProgressValue) = extractProgress(customTranslator, notif, notifTitle, notifText)
 
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, context)
+
         // 3. Resolve Dynamic Text Templates & Notification Catalog
         val variableMap = buildVariableMap(
             sbn = sbn,
@@ -128,7 +131,8 @@ class DynamicTranslator(
             progress = progressValue?.toString(),
             callerName = extractedSenderName ?: notifTitle,
             callState = callStateText,
-            theme = effectiveTheme
+            theme = effectiveTheme,
+            mediaResult = mediaResult
         )
 
         // 4. Build HyperIsland Base Config
@@ -605,6 +609,8 @@ class DynamicTranslator(
         )
         val actionKeys = bridgeActions.map { it.action.key }
 
+        var mediaDigitOptions: SameWidthDigitOptions? = null
+
         when {
             // =========================================================================
             //  TEMPLATE 1: PROGRESS / DOWNLOAD TEMPLATE (IM chatInfo + progressInfo + actions)
@@ -694,7 +700,53 @@ class DynamicTranslator(
 
                 val leftBigIslandText = pillLeftText
                 val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
-                val rightInfo = if (rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE && pillRightText.isNotBlank()) {
+
+                val isMediaCounter = when (rightDesign) {
+                    com.d4viddf.hyperbridge.models.translator.PillRightDesign.MEDIA_COUNTER -> true
+                    com.d4viddf.hyperbridge.models.translator.PillRightDesign.AUTO -> {
+                        !hasProgress && extractOtpFromText(rawText) == null && extractBoardingPassFromText(rawText) == null && pillRightText.isNotBlank()
+                    }
+                    else -> false
+                }
+
+                if (isMediaCounter && pillRightText.isNotBlank()) {
+                    val isRemaining = pillConfig.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+                    val isPlaying = mediaResult.isPlaying == true
+                    val now = System.currentTimeMillis()
+
+                    mediaDigitOptions = if (isPlaying) {
+                        if (isRemaining && mediaResult.durationMs != null && mediaResult.currentMs != null && mediaResult.durationMs > mediaResult.currentMs) {
+                            val remainingMs = mediaResult.durationMs - mediaResult.currentMs
+                            val targetTime = now + remainingMs
+                            SameWidthDigitOptions(
+                                timerType = -1,
+                                timerWhen = targetTime,
+                                timerSystemCurrentMillis = now,
+                                showHighlightColor = true
+                            )
+                        } else if (!isRemaining && mediaResult.currentMs != null && mediaResult.currentMs >= 0L) {
+                            val startTime = now - mediaResult.currentMs
+                            SameWidthDigitOptions(
+                                timerType = 1,
+                                timerWhen = startTime,
+                                timerSystemCurrentMillis = now,
+                                showHighlightColor = true
+                            )
+                        } else {
+                            SameWidthDigitOptions(
+                                digit = pillRightText,
+                                showHighlightColor = true
+                            )
+                        }
+                    } else {
+                        SameWidthDigitOptions(
+                            digit = pillRightText,
+                            showHighlightColor = true
+                        )
+                    }
+                }
+
+                val rightInfo = if (mediaDigitOptions == null && rightDesign != com.d4viddf.hyperbridge.models.translator.PillRightDesign.NONE && pillRightText.isNotBlank()) {
                     ImageTextInfoRight(type = 2, picInfo = null, textInfo = TextInfo(title = pillRightText, content = ""))
                 } else null
                 builder.setBigIslandInfo(
@@ -829,12 +881,16 @@ class DynamicTranslator(
             }
         }
 
-        val jsonParam = if (customTranslator.behaviorOverride.showOnLockscreen) {
-            val targetIslandProperty = if (isKeyguardLocked) KEYGUARD_ISLAND_PROPERTY else 1
-            builder.buildJsonParam(HyperIslandProtocolOptions(islandProperty = targetIslandProperty))
+        val targetIslandProperty = if (customTranslator.behaviorOverride.showOnLockscreen && isKeyguardLocked) {
+            KEYGUARD_ISLAND_PROPERTY
         } else {
-            builder.buildJsonParam()
+            1
         }
+        val protocolOptions = HyperIslandProtocolOptions(
+            islandProperty = targetIslandProperty,
+            sameWidthDigitInfo = mediaDigitOptions
+        )
+        val jsonParam = builder.buildJsonParam(protocolOptions)
         Log.d(TAG, " [DynamicTranslator] '${customTranslator.meta.name}' (${sbn.packageName}): template=${customTranslator.presentation.templateId ?: customTranslator.presentation.mode.name}, float=$isFloat, shade=$isShade, showOnLockscreen=${customTranslator.behaviorOverride.showOnLockscreen}, isKeyguardLocked=$isKeyguardLocked")
 
         return HyperIslandData(builder.buildResourceBundle(), jsonParam)
@@ -897,7 +953,8 @@ class DynamicTranslator(
         progress: String?,
         callerName: String? = null,
         callState: String? = null,
-        theme: HyperTheme? = null
+        theme: HyperTheme? = null,
+        mediaResult: com.d4viddf.hyperbridge.util.MediaProgressResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, context)
     ): MutableMap<String, String> {
         val map = mutableMapOf<String, String>()
         val extras = sbn.notification.extras
@@ -933,7 +990,6 @@ class DynamicTranslator(
         map["progress.is_indeterminate"] = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false).toString()
 
         // Call & Media fields
-        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, context)
         map["notif.caller_name"] = callerName ?: sender ?: title
         map["call.caller_name"] = callerName ?: sender ?: title
         map["notif.call_state"] = callState ?: ""
