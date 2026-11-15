@@ -633,9 +633,11 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             if (intentionallyRemovedKeys.remove(notifKey) != null) {
+                DynamicTranslator.forgetFirstSeen(notifKey)
                 return
             }
 
+            DynamicTranslator.forgetFirstSeen(notifKey)
             recentlyRemovedKeys[notifKey] = RemovedSource(System.currentTimeMillis(), it.postTime, reason)
 
             messageFamilyTracker.removeSource(notifKey)?.let { removal ->

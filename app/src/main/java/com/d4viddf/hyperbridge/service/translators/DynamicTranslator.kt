@@ -29,6 +29,8 @@ import com.d4viddf.hyperbridge.models.translator.CustomVariableDefinition
 import com.d4viddf.hyperbridge.models.translator.PresentationMode
 import com.d4viddf.hyperbridge.models.translator.ProgressSlotType
 import com.d4viddf.hyperbridge.models.translator.SmartActionCategory
+import com.d4viddf.hyperbridge.models.translator.TimerDirection
+import com.d4viddf.hyperbridge.models.translator.TimerStartMode
 import com.d4viddf.hyperbridge.models.translator.VariableSource
 import com.d4viddf.hyperbridge.models.translator.VariableType
 import com.d4viddf.hyperbridge.service.smartactions.SmartActionIntents
@@ -431,8 +433,23 @@ class DynamicTranslator(
         val leftDesign = pillConfig.leftDesign
         val rightDesign = pillConfig.rightDesign
 
-        val isTimer = (progressConfig.type == ProgressSlotType.TIMER || rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.TIMER) &&
-                notif.`when` > System.currentTimeMillis()
+        val timerConfig = progressConfig.timerConfig
+        val now = System.currentTimeMillis()
+        val firstSeenTime = noteFirstSeen(sbn.key, now)
+
+        val isExplicitTimerConfig = timerConfig.startMode != TimerStartMode.AUTO ||
+                timerConfig.direction != TimerDirection.AUTO ||
+                timerConfig.customDurationSeconds != null
+
+        val isTimerSlotOrPill = progressConfig.type == ProgressSlotType.TIMER ||
+                rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.TIMER
+
+        val isTimer = isTimerSlotOrPill && (
+                isExplicitTimerConfig ||
+                notif.`when` > now ||
+                (progressConfig.type == ProgressSlotType.TIMER && notif.`when` > 0L)
+        )
+
         val hasProgress = (progressConfig.type == ProgressSlotType.PROGRESS_BAR || rightDesign == com.d4viddf.hyperbridge.models.translator.PillRightDesign.PROGRESS_PERCENT) && progressValue != null
 
         val progressPercent = if (hasProgress) {
@@ -610,6 +627,7 @@ class DynamicTranslator(
         val actionKeys = bridgeActions.map { it.action.key }
 
         var mediaDigitOptions: SameWidthDigitOptions? = null
+        var timerDigitOptions: SameWidthDigitOptions? = null
 
         when {
             // =========================================================================
@@ -642,15 +660,35 @@ class DynamicTranslator(
             //  Used when countdown presentation is active.
             // =========================================================================
             isTimer -> {
-                val baseTime = sbn.notification.`when`.let { if (it > 0) it else System.currentTimeMillis() }
-                val now = System.currentTimeMillis()
-                val isCountdown = baseTime > now
+                val notifWhen = sbn.notification.`when`.takeIf { it > 0 }
+                val startMode = timerConfig.startMode
+                val direction = timerConfig.direction
+
+                val baseTime = when (startMode) {
+                    TimerStartMode.FIRST_SEEN -> firstSeenTime
+                    TimerStartMode.NOTIFICATION_WHEN -> notifWhen ?: firstSeenTime
+                    TimerStartMode.CUSTOM_OFFSET -> {
+                        val durationMs = (timerConfig.customDurationSeconds ?: 0L) * 1000L
+                        if (direction == TimerDirection.COUNT_DOWN) {
+                            firstSeenTime + durationMs
+                        } else {
+                            firstSeenTime - durationMs
+                        }
+                    }
+                    TimerStartMode.AUTO -> notifWhen ?: firstSeenTime
+                }
+
+                val isCountdown = when (direction) {
+                    TimerDirection.COUNT_DOWN -> true
+                    TimerDirection.COUNT_UP -> false
+                    TimerDirection.AUTO -> baseTime > now
+                }
                 val timerType = if (isCountdown) -1 else 1
 
                 val chatTimerInfo = io.github.d4viddf.hyperisland_kit.models.TimerInfo(
                     timerType,
                     baseTime,
-                    if (isCountdown) baseTime - now else now - baseTime,
+                    if (isCountdown) (baseTime - now).coerceAtLeast(0L) else (now - baseTime).coerceAtLeast(0L),
                     now
                 )
 
@@ -664,6 +702,20 @@ class DynamicTranslator(
                 )
 
                 val timerPicKey = if (showBigIslandPic) pillLeftPicKey else ""
+                val leftPicInfo = if (showBigIslandPic) PicInfo(1, pillLeftPicKey) else null
+
+                builder.setBigIslandInfo(
+                    left = ImageTextInfoLeft(1, leftPicInfo, TextInfo(pillLeftText, "")),
+                    right = null
+                )
+
+                timerDigitOptions = SameWidthDigitOptions(
+                    timerType = timerType,
+                    timerWhen = baseTime,
+                    timerSystemCurrentMillis = now,
+                    showHighlightColor = true
+                )
+
                 if (isCountdown) {
                     builder.setBigIslandCountdown(baseTime, timerPicKey)
                 } else {
@@ -888,7 +940,7 @@ class DynamicTranslator(
         }
         val protocolOptions = HyperIslandProtocolOptions(
             islandProperty = targetIslandProperty,
-            sameWidthDigitInfo = mediaDigitOptions
+            sameWidthDigitInfo = timerDigitOptions ?: mediaDigitOptions
         )
         val jsonParam = builder.buildJsonParam(protocolOptions)
         Log.d(TAG, " [DynamicTranslator] '${customTranslator.meta.name}' (${sbn.packageName}): template=${customTranslator.presentation.templateId ?: customTranslator.presentation.mode.name}, float=$isFloat, shade=$isShade, showOnLockscreen=${customTranslator.behaviorOverride.showOnLockscreen}, isKeyguardLocked=$isKeyguardLocked")
@@ -1363,6 +1415,20 @@ class DynamicTranslator(
     companion object {
         private const val TAG = "DynamicTranslator"
 
+        private val firstSeenTimestamps = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+        fun noteFirstSeen(key: String, timestamp: Long = System.currentTimeMillis()): Long {
+            return firstSeenTimestamps.computeIfAbsent(key) { timestamp }
+        }
+
+        fun getFirstSeen(key: String): Long? = firstSeenTimestamps[key]
+
+        fun forgetFirstSeen(key: String): Long? = firstSeenTimestamps.remove(key)
+
+        fun clearFirstSeen() {
+            firstSeenTimestamps.clear()
+        }
+
         fun interpolateStatic(
             template: String,
             variables: Map<String, String>,
@@ -1835,4 +1901,5 @@ class DynamicTranslator(
         return ""
     }
 }
+
 

@@ -389,11 +389,34 @@ data class TextSlotConfig(
 )
 
 @Serializable
+enum class TimerStartMode {
+    @SerialName("AUTO") AUTO,
+    @SerialName("NOTIFICATION_WHEN") NOTIFICATION_WHEN,
+    @SerialName("FIRST_SEEN") FIRST_SEEN,
+    @SerialName("CUSTOM_OFFSET") CUSTOM_OFFSET
+}
+
+@Serializable
+enum class TimerDirection {
+    @SerialName("AUTO") AUTO,
+    @SerialName("COUNT_UP") COUNT_UP,
+    @SerialName("COUNT_DOWN") COUNT_DOWN
+}
+
+@Serializable
+data class TimerSlotConfig(
+    @SerialName("start_mode") val startMode: TimerStartMode = TimerStartMode.AUTO,
+    @SerialName("direction") val direction: TimerDirection = TimerDirection.AUTO,
+    @SerialName("custom_duration_seconds") val customDurationSeconds: Long? = null
+)
+
+@Serializable
 data class ProgressSlotConfig(
     val type: ProgressSlotType = ProgressSlotType.NONE,
     @SerialName("progress_source") val progressSource: String = "AUTO_DETECT",
     @SerialName("color_source") val colorSource: String = "THEME_HIGHLIGHT",
-    @SerialName("show_percentage") val showPercentage: Boolean = true
+    @SerialName("show_percentage") val showPercentage: Boolean = true,
+    @SerialName("timer_config") val timerConfig: TimerSlotConfig = TimerSlotConfig()
 )
 
 @Serializable

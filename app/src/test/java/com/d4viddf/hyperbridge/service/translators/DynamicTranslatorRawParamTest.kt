@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.service.translators
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -242,4 +243,56 @@ class DynamicTranslatorRawParamTest {
         assertNull(options?.timerType)
         assertNull(options?.timerWhen)
     }
+
+    @Test
+    fun testFirstSeenTrackingAndTimerResolution() {
+        DynamicTranslator.clearFirstSeen()
+
+        val key = "com.discord|101|voice_channel|1000"
+        val t0 = 50_000L
+        val recorded = DynamicTranslator.noteFirstSeen(key, t0)
+        assertEquals(50_000L, recorded)
+
+        // Subsequent calls with newer timestamps must preserve initial recorded timestamp
+        val t1 = 55_000L
+        val preserved = DynamicTranslator.noteFirstSeen(key, t1)
+        assertEquals(50_000L, preserved)
+        assertEquals(50_000L, DynamicTranslator.getFirstSeen(key))
+
+        // When notification is removed, forget clears it
+        val removed = DynamicTranslator.forgetFirstSeen(key)
+        assertEquals(50_000L, removed)
+        assertNull(DynamicTranslator.getFirstSeen(key))
+    }
+
+    @Test
+    fun testTimerSlotConfigCountUpResolution() {
+        val timerConfig = com.d4viddf.hyperbridge.models.translator.TimerSlotConfig(
+            startMode = com.d4viddf.hyperbridge.models.translator.TimerStartMode.FIRST_SEEN,
+            direction = com.d4viddf.hyperbridge.models.translator.TimerDirection.COUNT_UP
+        )
+
+        val firstSeenTime = 100_000L
+        val now = 125_000L
+        val notifWhen = 0L
+
+        val baseTime = when (timerConfig.startMode) {
+            com.d4viddf.hyperbridge.models.translator.TimerStartMode.FIRST_SEEN -> firstSeenTime
+            com.d4viddf.hyperbridge.models.translator.TimerStartMode.NOTIFICATION_WHEN -> notifWhen.takeIf { it > 0 } ?: firstSeenTime
+            else -> firstSeenTime
+        }
+
+        val isCountdown = when (timerConfig.direction) {
+            com.d4viddf.hyperbridge.models.translator.TimerDirection.COUNT_DOWN -> true
+            com.d4viddf.hyperbridge.models.translator.TimerDirection.COUNT_UP -> false
+            com.d4viddf.hyperbridge.models.translator.TimerDirection.AUTO -> baseTime > now
+        }
+
+        val timerType = if (isCountdown) -1 else 1
+
+        assertEquals(100_000L, baseTime)
+        assertFalse(isCountdown)
+        assertEquals(1, timerType)
+    }
 }
+
