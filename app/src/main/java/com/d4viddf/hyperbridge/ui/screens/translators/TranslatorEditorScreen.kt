@@ -959,6 +959,7 @@ private fun TranslatorNodeBody(
         TranslatorRoute.PILL -> Box(Modifier.fillMaxSize()) {
             TranslatorPillContent(
                 pillConfig = translator.presentation.pill,
+                progressSlot = translator.presentation.progressSlot,
                 installedThemes = installedThemes,
                 themeBinding = translator.themeBinding,
                 showInlinePreview = showDetailShellPreview,
@@ -967,6 +968,11 @@ private fun TranslatorNodeBody(
                 onPillConfigChange = {
                     onTranslatorChange(
                         translator.copy(presentation = translator.presentation.copy(pill = it))
+                    )
+                },
+                onProgressSlotChange = {
+                    onTranslatorChange(
+                        translator.copy(presentation = translator.presentation.copy(progressSlot = it))
                     )
                 }
             )
@@ -8311,12 +8317,14 @@ fun ActionDisplayModeSelectionSheetPreview() {
 @Composable
 fun TranslatorPillContent(
     pillConfig: com.d4viddf.hyperbridge.models.translator.CompactPillConfig,
+    progressSlot: ProgressSlotConfig = ProgressSlotConfig(),
     installedThemes: List<com.d4viddf.hyperbridge.models.theme.HyperTheme> = emptyList(),
     themeBinding: ThemeBinding = ThemeBinding(),
     showInlinePreview: Boolean = true,
     selectedSubRoute: TranslatorRoute? = null,
     onOpenSubRoute: ((TranslatorRoute) -> Unit)? = null,
-    onPillConfigChange: (com.d4viddf.hyperbridge.models.translator.CompactPillConfig) -> Unit
+    onPillConfigChange: (com.d4viddf.hyperbridge.models.translator.CompactPillConfig) -> Unit,
+    onProgressSlotChange: ((ProgressSlotConfig) -> Unit)? = null
 ) {
     var showLeftSheet by remember { mutableStateOf(false) }
     var showLeftIconSheet by remember { mutableStateOf(false) }
@@ -8614,6 +8622,153 @@ fun TranslatorPillContent(
                                 { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                             } else null
                         )
+                    }
+                }
+            }
+        }
+
+        // --- TIMER CONFIGURATION CARD (VISIBLE WHEN RIGHT IS TIMER) ---
+        if (rightDesign == PillRightDesign.TIMER) {
+            val timerConfig = progressSlot.timerConfig
+            Text(
+                stringResource(R.string.translator_timer_cfg_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.translator_timer_cfg_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    // Start Mode Option
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.translator_timer_start_mode),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        val startModes = listOf(
+                            TimerStartMode.AUTO to stringResource(R.string.translator_timer_start_auto),
+                            TimerStartMode.FIRST_SEEN to stringResource(R.string.translator_timer_start_first_seen),
+                            TimerStartMode.NOTIFICATION_WHEN to stringResource(R.string.translator_timer_start_notif_when)
+                        )
+
+                        startModes.forEach { (mode, label) ->
+                            val isSelected = timerConfig.startMode == mode
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onProgressSlotChange?.invoke(
+                                            progressSlot.copy(timerConfig = timerConfig.copy(startMode = mode))
+                                        )
+                                    }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                                    )
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = {
+                                            onProgressSlotChange?.invoke(
+                                                progressSlot.copy(timerConfig = timerConfig.copy(startMode = mode))
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        if (timerConfig.startMode == TimerStartMode.FIRST_SEEN) {
+                            Text(
+                                text = stringResource(R.string.translator_timer_start_first_seen_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    // Timer Direction Option
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.translator_timer_direction),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        val directions = listOf(
+                            TimerDirection.AUTO to stringResource(R.string.translator_timer_dir_auto),
+                            TimerDirection.COUNT_UP to stringResource(R.string.translator_timer_dir_count_up),
+                            TimerDirection.COUNT_DOWN to stringResource(R.string.translator_timer_dir_count_down)
+                        )
+
+                        directions.forEach { (dir, label) ->
+                            val isSelected = timerConfig.direction == dir
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onProgressSlotChange?.invoke(
+                                            progressSlot.copy(timerConfig = timerConfig.copy(direction = dir))
+                                        )
+                                    }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                                    )
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = {
+                                            onProgressSlotChange?.invoke(
+                                                progressSlot.copy(timerConfig = timerConfig.copy(direction = dir))
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
