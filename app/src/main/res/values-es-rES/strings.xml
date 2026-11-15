@@ -1120,6 +1120,17 @@
     <string name="translator_prog_type_card_desc">Elige si se muestra el progreso y cómo se renderiza</string>
     <string name="translator_prog_type_select_btn">Cambiar Tipo</string>
     <string name="translator_prog_type_sheet_title">Seleccionar Tipo de Progreso</string>
+    <string name="translator_timer_cfg_title">Opciones de Temporizador</string>
+    <string name="translator_timer_cfg_desc">Configura cómo inicia y cuenta el temporizador en vivo</string>
+    <string name="translator_timer_start_mode">Origen de Inicio</string>
+    <string name="translator_timer_start_auto">Automático (De la Notificación)</string>
+    <string name="translator_timer_start_notif_when">Marca de Tiempo de la Notificación</string>
+    <string name="translator_timer_start_first_seen">Primera Detección (Cronómetro / Inicio de Llamada)</string>
+    <string name="translator_timer_start_first_seen_desc">Inicia un cronómetro cuando HyperBridge detecta la notificación por primera vez y se mantiene sin reinicios</string>
+    <string name="translator_timer_direction">Dirección del Temporizador</string>
+    <string name="translator_timer_dir_auto">Automática</string>
+    <string name="translator_timer_dir_count_up">Hacia Arriba (Tiempo Transcurrido)</string>
+    <string name="translator_timer_dir_count_down">Cuenta Regresiva (Tiempo Restante)</string>
 
     <string name="translator_prog_show_pct_desc">Muestra el porcentaje numérico (ej. 75%) junto al indicador</string>
     <string name="translator_prog_extract_card_title">Extracción de Texto</string>

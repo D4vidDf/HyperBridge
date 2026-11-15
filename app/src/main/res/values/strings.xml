@@ -1078,6 +1078,17 @@
     <string name="translator_prog_type_waypoint_desc">Step-by-step progress points for deliveries or routes</string>
     <string name="translator_prog_type_timer">Countdown / Timer</string>
     <string name="translator_prog_type_timer_desc">Active elapsed or remaining countdown time indicator</string>
+    <string name="translator_timer_cfg_title">Timer Options</string>
+    <string name="translator_timer_cfg_desc">Configure how the live timer starts and counts</string>
+    <string name="translator_timer_start_mode">Timer Start Source</string>
+    <string name="translator_timer_start_auto">Automatic (From Notification)</string>
+    <string name="translator_timer_start_notif_when">Notification Timestamp</string>
+    <string name="translator_timer_start_first_seen">First Detected (Stopwatch / Call Start)</string>
+    <string name="translator_timer_start_first_seen_desc">Starts a live stopwatch when HyperBridge first detects the notification and keeps running smoothly</string>
+    <string name="translator_timer_direction">Timer Direction</string>
+    <string name="translator_timer_dir_auto">Automatic</string>
+    <string name="translator_timer_dir_count_up">Count Up (Elapsed Duration)</string>
+    <string name="translator_timer_dir_count_down">Count Down (Remaining)</string>
     <string name="translator_prog_regex">Progress Regex (e.g. (\\d+)%)</string>
 
     <string name="translator_actions_source">Action Source</string>

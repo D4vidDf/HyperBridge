@@ -123,6 +123,8 @@ class CustomTranslatorSerializationTest {
         assertTrue(decoded.behaviorOverride.showOnLockscreen)
         assertEquals(true, decoded.dataExtraction.extractProgressFromText)
         assertEquals(2, decoded.presentation.actionSlots.size)
+        assertEquals(TimerStartMode.AUTO, decoded.presentation.progressSlot.timerConfig.startMode)
+        assertEquals(TimerDirection.AUTO, decoded.presentation.progressSlot.timerConfig.direction)
         assertEquals(ActionMatchBy.INDEX, decoded.presentation.actionSlots[0].actionMatcher.matchBy)
         assertEquals(1, decoded.presentation.actionSlots[0].actionMatcher.actionIndex)
         assertEquals(SmartActionType.OTP_COPY, decoded.presentation.actionSlots[1].smartActionType)
