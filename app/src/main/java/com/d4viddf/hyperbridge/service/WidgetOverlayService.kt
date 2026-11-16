@@ -160,6 +160,11 @@ class WidgetOverlayService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW) // Low priority = no sound/peek
             .addExtras(data.resources)
 
+        // Lockscreen visibility: show widget island on lock screen if user enabled it
+        if (preferences.showIslandOnLockscreenSync()) {
+            builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        }
+
         // Click Intent -> Open App
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

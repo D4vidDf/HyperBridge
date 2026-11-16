@@ -49,6 +49,7 @@ fun PermanentIslandConfigScreen(
     val isEnabled by prefs.isPermanentIslandEnabledFlow.collectAsState(initial = false)
     val islandWidth by prefs.permanentIslandWidthFlow.collectAsState(initial = 0)
     val hideInLandscape by prefs.hidePermanentIslandLandscapeFlow.collectAsState(initial = false)
+    val showOnLockscreen by prefs.showIslandOnLockscreenFlow.collectAsState(initial = true)
 
     PermanentIslandConfigContent(
         isEnabled = isEnabled,
@@ -69,6 +70,12 @@ fun PermanentIslandConfigScreen(
                 prefs.setHidePermanentIslandLandscape(hide)
             }
         },
+        showOnLockscreen = showOnLockscreen,
+        onShowOnLockscreenChange = { show ->
+            scope.launch {
+                prefs.setShowIslandOnLockscreen(show)
+            }
+        },
         onBack = onBack
     )
 }
@@ -82,6 +89,8 @@ fun PermanentIslandConfigContent(
     onEnabledChange: (Boolean) -> Unit,
     onWidthChange: (Int) -> Unit,
     onHideInLandscapeChange: (Boolean) -> Unit,
+    showOnLockscreen: Boolean = true,
+    onShowOnLockscreenChange: (Boolean) -> Unit = {},
     onBack: () -> Unit
 ) {
     var sliderValue by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
@@ -179,6 +188,40 @@ fun PermanentIslandConfigContent(
                     }
                 }
             }
+            Spacer(Modifier.height(16.dp))
+
+            // Lockscreen Island Toggle — applies to ALL islands, not just permanent
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.lockscreen_island_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                            )
+                            Text(
+                                text = stringResource(R.string.lockscreen_island_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = showOnLockscreen,
+                            onCheckedChange = onShowOnLockscreenChange
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.permanent_island_screen_desc),
@@ -200,6 +243,8 @@ fun PermanentIslandConfigScreenPreview() {
             onEnabledChange = {},
             onWidthChange = {},
             onHideInLandscapeChange = {},
+            showOnLockscreen = true,
+            onShowOnLockscreenChange = {},
             onBack = {}
         )
     }
