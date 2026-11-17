@@ -24,6 +24,19 @@ object IslandFloatingPresentationPolicy {
             islandFirstFloat = mayAutoExpand
         )
     }
+
+    /**
+     * "Less in landscape" (#143): with the option on, a rotated device keeps the island
+     * collapsed whatever the global, per-app or translator float setting says. Calls are
+     * left alone so an incoming call still shows its answer/decline popup.
+     */
+    fun configuredToFloat(
+        isFloat: Boolean?,
+        noFloatInLandscape: Boolean?,
+        isLandscape: Boolean,
+        isCall: Boolean
+    ): Boolean? =
+        if (noFloatInLandscape == true && isLandscape && !isCall) false else isFloat
 }
 
 internal fun HyperIslandNotification.applyFloatingPresentation(

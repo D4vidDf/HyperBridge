@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material3.*
@@ -202,6 +203,24 @@ fun IslandSettingsControl(
                     }
                 }
             }
+        }
+
+        AnimatedVisibility(
+            visible = isFloatEnabled,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            SettingsToggleCard(
+                title = stringResource(R.string.setting_no_float_landscape),
+                subtitle = stringResource(R.string.setting_no_float_landscape_desc),
+                icon = Icons.Default.ScreenRotation,
+                checked = displayConfig.noFloatInLandscape ?: false,
+                onCheckedChange = {
+                    val currentIsFloat = config.isFloat ?: defaultConfig?.isFloat ?: true
+                    onUpdate(config.copy(noFloatInLandscape = it, isFloat = currentIsFloat))
+                },
+                shape = RoundedCornerShape(4.dp)
+            )
         }
 
         SettingsToggleCard(
