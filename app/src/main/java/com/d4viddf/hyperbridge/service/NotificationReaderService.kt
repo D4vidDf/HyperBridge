@@ -1085,7 +1085,9 @@ class NotificationReaderService : NotificationListenerService() {
      * it is not a native island: a media player gets the short window, anything else hides the
      * permanent island for as long as it is posted (see [NativeIslandYieldPolicy]).
      */
-    private fun nativeIslandYieldMs(sbn: StatusBarNotification): Long? {
+    private class NativeYield(val ms: Long, val live: Boolean)
+
+    private fun nativeIslandYield(sbn: StatusBarNotification): NativeYield? {
         val extras = sbn.notification.extras ?: return null
         val hasFocusParam = extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")
         val focusParam = if (hasFocusParam) {
@@ -1098,7 +1100,32 @@ class NotificationReaderService : NotificationListenerService() {
             extras.containsKey("miui.focus.param.media") ||
             template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
             template == "android.app.Notification\$MediaStyle"
-        return NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaPlayer)
+        // A player that is playing has its island on screen for as long as it plays (#445); only
+        // a paused one loses it while the notification stays (#255).
+        val isMediaPlaying = isMediaPlayer && isMediaSessionPlaying(extras)
+        val ms = NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaPlayer, isMediaPlaying)
+            ?: return null
+        return NativeYield(ms, live = isMediaPlaying)
+    }
+
+    private fun isMediaSessionPlaying(extras: Bundle): Boolean {
+        val state = runCatching {
+            extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, MediaSession.Token::class.java)
+                ?.let { MediaController(this, it).playbackState?.state }
+        }.getOrNull() ?: return false
+        return state == PlaybackState.STATE_PLAYING ||
+            state == PlaybackState.STATE_BUFFERING ||
+            state == PlaybackState.STATE_FAST_FORWARDING ||
+            state == PlaybackState.STATE_REWINDING ||
+            state == PlaybackState.STATE_SKIPPING_TO_NEXT ||
+            state == PlaybackState.STATE_SKIPPING_TO_PREVIOUS ||
+            state == PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM
+    }
+
+    /** Notes or forgets one foreign notification. @return true when the yield state changed. */
+    private fun trackNativeIsland(sbn: StatusBarNotification): Boolean {
+        val nativeYield = nativeIslandYield(sbn)
+        return if (nativeYield != null) noteNativeIsland(sbn.key, nativeYield) else forgetNativeIsland(sbn.key)
     }
 
     /**
@@ -1106,10 +1133,10 @@ class NotificationReaderService : NotificationListenerService() {
      * event — nothing else re-evaluates the permanent island until the next sync tick (up to 60 s,
      * screen on only) — so the pill is re-asserted right after the last open window ends.
      */
-    private fun noteNativeIsland(key: String, yieldMs: Long): Boolean {
-        val firstSighting = nativeIslands.note(key, yieldMs)
-        if (firstSighting) rescheduleNativeYield()
-        return firstSighting
+    private fun noteNativeIsland(key: String, nativeYield: NativeYield): Boolean {
+        val changed = nativeIslands.note(key, nativeYield.ms, nativeYield.live)
+        if (changed) rescheduleNativeYield()
+        return changed
     }
 
     /**
@@ -1133,6 +1160,11 @@ class NotificationReaderService : NotificationListenerService() {
             }
             nativeYieldJob = serviceScope.launch {
                 delay((remaining + 1_000L).milliseconds)
+                // A player can start playing without re-posting its notification: look again
+                // before the pill comes back on top of a live island player (#445).
+                runCatching {
+                    activeNotifications?.forEach { if (it.packageName != packageName) trackNativeIsland(it) }
+                }
                 updatePermanentIsland()
             }
         }
@@ -1170,12 +1202,7 @@ class NotificationReaderService : NotificationListenerService() {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
             if (::debuggingIslandController.isInitialized) debuggingIslandController.onSourceNotificationPosted(it)
             if (it.packageName != packageName) {
-                val yieldMs = nativeIslandYieldMs(it)
-                if (yieldMs != null) {
-                    if (noteNativeIsland(it.key, yieldMs)) updatePermanentIsland()
-                } else {
-                    if (forgetNativeIsland(it.key)) updatePermanentIsland()
-                }
+                if (trackNativeIsland(it)) updatePermanentIsland()
             }
 
             enqueueSourceNotification(it)
@@ -2689,12 +2716,7 @@ class NotificationReaderService : NotificationListenerService() {
                 var nativeChanged = false
                 for (sbn in currentNotifications) {
                     if (sbn.packageName != packageName) {
-                        val yieldMs = nativeIslandYieldMs(sbn)
-                        if (yieldMs != null) {
-                            if (noteNativeIsland(sbn.key, yieldMs)) nativeChanged = true
-                        } else {
-                            if (forgetNativeIsland(sbn.key)) nativeChanged = true
-                        }
+                        if (trackNativeIsland(sbn)) nativeChanged = true
                     }
                 }
                 val currentNatives = nativeIslands.keys()

@@ -13,8 +13,10 @@ import com.google.gson.JsonParser
  *
  * The one exception is media players. HyperOS turns every notification that carries a
  * MediaSession into an island player itself, and drops that island shortly after playback
- * pauses while the notification lives on for hours (#255). Only they get a time limit: the short
- * window that fixed #255. Any other native island keeps the permanent island hidden until its
+ * pauses while the notification lives on for hours (#255). Only they get a time limit, and only
+ * once they stop playing: the short window that fixed #255. While the session is playing the
+ * island player is on screen, so the permanent island stays hidden (#445).
+ * Any other native island keeps the permanent island hidden until its
  * notification is removed, bounded only by the island lifetime HyperOS itself applies —
  * `param_v2.param_island.islandTimeout` (seconds, documented default `60 * 60`) — since the
  * island is gone from the screen after that no matter how long the notification stays.
@@ -23,7 +25,7 @@ object NativeIslandYieldPolicy {
     /** Xiaomi's documented default when a focus island omits `islandTimeout`. */
     const val DEFAULT_ISLAND_TIMEOUT_SECONDS = 3_600L
 
-    /** A media player: HyperOS hides its island soon after a pause, the notification stays. */
+    /** A media player that is not playing: HyperOS hides its island soon after a pause, the notification stays. */
     const val MEDIA_YIELD_MS = 30_000L
 
     /** No time limit: the permanent island stays hidden until the notification is removed. */
@@ -36,11 +38,17 @@ object NativeIslandYieldPolicy {
      * @param focusParam that extra as a string, when it is one
      * @param isMediaPlayer the notification is a media player (MediaStyle, or it carries a
      *   MediaSession, which HyperOS always renders as an island player)
+     * @param isMediaPlaying that player's session is playing right now
      * @return the yield window in ms, `0` when the notification has no island, or `null` when it is
      *   not a native island at all
      */
-    fun yieldMsFor(hasFocusParam: Boolean, focusParam: String?, isMediaPlayer: Boolean): Long? {
-        if (isMediaPlayer) return MEDIA_YIELD_MS
+    fun yieldMsFor(
+        hasFocusParam: Boolean,
+        focusParam: String?,
+        isMediaPlayer: Boolean,
+        isMediaPlaying: Boolean = false
+    ): Long? {
+        if (isMediaPlayer) return if (isMediaPlaying) UNBOUNDED_YIELD_MS else MEDIA_YIELD_MS
         if (hasFocusParam) return focusYieldMs(focusParam)
         return null
     }
