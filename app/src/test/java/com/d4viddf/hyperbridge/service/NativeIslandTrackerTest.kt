@@ -98,6 +98,36 @@ class NativeIslandTrackerTest {
     }
 
     @Test
+    fun livePlayerKeepsThePillHiddenPastTheWindow() {
+        assertTrue(tracker.note("media|1", yieldMs = Long.MAX_VALUE, live = true))
+        now += 3_600_000L
+        assertFalse(tracker.note("media|1", yieldMs = Long.MAX_VALUE, live = true)) // progress update
+        assertTrue(tracker.hasFresh())
+        assertEquals(Long.MAX_VALUE, tracker.remainingYieldMs())
+    }
+
+    @Test
+    fun windowOpensWhenThePlayerPausesNotWhenItWasFirstSeen() {
+        tracker.note("media|1", yieldMs = Long.MAX_VALUE, live = true)
+        now += 600_000L
+        assertTrue(tracker.note("media|1", yieldMs = 30_000L)) // paused
+        assertEquals(30_000L, tracker.remainingYieldMs())
+        now += 20_000L
+        assertFalse(tracker.note("media|1", yieldMs = 30_000L)) // still paused: no renewal
+        now += 10_000L
+        assertFalse(tracker.hasFresh())
+    }
+
+    @Test
+    fun pausedPlayerThatResumesHidesThePillAgain() {
+        tracker.note("media|1", yieldMs = 30_000L)
+        now += 40_000L
+        assertFalse(tracker.hasFresh())
+        assertTrue(tracker.note("media|1", yieldMs = Long.MAX_VALUE, live = true))
+        assertTrue(tracker.hasFresh())
+    }
+
+    @Test
     fun removeReportsWhetherKeyWasTracked() {
         tracker.note("media|1")
         assertTrue(tracker.remove("media|1"))

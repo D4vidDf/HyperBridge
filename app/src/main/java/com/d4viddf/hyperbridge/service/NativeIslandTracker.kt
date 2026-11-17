@@ -16,6 +16,10 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * The first-seen timestamp is kept across updates on purpose: a progress-updating media
  * notification would otherwise renew its own yield window forever.
+ *
+ * A sighting can also be *live*: the island is known to be on screen right now (a media player
+ * that is playing), so it has no window at all. Its window opens when it stops being live, i.e.
+ * the 30 s of a media player count from the pause, not from the first time it was seen (#445).
  */
 class NativeIslandTracker(
     private val defaultYieldMs: Long = DEFAULT_YIELD_MS,
@@ -23,15 +27,30 @@ class NativeIslandTracker(
     // window (timezone change, manual edit, NTP) would stretch or cut it short.
     private val clock: () -> Long = SystemClock::elapsedRealtime
 ) {
-    private class Sighting(val firstSeen: Long, yieldMs: Long) {
-        val until: Long = if (yieldMs >= Long.MAX_VALUE - firstSeen) Long.MAX_VALUE else firstSeen + yieldMs
+    private class Sighting(val firstSeen: Long, yieldMs: Long, val live: Boolean = false) {
+        val until: Long =
+            if (live || yieldMs >= Long.MAX_VALUE - firstSeen) Long.MAX_VALUE else firstSeen + yieldMs
     }
 
     private val sightings = ConcurrentHashMap<String, Sighting>()
 
-    /** @return true when [key] was not tracked yet (first sighting). */
-    fun note(key: String, yieldMs: Long = defaultYieldMs): Boolean =
-        sightings.putIfAbsent(key, Sighting(clock(), yieldMs.coerceAtLeast(0L))) == null
+    /**
+     * @param live the island is on screen right now, whatever [yieldMs] says
+     * @return true when the yield of [key] changed: it was not tracked yet (first sighting), or it
+     *   went live, or it stopped being live and its window just opened.
+     */
+    fun note(key: String, yieldMs: Long = defaultYieldMs, live: Boolean = false): Boolean {
+        var changed = false
+        sightings.compute(key) { _, current ->
+            if (current != null && current.live == live) {
+                current
+            } else {
+                changed = true
+                Sighting(clock(), yieldMs.coerceAtLeast(0L), live)
+            }
+        }
+        return changed
+    }
 
     /** @return true when [key] was tracked. */
     fun remove(key: String): Boolean = sightings.remove(key) != null
