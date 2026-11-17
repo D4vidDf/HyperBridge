@@ -18,6 +18,7 @@ import android.media.session.PlaybackState
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -113,6 +114,10 @@ class NotificationReaderService : NotificationListenerService() {
         const val ACTION_RELOAD_THEME = "com.d4viddf.hyperbridge.ACTION_RELOAD_THEME"
         const val ACTION_PERFORM_MIGRATION = "com.d4viddf.hyperbridge.ACTION_PERFORM_MIGRATION"
         private val GMAIL_PACKAGES = setOf("com.google.android.gm")
+
+        // Settings.Secure.LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS is hidden in the SDK; 0 means
+        // the lock screen hides sensitive notification content.
+        private const val LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS = "lock_screen_allow_private_notifications"
 
         @Volatile
         var isConnected: Boolean = false
@@ -223,6 +228,35 @@ class NotificationReaderService : NotificationListenerService() {
 
     private val keyguardManager by lazy { getSystemService(KeyguardManager::class.java) }
     private fun isKeyguardLocked(): Boolean = keyguardManager?.isKeyguardLocked == true
+
+    /**
+     * Visibility for the bridge copy of [sbn], or null to keep the default. See
+     * [LockscreenVisibilityPolicy]: the copy must not show on the lock screen what the source
+     * notification hides there.
+     */
+    private fun bridgeLockscreenVisibility(sbn: StatusBarNotification, explicitLockscreen: Boolean): Int? {
+        val rankingOverride = try {
+            val ranking = Ranking()
+            if (currentRanking?.getRanking(sbn.key, ranking) == true) {
+                ranking.lockscreenVisibilityOverride
+            } else {
+                LockscreenVisibilityPolicy.NO_OVERRIDE
+            }
+        } catch (_: Exception) {
+            LockscreenVisibilityPolicy.NO_OVERRIDE
+        }
+        val privateContentAllowed = try {
+            Settings.Secure.getInt(contentResolver, LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS, 1) != 0
+        } catch (_: Exception) {
+            true
+        }
+        return LockscreenVisibilityPolicy.bridgeVisibility(
+            sourceVisibility = sbn.notification.visibility,
+            rankingOverride = rankingOverride,
+            privateContentAllowed = privateContentAllowed,
+            explicitLockscreen = explicitLockscreen
+        )
+    }
 
     private fun resolveBridgeId(effectiveKey: String, isLockscreen: Boolean): Int {
         val base = effectiveKey.hashCode()
@@ -1735,6 +1769,10 @@ class NotificationReaderService : NotificationListenerService() {
             val isUpdate = previous != null
             val isCustomLockscreen = (matchedCustomTranslator?.behaviorOverride?.showOnLockscreen == true) && isKeyguardLocked()
             val lockscreenStateChanged = previous != null && (previous.postedOnLockscreen != isCustomLockscreen)
+            val bridgeVisibility = bridgeLockscreenVisibility(
+                sbn = sbn,
+                explicitLockscreen = matchedCustomTranslator?.behaviorOverride?.showOnLockscreen == true
+            )
             var candidateBridgeId = if (matchedCustomTranslator?.behaviorOverride?.showOnLockscreen == true) {
                 resolveBridgeId(effectiveKey, isCustomLockscreen)
             } else {
@@ -1806,6 +1844,7 @@ class NotificationReaderService : NotificationListenerService() {
                 )
 
                 builder.extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
+                bridgeVisibility?.let { builder.setVisibility(it) }
 
                 val actualProgress = extras.getInt(Notification.EXTRA_PROGRESS, 0)
                 val actualMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0)
@@ -2062,7 +2101,8 @@ class NotificationReaderService : NotificationListenerService() {
                 bridgeId = bridgeIdToUse,
                 data = data,
                 shouldAlertOnce = decision.onlyAlertOnce && !lockscreenStateChanged,
-                suppressContentIntent = isSavedScreenRecording
+                suppressContentIntent = isSavedScreenRecording,
+                lockscreenVisibility = bridgeVisibility
             )
 
             expiredIslands.acceptNewGeneration(
@@ -2368,7 +2408,8 @@ class NotificationReaderService : NotificationListenerService() {
         bridgeId: Int,
         data: HyperIslandData,
         shouldAlertOnce: Boolean,
-        suppressContentIntent: Boolean = false
+        suppressContentIntent: Boolean = false,
+        lockscreenVisibility: Int? = null
     ) {
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -2383,6 +2424,7 @@ class NotificationReaderService : NotificationListenerService() {
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
         builder.addExtras(extras)
         builder.addExtras(data.resources)
+        lockscreenVisibility?.let { builder.setVisibility(it) }
 
         val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
         if (!hasPermission) {
