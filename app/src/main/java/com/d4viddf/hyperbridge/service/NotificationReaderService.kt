@@ -72,6 +72,7 @@ import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBac
 import com.d4viddf.hyperbridge.service.translators.CallTranslator
 import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
 import com.d4viddf.hyperbridge.service.translators.DynamicTranslator
+import com.d4viddf.hyperbridge.service.translators.IslandFloatingPresentationPolicy
 import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
 import com.d4viddf.hyperbridge.service.translators.MediaTranslator
 import com.d4viddf.hyperbridge.service.translators.MessageTranslator
@@ -1786,7 +1787,12 @@ class NotificationReaderService : NotificationListenerService() {
                     hasProgress = hasProgress
                 )
                 config.copy(
-                    isFloat = matchedCustomTranslator?.behaviorOverride?.isFloat ?: config.isFloat,
+                    isFloat = IslandFloatingPresentationPolicy.configuredToFloat(
+                        isFloat = matchedCustomTranslator?.behaviorOverride?.isFloat ?: config.isFloat,
+                        noFloatInLandscape = config.noFloatInLandscape,
+                        isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE,
+                        isCall = type == NotificationType.CALL
+                    ),
                     isShowShade = matchedCustomTranslator?.behaviorOverride?.isShowShade ?: config.isShowShade,
                     timeout = updateResolvedTimeout,
                     floatTimeout = matchedCustomTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout
