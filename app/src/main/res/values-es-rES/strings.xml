@@ -114,6 +114,8 @@
     <string name="setting_float">Notificación Emergente</string>
     <string name="setting_float_desc">Muestra el banner completo antes de minimizarlo en la Isla.</string>
     <string name="setting_float_timeout_desc">Cuánto tiempo la ventana emergente se mantiene visible.</string>
+    <string name="setting_no_float_landscape">Menos en horizontal</string>
+    <string name="setting_no_float_landscape_desc">Omite la notificación emergente mientras el teléfono esté en horizontal para no tapar vídeos o juegos. Las llamadas seguirán apareciendo.</string>
     <string name="setting_float_only_on_first">Emergente solo en la primera alerta</string>
     <string name="setting_float_only_on_first_desc">Muestra la ventana emergente solo en la primera alerta y evita ventanas emergentes continuas en actualizaciones secundarias o cambios de progreso.</string>
     <string name="setting_shade">Panel de Notificaciones</string>
@@ -1926,9 +1928,10 @@
     <string name="design_share_include_translator_title">Incluir traductor vinculado</string>
     <string name="design_share_include_translator_desc">Exporta las reglas y activadores junto con el diseño visual</string>
 
-    <!-- Adaptive Theme Creator Empty Split Pane -->
+    <!-- Adaptive Theme Creator & Translator Editor Empty Split Pane -->
     <string name="creator_nothing_selected_title">Nada seleccionado</string>
     <string name="creator_nothing_selected_desc">Selecciona una opción de la lista de la izquierda para empezar a personalizar tu tema.</string>
+    <string name="translator_nothing_selected_desc">Selecciona una sección de la lista de la izquierda para empezar a configurar tu traductor.</string>
 
     <!-- Adaptive 3-Column Studio Design Screen -->
     <string name="studio_element_tree_title">Árbol de elementos</string>
