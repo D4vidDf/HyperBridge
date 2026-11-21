@@ -2149,58 +2149,27 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    private fun isDownloadNotification(sbn: StatusBarNotification, title: String, text: String): Boolean {
-        val pkg = sbn.packageName.lowercase()
-        val titleLower = title.lowercase()
-        val textLower = text.lowercase()
-        val channelId = sbn.notification.channelId?.lowercase() ?: ""
-        
-        val isMatch = if (pkg.contains("download") || pkg.contains("downloader") || pkg.contains("chrome") || 
-            pkg.contains("browser") || pkg.contains("firefox") || pkg.contains("market") || 
-            pkg.contains("vending") || pkg.contains("play.store") || pkg.contains("playstore") || 
-            pkg.contains("store") || pkg.contains("fdroid") || pkg.contains("samsungapps") || 
-            pkg.contains("mipicks") || pkg.contains("venezia") || pkg.contains("packageinstaller") || 
-            pkg.contains("installer") || pkg.contains("gms") || pkg == SystemUpdaterClassifier.PACKAGE_NAME ||
-            channelId.contains("download") || channelId.contains("install")) {
-            true
-        } else {
-            val extras = sbn.notification.extras
-            val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.lowercase() ?: ""
-            val infoText = extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()?.lowercase() ?: ""
-            
-            val downloadKeywords = listOf(
-                // English
-                "download", "install", "update", "updat", "upload", "transfer",
-                // Spanish / Portuguese / Italian / French
-                "descarg", "baix", "telecharg", "instal", "actuali", "carg", "subi", "transf",
-                // German
-                "laden", "gelad", "aktualis",
-                // Polish
-                "pobier", "pobran", "aktual",
-                // Russian / Ukrainian
-                "скач", "загруз", "устан", "обнов"
-            )
-            downloadKeywords.any { 
-                titleLower.contains(it) || 
-                textLower.contains(it) || 
-                subText.contains(it) || 
-                infoText.contains(it) 
-            }
-        }
-
-        Log.d(TAG, "🔍 isDownloadNotification check: pkg=$pkg, channelId='$channelId', resolved=$isMatch")
-        return isMatch
-    }
-
-    private fun hasProgressNotification(sbn: StatusBarNotification, title: String, text: String): Boolean {
+    private fun downloadSignals(sbn: StatusBarNotification, title: String, text: String): DownloadNotificationClassifier.Signals {
         val extras = sbn.notification.extras
-        val isDownload = isDownloadNotification(sbn, title, text)
-        val isOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
-        return extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
-                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE) ||
-                (isDownload && extractTextPercentage(title, text) != null) ||
-                (isDownload && isOngoing)
+        return DownloadNotificationClassifier.Signals(
+            packageName = sbn.packageName,
+            channelId = sbn.notification.channelId,
+            title = title,
+            text = text,
+            subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: "",
+            infoText = extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString() ?: "",
+            progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0),
+            isIndeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE),
+            isOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0,
+            textPercent = extractTextPercentage(title, text)
+        )
     }
+
+    private fun isDownloadNotification(sbn: StatusBarNotification, title: String, text: String): Boolean =
+        DownloadNotificationClassifier.isDownload(downloadSignals(sbn, title, text))
+
+    private fun hasProgressNotification(sbn: StatusBarNotification, title: String, text: String): Boolean =
+        DownloadNotificationClassifier.hasProgress(downloadSignals(sbn, title, text))
 
     private fun extractTextPercentage(title: String?, text: String?): Int? =
         TextPercentageExtractor.extract(title, text)
