@@ -33,6 +33,7 @@ object SettingsKeys {
     const val GLOBAL_REMOVE_NOTIF = "global_remove_original_notif"
     const val GLOBAL_DISMISS_WITH_ORIGINAL = "global_dismiss_with_original"
     const val GLOBAL_ENABLE_INLINE_REPLY = "global_enable_inline_reply"
+    const val GLOBAL_NO_FLOAT_LANDSCAPE = "global_no_float_landscape"
     const val GLOBAL_BLOCKED_TERMS = "global_blocked_terms"
     const val PROGRESS_DISCOUNT_KEYWORDS = "progress_discount_keywords"
 

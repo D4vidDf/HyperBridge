@@ -312,7 +312,8 @@ class AppPreferences internal constructor(
         dao.getSettingFlow(SettingsKeys.GLOBAL_FLOAT_TIMEOUT),
         dao.getSettingFlow(SettingsKeys.GLOBAL_REMOVE_NOTIF),
         dao.getSettingFlow(SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL),
-        dao.getSettingFlow(SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY)
+        dao.getSettingFlow(SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY),
+        dao.getSettingFlow(SettingsKeys.GLOBAL_NO_FLOAT_LANDSCAPE)
     ) { args: Array<String?> ->
         IslandConfig(
             args[0].toBoolean(true),
@@ -321,7 +322,8 @@ class AppPreferences internal constructor(
             args[3]?.toIntOrNull(),
             args[4]?.toBooleanStrictOrNull(),
             args[5]?.toBooleanStrictOrNull() ?: true,
-            args[6]?.toBooleanStrictOrNull()
+            args[6]?.toBooleanStrictOrNull(),
+            args[7]?.toBooleanStrictOrNull()
         )
     }
 
@@ -333,6 +335,7 @@ class AppPreferences internal constructor(
         config.removeOriginalNotification?.let { save(SettingsKeys.GLOBAL_REMOVE_NOTIF, it.toString()) }
         config.dismissWithOriginal?.let { save(SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL, it.toString()) }
         config.enableInlineReply?.let { save(SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY, it.toString()) }
+        config.noFloatInLandscape?.let { save(SettingsKeys.GLOBAL_NO_FLOAT_LANDSCAPE, it.toString()) }
     }
 
     fun getAppIslandConfig(packageName: String): Flow<IslandConfig> {
@@ -343,7 +346,8 @@ class AppPreferences internal constructor(
             dao.getSettingFlow("config_${packageName}_float_timeout"),
             dao.getSettingFlow("config_${packageName}_remove_notif"),
             dao.getSettingFlow("config_${packageName}_dismiss_with_original"),
-            dao.getSettingFlow("config_${packageName}_enable_inline_reply")
+            dao.getSettingFlow("config_${packageName}_enable_inline_reply"),
+            dao.getSettingFlow("config_${packageName}_no_float_landscape")
         ) { args: Array<String?> ->
             IslandConfig(
                 args[0]?.toBooleanStrictOrNull(),
@@ -352,7 +356,8 @@ class AppPreferences internal constructor(
                 args[3]?.toIntOrNull(),
                 args[4]?.toBooleanStrictOrNull(),
                 args[5]?.toBooleanStrictOrNull(),
-                args[6]?.toBooleanStrictOrNull()
+                args[6]?.toBooleanStrictOrNull(),
+                args[7]?.toBooleanStrictOrNull()
             )
         }
         return combine(baseFlow, getAppSmartActionsOverride(packageName)) { base, override ->
@@ -368,6 +373,7 @@ class AppPreferences internal constructor(
         val rnKey = "config_${packageName}_remove_notif"
         val dwoKey = "config_${packageName}_dismiss_with_original"
         val eirKey = "config_${packageName}_enable_inline_reply"
+        val nflKey = "config_${packageName}_no_float_landscape"
 
         if (config.isFloat != null) save(fKey, config.isFloat.toString()) else remove(fKey)
         if (config.isShowShade != null) save(sKey, config.isShowShade.toString()) else remove(sKey)
@@ -376,6 +382,7 @@ class AppPreferences internal constructor(
         if (config.removeOriginalNotification != null) save(rnKey, config.removeOriginalNotification.toString()) else remove(rnKey)
         if (config.dismissWithOriginal != null) save(dwoKey, config.dismissWithOriginal.toString()) else remove(dwoKey)
         if (config.enableInlineReply != null) save(eirKey, config.enableInlineReply.toString()) else remove(eirKey)
+        if (config.noFloatInLandscape != null) save(nflKey, config.noFloatInLandscape.toString()) else remove(nflKey)
     }
 
     // --- SYSTEM ISLAND: SCREEN RECORDING ---
@@ -932,6 +939,7 @@ class AppPreferences internal constructor(
             memoryCache["config_${packageName}_remove_notif"]?.toBooleanStrictOrNull(),
             memoryCache["config_${packageName}_dismiss_with_original"]?.toBooleanStrictOrNull(),
             memoryCache["config_${packageName}_enable_inline_reply"]?.toBooleanStrictOrNull(),
+            memoryCache["config_${packageName}_no_float_landscape"]?.toBooleanStrictOrNull(),
             smartActionsOverride = getAppSmartActionsOverrideSync(packageName)
         )
     }
@@ -945,6 +953,7 @@ class AppPreferences internal constructor(
             memoryCache[SettingsKeys.GLOBAL_REMOVE_NOTIF]?.toBooleanStrictOrNull(),
             memoryCache[SettingsKeys.GLOBAL_DISMISS_WITH_ORIGINAL]?.toBooleanStrictOrNull() ?: true,
             memoryCache[SettingsKeys.GLOBAL_ENABLE_INLINE_REPLY]?.toBooleanStrictOrNull(),
+            memoryCache[SettingsKeys.GLOBAL_NO_FLOAT_LANDSCAPE]?.toBooleanStrictOrNull(),
             smartActions = getSmartActionsConfigSync()
         )
     }
