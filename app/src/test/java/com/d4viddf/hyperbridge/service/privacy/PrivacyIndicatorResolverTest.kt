@@ -62,20 +62,28 @@ class PrivacyIndicatorResolverTest {
     }
 
     @Test
-    fun `appearing waits longer than updating or hiding`() {
+    fun `mic shows fast, camera only waits out face unlock, updates and hiding debounce`() {
         assertEquals(
-            PrivacyIndicatorResolver.SHOW_DELAY_MILLIS,
-            PrivacyIndicatorResolver.settleDelayMillis(isShowing = false, wantsToShow = true)
+            PrivacyIndicatorResolver.MIC_SHOW_DELAY_MILLIS,
+            PrivacyIndicatorResolver.settleDelayMillis(isShowing = false, microphone = true, camera = false)
+        )
+        assertEquals(
+            PrivacyIndicatorResolver.MIC_SHOW_DELAY_MILLIS,
+            PrivacyIndicatorResolver.settleDelayMillis(isShowing = false, microphone = true, camera = true)
+        )
+        assertEquals(
+            PrivacyIndicatorResolver.CAMERA_SHOW_DELAY_MILLIS,
+            PrivacyIndicatorResolver.settleDelayMillis(isShowing = false, microphone = false, camera = true)
         )
         assertEquals(
             PrivacyIndicatorResolver.DEBOUNCE_MILLIS,
-            PrivacyIndicatorResolver.settleDelayMillis(isShowing = true, wantsToShow = true)
+            PrivacyIndicatorResolver.settleDelayMillis(isShowing = true, microphone = true, camera = false)
         )
         assertEquals(
             PrivacyIndicatorResolver.DEBOUNCE_MILLIS,
-            PrivacyIndicatorResolver.settleDelayMillis(isShowing = true, wantsToShow = false)
+            PrivacyIndicatorResolver.settleDelayMillis(isShowing = true, microphone = false, camera = false)
         )
-        assertTrue(PrivacyIndicatorResolver.SHOW_DELAY_MILLIS > PrivacyIndicatorResolver.DEBOUNCE_MILLIS)
+        assertTrue(PrivacyIndicatorResolver.CAMERA_SHOW_DELAY_MILLIS > PrivacyIndicatorResolver.MIC_SHOW_DELAY_MILLIS)
     }
 
     @Test

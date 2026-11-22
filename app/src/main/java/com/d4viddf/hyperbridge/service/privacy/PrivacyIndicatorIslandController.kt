@@ -130,7 +130,8 @@ class PrivacyIndicatorIslandController(
         refreshJob?.cancel()
         val delayMillis = PrivacyIndicatorResolver.settleDelayMillis(
             isShowing = shownState != null,
-            wantsToShow = PrivacyIndicatorResolver.resolve(microphoneActive, cameraTracker.inUse) != null
+            microphone = microphoneActive,
+            camera = cameraTracker.inUse
         )
         refreshJob = scope.launch {
             delay(delayMillis)

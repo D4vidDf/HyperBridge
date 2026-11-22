@@ -31,19 +31,26 @@ object PrivacyIndicatorResolver {
     const val MICROPHONE_COLOR = "#FF9500"
     const val CAMERA_COLOR = "#34C759"
     /** Both signals flap (apps reopening the camera, recordings restarting): settle before reposting. */
-    const val DEBOUNCE_MILLIS = 500L
+    const val DEBOUNCE_MILLIS = 300L
+
+    /** A recording shows almost at once; nothing in the system grabs the mic for a blink. */
+    const val MIC_SHOW_DELAY_MILLIS = 150L
 
     /**
-     * How long a sensor must stay in use before the island appears. Face unlock opens the front
-     * camera for well under this on every wake; a real camera or recording session lasts longer.
+     * Camera-only waits a bit longer: face unlock opens the front camera for a fraction of a
+     * second on every wake, a real camera session lasts longer.
      */
-    const val SHOW_DELAY_MILLIS = 1_500L
+    const val CAMERA_SHOW_DELAY_MILLIS = 800L
 
     fun resolve(microphoneActive: Boolean, cameraActive: Boolean): PrivacyIndicatorState? =
         if (microphoneActive || cameraActive) PrivacyIndicatorState(microphoneActive, cameraActive) else null
 
-    fun settleDelayMillis(isShowing: Boolean, wantsToShow: Boolean): Long =
-        if (!isShowing && wantsToShow) SHOW_DELAY_MILLIS else DEBOUNCE_MILLIS
+    fun settleDelayMillis(isShowing: Boolean, microphone: Boolean, camera: Boolean): Long = when {
+        isShowing -> DEBOUNCE_MILLIS
+        microphone -> MIC_SHOW_DELAY_MILLIS
+        camera -> CAMERA_SHOW_DELAY_MILLIS
+        else -> DEBOUNCE_MILLIS
+    }
 }
 
 /**
