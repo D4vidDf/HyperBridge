@@ -47,7 +47,7 @@ data class AppInfo(
 
 /** [hasSettings]: false for integrations that are just an on/off switch. */
 enum class SystemIntegrationId(val hasSettings: Boolean) {
-    SCREEN_RECORDER(true), VPN(true), SYSTEM_UPDATER(true), CHARGING(true), DEBUGGING(false)
+    SCREEN_RECORDER(true), VPN(true), SYSTEM_UPDATER(true), CHARGING(true), DEBUGGING(false), PRIVACY_INDICATORS(false)
 }
 
 data class SystemIntegrationInfo(
@@ -150,19 +150,27 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     private val _screenRecorderIntegrationApp = MutableStateFlow<AppInfo?>(null)
     private val _systemUpdaterIntegrationApp = MutableStateFlow<AppInfo?>(null)
 
-    /** Controller-owned islands (VPN, charging, debugging): just on/off switches in preferences. */
+    private data class ControllerIslands(
+        val vpn: Boolean,
+        val charging: Boolean,
+        val debugging: Boolean,
+        val privacy: Boolean
+    )
+
+    /** Controller-owned islands (VPN, charging, debugging, privacy): just on/off switches in preferences. */
     private val controllerIslandsEnabled = combine(
         preferences.vpnIslandEnabledFlow,
         preferences.chargingIslandEnabledFlow,
-        preferences.debuggingIslandEnabledFlow
-    ) { vpn, charging, debugging -> Triple(vpn, charging, debugging) }
+        preferences.debuggingIslandEnabledFlow,
+        preferences.privacyIndicatorIslandEnabledFlow
+    ) { vpn, charging, debugging, privacy -> ControllerIslands(vpn, charging, debugging, privacy) }
 
     val systemIntegrationsState: StateFlow<List<SystemIntegrationInfo>> = combine(
         preferences.allowedPackagesFlow,
         controllerIslandsEnabled,
         _screenRecorderIntegrationApp,
         _systemUpdaterIntegrationApp
-    ) { allowedPackages, (vpnEnabled, chargingEnabled, debuggingEnabled), recorderApp, updaterApp ->
+    ) { allowedPackages, (vpnEnabled, chargingEnabled, debuggingEnabled, privacyEnabled), recorderApp, updaterApp ->
         listOf(
             SystemIntegrationInfo(
                 id = SystemIntegrationId.SCREEN_RECORDER,
@@ -195,6 +203,13 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             SystemIntegrationInfo(
                 id = SystemIntegrationId.DEBUGGING,
                 enabled = debuggingEnabled,
+                available = true,
+                icon = null,
+                configurationApp = null
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.PRIVACY_INDICATORS,
+                enabled = privacyEnabled,
                 available = true,
                 icon = null,
                 configurationApp = null
@@ -370,6 +385,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 SystemIntegrationId.VPN -> preferences.setVpnIslandEnabled(enabled)
                 SystemIntegrationId.CHARGING -> preferences.setChargingIslandEnabled(enabled)
                 SystemIntegrationId.DEBUGGING -> preferences.setDebuggingIslandEnabled(enabled)
+                SystemIntegrationId.PRIVACY_INDICATORS -> preferences.setPrivacyIndicatorIslandEnabled(enabled)
             }
         }
     }

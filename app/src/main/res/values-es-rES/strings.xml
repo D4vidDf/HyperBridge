@@ -681,6 +681,10 @@
     <string name="debugging_island_short_usb">USB</string>
     <string name="debugging_island_short_wireless">Wi-Fi</string>
     <string name="debugging_island_short_both">USB + Wi-Fi</string>
+    <string name="privacy_island_title">Indicadores de privacidad</string>
+    <string name="privacy_island_mic_in_use">Micro en uso</string>
+    <string name="privacy_island_camera_in_use">Cámara en uso</string>
+    <string name="privacy_island_mic_and_camera">Micro y cámara</string>
     <string name="charging_left_option_speed">Icono y velocidad de carga</string>
     <string name="charging_left_option_remaining_time">Icono y tiempo restante</string>
     <string name="charging_left_option_percentage">Icono y porcentaje de batería</string>
