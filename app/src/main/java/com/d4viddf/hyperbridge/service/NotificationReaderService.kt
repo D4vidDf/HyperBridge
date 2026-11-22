@@ -2095,7 +2095,9 @@ class NotificationReaderService : NotificationListenerService() {
                 bridgeId = bridgeIdToUse,
                 data = data,
                 shouldAlertOnce = decision.onlyAlertOnce && !lockscreenStateChanged,
-                suppressContentIntent = isSavedScreenRecording
+                suppressContentIntent = isSavedScreenRecording,
+                fallbackTitle = effectiveTitle,
+                fallbackText = effectiveText
             )
 
             expiredIslands.acceptNewGeneration(
@@ -2370,23 +2372,37 @@ class NotificationReaderService : NotificationListenerService() {
         bridgeId: Int,
         data: HyperIslandData,
         shouldAlertOnce: Boolean,
-        suppressContentIntent: Boolean = false
+        suppressContentIntent: Boolean = false,
+        fallbackTitle: String = "",
+        fallbackText: String = ""
     ) {
+        val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
+        // Only visible where the Island is not drawn (#485); see IslandFallbackContentPolicy.
+        val showsSourceContent = IslandFallbackContentPolicy.showsSourceContent(
+            hasFocusPermission = hasPermission,
+            title = fallbackTitle,
+            text = fallbackText
+        )
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.notification_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
+        if (showsSourceContent) {
+            builder.setContentTitle(fallbackTitle.ifBlank { getCachedAppLabel(sbn.packageName) })
+                .setContentText(fallbackText)
+                .setSubText(getCachedAppLabel(sbn.packageName))
+        } else {
+            builder.setContentTitle(getString(R.string.app_name))
+                .setContentText(getString(R.string.notification_went_wrong))
+        }
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
         builder.addExtras(extras)
         builder.addExtras(data.resources)
 
-        val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
         if (!hasPermission) {
             val intent = Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
