@@ -13,6 +13,7 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.BridgeAction
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import com.d4viddf.hyperbridge.service.call.CallActionIconSizingPolicy
 import com.d4viddf.hyperbridge.service.call.CallActionRole
@@ -112,7 +113,11 @@ class CallTranslator(
         builder.setSmallIsland(picKey)
 
         val highlight = resolveColor(theme, sbn.packageName, "#FFFFFF")
-        builder.setIslandConfig(highlightColor = highlight, expandedTimeMs = config.floatTimeout)
+        builder.setIslandConfig(
+            timeout = IslandLifetimePolicy.sourceOwnedTimeout(NotificationType.CALL),
+            highlightColor = highlight,
+            expandedTimeMs = config.floatTimeout
+        )
 
         if (isIncoming) {
             builder.setBigIslandInfo(

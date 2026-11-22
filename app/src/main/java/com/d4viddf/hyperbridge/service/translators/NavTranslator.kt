@@ -8,6 +8,7 @@ import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
 import com.d4viddf.hyperbridge.models.NavContent
+import com.d4viddf.hyperbridge.models.NotificationType
 import com.d4viddf.hyperbridge.models.theme.HyperTheme
 import io.github.d4viddf.hyperisland_kit.HyperAction
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
@@ -163,7 +164,11 @@ class NavTranslator(context: Context, repo: ThemeRepository) : BaseTranslator(co
         )
 
         builder.setSmallIsland(picKey)
-        builder.setIslandConfig(highlightColor = theme?.global?.highlightColor, expandedTimeMs = config.floatTimeout)
+        builder.setIslandConfig(
+            timeout = IslandLifetimePolicy.sourceOwnedTimeout(NotificationType.NAVIGATION),
+            highlightColor = theme?.global?.highlightColor,
+            expandedTimeMs = config.floatTimeout
+        )
 
         return HyperIslandData(builder.buildResourceBundle(), builder.buildJsonParam())
     }
