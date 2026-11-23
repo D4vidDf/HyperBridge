@@ -839,6 +839,8 @@
     <string name="privacy_island_mic_in_use">Mic in use</string>
     <string name="privacy_island_camera_in_use">Camera in use</string>
     <string name="privacy_island_mic_and_camera">Mic &amp; camera</string>
+    <string name="privacy_island_always_show">Always show</string>
+    <string name="privacy_island_always_show_desc">Keep the island visible over full-screen apps like the camera and on the lock screen. It does not appear in the notification shade.</string>
     <string name="charging_left_option_speed">Icon and charging speed</string>
     <string name="charging_left_option_remaining_time">Icon and remaining time</string>
     <string name="charging_left_option_percentage">Icon and battery percentage</string>

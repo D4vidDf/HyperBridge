@@ -54,6 +54,7 @@ fun mainNavGraph(
             onSystemUpdateConfigClick = { navigator.navigate(Screen.SystemUpdateCustomization) },
             onChargingConfigClick = { navigator.navigate(Screen.ChargingCustomization) },
             onVpnConfigClick = { navigator.navigate(Screen.VpnCustomization) },
+            onPrivacyIndicatorConfigClick = { navigator.navigate(Screen.PrivacyIndicatorCustomization) },
             onAppConfigClick = { pkg -> navigator.navigate(Screen.AppConfig(pkg)) },
             onNavConfigClick = { pkg -> navigator.navigate(Screen.NavCustomization(pkg)) },
             onCreateTranslatorForApp = { pkg -> navigator.navigate(Screen.TranslatorEditor(null, pkg)) },
@@ -198,6 +199,9 @@ fun mainNavGraph(
     }
     entry<Screen.VpnCustomization> {
         com.d4viddf.hyperbridge.ui.screens.settings.VpnSettingsScreen(onBack = { navigator.goBack() })
+    }
+    entry<Screen.PrivacyIndicatorCustomization> {
+        com.d4viddf.hyperbridge.ui.screens.settings.PrivacyIndicatorSettingsScreen(onBack = { navigator.goBack() })
     }
     entry<Screen.AppConfig> { key ->
         AppConfigScreen(

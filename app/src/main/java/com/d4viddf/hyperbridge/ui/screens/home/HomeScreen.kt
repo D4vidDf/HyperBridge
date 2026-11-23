@@ -87,6 +87,7 @@ fun HomeScreen(
     onSystemUpdateConfigClick: () -> Unit = {},
     onChargingConfigClick: () -> Unit = {},
     onVpnConfigClick: () -> Unit = {},
+    onPrivacyIndicatorConfigClick: () -> Unit = {},
     onAppConfigClick: (String) -> Unit = {},
     onNavConfigClick: (String) -> Unit = {},
     onCreateTranslatorForApp: (String) -> Unit = {},
@@ -697,8 +698,8 @@ fun HomeScreen(
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> onVpnConfigClick()
-                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING,
-                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.PRIVACY_INDICATORS -> {}
+                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.PRIVACY_INDICATORS -> onPrivacyIndicatorConfigClick()
+                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                     }
                                 },
                                 onSettingsClick = onSettingsClick
@@ -716,8 +717,8 @@ fun HomeScreen(
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_UPDATER -> onSystemUpdateConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> onVpnConfigClick()
-                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING,
-                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.PRIVACY_INDICATORS -> {}
+                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.PRIVACY_INDICATORS -> onPrivacyIndicatorConfigClick()
+                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                     }
                                 },
                                 onSettingsClick = onSettingsClick

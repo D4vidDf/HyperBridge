@@ -685,6 +685,8 @@
     <string name="privacy_island_mic_in_use">Micro en uso</string>
     <string name="privacy_island_camera_in_use">Cámara en uso</string>
     <string name="privacy_island_mic_and_camera">Micro y cámara</string>
+    <string name="privacy_island_always_show">Mostrar siempre</string>
+    <string name="privacy_island_always_show_desc">Mantiene la isla visible sobre apps a pantalla completa como la cámara y en la pantalla de bloqueo. No aparecerá en el panel de notificaciones.</string>
     <string name="charging_left_option_speed">Icono y velocidad de carga</string>
     <string name="charging_left_option_remaining_time">Icono y tiempo restante</string>
     <string name="charging_left_option_percentage">Icono y porcentaje de batería</string>

@@ -50,6 +50,7 @@ class PrivacyIndicatorIslandController(
 
     @Volatile private var enabled = false
     @Volatile private var microphoneActive = false
+    @Volatile private var alwaysShow = false
     private var callbacksRegistered = false
     private var refreshJob: Job? = null
     private var shownState: PrivacyIndicatorState? = null
@@ -75,6 +76,20 @@ class PrivacyIndicatorIslandController(
     }
 
     fun start() {
+        scope.launch {
+            preferences.privacyIndicatorIslandAlwaysShowFlow.collectLatest { show ->
+                if (show == alwaysShow) return@collectLatest
+                alwaysShow = show
+                // SystemUI reads islandProperty when the island is added, so a live island is
+                // withdrawn and posted again with the new value.
+                mutex.withLock {
+                    if (shownState == null) return@withLock
+                    NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+                    shownState = null
+                }
+                scheduleRefresh()
+            }
+        }
         scope.launch {
             preferences.privacyIndicatorIslandEnabledFlow.collectLatest { shouldEnable ->
                 enabled = shouldEnable
@@ -160,7 +175,8 @@ class PrivacyIndicatorIslandController(
         }
         val data = translator.translate(
             state = state,
-            config = preferences.getGlobalConfigSync()
+            config = preferences.getGlobalConfigSync(),
+            alwaysShow = alwaysShow
         )
         val builder = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
             .setSmallIcon(R.drawable.ic_privacy_indicator)

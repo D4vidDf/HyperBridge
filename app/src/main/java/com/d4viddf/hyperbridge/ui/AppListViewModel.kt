@@ -47,7 +47,7 @@ data class AppInfo(
 
 /** [hasSettings]: false for integrations that are just an on/off switch. */
 enum class SystemIntegrationId(val hasSettings: Boolean) {
-    SCREEN_RECORDER(true), VPN(true), SYSTEM_UPDATER(true), CHARGING(true), DEBUGGING(false), PRIVACY_INDICATORS(false)
+    SCREEN_RECORDER(true), VPN(true), SYSTEM_UPDATER(true), CHARGING(true), DEBUGGING(false), PRIVACY_INDICATORS(true)
 }
 
 data class SystemIntegrationInfo(

@@ -6,6 +6,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.d4viddf.hyperbridge.R
 import com.d4viddf.hyperbridge.data.theme.ThemeRepository
 import com.d4viddf.hyperbridge.integration.xiaomi.HyperIslandProtocolOptions
+import com.d4viddf.hyperbridge.integration.xiaomi.KEYGUARD_ISLAND_PROPERTY
 import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
@@ -34,7 +35,8 @@ class PrivacyIndicatorTranslator(
 
     fun translate(
         state: PrivacyIndicatorState,
-        config: IslandConfig
+        config: IslandConfig,
+        alwaysShow: Boolean = false
     ): HyperIslandData {
         val title = title()
         val text = content(state)
@@ -75,7 +77,12 @@ class PrivacyIndicatorTranslator(
         return HyperIslandData(
             builder.buildResourceBundle(),
             builder.buildJsonParam(
-                HyperIslandProtocolOptions(islandProperty = VpnTranslator.ACTION_ORIENTED_ISLAND_PROPERTY)
+                HyperIslandProtocolOptions(
+                    // The keyguard property also keeps the pill over full-screen apps such as
+                    // the camera, which hide the status bar and every regular island.
+                    islandProperty = if (alwaysShow) KEYGUARD_ISLAND_PROPERTY
+                    else VpnTranslator.ACTION_ORIENTED_ISLAND_PROPERTY
+                )
             )
         )
     }
