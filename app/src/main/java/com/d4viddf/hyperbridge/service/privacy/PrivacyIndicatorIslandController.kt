@@ -185,13 +185,22 @@ class PrivacyIndicatorIslandController(
      * The system privacy settings, where the permission manager and usage history live.
      * ACTION_REVIEW_PERMISSION_USAGE would land on the dashboard directly, but it is a system API
      * that needs GRANT_RUNTIME_PERMISSIONS to start.
+     *
+     * The intent is pinned to the package that handles it (the system Settings app), so the
+     * PendingIntent is never implicit.
      */
-    private fun privacySettingsIntent(): PendingIntent = PendingIntent.getActivity(
-        context,
-        NOTIFICATION_ID,
-        Intent(Settings.ACTION_PRIVACY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
+    private fun privacySettingsIntent(): PendingIntent {
+        val intent = Intent(Settings.ACTION_PRIVACY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val settingsPackage = intent.resolveActivity(context.packageManager)?.packageName
+            ?: SETTINGS_PACKAGE
+        intent.setPackage(settingsPackage)
+        return PendingIntent.getActivity(
+            context,
+            NOTIFICATION_ID,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
 
     private fun clear() {
         if (shownState == null && !reportedActive) return
@@ -213,5 +222,8 @@ class PrivacyIndicatorIslandController(
     companion object {
         /** Reserved controller-owned ID; periodic orphan cleanup must leave this notification alone. */
         val NOTIFICATION_ID = PrivacyIndicatorTranslator.BUSINESS.hashCode()
+
+        /** Fallback when the privacy settings activity can't be resolved (package visibility). */
+        private const val SETTINGS_PACKAGE = "com.android.settings"
     }
 }
