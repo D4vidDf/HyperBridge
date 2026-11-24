@@ -43,12 +43,14 @@ import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.models.translator.EngineMode
 import com.d4viddf.hyperbridge.service.call.CallActionSignal
+import com.d4viddf.hyperbridge.service.call.CallFollowUpPolicy
 import com.d4viddf.hyperbridge.service.call.CallNotificationClassifier
 import com.d4viddf.hyperbridge.service.call.CallNotificationSignals
 import com.d4viddf.hyperbridge.service.call.CallReplacementPolicy
 import com.d4viddf.hyperbridge.service.call.CallSession
 import com.d4viddf.hyperbridge.service.call.CallSessionInput
 import com.d4viddf.hyperbridge.service.call.CallSessionTracker
+import com.d4viddf.hyperbridge.service.call.CallState
 import com.d4viddf.hyperbridge.service.call.CallStageVisibilityPolicy
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import com.d4viddf.hyperbridge.service.message.MessageEventFallbackTracker
@@ -1514,6 +1516,7 @@ class NotificationReaderService : NotificationListenerService() {
             val extras = sbn.notification.extras
             val resolvedContent = resolveNotificationContent(sbn)
             val typeBeforeRules = detectNotificationType(sbn)
+            endCallRewrittenAsFollowUp(sbn, typeBeforeRules)
 
             if (isJunkNotification(sbn, resolvedContent)) {
                 DiagnosticsStore.record(typeBeforeRules.name, "ignored", sbn.packageName, "junk-or-empty")
@@ -2253,6 +2256,44 @@ class NotificationReaderService : NotificationListenerService() {
         return person.key?.takeIf { it.isNotBlank() }
             ?: person.uri?.takeIf { it.isNotBlank() }
             ?: person.name?.toString()?.takeIf { it.isNotBlank() }
+    }
+
+    /**
+     * Instagram and Messenger turn the call notification into "Missed call" / "Call ended" on the
+     * same key instead of removing it. The call Island is keyed by its logical id, so the removal
+     * path and the periodic sync both still see a live source and the timer kept counting
+     * (#226, #387). Runs before the junk/empty/type filters so a follow-up that is never bridged
+     * still ends the call. Called under [notificationLifecycleMutex].
+     */
+    private fun endCallRewrittenAsFollowUp(sbn: StatusBarNotification, detectedType: NotificationType) {
+        val callId = callSessionTracker.logicalIdForSource(sbn.key)
+        if (!CallFollowUpPolicy.shouldEndCall(callId, detectedType) || callId == null) return
+
+        removalJobs.remove(callId)?.cancel()
+        activeTranslations[callId]?.let { bridgeId ->
+            try {
+                NotificationManagerCompat.from(this).cancel(bridgeId)
+            } catch (_: Exception) {}
+        }
+        if (activeIslands.containsKey(callId)) {
+            cleanupCache(callId)
+        } else {
+            // Stage-hidden calls keep a session without an Island.
+            callSessionTracker.end(callId)
+            sourceToLogicalKeys.remove(sbn.key, callId)
+        }
+        Log.d(
+            TAG,
+            "CALL REMOVE reason=follow-up pkg=${sbn.packageName} sourceKey=${sbn.key.hashCode()} " +
+                    "logicalId=${callId.hashCode()} newType=$detectedType"
+        )
+        DiagnosticsStore.record(
+            classification = "CALL",
+            action = "removed",
+            packageName = sbn.packageName,
+            reason = "follow-up-not-a-call",
+            callState = CallState.ENDED.name
+        )
     }
 
     private fun suppressCallStagePresentation(
