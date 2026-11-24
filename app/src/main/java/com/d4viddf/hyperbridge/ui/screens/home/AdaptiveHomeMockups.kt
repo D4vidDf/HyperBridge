@@ -1223,6 +1223,7 @@ private fun MockSystemIntegrationCard(integration: SystemIntegrationInfo) {
         SystemIntegrationId.SYSTEM_UPDATER -> "System Updater" to Icons.Outlined.SystemUpdate
         SystemIntegrationId.VPN -> "VPN Status" to Icons.Rounded.VpnKey
         SystemIntegrationId.DEBUGGING -> "ADB Debugging" to Icons.Rounded.Android
+        SystemIntegrationId.PRIVACY_INDICATORS -> "Privacy Indicators" to Icons.Outlined.Videocam
     }
     Card(
         shape = RoundedCornerShape(18.dp),

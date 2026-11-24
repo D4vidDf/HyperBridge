@@ -44,12 +44,14 @@ import com.d4viddf.hyperbridge.models.WidgetConfig
 import com.d4viddf.hyperbridge.models.WidgetRenderMode
 import com.d4viddf.hyperbridge.models.translator.EngineMode
 import com.d4viddf.hyperbridge.service.call.CallActionSignal
+import com.d4viddf.hyperbridge.service.call.CallFollowUpPolicy
 import com.d4viddf.hyperbridge.service.call.CallNotificationClassifier
 import com.d4viddf.hyperbridge.service.call.CallNotificationSignals
 import com.d4viddf.hyperbridge.service.call.CallReplacementPolicy
 import com.d4viddf.hyperbridge.service.call.CallSession
 import com.d4viddf.hyperbridge.service.call.CallSessionInput
 import com.d4viddf.hyperbridge.service.call.CallSessionTracker
+import com.d4viddf.hyperbridge.service.call.CallState
 import com.d4viddf.hyperbridge.service.call.CallStageVisibilityPolicy
 import com.d4viddf.hyperbridge.service.diagnostics.DiagnosticsStore
 import com.d4viddf.hyperbridge.service.message.MessageEventFallbackTracker
@@ -73,6 +75,7 @@ import com.d4viddf.hyperbridge.service.recording.XiaomiScreenRecordingControlBac
 import com.d4viddf.hyperbridge.service.translators.CallTranslator
 import com.d4viddf.hyperbridge.service.translators.DownloadTranslator
 import com.d4viddf.hyperbridge.service.translators.DynamicTranslator
+import com.d4viddf.hyperbridge.service.translators.IslandFloatingPresentationPolicy
 import com.d4viddf.hyperbridge.service.translators.LiveUpdateTranslator
 import com.d4viddf.hyperbridge.service.translators.MediaTranslator
 import com.d4viddf.hyperbridge.service.translators.MessageTranslator
@@ -91,6 +94,7 @@ import com.d4viddf.hyperbridge.service.updater.SystemUpdaterClassifier
 import com.d4viddf.hyperbridge.service.vpn.VpnIslandController
 import com.d4viddf.hyperbridge.service.charging.ChargingIslandController
 import com.d4viddf.hyperbridge.service.debugging.DebuggingIslandController
+import com.d4viddf.hyperbridge.service.privacy.PrivacyIndicatorIslandController
 import com.d4viddf.hyperbridge.util.ShizukuManager
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
 import kotlinx.coroutines.CoroutineScope
@@ -182,6 +186,8 @@ class NotificationReaderService : NotificationListenerService() {
     private lateinit var chargingIslandController: ChargingIslandController
     @Volatile private var debuggingIslandActive = false
     private lateinit var debuggingIslandController: DebuggingIslandController
+    @Volatile private var privacyIndicatorIslandActive = false
+    private lateinit var privacyIndicatorIslandController: PrivacyIndicatorIslandController
     private val intentionallyRemovedKeys = ConcurrentHashMap<String, Long>()
     private val widgetUpdateDebouncer = ConcurrentHashMap<Int, Long>()
     private val dismissedWidgetIds = ConcurrentHashMap.newKeySet<Int>()
@@ -445,6 +451,17 @@ class NotificationReaderService : NotificationListenerService() {
             }
         )
         debuggingIslandController.start()
+        privacyIndicatorIslandController = PrivacyIndicatorIslandController(
+            this,
+            serviceScope,
+            preferences,
+            themeRepository,
+            onIslandActiveChanged = { active ->
+                privacyIndicatorIslandActive = active
+                updatePermanentIsland()
+            }
+        )
+        privacyIndicatorIslandController.start()
 
         serviceScope.launch { preferences.allowedPackagesFlow.collectLatest { allowedPackageSet = it } }
         serviceScope.launch { preferences.limitModeFlow.collectLatest { currentMode = it } }
@@ -1109,7 +1126,7 @@ class NotificationReaderService : NotificationListenerService() {
 
     private fun logStateChange(isLandscape: Boolean) {
         val orientation = if (isLandscape) "Landscape" else "Portrait"
-        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || vpnIslandActive || chargingIslandActive || debuggingIslandActive || nativeIslands.hasFresh() || permanentIslandManager.isIslandActive()
+        val isIslandExhibited = activeIslands.isNotEmpty() || activeWidgets.isNotEmpty() || vpnIslandActive || chargingIslandActive || debuggingIslandActive || privacyIndicatorIslandActive || nativeIslands.hasFresh() || permanentIslandManager.isIslandActive()
         val islandState = if (isIslandExhibited) "Showing Island" else "No Island"
         Log.d(TAG, "State: $orientation | $islandState")
     }
@@ -1119,7 +1136,9 @@ class NotificationReaderService : NotificationListenerService() {
      * it is not a native island: a media player gets the short window, anything else hides the
      * permanent island for as long as it is posted (see [NativeIslandYieldPolicy]).
      */
-    private fun nativeIslandYieldMs(sbn: StatusBarNotification): Long? {
+    private class NativeYield(val ms: Long, val live: Boolean)
+
+    private fun nativeIslandYield(sbn: StatusBarNotification): NativeYield? {
         val extras = sbn.notification.extras ?: return null
         val hasFocusParam = extras.containsKey("miui.focus.param") || extras.containsKey("miui.system.focus.param")
         val focusParam = if (hasFocusParam) {
@@ -1132,7 +1151,32 @@ class NotificationReaderService : NotificationListenerService() {
             extras.containsKey("miui.focus.param.media") ||
             template == "androidx.media.app.NotificationCompat\$MediaStyle" ||
             template == "android.app.Notification\$MediaStyle"
-        return NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaPlayer)
+        // A player that is playing has its island on screen for as long as it plays (#445); only
+        // a paused one loses it while the notification stays (#255).
+        val isMediaPlaying = isMediaPlayer && isMediaSessionPlaying(extras)
+        val ms = NativeIslandYieldPolicy.yieldMsFor(hasFocusParam, focusParam, isMediaPlayer, isMediaPlaying)
+            ?: return null
+        return NativeYield(ms, live = isMediaPlaying)
+    }
+
+    private fun isMediaSessionPlaying(extras: Bundle): Boolean {
+        val state = runCatching {
+            extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, MediaSession.Token::class.java)
+                ?.let { MediaController(this, it).playbackState?.state }
+        }.getOrNull() ?: return false
+        return state == PlaybackState.STATE_PLAYING ||
+            state == PlaybackState.STATE_BUFFERING ||
+            state == PlaybackState.STATE_FAST_FORWARDING ||
+            state == PlaybackState.STATE_REWINDING ||
+            state == PlaybackState.STATE_SKIPPING_TO_NEXT ||
+            state == PlaybackState.STATE_SKIPPING_TO_PREVIOUS ||
+            state == PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM
+    }
+
+    /** Notes or forgets one foreign notification. @return true when the yield state changed. */
+    private fun trackNativeIsland(sbn: StatusBarNotification): Boolean {
+        val nativeYield = nativeIslandYield(sbn)
+        return if (nativeYield != null) noteNativeIsland(sbn.key, nativeYield) else forgetNativeIsland(sbn.key)
     }
 
     /**
@@ -1140,10 +1184,10 @@ class NotificationReaderService : NotificationListenerService() {
      * event — nothing else re-evaluates the permanent island until the next sync tick (up to 60 s,
      * screen on only) — so the pill is re-asserted right after the last open window ends.
      */
-    private fun noteNativeIsland(key: String, yieldMs: Long): Boolean {
-        val firstSighting = nativeIslands.note(key, yieldMs)
-        if (firstSighting) rescheduleNativeYield()
-        return firstSighting
+    private fun noteNativeIsland(key: String, nativeYield: NativeYield): Boolean {
+        val changed = nativeIslands.note(key, nativeYield.ms, nativeYield.live)
+        if (changed) rescheduleNativeYield()
+        return changed
     }
 
     /**
@@ -1167,6 +1211,11 @@ class NotificationReaderService : NotificationListenerService() {
             }
             nativeYieldJob = serviceScope.launch {
                 delay((remaining + 1_000L).milliseconds)
+                // A player can start playing without re-posting its notification: look again
+                // before the pill comes back on top of a live island player (#445).
+                runCatching {
+                    activeNotifications?.forEach { if (it.packageName != packageName) trackNativeIsland(it) }
+                }
                 updatePermanentIsland()
             }
         }
@@ -1182,7 +1231,8 @@ class NotificationReaderService : NotificationListenerService() {
     private fun activeIslandCount(): Int = activeIslands.size + activeWidgets.size + controllerIslandCount()
 
     private fun controllerIslandCount(): Int =
-        (if (vpnIslandActive) 1 else 0) + (if (chargingIslandActive) 1 else 0) + (if (debuggingIslandActive) 1 else 0)
+        (if (vpnIslandActive) 1 else 0) + (if (chargingIslandActive) 1 else 0) + (if (debuggingIslandActive) 1 else 0) +
+            (if (privacyIndicatorIslandActive) 1 else 0)
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -1204,12 +1254,7 @@ class NotificationReaderService : NotificationListenerService() {
             if (::vpnIslandController.isInitialized) vpnIslandController.onSourceNotificationPosted(it)
             if (::debuggingIslandController.isInitialized) debuggingIslandController.onSourceNotificationPosted(it)
             if (it.packageName != packageName) {
-                val yieldMs = nativeIslandYieldMs(it)
-                if (yieldMs != null) {
-                    if (noteNativeIsland(it.key, yieldMs)) updatePermanentIsland()
-                } else {
-                    if (forgetNativeIsland(it.key)) updatePermanentIsland()
-                }
+                if (trackNativeIsland(it)) updatePermanentIsland()
             }
 
             enqueueSourceNotification(it)
@@ -1520,6 +1565,7 @@ class NotificationReaderService : NotificationListenerService() {
             val extras = sbn.notification.extras
             val resolvedContent = resolveNotificationContent(sbn)
             val typeBeforeRules = detectNotificationType(sbn)
+            endCallRewrittenAsFollowUp(sbn, typeBeforeRules)
 
             if (isJunkNotification(sbn, resolvedContent)) {
                 DiagnosticsStore.record(typeBeforeRules.name, "ignored", sbn.packageName, "junk-or-empty")
@@ -1824,7 +1870,12 @@ class NotificationReaderService : NotificationListenerService() {
                     hasProgress = hasProgress
                 )
                 config.copy(
-                    isFloat = matchedCustomTranslator?.behaviorOverride?.isFloat ?: config.isFloat,
+                    isFloat = IslandFloatingPresentationPolicy.configuredToFloat(
+                        isFloat = matchedCustomTranslator?.behaviorOverride?.isFloat ?: config.isFloat,
+                        noFloatInLandscape = config.noFloatInLandscape,
+                        isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE,
+                        isCall = type == NotificationType.CALL
+                    ),
                     isShowShade = matchedCustomTranslator?.behaviorOverride?.isShowShade ?: config.isShowShade,
                     timeout = updateResolvedTimeout,
                     floatTimeout = matchedCustomTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout
@@ -2102,7 +2153,9 @@ class NotificationReaderService : NotificationListenerService() {
                 data = data,
                 shouldAlertOnce = decision.onlyAlertOnce && !lockscreenStateChanged,
                 suppressContentIntent = isSavedScreenRecording,
-                lockscreenVisibility = bridgeVisibility
+                lockscreenVisibility = bridgeVisibility,
+                fallbackTitle = effectiveTitle,
+                fallbackText = effectiveText
             )
 
             expiredIslands.acceptNewGeneration(
@@ -2162,58 +2215,27 @@ class NotificationReaderService : NotificationListenerService() {
         }
     }
 
-    private fun isDownloadNotification(sbn: StatusBarNotification, title: String, text: String): Boolean {
-        val pkg = sbn.packageName.lowercase()
-        val titleLower = title.lowercase()
-        val textLower = text.lowercase()
-        val channelId = sbn.notification.channelId?.lowercase() ?: ""
-        
-        val isMatch = if (pkg.contains("download") || pkg.contains("downloader") || pkg.contains("chrome") || 
-            pkg.contains("browser") || pkg.contains("firefox") || pkg.contains("market") || 
-            pkg.contains("vending") || pkg.contains("play.store") || pkg.contains("playstore") || 
-            pkg.contains("store") || pkg.contains("fdroid") || pkg.contains("samsungapps") || 
-            pkg.contains("mipicks") || pkg.contains("venezia") || pkg.contains("packageinstaller") || 
-            pkg.contains("installer") || pkg.contains("gms") || pkg == SystemUpdaterClassifier.PACKAGE_NAME ||
-            channelId.contains("download") || channelId.contains("install")) {
-            true
-        } else {
-            val extras = sbn.notification.extras
-            val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.lowercase() ?: ""
-            val infoText = extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()?.lowercase() ?: ""
-            
-            val downloadKeywords = listOf(
-                // English
-                "download", "install", "update", "updat", "upload", "transfer",
-                // Spanish / Portuguese / Italian / French
-                "descarg", "baix", "telecharg", "instal", "actuali", "carg", "subi", "transf",
-                // German
-                "laden", "gelad", "aktualis",
-                // Polish
-                "pobier", "pobran", "aktual",
-                // Russian / Ukrainian
-                "скач", "загруз", "устан", "обнов"
-            )
-            downloadKeywords.any { 
-                titleLower.contains(it) || 
-                textLower.contains(it) || 
-                subText.contains(it) || 
-                infoText.contains(it) 
-            }
-        }
-
-        Log.d(TAG, "🔍 isDownloadNotification check: pkg=$pkg, channelId='$channelId', resolved=$isMatch")
-        return isMatch
-    }
-
-    private fun hasProgressNotification(sbn: StatusBarNotification, title: String, text: String): Boolean {
+    private fun downloadSignals(sbn: StatusBarNotification, title: String, text: String): DownloadNotificationClassifier.Signals {
         val extras = sbn.notification.extras
-        val isDownload = isDownloadNotification(sbn, title, text)
-        val isOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
-        return extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 ||
-                extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE) ||
-                (isDownload && extractTextPercentage(title, text) != null) ||
-                (isDownload && isOngoing)
+        return DownloadNotificationClassifier.Signals(
+            packageName = sbn.packageName,
+            channelId = sbn.notification.channelId,
+            title = title,
+            text = text,
+            subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: "",
+            infoText = extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString() ?: "",
+            progressMax = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0),
+            isIndeterminate = extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE),
+            isOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0,
+            textPercent = extractTextPercentage(title, text)
+        )
     }
+
+    private fun isDownloadNotification(sbn: StatusBarNotification, title: String, text: String): Boolean =
+        DownloadNotificationClassifier.isDownload(downloadSignals(sbn, title, text))
+
+    private fun hasProgressNotification(sbn: StatusBarNotification, title: String, text: String): Boolean =
+        DownloadNotificationClassifier.hasProgress(downloadSignals(sbn, title, text))
 
     private fun extractTextPercentage(title: String?, text: String?): Int? =
         TextPercentageExtractor.extract(title, text)
@@ -2289,6 +2311,44 @@ class NotificationReaderService : NotificationListenerService() {
         return person.key?.takeIf { it.isNotBlank() }
             ?: person.uri?.takeIf { it.isNotBlank() }
             ?: person.name?.toString()?.takeIf { it.isNotBlank() }
+    }
+
+    /**
+     * Instagram and Messenger turn the call notification into "Missed call" / "Call ended" on the
+     * same key instead of removing it. The call Island is keyed by its logical id, so the removal
+     * path and the periodic sync both still see a live source and the timer kept counting
+     * (#226, #387). Runs before the junk/empty/type filters so a follow-up that is never bridged
+     * still ends the call. Called under [notificationLifecycleMutex].
+     */
+    private fun endCallRewrittenAsFollowUp(sbn: StatusBarNotification, detectedType: NotificationType) {
+        val callId = callSessionTracker.logicalIdForSource(sbn.key)
+        if (!CallFollowUpPolicy.shouldEndCall(callId, detectedType) || callId == null) return
+
+        removalJobs.remove(callId)?.cancel()
+        activeTranslations[callId]?.let { bridgeId ->
+            try {
+                NotificationManagerCompat.from(this).cancel(bridgeId)
+            } catch (_: Exception) {}
+        }
+        if (activeIslands.containsKey(callId)) {
+            cleanupCache(callId)
+        } else {
+            // Stage-hidden calls keep a session without an Island.
+            callSessionTracker.end(callId)
+            sourceToLogicalKeys.remove(sbn.key, callId)
+        }
+        Log.d(
+            TAG,
+            "CALL REMOVE reason=follow-up pkg=${sbn.packageName} sourceKey=${sbn.key.hashCode()} " +
+                    "logicalId=${callId.hashCode()} newType=$detectedType"
+        )
+        DiagnosticsStore.record(
+            classification = "CALL",
+            action = "removed",
+            packageName = sbn.packageName,
+            reason = "follow-up-not-a-call",
+            callState = CallState.ENDED.name
+        )
     }
 
     private fun suppressCallStagePresentation(
@@ -2409,16 +2469,31 @@ class NotificationReaderService : NotificationListenerService() {
         data: HyperIslandData,
         shouldAlertOnce: Boolean,
         suppressContentIntent: Boolean = false,
-        lockscreenVisibility: Int? = null
+        lockscreenVisibility: Int? = null,
+        fallbackTitle: String = "",
+        fallbackText: String = ""
     ) {
+        val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
+        // Only visible where the Island is not drawn (#485); see IslandFallbackContentPolicy.
+        val showsSourceContent = IslandFallbackContentPolicy.showsSourceContent(
+            hasFocusPermission = hasPermission,
+            title = fallbackTitle,
+            text = fallbackText
+        )
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.notification_went_wrong))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(shouldAlertOnce)
+        if (showsSourceContent) {
+            builder.setContentTitle(fallbackTitle.ifBlank { getCachedAppLabel(sbn.packageName) })
+                .setContentText(fallbackText)
+                .setSubText(getCachedAppLabel(sbn.packageName))
+        } else {
+            builder.setContentTitle(getString(R.string.app_name))
+                .setContentText(getString(R.string.notification_went_wrong))
+        }
 
         val extras = Bundle()
         extras.putString(EXTRA_ORIGINAL_KEY, sbn.key)
@@ -2426,7 +2501,6 @@ class NotificationReaderService : NotificationListenerService() {
         builder.addExtras(data.resources)
         lockscreenVisibility?.let { builder.setVisibility(it) }
 
-        val hasPermission = com.d4viddf.hyperbridge.util.XiaomiNotificationHelper.hasFocusPermission(this)
         if (!hasPermission) {
             val intent = Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -2731,12 +2805,7 @@ class NotificationReaderService : NotificationListenerService() {
                 var nativeChanged = false
                 for (sbn in currentNotifications) {
                     if (sbn.packageName != packageName) {
-                        val yieldMs = nativeIslandYieldMs(sbn)
-                        if (yieldMs != null) {
-                            if (noteNativeIsland(sbn.key, yieldMs)) nativeChanged = true
-                        } else {
-                            if (forgetNativeIsland(sbn.key)) nativeChanged = true
-                        }
+                        if (trackNativeIsland(sbn)) nativeChanged = true
                     }
                 }
                 val currentNatives = nativeIslands.keys()
@@ -2818,6 +2887,7 @@ class NotificationReaderService : NotificationListenerService() {
                     if (id == ChargingIslandController.NOTIFICATION_ID) continue
                     if (id == ChargingIslandController.LOCKSCREEN_NOTIFICATION_ID) continue
                     if (id == DebuggingIslandController.NOTIFICATION_ID) continue
+                    if (id == PrivacyIndicatorIslandController.NOTIFICATION_ID) continue
                     if (id >= WIDGET_ID_BASE) continue
                     if (id in (WATCH_RELAY_ID_BASE - 0x0F)..WATCH_RELAY_ID_BASE) continue
                     if ((sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) continue
@@ -2862,6 +2932,7 @@ class NotificationReaderService : NotificationListenerService() {
         if (::vpnIslandController.isInitialized) vpnIslandController.stop()
         if (::chargingIslandController.isInitialized) chargingIslandController.stop()
         if (::debuggingIslandController.isInitialized) debuggingIslandController.stop()
+        if (::privacyIndicatorIslandController.isInitialized) privacyIndicatorIslandController.stop()
         unregisterReceiver(systemReceiver)
         unregisterReceiver(islandClickReceiver)
         syncJob?.cancel()

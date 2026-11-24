@@ -23,6 +23,16 @@ class NativeIslandYieldPolicyTest {
     }
 
     @Test
+    fun playingMediaPlayerHasNoTimeLimit() {
+        assertEquals(
+            NativeIslandYieldPolicy.UNBOUNDED_YIELD_MS,
+            NativeIslandYieldPolicy.yieldMsFor(
+                hasFocusParam = false, focusParam = null, isMediaPlayer = true, isMediaPlaying = true
+            )
+        )
+    }
+
+    @Test
     fun mediaPlayerWinsOverItsFocusParam() {
         // A player that also declares a long island (e.g. drag-to-share data) is still a player:
         // HyperOS drops its island on pause while the notification stays, so the short window applies.
