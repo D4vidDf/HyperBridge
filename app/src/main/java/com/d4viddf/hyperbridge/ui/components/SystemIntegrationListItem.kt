@@ -64,13 +64,15 @@ fun SystemIntegrationListItem(
                 } else if (
                     integration.id == SystemIntegrationId.VPN ||
                     integration.id == SystemIntegrationId.CHARGING ||
-                    integration.id == SystemIntegrationId.DEBUGGING
+                    integration.id == SystemIntegrationId.DEBUGGING ||
+                    integration.id == SystemIntegrationId.PRIVACY_INDICATORS
                 ) {
                     Icon(
                         painter = painterResource(
                             when (integration.id) {
                                 SystemIntegrationId.VPN -> R.drawable.ic_vpn
                                 SystemIntegrationId.DEBUGGING -> R.drawable.ic_debugging_adb
+                                SystemIntegrationId.PRIVACY_INDICATORS -> R.drawable.ic_privacy_indicator
                                 else -> R.drawable.ic_charging_bolt
                             }
                         ),
@@ -84,7 +86,7 @@ fun SystemIntegrationListItem(
                             SystemIntegrationId.SCREEN_RECORDER -> Icons.Outlined.Videocam
                             SystemIntegrationId.SYSTEM_UPDATER -> Icons.Outlined.SystemUpdate
                             SystemIntegrationId.VPN, SystemIntegrationId.CHARGING,
-                            SystemIntegrationId.DEBUGGING -> Icons.Outlined.Videocam
+                            SystemIntegrationId.DEBUGGING, SystemIntegrationId.PRIVACY_INDICATORS -> Icons.Outlined.Videocam
                         },
                         contentDescription = null,
                         modifier = Modifier.size(25.dp),
@@ -103,6 +105,7 @@ fun SystemIntegrationListItem(
                         SystemIntegrationId.VPN -> R.string.vpn_title
                         SystemIntegrationId.CHARGING -> R.string.charging_island_title
                         SystemIntegrationId.DEBUGGING -> R.string.debugging_island_title
+                        SystemIntegrationId.PRIVACY_INDICATORS -> R.string.privacy_island_title
                     }
                 ),
                 style = MaterialTheme.typography.titleMedium,
