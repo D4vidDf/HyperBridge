@@ -120,6 +120,7 @@ import com.d4viddf.hyperbridge.ui.components.FeaturedNotificationWarningBanner
 import com.d4viddf.hyperbridge.ui.screens.settings.AppConfigScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.ChargingSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.ScreenRecordingSettingsScreen
+import com.d4viddf.hyperbridge.ui.screens.settings.SystemToggleSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.SystemUpdateSettingsScreen
 import com.d4viddf.hyperbridge.ui.screens.settings.VpnSettingsScreen
 
@@ -629,6 +630,7 @@ private fun UnifiedAppsDetailContent(
             SystemIntegrationId.SYSTEM_UPDATER -> SystemUpdateSettingsScreen(onBack = onClose)
             SystemIntegrationId.CHARGING -> ChargingSettingsScreen(onBack = onClose)
             SystemIntegrationId.VPN -> VpnSettingsScreen(onBack = onClose)
+            SystemIntegrationId.SYSTEM_TOGGLES -> SystemToggleSettingsScreen(onBack = onClose)
             else -> {}
         }
     }
@@ -953,7 +955,8 @@ private fun ExpressiveSystemIntegrationCard(
                         integration.id == SystemIntegrationId.VPN ||
                         integration.id == SystemIntegrationId.CHARGING ||
                         integration.id == SystemIntegrationId.DEBUGGING ||
-                        integration.id == SystemIntegrationId.PRIVACY_INDICATORS
+                        integration.id == SystemIntegrationId.PRIVACY_INDICATORS ||
+                        integration.id == SystemIntegrationId.SYSTEM_TOGGLES
                     ) {
                         Icon(
                             painter = painterResource(
@@ -961,6 +964,7 @@ private fun ExpressiveSystemIntegrationCard(
                                     SystemIntegrationId.VPN -> R.drawable.ic_vpn
                                     SystemIntegrationId.DEBUGGING -> R.drawable.ic_debugging_adb
                                     SystemIntegrationId.PRIVACY_INDICATORS -> R.drawable.ic_privacy_indicator
+                                    SystemIntegrationId.SYSTEM_TOGGLES -> R.drawable.ic_system_toggles
                                     else -> R.drawable.ic_charging_bolt
                                 }
                             ),
@@ -994,6 +998,7 @@ private fun ExpressiveSystemIntegrationCard(
                             SystemIntegrationId.CHARGING -> R.string.charging_island_title
                             SystemIntegrationId.DEBUGGING -> R.string.debugging_island_title
                             SystemIntegrationId.PRIVACY_INDICATORS -> R.string.privacy_island_title
+                            SystemIntegrationId.SYSTEM_TOGGLES -> R.string.system_toggles_title
                         }
                     ),
                     style = MaterialTheme.typography.titleSmall,

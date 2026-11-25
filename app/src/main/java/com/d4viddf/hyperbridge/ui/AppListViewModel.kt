@@ -47,7 +47,7 @@ data class AppInfo(
 
 /** [hasSettings]: false for integrations that are just an on/off switch. */
 enum class SystemIntegrationId(val hasSettings: Boolean) {
-    SCREEN_RECORDER(true), VPN(true), SYSTEM_UPDATER(true), CHARGING(true), DEBUGGING(false), PRIVACY_INDICATORS(true)
+    SCREEN_RECORDER(true), VPN(true), SYSTEM_UPDATER(true), CHARGING(true), DEBUGGING(false), PRIVACY_INDICATORS(true), SYSTEM_TOGGLES(true)
 }
 
 data class SystemIntegrationInfo(
@@ -154,23 +154,27 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         val vpn: Boolean,
         val charging: Boolean,
         val debugging: Boolean,
-        val privacy: Boolean
+        val privacy: Boolean,
+        val systemToggles: Boolean
     )
 
-    /** Controller-owned islands (VPN, charging, debugging, privacy): just on/off switches in preferences. */
+    /** Controller-owned islands (VPN, charging, debugging, privacy, system toggles): just on/off switches in preferences. */
     private val controllerIslandsEnabled = combine(
         preferences.vpnIslandEnabledFlow,
         preferences.chargingIslandEnabledFlow,
         preferences.debuggingIslandEnabledFlow,
-        preferences.privacyIndicatorIslandEnabledFlow
-    ) { vpn, charging, debugging, privacy -> ControllerIslands(vpn, charging, debugging, privacy) }
+        preferences.privacyIndicatorIslandEnabledFlow,
+        preferences.systemTogglesIslandEnabledFlow
+    ) { vpn, charging, debugging, privacy, systemToggles ->
+        ControllerIslands(vpn, charging, debugging, privacy, systemToggles)
+    }
 
     val systemIntegrationsState: StateFlow<List<SystemIntegrationInfo>> = combine(
         preferences.allowedPackagesFlow,
         controllerIslandsEnabled,
         _screenRecorderIntegrationApp,
         _systemUpdaterIntegrationApp
-    ) { allowedPackages, (vpnEnabled, chargingEnabled, debuggingEnabled, privacyEnabled), recorderApp, updaterApp ->
+    ) { allowedPackages, (vpnEnabled, chargingEnabled, debuggingEnabled, privacyEnabled, systemTogglesEnabled), recorderApp, updaterApp ->
         listOf(
             SystemIntegrationInfo(
                 id = SystemIntegrationId.SCREEN_RECORDER,
@@ -210,6 +214,13 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             SystemIntegrationInfo(
                 id = SystemIntegrationId.PRIVACY_INDICATORS,
                 enabled = privacyEnabled,
+                available = true,
+                icon = null,
+                configurationApp = null
+            ),
+            SystemIntegrationInfo(
+                id = SystemIntegrationId.SYSTEM_TOGGLES,
+                enabled = systemTogglesEnabled,
                 available = true,
                 icon = null,
                 configurationApp = null
@@ -386,6 +397,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
                 SystemIntegrationId.CHARGING -> preferences.setChargingIslandEnabled(enabled)
                 SystemIntegrationId.DEBUGGING -> preferences.setDebuggingIslandEnabled(enabled)
                 SystemIntegrationId.PRIVACY_INDICATORS -> preferences.setPrivacyIndicatorIslandEnabled(enabled)
+                SystemIntegrationId.SYSTEM_TOGGLES -> preferences.setSystemTogglesIslandEnabled(enabled)
             }
         }
     }

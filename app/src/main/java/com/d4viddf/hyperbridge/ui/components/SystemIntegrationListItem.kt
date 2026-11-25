@@ -65,7 +65,8 @@ fun SystemIntegrationListItem(
                     integration.id == SystemIntegrationId.VPN ||
                     integration.id == SystemIntegrationId.CHARGING ||
                     integration.id == SystemIntegrationId.DEBUGGING ||
-                    integration.id == SystemIntegrationId.PRIVACY_INDICATORS
+                    integration.id == SystemIntegrationId.PRIVACY_INDICATORS ||
+                    integration.id == SystemIntegrationId.SYSTEM_TOGGLES
                 ) {
                     Icon(
                         painter = painterResource(
@@ -73,6 +74,7 @@ fun SystemIntegrationListItem(
                                 SystemIntegrationId.VPN -> R.drawable.ic_vpn
                                 SystemIntegrationId.DEBUGGING -> R.drawable.ic_debugging_adb
                                 SystemIntegrationId.PRIVACY_INDICATORS -> R.drawable.ic_privacy_indicator
+                                SystemIntegrationId.SYSTEM_TOGGLES -> R.drawable.ic_system_toggles
                                 else -> R.drawable.ic_charging_bolt
                             }
                         ),
@@ -86,7 +88,8 @@ fun SystemIntegrationListItem(
                             SystemIntegrationId.SCREEN_RECORDER -> Icons.Outlined.Videocam
                             SystemIntegrationId.SYSTEM_UPDATER -> Icons.Outlined.SystemUpdate
                             SystemIntegrationId.VPN, SystemIntegrationId.CHARGING,
-                            SystemIntegrationId.DEBUGGING, SystemIntegrationId.PRIVACY_INDICATORS -> Icons.Outlined.Videocam
+                            SystemIntegrationId.DEBUGGING, SystemIntegrationId.PRIVACY_INDICATORS,
+                            SystemIntegrationId.SYSTEM_TOGGLES -> Icons.Outlined.Videocam
                         },
                         contentDescription = null,
                         modifier = Modifier.size(25.dp),
@@ -106,6 +109,7 @@ fun SystemIntegrationListItem(
                         SystemIntegrationId.CHARGING -> R.string.charging_island_title
                         SystemIntegrationId.DEBUGGING -> R.string.debugging_island_title
                         SystemIntegrationId.PRIVACY_INDICATORS -> R.string.privacy_island_title
+                        SystemIntegrationId.SYSTEM_TOGGLES -> R.string.system_toggles_title
                     }
                 ),
                 style = MaterialTheme.typography.titleMedium,

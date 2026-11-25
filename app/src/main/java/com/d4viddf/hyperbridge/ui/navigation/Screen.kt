@@ -32,6 +32,7 @@ sealed interface Screen : NavKey {
     @Serializable data object ChargingCustomization : Screen
     @Serializable data object VpnCustomization : Screen
     @Serializable data object PrivacyIndicatorCustomization : Screen
+    @Serializable data object SystemTogglesCustomization : Screen
     @Serializable data object SmartActions : Screen
     @Serializable data object ProgressDiscountKeywords : Screen
     @Serializable data object FloatingSetup : Screen

@@ -88,6 +88,7 @@ fun HomeScreen(
     onChargingConfigClick: () -> Unit = {},
     onVpnConfigClick: () -> Unit = {},
     onPrivacyIndicatorConfigClick: () -> Unit = {},
+    onSystemTogglesConfigClick: () -> Unit = {},
     onAppConfigClick: (String) -> Unit = {},
     onNavConfigClick: (String) -> Unit = {},
     onCreateTranslatorForApp: (String) -> Unit = {},
@@ -699,6 +700,7 @@ fun HomeScreen(
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> onVpnConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.PRIVACY_INDICATORS -> onPrivacyIndicatorConfigClick()
+                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_TOGGLES -> onSystemTogglesConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                     }
                                 },
@@ -718,6 +720,7 @@ fun HomeScreen(
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.CHARGING -> onChargingConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.VPN -> onVpnConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.PRIVACY_INDICATORS -> onPrivacyIndicatorConfigClick()
+                                        com.d4viddf.hyperbridge.ui.SystemIntegrationId.SYSTEM_TOGGLES -> onSystemTogglesConfigClick()
                                         com.d4viddf.hyperbridge.ui.SystemIntegrationId.DEBUGGING -> {}
                                     }
                                 },
