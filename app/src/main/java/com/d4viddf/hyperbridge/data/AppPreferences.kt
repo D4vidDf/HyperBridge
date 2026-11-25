@@ -208,6 +208,33 @@ class AppPreferences internal constructor(
     suspend fun setDebuggingIslandEnabled(enabled: Boolean) = save("debugging_island_enabled", enabled.toString())
     suspend fun setPrivacyIndicatorIslandEnabled(enabled: Boolean) = save("privacy_indicator_island_enabled", enabled.toString())
     suspend fun setPrivacyIndicatorIslandAlwaysShow(enabled: Boolean) = save("privacy_indicator_island_always_show", enabled.toString())
+
+    val privacyIndicatorStyleFlow: Flow<com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle> =
+        dao.getSettingFlow(SettingsKeys.PRIVACY_INDICATOR_STYLE).map { value ->
+            value?.let { runCatching { com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle.valueOf(it) }.getOrNull() }
+                ?: com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle.ICON
+        }
+
+    val privacyIndicatorShowTextFlow: Flow<Boolean> =
+        dao.getSettingFlow(SettingsKeys.PRIVACY_INDICATOR_SHOW_TEXT).map { it?.toBooleanStrictOrNull() ?: true }
+
+    val privacyIndicatorDesignFlow: Flow<com.d4viddf.hyperbridge.models.PrivacyIndicatorDesignConfig> =
+        combine(
+            privacyIndicatorStyleFlow,
+            privacyIndicatorShowTextFlow
+        ) { style, showText ->
+            com.d4viddf.hyperbridge.models.PrivacyIndicatorDesignConfig(
+                style = style,
+                showText = showText
+            )
+        }
+
+    suspend fun setPrivacyIndicatorStyle(style: com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle) =
+        save(SettingsKeys.PRIVACY_INDICATOR_STYLE, style.name)
+
+    suspend fun setPrivacyIndicatorShowText(showText: Boolean) =
+        save(SettingsKeys.PRIVACY_INDICATOR_SHOW_TEXT, showText.toString())
+
     suspend fun setPriorityEduShown(shown: Boolean) = save(SettingsKeys.PRIORITY_EDU, shown.toString())
 
     val featuredPermissionWarningFlow: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.FEATURED_PERMISSION_WARNING).map { it.toBoolean(false) }
@@ -1159,6 +1186,19 @@ class AppPreferences internal constructor(
     fun getVpnProviderPrioritySync(): List<String> =
         memoryCache[SettingsKeys.VPN_PROVIDER_PRIORITY].deserializeList()
 
+    fun getPrivacyIndicatorStyleSync(): com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle =
+        memoryCache[SettingsKeys.PRIVACY_INDICATOR_STYLE]?.let {
+            runCatching { com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle.valueOf(it) }.getOrNull()
+        } ?: com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle.ICON
+
+    fun getPrivacyIndicatorShowTextSync(): Boolean =
+        memoryCache[SettingsKeys.PRIVACY_INDICATOR_SHOW_TEXT]?.toBooleanStrictOrNull() ?: true
+
+    fun getPrivacyIndicatorDesignSync(): com.d4viddf.hyperbridge.models.PrivacyIndicatorDesignConfig =
+        com.d4viddf.hyperbridge.models.PrivacyIndicatorDesignConfig(
+            style = getPrivacyIndicatorStyleSync(),
+            showText = getPrivacyIndicatorShowTextSync()
+        )
 
     companion object {
         const val SYSTEM_ISLAND_DEFAULT_TIMEOUT = 4

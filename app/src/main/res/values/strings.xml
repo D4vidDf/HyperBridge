@@ -841,6 +841,13 @@
     <string name="privacy_island_mic_and_camera">Mic &amp; camera</string>
     <string name="privacy_island_always_show">Always show</string>
     <string name="privacy_island_always_show_desc">Keep the island visible over full-screen apps like the camera and on the lock screen. It does not appear in the notification shade.</string>
+    <string name="privacy_island_indicator_style">Indicator style</string>
+    <string name="privacy_island_style_icon">Sensor icon</string>
+    <string name="privacy_island_style_icon_desc">Show microphone and camera icons</string>
+    <string name="privacy_island_style_dot">Colored dot</string>
+    <string name="privacy_island_style_dot_desc">Show a simple dot with the privacy color</string>
+    <string name="privacy_island_show_text">Show text</string>
+    <string name="privacy_island_show_text_desc">Display the sensor status text next to the indicator</string>
     <string name="charging_left_option_speed">Icon and charging speed</string>
     <string name="charging_left_option_remaining_time">Icon and remaining time</string>
     <string name="charging_left_option_percentage">Icon and battery percentage</string>

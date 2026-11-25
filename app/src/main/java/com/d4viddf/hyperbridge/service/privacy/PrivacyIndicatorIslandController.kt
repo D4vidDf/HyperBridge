@@ -28,6 +28,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+import com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle
+
 /**
  * Privacy indicators island: orange for the microphone, green for the camera. Like the VPN and
  * debugging islands it owns its notification. The signals need no permission: AudioManager
@@ -51,6 +53,8 @@ class PrivacyIndicatorIslandController(
     @Volatile private var enabled = false
     @Volatile private var microphoneActive = false
     @Volatile private var alwaysShow = false
+    @Volatile private var style = PrivacyIndicatorStyle.ICON
+    @Volatile private var showText = true
     private var callbacksRegistered = false
     private var refreshJob: Job? = null
     private var shownState: PrivacyIndicatorState? = null
@@ -82,6 +86,30 @@ class PrivacyIndicatorIslandController(
                 alwaysShow = show
                 // SystemUI reads islandProperty when the island is added, so a live island is
                 // withdrawn and posted again with the new value.
+                mutex.withLock {
+                    if (shownState == null) return@withLock
+                    NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+                    shownState = null
+                }
+                scheduleRefresh()
+            }
+        }
+        scope.launch {
+            preferences.privacyIndicatorStyleFlow.collectLatest { newStyle ->
+                if (newStyle == style) return@collectLatest
+                style = newStyle
+                mutex.withLock {
+                    if (shownState == null) return@withLock
+                    NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+                    shownState = null
+                }
+                scheduleRefresh()
+            }
+        }
+        scope.launch {
+            preferences.privacyIndicatorShowTextFlow.collectLatest { newShowText ->
+                if (newShowText == showText) return@collectLatest
+                showText = newShowText
                 mutex.withLock {
                     if (shownState == null) return@withLock
                     NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
@@ -176,6 +204,8 @@ class PrivacyIndicatorIslandController(
         val data = translator.translate(
             state = state,
             config = preferences.getGlobalConfigSync(),
+            style = style,
+            showText = showText,
             alwaysShow = alwaysShow
         )
         val builder = NotificationCompat.Builder(context, BridgeNotificationChannels.ACTIVE)
