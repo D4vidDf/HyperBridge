@@ -180,14 +180,25 @@ class SystemToggleTracker(
         return value != shown[toggle]
     }
 
+    /**
+     * Turns a held change into an event. [nowMillis], when given, drops a change that is already
+     * old: HyperOS can freeze the app between the change and this call (Greeze), and once it thaws
+     * the pending call would otherwise show a switch the user flipped minutes ago.
+     */
     @Synchronized
-    fun settle(toggle: SystemToggle): SystemToggleEvent? {
+    fun settle(toggle: SystemToggle, nowMillis: Long? = null): SystemToggleEvent? {
         val value = current[toggle] ?: return null
         if (value == shown[toggle]) return null
         shown[toggle] = value
         if (toggle !in enabled) return null
         if (isCausedByAnotherToggle(toggle)) return null
+        if (nowMillis != null && isStale(toggle, nowMillis)) return null
         return SystemToggleEvent(toggle, value)
+    }
+
+    private fun isStale(toggle: SystemToggle, nowMillis: Long): Boolean {
+        val at = changedAt[toggle] ?: return false
+        return nowMillis - at > STALE_AFTER_MILLIS
     }
 
     @Synchronized
@@ -209,6 +220,9 @@ class SystemToggleTracker(
         /** A change must hold this long before it shows, so a quick flip back and forth is dropped. */
         const val DEFAULT_SETTLE_MILLIS = 400L
         const val RINGER_SETTLE_MILLIS = 700L
+
+        /** A change still unsettled after this long (the app was frozen meanwhile) is not shown. */
+        const val STALE_AFTER_MILLIS = 2_000L
 
         /** How long the island stays up. */
         const val DISPLAY_MILLIS = 3_000L

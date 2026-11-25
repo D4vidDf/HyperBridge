@@ -78,6 +78,22 @@ class SystemToggleTrackerTest {
     }
 
     @Test
+    fun `a change settled on time shows`() {
+        val t = tracker(seeds = arrayOf(SystemToggle.AUTO_BRIGHTNESS to ToggleValue.ON))
+        assertTrue(t.submit(SystemToggle.AUTO_BRIGHTNESS, ToggleValue.OFF, 10_000))
+        assertEquals(ToggleValue.OFF, t.settle(SystemToggle.AUTO_BRIGHTNESS, 10_400)?.value)
+    }
+
+    @Test
+    fun `a change settled long after it happened (app was frozen) shows nothing`() {
+        val t = tracker(seeds = arrayOf(SystemToggle.AUTO_BRIGHTNESS to ToggleValue.ON))
+        assertTrue(t.submit(SystemToggle.AUTO_BRIGHTNESS, ToggleValue.OFF, 10_000))
+        assertNull(t.settle(SystemToggle.AUTO_BRIGHTNESS, 10_000 + 5 * 60_000))
+        // The stale value still becomes the known state, so it doesn't show later either.
+        assertNull(t.report(SystemToggle.AUTO_BRIGHTNESS, ToggleValue.OFF, 400_000))
+    }
+
+    @Test
     fun `several flips settle on the last value only`() {
         val t = tracker(seeds = arrayOf(SystemToggle.BATTERY_SAVER to ToggleValue.OFF))
         t.submit(SystemToggle.BATTERY_SAVER, ToggleValue.ON, 0)

@@ -177,7 +177,7 @@ class SystemToggleIslandController(
             settleJobs[toggle]?.cancel()
             settleJobs[toggle] = scope.launch {
                 delay(toggle.settleMillis)
-                val event = tracker.settle(toggle) ?: return@launch
+                val event = tracker.settle(toggle, SystemClock.elapsedRealtime()) ?: return@launch
                 mutex.withLock { if (enabled) render(event) }
             }
         }
