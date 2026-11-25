@@ -10,6 +10,7 @@ import com.d4viddf.hyperbridge.integration.xiaomi.KEYGUARD_ISLAND_PROPERTY
 import com.d4viddf.hyperbridge.integration.xiaomi.buildJsonParam
 import com.d4viddf.hyperbridge.models.HyperIslandData
 import com.d4viddf.hyperbridge.models.IslandConfig
+import com.d4viddf.hyperbridge.models.PrivacyIndicatorStyle
 import com.d4viddf.hyperbridge.service.privacy.PrivacyIndicatorKind
 import com.d4viddf.hyperbridge.service.privacy.PrivacyIndicatorState
 import io.github.d4viddf.hyperisland_kit.HyperIslandNotification
@@ -36,6 +37,8 @@ class PrivacyIndicatorTranslator(
     fun translate(
         state: PrivacyIndicatorState,
         config: IslandConfig,
+        style: PrivacyIndicatorStyle = PrivacyIndicatorStyle.ICON,
+        showText: Boolean = true,
         alwaysShow: Boolean = false
     ): HyperIslandData {
         val title = title()
@@ -56,7 +59,7 @@ class PrivacyIndicatorTranslator(
             expandedTimeMs = config.floatTimeout
         )
 
-        builder.addPicture(iconFor(state))
+        builder.addPicture(iconFor(state, style))
         builder.addPicture(getColoredPicture(PIC_BADGE_BLANK, R.drawable.ic_vpn_app_badge_blank, "#FFFFFF"))
 
         builder.setChatInfo(
@@ -69,7 +72,7 @@ class PrivacyIndicatorTranslator(
             left = ImageTextInfoLeft(
                 type = 1,
                 picInfo = PicInfo(type = 1, pic = PIC_ICON),
-                textInfo = TextInfo(title = text, content = "")
+                textInfo = TextInfo(title = if (showText) text else "", content = "")
             )
         )
         builder.setSmallIsland(PIC_ICON)
@@ -87,16 +90,28 @@ class PrivacyIndicatorTranslator(
         )
     }
 
-    private fun iconFor(state: PrivacyIndicatorState): HyperPicture = when (state.kind) {
-        PrivacyIndicatorKind.MICROPHONE ->
-            getColoredPicture(PIC_ICON, R.drawable.ic_privacy_mic, PrivacyIndicatorKind.MICROPHONE.colorHex)
-        PrivacyIndicatorKind.CAMERA ->
-            getColoredPicture(PIC_ICON, R.drawable.ic_privacy_camera, PrivacyIndicatorKind.CAMERA.colorHex)
-        // Two-tone drawable with its own colours: loaded without tinting.
-        PrivacyIndicatorKind.MICROPHONE_AND_CAMERA -> HyperPicture(
-            PIC_ICON,
-            ContextCompat.getDrawable(context, R.drawable.ic_privacy_mic_camera)!!.toBitmap(128, 128)
-        )
+    private fun iconFor(state: PrivacyIndicatorState, style: PrivacyIndicatorStyle): HyperPicture = when (style) {
+        PrivacyIndicatorStyle.DOT -> when (state.kind) {
+            PrivacyIndicatorKind.MICROPHONE ->
+                getColoredPicture(PIC_ICON, R.drawable.ic_privacy_dot, PrivacyIndicatorKind.MICROPHONE.colorHex)
+            PrivacyIndicatorKind.CAMERA ->
+                getColoredPicture(PIC_ICON, R.drawable.ic_privacy_dot, PrivacyIndicatorKind.CAMERA.colorHex)
+            PrivacyIndicatorKind.MICROPHONE_AND_CAMERA -> HyperPicture(
+                PIC_ICON,
+                ContextCompat.getDrawable(context, R.drawable.ic_privacy_dot_mic_camera)!!.toBitmap(128, 128)
+            )
+        }
+        PrivacyIndicatorStyle.ICON -> when (state.kind) {
+            PrivacyIndicatorKind.MICROPHONE ->
+                getColoredPicture(PIC_ICON, R.drawable.ic_privacy_mic, PrivacyIndicatorKind.MICROPHONE.colorHex)
+            PrivacyIndicatorKind.CAMERA ->
+                getColoredPicture(PIC_ICON, R.drawable.ic_privacy_camera, PrivacyIndicatorKind.CAMERA.colorHex)
+            // Two-tone drawable with its own colours: loaded without tinting.
+            PrivacyIndicatorKind.MICROPHONE_AND_CAMERA -> HyperPicture(
+                PIC_ICON,
+                ContextCompat.getDrawable(context, R.drawable.ic_privacy_mic_camera)!!.toBitmap(128, 128)
+            )
+        }
     }
 
     companion object {
