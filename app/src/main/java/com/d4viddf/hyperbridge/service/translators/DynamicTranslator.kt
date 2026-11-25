@@ -67,7 +67,8 @@ class DynamicTranslator(
         extractedMediaArtist: String? = null,
         extractedConversationTitle: String? = null,
         callSession: com.d4viddf.hyperbridge.service.call.CallSession? = null,
-        isKeyguardLocked: Boolean = false
+        isKeyguardLocked: Boolean = false,
+        isMediaSeek: Boolean = false
     ): HyperIslandData {
         // A TEMPLATE translator may only carry its templateId (imported .htrans, or one created
         // straight from the gallery), so fill the slots from the template preset before building.
@@ -138,8 +139,8 @@ class DynamicTranslator(
         )
 
         // 4. Build HyperIsland Base Config
-        val isFloat = config.isFloat ?: customTranslator.behaviorOverride.isFloat ?: false
-        val isShade = config.isShowShade ?: customTranslator.behaviorOverride.isShowShade ?: false
+        val isFloat = customTranslator.behaviorOverride.isFloat ?: config.isFloat ?: false
+        val isShade = customTranslator.behaviorOverride.isShowShade ?: config.isShowShade ?: false
         val defaultHighlight = if (customTranslator.presentation.progressSlot.type == ProgressSlotType.TIMER) "#FF9500" else "#007AFF"
         val highlightColor = if (customTranslator.themeBinding.overrideHighlightColor != null) {
             customTranslator.themeBinding.overrideHighlightColor
@@ -166,7 +167,7 @@ class DynamicTranslator(
             expandedTimeMs = customTranslator.behaviorOverride.floatTimeoutSeconds ?: config.floatTimeout
         )
         builder.setShowNotification(isShade)
-        if (!isUpdate) builder.setReopen(true)
+        if (!isUpdate || isMediaSeek) builder.setReopen(true)
 
         val hiddenKey = "hidden_pixel"
         builder.addPicture(getTransparentPicture(hiddenKey))
@@ -368,8 +369,8 @@ class DynamicTranslator(
 
         val isMedia = notif.extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
                 notif.extras.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true ||
+                notif.category == Notification.CATEGORY_TRANSPORT ||
                 customTranslator.presentation.templateId == "tpl_media_compact" ||
-                customTranslator.targetNotificationTypes.contains("MEDIA") ||
                 customTranslator.presentation.pill.leftDesign == com.d4viddf.hyperbridge.models.translator.PillLeftDesign.MEDIA ||
                 customTranslator.presentation.leftSlot.source in listOf("MEDIA", "ALBUM_ART", "ALBUM_ART_OR_APP_ICON")
 
@@ -710,6 +711,7 @@ class DynamicTranslator(
                 )
 
                 timerDigitOptions = SameWidthDigitOptions(
+                    digit = pillRightText.ifBlank { null },
                     timerType = timerType,
                     timerWhen = baseTime,
                     timerSystemCurrentMillis = now,
@@ -771,6 +773,7 @@ class DynamicTranslator(
                             val remainingMs = mediaResult.durationMs - mediaResult.currentMs
                             val targetTime = now + remainingMs
                             SameWidthDigitOptions(
+                                digit = pillRightText,
                                 timerType = -1,
                                 timerWhen = targetTime,
                                 timerSystemCurrentMillis = now,
@@ -779,6 +782,7 @@ class DynamicTranslator(
                         } else if (!isRemaining && mediaResult.currentMs != null && mediaResult.currentMs >= 0L) {
                             val startTime = now - mediaResult.currentMs
                             SameWidthDigitOptions(
+                                digit = pillRightText,
                                 timerType = 1,
                                 timerWhen = startTime,
                                 timerSystemCurrentMillis = now,
