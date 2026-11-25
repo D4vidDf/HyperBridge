@@ -1380,7 +1380,7 @@ class DynamicTranslator(
                         }
                         val pending = android.app.PendingIntent.getBroadcast(
                             context,
-                            key.hashCode(),
+                            customReplyRequestCode(sbn.key, act.id),
                             replyIntent,
                             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_MUTABLE
                         )
@@ -1602,6 +1602,15 @@ class DynamicTranslator(
                 null
             }
         }
+
+        /**
+         * Request code for a custom translator's inline reply button. It has to include the
+         * notification key: Intent.filterEquals ignores extras, so with the action id alone every
+         * island built by the same translator shares one PendingIntent, and FLAG_UPDATE_CURRENT
+         * points the older islands' reply buttons at the newest conversation.
+         */
+        internal fun customReplyRequestCode(sbnKey: String, actionId: String): Int =
+            "reply_${sbnKey.hashCode()}_custom_$actionId".hashCode()
 
         internal fun extractOtpFromText(text: String): String? {
             val regex = Regex("(?i)(?:code|código|otp|passcode|verification|security|seguridad|pin|验证码)(?:[\\w\\s]{0,25}?(?:is|es|:))?\\s*([0-9]{4,8})\\b")
