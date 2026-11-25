@@ -20,6 +20,7 @@ import com.d4viddf.hyperbridge.models.WidgetSize
 import com.d4viddf.hyperbridge.models.SmartActionType
 import com.d4viddf.hyperbridge.models.SmartActionsConfig
 import com.d4viddf.hyperbridge.models.AppSmartActionsOverride
+import com.d4viddf.hyperbridge.service.systemtoggles.SystemToggle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -197,6 +198,10 @@ class AppPreferences internal constructor(
     val debuggingIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("debugging_island_enabled").map { it.toBoolean(false) }
     val privacyIndicatorIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("privacy_indicator_island_enabled").map { it.toBoolean(false) }
     val privacyIndicatorIslandAlwaysShowFlow: Flow<Boolean> = dao.getSettingFlow("privacy_indicator_island_always_show").map { it.toBoolean(false) }
+    val systemTogglesIslandEnabledFlow: Flow<Boolean> = dao.getSettingFlow("system_toggles_island_enabled").map { it.toBoolean(false) }
+    /** The toggles that get an island. Every toggle until the user changes the list. */
+    val systemTogglesSelectionFlow: Flow<Set<SystemToggle>> = dao.getSettingFlow("system_toggles_selected")
+        .map { SystemToggle.parseSet(it) ?: SystemToggle.entries.toSet() }
     val isSetupComplete: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.SETUP_COMPLETE).map { it.toBoolean(false) }
     val lastSeenVersion: Flow<Int> = dao.getSettingFlow(SettingsKeys.LAST_VERSION).map { it.toInt(0) }
 
@@ -235,6 +240,11 @@ class AppPreferences internal constructor(
     suspend fun setPrivacyIndicatorShowText(showText: Boolean) =
         save(SettingsKeys.PRIVACY_INDICATOR_SHOW_TEXT, showText.toString())
 
+    suspend fun setSystemTogglesIslandEnabled(enabled: Boolean) = save("system_toggles_island_enabled", enabled.toString())
+    suspend fun setSystemToggleSelected(toggle: SystemToggle, selected: Boolean) {
+        val current = systemTogglesSelectionFlow.first()
+        save("system_toggles_selected", SystemToggle.serialize(if (selected) current + toggle else current - toggle))
+    }
     suspend fun setPriorityEduShown(shown: Boolean) = save(SettingsKeys.PRIORITY_EDU, shown.toString())
 
     val featuredPermissionWarningFlow: Flow<Boolean> = dao.getSettingFlow(SettingsKeys.FEATURED_PERMISSION_WARNING).map { it.toBoolean(false) }

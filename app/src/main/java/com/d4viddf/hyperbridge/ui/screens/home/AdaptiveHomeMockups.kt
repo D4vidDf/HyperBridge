@@ -1224,6 +1224,7 @@ private fun MockSystemIntegrationCard(integration: SystemIntegrationInfo) {
         SystemIntegrationId.VPN -> "VPN Status" to Icons.Rounded.VpnKey
         SystemIntegrationId.DEBUGGING -> "ADB Debugging" to Icons.Rounded.Android
         SystemIntegrationId.PRIVACY_INDICATORS -> "Privacy Indicators" to Icons.Outlined.Videocam
+        SystemIntegrationId.SYSTEM_TOGGLES -> "System Toggles" to Icons.Outlined.Videocam
     }
     Card(
         shape = RoundedCornerShape(18.dp),
