@@ -317,6 +317,23 @@ class IslandUpdateResolverTest {
         assertFalse(PermanentIslandVisibilityPolicy.desiredActive(false, 0, false, false, false))
     }
 
+    @Test
+    fun internalReplacementMarksBothOldAndNewBridgeIdsDuringTransition() {
+        val registry = InternalBridgeReplacementRegistry(ttlMs = 1000L, maxEntries = 10)
+        val oldBridgeId = 1000
+        val newBridgeId = 2000
+        val logicalKey = "conversation-a"
+        val gen = 1L
+        val now = 5000L
+
+        registry.mark(oldBridgeId, logicalKey, gen, now)
+        registry.mark(newBridgeId, logicalKey, gen, now)
+
+        assertEquals(logicalKey, registry.consume(oldBridgeId, now = 5010L)?.logicalId)
+        assertEquals(null, registry.consume(oldBridgeId, now = 5020L))
+        assertEquals(logicalKey, registry.consume(newBridgeId, now = 5030L)?.logicalId)
+    }
+
     private fun messageEvent(timestamp: Long, messageCount: Int): MessageEventFingerprint {
         return MessageEventFingerprint(
             source = MessageEventFingerprintSource.MESSAGING_STYLE,

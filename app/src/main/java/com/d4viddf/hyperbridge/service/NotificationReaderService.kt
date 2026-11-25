@@ -179,6 +179,7 @@ class NotificationReaderService : NotificationListenerService() {
     private val timeoutJobs = ConcurrentHashMap<String, Job>()
     private val removalJobs = ConcurrentHashMap<String, Job>()
     private val mediaProgressJobs = ConcurrentHashMap<String, Job>()
+    private val lastMediaPositions = ConcurrentHashMap<String, Pair<Long, Long>>()
     private lateinit var permanentIslandManager: PermanentIslandManager
     @Volatile private var vpnIslandActive = false
     private lateinit var vpnIslandController: VpnIslandController
@@ -285,9 +286,6 @@ class NotificationReaderService : NotificationListenerService() {
             for (island in islandsToUnlock) {
                 val sbn = island.sourceSbn ?: activeNotificationsOrNull()?.firstOrNull { it.key == island.sourceKey }
                 if (sbn != null) {
-                    try {
-                        NotificationManagerCompat.from(this@NotificationReaderService).cancel(island.id)
-                    } catch (_: Exception) {}
                     enqueueSourceNotification(sbn, recovery = true)
                 }
             }
@@ -895,6 +893,7 @@ class NotificationReaderService : NotificationListenerService() {
         activeTranslations.remove(originalKey)
         timeoutJobs.remove(originalKey)?.cancel()
         mediaProgressJobs.remove(originalKey)?.cancel()
+        lastMediaPositions.remove(originalKey)
         if (island?.type == NotificationType.CALL && !preserveCallSession) {
             callSessionTracker.end(island.logicalId)
         }
@@ -1878,7 +1877,10 @@ class NotificationReaderService : NotificationListenerService() {
                     ),
                     isShowShade = matchedCustomTranslator?.behaviorOverride?.isShowShade ?: config.isShowShade,
                     timeout = updateResolvedTimeout,
-                    floatTimeout = matchedCustomTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout
+                    floatTimeout = matchedCustomTranslator?.behaviorOverride?.floatTimeoutSeconds ?: config.floatTimeout,
+                    removeOriginalNotification = matchedCustomTranslator?.behaviorOverride?.removeOriginalNotification ?: config.removeOriginalNotification,
+                    dismissWithOriginal = matchedCustomTranslator?.behaviorOverride?.dismissWithOriginal ?: config.dismissWithOriginal,
+                    enableInlineReply = matchedCustomTranslator?.behaviorOverride?.enableInlineReply ?: config.enableInlineReply
                 )
             }
 
@@ -2008,6 +2010,28 @@ class NotificationReaderService : NotificationListenerService() {
             }
 
             // --- LAYERED CUSTOM ISLAND LOGIC ---
+            val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResolver.resolveMediaProgress(sbn, this)
+            val currentPosMs = mediaResult.currentMs
+            val isPlaying = mediaResult.isPlaying == true
+            var isMediaSeek = false
+            if (currentPosMs != null && isPlaying) {
+                val now = System.currentTimeMillis()
+                val last = lastMediaPositions[effectiveKey]
+                if (last != null) {
+                    val (lastPos, lastTime) = last
+                    val elapsed = now - lastTime
+                    val expectedPos = lastPos + elapsed
+                    val delta = Math.abs(currentPosMs - expectedPos)
+                    if (delta >= 3000L) {
+                        isMediaSeek = true
+                        Log.i(TAG, "MEDIA SEEK detected on $effectiveKey: expected ~$expectedPos ms, got $currentPosMs ms (delta=$delta ms)")
+                    }
+                }
+                lastMediaPositions[effectiveKey] = Pair(currentPosMs, now)
+            } else if (currentPosMs != null) {
+                lastMediaPositions[effectiveKey] = Pair(currentPosMs, System.currentTimeMillis())
+            }
+
             val picKey = "pic_${candidateBridgeId}"
             val data: HyperIslandData = if (matchedCustomTranslator != null) {
                 Log.i(TAG, " POSTING via Custom Translator '${matchedCustomTranslator.meta.name}' -> ID: $candidateBridgeId")
@@ -2052,7 +2076,8 @@ class NotificationReaderService : NotificationListenerService() {
                     extractedConversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString(),
                     extractedMediaArtist = mediaArtist,
                     callSession = callSession,
-                    isKeyguardLocked = isLocked
+                    isKeyguardLocked = isLocked,
+                    isMediaSeek = isMediaSeek
                 )
             } else if (isSystemUpdate) {
                 systemUpdateTranslator.translate(
@@ -2138,9 +2163,13 @@ class NotificationReaderService : NotificationListenerService() {
 
             val bridgeIdToUse = if (lockscreenStateChanged) candidateBridgeId else decision.bridgeId
 
-            if (decision.cancelBeforeNotify || lockscreenStateChanged) {
-                internalBridgeReplacements.mark(bridgeIdToUse, effectiveKey, processingGeneration, System.currentTimeMillis())
-                NotificationManagerCompat.from(this).cancel(previous?.id ?: bridgeIdToUse)
+            if (decision.cancelBeforeNotify || lockscreenStateChanged || isMediaSeek) {
+                val oldBridgeId = previous?.id ?: bridgeIdToUse
+                internalBridgeReplacements.mark(oldBridgeId, effectiveKey, processingGeneration, System.currentTimeMillis())
+                if (oldBridgeId != bridgeIdToUse) {
+                    internalBridgeReplacements.mark(bridgeIdToUse, effectiveKey, processingGeneration, System.currentTimeMillis())
+                }
+                NotificationManagerCompat.from(this).cancel(oldBridgeId)
                 if (previous != null && previous.id != bridgeIdToUse) {
                     reverseTranslations.remove(previous.id)
                 }
@@ -2151,7 +2180,7 @@ class NotificationReaderService : NotificationListenerService() {
                 sbn = sbn,
                 bridgeId = bridgeIdToUse,
                 data = data,
-                shouldAlertOnce = decision.onlyAlertOnce && !lockscreenStateChanged,
+                shouldAlertOnce = decision.onlyAlertOnce && !lockscreenStateChanged && !isMediaSeek,
                 suppressContentIntent = isSavedScreenRecording,
                 lockscreenVisibility = bridgeVisibility,
                 fallbackTitle = effectiveTitle,
