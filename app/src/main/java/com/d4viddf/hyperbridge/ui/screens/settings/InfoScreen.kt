@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,25 +23,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.LowPriority
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -70,23 +71,30 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.os.LocaleListCompat
 import com.d4viddf.hyperbridge.R
+import com.d4viddf.hyperbridge.ui.theme.HyperBridgeTheme
+import com.d4viddf.hyperbridge.util.DocumentationUrls
 import com.d4viddf.hyperbridge.util.parseBold
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun InfoScreen(
-    onBack: () -> Unit,
-    onSetupClick: () -> Unit,
-    onLicensesClick: () -> Unit,
-    onBehaviorClick: () -> Unit,
-    onGlobalSettingsClick: () -> Unit,
-    onHistoryClick: () -> Unit,
-    onBlocklistClick: () -> Unit,
-    onBackupClick: () -> Unit
+    onBack: () -> Unit = {},
+    onSetupClick: () -> Unit = {},
+    onLicensesClick: () -> Unit = {},
+    onBehaviorClick: () -> Unit = {},
+    onGlobalSettingsClick: () -> Unit = {},
+    onHistoryClick: () -> Unit = {},
+    onBlocklistClick: () -> Unit = {},
+    onBackupClick: () -> Unit = {},
+    onBugReportClick: () -> Unit = {},
+    onFloatingSetupClick: () -> Unit = {},
+    onDiagnosticsClick: () -> Unit = {},
+    showBackButton: Boolean = true,
+    selectedItemKey: String? = null
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -95,37 +103,43 @@ fun InfoScreen(
     var showLanguageDialog by remember { mutableStateOf(false) }
 
     val appVersion = remember {
-        try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0.0" }
-        catch (_: Exception) { "1.0.0" }
+        try { context.packageManager?.getPackageInfo(context.packageName, 0)?.versionName ?: "1.0.0" }
+        catch (_: Throwable) { "1.0.0" }
     }
 
     val appIconBitmap = remember(context) {
-        try { context.packageManager.getApplicationIcon(context.packageName).toBitmap().asImageBitmap() }
-        catch (_: Exception) { null }
+        try { context.packageManager?.getApplicationIcon(context.packageName)?.toBitmap()?.asImageBitmap() }
+        catch (_: Throwable) { null }
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = if (showBackButton) {
+            Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+        } else {
+            Modifier
+        },
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            MediumFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.settings), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+            if (showBackButton) {
+                MediumFlexibleTopAppBar(
+                    title = { Text(stringResource(R.string.settings), fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        FilledTonalIconButton(
+                            onClick = onBack,
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
                 )
-            )
+            }
         }
     ) { padding ->
         Column(
@@ -172,12 +186,51 @@ fun InfoScreen(
             // --- CONFIGURATION GROUP ---
             SettingsSection(
                 title = stringResource(R.string.group_configuration),
+                selectedKey = selectedItemKey,
                 items = listOf(
-                    SettingsItemData(Icons.Default.SettingsSuggest, stringResource(R.string.system_setup), stringResource(R.string.system_setup_subtitle), onSetupClick),
-                    SettingsItemData(Icons.Default.Tune, stringResource(R.string.island_behavior), stringResource(R.string.limit_strategy), onBehaviorClick),
-                    SettingsItemData(Icons.Default.Palette, stringResource(R.string.global_settings), stringResource(R.string.island_appearance), onGlobalSettingsClick),
-                    SettingsItemData(Icons.Default.Block, stringResource(R.string.blocked_terms), stringResource(R.string.spoiler_subtitle), onBlocklistClick),
-                    SettingsItemData(Icons.Default.Save, stringResource(R.string.backup_restore_title), stringResource(R.string.backup_section_title), onBackupClick)
+                    SettingsItemData(Icons.Default.Tune, stringResource(R.string.global_settings), stringResource(R.string.global_settings_desc), key = "GLOBAL_SETTINGS", onClick = onGlobalSettingsClick),
+                    SettingsItemData(Icons.Default.SettingsSuggest, stringResource(R.string.floating_setup_title), stringResource(R.string.floating_setup_settings_subtitle), key = "FLOATING_SETUP", onClick = onFloatingSetupClick),
+                    SettingsItemData(Icons.Default.LowPriority, stringResource(R.string.limit_strategy), stringResource(R.string.limit_desc), key = "BEHAVIOR", onClick = onBehaviorClick),
+                    SettingsItemData(Icons.Default.Block, stringResource(R.string.blocked_terms), stringResource(R.string.spoiler_subtitle), key = "GLOBAL_BLOCKLIST", onClick = onBlocklistClick),
+                    SettingsItemData(Icons.Default.Save, stringResource(R.string.backup_restore_title), stringResource(R.string.backup_section_title), key = "BACKUP", onClick = onBackupClick)
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- GUIDES GROUP ---
+            SettingsSection(
+                title = stringResource(R.string.group_guides),
+                selectedKey = selectedItemKey,
+                items = listOf(
+                    SettingsItemData(
+                        Icons.Default.SettingsSuggest,
+                        stringResource(R.string.system_setup),
+                        stringResource(R.string.system_setup_subtitle),
+                        key = "SETUP_HEALTH",
+                        onClick = onSetupClick
+                    ),
+                    SettingsItemData(
+                        Icons.AutoMirrored.Filled.MenuBook,
+                        stringResource(R.string.documentation_title),
+                        stringResource(R.string.documentation_subtitle)
+                    ) {
+                        uriHandler.openUri(DocumentationUrls.DOCS)
+                    },
+                    SettingsItemData(
+                        Icons.Default.Code,
+                        stringResource(R.string.diagnostics_title),
+                        stringResource(R.string.diagnostics_subtitle),
+                        key = "DIAGNOSTICS",
+                        onClick = onDiagnosticsClick
+                    ),
+                    SettingsItemData(
+                        Icons.Default.BugReport,
+                        stringResource(R.string.bug_report_title),
+                        stringResource(R.string.bug_report_entry_subtitle),
+                        key = "BUG_REPORT",
+                        onClick = onBugReportClick
+                    )
                 )
             )
 
@@ -186,12 +239,14 @@ fun InfoScreen(
             // --- ABOUT GROUP ---
             SettingsSection(
                 title = stringResource(R.string.group_about),
+                selectedKey = selectedItemKey,
                 items = listOf(
                     SettingsItemData(Icons.Default.Language, stringResource(R.string.language), stringResource(R.string.language_desc)) { showLanguageDialog = true },
                     SettingsItemData(Icons.Default.Person, stringResource(R.string.developer), stringResource(R.string.developer_subtitle)) { uriHandler.openUri("https://d4viddf.com") },
-                    SettingsItemData(Icons.Default.History, stringResource(R.string.version_history), "0.1.0 - $appVersion", onHistoryClick),
+                    SettingsItemData(Icons.Default.History, stringResource(R.string.version_history), "0.1.0 - $appVersion", key = "HISTORY", onClick = onHistoryClick),
                     SettingsItemData(Icons.Default.Code, stringResource(R.string.source_code), stringResource(R.string.source_code_subtitle)) { uriHandler.openUri("https://github.com/D4vidDf/HyperBridge") },
-                    SettingsItemData(Icons.Default.Description, stringResource(R.string.licenses), stringResource(R.string.licenses_subtitle), onLicensesClick)
+                    SettingsItemData(Icons.Default.Description, stringResource(R.string.licenses), stringResource(R.string.licenses_subtitle), key = "LICENSES", onClick = onLicensesClick),
+                    SettingsItemData(Icons.Default.Security, stringResource(R.string.privacy_policy_title), stringResource(R.string.privacy_policy_subtitle)) { uriHandler.openUri(DocumentationUrls.PRIVACY_POLICY) }
                 )
             )
 
@@ -200,6 +255,7 @@ fun InfoScreen(
             // --- SPECIAL THANKS ---
             SettingsSection(
                 title = stringResource(R.string.special_thanks),
+                selectedKey = selectedItemKey,
                 items = listOf(
                     SettingsItemData(
                         Icons.Default.Favorite,
@@ -207,9 +263,17 @@ fun InfoScreen(
                         stringResource(R.string.xmsf_workaround_credit_subtitle)
                     ) {
                         uriHandler.openUri("https://www.coolapk1s.com/feed/70418983")
+                    },
+                    SettingsItemData(
+                        Icons.Default.Favorite,
+                        stringResource(R.string.sykeptical_credit_title),
+                        stringResource(R.string.sykeptical_credit_subtitle)
+                    ) {
+                        uriHandler.openUri("https://github.com/SykepticalS")
                     }
                 )
             )
+
 
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -233,11 +297,16 @@ data class SettingsItemData(
     val icon: ImageVector,
     val title: String,
     val subtitle: String,
+    val key: String? = null,
     val onClick: () -> Unit
 )
 
 @Composable
-fun SettingsSection(title: String, items: List<SettingsItemData>) {
+fun SettingsSection(
+    title: String,
+    items: List<SettingsItemData>,
+    selectedKey: String? = null
+) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Text(
             text = title,
@@ -250,17 +319,30 @@ fun SettingsSection(title: String, items: List<SettingsItemData>) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             items.forEachIndexed { index, item ->
                 val shape = getSettingsShape(items.size, index)
-                SettingsOptionCard(item, shape)
+                val isSelected = item.key != null && item.key == selectedKey
+                SettingsOptionCard(item, shape, isSelected = isSelected)
             }
         }
     }
 }
 
 @Composable
-fun SettingsOptionCard(item: SettingsItemData, shape: Shape) {
+fun SettingsOptionCard(
+    item: SettingsItemData,
+    shape: Shape,
+    isSelected: Boolean = false
+) {
+    val containerColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
     Card(
         onClick = item.onClick,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else null,
         shape = shape,
         modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 72.dp)
     ) {
@@ -273,14 +355,26 @@ fun SettingsOptionCard(item: SettingsItemData, shape: Shape) {
             Icon(item.icon, null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                Text(item.subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    item.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                )
+                Text(
+                    item.subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             Icon(
                 Icons.AutoMirrored.Rounded.ArrowForwardIos,
                 null,
                 modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                tint = if (isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                }
             )
         }
     }
@@ -305,6 +399,7 @@ fun getSettingsShape(groupSize: Int, index: Int): Shape {
 fun LanguageSelectorDialog(onDismiss: () -> Unit) {
     val languages = mapOf(
         stringResource(R.string.system_default) to "",
+        "العربية" to "ar",
         "Bahasa Indonesia" to "id",
         "Čeština" to "cs",              // Added (Czech)
         "Deutsch" to "de",
@@ -381,4 +476,24 @@ fun LanguageSelectorDialog(onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InfoScreenPreview() {
+    HyperBridgeTheme {
+        InfoScreen(
+            onBack = {},
+            onSetupClick = {},
+            onLicensesClick = {},
+            onBehaviorClick = {},
+            onGlobalSettingsClick = {},
+            onHistoryClick = {},
+            onBlocklistClick = {},
+            onBackupClick = {},
+            onBugReportClick = {},
+            onFloatingSetupClick = {},
+            onDiagnosticsClick = {}
+        )
+    }
 }

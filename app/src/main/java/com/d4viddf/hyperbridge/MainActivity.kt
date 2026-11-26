@@ -26,9 +26,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
 import com.d4viddf.hyperbridge.data.AppPreferences
 import com.d4viddf.hyperbridge.data.db.AppDatabase
+import com.d4viddf.hyperbridge.service.ListenerWatchdog
+import com.d4viddf.hyperbridge.service.ServiceHealthNotifier
 import com.d4viddf.hyperbridge.ui.components.ChangelogSheet
 import com.d4viddf.hyperbridge.ui.navigation.Navigator
 import com.d4viddf.hyperbridge.ui.navigation.Screen
@@ -65,6 +67,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Access granted but listener not bound (process restarted, listener never rebound): ask once.
+        ListenerWatchdog.ensureBound(this)
+    }
 }
 
 @Composable
@@ -86,8 +94,9 @@ fun MainRootNavigation(onExit: () -> Unit) {
     val currentVersionCode = packageInfo?.longVersionCode?.toInt() ?: 0
     val currentVersionName = packageInfo?.versionName ?: "0.5.0"
 
-    val isSetupComplete by produceState<Boolean?>(initialValue = null) {
-        preferences.isSetupComplete.collect { value = it }
+    var isSetupComplete by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(Unit) {
+        preferences.isSetupComplete.collect { isSetupComplete = it }
     }
 
     if (isSetupComplete == null) {
@@ -124,12 +133,12 @@ private fun MainNavigationContent(
     val isInitiallySetup = remember { isSetupComplete }
     val lastSeenVersion by preferences.lastSeenVersion.collectAsState(initial = -1)
 
-    var showChangelog by remember { mutableStateOf(false) }
+    var showChangelog by rememberSaveable { mutableStateOf(false) }
     
     // Check for Troubleshoot Intent
     val activity = context as? AppCompatActivity
     val shouldOpenTroubleshoot = activity?.intent?.getBooleanExtra("open_troubleshoot", false) ?: false
-    var showTroubleshootDialog by remember { mutableStateOf(shouldOpenTroubleshoot) }
+    var showTroubleshootDialog by rememberSaveable { mutableStateOf(shouldOpenTroubleshoot) }
 
     val initialStartRoute = remember(isSetupComplete) { if (isSetupComplete) Screen.Home else Screen.Onboarding }
     val allPossibleTopLevel = remember(isSetupComplete) { setOf(Screen.Onboarding, Screen.Home) }
@@ -139,6 +148,15 @@ private fun MainNavigationContent(
         topLevelRoutes = allPossibleTopLevel
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
+
+    // Tapping the listener-down notification lands on Diagnostics (#330).
+    LaunchedEffect(navigator) {
+        val intent = activity?.intent ?: return@LaunchedEffect
+        if (isSetupComplete && intent.getBooleanExtra(ServiceHealthNotifier.EXTRA_OPEN_DIAGNOSTICS, false)) {
+            intent.removeExtra(ServiceHealthNotifier.EXTRA_OPEN_DIAGNOSTICS)
+            navigator.navigate(Screen.Diagnostics)
+        }
+    }
 
     LaunchedEffect(isSetupComplete, lastSeenVersion) {
         if (isSetupComplete && isInitiallySetup && lastSeenVersion != -1) {
@@ -154,7 +172,6 @@ private fun MainNavigationContent(
         preferences = preferences,
         navigator = navigator,
         backupManager = backupManager,
-        currentVersionCode = currentVersionCode,
         onExit = onExit
     )
 
@@ -212,7 +229,6 @@ private fun MainNavigationContent(
     if (showChangelog) {
         ChangelogSheet(
             currentVersionName = currentVersionName,
-            changelogText = stringResource(R.string.changelog_0_5_7),
             onDismiss = {
                 showChangelog = false
                 scope.launch {

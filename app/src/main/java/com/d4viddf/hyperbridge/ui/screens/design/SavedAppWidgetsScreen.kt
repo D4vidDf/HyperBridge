@@ -72,12 +72,13 @@ data class SavedWidgetGroup(
     val isExpanded: Boolean = false
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SavedAppWidgetsScreen(
     onBack: () -> Unit,
     onEditWidget: (Int) -> Unit,
-    onAddMore: () -> Unit
+    onAddMore: () -> Unit,
+    isDetailPane: Boolean = false
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -177,9 +178,17 @@ fun SavedAppWidgetsScreen(
         )
     }
 
+    val containerColor = if (isDetailPane) {
+        Color.Transparent
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
     Scaffold(
+        contentWindowInsets = if (isDetailPane) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
         topBar = {
             TopAppBar(
+                windowInsets = if (isDetailPane) WindowInsets(0, 0, 0, 0) else TopAppBarDefaults.windowInsets,
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.saved_widgets_title), fontWeight = FontWeight.Bold)
@@ -228,7 +237,10 @@ fun SavedAppWidgetsScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = containerColor,
+                    scrolledContainerColor = containerColor
+                )
             )
         },
         floatingActionButtonPosition = FabPosition.Center,
@@ -284,7 +296,7 @@ fun SavedAppWidgetsScreen(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = containerColor
     ) { padding ->
         Column(
             modifier = Modifier.padding(padding).fillMaxSize()

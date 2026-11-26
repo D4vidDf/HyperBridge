@@ -31,8 +31,26 @@ class ThemeRepository(private val context: Context) {
 
     private val themesDir = File(context.filesDir, "themes")
 
+    @Volatile
+    private var cachedThemes: List<HyperTheme>? = null
+
     init {
         if (!themesDir.exists()) themesDir.mkdirs()
+    }
+
+    /**
+     * Synchronously or quickly reads a theme by ID if it exists on disk.
+     */
+    fun getThemeById(themeId: String): HyperTheme? {
+        return try {
+            val themeFile = File(themesDir, "$themeId/theme_config.json")
+            if (themeFile.exists()) {
+                json.decodeFromString<HyperTheme>(themeFile.readText())
+            } else null
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to load theme by id $themeId", e)
+            null
+        }
     }
 
     /**
@@ -122,6 +140,28 @@ class ThemeRepository(private val context: Context) {
                     targetDir.deleteRecursively()
                 }
 
+                // 4. BUNDLED TRANSLATORS DISCOVERY & IMPORT
+                val translatorsDir = File(tempDir, "translators")
+                if (translatorsDir.exists() && translatorsDir.isDirectory) {
+                    try {
+                        val translatorRepo = com.d4viddf.hyperbridge.data.translator.TranslatorRepository(context)
+                        translatorsDir.walkTopDown().filter { it.isFile }.forEach { file ->
+                            if (file.extension.equals("htrans", ignoreCase = true) || file.extension.equals("json", ignoreCase = true)) {
+                                file.inputStream().use { stream ->
+                                    val result = translatorRepo.importTranslatorFromStream(stream)
+                                    if (result.isSuccess) {
+                                        Log.i(tag, "Bundled translator imported from theme: ${result.getOrNull()?.meta?.name}")
+                                    } else {
+                                        Log.w(tag, "Failed to import bundled translator: ${file.name}", result.exceptionOrNull())
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w(tag, "Error processing bundled translators in theme $finalId", e)
+                    }
+                }
+
                 // Move temp to final
                 if (!tempDir.renameTo(targetDir)) {
                     // Fallback if rename fails (filesystems differ)
@@ -129,6 +169,7 @@ class ThemeRepository(private val context: Context) {
                     tempDir.deleteRecursively()
                 }
 
+                cachedThemes = null
                 Log.i(tag, "Theme Installed Successfully: $finalId")
                 return@withContext finalId
 
@@ -206,7 +247,11 @@ class ThemeRepository(private val context: Context) {
     /**
      * Scans the internal themes folder and returns metadata for all installed themes.
      */
-    suspend fun getAvailableThemes(): List<HyperTheme> {
+    suspend fun getAvailableThemes(forceRefresh: Boolean = false): List<HyperTheme> {
+        val current = cachedThemes
+        if (!forceRefresh && current != null) {
+            return current
+        }
         return withContext(Dispatchers.IO) {
             val list = mutableListOf<HyperTheme>()
 
@@ -224,6 +269,7 @@ class ThemeRepository(private val context: Context) {
                     }
                 }
             }
+            cachedThemes = list
             return@withContext list
         }
     }
@@ -233,6 +279,7 @@ class ThemeRepository(private val context: Context) {
      */
     suspend fun deleteTheme(themeId: String) {
         withContext(Dispatchers.IO) {
+            cachedThemes = null
             val themeFolder = File(themesDir, themeId)
             if (themeFolder.exists()) {
                 themeFolder.deleteRecursively()
@@ -249,6 +296,7 @@ class ThemeRepository(private val context: Context) {
      */
     suspend fun saveTheme(theme: HyperTheme) {
         withContext(Dispatchers.IO) {
+            cachedThemes = null
             // Ensure folder exists
             val themeFolder = File(themesDir, theme.id)
             if (!themeFolder.exists()) themeFolder.mkdirs()
@@ -261,9 +309,9 @@ class ThemeRepository(private val context: Context) {
     }
 
     /**
-     * Zips the theme folder into a .hbr file for sharing.
+     * Zips the theme folder into a .htheme file for sharing.
      */
-    suspend fun exportTheme(themeId: String): File? {
+    suspend fun exportTheme(themeId: String, themeName: String? = null): File? {
         return withContext(Dispatchers.IO) {
             val sourceFolder = File(themesDir, themeId)
             if (!sourceFolder.exists()) return@withContext null
@@ -271,7 +319,18 @@ class ThemeRepository(private val context: Context) {
             val exportDir = File(context.cacheDir, "exports")
             if (!exportDir.exists()) exportDir.mkdirs()
 
-            val zipFile = File(exportDir, "${themeId}_v1.hbr")
+            val resolvedName = themeName?.takeIf { it.isNotBlank() } ?: runCatching {
+                val configFile = File(sourceFolder, "theme_config.json")
+                if (configFile.exists()) {
+                    json.decodeFromString<HyperTheme>(configFile.readText()).meta.name
+                } else null
+            }.getOrNull()?.takeIf { it.isNotBlank() } ?: themeId
+
+            val sanitizedName = sanitizeThemeFileName(resolvedName)
+            val zipFile = File(exportDir, "$sanitizedName.htheme")
+            if (zipFile.exists()) {
+                zipFile.delete()
+            }
             try {
                 java.util.zip.ZipOutputStream(java.io.FileOutputStream(zipFile)).use { zos ->
                     sourceFolder.walkTopDown().forEach { file ->
@@ -289,5 +348,19 @@ class ThemeRepository(private val context: Context) {
                 return@withContext null
             }
         }
+    }
+
+    suspend fun exportTheme(theme: HyperTheme): File? = exportTheme(theme.id, theme.meta.name)
+
+    private fun sanitizeThemeFileName(name: String): String {
+        return name
+            .removeSuffix(".htheme")
+            .removeSuffix(".hbr")
+            .trim()
+            .replace(Regex("[/\\\\?%*:|\"<>]"), "_")
+            .replace(Regex("\\s+"), "_")
+            .replace(Regex("_+"), "_")
+            .trim('_', '.')
+            .ifBlank { "hyperbridge_theme" }
     }
 }

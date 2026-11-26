@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,6 +54,8 @@ fun ImportPreviewScreen(
                 !it.key.endsWith("_blocked") &&
                 it.key != SettingsKeys.PRIORITY_ORDER
     }
+    val hasTranslators = !backupData.translators.isNullOrEmpty()
+    val hasCustomWidgets = !backupData.widgets.isNullOrEmpty()
 
     val formattedDate = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(Date(backupData.metadata.timestamp))
@@ -61,7 +65,9 @@ fun ImportPreviewScreen(
         mutableStateOf(BackupSelection(
             includeSettings = hasSettings,
             includeBlocklist = hasBlocklist,
-            includePriorities = hasPriorities
+            includePriorities = hasPriorities,
+            includeTranslators = hasTranslators,
+            includeCustomWidgets = hasCustomWidgets
         ))
     }
 
@@ -157,6 +163,38 @@ fun ImportPreviewScreen(
                 } else {
                     DisabledPreviewItem(stringResource(R.string.option_priorities) + stringResource(R.string.backup_empty_suffix))
                 }
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
+
+                // Translators
+                if (hasTranslators) {
+                    val count = backupData.translators.size
+                    PreviewCheckboxItem(
+                        title = stringResource(R.string.option_translators),
+                        subtitle = "$count ${stringResource(R.string.option_translators_count_suffix)}",
+                        icon = Icons.Outlined.Code,
+                        checked = selection.includeTranslators,
+                        onCheckedChange = { selection = selection.copy(includeTranslators = it) }
+                    )
+                } else {
+                    DisabledPreviewItem(stringResource(R.string.option_translators) + stringResource(R.string.backup_empty_suffix))
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
+
+                // Custom Widgets & Designs
+                if (hasCustomWidgets) {
+                    val count = backupData.widgets.size
+                    PreviewCheckboxItem(
+                        title = stringResource(R.string.option_custom_widgets),
+                        subtitle = "$count ${stringResource(R.string.option_custom_widgets_count_suffix)}",
+                        icon = Icons.Outlined.Widgets,
+                        checked = selection.includeCustomWidgets,
+                        onCheckedChange = { selection = selection.copy(includeCustomWidgets = it) }
+                    )
+                } else {
+                    DisabledPreviewItem(stringResource(R.string.option_custom_widgets) + stringResource(R.string.backup_empty_suffix))
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -168,7 +206,7 @@ fun ImportPreviewScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                enabled = selection.includeSettings || selection.includeBlocklist || selection.includePriorities
+                enabled = selection.includeSettings || selection.includeBlocklist || selection.includePriorities || selection.includeTranslators || selection.includeCustomWidgets
             ) {
                 Icon(Icons.Default.Restore, contentDescription = null)
                 Spacer(Modifier.width(8.dp))

@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Mic dot (orange) -->
+    <path
+        android:fillColor="#FFFF9500"
+        android:pathData="M7.5,12m-4,0a4,4 0 1,0 8,0a4,4 0 1,0 -8,0" />
+    <!-- Camera dot (green) -->
+    <path
+        android:fillColor="#FF34C759"
+        android:pathData="M16.5,12m-4,0a4,4 0 1,0 8,0a4,4 0 1,0 -8,0" />
+</vector>

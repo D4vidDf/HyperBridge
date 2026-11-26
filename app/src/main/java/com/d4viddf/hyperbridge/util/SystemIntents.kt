@@ -1,6 +1,7 @@
 package com.d4viddf.hyperbridge.util
 
 import android.annotation.SuppressLint
+import android.app.AppOpsManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -53,19 +54,61 @@ fun openBatterySettings(context: Context) {
 
 /**
  * Checks if Notification Listener permission is granted.
+ * Uses NotificationManagerCompat as primary source of truth, with fallback to Settings.Secure.
  */
 fun isNotificationServiceEnabled(context: Context): Boolean {
-    val pkgName = context.packageName
-    val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-    return flat != null && flat.contains(pkgName)
+    return try {
+        val enabledListeners = androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(context)
+        if (enabledListeners.contains(context.packageName)) {
+            return true
+        }
+
+        val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+        if (flat.isNullOrEmpty()) return false
+
+        val expectedComponent = ComponentName(context, com.d4viddf.hyperbridge.service.NotificationReaderService::class.java)
+        val expectedFlattened = expectedComponent.flattenToString()
+        val expectedShort = expectedComponent.flattenToShortString()
+
+        flat.split(":").any { entry ->
+            val unflattened = ComponentName.unflattenFromString(entry)
+            entry == expectedFlattened || entry == expectedShort || unflattened?.packageName == context.packageName
+        }
+    } catch (_: Throwable) {
+        false
+    }
 }
 
 /**
  * Checks if Post Notification permission (Android 13+) is granted.
  */
 fun isPostNotificationsEnabled(context: Context): Boolean {
-    return androidx.core.content.ContextCompat.checkSelfPermission(
+    return try {
+        androidx.core.content.ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.POST_NOTIFICATIONS
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    } catch (_: Throwable) {
+        false
+    }
+}
+
+/**
+ * Checks if restricted settings / restricted permissions are allowed (Android 13+).
+ * When an app is sideloaded, Android may restrict sensitive permissions until the user
+ * explicitly enables "Allow restricted settings" in App Info.
+ */
+@Suppress("DEPRECATION")
+fun isRestrictedSettingsAllowed(context: Context): Boolean {
+    return try {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager
+        val mode = appOps?.unsafeCheckOpNoThrow(
+            "android:access_restricted_settings",
+            android.os.Process.myUid(),
+            context.packageName
+        )
+        mode == AppOpsManager.MODE_ALLOWED
+    } catch (_: Throwable) {
+        true
+    }
 }

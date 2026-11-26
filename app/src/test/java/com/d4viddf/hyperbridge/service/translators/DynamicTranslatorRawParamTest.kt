@@ -1,0 +1,298 @@
+package com.d4viddf.hyperbridge.service.translators
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class DynamicTranslatorRawParamTest {
+
+    @Test
+    fun testFallbackCascadingInterpolation() {
+        val contextMap = mapOf(
+            "notif.title" to "",
+            "notif.text" to "Hello World",
+            "var.empty" to "",
+            "var.exists" to "Active Value"
+        )
+
+        // Empty title falls back to text
+        val res1 = DynamicTranslator.interpolateStatic("{notif.title | notif.text}", contextMap)
+        assertEquals("Hello World", res1)
+
+        // Non-empty exists wins over default
+        val res2 = DynamicTranslator.interpolateStatic("{var.exists ?: Default Value}", contextMap)
+        assertEquals("Active Value", res2)
+
+        // Empty var falls back to default literal
+        val res3 = DynamicTranslator.interpolateStatic("{var.empty ?: Fallback Literal}", contextMap)
+        assertEquals("Fallback Literal", res3)
+
+        // Missing variable cascades to literal
+        val res4 = DynamicTranslator.interpolateStatic("{var.nonexistent | var.also_missing ?: Final Fallback}", contextMap)
+        assertEquals("Final Fallback", res4)
+    }
+
+    @Test
+    fun testValidateOrNormalizeParamV2() {
+        val validJson = """
+            {
+              "param_v2": {
+                "bigIslandArea": {
+                  "title": "Order Update",
+                  "info": "Driver on the way"
+                }
+              }
+            }
+        """.trimIndent()
+
+        val normalized = DynamicTranslator.validateOrNormalizeParamV2(validJson)
+        assertNotNull(normalized)
+        assertTrue(normalized!!.contains("\"bigIslandArea\""))
+
+        val bareObjectJson = """
+            {
+              "bigIslandArea": {
+                "title": "Order Update",
+                "info": "Driver on the way"
+              }
+            }
+        """.trimIndent()
+
+        val wrapped = DynamicTranslator.validateOrNormalizeParamV2(bareObjectJson)
+        assertNotNull(wrapped)
+        assertTrue(wrapped!!.contains("\"param_v2\""))
+        assertTrue(wrapped.contains("\"bigIslandArea\""))
+
+        val invalidJson = "{ not valid json }"
+        val failed = DynamicTranslator.validateOrNormalizeParamV2(invalidJson)
+        assertNull(failed)
+    }
+
+    @Test
+    fun testFullParamV2JsonTemplateInterpolation() {
+        val template = "{\"param_v2\":{\"protocol\":1,\"business\":\"media\",\"enableFloat\":true,\"updatable\":true,\"ticker\":\"{notif.title}\",\"tickerPic\":\"miui.focus.pic_imageText\",\"aodTitle\":\"{notif.title}\",\"aodPic\":\"miui.focus.pic_imageText\",\"param_island\":{\"islandProperty\":1,\"bigIslandArea\":{\"imageTextInfoLeft\":{\"type\":1,\"picInfo\":{\"type\":1,\"pic\":\"miui.focus.pic_imageText\"},\"textInfo\":{\"title\":\"{notif.title}\",\"content\":\"{media.artist | notif.text}\"}},\"picInfo\":{\"type\":1,\"pic\":\"miui.focus.pic_imageText\"}},\"smallIslandArea\":{\"picInfo\":{\"type\":1,\"pic\":\"miui.focus.pic_imageText\"}}},\"baseInfo\":{\"type\":2,\"title\":\"{notif.title}\",\"subTitle\":\"{notif.subtext | 'YouTube'}\",\"content\":\"Playing\",\"subContent\":\"{media.artist | notif.text}\",\"pic\":\"miui.focus.pic_imageText\"},\"bgInfo\":{\"type\":2,\"color\":\"#1C1C1E\",\"pic\":\"miui.focus.pic_imageText\"}}}"
+
+        val variables = mapOf(
+            "notif.title" to "Hero",
+            "media.artist" to "David Kushner",
+            "notif.text" to "David Kushner"
+        )
+
+        val interpolated = DynamicTranslator.interpolateStatic(template, variables)
+        val validated = DynamicTranslator.validateOrNormalizeParamV2(interpolated)
+        assertNotNull("Validated JSON should not be null", validated)
+        assertTrue(validated!!.contains("\"Hero\""))
+        assertTrue(validated.contains("\"David Kushner\""))
+        assertTrue(validated.contains("\"YouTube\""))
+        assertTrue(validated.contains("\"param_island\""))
+        assertTrue(validated.contains("\"imageTextInfoLeft\""))
+    }
+
+    @Test
+    fun testMediaOrderResolution() {
+        val mediaTrack = "Blinding Lights"
+        val mediaArtist = "The Weeknd"
+
+        // Order: ARTIST before TRACK
+        val artistFirstOrder = listOf(
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST,
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK
+        )
+        val textArtistFirst = when (artistFirstOrder.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+        assertEquals("The Weeknd", textArtistFirst)
+
+        // Order: TRACK before ARTIST
+        val trackFirstOrder = listOf(
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK,
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST
+        )
+        val textTrackFirst = when (trackFirstOrder.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+        assertEquals("Blinding Lights", textTrackFirst)
+
+        // Order: ALBUM_COVER only
+        val albumCoverOnly = listOf(com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER)
+        val textAlbumCoverOnly = when (albumCoverOnly.firstOrNull { it != com.d4viddf.hyperbridge.models.translator.PillMediaItem.ALBUM_COVER }) {
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.ARTIST -> mediaArtist.ifBlank { mediaTrack }
+            com.d4viddf.hyperbridge.models.translator.PillMediaItem.TRACK -> mediaTrack.ifBlank { mediaArtist }
+            else -> ""
+        }
+        assertEquals("", textAlbumCoverOnly)
+    }
+
+    @Test
+    fun testMediaCounterElapsedDigitOptions() {
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResult(
+            progressPercent = 40,
+            currentFormatted = "01:20",
+            durationFormatted = "03:20",
+            remainingFormatted = "-02:00",
+            currentMs = 80_000L,
+            durationMs = 200_000L,
+            isPlaying = true
+        )
+
+        val pillConfig = com.d4viddf.hyperbridge.models.translator.CompactPillConfig(
+            mediaCounterMode = com.d4viddf.hyperbridge.models.translator.MediaCounterMode.ELAPSED
+        )
+
+        val isRemaining = pillConfig.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+        val isPlaying = mediaResult.isPlaying == true
+        val now = 1_000_000L
+
+        val options = if (isPlaying) {
+            if (isRemaining && mediaResult.durationMs != null && mediaResult.currentMs != null && mediaResult.durationMs > mediaResult.currentMs) {
+                val remainingMs = mediaResult.durationMs - mediaResult.currentMs
+                val targetTime = now + remainingMs
+                com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                    timerType = -1,
+                    timerWhen = targetTime,
+                    timerSystemCurrentMillis = now,
+                    showHighlightColor = true
+                )
+            } else if (!isRemaining && mediaResult.currentMs != null && mediaResult.currentMs >= 0L) {
+                val startTime = now - mediaResult.currentMs
+                com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                    timerType = 1,
+                    timerWhen = startTime,
+                    timerSystemCurrentMillis = now,
+                    showHighlightColor = true
+                )
+            } else null
+        } else null
+
+        assertNotNull(options)
+        assertEquals(1, options?.timerType)
+        assertEquals(now - 80_000L, options?.timerWhen)
+        assertEquals(now, options?.timerSystemCurrentMillis)
+    }
+
+    @Test
+    fun testMediaCounterRemainingDigitOptions() {
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResult(
+            progressPercent = 40,
+            currentFormatted = "01:20",
+            durationFormatted = "03:20",
+            remainingFormatted = "-02:00",
+            currentMs = 80_000L,
+            durationMs = 200_000L,
+            isPlaying = true
+        )
+
+        val pillConfig = com.d4viddf.hyperbridge.models.translator.CompactPillConfig(
+            mediaCounterMode = com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+        )
+
+        val isRemaining = pillConfig.mediaCounterMode == com.d4viddf.hyperbridge.models.translator.MediaCounterMode.REMAINING
+        val isPlaying = mediaResult.isPlaying == true
+        val now = 1_000_000L
+
+        val options = if (isPlaying) {
+            if (isRemaining && mediaResult.durationMs != null && mediaResult.currentMs != null && mediaResult.durationMs > mediaResult.currentMs) {
+                val remainingMs = mediaResult.durationMs - mediaResult.currentMs
+                val targetTime = now + remainingMs
+                com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                    timerType = -1,
+                    timerWhen = targetTime,
+                    timerSystemCurrentMillis = now,
+                    showHighlightColor = true
+                )
+            } else null
+        } else null
+
+        assertNotNull(options)
+        assertEquals(-1, options?.timerType)
+        assertEquals(now + 120_000L, options?.timerWhen)
+        assertEquals(now, options?.timerSystemCurrentMillis)
+    }
+
+    @Test
+    fun testMediaCounterPausedStaticDigitOptions() {
+        val mediaResult = com.d4viddf.hyperbridge.util.MediaProgressResult(
+            progressPercent = 40,
+            currentFormatted = "01:20",
+            durationFormatted = "03:20",
+            remainingFormatted = "-02:00",
+            currentMs = 80_000L,
+            durationMs = 200_000L,
+            isPlaying = false
+        )
+
+        val pillRightText = "01:20"
+        val isPlaying = mediaResult.isPlaying == true
+
+        val options = if (isPlaying) null else {
+            com.d4viddf.hyperbridge.integration.xiaomi.SameWidthDigitOptions(
+                digit = pillRightText,
+                showHighlightColor = true
+            )
+        }
+
+        assertNotNull(options)
+        assertEquals("01:20", options?.digit)
+        assertNull(options?.timerType)
+        assertNull(options?.timerWhen)
+    }
+
+    @Test
+    fun testFirstSeenTrackingAndTimerResolution() {
+        DynamicTranslator.clearFirstSeen()
+
+        val key = "com.discord|101|voice_channel|1000"
+        val t0 = 50_000L
+        val recorded = DynamicTranslator.noteFirstSeen(key, t0)
+        assertEquals(50_000L, recorded)
+
+        // Subsequent calls with newer timestamps must preserve initial recorded timestamp
+        val t1 = 55_000L
+        val preserved = DynamicTranslator.noteFirstSeen(key, t1)
+        assertEquals(50_000L, preserved)
+        assertEquals(50_000L, DynamicTranslator.getFirstSeen(key))
+
+        // When notification is removed, forget clears it
+        val removed = DynamicTranslator.forgetFirstSeen(key)
+        assertEquals(50_000L, removed)
+        assertNull(DynamicTranslator.getFirstSeen(key))
+    }
+
+    @Test
+    fun testTimerSlotConfigCountUpResolution() {
+        val timerConfig = com.d4viddf.hyperbridge.models.translator.TimerSlotConfig(
+            startMode = com.d4viddf.hyperbridge.models.translator.TimerStartMode.FIRST_SEEN,
+            direction = com.d4viddf.hyperbridge.models.translator.TimerDirection.COUNT_UP
+        )
+
+        val firstSeenTime = 100_000L
+        val now = 125_000L
+        val notifWhen = 0L
+
+        val baseTime = when (timerConfig.startMode) {
+            com.d4viddf.hyperbridge.models.translator.TimerStartMode.FIRST_SEEN -> firstSeenTime
+            com.d4viddf.hyperbridge.models.translator.TimerStartMode.NOTIFICATION_WHEN -> notifWhen.takeIf { it > 0 } ?: firstSeenTime
+            else -> firstSeenTime
+        }
+
+        val isCountdown = when (timerConfig.direction) {
+            com.d4viddf.hyperbridge.models.translator.TimerDirection.COUNT_DOWN -> true
+            com.d4viddf.hyperbridge.models.translator.TimerDirection.COUNT_UP -> false
+            com.d4viddf.hyperbridge.models.translator.TimerDirection.AUTO -> baseTime > now
+        }
+
+        val timerType = if (isCountdown) -1 else 1
+
+        assertEquals(100_000L, baseTime)
+        assertFalse(isCountdown)
+        assertEquals(1, timerType)
+    }
+}
+

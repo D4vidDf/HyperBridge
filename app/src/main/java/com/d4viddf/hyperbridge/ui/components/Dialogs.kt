@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -76,6 +78,7 @@ fun AppConfigBottomSheet(
     // --- UPDATED DATA LOADING ---
     val effectiveConfig by viewModel.getEffectiveAppConfigFlow(app.packageName).collectAsState(initial = null)
     val activeTypes = effectiveConfig?.activeTypes ?: emptySet()
+    val activeCallStages = effectiveConfig?.activeCallStages ?: com.d4viddf.hyperbridge.models.CallStage.entries.toSet()
     val isManagedByTheme = effectiveConfig?.isManagedByTheme == true
 
     val appIslandConfig by viewModel.getAppIslandConfig(app.packageName).collectAsState(initial = IslandConfig())
@@ -89,7 +92,7 @@ fun AppConfigBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val navEditDesc = stringResource(R.string.cd_nav_edit)
-    val activeDesc = stringResource(R.string.cd_app_state_active)
+    val activeDesc = stringResource(R.string.status_active)
     val inactiveDesc = stringResource(R.string.cd_app_state_inactive)
 
     ModalBottomSheet(
@@ -168,7 +171,7 @@ fun AppConfigBottomSheet(
 
                 // --- CARD 1: NOTIFICATION TYPES (New Dropdown) ---
                 // Count how many are active from the effective config
-                val activeCount = NotificationType.entries.toTypedArray().count { activeTypes.contains(it.name) }
+                val activeCount = NotificationType.configurableEntries.count { activeTypes.contains(it.name) }
                 val activeSubtitle = stringResource(R.string.active_notifications_subtitle, activeCount)
 
                 ExpandableSettingCard(
@@ -179,6 +182,7 @@ fun AppConfigBottomSheet(
                     NotificationTypesContent(
                         app = app,
                         activeTypes = activeTypes,
+                        activeCallStages = activeCallStages,
                         viewModel = viewModel,
                         onNavConfigClick = { onDismiss(); onNavConfigClick() },
                         navEditDesc = navEditDesc
@@ -246,12 +250,13 @@ fun AppConfigBottomSheet(
 fun NotificationTypesContent(
     app: AppInfo,
     activeTypes: Set<String>,
+    activeCallStages: Set<com.d4viddf.hyperbridge.models.CallStage>,
     viewModel: AppListViewModel,
     onNavConfigClick: () -> Unit,
     navEditDesc: String
 ) {
     Column {
-        NotificationType.entries.forEach { type ->
+        NotificationType.configurableEntries.forEach { type ->
             val isChecked = activeTypes.contains(type.name)
             val typeLabel = stringResource(type.labelRes)
             val switchDesc = if (isChecked) stringResource(R.string.cd_disable_type, typeLabel)
@@ -283,6 +288,57 @@ fun NotificationTypesContent(
                     onCheckedChange = { viewModel.updateAppConfig(app.packageName, type, it) },
                     modifier = Modifier.semantics { contentDescription = switchDesc }
                 )
+            }
+
+            if (type == NotificationType.CALL && isChecked) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, bottom = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.call_stage_settings),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.call_stage_settings_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    com.d4viddf.hyperbridge.models.CallStage.entries.forEach { stage ->
+                        val stageEnabled = stage in activeCallStages
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.updateAppCallStage(app.packageName, stage, !stageEnabled)
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(stage.labelRes),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = stringResource(stage.descriptionRes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Switch(
+                                checked = stageEnabled,
+                                onCheckedChange = {
+                                    viewModel.updateAppCallStage(app.packageName, stage, it)
+                                }
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -386,6 +442,85 @@ fun AppearanceSettingsContent(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp, start = 8.dp)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AllAppsConfigBottomSheet(
+    viewModel: AppListViewModel,
+    onDismiss: () -> Unit
+) {
+    val autoAddNewApps by viewModel.autoAddNewApps.collectAsState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+                .padding(horizontal = 16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Surface(
+                    modifier = Modifier.size(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.Apps,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    stringResource(R.string.bridge_all_apps),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.setAutoAddNewApps(!autoAddNewApps) }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.auto_add_new_apps_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = stringResource(R.string.auto_add_new_apps_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Switch(
+                    checked = autoAddNewApps,
+                    onCheckedChange = { viewModel.setAutoAddNewApps(it) }
+                )
+            }
         }
     }
 }
